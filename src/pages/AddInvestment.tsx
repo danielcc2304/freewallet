@@ -1,12 +1,13 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Search, Calendar, DollarSign, Hash, ArrowLeft, Check, AlertCircle, Edit3 } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
 import { searchSymbol } from '../services/apiService';
-import { addAsset, generateId } from '../services/storageService';
-import type { SearchResult, AssetType } from '../types/types';
+import { generateId } from '../services/storageService';
+import { usePortfolio } from '../context/PortfolioContext';
+import type { SearchResult, AssetType, Asset } from '../types/types';
 import './AddInvestment.css';
 
 interface FormData {
@@ -29,23 +30,31 @@ interface FormErrors {
 
 export function AddInvestment() {
     const navigate = useNavigate();
+    const location = useLocation();
+    const { addAsset, updateAsset } = usePortfolio();
+
+    // Check if we are in edit mode
+    const editAsset = location.state?.editAsset as Asset | undefined;
+    const isEditMode = !!editAsset;
+
     const [formData, setFormData] = useState<FormData>({
-        symbol: '',
-        name: '',
-        type: 'fund',
-        purchasePrice: '',
-        purchaseDate: new Date().toISOString().split('T')[0],
-        quantity: '',
-        isin: '',
+        symbol: editAsset?.symbol || '',
+        name: editAsset?.name || '',
+        type: editAsset?.type || 'fund',
+        purchasePrice: editAsset?.purchasePrice.toString() || '',
+        purchaseDate: editAsset?.purchaseDate || new Date().toISOString().split('T')[0],
+        quantity: editAsset?.quantity.toString() || '',
+        isin: editAsset?.isin || '',
     });
+
     const [errors, setErrors] = useState<FormErrors>({});
-    const [searchQuery, setSearchQuery] = useState('');
+    const [searchQuery, setSearchQuery] = useState(editAsset?.symbol || '');
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [showResults, setShowResults] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
-    const [manualMode, setManualMode] = useState(false);
+    const [manualMode, setManualMode] = useState(isEditMode); // Default to manual in edit mode
     const [noResultsFound, setNoResultsFound] = useState(false);
 
     // Detect if search query looks like an ISIN
@@ -54,8 +63,10 @@ export function AddInvestment() {
         return /^[A-Z]{2}[A-Z0-9]{10}$/i.test(query.trim());
     };
 
-    // Debounced search
+    // Debounced search - only if not in edit mode (or if user clears it)
     useEffect(() => {
+        if (isEditMode && searchQuery === editAsset?.symbol) return;
+
         const timer = setTimeout(async () => {
             if (searchQuery.length >= 2) {
                 setIsSearching(true);
@@ -73,12 +84,16 @@ export function AddInvestment() {
         }, 300);
 
         return () => clearTimeout(timer);
-    }, [searchQuery]);
+    }, [searchQuery, isEditMode, editAsset]);
 
     const handleSearchChange = (value: string) => {
         setSearchQuery(value);
-        setFormData(prev => ({ ...prev, symbol: value, name: '' }));
-        setManualMode(false);
+        setFormData(prev => ({ ...prev, symbol: value }));
+        // Only reset name if we are not editing or if the symbol changed significantly
+        if (!isEditMode) {
+            setFormData(prev => ({ ...prev, name: '' }));
+            setManualMode(false);
+        }
     };
 
     const handleSelectResult = (result: SearchResult) => {
@@ -162,26 +177,41 @@ export function AddInvestment() {
         setIsSubmitting(true);
 
         try {
-            const newAsset = {
-                id: generateId(),
-                symbol: formData.symbol.toUpperCase(),
-                name: formData.name || formData.symbol,
-                type: formData.type,
-                purchasePrice: parseFloat(formData.purchasePrice),
-                purchaseDate: formData.purchaseDate,
-                quantity: parseFloat(formData.quantity),
-                isin: formData.isin || undefined,
-                currentPrice: parseFloat(formData.purchasePrice), // Will be updated by API
-            };
+            if (isEditMode && editAsset) {
+                // Update existing asset
+                updateAsset(editAsset.id, {
+                    symbol: formData.symbol.toUpperCase(),
+                    name: formData.name || formData.symbol,
+                    type: formData.type,
+                    purchasePrice: parseFloat(formData.purchasePrice),
+                    purchaseDate: formData.purchaseDate,
+                    quantity: parseFloat(formData.quantity),
+                    isin: formData.isin || undefined,
+                });
+            } else {
+                // Add new asset
+                const newAsset: Asset = {
+                    id: generateId(),
+                    symbol: formData.symbol.toUpperCase(),
+                    name: formData.name || formData.symbol,
+                    type: formData.type,
+                    purchasePrice: parseFloat(formData.purchasePrice),
+                    purchaseDate: formData.purchaseDate,
+                    quantity: parseFloat(formData.quantity),
+                    isin: formData.isin || undefined,
+                    currentPrice: parseFloat(formData.purchasePrice), // Will be updated by API
+                    previousClose: parseFloat(formData.purchasePrice),
+                };
+                addAsset(newAsset);
+            }
 
-            addAsset(newAsset);
             setSubmitSuccess(true);
 
             setTimeout(() => {
                 navigate('/');
             }, 1500);
         } catch (error) {
-            console.error('Error adding asset:', error);
+            console.error('Error saving asset:', error);
         } finally {
             setIsSubmitting(false);
         }
@@ -203,8 +233,8 @@ export function AddInvestment() {
                             <div className="success-content__icon">
                                 <Check size={48} />
                             </div>
-                            <h2>¡Inversión Añadida!</h2>
-                            <p>{formData.name || formData.symbol} se ha añadido a tu portfolio</p>
+                            <h2>{isEditMode ? '¡Activo Actualizado!' : '¡Inversión Añadida!'}</h2>
+                            <p>{formData.name || formData.symbol} se ha {isEditMode ? 'actualizado' : 'añadido'} correctamente</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -226,8 +256,8 @@ export function AddInvestment() {
 
             <Card className="add-investment__form-card">
                 <CardHeader
-                    title="Añadir Inversión"
-                    subtitle="Introduce los datos de tu nueva inversión"
+                    title={isEditMode ? "Editar Inversión" : "Añadir Inversión"}
+                    subtitle={isEditMode ? "Modifica los datos de tu inversión" : "Introduce los datos de tu nueva inversión"}
                 />
                 <CardContent>
                     <form onSubmit={handleSubmit} className="add-investment__form">
@@ -241,6 +271,9 @@ export function AddInvestment() {
                                     onChange={(e) => handleSearchChange(e.target.value)}
                                     icon={<Search size={18} />}
                                     error={errors.symbol}
+                                    disabled={isEditMode} // Disable symbol editing in edit mode to prevent ID confusion? Or allow it? Let's allow but careful.
+                                // Actually usually we don't change symbol on edit, but maybe quantity/price.
+                                // User might want to fix a mistake though.
                                 />
                                 {showResults && searchResults.length > 0 && (
                                     <ul className="search-results">
@@ -261,7 +294,7 @@ export function AddInvestment() {
                                     <div className="search-loading">Buscando...</div>
                                 )}
                                 {/* No results found - show manual entry option */}
-                                {noResultsFound && !isSearching && searchQuery.length >= 2 && (
+                                {noResultsFound && !isSearching && searchQuery.length >= 2 && !isEditMode && (
                                     <div className="no-results">
                                         <AlertCircle size={18} />
                                         <div className="no-results__text">
@@ -285,7 +318,7 @@ export function AddInvestment() {
                                 )}
                             </div>
                             {/* Selected asset indicator */}
-                            {formData.name && !manualMode && (
+                            {formData.name && (
                                 <div className="selected-asset">
                                     <span className="selected-asset__symbol">{formData.symbol}</span>
                                     <span className="selected-asset__name">{formData.name}</span>
@@ -295,7 +328,7 @@ export function AddInvestment() {
                             {manualMode && (
                                 <div className="manual-mode-badge">
                                     <Edit3 size={14} />
-                                    <span>Modo manual - introduce los datos del activo</span>
+                                    <span>Modo manual</span>
                                 </div>
                             )}
                         </div>
@@ -412,7 +445,7 @@ export function AddInvestment() {
                                 loading={isSubmitting}
                                 disabled={isSubmitting}
                             >
-                                Añadir Inversión
+                                {isEditMode ? 'Guardar Cambios' : 'Añadir Inversión'}
                             </Button>
                         </div>
                     </form>

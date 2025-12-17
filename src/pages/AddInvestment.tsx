@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Calendar, DollarSign, Hash, ArrowLeft, Check, AlertCircle, Edit3 } from 'lucide-react';
+import { Search, Calendar, DollarSign, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
@@ -33,39 +33,44 @@ export function AddInvestment() {
     const location = useLocation();
     const { addAsset, updateAsset } = usePortfolio();
 
-    // Check if we are in edit mode
+    // Check modes
     const editAsset = location.state?.editAsset as Asset | undefined;
+    const dcaAsset = location.state?.dcaAsset as Asset | undefined;
+
     const isEditMode = !!editAsset;
+    const isDcaMode = !!dcaAsset;
+    const targetAsset = editAsset || dcaAsset;
 
     const [formData, setFormData] = useState<FormData>({
-        symbol: editAsset?.symbol || '',
-        name: editAsset?.name || '',
-        type: editAsset?.type || 'fund',
-        purchasePrice: editAsset?.purchasePrice.toString() || '',
-        purchaseDate: editAsset?.purchaseDate || new Date().toISOString().split('T')[0],
-        quantity: editAsset?.quantity.toString() || '',
-        isin: editAsset?.isin || '',
+        symbol: targetAsset?.symbol || '',
+        name: targetAsset?.name || '',
+        type: targetAsset?.type || 'fund',
+        // In DCA mode, start empty to ask for NEW purchase price. In Edit mode, show OLD price.
+        purchasePrice: isEditMode ? targetAsset?.purchasePrice.toString() || '' : '',
+        purchaseDate: new Date().toISOString().split('T')[0],
+        // In DCA mode, start empty. In Edit mode, show OLD quantity.
+        quantity: isEditMode ? targetAsset?.quantity.toString() || '' : '',
+        isin: targetAsset?.isin || '',
     });
 
     const [errors, setErrors] = useState<FormErrors>({});
-    const [searchQuery, setSearchQuery] = useState(editAsset?.symbol || '');
+    const [searchQuery, setSearchQuery] = useState(targetAsset?.symbol || '');
     const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
     const [isSearching, setIsSearching] = useState(false);
     const [showResults, setShowResults] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
-    const [manualMode, setManualMode] = useState(isEditMode); // Default to manual in edit mode
+    const [manualMode, setManualMode] = useState(!!targetAsset);
     const [noResultsFound, setNoResultsFound] = useState(false);
 
     // Detect if search query looks like an ISIN
     const isISIN = (query: string): boolean => {
-        // ISIN format: 2 letters + 10 alphanumeric characters (e.g., IE00BYX5NX33)
         return /^[A-Z]{2}[A-Z0-9]{10}$/i.test(query.trim());
     };
 
-    // Debounced search - only if not in edit mode (or if user clears it)
+    // Debounced search
     useEffect(() => {
-        if (isEditMode && searchQuery === editAsset?.symbol) return;
+        if ((isEditMode || isDcaMode) && searchQuery === targetAsset?.symbol) return;
 
         const timer = setTimeout(async () => {
             if (searchQuery.length >= 2) {
@@ -84,13 +89,12 @@ export function AddInvestment() {
         }, 300);
 
         return () => clearTimeout(timer);
-    }, [searchQuery, isEditMode, editAsset]);
+    }, [searchQuery, isEditMode, isDcaMode, targetAsset]);
 
     const handleSearchChange = (value: string) => {
         setSearchQuery(value);
         setFormData(prev => ({ ...prev, symbol: value }));
-        // Only reset name if we are not editing or if the symbol changed significantly
-        if (!isEditMode) {
+        if (!targetAsset) {
             setFormData(prev => ({ ...prev, name: '' }));
             setManualMode(false);
         }
@@ -111,14 +115,13 @@ export function AddInvestment() {
     };
 
     const handleManualEntry = () => {
-        // If it looks like an ISIN, set it in the ISIN field and use it as symbol
         const query = searchQuery.trim().toUpperCase();
         if (isISIN(query)) {
             setFormData(prev => ({
                 ...prev,
                 symbol: query,
                 isin: query,
-                type: 'fund', // ISINs are typically funds
+                type: 'fund',
             }));
         } else {
             setFormData(prev => ({
@@ -178,7 +181,7 @@ export function AddInvestment() {
 
         try {
             if (isEditMode && editAsset) {
-                // Update existing asset
+                // Update existing asset (Overwrite)
                 updateAsset(editAsset.id, {
                     symbol: formData.symbol.toUpperCase(),
                     name: formData.name || formData.symbol,
@@ -187,6 +190,23 @@ export function AddInvestment() {
                     purchaseDate: formData.purchaseDate,
                     quantity: parseFloat(formData.quantity),
                     isin: formData.isin || undefined,
+                });
+            } else if (isDcaMode && dcaAsset) {
+                // DCA Logic: Calculate weighted average
+                const newQty = parseFloat(formData.quantity);
+                const newPrice = parseFloat(formData.purchasePrice);
+                const oldQty = dcaAsset.quantity;
+                const oldAvgPrice = dcaAsset.purchasePrice;
+
+                const totalQty = oldQty + newQty;
+                // Calculate new average price: (OldVal + NewVal) / TotalQty
+                const totalCost = (oldQty * oldAvgPrice) + (newQty * newPrice);
+                const newAvgPrice = totalCost / totalQty;
+
+                updateAsset(dcaAsset.id, {
+                    quantity: totalQty,
+                    purchasePrice: newAvgPrice,
+                    purchaseDate: formData.purchaseDate,
                 });
             } else {
                 // Add new asset
@@ -199,7 +219,7 @@ export function AddInvestment() {
                     purchaseDate: formData.purchaseDate,
                     quantity: parseFloat(formData.quantity),
                     isin: formData.isin || undefined,
-                    currentPrice: parseFloat(formData.purchasePrice), // Will be updated by API
+                    currentPrice: parseFloat(formData.purchasePrice),
                     previousClose: parseFloat(formData.purchasePrice),
                 };
                 addAsset(newAsset);
@@ -233,14 +253,30 @@ export function AddInvestment() {
                             <div className="success-content__icon">
                                 <Check size={48} />
                             </div>
-                            <h2>{isEditMode ? '¡Activo Actualizado!' : '¡Inversión Añadida!'}</h2>
-                            <p>{formData.name || formData.symbol} se ha {isEditMode ? 'actualizado' : 'añadido'} correctamente</p>
+                            <h2>
+                                {isEditMode ? '¡Activo Actualizado!' :
+                                    isDcaMode ? '¡Compra Añadida!' : '¡Inversión Añadida!'}
+                            </h2>
+                            <p>{formData.name || formData.symbol} se ha {isEditMode ? 'actualizado' :
+                                (isDcaMode ? 'promediado' : 'añadido')} correctamente</p>
                         </div>
                     </CardContent>
                 </Card>
             </div>
         );
     }
+
+    const getPageTitle = () => {
+        if (isEditMode) return "Editar Inversión";
+        if (isDcaMode) return "Añadir Compra (DCA)";
+        return "Añadir Inversión";
+    };
+
+    const getPageSubtitle = () => {
+        if (isEditMode) return "Modifica los datos de tu inversión";
+        if (isDcaMode) return "Promedia tu precio de compra añadiendo más cantidad";
+        return "Introduce los datos de tu nueva inversión";
+    };
 
     return (
         <div className="add-investment">
@@ -256,11 +292,38 @@ export function AddInvestment() {
 
             <Card className="add-investment__form-card">
                 <CardHeader
-                    title={isEditMode ? "Editar Inversión" : "Añadir Inversión"}
-                    subtitle={isEditMode ? "Modifica los datos de tu inversión" : "Introduce los datos de tu nueva inversión"}
+                    title={getPageTitle()}
+                    subtitle={getPageSubtitle()}
                 />
                 <CardContent>
                     <form onSubmit={handleSubmit} className="add-investment__form">
+
+                        {/* DCA Current Position Info */}
+                        {isDcaMode && dcaAsset && (
+                            <div className="dca-info-box" style={{
+                                background: 'var(--bg-tertiary)',
+                                padding: '1rem',
+                                borderRadius: 'var(--radius-md)',
+                                marginBottom: '1.5rem',
+                                borderLeft: '4px solid var(--accent-primary)'
+                            }}>
+                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                                    <TrendingUp size={16} color="var(--accent-primary)" />
+                                    Posición Actual
+                                </h4>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                                    <div>
+                                        <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Cantidad Total</span>
+                                        <p style={{ fontWeight: '600', fontSize: '1.125rem' }}>{dcaAsset.quantity}</p>
+                                    </div>
+                                    <div>
+                                        <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Precio Medio</span>
+                                        <p style={{ fontWeight: '600', fontSize: '1.125rem' }}>{dcaAsset.purchasePrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Symbol / ISIN Search */}
                         <div className="form-group form-group--search">
                             <label className="form-label">Símbolo o ISIN</label>
@@ -271,9 +334,7 @@ export function AddInvestment() {
                                     onChange={(e) => handleSearchChange(e.target.value)}
                                     icon={<Search size={18} />}
                                     error={errors.symbol}
-                                    disabled={isEditMode} // Disable symbol editing in edit mode to prevent ID confusion? Or allow it? Let's allow but careful.
-                                // Actually usually we don't change symbol on edit, but maybe quantity/price.
-                                // User might want to fix a mistake though.
+                                    disabled={isEditMode || isDcaMode}
                                 />
                                 {showResults && searchResults.length > 0 && (
                                     <ul className="search-results">
@@ -294,14 +355,14 @@ export function AddInvestment() {
                                     <div className="search-loading">Buscando...</div>
                                 )}
                                 {/* No results found - show manual entry option */}
-                                {noResultsFound && !isSearching && searchQuery.length >= 2 && !isEditMode && (
+                                {noResultsFound && !isSearching && searchQuery.length >= 2 && !targetAsset && (
                                     <div className="no-results">
                                         <AlertCircle size={18} />
                                         <div className="no-results__text">
                                             <p>No se encontró "{searchQuery}"</p>
                                             <span>
                                                 {isISIN(searchQuery)
-                                                    ? 'Los fondos europeos con ISIN no están en la base de datos, pero puedes añadirlo manualmente.'
+                                                    ? 'ISIN no encontrado en la base de datos, pero puedes añadirlo manualmente.'
                                                     : 'Puedes añadir este activo manualmente.'}
                                             </span>
                                         </div>
@@ -324,13 +385,6 @@ export function AddInvestment() {
                                     <span className="selected-asset__name">{formData.name}</span>
                                 </div>
                             )}
-                            {/* Manual mode indicator */}
-                            {manualMode && (
-                                <div className="manual-mode-badge">
-                                    <Edit3 size={14} />
-                                    <span>Modo manual</span>
-                                </div>
-                            )}
                         </div>
 
                         {/* Name field - only shown in manual mode */}
@@ -342,6 +396,7 @@ export function AddInvestment() {
                                     value={formData.name}
                                     onChange={(e) => handleInputChange('name', e.target.value)}
                                     error={errors.name}
+                                    disabled={isDcaMode} // Disable name edit in DCA mode
                                 />
                             </div>
                         )}
@@ -357,6 +412,7 @@ export function AddInvestment() {
                                         className={`asset-type-btn ${formData.type === type.value ? 'asset-type-btn--active' : ''
                                             }`}
                                         onClick={() => handleInputChange('type', type.value)}
+                                        disabled={isDcaMode && formData.type !== type.value} // Disable changing type in DCA
                                     >
                                         {type.label}
                                     </button>
@@ -368,7 +424,7 @@ export function AddInvestment() {
                         <div className="form-row">
                             <div className="form-group">
                                 <Input
-                                    label="Precio de Compra (€)"
+                                    label={isDcaMode ? "Precio de NUEVA Compra (€)" : "Precio de Compra (€)"}
                                     type="number"
                                     step="0.01"
                                     min="0"
@@ -382,7 +438,7 @@ export function AddInvestment() {
 
                             <div className="form-group">
                                 <Input
-                                    label="Cantidad"
+                                    label={isDcaMode ? "Cantidad a AÑADIR" : "Cantidad"}
                                     type="number"
                                     step="0.0001"
                                     min="0"
@@ -445,7 +501,8 @@ export function AddInvestment() {
                                 loading={isSubmitting}
                                 disabled={isSubmitting}
                             >
-                                {isEditMode ? 'Guardar Cambios' : 'Añadir Inversión'}
+                                {isEditMode ? 'Guardar Cambios' :
+                                    isDcaMode ? 'Añadir Compra' : 'Añadir Inversión'}
                             </Button>
                         </div>
                     </form>

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ArrowUpDown, Trash2, ChevronUp, ChevronDown, Pencil } from 'lucide-react';
+import { ArrowUpDown, Trash2, ChevronUp, ChevronDown, Pencil, PlusCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { ConfirmDialog } from '../ui/Modal';
@@ -10,12 +10,13 @@ interface AssetsTableProps {
     assets: Asset[];
     onDelete?: (id: string) => void;
     onEdit?: (asset: Asset) => void;
+    onAddPurchase?: (asset: Asset) => void;
 }
 
 type SortKey = 'symbol' | 'value' | 'change' | 'weight';
 type SortDirection = 'asc' | 'desc';
 
-export function AssetsTable({ assets, onDelete, onEdit }: AssetsTableProps) {
+export function AssetsTable({ assets, onDelete, onEdit, onAddPurchase }: AssetsTableProps) {
     const [sortKey, setSortKey] = useState<SortKey>('value');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -153,7 +154,7 @@ export function AssetsTable({ assets, onDelete, onEdit }: AssetsTableProps) {
                                     <th onClick={() => handleSort('weight')}>
                                         Peso <SortIcon column="weight" />
                                     </th>
-                                    {(onDelete || onEdit) && <th>Acciones</th>}
+                                    {(onDelete || onEdit || onAddPurchase) && <th>Acciones</th>}
                                 </tr>
                             </thead>
                             <tbody>
@@ -197,9 +198,18 @@ export function AssetsTable({ assets, onDelete, onEdit }: AssetsTableProps) {
                                                 <span>{asset.weight.toFixed(1)}%</span>
                                             </div>
                                         </td>
-                                        {(onDelete || onEdit) && (
+                                        {(onDelete || onEdit || onAddPurchase) && (
                                             <td>
                                                 <div className="assets-table__actions">
+                                                    {onAddPurchase && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={() => onAddPurchase(asset)}
+                                                            icon={<PlusCircle size={16} />}
+                                                            title="Añadir Compra (DCA)"
+                                                        />
+                                                    )}
                                                     {onEdit && (
                                                         <Button
                                                             variant="ghost"

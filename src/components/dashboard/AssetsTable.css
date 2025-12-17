@@ -136,6 +136,17 @@
     padding: var(--spacing-xl);
 }
 
+/* Actions column */
+.assets-table__actions {
+    display: flex;
+    gap: var(--spacing-xs);
+    justify-content: flex-end;
+}
+
+.assets-table__delete-btn:hover {
+    color: var(--color-negative) !important;
+}
+
 /* Responsive */
 @media (max-width: 640px) {
     .assets-table__wrapper {

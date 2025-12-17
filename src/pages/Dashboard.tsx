@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useMemo } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import { PlusCircle, RefreshCw, Wallet, Loader2 } from 'lucide-react';
 import { PortfolioSummary } from '../components/dashboard/PortfolioSummary';
 import { PortfolioChart } from '../components/charts/PortfolioChart';
@@ -8,94 +8,22 @@ import { AssetsTable } from '../components/dashboard/AssetsTable';
 import { PortfolioComposition } from '../components/dashboard/PortfolioComposition';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
-import { getAssets, deleteAsset, saveAssets, saveHistory, updateAsset } from '../services/storageService';
-import { getQuote } from '../services/apiService';
-import { mockAssets, generateMockHistory, filterHistoryByPeriod } from '../data/mockData';
-import type { Asset, PortfolioMetrics, ChartDataPoint, PerformerData, TimePeriod } from '../types/types';
+import { usePortfolio } from '../context/PortfolioContext';
+import { filterHistoryByPeriod } from '../data/mockData';
+import { generateMockHistory } from '../data/mockData';
+import type { PortfolioMetrics, ChartDataPoint, PerformerData, TimePeriod, Asset } from '../types/types';
 import './Dashboard.css';
 
 export function Dashboard() {
-    const [assets, setAssets] = useState<Asset[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [updatingPrices, setUpdatingPrices] = useState(false);
-    const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+    const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
+    const { assets, loading, updatingPrices, lastPriceUpdate } = state;
     const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M');
+    const navigate = useNavigate();
 
-    useEffect(() => {
-        loadData();
-    }, []);
-
-    const loadData = async () => {
-        setLoading(true);
-        const storedAssets = getAssets();
-
-        if (storedAssets.length === 0) {
-            setAssets([]);
-        } else {
-            setAssets(storedAssets);
-            // Auto-update prices on first load
-            await updatePrices(storedAssets);
-        }
-        setLoading(false);
-    };
-
-    // Update prices from API
-    const updatePrices = useCallback(async (assetsToUpdate: Asset[]) => {
-        if (assetsToUpdate.length === 0) return;
-
-        setUpdatingPrices(true);
-
-        try {
-            const updatedAssets = [...assetsToUpdate];
-            let hasUpdates = false;
-
-            for (const asset of updatedAssets) {
-                try {
-                    const quote = await getQuote(asset.symbol);
-                    if (quote && quote.price > 0) {
-                        asset.currentPrice = quote.price;
-                        asset.previousClose = quote.previousClose;
-                        hasUpdates = true;
-
-                        // Save updated asset to storage
-                        updateAsset(asset.id, {
-                            currentPrice: quote.price,
-                            previousClose: quote.previousClose,
-                        });
-                    }
-                } catch (error) {
-                    console.warn(`Failed to update price for ${asset.symbol}:`, error);
-                }
-            }
-
-            if (hasUpdates) {
-                setAssets(updatedAssets);
-                setLastUpdate(new Date());
-            }
-        } catch (error) {
-            console.error('Error updating prices:', error);
-        } finally {
-            setUpdatingPrices(false);
-        }
-    }, []);
-
-    const handleRefresh = async () => {
-        const storedAssets = getAssets();
-        setAssets(storedAssets);
-        await updatePrices(storedAssets);
-    };
-
-    const loadDemoData = () => {
-        saveAssets(mockAssets);
-        const history = generateMockHistory(365);
-        saveHistory(history);
-        loadData();
-    };
-
-    const handleDeleteAsset = (id: string) => {
-        deleteAsset(id);
-        const storedAssets = getAssets();
-        setAssets(storedAssets);
+    const handleEditAsset = (asset: Asset) => {
+        // For now, we'll just navigate to add page with state
+        // Ideally we would have a dedicated edit page or modal
+        navigate('/add', { state: { editAsset: asset } });
     };
 
     // Calculate portfolio metrics
@@ -202,9 +130,9 @@ export function Dashboard() {
                     <h1 className="dashboard__title">Dashboard</h1>
                     <p className="dashboard__subtitle">
                         Vista general de tu portfolio
-                        {lastUpdate && (
+                        {lastPriceUpdate && (
                             <span className="dashboard__last-update">
-                                · Actualizado: {lastUpdate.toLocaleTimeString()}
+                                · Actualizado: {lastPriceUpdate.toLocaleTimeString()}
                             </span>
                         )}
                     </p>
@@ -212,7 +140,7 @@ export function Dashboard() {
                 <div className="dashboard__actions">
                     <Button
                         variant="secondary"
-                        onClick={handleRefresh}
+                        onClick={refreshPrices}
                         icon={updatingPrices ? <Loader2 size={16} className="spinning" /> : <RefreshCw size={16} />}
                         size="sm"
                         disabled={updatingPrices}
@@ -260,7 +188,11 @@ export function Dashboard() {
 
             {/* Assets Table */}
             <section className="dashboard__section">
-                <AssetsTable assets={assets} onDelete={handleDeleteAsset} />
+                <AssetsTable
+                    assets={assets}
+                    onDelete={deleteAsset}
+                    onEdit={handleEditAsset}
+                />
             </section>
         </div>
     );

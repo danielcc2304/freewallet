@@ -1,0 +1,132 @@
+.heatmap {
+    width: 100%;
+}
+
+.heatmap__container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    min-height: 200px;
+}
+
+/* Heatmap Item */
+.heatmap__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    min-height: 100px;
+    text-align: center;
+}
+
+.heatmap__item:hover {
+    transform: scale(1.02);
+    z-index: 1;
+    box-shadow: var(--shadow-md);
+}
+
+.heatmap__item--hovered {
+    transform: scale(1.02);
+    box-shadow: var(--shadow-md);
+}
+
+.heatmap__item--child {
+    min-height: 60px;
+    padding: var(--spacing-sm);
+}
+
+.heatmap__item-symbol {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+}
+
+.heatmap__item-name {
+    font-size: var(--font-size-xs);
+    opacity: 0.8;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.heatmap__item-change {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+
+.heatmap__item-value {
+    font-size: var(--font-size-xs);
+    opacity: 0.7;
+}
+
+/* Group */
+.heatmap__group {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 150px;
+}
+
+.heatmap__group-label {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    color: var(--text-muted);
+    padding: var(--spacing-xs);
+    background: var(--bg-tertiary);
+    border-radius: var(--radius-sm);
+    text-align: center;
+}
+
+.heatmap__group-items {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
+    flex: 1;
+}
+
+/* Legend */
+.heatmap__legend {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--spacing-sm);
+    margin-top: var(--spacing-md);
+}
+
+.heatmap__legend-label {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.heatmap__legend-gradient {
+    width: 150px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(to right,
+            #ef4444,
+            #f87171,
+            var(--bg-tertiary),
+            #4ade80,
+            #22c55e);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .heatmap__item {
+        min-height: 80px;
+        padding: var(--spacing-sm);
+    }
+
+    .heatmap__item-symbol {
+        font-size: var(--font-size-base);
+    }
+
+    .heatmap__item-name {
+        display: none;
+    }
+}

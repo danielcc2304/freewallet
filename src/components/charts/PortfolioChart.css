@@ -1,0 +1,126 @@
+.portfolio-chart {
+    width: 100%;
+}
+
+.portfolio-chart__content {
+    padding-top: var(--spacing-md);
+}
+
+/* Period Selector */
+.period-selector {
+    display: flex;
+    gap: var(--spacing-xs);
+    background: var(--bg-tertiary);
+    padding: var(--spacing-xs);
+    border-radius: var(--radius-md);
+}
+
+.period-selector__btn {
+    padding: var(--spacing-xs) var(--spacing-sm);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+}
+
+.period-selector__btn:hover {
+    color: var(--text-primary);
+}
+
+.period-selector__btn--active {
+    background: var(--accent-primary);
+    color: white;
+}
+
+/* Tooltip */
+.chart-tooltip {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-sm) var(--spacing-md);
+    box-shadow: var(--shadow-md);
+}
+
+.chart-tooltip__label {
+    font-size: var(--font-size-sm);
+    color: var(--text-muted);
+    margin-bottom: var(--spacing-xs);
+}
+
+.chart-tooltip__value {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    margin: var(--spacing-xs) 0;
+}
+
+.chart-tooltip__value--primary {
+    color: var(--accent-primary);
+}
+
+.chart-tooltip__value--secondary {
+    color: var(--accent-secondary);
+}
+
+.chart-tooltip__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.chart-tooltip__dot--value {
+    background: var(--accent-primary);
+}
+
+.chart-tooltip__dot--invested {
+    background: var(--accent-secondary);
+}
+
+/* Legend */
+.chart-legend {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-md);
+}
+
+.chart-legend__item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+}
+
+.chart-legend__dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.chart-legend__dot--value {
+    background: var(--accent-primary);
+}
+
+.chart-legend__dot--invested {
+    background: var(--accent-secondary);
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+    .period-selector {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .period-selector__btn {
+        padding: var(--spacing-xs);
+        font-size: var(--font-size-xs);
+    }
+}

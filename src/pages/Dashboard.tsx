@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PlusCircle, RefreshCw, Wallet, Loader2 } from 'lucide-react';
+import { PlusCircle, RefreshCw, Wallet, Feather, Loader2 } from 'lucide-react';
 import { PortfolioSummary } from '../components/dashboard/PortfolioSummary';
 import { PortfolioChart } from '../components/charts/PortfolioChart';
 import { Performers } from '../components/dashboard/Performers';
@@ -99,7 +99,10 @@ export function Dashboard() {
                 <Card className="dashboard__welcome">
                     <CardContent>
                         <div className="welcome-content">
-                            <Wallet className="welcome-content__icon" size={64} />
+                            <div className="welcome-content__icons">
+                                <Wallet className="welcome-content__icon" size={64} />
+                                <Feather className="welcome-content__icon-feather" size={32} />
+                            </div>
                             <h1 className="welcome-content__title">Bienvenido a FreeWallet</h1>
                             <p className="welcome-content__description">
                                 Tu plataforma personal para gestionar y visualizar tu portfolio de inversiones.

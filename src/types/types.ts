@@ -75,6 +75,7 @@ export interface StockQuote {
     low: number;
     volume: number;
     marketCap?: number;
+    currency?: string;
 }
 
 export interface SearchResult {

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Search, Calendar, DollarSign, Hash, ArrowLeft, Check, AlertCircle, Edit3 } from 'lucide-react';
+import { Search, Calendar, DollarSign, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';

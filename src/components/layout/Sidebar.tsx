@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, Settings, TrendingUp, Menu, X } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Settings, Wallet, Feather, Menu, X } from 'lucide-react';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -24,7 +24,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
             <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
                 <div className="sidebar__header">
                     <div className="sidebar__logo">
-                        <TrendingUp className="sidebar__logo-icon" />
+                        <div className="sidebar__logo-icons">
+                            <Wallet className="sidebar__logo-icon sidebar__logo-icon--wallet" />
+                            <Feather className="sidebar__logo-icon sidebar__logo-icon--feather" />
+                        </div>
                         <span className="sidebar__logo-text">FreeWallet</span>
                     </div>
                     <button className="sidebar__toggle sidebar__toggle--mobile" onClick={onToggle}>
@@ -49,7 +52,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 </nav>
 
                 <div className="sidebar__footer">
-                    <div className="sidebar__version">v1.0.0</div>
+                    <div className="sidebar__version">v1.1.0</div>
                 </div>
             </aside>
 

@@ -6,6 +6,7 @@ import { usePortfolio } from '../context/PortfolioContext';
 import { ConfirmDialog } from '../components/ui/Modal';
 import { useState } from 'react';
 import { clearAllData } from '../services/storageService';
+import { getFinnhubApiKey, setFinnhubApiKey as setFinnhubApiKeyAction } from '../services/apiService';
 import './Settings.css';
 
 type ThemeMode = 'light' | 'dark' | 'system';
@@ -15,6 +16,7 @@ export function Settings() {
     const { state, loadDemoData } = usePortfolio();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [showDemoConfirm, setShowDemoConfirm] = useState(false);
+    const [finnhubKey, setFinnhubKey] = useState(getFinnhubApiKey());
 
     const themeOptions: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
         { value: 'light', label: 'Claro', icon: <Sun size={20} /> },
@@ -102,6 +104,43 @@ export function Settings() {
                 </CardContent>
             </Card>
 
+            {/* API Settings */}
+            <Card className="settings__section">
+                <CardHeader
+                    title="Mercado & APIs"
+                    subtitle="Gestiona tus claves de API para mejorar la cobertura de datos"
+                />
+                <CardContent>
+                    <div className="settings__api-config">
+                        <div className="settings__input-group">
+                            <label htmlFor="finnhub-key">Finnhub API Key</label>
+                            <input
+                                id="finnhub-key"
+                                type="password"
+                                className="settings__input"
+                                value={finnhubKey}
+                                onChange={(e) => setFinnhubKey(e.target.value)}
+                                placeholder="Pega aquí tu clave de Finnhub"
+                            />
+                            <p className="settings__hint">
+                                Esta clave se usa como respaldo cuando Yahoo Finance no devuelve datos.
+                                Consigue una gratis en <a href="https://finnhub.io/" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}>finnhub.io</a>.
+                            </p>
+                        </div>
+                        <Button
+                            variant="primary"
+                            icon={<Info size={16} />}
+                            onClick={() => {
+                                setFinnhubApiKeyAction(finnhubKey);
+                                alert('Clave guardada correctamente');
+                            }}
+                        >
+                            Guardar Clave
+                        </Button>
+                    </div>
+                </CardContent>
+            </Card>
+
             {/* About */}
             <Card className="settings__section">
                 <CardHeader
@@ -112,7 +151,7 @@ export function Settings() {
                     <div className="settings__about">
                         <div className="about-item">
                             <Info size={16} />
-                            <span>FreeWallet v1.0.0</span>
+                            <span>FreeWallet v1.1.0</span>
                         </div>
                         <p className="about-description">
                             Aplicación de gestión de portfolio de inversiones.

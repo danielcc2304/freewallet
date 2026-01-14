@@ -31,10 +31,34 @@
     gap: var(--spacing-sm);
 }
 
+.sidebar__logo-icons {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 32px;
+    height: 32px;
+}
+
 .sidebar__logo-icon {
     color: var(--accent-primary);
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
+}
+
+.sidebar__logo-icon--wallet {
+    z-index: 1;
+}
+
+.sidebar__logo-icon--feather {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    width: 18px;
+    height: 18px;
+    color: var(--accent-secondary);
+    transform: rotate(15deg);
+    z-index: 2;
+    filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.2));
 }
 
 .sidebar__logo-text {

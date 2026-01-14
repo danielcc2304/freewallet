@@ -26,7 +26,7 @@ export function Settings() {
 
     const handleClearData = () => {
         clearAllData();
-        window.location.reload(); // Reload to reset state
+        window.location.href = '/'; // Reload to root to reset state
     };
 
     const handleLoadDemo = () => {

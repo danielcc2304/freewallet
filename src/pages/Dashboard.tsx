@@ -21,9 +21,11 @@ export function Dashboard() {
     const navigate = useNavigate();
 
     const handleEditAsset = (asset: Asset) => {
-        // For now, we'll just navigate to add page with state
-        // Ideally we would have a dedicated edit page or modal
         navigate('/add', { state: { editAsset: asset } });
+    };
+
+    const handleAddPurchase = (asset: Asset) => {
+        navigate('/add', { state: { dcaAsset: asset } });
     };
 
     // Calculate portfolio metrics
@@ -195,6 +197,7 @@ export function Dashboard() {
                     assets={assets}
                     onDelete={deleteAsset}
                     onEdit={handleEditAsset}
+                    onAddPurchase={handleAddPurchase}
                 />
             </section>
         </div>

@@ -201,9 +201,48 @@
     color: var(--text-primary);
 }
 
+.asset-type-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.asset-type-btn:disabled:hover {
+    color: var(--text-muted);
+}
+
 .asset-type-btn--active {
     background: var(--accent-primary);
     color: white;
+}
+
+/* Current Price Banner */
+.current-price-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--spacing-md);
+    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.1));
+    border: 1px solid rgba(34, 197, 94, 0.3);
+    border-radius: var(--radius-md);
+    margin-top: var(--spacing-sm);
+}
+
+.current-price-banner__label {
+    font-size: var(--font-size-sm);
+    font-weight: 500;
+    color: var(--text-secondary);
+}
+
+.current-price-banner__value {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--color-positive);
+}
+
+.form-hint {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin: var(--spacing-xs) 0 0 0;
 }
 
 /* Form Actions */

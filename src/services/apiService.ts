@@ -18,7 +18,108 @@ const FINNHUB_MIN_INTERVAL = 1000; // 1 second between calls
 
 // Track API failures to switch providers
 let alphaVantageFailures = 0;
+let yahooFinanceFailures = 0;
 const MAX_FAILURES_BEFORE_SWITCH = 3;
+
+// Configure Yahoo Finance
+// Note: In browser, direct calls to Yahoo are blocked by CORS.
+// We use multiple proxies for fallback
+const YAHOO_BASE_URL = 'https://query1.finance.yahoo.com/v7/finance';
+const YAHOO_SEARCH_URL = 'https://query2.finance.yahoo.com/v1/finance/search';
+const CORS_PROXIES = [
+    'https://api.allorigins.win/raw?url=',
+    'https://corsproxy.io/?',
+    'https://api.codetabs.com/v1/proxy?quest=',
+];
+let currentProxyIndex = 0;
+
+// ===== CACHE CONFIGURATION =====
+interface CacheEntry<T> {
+    data: T;
+    timestamp: number;
+}
+const QUOTE_CACHE = new Map<string, CacheEntry<StockQuote>>();
+const SEARCH_CACHE = new Map<string, CacheEntry<SearchResult[]>>();
+const CACHE_TTL = 60000; // 60 seconds
+
+
+// ===== HELPER FUNCTIONS =====
+const PROXY_COOLDOWN = new Map<string, number>();
+const COOLDOWN_MS = 60000; // 60 seconds
+
+function getNextProxy(): string {
+    const now = Date.now();
+    for (let i = 0; i < CORS_PROXIES.length; i++) {
+        const index = (currentProxyIndex + i) % CORS_PROXIES.length;
+        const proxy = CORS_PROXIES[index];
+        const cooldownUntil = PROXY_COOLDOWN.get(proxy) || 0;
+
+        if (now > cooldownUntil) {
+            currentProxyIndex = (index + 1) % CORS_PROXIES.length;
+            return proxy;
+        }
+    }
+    // Si todos en cooldown, coge el siguiente igual
+    const proxy = CORS_PROXIES[currentProxyIndex];
+    currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
+    return proxy;
+}
+
+function markProxyFailure(proxy: string) {
+    console.warn(`[Proxy] Cooldown started for ${proxy}`);
+    PROXY_COOLDOWN.set(proxy, Date.now() + COOLDOWN_MS);
+}
+
+function looksLikeISIN(q: string): boolean {
+    return /^[A-Z]{2}[A-Z0-9]{10}$/.test(q.trim().toUpperCase());
+}
+
+function isinCandidates(isin: string): string[] {
+    const x = isin.trim().toUpperCase();
+    // en Yahoo los fondos por ISIN a veces aparecen como ISIN.<exchange>
+    return [`${x}.SG`, `${x}.L`, `${x}.MI`, `${x}.PA`, `${x}.DE`];
+}
+
+function normalizeQuery(q: string): string {
+    return q.trim();
+}
+
+function queryLooksLikeFund(q: string): boolean {
+    const s = q.toLowerCase();
+    return (
+        s.includes('fidelity') ||
+        s.includes('msci') ||
+        s.includes('index') ||
+        s.includes('world') ||
+        s.includes('fund') ||
+        s.includes('fonds') ||
+        s.includes('mutual') ||
+        s.includes('isin')
+    );
+}
+
+/**
+ * IMPORTANT: no todos los CORS proxies esperan el URL encodeado.
+ * - allorigins/codetabs suelen necesitar encodeURIComponent
+ * - corsproxy.io suele funcionar mejor con raw url
+ */
+function buildProxyUrl(proxy: string, url: string): string {
+    if (proxy.includes('allorigins.win') || proxy.includes('codetabs.com')) {
+        return `${proxy}${encodeURIComponent(url)}`;
+    }
+    return `${proxy}${url}`;
+}
+
+function addUniqueResult(
+    allResults: SearchResult[],
+    seenSymbols: Set<string>,
+    res: SearchResult
+): void {
+    if (!seenSymbols.has(res.symbol)) {
+        allResults.push(res);
+        seenSymbols.add(res.symbol);
+    }
+}
 
 async function waitForAlphaVantageRateLimit(): Promise<void> {
     const now = Date.now();
@@ -39,37 +140,132 @@ async function waitForFinnhubRateLimit(): Promise<void> {
 }
 
 // ===== SEARCH SYMBOLS (with fallback) =====
-export async function searchSymbol(query: string): Promise<SearchResult[]> {
-    // Try Alpha Vantage first
-    if (alphaVantageFailures < MAX_FAILURES_BEFORE_SWITCH) {
-        try {
-            const results = await searchSymbolAlphaVantage(query);
-            if (results.length > 0) {
-                alphaVantageFailures = 0; // Reset on success
-                return results;
+export async function searchSymbol(query: string, signal?: AbortSignal): Promise<SearchResult[]> {
+    const q = normalizeQuery(query);
+    const allResults: SearchResult[] = [];
+    const seenSymbols = new Set<string>();
+
+    // 0) Si parece ISIN, primero intenta resolver por "candidatos Yahoo"
+    if (looksLikeISIN(q)) {
+        const candidates = isinCandidates(q);
+
+        // Paso 1: Intenta quote directo por Yahoo (candidatos ISIN.*)
+        for (const sym of candidates) {
+            try {
+                const quote = await getQuoteYahoo(sym, signal);
+                if (quote && quote.price > 0) {
+                    addUniqueResult(allResults, seenSymbols, {
+                        symbol: sym,
+                        name: quote.name || sym,
+                        type: 'fund',
+                        region: 'Global',
+                        currency: quote.currency || 'Unknown',
+                    });
+                    // Con 1 encontrado normalmente basta
+                    break;
+                }
+            } catch {
+                // sigue con el siguiente candidato
             }
+        }
+
+        // Paso 2: Si falla, intenta búsqueda por Yahoo usando el ISIN puro
+        if (allResults.length === 0) {
+            try {
+                const yahooResults = await searchSymbolYahoo(q, signal);
+                yahooResults.forEach(res => addUniqueResult(allResults, seenSymbols, res));
+            } catch (error) {
+                if (axios.isCancel(error)) throw error;
+                console.warn('Yahoo ISIN search failed:', error);
+            }
+        }
+
+        // Paso 3: Si sigue fallando, intenta búsqueda por Finnhub (solo si hay key real)
+        if (allResults.length === 0 && getFinnhubApiKey() !== 'demo') {
+            try {
+                const finnhubResults = await searchSymbolFinnhub(q, signal);
+                finnhubResults.forEach(res => addUniqueResult(allResults, seenSymbols, res));
+            } catch (error) {
+                if (axios.isCancel(error)) throw error;
+                console.warn('Finnhub ISIN search failed:', error);
+            }
+        }
+
+        // Si ya tenemos algo, devolvemos pronto
+        if (allResults.length > 0) return allResults;
+    }
+
+    // 1) Yahoo Finance search (mejor cobertura)
+    if (yahooFinanceFailures < MAX_FAILURES_BEFORE_SWITCH) {
+        try {
+            const results = await searchSymbolYahoo(q, signal);
+            results.forEach(res => addUniqueResult(allResults, seenSymbols, res));
+            yahooFinanceFailures = 0;
         } catch (error) {
-            console.warn('Alpha Vantage search failed, trying Finnhub...', error);
+            if (axios.isCancel(error)) throw error;
+            console.warn('Yahoo Finance search failed:', error);
+            yahooFinanceFailures++;
+        }
+    }
+
+    // 2) Alpha Vantage... (omitir detalles por brevedad, asumiendo mismos cambios)
+    // En las siguientes funciones async, pasar el signal a axios.get(..., { signal })
+
+    // 2) Alpha Vantage (si falta chicha)
+    if (allResults.length < 8 && alphaVantageFailures < MAX_FAILURES_BEFORE_SWITCH) {
+        try {
+            const results = await searchSymbolAlphaVantage(q);
+            results.forEach(res => addUniqueResult(allResults, seenSymbols, res));
+            alphaVantageFailures = 0;
+        } catch (error) {
+            console.warn('Alpha Vantage search failed:', error);
             alphaVantageFailures++;
         }
     }
 
-    // Try Finnhub as fallback
-    try {
-        const results = await searchSymbolFinnhub(query);
-        if (results.length > 0) {
-            return results;
+    // 3) Finnhub (fallback)
+    if (allResults.length < 5) {
+        try {
+            const results = await searchSymbolFinnhub(q);
+            results.forEach(res => addUniqueResult(allResults, seenSymbols, res));
+        } catch (error) {
+            console.warn('Finnhub search failed:', error);
         }
-    } catch (error) {
-        console.warn('Finnhub search also failed', error);
     }
 
-    // Return mock data as last resort
-    return getMockSearchResults(query);
+    // 4) Heurística extra: si el query parece "Fidelity MSCI World",
+    // intenta forzar algunos símbolos típicos (opcional, pero útil)
+    // OJO: esto es un "hack", pero mejora UX.
+    if (allResults.length === 0 && queryLooksLikeFund(q)) {
+        const forced: string[] = [
+            // el típico de Fidelity MSCI World Index Fund (ISIN) lo podrías construir si el usuario lo mete,
+            // aquí solo dejo ejemplos: si tienes ISIN en tu DB local, mete los tuyos.
+            // 'IE00BYX5NX33.SG',
+        ];
+
+        for (const sym of forced) {
+            try {
+                const quote = await getQuoteYahoo(sym);
+                if (quote && quote.price > 0) {
+                    addUniqueResult(allResults, seenSymbols, {
+                        symbol: sym,
+                        name: quote.name || sym,
+                        type: 'fund',
+                        region: 'Global',
+                        currency: quote.currency || 'Unknown',
+                    });
+                }
+            } catch { }
+        }
+    }
+
+    if (allResults.length > 0) return allResults;
+
+    return getMockSearchResults(q);
 }
 
 // ===== ALPHA VANTAGE SEARCH =====
-async function searchSymbolAlphaVantage(query: string): Promise<SearchResult[]> {
+async function searchSymbolAlphaVantage(query: string, signal?: AbortSignal): Promise<SearchResult[]> {
     await waitForAlphaVantageRateLimit();
 
     const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
@@ -79,6 +275,7 @@ async function searchSymbolAlphaVantage(query: string): Promise<SearchResult[]> 
             apikey: ALPHA_VANTAGE_API_KEY,
         },
         timeout: 10000,
+        signal,
     });
 
     // Check for API limit message
@@ -98,15 +295,16 @@ async function searchSymbolAlphaVantage(query: string): Promise<SearchResult[]> 
 }
 
 // ===== FINNHUB SEARCH =====
-async function searchSymbolFinnhub(query: string): Promise<SearchResult[]> {
+async function searchSymbolFinnhub(query: string, signal?: AbortSignal): Promise<SearchResult[]> {
     await waitForFinnhubRateLimit();
 
     const response = await axios.get(`${FINNHUB_BASE_URL}/search`, {
         params: {
             q: query,
-            token: FINNHUB_API_KEY,
+            token: getFinnhubApiKey(),
         },
         timeout: 10000,
+        signal,
     });
 
     const results = response.data.result || [];
@@ -114,43 +312,154 @@ async function searchSymbolFinnhub(query: string): Promise<SearchResult[]> {
         symbol: item.symbol,
         name: item.description,
         type: mapFinnhubType(item.type),
-        region: 'Global',
-        currency: 'USD',
+        region: item.region || 'Unknown',
+        currency: item.currency || 'Unknown',
     }));
 }
 
-// ===== GET QUOTE (with fallback) =====
-export async function getQuote(symbol: string): Promise<StockQuote | null> {
-    // Try Alpha Vantage first
-    if (alphaVantageFailures < MAX_FAILURES_BEFORE_SWITCH) {
+// ===== YAHOO FINANCE SEARCH =====
+async function searchSymbolYahoo(query: string, signal?: AbortSignal): Promise<SearchResult[]> {
+    const q = normalizeQuery(query);
+
+    // Check cache
+    const cached = SEARCH_CACHE.get(q);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        console.log(`[Cache Hit] Search for "${q}"`);
+        return cached.data;
+    }
+
+    const url = `${YAHOO_SEARCH_URL}?q=${encodeURIComponent(q)}&quotesCount=40&newsCount=0`;
+
+    // Try multiple proxies
+    for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
+        const proxy = getNextProxy();
         try {
-            const quote = await getQuoteAlphaVantage(symbol);
+            const proxyUrl = buildProxyUrl(proxy, url);
+
+            const response = await axios.get(proxyUrl, { timeout: 10000, signal });
+            const quotes = response.data?.quotes || [];
+
+            console.log(`[Yahoo API] Search for "${q}" returned ${quotes.length} results via Proxy ${attempt + 1}`);
+
+            // Mapeo y filtrado leve
+            const mapped: SearchResult[] = quotes.map((item: any) => ({
+                symbol: item.symbol,
+                name: item.shortname || item.longname || item.symbol,
+                type: mapYahooType(item.quoteType),
+                region: item.region || 'Global',
+                currency: item.currency || 'USD',
+            }));
+
+            // Ranking robusto
+            const isFundQuery = queryLooksLikeFund(q);
+
+            const getScore = (r: SearchResult) => {
+                let s = 0;
+                const nameLower = r.name?.toLowerCase() || '';
+                const symbolLower = r.symbol?.toLowerCase() || '';
+                const qLower = q.toLowerCase();
+
+                // Match exacto de símbolo
+                if (symbolLower === qLower) s += 500;
+
+                // Contiene el query en el símbolo
+                if (symbolLower.includes(qLower)) s += 100;
+
+                // Match exacto de nombre
+                if (nameLower === qLower) s += 400;
+
+                // Tipo de activo
+                if (isFundQuery) {
+                    if (r.type === 'fund') s += 300;
+                    if (r.type === 'etf') s += 200;
+                    if (r.type === 'stock') s -= 100; // Penalizar equities en queries de fondos
+                } else {
+                    if (r.type === 'stock') s += 50;
+                    if (r.type === 'crypto') s += 50;
+                }
+
+                // Keywords en el nombre
+                if (nameLower.includes('msci')) s += 50;
+                if (nameLower.includes('world')) s += 30;
+                if (nameLower.includes('fidelity')) s += 30;
+                if (nameLower.includes('index')) s += 20;
+
+                return s;
+            };
+
+            const sorted = mapped.sort((a, b) => getScore(b) - getScore(a));
+
+            SEARCH_CACHE.set(q, { data: sorted, timestamp: Date.now() });
+            return sorted;
+        } catch (error) {
+            if (axios.isCancel(error)) throw error;
+            markProxyFailure(proxy);
+            console.warn(`Yahoo Finance search failed with proxy ${attempt + 1}:`, error);
+        }
+    }
+
+    throw new Error('All proxies failed for Yahoo Finance search');
+}
+
+// ===== GET QUOTE (with fallback) =====
+export async function getQuote(symbol: string, signal?: AbortSignal): Promise<StockQuote | null> {
+    // Check cache first
+    const cached = QUOTE_CACHE.get(symbol);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        console.log(`[Cache Hit] Quote for ${symbol}`);
+        return cached.data;
+    }
+
+    // Try Yahoo Finance first as it's generally more reliable and has better coverage
+    if (yahooFinanceFailures < MAX_FAILURES_BEFORE_SWITCH) {
+        try {
+            const quote = await getQuoteYahoo(symbol, signal);
             if (quote) {
-                alphaVantageFailures = 0;
+                yahooFinanceFailures = 0;
+                QUOTE_CACHE.set(symbol, { data: quote, timestamp: Date.now() });
                 return quote;
             }
         } catch (error) {
+            if (axios.isCancel(error)) throw error;
+            console.warn('Yahoo Finance quote failed, trying Alpha Vantage...', error);
+            yahooFinanceFailures++;
+        }
+    }
+
+    // Try Alpha Vantage second
+    if (alphaVantageFailures < MAX_FAILURES_BEFORE_SWITCH) {
+        try {
+            const quote = await getQuoteAlphaVantage(symbol, signal);
+            if (quote) {
+                alphaVantageFailures = 0;
+                QUOTE_CACHE.set(symbol, { data: quote, timestamp: Date.now() });
+                return quote;
+            }
+        } catch (error) {
+            if (axios.isCancel(error)) throw error;
             console.warn('Alpha Vantage quote failed, trying Finnhub...', error);
             alphaVantageFailures++;
         }
     }
 
-    // Try Finnhub as fallback
+    // Try Finnhub as additional fallback
     try {
-        const quote = await getQuoteFinnhub(symbol);
+        const quote = await getQuoteFinnhub(symbol, signal);
         if (quote) {
+            QUOTE_CACHE.set(symbol, { data: quote, timestamp: Date.now() });
             return quote;
         }
     } catch (error) {
-        console.warn('Finnhub quote also failed', error);
+        if (axios.isCancel(error)) throw error;
+        console.warn('Finnhub quote failed:', error);
     }
 
-    // Return mock quote as last resort
+    // Return mock data as last resort
     return getMockQuote(symbol);
 }
 
 // ===== ALPHA VANTAGE GET QUOTE =====
-async function getQuoteAlphaVantage(symbol: string): Promise<StockQuote | null> {
+async function getQuoteAlphaVantage(symbol: string, signal?: AbortSignal): Promise<StockQuote | null> {
     await waitForAlphaVantageRateLimit();
 
     const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
@@ -160,6 +469,7 @@ async function getQuoteAlphaVantage(symbol: string): Promise<StockQuote | null> 
             apikey: ALPHA_VANTAGE_API_KEY,
         },
         timeout: 10000,
+        signal,
     });
 
     // Check for API limit message
@@ -183,19 +493,21 @@ async function getQuoteAlphaVantage(symbol: string): Promise<StockQuote | null> 
         high: parseFloat(quote['03. high']),
         low: parseFloat(quote['04. low']),
         volume: parseInt(quote['06. volume']),
+        currency: 'Unknown',
     };
 }
 
 // ===== FINNHUB GET QUOTE =====
-async function getQuoteFinnhub(symbol: string): Promise<StockQuote | null> {
+async function getQuoteFinnhub(symbol: string, signal?: AbortSignal): Promise<StockQuote | null> {
     await waitForFinnhubRateLimit();
 
     const response = await axios.get(`${FINNHUB_BASE_URL}/quote`, {
         params: {
             symbol: symbol,
-            token: FINNHUB_API_KEY,
+            token: getFinnhubApiKey(),
         },
         timeout: 10000,
+        signal,
     });
 
     const data = response.data;
@@ -214,17 +526,66 @@ async function getQuoteFinnhub(symbol: string): Promise<StockQuote | null> {
         high: data.h, // High
         low: data.l, // Low
         volume: 0, // Finnhub doesn't include volume in quote
+        currency: 'Unknown',
     };
+}
+
+// ===== YAHOO FINANCE GET QUOTE =====
+async function getQuoteYahoo(symbol: string, signal?: AbortSignal): Promise<StockQuote | null> {
+    const results = await getQuotesYahooBatch([symbol], signal);
+    return results.length > 0 ? results[0] : null;
+}
+
+// ===== YAHOO FINANCE GET QUOTES BATCH =====
+async function getQuotesYahooBatch(symbols: string[], signal?: AbortSignal): Promise<StockQuote[]> {
+    if (symbols.length === 0) return [];
+
+    const url = `${YAHOO_BASE_URL}/quote?symbols=${encodeURIComponent(symbols.join(','))}`;
+
+    // Try multiple proxies
+    for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
+        const proxy = getNextProxy();
+        try {
+            const proxyUrl = buildProxyUrl(proxy, url);
+
+            const response = await axios.get(proxyUrl, { timeout: 15000, signal });
+            const results = response.data?.quoteResponse?.result || [];
+
+            console.log(`[Yahoo API] Batch quote for ${symbols.length} symbols returned ${results.length} results via Proxy ${attempt + 1}`);
+
+            return results.map((result: any) => ({
+                symbol: result.symbol,
+                name: result.longName || result.shortName || result.symbol,
+                price: result.regularMarketPrice || 0,
+                change: result.regularMarketChange || 0,
+                changePercent: result.regularMarketChangePercent || 0,
+                previousClose: result.regularMarketPreviousClose || 0,
+                open: result.regularMarketOpen || 0,
+                high: result.regularMarketDayHigh || 0,
+                low: result.regularMarketDayLow || 0,
+                volume: result.regularMarketVolume || 0,
+                marketCap: result.marketCap,
+                currency: result.currency || result.financialCurrency,
+            }));
+        } catch (error) {
+            if (axios.isCancel(error)) throw error;
+            markProxyFailure(proxy);
+            console.warn(`Yahoo Finance batch quote failed with proxy ${attempt + 1}:`, error);
+        }
+    }
+
+    return [];
 }
 
 // ===== GET HISTORICAL DATA =====
 export async function getHistoricalData(
     symbol: string,
-    outputSize: 'compact' | 'full' = 'compact'
+    outputSize: 'compact' | 'full' = 'compact',
+    signal?: AbortSignal
 ): Promise<HistoricalDataPoint[]> {
-    try {
-        await waitForAlphaVantageRateLimit();
+    await waitForAlphaVantageRateLimit();
 
+    try {
         const response = await axios.get(ALPHA_VANTAGE_BASE_URL, {
             params: {
                 function: 'TIME_SERIES_DAILY',
@@ -232,7 +593,8 @@ export async function getHistoricalData(
                 outputsize: outputSize,
                 apikey: ALPHA_VANTAGE_API_KEY,
             },
-            timeout: 15000,
+            timeout: 10000,
+            signal,
         });
 
         // Check for API limit
@@ -267,14 +629,37 @@ export async function updateAssetPrices(
     assets: { symbol: string }[]
 ): Promise<Map<string, { price: number; previousClose: number }>> {
     const prices = new Map<string, { price: number; previousClose: number }>();
+    if (assets.length === 0) return prices;
 
-    for (const asset of assets) {
-        const quote = await getQuote(asset.symbol);
-        if (quote) {
-            prices.set(asset.symbol, {
-                price: quote.price,
-                previousClose: quote.previousClose,
+    const uniqueSymbols = Array.from(new Set(assets.map(a => a.symbol)));
+
+    // Try batch first (best for performance)
+    if (yahooFinanceFailures < MAX_FAILURES_BEFORE_SWITCH) {
+        try {
+            const quotes = await getQuotesYahooBatch(uniqueSymbols);
+            quotes.forEach(q => {
+                prices.set(q.symbol, { price: q.price, previousClose: q.previousClose });
+                // Also update cache
+                QUOTE_CACHE.set(q.symbol, { data: q, timestamp: Date.now() });
             });
+            yahooFinanceFailures = 0;
+
+            console.log(`[Batch Update] Succeeded for ${prices.size}/${uniqueSymbols.length} symbols`);
+        } catch (error) {
+            console.warn('Batch price update failed:', error);
+            yahooFinanceFailures++;
+        }
+    }
+
+    // Fallback for missing symbols
+    const remainingSymbols = uniqueSymbols.filter(s => !prices.has(s));
+    if (remainingSymbols.length > 0) {
+        console.log(`[Batch Update] Falling back for ${remainingSymbols.length} symbols`);
+        for (const symbol of remainingSymbols) {
+            const quote = await getQuote(symbol);
+            if (quote) {
+                prices.set(symbol, { price: quote.price, previousClose: quote.previousClose });
+            }
         }
     }
 
@@ -300,6 +685,18 @@ function mapFinnhubType(type: string): AssetType {
         'REIT': 'stock',
         'ADR': 'stock',
         'Crypto': 'crypto',
+    };
+    return typeMap[type] || 'stock';
+}
+
+function mapYahooType(type: string): AssetType {
+    const typeMap: Record<string, AssetType> = {
+        'EQUITY': 'stock',
+        'ETF': 'etf',
+        'MUTUALFUND': 'fund',
+        'CURRENCY': 'crypto',
+        'CRYPTOCURRENCY': 'crypto',
+        'INDEX': 'stock',
     };
     return typeMap[type] || 'stock';
 }

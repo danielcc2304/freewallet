@@ -135,10 +135,14 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     };
 
     // Public methods
-    const addAsset = useCallback((asset: Asset) => {
+    const addAsset = useCallback(async (asset: Asset) => {
         addAssetToStorage(asset);
         dispatch({ type: 'ADD_ASSET', payload: asset });
-    }, []);
+
+        // Refresh prices for all assets after adding new one
+        const allAssets = [...state.assets, asset];
+        await updatePricesInternal(allAssets);
+    }, [state.assets]);
 
     const updateAsset = useCallback((id: string, updates: Partial<Asset>) => {
         updateAssetInStorage(id, updates);

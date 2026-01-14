@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import axios from 'axios';
 import { Search, Calendar, DollarSign, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Input } from '../components/ui/Input';
 import { Button } from '../components/ui/Button';
-import { searchSymbol } from '../services/apiService';
+import { searchSymbol, getQuote } from '../services/apiService';
 import { generateId } from '../services/storageService';
 import { usePortfolio } from '../context/PortfolioContext';
 import type { SearchResult, AssetType, Asset } from '../types/types';
@@ -62,6 +63,9 @@ export function AddInvestment() {
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [manualMode, setManualMode] = useState(!!targetAsset);
     const [noResultsFound, setNoResultsFound] = useState(false);
+    const [currentPrice, setCurrentPrice] = useState<number | null>(null);
+    const [loadingPrice, setLoadingPrice] = useState(false);
+    const [currency, setCurrency] = useState('EUR');
 
     // Detect if search query looks like an ISIN
     const isISIN = (query: string): boolean => {
@@ -70,17 +74,28 @@ export function AddInvestment() {
 
     // Debounced search
     useEffect(() => {
-        if ((isEditMode || isDcaMode) && searchQuery === targetAsset?.symbol) return;
+        if (isEditMode && searchQuery === editAsset?.symbol) return;
+
+        const controller = new AbortController();
 
         const timer = setTimeout(async () => {
             if (searchQuery.length >= 2) {
                 setIsSearching(true);
                 setNoResultsFound(false);
-                const results = await searchSymbol(searchQuery);
-                setSearchResults(results);
-                setShowResults(true);
-                setNoResultsFound(results.length === 0);
-                setIsSearching(false);
+                try {
+                    const results = await searchSymbol(searchQuery, controller.signal);
+                    setSearchResults(results);
+                    setShowResults(true);
+                    setNoResultsFound(results.length === 0);
+                } catch (error) {
+                    if (axios.isCancel(error)) {
+                        console.log('Search request cancelled:', searchQuery);
+                    } else {
+                        console.error('Search failed:', error);
+                    }
+                } finally {
+                    setIsSearching(false);
+                }
             } else {
                 setSearchResults([]);
                 setShowResults(false);
@@ -88,8 +103,11 @@ export function AddInvestment() {
             }
         }, 300);
 
-        return () => clearTimeout(timer);
-    }, [searchQuery, isEditMode, isDcaMode, targetAsset]);
+        return () => {
+            clearTimeout(timer);
+            controller.abort();
+        };
+    }, [searchQuery, isEditMode, editAsset]);
 
     const handleSearchChange = (value: string) => {
         setSearchQuery(value);
@@ -100,18 +118,42 @@ export function AddInvestment() {
         }
     };
 
-    const handleSelectResult = (result: SearchResult) => {
-        setFormData(prev => ({
-            ...prev,
+    const handleSelectResult = async (result: SearchResult) => {
+        setFormData({
             symbol: result.symbol,
             name: result.name,
             type: result.type,
-        }));
+            purchasePrice: '0', // Changed from 0 to '0' to match FormData type
+            purchaseDate: new Date().toISOString().split('T')[0],
+            quantity: '0', // Changed from 0 to '0' to match FormData type
+            isin: isISIN(result.symbol) ? result.symbol : ''
+        });
         setSearchQuery(result.symbol);
+        setCurrency(result.currency || 'EUR');
         setShowResults(false);
-        setNoResultsFound(false);
         setManualMode(false);
         setErrors(prev => ({ ...prev, symbol: undefined }));
+
+        // Fetch current price
+        setLoadingPrice(true);
+        setCurrentPrice(null);
+        try {
+            const quote = await getQuote(result.symbol);
+            if (quote) {
+                setCurrentPrice(quote.price);
+                setFormData(prev => ({
+                    ...prev,
+                    purchasePrice: quote.price.toFixed(2) // Added .toFixed(2) to match original behavior
+                }));
+                if (quote.currency) {
+                    setCurrency(quote.currency);
+                }
+            }
+        } catch (error) {
+            console.error('Error fetching price:', error);
+        } finally {
+            setLoadingPrice(false);
+        }
     };
 
     const handleManualEntry = () => {
@@ -404,6 +446,9 @@ export function AddInvestment() {
                         {/* Asset Type */}
                         <div className="form-group">
                             <label className="form-label">Tipo de Activo</label>
+                            {!manualMode && (
+                                <p className="form-hint">El tipo se detecta automáticamente. Use modo manual para cambiarlo.</p>
+                            )}
                             <div className="asset-type-selector">
                                 {assetTypes.map((type) => (
                                     <button
@@ -412,7 +457,7 @@ export function AddInvestment() {
                                         className={`asset-type-btn ${formData.type === type.value ? 'asset-type-btn--active' : ''
                                             }`}
                                         onClick={() => handleInputChange('type', type.value)}
-                                        disabled={isDcaMode && formData.type !== type.value} // Disable changing type in DCA
+                                        disabled={!manualMode}
                                     >
                                         {type.label}
                                     </button>
@@ -420,11 +465,21 @@ export function AddInvestment() {
                             </div>
                         </div>
 
+                        {/* Current Price Display */}
+                        {currentPrice !== null && !manualMode && (
+                            <div className="current-price-banner">
+                                <div className="current-price-banner__label">Precio Actual:</div>
+                                <div className="current-price-banner__value">
+                                    {loadingPrice ? 'Cargando...' : `${currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency + ' '}${currentPrice.toFixed(2)}`}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Price, Quantity, Date in row */}
                         <div className="form-row">
                             <div className="form-group">
                                 <Input
-                                    label={isDcaMode ? "Precio de NUEVA Compra (€)" : "Precio de Compra (€)"}
+                                    label={`Precio de Compra (${currency})`}
                                     type="number"
                                     step="0.01"
                                     min="0"

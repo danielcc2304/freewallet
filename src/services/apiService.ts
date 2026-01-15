@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { StockQuote, SearchResult, HistoricalDataPoint, AssetType } from '../types/types';
+import type { StockQuote, SearchResult, HistoricalDataPoint, AssetType, TimePeriod } from '../types/types';
 
 // ===== API CONFIGURATION =====
 const ALPHA_VANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
@@ -26,10 +26,19 @@ const MAX_FAILURES_BEFORE_SWITCH = 3;
 // We use multiple proxies for fallback
 const YAHOO_BASE_URL = 'https://query1.finance.yahoo.com/v7/finance';
 const YAHOO_SEARCH_URL = 'https://query2.finance.yahoo.com/v1/finance/search';
-const CORS_PROXIES = [
-    'https://api.allorigins.win/raw?url=',
-    'https://corsproxy.io/?',
-    'https://api.codetabs.com/v1/proxy?quest=',
+
+interface ProxyConfig {
+    url: string;
+    type: 'raw' | 'json';
+}
+
+const CORS_PROXIES: ProxyConfig[] = [
+    { url: 'https://api.allorigins.win/raw?url=', type: 'raw' },
+    { url: 'https://thingproxy.freeboard.io/fetch/', type: 'raw' },
+    { url: 'https://api.allorigins.win/get?url=', type: 'json' },
+    { url: 'https://corsproxy.org/?url=', type: 'raw' },
+    { url: 'https://corsproxy.is/?url=', type: 'raw' },
+    { url: 'https://api.codetabs.com/v1/proxy?quest=', type: 'raw' },
 ];
 let currentProxyIndex = 0;
 
@@ -40,34 +49,51 @@ interface CacheEntry<T> {
 }
 const QUOTE_CACHE = new Map<string, CacheEntry<StockQuote>>();
 const SEARCH_CACHE = new Map<string, CacheEntry<SearchResult[]>>();
-const CACHE_TTL = 60000; // 60 seconds
 
+// Fix 4: Granular TTLs
+const TTL = {
+    QUOTE: 60 * 1000,         // 60 seconds
+    SEARCH: 10 * 60 * 1000,   // 10 minutes
+    FUNDAMENTALS: 6 * 60 * 60 * 1000, // 6 hours
+    CHART: 5 * 60 * 1000      // 5 minutes
+};
 
 // ===== HELPER FUNCTIONS =====
 const PROXY_COOLDOWN = new Map<string, number>();
-const COOLDOWN_MS = 60000; // 60 seconds
+const COOLDOWN_MS = 30000; // Increased to 30s to be safe
 
-function getNextProxy(): string {
+function getNextProxy(): ProxyConfig {
     const now = Date.now();
     for (let i = 0; i < CORS_PROXIES.length; i++) {
         const index = (currentProxyIndex + i) % CORS_PROXIES.length;
         const proxy = CORS_PROXIES[index];
-        const cooldownUntil = PROXY_COOLDOWN.get(proxy) || 0;
+        const cooldownUntil = PROXY_COOLDOWN.get(proxy.url) || 0;
 
         if (now > cooldownUntil) {
             currentProxyIndex = (index + 1) % CORS_PROXIES.length;
             return proxy;
         }
     }
-    // Si todos en cooldown, coge el siguiente igual
     const proxy = CORS_PROXIES[currentProxyIndex];
     currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
     return proxy;
 }
 
-function markProxyFailure(proxy: string) {
-    console.warn(`[Proxy] Cooldown started for ${proxy}`);
-    PROXY_COOLDOWN.set(proxy, Date.now() + COOLDOWN_MS);
+// Fix 5: Smart markProxyFailure
+function markProxyFailure(proxyUrl: string, err?: any) {
+    // Ignore AbortError (user cancelled)
+    if (axios.isCancel(err) || err?.name === 'AbortError') return;
+
+    // Penalize only specific errors
+    const status = err?.response?.status;
+    const isNetworkError = !status && err?.code; // e.g. ECONNABORTED
+    const isRateLimit = status === 429;
+    const isServerError = status >= 500;
+
+    if (isNetworkError || isRateLimit || isServerError) {
+        console.warn(`[Proxy] Penalty for ${proxyUrl}:`, err?.message || status);
+        PROXY_COOLDOWN.set(proxyUrl, Date.now() + COOLDOWN_MS);
+    }
 }
 
 function looksLikeISIN(q: string): boolean {
@@ -84,8 +110,8 @@ function normalizeQuery(q: string): string {
     return q.trim();
 }
 
-function queryLooksLikeFund(q: string): boolean {
-    const s = q.toLowerCase();
+function queryLooksLikeFund(query: string): boolean {
+    const s = query.toLowerCase();
     return (
         s.includes('fidelity') ||
         s.includes('msci') ||
@@ -98,16 +124,53 @@ function queryLooksLikeFund(q: string): boolean {
     );
 }
 
-/**
- * IMPORTANT: no todos los CORS proxies esperan el URL encodeado.
- * - allorigins/codetabs suelen necesitar encodeURIComponent
- * - corsproxy.io suele funcionar mejor con raw url
- */
-function buildProxyUrl(proxy: string, url: string): string {
-    if (proxy.includes('allorigins.win') || proxy.includes('codetabs.com')) {
-        return `${proxy}${encodeURIComponent(url)}`;
+
+function buildProxyUrl(proxyConfig: ProxyConfig, url: string, forceRefresh = false): string {
+    const { url: proxyBase } = proxyConfig;
+
+    // Only add cache buster if explicitly requested (retries)
+    let targetUrl = url;
+    if (forceRefresh) {
+        const cacheBuster = `&_cb=${Date.now()}`;
+        targetUrl = url + (url.includes('?') ? cacheBuster : `?${cacheBuster.substring(1)}`);
     }
-    return `${proxy}${url}`;
+
+    const encodedUrl = encodeURIComponent(targetUrl);
+
+    if (proxyBase.includes('allorigins') || proxyBase.includes('codetabs')) {
+        return `${proxyBase}${encodedUrl}`;
+    }
+    if (proxyBase.includes('?') && !proxyBase.endsWith('=')) {
+        return `${proxyBase}${targetUrl}`;
+    }
+    if (proxyBase.endsWith('url=')) {
+        return `${proxyBase}${encodedUrl}`;
+    }
+    return `${proxyBase}${targetUrl}`;
+}
+
+async function fetchFromProxy(proxyConfig: ProxyConfig, url: string, signal?: AbortSignal, forceRefresh = false) {
+    const proxyUrl = buildProxyUrl(proxyConfig, url, forceRefresh);
+    const response = await axios.get(proxyUrl, { timeout: 10000, signal });
+
+    if (proxyConfig.type === 'json') {
+        const data = response.data;
+        if (data && data.contents !== undefined) {
+            if (typeof data.contents === 'string') {
+                try {
+                    // Try to parse if it looks like JSON
+                    if (data.contents.trim().startsWith('{') || data.contents.trim().startsWith('[')) {
+                        return JSON.parse(data.contents);
+                    }
+                    return data.contents;
+                } catch (e) {
+                    return data.contents;
+                }
+            }
+            return data.contents;
+        }
+    }
+    return response.data;
 }
 
 function addUniqueResult(
@@ -159,7 +222,7 @@ export async function searchSymbol(query: string, signal?: AbortSignal): Promise
                         name: quote.name || sym,
                         type: 'fund',
                         region: 'Global',
-                        currency: quote.currency || 'EUR',
+                        currency: quote.currency || 'Unknown',
                     });
                     // Con 1 encontrado normalmente basta
                     break;
@@ -261,7 +324,7 @@ export async function searchSymbol(query: string, signal?: AbortSignal): Promise
 
     if (allResults.length > 0) return allResults;
 
-    return getMockSearchResults(q);
+    return [];
 }
 
 // ===== ALPHA VANTAGE SEARCH =====
@@ -323,62 +386,52 @@ async function searchSymbolYahoo(query: string, signal?: AbortSignal): Promise<S
 
     // Check cache
     const cached = SEARCH_CACHE.get(q);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-        console.log(`[Cache Hit] Search for "${q}"`);
+    if (cached && Date.now() - cached.timestamp < TTL.SEARCH) {
         return cached.data;
     }
 
     const url = `${YAHOO_SEARCH_URL}?q=${encodeURIComponent(q)}&quotesCount=40&newsCount=0`;
 
-    // Try multiple proxies
     for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
         const proxy = getNextProxy();
         try {
-            const proxyUrl = buildProxyUrl(proxy, url);
-
-            const response = await axios.get(proxyUrl, { timeout: 10000, signal });
-            const quotes = response.data?.quotes || [];
+            // Fix 2: Conditional cache busting
+            const forceRefresh = attempt > 0;
+            const data = await fetchFromProxy(proxy, url, signal, forceRefresh);
+            const quotes = data?.quotes || [];
 
             console.log(`[Yahoo API] Search for "${q}" returned ${quotes.length} results via Proxy ${attempt + 1}`);
 
-            // Mapeo y filtrado leve
+            // Mapping
             const mapped: SearchResult[] = quotes.map((item: any) => ({
                 symbol: item.symbol,
                 name: item.shortname || item.longname || item.symbol,
                 type: mapYahooType(item.quoteType),
                 region: item.region || 'Global',
-                currency: item.currency || 'USD',
+                currency: item.currency || 'Unknown',
             }));
 
-            // Ranking robusto
+            // Score and Sort
             const isFundQuery = queryLooksLikeFund(q);
-
             const getScore = (r: SearchResult) => {
                 let s = 0;
                 const nameLower = r.name?.toLowerCase() || '';
                 const symbolLower = r.symbol?.toLowerCase() || '';
                 const qLower = q.toLowerCase();
 
-                // Match exacto de símbolo
                 if (symbolLower === qLower) s += 500;
-
-                // Contiene el query en el símbolo
                 if (symbolLower.includes(qLower)) s += 100;
-
-                // Match exacto de nombre
                 if (nameLower === qLower) s += 400;
 
-                // Tipo de activo
                 if (isFundQuery) {
                     if (r.type === 'fund') s += 300;
                     if (r.type === 'etf') s += 200;
-                    if (r.type === 'stock') s -= 100; // Penalizar equities en queries de fondos
+                    if (r.type === 'stock') s -= 100;
                 } else {
                     if (r.type === 'stock') s += 50;
                     if (r.type === 'crypto') s += 50;
                 }
 
-                // Keywords en el nombre
                 if (nameLower.includes('msci')) s += 50;
                 if (nameLower.includes('world')) s += 30;
                 if (nameLower.includes('fidelity')) s += 30;
@@ -393,19 +446,19 @@ async function searchSymbolYahoo(query: string, signal?: AbortSignal): Promise<S
             return sorted;
         } catch (error) {
             if (axios.isCancel(error)) throw error;
-            markProxyFailure(proxy);
+            markProxyFailure(proxy.url, error);
             console.warn(`Yahoo Finance search failed with proxy ${attempt + 1}:`, error);
         }
     }
 
-    throw new Error('All proxies failed for Yahoo Finance search');
+    return [];
 }
 
 // ===== GET QUOTE (with fallback) =====
 export async function getQuote(symbol: string, signal?: AbortSignal): Promise<StockQuote | null> {
     // Check cache first
     const cached = QUOTE_CACHE.get(symbol);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    if (cached && Date.now() - cached.timestamp < TTL.QUOTE) {
         console.log(`[Cache Hit] Quote for ${symbol}`);
         return cached.data;
     }
@@ -454,8 +507,8 @@ export async function getQuote(symbol: string, signal?: AbortSignal): Promise<St
         console.warn('Finnhub quote failed:', error);
     }
 
-    // Return mock data as last resort
-    return getMockQuote(symbol);
+    // Return null if all sources fail (Strict Real Data)
+    return null;
 }
 
 // ===== ALPHA VANTAGE GET QUOTE =====
@@ -537,40 +590,231 @@ async function getQuoteYahoo(symbol: string, signal?: AbortSignal): Promise<Stoc
 }
 
 // ===== YAHOO FINANCE GET QUOTES BATCH =====
-async function getQuotesYahooBatch(symbols: string[], signal?: AbortSignal): Promise<StockQuote[]> {
+// ===== YAHOO FINANCE GET QUOTES BATCH =====
+export async function getQuotesYahooBatch(symbols: string[], signal?: AbortSignal): Promise<StockQuote[]> {
     if (symbols.length === 0) return [];
 
-    const url = `${YAHOO_BASE_URL}/quote?symbols=${encodeURIComponent(symbols.join(','))}`;
+    // Fix 6: Chunking to avoid URL overflow
+    const CHUNK_SIZE = 20;
+    const allQuotes: StockQuote[] = [];
 
-    // Try multiple proxies
+    // Helper to process a single chunk
+    const fetchChunk = async (chunkSymbols: string[]): Promise<StockQuote[]> => {
+        const url = `${YAHOO_BASE_URL}/quote?symbols=${encodeURIComponent(chunkSymbols.join(','))}`;
+
+        for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
+            const proxy = getNextProxy();
+            try {
+                // Fix 2: Conditional cache busting (only on retries)
+                const forceRefresh = attempt > 0;
+                const data = await fetchFromProxy(proxy, url, signal, forceRefresh);
+                const results = data?.quoteResponse?.result || [];
+
+                console.log(`[Yahoo API] Batch quote for ${chunkSymbols.length} symbols returned ${results.length} results via Proxy ${attempt + 1}`);
+
+                return results.map((result: any) => ({
+                    symbol: result.symbol,
+                    name: result.longName || result.shortName || result.symbol,
+                    price: result.regularMarketPrice || 0,
+                    change: result.regularMarketChange || 0,
+                    changePercent: result.regularMarketChangePercent || 0,
+                    previousClose: result.regularMarketPreviousClose || 0,
+                    open: result.regularMarketOpen || 0,
+                    high: result.regularMarketDayHigh || 0,
+                    low: result.regularMarketDayLow || 0,
+                    volume: result.regularMarketVolume || 0,
+                    marketCap: result.marketCap,
+                    // Fix 1: No fake defaults
+                    currency: result.currency || result.financialCurrency || 'Unknown',
+                    // Fundamentals from Yahoo
+                    pe: result.trailingPE,
+                    forwardPe: result.forwardPE,
+                    ps: result.priceToSales,
+                    pb: result.priceToBook,
+                    dividendYield: result.trailingAnnualDividendYield ? result.trailingAnnualDividendYield * 100 : undefined,
+                    dividendRate: result.trailingAnnualDividendRate,
+                    eps: result.trailingEps,
+                    beta: result.beta,
+                    fiftyTwoWeekHigh: result.fiftyTwoWeekHigh,
+                    fiftyTwoWeekLow: result.fiftyTwoWeekLow,
+                }));
+            } catch (error) {
+                if (axios.isCancel(error)) throw error;
+                markProxyFailure(proxy.url, error);
+                console.warn(`Yahoo Finance batch chunk failed with proxy ${attempt + 1}:`, error);
+            }
+        }
+        return [];
+    };
+
+    // Process chunks
+    for (let i = 0; i < symbols.length; i += CHUNK_SIZE) {
+        const chunk = symbols.slice(i, i + CHUNK_SIZE);
+        const chunkResults = await fetchChunk(chunk);
+        allQuotes.push(...chunkResults);
+
+        // Small delay between chunks to be nice to proxies if we have many
+        if (symbols.length > CHUNK_SIZE) {
+            await new Promise(r => setTimeout(r, 200));
+        }
+    }
+
+    return allQuotes;
+}
+
+// ===== YAHOO FINANCE GET FUNDAMENTALS =====
+export async function getFundamentalData(symbol: string, signal?: AbortSignal): Promise<Partial<StockQuote>> {
+    // Strategy: Progressive Enhancement.
+    // 1. Always get the "basic" quote first (v7), which we know is reliable (used in "Add Asset").
+    // 2. Try to get "advanced" details (v10).
+    // 3. Merge them.
+
+    let baseMetrics: Partial<StockQuote> = {};
+
+    try {
+        const basicQuote = await getQuoteYahoo(symbol, signal);
+        if (basicQuote) {
+            baseMetrics = {
+                price: basicQuote.price,
+                change: basicQuote.change,
+                changePercent: basicQuote.changePercent,
+                pe: basicQuote.pe,
+                forwardPe: basicQuote.forwardPe,
+                ps: basicQuote.ps,
+                pb: basicQuote.pb,
+                dividendYield: basicQuote.dividendYield,
+                dividendRate: basicQuote.dividendRate,
+                eps: basicQuote.eps,
+                beta: basicQuote.beta,
+                marketCap: basicQuote.marketCap,
+                fiftyTwoWeekHigh: basicQuote.fiftyTwoWeekHigh,
+                fiftyTwoWeekLow: basicQuote.fiftyTwoWeekLow,
+                averageVolume: basicQuote.averageVolume
+            };
+        }
+    } catch (e) {
+        console.warn('Basic quote fetch failed in getFundamentalData', e);
+    }
+
+    const v10Url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=defaultKeyStatistics,financialData,summaryDetail`;
+
+    // Try v10 for advanced metrics (EBITDA, Margins, etc.)
     for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
         const proxy = getNextProxy();
         try {
-            const proxyUrl = buildProxyUrl(proxy, url);
+            // Fix 2: Conditional cache busting
+            const forceRefresh = attempt > 0;
+            const data = await fetchFromProxy(proxy, v10Url, signal, forceRefresh);
+            const result = data?.quoteSummary?.result?.[0];
 
-            const response = await axios.get(proxyUrl, { timeout: 15000, signal });
-            const results = response.data?.quoteResponse?.result || [];
+            if (result && Object.keys(result).length > 0) {
+                const stats = result.defaultKeyStatistics || {};
+                const financialData = result.financialData || {};
+                const summaryDetail = result.summaryDetail || {};
 
-            console.log(`[Yahoo API] Batch quote for ${symbols.length} symbols returned ${results.length} results via Proxy ${attempt + 1}`);
+                // Merge advanced metrics
+                return {
+                    ...baseMetrics,
+                    // Prefer v10 values if available, otherwise keep v7 or undefined
+                    pe: stats.trailingPE?.raw || summaryDetail.trailingPE?.raw || baseMetrics.pe,
+                    forwardPe: stats.forwardPE?.raw || summaryDetail.forwardPE?.raw || baseMetrics.forwardPe,
+                    ps: stats.priceToSalesTrailing12Months?.raw || summaryDetail.priceToSalesTrailing12Months?.raw || baseMetrics.ps,
+                    pb: stats.priceToBook?.raw || summaryDetail.priceToBook?.raw || baseMetrics.pb,
+                    dividendYield: summaryDetail.dividendYield?.raw ? summaryDetail.dividendYield.raw * 100 : baseMetrics.dividendYield,
+                    dividendRate: summaryDetail.dividendRate?.raw || baseMetrics.dividendRate,
+                    eps: stats.trailingEps?.raw || baseMetrics.eps,
+                    beta: stats.beta?.raw || baseMetrics.beta,
 
-            return results.map((result: any) => ({
-                symbol: result.symbol,
-                name: result.longName || result.shortName || result.symbol,
-                price: result.regularMarketPrice || 0,
-                change: result.regularMarketChange || 0,
-                changePercent: result.regularMarketChangePercent || 0,
-                previousClose: result.regularMarketPreviousClose || 0,
-                open: result.regularMarketOpen || 0,
-                high: result.regularMarketDayHigh || 0,
-                low: result.regularMarketDayLow || 0,
-                volume: result.regularMarketVolume || 0,
-                marketCap: result.marketCap,
-                currency: result.currency || result.financialCurrency || 'EUR',
-            }));
+                    // Advanced metrics ONLY in v10
+                    ebitda: financialData.ebitda?.raw,
+                    evToEbitda: stats.enterpriseToEbitda?.raw,
+                    revenueGrowth: financialData.revenueGrowth?.raw ? financialData.revenueGrowth.raw * 100 : undefined,
+                    profitMargin: financialData.profitMargins?.raw ? financialData.profitMargins.raw * 100 : undefined,
+                    roe: financialData.returnOnEquity?.raw ? financialData.returnOnEquity.raw * 100 : undefined,
+                    debtToEquity: financialData.debtToEquity?.raw,
+                };
+            }
         } catch (error) {
             if (axios.isCancel(error)) throw error;
-            markProxyFailure(proxy);
-            console.warn(`Yahoo Finance batch quote failed with proxy ${attempt + 1}:`, error);
+            markProxyFailure(proxy.url, error);
+        }
+    }
+
+    // If v10 failed completely, return whatever we got from v7
+    return baseMetrics;
+}
+
+// ===== YAHOO FINANCE GET CHART DATA =====
+export async function getAssetChartData(
+    symbol: string,
+    period: TimePeriod = '1M',
+    signal?: AbortSignal
+): Promise<HistoricalDataPoint[]> {
+    let range = '1mo';
+    let interval = '1d';
+
+    switch (period) {
+        case '1D':
+            range = '1d';
+            interval = '5m';
+            break;
+        case '7D':
+            range = '7d';
+            interval = '30m';
+            break;
+        case '1M':
+            range = '1mo';
+            interval = '1d';
+            break;
+        case '3M':
+            range = '3mo';
+            interval = '1d';
+            break;
+        case 'YTD':
+            range = 'ytd';
+            interval = '1d';
+            break;
+        case 'ALL':
+            range = 'max';
+            interval = '1wk';
+            break;
+    }
+
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=${range}&interval=${interval}`;
+
+    for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
+        const proxy = getNextProxy();
+        try {
+            // Fix 2: Conditional cache busting
+            const forceRefresh = attempt > 0;
+            const data = await fetchFromProxy(proxy, url, signal, forceRefresh);
+            const result = data?.chart?.result?.[0];
+
+            if (!result || !result.timestamp) return [];
+
+            const timestamps = result.timestamp;
+            const quotes = result.indicators.quote[0];
+            const adjClose = result.indicators.adjclose?.[0].adjclose || quotes.close;
+
+            return timestamps.map((timestamp: number, i: number) => {
+                const date = new Date(timestamp * 1000);
+                const dateStr = period === '1D'
+                    ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : date.toISOString().split('T')[0];
+
+                return {
+                    date: dateStr,
+                    open: quotes.open[i] || 0,
+                    high: quotes.high[i] || 0,
+                    low: quotes.low[i] || 0,
+                    close: adjClose[i] || quotes.close[i] || 0,
+                    volume: quotes.volume[i] || 0,
+                };
+            }).filter((p: any) => p.close > 0);
+        } catch (error) {
+            if (axios.isCancel(error)) throw error;
+            markProxyFailure(proxy.url, error);
+            console.warn(`Yahoo Finance chart failed with proxy ${attempt + 1}:`, error);
         }
     }
 
@@ -604,7 +848,7 @@ export async function getHistoricalData(
 
         const timeSeries = response.data['Time Series (Daily)'];
         if (!timeSeries) {
-            return getMockHistoricalData();
+            return [];
         }
 
         return Object.entries(timeSeries).map(([date, data]: [string, unknown]) => {
@@ -620,7 +864,7 @@ export async function getHistoricalData(
         }).reverse();
     } catch (error) {
         console.error('Error getting historical data:', error);
-        return getMockHistoricalData();
+        return [];
     }
 }
 
@@ -701,82 +945,7 @@ function mapYahooType(type: string): AssetType {
     return typeMap[type] || 'stock';
 }
 
-// ===== MOCK DATA FALLBACKS =====
-function getMockSearchResults(query: string): SearchResult[] {
-    const mockData: SearchResult[] = [
-        { symbol: 'AAPL', name: 'Apple Inc.', type: 'stock', region: 'United States', currency: 'USD' },
-        { symbol: 'MSFT', name: 'Microsoft Corporation', type: 'stock', region: 'United States', currency: 'USD' },
-        { symbol: 'GOOGL', name: 'Alphabet Inc.', type: 'stock', region: 'United States', currency: 'USD' },
-        { symbol: 'AMZN', name: 'Amazon.com Inc.', type: 'stock', region: 'United States', currency: 'USD' },
-        { symbol: 'TSLA', name: 'Tesla Inc.', type: 'stock', region: 'United States', currency: 'USD' },
-        { symbol: 'NVDA', name: 'NVIDIA Corporation', type: 'stock', region: 'United States', currency: 'USD' },
-        { symbol: 'VOO', name: 'Vanguard S&P 500 ETF', type: 'etf', region: 'United States', currency: 'USD' },
-        { symbol: 'VTI', name: 'Vanguard Total Stock Market ETF', type: 'etf', region: 'United States', currency: 'USD' },
-        { symbol: 'QQQ', name: 'Invesco QQQ Trust', type: 'etf', region: 'United States', currency: 'USD' },
-    ];
 
-    const lowerQuery = query.toLowerCase();
-    return mockData.filter(
-        item => item.symbol.toLowerCase().includes(lowerQuery) ||
-            item.name.toLowerCase().includes(lowerQuery)
-    );
-}
-
-function getMockQuote(symbol: string): StockQuote {
-    const mockPrices: Record<string, number> = {
-        'AAPL': 178.50,
-        'MSFT': 378.25,
-        'GOOGL': 141.80,
-        'AMZN': 153.40,
-        'TSLA': 248.90,
-        'NVDA': 495.20,
-        'VOO': 432.15,
-        'VTI': 238.45,
-        'QQQ': 402.80,
-    };
-
-    const basePrice = mockPrices[symbol] || 100 + Math.random() * 200;
-    const change = (Math.random() - 0.5) * 10;
-    const changePercent = (change / basePrice) * 100;
-
-    return {
-        symbol,
-        name: symbol,
-        price: basePrice,
-        change,
-        changePercent,
-        previousClose: basePrice - change,
-        open: basePrice - change * 0.5,
-        high: basePrice + Math.abs(change),
-        low: basePrice - Math.abs(change),
-        volume: Math.floor(Math.random() * 10000000),
-    };
-}
-
-function getMockHistoricalData(): HistoricalDataPoint[] {
-    const data: HistoricalDataPoint[] = [];
-    const today = new Date();
-    let price = 100;
-
-    for (let i = 100; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
-
-        const change = (Math.random() - 0.48) * 3;
-        price = Math.max(50, price + change);
-
-        data.push({
-            date: date.toISOString().split('T')[0],
-            open: price - Math.random(),
-            high: price + Math.random() * 2,
-            low: price - Math.random() * 2,
-            close: price,
-            volume: Math.floor(Math.random() * 1000000),
-        });
-    }
-
-    return data;
-}
 
 // ===== API STATUS =====
 export function getApiStatus(): { alphaVantage: boolean; finnhub: boolean } {

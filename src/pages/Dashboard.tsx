@@ -6,8 +6,10 @@ import { PortfolioChart } from '../components/charts/PortfolioChart';
 import { Performers } from '../components/dashboard/Performers';
 import { AssetsTable } from '../components/dashboard/AssetsTable';
 import { PortfolioComposition } from '../components/dashboard/PortfolioComposition';
+import { AssetDetail } from '../components/dashboard/AssetDetail';
 import { Button } from '../components/ui/Button';
 import { Card, CardContent } from '../components/ui/Card';
+import { Modal } from '../components/ui/Modal';
 import { usePortfolio } from '../context/PortfolioContext';
 import { filterHistoryByPeriod } from '../data/mockData';
 import { generateMockHistory } from '../data/mockData';
@@ -18,6 +20,7 @@ export function Dashboard() {
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
     const { assets, loading, updatingPrices, lastPriceUpdate } = state;
     const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M');
+    const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
     const navigate = useNavigate();
 
     const handleEditAsset = (asset: Asset) => {
@@ -198,8 +201,19 @@ export function Dashboard() {
                     onDelete={deleteAsset}
                     onEdit={handleEditAsset}
                     onAddPurchase={handleAddPurchase}
+                    onViewDetails={(asset) => setSelectedAsset(asset)}
                 />
             </section>
+
+            {/* Asset Detail Modal */}
+            <Modal
+                isOpen={selectedAsset !== null}
+                onClose={() => setSelectedAsset(null)}
+                title={selectedAsset ? `Detalles de ${selectedAsset.symbol}` : ''}
+                size="lg"
+            >
+                {selectedAsset && <AssetDetail asset={selectedAsset} />}
+            </Modal>
         </div>
     );
 }

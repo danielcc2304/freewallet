@@ -11,12 +11,13 @@ interface AssetsTableProps {
     onDelete?: (id: string) => void;
     onEdit?: (asset: Asset) => void;
     onAddPurchase?: (asset: Asset) => void;
+    onViewDetails?: (asset: Asset) => void;
 }
 
 type SortKey = 'symbol' | 'value' | 'change' | 'weight';
 type SortDirection = 'asc' | 'desc';
 
-export function AssetsTable({ assets, onDelete, onEdit, onAddPurchase }: AssetsTableProps) {
+export function AssetsTable({ assets, onDelete, onEdit, onAddPurchase, onViewDetails }: AssetsTableProps) {
     const [sortKey, setSortKey] = useState<SortKey>('value');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -159,7 +160,11 @@ export function AssetsTable({ assets, onDelete, onEdit, onAddPurchase }: AssetsT
                             </thead>
                             <tbody>
                                 {sortedAssets.map((asset) => (
-                                    <tr key={asset.id}>
+                                    <tr
+                                        key={asset.id}
+                                        onClick={() => onViewDetails?.(asset)}
+                                        className="clickable-row"
+                                    >
                                         <td>
                                             <div className="assets-table__asset">
                                                 <span className="assets-table__symbol">{asset.symbol}</span>

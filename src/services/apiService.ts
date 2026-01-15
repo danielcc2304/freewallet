@@ -1,5 +1,5 @@
 import axios from 'axios';
-import type { StockQuote, SearchResult, HistoricalDataPoint, AssetType } from '../types/types';
+import type { StockQuote, SearchResult, HistoricalDataPoint, AssetType, TimePeriod } from '../types/types';
 
 // ===== API CONFIGURATION =====
 const ALPHA_VANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
@@ -26,10 +26,19 @@ const MAX_FAILURES_BEFORE_SWITCH = 3;
 // We use multiple proxies for fallback
 const YAHOO_BASE_URL = 'https://query1.finance.yahoo.com/v7/finance';
 const YAHOO_SEARCH_URL = 'https://query2.finance.yahoo.com/v1/finance/search';
-const CORS_PROXIES = [
-    'https://api.allorigins.win/raw?url=',
-    'https://corsproxy.io/?',
-    'https://api.codetabs.com/v1/proxy?quest=',
+
+interface ProxyConfig {
+    url: string;
+    type: 'raw' | 'json';
+}
+
+const CORS_PROXIES: ProxyConfig[] = [
+    { url: 'https://api.allorigins.win/raw?url=', type: 'raw' },
+    { url: 'https://thingproxy.freeboard.io/fetch/', type: 'raw' },
+    { url: 'https://api.allorigins.win/get?url=', type: 'json' },
+    { url: 'https://corsproxy.org/?url=', type: 'raw' },
+    { url: 'https://corsproxy.is/?url=', type: 'raw' },
+    { url: 'https://api.codetabs.com/v1/proxy?quest=', type: 'raw' },
 ];
 let currentProxyIndex = 0;
 
@@ -45,29 +54,28 @@ const CACHE_TTL = 60000; // 60 seconds
 
 // ===== HELPER FUNCTIONS =====
 const PROXY_COOLDOWN = new Map<string, number>();
-const COOLDOWN_MS = 60000; // 60 seconds
+const COOLDOWN_MS = 20000; // 20 seconds for faster recovery
 
-function getNextProxy(): string {
+function getNextProxy(): ProxyConfig {
     const now = Date.now();
     for (let i = 0; i < CORS_PROXIES.length; i++) {
         const index = (currentProxyIndex + i) % CORS_PROXIES.length;
         const proxy = CORS_PROXIES[index];
-        const cooldownUntil = PROXY_COOLDOWN.get(proxy) || 0;
+        const cooldownUntil = PROXY_COOLDOWN.get(proxy.url) || 0;
 
         if (now > cooldownUntil) {
             currentProxyIndex = (index + 1) % CORS_PROXIES.length;
             return proxy;
         }
     }
-    // Si todos en cooldown, coge el siguiente igual
     const proxy = CORS_PROXIES[currentProxyIndex];
     currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
     return proxy;
 }
 
-function markProxyFailure(proxy: string) {
-    console.warn(`[Proxy] Cooldown started for ${proxy}`);
-    PROXY_COOLDOWN.set(proxy, Date.now() + COOLDOWN_MS);
+function markProxyFailure(proxyUrl: string, err?: any) {
+    console.warn(`[Proxy] Failure for ${proxyUrl}:`, err?.message || err);
+    PROXY_COOLDOWN.set(proxyUrl, Date.now() + COOLDOWN_MS);
 }
 
 function looksLikeISIN(q: string): boolean {
@@ -99,15 +107,50 @@ function queryLooksLikeFund(q: string): boolean {
 }
 
 /**
- * IMPORTANT: no todos los CORS proxies esperan el URL encodeado.
- * - allorigins/codetabs suelen necesitar encodeURIComponent
- * - corsproxy.io suele funcionar mejor con raw url
+ * Configure proxies to append URL correctly
  */
-function buildProxyUrl(proxy: string, url: string): string {
-    if (proxy.includes('allorigins.win') || proxy.includes('codetabs.com')) {
-        return `${proxy}${encodeURIComponent(url)}`;
+function buildProxyUrl(proxyConfig: ProxyConfig, url: string): string {
+    const { url: proxyBase } = proxyConfig;
+    // Add cache buster to the target URL to avoid cached CORS mismatches
+    const cacheBuster = `&_cb=${Date.now()}`;
+    const targetUrl = url + (url.includes('?') ? cacheBuster : `?${cacheBuster.substring(1)}`);
+    const encodedUrl = encodeURIComponent(targetUrl);
+
+    if (proxyBase.includes('allorigins') || proxyBase.includes('codetabs')) {
+        return `${proxyBase}${encodedUrl}`;
     }
-    return `${proxy}${url}`;
+    if (proxyBase.includes('?') && !proxyBase.endsWith('=')) {
+        return `${proxyBase}${targetUrl}`;
+    }
+    if (proxyBase.endsWith('url=')) {
+        return `${proxyBase}${encodedUrl}`;
+    }
+    return `${proxyBase}${targetUrl}`;
+}
+
+async function fetchFromProxy(proxyConfig: ProxyConfig, url: string, signal?: AbortSignal) {
+    const proxyUrl = buildProxyUrl(proxyConfig, url);
+    const response = await axios.get(proxyUrl, { timeout: 10000, signal });
+
+    if (proxyConfig.type === 'json') {
+        // allorigins wrapper: { contents: "...", status: { ... } }
+        const data = response.data;
+        if (data && data.contents !== undefined) {
+            if (typeof data.contents === 'string') {
+                try {
+                    // Try to parse if it looks like JSON
+                    if (data.contents.trim().startsWith('{') || data.contents.trim().startsWith('[')) {
+                        return JSON.parse(data.contents);
+                    }
+                    return data.contents;
+                } catch (e) {
+                    return data.contents;
+                }
+            }
+            return data.contents;
+        }
+    }
+    return response.data;
 }
 
 function addUniqueResult(
@@ -324,24 +367,20 @@ async function searchSymbolYahoo(query: string, signal?: AbortSignal): Promise<S
     // Check cache
     const cached = SEARCH_CACHE.get(q);
     if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-        console.log(`[Cache Hit] Search for "${q}"`);
         return cached.data;
     }
 
     const url = `${YAHOO_SEARCH_URL}?q=${encodeURIComponent(q)}&quotesCount=40&newsCount=0`;
 
-    // Try multiple proxies
     for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
         const proxy = getNextProxy();
         try {
-            const proxyUrl = buildProxyUrl(proxy, url);
-
-            const response = await axios.get(proxyUrl, { timeout: 10000, signal });
-            const quotes = response.data?.quotes || [];
+            const data = await fetchFromProxy(proxy, url, signal);
+            const quotes = data?.quotes || [];
 
             console.log(`[Yahoo API] Search for "${q}" returned ${quotes.length} results via Proxy ${attempt + 1}`);
 
-            // Mapeo y filtrado leve
+            // Mapping
             const mapped: SearchResult[] = quotes.map((item: any) => ({
                 symbol: item.symbol,
                 name: item.shortname || item.longname || item.symbol,
@@ -350,35 +389,27 @@ async function searchSymbolYahoo(query: string, signal?: AbortSignal): Promise<S
                 currency: item.currency || 'USD',
             }));
 
-            // Ranking robusto
+            // Score and Sort
             const isFundQuery = queryLooksLikeFund(q);
-
             const getScore = (r: SearchResult) => {
                 let s = 0;
                 const nameLower = r.name?.toLowerCase() || '';
                 const symbolLower = r.symbol?.toLowerCase() || '';
                 const qLower = q.toLowerCase();
 
-                // Match exacto de símbolo
                 if (symbolLower === qLower) s += 500;
-
-                // Contiene el query en el símbolo
                 if (symbolLower.includes(qLower)) s += 100;
-
-                // Match exacto de nombre
                 if (nameLower === qLower) s += 400;
 
-                // Tipo de activo
                 if (isFundQuery) {
                     if (r.type === 'fund') s += 300;
                     if (r.type === 'etf') s += 200;
-                    if (r.type === 'stock') s -= 100; // Penalizar equities en queries de fondos
+                    if (r.type === 'stock') s -= 100;
                 } else {
                     if (r.type === 'stock') s += 50;
                     if (r.type === 'crypto') s += 50;
                 }
 
-                // Keywords en el nombre
                 if (nameLower.includes('msci')) s += 50;
                 if (nameLower.includes('world')) s += 30;
                 if (nameLower.includes('fidelity')) s += 30;
@@ -393,12 +424,12 @@ async function searchSymbolYahoo(query: string, signal?: AbortSignal): Promise<S
             return sorted;
         } catch (error) {
             if (axios.isCancel(error)) throw error;
-            markProxyFailure(proxy);
+            markProxyFailure(proxy.url, error);
             console.warn(`Yahoo Finance search failed with proxy ${attempt + 1}:`, error);
         }
     }
 
-    throw new Error('All proxies failed for Yahoo Finance search');
+    return [];
 }
 
 // ===== GET QUOTE (with fallback) =====
@@ -546,10 +577,8 @@ async function getQuotesYahooBatch(symbols: string[], signal?: AbortSignal): Pro
     for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
         const proxy = getNextProxy();
         try {
-            const proxyUrl = buildProxyUrl(proxy, url);
-
-            const response = await axios.get(proxyUrl, { timeout: 15000, signal });
-            const results = response.data?.quoteResponse?.result || [];
+            const data = await fetchFromProxy(proxy, url, signal);
+            const results = data?.quoteResponse?.result || [];
 
             console.log(`[Yahoo API] Batch quote for ${symbols.length} symbols returned ${results.length} results via Proxy ${attempt + 1}`);
 
@@ -566,11 +595,167 @@ async function getQuotesYahooBatch(symbols: string[], signal?: AbortSignal): Pro
                 volume: result.regularMarketVolume || 0,
                 marketCap: result.marketCap,
                 currency: result.currency || result.financialCurrency || 'EUR',
+                // Fundamentals from Yahoo
+                pe: result.trailingPE,
+                forwardPe: result.forwardPE,
+                ps: result.priceToSales,
+                pb: result.priceToBook,
+                dividendYield: result.trailingAnnualDividendYield ? result.trailingAnnualDividendYield * 100 : undefined,
+                dividendRate: result.trailingAnnualDividendRate,
+                eps: result.trailingEps,
+                beta: result.beta,
+                fiftyTwoWeekHigh: result.fiftyTwoWeekHigh,
+                fiftyTwoWeekLow: result.fiftyTwoWeekLow,
             }));
         } catch (error) {
             if (axios.isCancel(error)) throw error;
-            markProxyFailure(proxy);
+            markProxyFailure(proxy.url, error);
             console.warn(`Yahoo Finance batch quote failed with proxy ${attempt + 1}:`, error);
+        }
+    }
+
+    return [];
+}
+
+// ===== YAHOO FINANCE GET FUNDAMENTALS =====
+export async function getFundamentalData(symbol: string, signal?: AbortSignal): Promise<Partial<StockQuote>> {
+    const v10Url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=defaultKeyStatistics,financialData,summaryDetail`;
+    const v7Url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${symbol}`;
+
+    // Try v10 first for detailed metrics
+    for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
+        const proxy = getNextProxy();
+        try {
+            const data = await fetchFromProxy(proxy, v10Url, signal);
+            const result = data?.quoteSummary?.result?.[0];
+
+            if (result) {
+                const stats = result.defaultKeyStatistics || {};
+                const financialData = result.financialData || {};
+                const summaryDetail = result.summaryDetail || {};
+
+                return {
+                    pe: stats.trailingPE?.raw || summaryDetail.trailingPE?.raw,
+                    forwardPe: stats.forwardPE?.raw || summaryDetail.forwardPE?.raw,
+                    ps: stats.priceToSalesTrailing12Months?.raw || summaryDetail.priceToSalesTrailing12Months?.raw,
+                    pb: stats.priceToBook?.raw || summaryDetail.priceToBook?.raw,
+                    dividendYield: summaryDetail.dividendYield?.raw ? summaryDetail.dividendYield.raw * 100 : undefined,
+                    dividendRate: summaryDetail.dividendRate?.raw,
+                    eps: stats.trailingEps?.raw,
+                    beta: stats.beta?.raw,
+                    ebitda: financialData.ebitda?.raw,
+                    evToEbitda: stats.enterpriseToEbitda?.raw,
+                    revenueGrowth: financialData.revenueGrowth?.raw ? financialData.revenueGrowth.raw * 100 : undefined,
+                    profitMargin: financialData.profitMargins?.raw ? financialData.profitMargins.raw * 100 : undefined,
+                    roe: financialData.returnOnEquity?.raw ? financialData.returnOnEquity.raw * 100 : undefined,
+                    debtToEquity: financialData.debtToEquity?.raw,
+                    fiftyTwoWeekHigh: summaryDetail.fiftyTwoWeekHigh?.raw,
+                    fiftyTwoWeekLow: summaryDetail.fiftyTwoWeekLow?.raw,
+                };
+            }
+        } catch (error) {
+            if (axios.isCancel(error)) throw error;
+            markProxyFailure(proxy.url, error);
+        }
+    }
+
+    // Fallback to v7 for basic metrics if v10 failed
+    for (let attempt = 0; attempt < Math.min(2, CORS_PROXIES.length); attempt++) {
+        const proxy = getNextProxy();
+        try {
+            const data = await fetchFromProxy(proxy, v7Url, signal);
+            const result = data?.quoteResponse?.result?.[0];
+
+            if (result) {
+                return {
+                    pe: result.trailingPE,
+                    forwardPe: result.forwardPE,
+                    eps: result.trailingEps,
+                    dividendYield: result.trailingAnnualDividendYield ? result.trailingAnnualDividendYield * 100 : undefined,
+                    dividendRate: result.trailingAnnualDividendRate,
+                    marketCap: result.marketCap,
+                    fiftyTwoWeekHigh: result.fiftyTwoWeekHigh,
+                    fiftyTwoWeekLow: result.fiftyTwoWeekLow,
+                };
+            }
+        } catch (error) {
+            if (axios.isCancel(error)) throw error;
+            markProxyFailure(proxy.url, error);
+        }
+    }
+
+    return {};
+}
+
+// ===== YAHOO FINANCE GET CHART DATA =====
+export async function getAssetChartData(
+    symbol: string,
+    period: TimePeriod = '1M',
+    signal?: AbortSignal
+): Promise<HistoricalDataPoint[]> {
+    let range = '1mo';
+    let interval = '1d';
+
+    switch (period) {
+        case '1D':
+            range = '1d';
+            interval = '5m';
+            break;
+        case '7D':
+            range = '7d';
+            interval = '30m';
+            break;
+        case '1M':
+            range = '1mo';
+            interval = '1d';
+            break;
+        case '3M':
+            range = '3mo';
+            interval = '1d';
+            break;
+        case 'YTD':
+            range = 'ytd';
+            interval = '1d';
+            break;
+        case 'ALL':
+            range = 'max';
+            interval = '1wk';
+            break;
+    }
+
+    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=${range}&interval=${interval}`;
+
+    for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
+        const proxy = getNextProxy();
+        try {
+            const data = await fetchFromProxy(proxy, url, signal);
+            const result = data?.chart?.result?.[0];
+
+            if (!result || !result.timestamp) return [];
+
+            const timestamps = result.timestamp;
+            const quotes = result.indicators.quote[0];
+            const adjClose = result.indicators.adjclose?.[0].adjclose || quotes.close;
+
+            return timestamps.map((timestamp: number, i: number) => {
+                const date = new Date(timestamp * 1000);
+                const dateStr = period === '1D'
+                    ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                    : date.toISOString().split('T')[0];
+
+                return {
+                    date: dateStr,
+                    open: quotes.open[i] || 0,
+                    high: quotes.high[i] || 0,
+                    low: quotes.low[i] || 0,
+                    close: adjClose[i] || quotes.close[i] || 0,
+                    volume: quotes.volume[i] || 0,
+                };
+            }).filter((p: any) => p.close > 0);
+        } catch (error) {
+            if (axios.isCancel(error)) throw error;
+            markProxyFailure(proxy.url, error);
+            console.warn(`Yahoo Finance chart failed with proxy ${attempt + 1}:`, error);
         }
     }
 
@@ -753,20 +938,40 @@ function getMockQuote(symbol: string): StockQuote {
     };
 }
 
-function getMockHistoricalData(): HistoricalDataPoint[] {
+
+
+function getMockHistoricalData(period: TimePeriod = '1M'): HistoricalDataPoint[] {
     const data: HistoricalDataPoint[] = [];
     const today = new Date();
-    let price = 100;
+    let price = 150;
 
-    for (let i = 100; i >= 0; i--) {
+    let points = 30;
+    let daysToSubtract = 1;
+
+    switch (period) {
+        case '1D': points = 24; daysToSubtract = 0; break; // Hourly ish
+        case '7D': points = 7; daysToSubtract = 1; break;
+        case '1M': points = 30; daysToSubtract = 1; break;
+        case '3M': points = 90; daysToSubtract = 1; break;
+        case 'YTD': points = 120; daysToSubtract = 1; break;
+        case 'ALL': points = 200; daysToSubtract = 7; break;
+    }
+
+    for (let i = points; i >= 0; i--) {
         const date = new Date(today);
-        date.setDate(date.getDate() - i);
+        if (period === '1D') {
+            date.setHours(date.getHours() - i);
+        } else {
+            date.setDate(date.getDate() - (i * daysToSubtract));
+        }
 
         const change = (Math.random() - 0.48) * 3;
         price = Math.max(50, price + change);
 
         data.push({
-            date: date.toISOString().split('T')[0],
+            date: period === '1D'
+                ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                : date.toISOString().split('T')[0],
             open: price - Math.random(),
             high: price + Math.random() * 2,
             low: price - Math.random() * 2,

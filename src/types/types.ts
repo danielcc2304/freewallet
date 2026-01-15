@@ -76,6 +76,23 @@ export interface StockQuote {
     volume: number;
     marketCap?: number;
     currency?: string;
+    // Fundamentals
+    pe?: number;
+    forwardPe?: number;
+    ps?: number;
+    pb?: number;
+    dividendYield?: number;
+    dividendRate?: number;
+    eps?: number;
+    beta?: number;
+    ebitda?: number;
+    evToEbitda?: number;
+    revenueGrowth?: number;
+    profitMargin?: number;
+    roe?: number;
+    debtToEquity?: number;
+    fiftyTwoWeekHigh?: number;
+    fiftyTwoWeekLow?: number;
 }
 
 export interface SearchResult {

@@ -159,7 +159,7 @@ export async function searchSymbol(query: string, signal?: AbortSignal): Promise
                         name: quote.name || sym,
                         type: 'fund',
                         region: 'Global',
-                        currency: quote.currency || 'Unknown',
+                        currency: quote.currency || 'EUR',
                     });
                     // Con 1 encontrado normalmente basta
                     break;
@@ -312,8 +312,8 @@ async function searchSymbolFinnhub(query: string, signal?: AbortSignal): Promise
         symbol: item.symbol,
         name: item.description,
         type: mapFinnhubType(item.type),
-        region: item.region || 'Unknown',
-        currency: item.currency || 'Unknown',
+        region: item.region || 'Global',
+        currency: item.currency || 'USD', // Finnhub results often have currency
     }));
 }
 
@@ -493,7 +493,7 @@ async function getQuoteAlphaVantage(symbol: string, signal?: AbortSignal): Promi
         high: parseFloat(quote['03. high']),
         low: parseFloat(quote['04. low']),
         volume: parseInt(quote['06. volume']),
-        currency: 'Unknown',
+        currency: 'USD',
     };
 }
 
@@ -526,7 +526,7 @@ async function getQuoteFinnhub(symbol: string, signal?: AbortSignal): Promise<St
         high: data.h, // High
         low: data.l, // Low
         volume: 0, // Finnhub doesn't include volume in quote
-        currency: 'Unknown',
+        currency: 'USD',
     };
 }
 
@@ -565,7 +565,7 @@ async function getQuotesYahooBatch(symbols: string[], signal?: AbortSignal): Pro
                 low: result.regularMarketDayLow || 0,
                 volume: result.regularMarketVolume || 0,
                 marketCap: result.marketCap,
-                currency: result.currency || result.financialCurrency,
+                currency: result.currency || result.financialCurrency || 'EUR',
             }));
         } catch (error) {
             if (axios.isCancel(error)) throw error;

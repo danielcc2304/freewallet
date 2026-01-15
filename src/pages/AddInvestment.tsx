@@ -123,13 +123,17 @@ export function AddInvestment() {
             symbol: result.symbol,
             name: result.name,
             type: result.type,
-            purchasePrice: '0', // Changed from 0 to '0' to match FormData type
+            purchasePrice: '0',
             purchaseDate: new Date().toISOString().split('T')[0],
-            quantity: '0', // Changed from 0 to '0' to match FormData type
+            quantity: '0',
             isin: isISIN(result.symbol) ? result.symbol : ''
         });
         setSearchQuery(result.symbol);
-        setCurrency(result.currency || 'EUR');
+
+        // Sanitize currency
+        const initialCurrency = result.currency && result.currency !== 'Unknown' ? result.currency : 'EUR';
+        setCurrency(initialCurrency);
+
         setShowResults(false);
         setManualMode(false);
         setErrors(prev => ({ ...prev, symbol: undefined }));
@@ -143,9 +147,9 @@ export function AddInvestment() {
                 setCurrentPrice(quote.price);
                 setFormData(prev => ({
                     ...prev,
-                    purchasePrice: quote.price.toFixed(2) // Added .toFixed(2) to match original behavior
+                    purchasePrice: quote.price.toFixed(2)
                 }));
-                if (quote.currency) {
+                if (quote.currency && quote.currency !== 'Unknown') {
                     setCurrency(quote.currency);
                 }
             }
@@ -470,7 +474,7 @@ export function AddInvestment() {
                             <div className="current-price-banner">
                                 <div className="current-price-banner__label">Precio Actual:</div>
                                 <div className="current-price-banner__value">
-                                    {loadingPrice ? 'Cargando...' : `${currency === 'EUR' ? '€' : currency === 'USD' ? '$' : currency + ' '}${currentPrice.toFixed(2)}`}
+                                    {loadingPrice ? 'Cargando...' : `${currency === 'EUR' ? '€' : currency === 'USD' ? '$' : (currency && currency !== 'Unknown' ? currency + ' ' : '? ')}${currentPrice.toFixed(2)}`}
                                 </div>
                             </div>
                         )}
@@ -479,7 +483,7 @@ export function AddInvestment() {
                         <div className="form-row">
                             <div className="form-group">
                                 <Input
-                                    label={`Precio de Compra (${currency})`}
+                                    label={`Precio de Compra (${currency && currency !== 'Unknown' ? currency : 'EUR'})`}
                                     type="number"
                                     step="0.01"
                                     min="0"

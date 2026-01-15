@@ -93,6 +93,7 @@ export interface StockQuote {
     debtToEquity?: number;
     fiftyTwoWeekHigh?: number;
     fiftyTwoWeekLow?: number;
+    averageVolume?: number;
 }
 
 export interface SearchResult {

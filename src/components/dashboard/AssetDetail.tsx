@@ -42,45 +42,61 @@ export function AssetDetail({ asset }: AssetDetailProps) {
     const [quote, setQuote] = useState<Partial<StockQuote> | null>(null);
     const [chartData, setChartData] = useState<HistoricalDataPoint[]>([]);
     const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M');
-    const [loading, setLoading] = useState(true);
-    const [loadingChart, setLoadingChart] = useState(false);
 
+    // Independent loading states (Fix 16)
+    const [loadingFundamentals, setLoadingFundamentals] = useState(true);
+    const [loadingChart, setLoadingChart] = useState(true);
+
+    // Fix 14: AbortController for safety
+    // Effect for Fundamentals (runs once per asset change)
     useEffect(() => {
-        const fetchDetails = async () => {
-            setLoading(true);
+        const controller = new AbortController();
+        const fetchFundamentals = async () => {
+            setLoadingFundamentals(true);
             try {
-                const fundamentals = await getFundamentalData(asset.symbol);
-                setQuote(fundamentals);
-
-                const initialChart = await getAssetChartData(asset.symbol, selectedPeriod);
-                setChartData(initialChart);
+                const data = await getFundamentalData(asset.symbol, controller.signal);
+                if (!controller.signal.aborted) {
+                    setQuote(data);
+                }
             } catch (error) {
-                console.error('Error fetching asset details:', error);
+                if (!controller.signal.aborted) {
+                    console.error('Error fetching fundamentals:', error);
+                }
             } finally {
-                setLoading(false);
+                if (!controller.signal.aborted) {
+                    setLoadingFundamentals(false);
+                }
             }
         };
 
-        fetchDetails();
+        fetchFundamentals();
+        return () => controller.abort();
     }, [asset.symbol]);
 
+    // Effect for Chart (runs on asset or period change)
     useEffect(() => {
+        const controller = new AbortController();
         const fetchChart = async () => {
             setLoadingChart(true);
             try {
-                const data = await getAssetChartData(asset.symbol, selectedPeriod);
-                setChartData(data);
+                const data = await getAssetChartData(asset.symbol, selectedPeriod, controller.signal);
+                if (!controller.signal.aborted) {
+                    setChartData(data);
+                }
             } catch (error) {
-                console.error('Error fetching chart data:', error);
+                if (!controller.signal.aborted) {
+                    console.error('Error fetching chart:', error);
+                }
             } finally {
-                setLoadingChart(false);
+                if (!controller.signal.aborted) {
+                    setLoadingChart(false);
+                }
             }
         };
 
-        if (!loading) {
-            fetchChart();
-        }
-    }, [selectedPeriod, asset.symbol]);
+        fetchChart();
+        return () => controller.abort();
+    }, [asset.symbol, selectedPeriod]);
 
     const formatValue = (value: number | undefined, type: 'currency' | 'percent' | 'number' | 'compact' = 'number') => {
         if (value === undefined || value === null) return 'N/A';
@@ -110,6 +126,13 @@ export function AssetDetail({ asset }: AssetDetailProps) {
     const priceChange = (asset.currentPrice || 0) - (asset.previousClose || 0);
     const priceChangePercent = asset.previousClose ? (priceChange / asset.previousClose) * 100 : 0;
 
+    // Type-aware rendering (Fix 17)
+    const getRelevance = (category: string) => {
+        if (asset.type === 'crypto') return category === 'Técnico' || category === 'Riesgo';
+        if (asset.type === 'fund') return category === 'Valoración' || category === 'Riesgo' || category === 'Técnico';
+        return true; // Stocks show everything
+    };
+
     const metricItems = [
         { label: 'P/E Ratio', value: formatValue(quote?.pe), icon: <Activity size={16} />, category: 'Valoración' },
         { label: 'Forward P/E', value: formatValue(quote?.forwardPe), icon: <Clock size={16} />, category: 'Valoración' },
@@ -127,20 +150,11 @@ export function AssetDetail({ asset }: AssetDetailProps) {
         { label: 'EPS', value: formatValue(quote?.eps), icon: <DollarSign size={16} />, category: 'Resultados' },
         { label: 'Max (52 sem)', value: formatValue(quote?.fiftyTwoWeekHigh, 'currency'), icon: <ArrowUpRight size={16} />, category: 'Técnico' },
         { label: 'Min (52 sem)', value: formatValue(quote?.fiftyTwoWeekLow, 'currency'), icon: <ArrowDownRight size={16} />, category: 'Técnico' },
-    ];
-
-    if (loading) {
-        return (
-            <div className="asset-detail-loading">
-                <div className="spinner" />
-                <p>Cargando información detallada...</p>
-            </div>
-        );
-    }
+    ].filter(item => getRelevance(item.category));
 
     return (
         <div className="asset-detail">
-            {/* Header info */}
+            {/* Header info - Always visible (from props) */}
             <div className="asset-detail__header">
                 <div className="asset-detail__title-group">
                     <h2 className="asset-detail__symbol">{asset.symbol}</h2>
@@ -215,6 +229,12 @@ export function AssetDetail({ asset }: AssetDetailProps) {
                                 }}
                                 itemStyle={{ color: 'var(--accent-primary)' }}
                                 labelStyle={{ marginBottom: '4px', fontWeight: 'bold' }}
+                                formatter={(value: any) => [
+                                    value !== undefined && value !== null
+                                        ? new Intl.NumberFormat('es-ES', { maximumFractionDigits: 3 }).format(value)
+                                        : 'N/A',
+                                    'Precio'
+                                ]}
                             />
                             <Area
                                 type="monotone"
@@ -236,18 +256,25 @@ export function AssetDetail({ asset }: AssetDetailProps) {
                     <BarChart3 size={18} />
                     Métricas Clave
                 </h3>
-                <div className="metrics-grid">
-                    {metricItems.map((item, idx) => (
-                        <div key={idx} className="metric-card">
-                            <div className="metric-card__header">
-                                <span className="metric-card__icon">{item.icon}</span>
-                                <span className="metric-card__label">{item.label}</span>
+                {loadingFundamentals ? (
+                    <div className="metrics-loading">
+                        <div className="spinner-sm" />
+                        <p>Cargando datos fundamentales...</p>
+                    </div>
+                ) : (
+                    <div className="metrics-grid">
+                        {metricItems.map((item, idx) => (
+                            <div key={idx} className="metric-card">
+                                <div className="metric-card__header">
+                                    <span className="metric-card__icon">{item.icon}</span>
+                                    <span className="metric-card__label">{item.label}</span>
+                                </div>
+                                <div className="metric-card__value">{item.value}</div>
+                                <div className="metric-card__category">{item.category}</div>
                             </div>
-                            <div className="metric-card__value">{item.value}</div>
-                            <div className="metric-card__category">{item.category}</div>
-                        </div>
-                    ))}
-                </div>
+                        ))}
+                    </div>
+                )}
             </div>
 
             <div className="asset-detail__footer">

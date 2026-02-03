@@ -65,18 +65,6 @@
     font-weight: 500;
 }
 
-.academy__nav-link--priority {
-    position: relative;
-}
-
-.academy__nav-link--priority::after {
-    content: '⭐';
-    position: absolute;
-    right: 1rem;
-    font-size: 0.75rem;
-    opacity: 0.7;
-}
-
 .academy__nav-icon {
     flex-shrink: 0;
 }

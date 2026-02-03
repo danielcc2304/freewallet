@@ -45,7 +45,10 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
             "Fondo de emergencia básico (3-6 meses gastos)",
             "Conocimientos básicos adquiridos"
         ],
-        commonError: "Invertir sin colchón → liquidar en pérdidas por emergencia"
+        commonErrors: [
+            "Invertir sin colchón → liquidar en pérdidas por emergencia",
+            "Invertir en lo que no comprendes por recomendación"
+        ]
     },
     {
         id: 'phase-1',
@@ -59,7 +62,10 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
             moderate: "70% RV / 30% RF",
             aggressive: "90% RV / 10% RF"
         },
-        commonError: "Parar DCA en crisis (justo cuando hay que seguir)"
+        commonErrors: [
+            "Parar DCA en crisis (justo cuando hay que seguir)",
+            "Mirar la cartera a diario → estrés innecesario"
+        ]
     },
     {
         id: 'phase-2',
@@ -68,7 +74,10 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
         duration: "3-10 años",
         objective: "Aceleración del capital compuesto",
         strategy: "Primer rebalanceo si deriva >5%, revisión anual, aumentar con subidas sueldo",
-        commonError: "No rebalancear → exceso de riesgo no deseado"
+        commonErrors: [
+            "No rebalancear → exceso de riesgo no deseado",
+            "Perseguir rentabilidades pasadas (comprar lo que ya subió)"
+        ]
     },
     {
         id: 'phase-3',
@@ -77,7 +86,10 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
         duration: "10+ años",
         objective: "Proteger lo ganado sin perder crecimiento",
         strategy: "Mantener rumbo, reducir riesgo gradualmente si te acercas a objetivo",
-        commonError: "Volverse ultra-conservador demasiado pronto"
+        commonErrors: [
+            "No ir reduciendo el riesgo a medida que te acercas a tu objetivo",
+            "Falta de optimización fiscal (no usar fondos traspasables)"
+        ]
     },
     {
         id: 'phase-crisis',
@@ -85,7 +97,10 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
         title: "Durante una Crisis",
         duration: "En cualquier momento",
         objective: "Mantener la calma y seguir el plan",
-        commonError: "Vender por pánico en el momento más bajo"
+        commonErrors: [
+            "Vender por pánico en el momento más bajo",
+            "Intentar hacer 'Market Timing' para buscar el suelo"
+        ]
     }
 ];
 

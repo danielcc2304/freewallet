@@ -101,8 +101,13 @@ export function InvestorTimeline() {
                                         </div>
                                     )}
 
-                                    <div className="timeline__phase-error">
-                                        <strong>⚠️ Error común:</strong> {phase.commonError}
+                                    <div className="timeline__phase-errors">
+                                        <strong>⚠️ Errores comunes:</strong>
+                                        <ul>
+                                            {phase.commonErrors.map((err, i) => (
+                                                <li key={i}>{err}</li>
+                                            ))}
+                                        </ul>
                                     </div>
                                 </div>
                             )}
@@ -184,8 +189,13 @@ export function InvestorTimeline() {
                             </div>
                         </div>
 
-                        <div className="timeline__crisis-error">
-                            <strong>⚠️ Mayor error:</strong> {crisisPhase.commonError}
+                        <div className="timeline__crisis-errors">
+                            <strong>⚠️ Errores críticos:</strong>
+                            <ul>
+                                {crisisPhase.commonErrors.map((err, i) => (
+                                    <li key={i}>{err}</li>
+                                ))}
+                            </ul>
                         </div>
                     </div>
                 </div>

@@ -186,7 +186,7 @@ export interface TimelinePhase {
         moderate: string;
         aggressive: string;
     };
-    commonError: string;
+    commonErrors: string[];
     checklist?: string[];
 }
 

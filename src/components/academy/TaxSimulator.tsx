@@ -55,12 +55,12 @@ export function TaxSimulator() {
         const fundTax = calculateTaxes(fundGain);
         const fundNet = finalFundPreTax - fundTax;
 
-        // Scenario B: Asset with recurring tax (simulating "leakage" or selling/rebuying)
-        // This is a simplification to show the power of compound interest without tax friction
+        // Scenario B: Asset with recurring tax (simulating "leakage" or yearly rebalancing)
+        // We simulate that every year we realize gains and pay taxes on them.
         let finalETFNet = principal;
         for (let i = 0; i < yearsNum; i++) {
             const annualGain = finalETFNet * rate;
-            const annualTax = annualGain * 0.19; // Simplified fixed rate for annual hit
+            const annualTax = calculateTaxes(annualGain); // Use actual brackets for realism
             finalETFNet = finalETFNet + annualGain - annualTax;
         }
 
@@ -69,7 +69,7 @@ export function TaxSimulator() {
             etfNet: finalETFNet,
             difference: fundNet - finalETFNet
         };
-    }, [yearsNum]);
+    }, [yearsNum, calculateTaxes]);
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('es-ES', {
@@ -188,23 +188,31 @@ export function TaxSimulator() {
                     </div>
 
                     <div className="tax-sim__strategy">
-                        <header className="tax-sim__strategy-header">
-                            <Landmark className="icon" />
-                            <h3>Estrategia: Fondos vs Otros Activos</h3>
-                        </header>
+                        <div className="tax-sim__strategy-header">
+                            <ShieldCheck className="icon" size={24} />
+                            <h3>Beneficio del Diferimiento Fiscal</h3>
+                        </div>
                         <p className="tax-sim__strategy-desc">
-                            Invertir en Fondos de Inversión permite el <b>traspaso sin tributar</b>. Al no pagar impuestos cada vez que rebalanceas, tu capital crece más rápido.
+                            En España, los <strong>Fondos de Inversión</strong> permiten el traspaso sin tributar. Esto significa que puedes mover tu dinero de un fondo a otro sin pagar impuestos hasta que finalmente retires el capital.
+                            <br /><br />
+                            El dato de <strong>"Beneficio de Diferir"</strong> compara invertir 10.000€ a un 7% anual en un Fondo (pago único al final) frente a un activo donde pagaras impuestos cada año.
                         </p>
                         <div className="tax-sim__comparison">
                             <div className="compare-card">
-                                <span>Beneficio de Diferir</span>
-                                <strong>+{formatCurrency(deferralAnalysis.difference)}</strong>
-                                <p>Extra ganado tras {yearsNum} años</p>
+                                <span>Capital Final Diferido</span>
+                                <strong>{formatCurrency(deferralAnalysis.fundNet)}</strong>
+                                <p>Pagando impuestos solo al final (Fondo de Inversión)</p>
+                            </div>
+                            <div className="compare-card">
+                                <span>Capital Final No Diferido</span>
+                                <strong>{formatCurrency(deferralAnalysis.etfNet)}</strong>
+                                <p>Pagando impuestos anualmente (Eficiencia baja)</p>
                             </div>
                             <div className="compare-card highlight">
-                                <ShieldCheck size={20} />
-                                <span>Ventaja Fiscal</span>
-                                <p>Evitar la tributación anual acelera el interés compuesto.</p>
+                                <Landmark size={24} />
+                                <span>Ventaja Fiscal Extra</span>
+                                <strong>+{formatCurrency(deferralAnalysis.difference)}</strong>
+                                <p>Dinero extra gracias al interés compuesto sobre los impuestos no pagados.</p>
                             </div>
                         </div>
                     </div>

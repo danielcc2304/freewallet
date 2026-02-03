@@ -139,6 +139,14 @@
     animation: slideDown 0.3s ease;
 }
 
+.timeline__phase-objective,
+.timeline__phase-strategy,
+.timeline__phase-errors {
+    margin-bottom: 1.25rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+}
+
 @keyframes slideDown {
     from {
         opacity: 0;
@@ -151,20 +159,34 @@
     }
 }
 
-.timeline__phase-objective,
-.timeline__phase-strategy,
-.timeline__phase-error {
-    margin-bottom: 1.25rem;
-    line-height: 1.7;
-    color: var(--text-secondary);
-}
-
 .timeline__phase-objective strong,
 .timeline__phase-strategy strong,
-.timeline__phase-error strong {
+.timeline__phase-errors strong {
     display: block;
     margin-bottom: 0.5rem;
     color: var(--text-primary);
+}
+
+.timeline__phase-errors ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.timeline__phase-errors li {
+    position: relative;
+    padding-left: 1.25rem;
+    margin-bottom: 0.25rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.timeline__phase-errors li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--error-color, #ef4444);
+    font-weight: bold;
 }
 
 .timeline__phase-checklist {
@@ -282,10 +304,31 @@
 }
 
 .timeline__crisis-objective strong,
-.timeline__crisis-error strong {
+.timeline__crisis-errors strong {
     display: block;
     margin-bottom: 0.5rem;
     color: var(--text-primary);
+}
+
+.timeline__crisis-errors ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.timeline__crisis-errors li {
+    position: relative;
+    padding-left: 1.25rem;
+    margin-bottom: 0.4rem;
+    color: var(--text-secondary);
+}
+
+.timeline__crisis-errors li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--error-color, #ef4444);
+    font-weight: bold;
 }
 
 .timeline__crisis-actions {

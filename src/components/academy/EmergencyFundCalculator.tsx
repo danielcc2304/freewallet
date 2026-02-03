@@ -1,0 +1,183 @@
+import { useState, useMemo } from 'react';
+import { PiggyBank, ShieldCheck, AlertCircle, TrendingUp, HelpCircle } from 'lucide-react';
+import './EmergencyFundCalculator.css';
+
+export function EmergencyFundCalculator() {
+    // Inputs
+    const [monthlyRent, setMonthlyRent] = useState(800);
+    const [monthlyFood, setMonthlyFood] = useState(400);
+    const [monthlyBills, setMonthlyBills] = useState(200);
+    const [monthlyOther, setMonthlyOther] = useState(300);
+
+    // Risk factors
+    const [jobStability, setJobStability] = useState('high'); // high, medium, low
+    const [dependents, setDependents] = useState(0);
+    const [currentSavings, setCurrentSavings] = useState(1000);
+
+    // Calculations
+    const totalExpenses = monthlyRent + monthlyFood + monthlyBills + monthlyOther;
+
+    // Multiplier logic
+    const monthsMultiplier = useMemo(() => {
+        let base = 3;
+        if (jobStability === 'medium') base += 3;
+        if (jobStability === 'low') base += 6;
+        if (dependents > 0) base += Math.min(dependents * 1, 3);
+        return Math.min(base, 12); // Cap at 12 months
+    }, [jobStability, dependents]);
+
+    const recommendedAmount = totalExpenses * monthsMultiplier;
+    const progressPercent = Math.min((currentSavings / recommendedAmount) * 100, 100);
+
+    const formatCurrency = (value: number) => {
+        return new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'EUR',
+            maximumFractionDigits: 0
+        }).format(value);
+    };
+
+    return (
+        <div className="emergency">
+            <header className="emergency__header">
+                <div className="emergency__title-group">
+                    <div className="emergency__icon-container">
+                        <PiggyBank className="emergency__title-icon" />
+                    </div>
+                    <div>
+                        <h1 className="emergency__title">Fondo de Emergencia</h1>
+                        <p className="emergency__subtitle">El colchón que te permite dormir tranquilo.</p>
+                    </div>
+                </div>
+            </header>
+
+            <div className="emergency__grid">
+                <section className="emergency__inputs">
+                    <div className="emergency__card">
+                        <h3 className="emergency__card-title">Tus Gastos Mensuales</h3>
+                        <div className="emergency__input-list">
+                            <div className="emergency__input-item">
+                                <label>Vivienda (Alquiler/Hipoteca)</label>
+                                <input type="number" value={monthlyRent} onChange={(e) => setMonthlyRent(Number(e.target.value))} />
+                            </div>
+                            <div className="emergency__input-item">
+                                <label>Alimentación</label>
+                                <input type="number" value={monthlyFood} onChange={(e) => setMonthlyFood(Number(e.target.value))} />
+                            </div>
+                            <div className="emergency__input-item">
+                                <label>Suministros (Luz, Agua, Internet)</label>
+                                <input type="number" value={monthlyBills} onChange={(e) => setMonthlyBills(Number(e.target.value))} />
+                            </div>
+                            <div className="emergency__input-item">
+                                <label>Otros Gastos Fijos</label>
+                                <input type="number" value={monthlyOther} onChange={(e) => setMonthlyOther(Number(e.target.value))} />
+                            </div>
+                        </div>
+                        <div className="emergency__total-expenses">
+                            <span>Gastos Totales:</span>
+                            <strong>{formatCurrency(totalExpenses)}/mes</strong>
+                        </div>
+                    </div>
+
+                    <div className="emergency__card">
+                        <h3 className="emergency__card-title">Perfil de Riesgo</h3>
+                        <div className="emergency__input-item">
+                            <label>Estabilidad Laboral</label>
+                            <select value={jobStability} onChange={(e) => setJobStability(e.target.value)}>
+                                <option value="high">Alta (Funcionario o contrato muy estable)</option>
+                                <option value="medium">Media (Empleado por cuenta ajena)</option>
+                                <option value="low">Baja (Autónomo o sector volátil)</option>
+                            </select>
+                        </div>
+                        <div className="emergency__input-item">
+                            <label>Personas a tu cargo (Hijos, dependientes...)</label>
+                            <input type="number" min="0" value={dependents} onChange={(e) => setDependents(Number(e.target.value))} />
+                        </div>
+                    </div>
+
+                    <div className="emergency__card">
+                        <h3 className="emergency__card-title">Estado Actual</h3>
+                        <div className="emergency__input-item">
+                            <label>Dinero ahorrado para el fondo</label>
+                            <input type="number" value={currentSavings} onChange={(e) => setCurrentSavings(Number(e.target.value))} />
+                        </div>
+                    </div>
+                </section>
+
+                <main className="emergency__results">
+                    <div className="emergency__recommendation-box">
+                        <div className="emergency__rec-header">
+                            <ShieldCheck className="emergency__rec-icon" />
+                            <h3>Recomendación de Seguridad</h3>
+                        </div>
+                        <div className="emergency__rec-main">
+                            <div className="emergency__rec-amount">
+                                <span className="label">Tu Fondo Objetivo:</span>
+                                <span className="value">{formatCurrency(recommendedAmount)}</span>
+                            </div>
+                            <div className="emergency__rec-months">
+                                <span className="label">Equivalente a:</span>
+                                <span className="value">{monthsMultiplier} meses</span>
+                            </div>
+                        </div>
+
+                        <div className="emergency__progress-section">
+                            <div className="emergency__progress-labels">
+                                <span>Progreso: {formatCurrency(currentSavings)}</span>
+                                <span>{progressPercent.toFixed(0)}%</span>
+                            </div>
+                            <div className="emergency__progress-bar">
+                                <div
+                                    className="emergency__progress-fill"
+                                    style={{ width: `${progressPercent}%` }}
+                                ></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="emergency__insights">
+                        <div className="emergency__insight-card">
+                            <AlertCircle className="blue" />
+                            <div>
+                                <h4>¿Por qué {monthsMultiplier} meses?</h4>
+                                <p>
+                                    Basado en tu estabilidad <strong>{jobStability === 'high' ? 'alta' : jobStability === 'medium' ? 'media' : 'baja'}</strong>
+                                    {dependents > 0 ? ` y en tener ${dependents} personas a tu cargo, ` : ' y tu situación personal, '}
+                                    este colchón te protege ante imprevistos graves.
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="emergency__insight-card">
+                            <TrendingUp className="green" />
+                            <div>
+                                <h4>Siguiente Paso</h4>
+                                <p>
+                                    {progressPercent < 100
+                                        ? `Te faltan ${formatCurrency(recommendedAmount - currentSavings)} para completar tu tranquilidad.`
+                                        : '¡Felicidades! Tienes tu fondo completo. Ahora puedes centrarte en la inversión a largo plazo.'}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="emergency__theory">
+                        <h4 className="emergency__theory-title">
+                            <HelpCircle size={18} /> ¿Dónde guardar este dinero?
+                        </h4>
+                        <div className="emergency__theory-grid">
+                            <div className="theory-item">
+                                <strong>Disponibilidad Total:</strong>
+                                <p>Debe ser dinero accesible en menos de 48h (cuenta remunerada o fondo monetario).</p>
+                            </div>
+                            <div className="theory-item">
+                                <strong>Riesgo Cero:</strong>
+                                <p>Nunca inviertas este dinero en activos volátiles (cripto, bolsa).</p>
+                            </div>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+    );
+}

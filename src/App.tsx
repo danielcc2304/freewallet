@@ -10,6 +10,10 @@ import { InvestorTimeline } from './components/academy/InvestorTimeline';
 import { CrisisSimulator } from './components/academy/CrisisSimulator';
 import { CompoundInterestCalc } from './components/academy/CompoundInterestCalc';
 import { FIRECalculator } from './components/academy/FIRECalculator';
+import { RetirementCalculator } from './components/academy/RetirementCalculator';
+import { EmergencyFundCalculator } from './components/academy/EmergencyFundCalculator';
+import { TaxSimulator } from './components/academy/TaxSimulator';
+import { AssetAllocationSim } from './components/academy/AssetAllocationSim';
 import { InProcess } from './components/academy/InProcess';
 import { Calculators } from './components/academy/Calculators';
 import './index.css';
@@ -43,11 +47,11 @@ function App() {
             <Route path="glossary" element={<InProcess />} />
             <Route path="asset-types" element={<InProcess />} />
 
-            {/* Calculator specific sub-pages in process */}
-            <Route path="retirement" element={<InProcess />} />
-            <Route path="emergency-fund" element={<InProcess />} />
-            <Route path="taxes" element={<InProcess />} />
-            <Route path="asset-allocation" element={<InProcess />} />
+            {/* Calculator specific sub-pages */}
+            <Route path="retirement" element={<RetirementCalculator />} />
+            <Route path="emergency-fund" element={<EmergencyFundCalculator />} />
+            <Route path="taxes" element={<TaxSimulator />} />
+            <Route path="asset-allocation" element={<AssetAllocationSim />} />
           </Route>
         </Route>
 

@@ -41,7 +41,7 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
         duration: "0-6 meses",
         objective: "Estabilidad financiera",
         checklist: [
-            "Deudas caras saldadas (tarjetas >10% TAE)",
+            "Préstamos tóxicos saldados (>10% TAE)",
             "Fondo de emergencia básico (3-6 meses gastos)",
             "Conocimientos básicos adquiridos"
         ],

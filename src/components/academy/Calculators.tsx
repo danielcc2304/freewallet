@@ -56,8 +56,8 @@ export function Calculators() {
                     <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
                 </Link>
 
-                {/* Retirement Calculator - IN PROCESS */}
-                <Link to="/academy/retirement" className="calculators__card calculators__card--soon">
+                {/* Retirement Calculator - IMPLEMENTED */}
+                <Link to="/academy/retirement" className="calculators__card calculators__card--available">
                     <div className="calculators__card-icon calculators__card-icon--purple">
                         <Calendar size={32} />
                     </div>
@@ -66,16 +66,16 @@ export function Calculators() {
                         Planifica tu jubilación con proyecciones realistas ajustadas por inflación.
                     </p>
                     <ul className="calculators__card-features">
-                        <li>• Ahorro mensual necesario</li>
-                        <li>• Comparativa con pensión pública</li>
-                        <li>• Ajuste por inflación</li>
-                        <li>• Diferentes escenarios</li>
+                        <li>✓ Ahorro mensual necesario</li>
+                        <li>✓ Comparativa con pensión pública</li>
+                        <li>✓ Ajuste por inflación</li>
+                        <li>✓ Diferentes escenarios</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--soon">Próximamente</span>
+                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
                 </Link>
 
-                {/* Emergency Fund - IN PROCESS */}
-                <Link to="/academy/emergency-fund" className="calculators__card calculators__card--soon">
+                {/* Emergency Fund - IMPLEMENTED */}
+                <Link to="/academy/emergency-fund" className="calculators__card calculators__card--available">
                     <div className="calculators__card-icon calculators__card-icon--orange">
                         <PiggyBank size={32} />
                     </div>
@@ -84,16 +84,16 @@ export function Calculators() {
                         Calcula el colchón financiero que necesitas según tu situación personal.
                     </p>
                     <ul className="calculators__card-features">
-                        <li>• Meses de gastos recomendados</li>
-                        <li>• Evaluación de riesgos</li>
-                        <li>• Prioridad vs inversión</li>
-                        <li>• Consejos personalizados</li>
+                        <li>✓ Meses de gastos recomendados</li>
+                        <li>✓ Evaluación de riesgos</li>
+                        <li>✓ Prioridad vs inversión</li>
+                        <li>✓ Consejos personalizados</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--soon">Próximamente</span>
+                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
                 </Link>
 
-                {/* Tax Impact - IN PROCESS */}
-                <Link to="/academy/taxes" className="calculators__card calculators__card--soon">
+                {/* Tax Impact - IMPLEMENTED */}
+                <Link to="/academy/taxes" className="calculators__card calculators__card--available">
                     <div className="calculators__card-icon calculators__card-icon--red">
                         <Percent size={32} />
                     </div>
@@ -102,16 +102,16 @@ export function Calculators() {
                         Estima el impacto fiscal de tus inversiones (contexto español).
                     </p>
                     <ul className="calculators__card-features">
-                        <li>• IRPF sobre ganancias</li>
-                        <li>• Comparación fondos vs ETFs</li>
-                        <li>• Compensación minusvalías</li>
-                        <li>• Ejemplos prácticos</li>
+                        <li>✓ IRPF sobre ganancias</li>
+                        <li>✓ Comparación fondos vs ETFs</li>
+                        <li>✓ Compensación minusvalías</li>
+                        <li>✓ Ejemplos prácticos</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--soon">Próximamente</span>
+                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
                 </Link>
 
-                {/* Asset Allocation - IN PROCESS */}
-                <Link to="/academy/asset-allocation" className="calculators__card calculators__card--soon">
+                {/* Asset Allocation - IMPLEMENTED */}
+                <Link to="/academy/asset-allocation" className="calculators__card calculators__card--available">
                     <div className="calculators__card-icon calculators__card-icon--teal">
                         <Calculator size={32} />
                     </div>
@@ -120,12 +120,12 @@ export function Calculators() {
                         Prueba diferentes combinaciones de activos y visualiza riesgo/rentabilidad esperados.
                     </p>
                     <ul className="calculators__card-features">
-                        <li>• Asset allocation personalizado</li>
-                        <li>• Riesgo esperado</li>
-                        <li>• Rentabilidad histórica</li>
-                        <li>• Necesidad de rebalanceo</li>
+                        <li>✓ Asset allocation personalizado</li>
+                        <li>✓ Riesgo esperado</li>
+                        <li>✓ Rentabilidad histórica</li>
+                        <li>✓ Necesidad de rebalanceo</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--soon">Próximamente</span>
+                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
                 </Link>
             </div>
 

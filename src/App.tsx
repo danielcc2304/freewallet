@@ -17,6 +17,9 @@ import { AssetAllocationSim } from './components/academy/AssetAllocationSim';
 import { InProcess } from './components/academy/InProcess';
 import { Calculators } from './components/academy/Calculators';
 import { PortfolioBuilder } from './components/academy/PortfolioBuilder';
+import { Taxation } from './components/academy/Taxation';
+import { Strategies } from './components/academy/Strategies';
+import { RiskManagement } from './components/academy/RiskManagement';
 import './index.css';
 
 function App() {
@@ -41,9 +44,9 @@ function App() {
             <Route path="scenarios" element={<InProcess />} />
             <Route path="errors" element={<InProcess />} />
             <Route path="portfolio" element={<PortfolioBuilder />} />
-            <Route path="tax" element={<InProcess />} />
-            <Route path="strategies" element={<InProcess />} />
-            <Route path="risk" element={<InProcess />} />
+            <Route path="tax" element={<Taxation />} />
+            <Route path="strategies" element={<Strategies />} />
+            <Route path="risk" element={<RiskManagement />} />
             <Route path="resources" element={<InProcess />} />
             <Route path="glossary" element={<InProcess />} />
             <Route path="asset-types" element={<InProcess />} />

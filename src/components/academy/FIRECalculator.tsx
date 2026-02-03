@@ -164,7 +164,7 @@ export function FIRECalculator() {
 
                     <div className="fire__input-row">
                         <div className="fire__input-group">
-                            <label>Rentabilidad Anual (%)</label>
+                            <label>Rentab. Anual (%)</label>
                             <input
                                 type="number"
                                 className="fire__number-input"

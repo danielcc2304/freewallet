@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Info, AlertTriangle, TrendingDown, Scale, Landmark, HelpCircle } from 'lucide-react';
+import { Info, AlertTriangle, TrendingDown, Scale, Landmark, HelpCircle, Wallet } from 'lucide-react';
 import './BondCalculator.css';
 
 type YtmInputs = {
@@ -85,52 +85,60 @@ export function BondCalculator() {
 
             <div className="bond-calc__grid">
                 <div className="bond-calc__inputs">
-                    <div className="input-block">
-                        <label><Scale size={16} /> Precio Actual</label>
-                        <div className="input-wrapper">
+                    <div className="bond-calc__input-group">
+                        <label>Precio Actual</label>
+                        <div className="bond-calc__field">
+                            <Scale size={18} className="bond-calc__field-icon" />
                             <input
                                 type="number"
                                 value={price}
                                 onChange={handleInput(setPrice)}
                                 step="0.1"
+                                placeholder="83.7"
                             />
-                            <span className="input-unit">% sobre par</span>
+                            <span className="bond-calc__field-unit">% s/ par</span>
                         </div>
                     </div>
 
-                    <div className="input-block">
-                        <label><TrendingDown size={16} /> Cupón Anual</label>
-                        <div className="input-wrapper">
+                    <div className="bond-calc__input-group">
+                        <label>Cupón Anual</label>
+                        <div className="bond-calc__field">
+                            <TrendingDown size={18} className="bond-calc__field-icon" />
                             <input
                                 type="number"
                                 value={coupon}
                                 onChange={handleInput(setCoupon)}
                                 step="0.01"
+                                placeholder="8.875"
                             />
-                            <span className="input-unit">%</span>
+                            <span className="bond-calc__field-unit">%</span>
                         </div>
                     </div>
 
-                    <div className="input-block">
-                        <label><Landmark size={16} /> Años al Vencimiento</label>
-                        <div className="input-wrapper">
+                    <div className="bond-calc__input-group">
+                        <label>Años al Vencimiento</label>
+                        <div className="bond-calc__field">
+                            <Landmark size={18} className="bond-calc__field-icon" />
                             <input
                                 type="number"
                                 value={years}
                                 onChange={handleInput(setYears)}
                                 min="1"
+                                placeholder="4"
                             />
-                            <span className="input-unit">años</span>
+                            <span className="bond-calc__field-unit">años</span>
                         </div>
                     </div>
 
-                    <div className="input-block">
-                        <label><Info size={16} /> Valor Nominal (Par)</label>
-                        <div className="input-wrapper">
+                    <div className="bond-calc__input-group">
+                        <label>Valor Nominal (Par)</label>
+                        <div className="bond-calc__field">
+                            <Info size={18} className="bond-calc__field-icon" />
                             <input
                                 type="number"
                                 value={face}
                                 onChange={handleInput(setFace)}
+                                placeholder="100"
                             />
                         </div>
                     </div>
@@ -140,7 +148,7 @@ export function BondCalculator() {
                     <div className="result-main-card">
                         <span className="label">TIR / YTM (Anualizada)</span>
                         <h2 className="result-value">{(ytm * 100).toFixed(4)}%</h2>
-                        <p style={{ marginTop: '1rem', fontSize: '0.85rem', opacity: 0.8 }}>
+                        <p className="result-main-card__subtext">
                             Aproximación por método Newton-Raphson
                         </p>
                     </div>
@@ -148,13 +156,16 @@ export function BondCalculator() {
                     <div className="result-details">
                         <div className="detail-box">
                             <span className="label">Situación</span>
-                            <span className="value">
+                            <span className={`status-badge ${Number(price) < Number(face) ? 'status-badge--discount' : Number(price) > Number(face) ? 'status-badge--premium' : 'status-badge--par'}`}>
                                 {Number(price) < Number(face) ? 'Bajo Par (Descuento)' : Number(price) > Number(face) ? 'Sobre Par (Prima)' : 'Al Par'}
                             </span>
                         </div>
                         <div className="detail-box">
                             <span className="label">Cupón en Dinero</span>
-                            <span className="value">{(Number(face) * (Number(coupon) / 100)).toFixed(2)}€</span>
+                            <div className="coupon-value">
+                                <Wallet size={16} className="coupon-value__icon" />
+                                <span className="value">{(Number(face) * (Number(coupon) / 100)).toFixed(2)}€</span>
+                            </div>
                         </div>
                     </div>
                 </div>

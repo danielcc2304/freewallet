@@ -38,14 +38,14 @@
     gap: 1.5rem;
 }
 
-.input-block {
+.bond-calc__input-group {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
 }
 
-.input-block label {
-    font-size: 0.9rem;
+.bond-calc__input-group label {
+    font-size: 0.85rem;
     font-weight: 600;
     color: var(--text-secondary);
     display: flex;
@@ -53,41 +53,52 @@
     gap: 0.5rem;
 }
 
-.input-wrapper {
-    position: relative;
+.bond-calc__field {
     display: flex;
-    flex-direction: column;
-}
-
-.input-wrapper input {
-    width: 100%;
-    padding: 1rem;
-    padding-bottom: 2.5rem;
-    /* Space for the unit below */
+    flex-direction: row;
+    /* Force horizontal layout */
+    align-items: center;
+    gap: 0.75rem;
     background: var(--bg-tertiary);
     border: 1px solid var(--border-color);
-    border-radius: 12px;
-    color: var(--text-primary);
-    font-size: 1.25rem;
-    font-weight: 700;
-    outline: none;
-    transition: all 0.2s;
+    border-radius: 10px;
+    padding: 0.625rem 0.875rem;
+    /* Reduced padding */
+    transition: all 0.2s ease;
 }
 
-.input-wrapper input:focus {
+.bond-calc__field:focus-within {
     border-color: var(--accent-primary);
-    box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.1);
+    background: var(--bg-secondary);
+    box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.15);
 }
 
-.input-unit {
-    position: absolute;
-    bottom: 0.75rem;
-    right: 1rem;
+.bond-calc__field-icon {
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.bond-calc__field input {
+    flex: 1;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: var(--text-primary);
+    font-size: 1rem;
+    /* Normal font size */
+    font-weight: 600;
+    outline: none;
+    padding: 0;
+    min-width: 0;
+}
+
+.bond-calc__field-unit {
+    color: var(--text-secondary);
     font-size: 0.85rem;
-    color: var(--text-tertiary);
-    font-weight: 700;
+    font-weight: 600;
+    white-space: nowrap;
+    text-transform: none;
     pointer-events: none;
-    text-transform: uppercase;
 }
 
 /* Results Section */
@@ -95,6 +106,7 @@
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    height: 100%;
 }
 
 .result-main-card {
@@ -119,10 +131,20 @@
     margin: 0;
 }
 
+.result-main-card__subtext {
+    margin-top: 1rem;
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: rgba(255, 255, 255, 0.95);
+    /* Better contrast */
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
 .result-details {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1rem;
+    flex: 1;
 }
 
 .detail-box {
@@ -132,8 +154,9 @@
     border-radius: 20px;
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.75rem;
     justify-content: center;
+    height: 100%;
 }
 
 .detail-box .label {
@@ -143,8 +166,44 @@
     font-weight: 700;
 }
 
-.detail-box .value {
-    font-size: 1.25rem;
+.status-badge {
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+.status-badge--discount {
+    background: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.status-badge--premium {
+    background: rgba(139, 92, 246, 0.15);
+    color: #a78bfa;
+    border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.status-badge--par {
+    background: rgba(16, 185, 129, 0.15);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.coupon-value {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.coupon-value__icon {
+    color: var(--accent-primary);
+}
+
+.coupon-value .value {
+    font-size: 1.5rem;
     font-weight: 800;
     color: var(--text-primary);
 }

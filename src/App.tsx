@@ -24,6 +24,7 @@ import { Scenarios } from './components/academy/Scenarios';
 import { CommonErrors } from './components/academy/CommonErrors';
 import { Glossary } from './components/academy/Glossary';
 import { AssetTypes } from './components/academy/AssetTypes';
+import { BondCalculator } from './components/academy/BondCalculator';
 import './index.css';
 
 function App() {
@@ -43,6 +44,7 @@ function App() {
             <Route path="calculators" element={<Calculators />} />
             <Route path="compound-interest" element={<CompoundInterestCalc />} />
             <Route path="fire-calculator" element={<FIRECalculator />} />
+            <Route path="bond-calculator" element={<BondCalculator />} />
 
             {/* Sections in process */}
             <Route path="scenarios" element={<Scenarios />} />

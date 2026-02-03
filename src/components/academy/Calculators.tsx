@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Calculator, TrendingUp, Target, Calendar, PiggyBank, Percent } from 'lucide-react';
+import { Calculator, TrendingUp, Target, Calendar, PiggyBank, Percent, Scale } from 'lucide-react';
 import './Calculators.css';
 
 export function Calculators() {
@@ -126,6 +126,23 @@ export function Calculators() {
                         <li>✓ Necesidad de rebalanceo</li>
                     </ul>
                     <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
+                </Link>
+                {/* Bond Calculator - NEW */}
+                <Link to="/academy/bond-calculator" className="calculators__card calculators__card--available">
+                    <div className="calculators__card-icon calculators__card-icon--teal" style={{ background: 'rgba(99, 102, 241, 0.1)', color: '#6366f1' }}>
+                        <Scale size={32} />
+                    </div>
+                    <h3 className="calculators__card-title">Calculadora de Bonos (YTM)</h3>
+                    <p className="calculators__card-description">
+                        Calcula la rentabilidad real de un bono basándote en su precio actual de mercado.
+                    </p>
+                    <ul className="calculators__card-features">
+                        <li>✓ YTM / TIR anualizada</li>
+                        <li>✓ Aproximación Newton-Raphson</li>
+                        <li>✓ Análisis Prima/Descuento</li>
+                        <li>✓ Tips de riesgo de crédito</li>
+                    </ul>
+                    <span className="calculators__card-badge calculators__card-badge--available">Nuevo</span>
                 </Link>
             </div>
 

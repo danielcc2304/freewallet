@@ -22,6 +22,8 @@ import { Strategies } from './components/academy/Strategies';
 import { RiskManagement } from './components/academy/RiskManagement';
 import { Scenarios } from './components/academy/Scenarios';
 import { CommonErrors } from './components/academy/CommonErrors';
+import { Glossary } from './components/academy/Glossary';
+import { AssetTypes } from './components/academy/AssetTypes';
 import './index.css';
 
 function App() {
@@ -50,8 +52,8 @@ function App() {
             <Route path="strategies" element={<Strategies />} />
             <Route path="risk" element={<RiskManagement />} />
             <Route path="resources" element={<InProcess />} />
-            <Route path="glossary" element={<InProcess />} />
-            <Route path="asset-types" element={<InProcess />} />
+            <Route path="glossary" element={<Glossary />} />
+            <Route path="asset-types" element={<AssetTypes />} />
 
             {/* Calculator specific sub-pages */}
             <Route path="retirement" element={<RetirementCalculator />} />

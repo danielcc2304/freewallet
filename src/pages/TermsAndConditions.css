@@ -1,0 +1,107 @@
+.terms {
+    min-height: calc(100vh - var(--header-height, 70px));
+    padding: 2rem;
+    background: var(--bg-primary);
+}
+
+.terms__container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: var(--bg-secondary);
+    border-radius: 16px;
+    padding: 3rem;
+    box-shadow: var(--shadow-md);
+}
+
+.terms__title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.terms__updated {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 2.5rem;
+    font-style: italic;
+}
+
+.terms__section {
+    margin-bottom: 2.5rem;
+}
+
+.terms__section h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--accent-primary);
+}
+
+.terms__section p {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 1rem;
+}
+
+.terms__section ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.terms__section li {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: 0.5rem;
+}
+
+.terms__disclaimer {
+    background: rgba(255, 193, 7, 0.1);
+    border-left: 4px solid var(--warning-color, #ffc107);
+    padding: 1.25rem;
+    margin: 1.5rem 0;
+    border-radius: 8px;
+}
+
+.terms__disclaimer strong {
+    color: var(--warning-color, #ffc107);
+    display: block;
+    margin-bottom: 0.5rem;
+    font-size: 1.05rem;
+}
+
+.terms__acknowledgment {
+    background: rgba(var(--accent-rgb), 0.1);
+    border: 2px solid var(--accent-primary);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 3rem;
+    text-align: center;
+}
+
+.terms__acknowledgment p {
+    color: var(--text-primary);
+    font-size: 1.05rem;
+    margin: 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .terms {
+        padding: 1rem;
+    }
+
+    .terms__container {
+        padding: 1.5rem;
+    }
+
+    .terms__title {
+        font-size: 1.875rem;
+    }
+
+    .terms__section h2 {
+        font-size: 1.25rem;
+    }
+}

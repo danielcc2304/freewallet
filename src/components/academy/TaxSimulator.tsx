@@ -4,8 +4,12 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 import './TaxSimulator.css';
 
 export function TaxSimulator() {
-    const [gain, setGain] = useState(10000);
-    const [holdingYears, setHoldingYears] = useState(5);
+    const [gain, setGain] = useState<number | string>(10000);
+    const [holdingYears, setHoldingYears] = useState<number | string>(5);
+
+    // Helper to get numeric value for calculations
+    const gainNum = Number(gain) || 0;
+    const yearsNum = Number(holdingYears) || 0;
 
     // Spanish IRPF Brackets (Ahorro) - 2024
     const calculateTaxes = (amount: number) => {
@@ -35,9 +39,9 @@ export function TaxSimulator() {
         return tax;
     };
 
-    const taxAmount = useMemo(() => calculateTaxes(gain), [gain]);
-    const netProfit = gain - taxAmount;
-    const effectiveRate = gain > 0 ? (taxAmount / gain) * 100 : 0;
+    const taxAmount = useMemo(() => calculateTaxes(gainNum), [gainNum]);
+    const netProfit = gainNum - taxAmount;
+    const effectiveRate = gainNum > 0 ? (taxAmount / gainNum) * 100 : 0;
 
     // Simulation: Fund vs ETF (Tax Deferral Benefit)
     // Assumes 7% annual growth, and we realize it after X years
@@ -46,7 +50,7 @@ export function TaxSimulator() {
         const rate = 0.07;
 
         // Scenario A: Fund (Mutual Fund) - No taxes until the end
-        const finalFundPreTax = principal * Math.pow(1 + rate, holdingYears);
+        const finalFundPreTax = principal * Math.pow(1 + rate, yearsNum);
         const fundGain = finalFundPreTax - principal;
         const fundTax = calculateTaxes(fundGain);
         const fundNet = finalFundPreTax - fundTax;
@@ -54,7 +58,7 @@ export function TaxSimulator() {
         // Scenario B: Asset with recurring tax (simulating "leakage" or selling/rebuying)
         // This is a simplification to show the power of compound interest without tax friction
         let finalETFNet = principal;
-        for (let i = 0; i < holdingYears; i++) {
+        for (let i = 0; i < yearsNum; i++) {
             const annualGain = finalETFNet * rate;
             const annualTax = annualGain * 0.19; // Simplified fixed rate for annual hit
             finalETFNet = finalETFNet + annualGain - annualTax;
@@ -65,7 +69,7 @@ export function TaxSimulator() {
             etfNet: finalETFNet,
             difference: fundNet - finalETFNet
         };
-    }, [holdingYears]);
+    }, [yearsNum]);
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('es-ES', {
@@ -76,7 +80,7 @@ export function TaxSimulator() {
     };
 
     const chartData = [
-        { name: 'Bruto', value: gain, fill: 'var(--text-secondary)' },
+        { name: 'Bruto', value: gainNum, fill: 'var(--text-secondary)' },
         { name: 'Impuestos', value: taxAmount, fill: '#ef4444' },
         { name: 'Neto', value: netProfit, fill: '#10b981' }
     ];
@@ -104,7 +108,7 @@ export function TaxSimulator() {
                             <input
                                 type="number"
                                 value={gain}
-                                onChange={(e) => setGain(Math.max(0, Number(e.target.value)))}
+                                onChange={(e) => setGain(e.target.value === '' ? '' : Number(e.target.value))}
                                 className="tax-sim__main-input"
                             />
                             <p className="tax-sim__input-hint">Solo tributas por lo ganado, no por lo invertido.</p>
@@ -114,12 +118,20 @@ export function TaxSimulator() {
                     <div className="tax-sim__card">
                         <h3 className="tax-sim__card-title">Poder del Diferimiento</h3>
                         <div className="tax-sim__input-group">
-                            <label>Años de Inversión: {holdingYears}</label>
+                            <div className="tax-sim__label-row">
+                                <label>Años de Inversión</label>
+                                <input
+                                    type="number"
+                                    value={holdingYears}
+                                    className="tax-sim__label-input"
+                                    onChange={(e) => setHoldingYears(e.target.value === '' ? '' : Number(e.target.value))}
+                                />
+                            </div>
                             <input
                                 type="range"
                                 min="1"
                                 max="40"
-                                value={holdingYears}
+                                value={yearsNum}
                                 onChange={(e) => setHoldingYears(Number(e.target.value))}
                             />
                         </div>
@@ -187,7 +199,7 @@ export function TaxSimulator() {
                             <div className="compare-card">
                                 <span>Beneficio de Diferir</span>
                                 <strong>+{formatCurrency(deferralAnalysis.difference)}</strong>
-                                <p>Extra ganado tras {holdingYears} años</p>
+                                <p>Extra ganado tras {yearsNum} años</p>
                             </div>
                             <div className="compare-card highlight">
                                 <ShieldCheck size={20} />

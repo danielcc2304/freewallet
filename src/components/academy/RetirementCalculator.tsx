@@ -5,40 +5,48 @@ import './RetirementCalculator.css';
 
 export function RetirementCalculator() {
     // Inputs
-    const [currentAge, setCurrentAge] = useState(30);
-    const [retirementAge, setRetirementAge] = useState(67);
-    const [currentSavings, setCurrentSavings] = useState(5000);
-    const [monthlyContribution, setMonthlyContribution] = useState(300);
-    const [annualReturn, setAnnualReturn] = useState(7);
-    const [inflationRate, setInflationRate] = useState(2.5);
+    const [currentAge, setCurrentAge] = useState<number | string>(30);
+    const [retirementAge, setRetirementAge] = useState<number | string>(67);
+    const [currentSavings, setCurrentSavings] = useState<number | string>(5000);
+    const [monthlyContribution, setMonthlyContribution] = useState<number | string>(300);
+    const [annualReturn, setAnnualReturn] = useState<number | string>(7);
+    const [inflationRate, setInflationRate] = useState<number | string>(2.5);
+
+    // Numeric versions
+    const ageNum = Number(currentAge) || 0;
+    const retAgeNum = Number(retirementAge) || 0;
+    const savingsNum = Number(currentSavings) || 0;
+    const contributionNum = Number(monthlyContribution) || 0;
+    const returnNum = Number(annualReturn) || 0;
+    const inflationNum = Number(inflationRate) || 0;
 
     // Derived values
-    const yearsToRetire = retirementAge - currentAge;
+    const yearsToRetire = Math.max(0, retAgeNum - ageNum);
 
     // Projection Data
     const projectionData = useMemo(() => {
         const data = [];
-        let balanceNominal = currentSavings;
-        const monthlyRate = Math.pow(1 + annualReturn / 100, 1 / 12) - 1;
+        let balanceNominal = savingsNum;
+        const monthlyRate = Math.pow(1 + returnNum / 100, 1 / 12) - 1;
 
         for (let year = 0; year <= yearsToRetire; year++) {
             // Adjust balance for inflation to show "Current Purchasing Power"
-            const purchasingPower = balanceNominal / Math.pow(1 + inflationRate / 100, year);
+            const purchasingPower = balanceNominal / Math.pow(1 + inflationNum / 100, year);
 
             data.push({
-                age: currentAge + year,
+                age: ageNum + year,
                 nominal: Math.round(balanceNominal),
                 real: Math.round(purchasingPower)
             });
 
             if (year < yearsToRetire) {
                 for (let m = 0; m < 12; m++) {
-                    balanceNominal = (balanceNominal + monthlyContribution) * (1 + monthlyRate);
+                    balanceNominal = (balanceNominal + contributionNum) * (1 + monthlyRate);
                 }
             }
         }
         return data;
-    }, [currentAge, retirementAge, currentSavings, monthlyContribution, annualReturn, inflationRate, yearsToRetire]);
+    }, [ageNum, retAgeNum, savingsNum, contributionNum, returnNum, inflationNum, yearsToRetire]);
 
     const finalNominal = projectionData[projectionData.length - 1]?.nominal || 0;
     const finalReal = projectionData[projectionData.length - 1]?.real || 0;
@@ -92,7 +100,7 @@ export function RetirementCalculator() {
                                 <input
                                     type="number"
                                     value={currentAge}
-                                    onChange={(e) => setCurrentAge(Math.max(18, Number(e.target.value)))}
+                                    onChange={(e) => setCurrentAge(e.target.value === '' ? '' : Number(e.target.value))}
                                 />
                             </div>
                             <div className="retirement__input-group">
@@ -100,7 +108,7 @@ export function RetirementCalculator() {
                                 <input
                                     type="number"
                                     value={retirementAge}
-                                    onChange={(e) => setRetirementAge(Math.max(currentAge + 1, Number(e.target.value)))}
+                                    onChange={(e) => setRetirementAge(e.target.value === '' ? '' : Number(e.target.value))}
                                 />
                             </div>
                         </div>
@@ -113,7 +121,7 @@ export function RetirementCalculator() {
                             <input
                                 type="number"
                                 value={currentSavings}
-                                onChange={(e) => setCurrentSavings(Number(e.target.value))}
+                                onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))}
                             />
                         </div>
                         <div className="retirement__input-group">
@@ -121,7 +129,7 @@ export function RetirementCalculator() {
                             <input
                                 type="number"
                                 value={monthlyContribution}
-                                onChange={(e) => setMonthlyContribution(Number(e.target.value))}
+                                onChange={(e) => setMonthlyContribution(e.target.value === '' ? '' : Number(e.target.value))}
                             />
                         </div>
                     </div>
@@ -134,7 +142,7 @@ export function RetirementCalculator() {
                                 type="number"
                                 step="0.5"
                                 value={annualReturn}
-                                onChange={(e) => setAnnualReturn(Number(e.target.value))}
+                                onChange={(e) => setAnnualReturn(e.target.value === '' ? '' : Number(e.target.value))}
                             />
                         </div>
                         <div className="retirement__input-group">
@@ -143,7 +151,7 @@ export function RetirementCalculator() {
                                 type="number"
                                 step="0.1"
                                 value={inflationRate}
-                                onChange={(e) => setInflationRate(Number(e.target.value))}
+                                onChange={(e) => setInflationRate(e.target.value === '' ? '' : Number(e.target.value))}
                             />
                         </div>
                     </div>

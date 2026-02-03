@@ -5,23 +5,30 @@ import './FIRECalculator.css';
 
 export function FIRECalculator() {
     // Inputs
-    const [monthlyExpenses, setMonthlyExpenses] = useState(2000);
-    const [currentSavings, setCurrentSavings] = useState(10000);
-    const [monthlySavings, setMonthlySavings] = useState(5000);
-    const [annualReturn, setAnnualReturn] = useState(7);
-    const [withdrawalRate, setWithdrawalRate] = useState(4); // 4% Rule
+    const [monthlyExpenses, setMonthlyExpenses] = useState<number | string>(2000);
+    const [currentSavings, setCurrentSavings] = useState<number | string>(10000);
+    const [monthlySavings, setMonthlySavings] = useState<number | string>(500);
+    const [annualReturn, setAnnualReturn] = useState<number | string>(7);
+    const [withdrawalRate, setWithdrawalRate] = useState<number | string>(4); // 4% Rule
+
+    // Numeric versions for calculations
+    const expensesNum = Number(monthlyExpenses) || 0;
+    const savingsNum = Number(currentSavings) || 0;
+    const monthlySavingsNum = Number(monthlySavings) || 0;
+    const annualReturnNum = Number(annualReturn) || 0;
+    const withdrawalRateNum = Number(withdrawalRate) || 0;
 
     // Calculations
-    const annualExpenses = monthlyExpenses * 12;
-    const fireNumber = annualExpenses / (withdrawalRate / 100);
+    const annualExpenses = expensesNum * 12;
+    const fireNumber = annualExpenses / (withdrawalRateNum / 100);
     const leanFireNumber = fireNumber * 0.8; // 80% of expenses
     const fatFireNumber = fireNumber * 1.5; // 150% of expenses
 
     // Data for projection
     const projectionData = useMemo(() => {
         const data = [];
-        let balance = currentSavings;
-        const monthlyRate = Math.pow(1 + annualReturn / 100, 1 / 12) - 1;
+        let balance = savingsNum;
+        const monthlyRate = Math.pow(1 + annualReturnNum / 100, 1 / 12) - 1;
 
         // Project for 40 years or until FIRE number is reached + 5 years
         for (let year = 0; year <= 40; year++) {
@@ -35,7 +42,7 @@ export function FIRECalculator() {
 
             // Monthly compounding for 12 months
             for (let m = 0; m < 12; m++) {
-                balance = (balance + monthlySavings) * (1 + monthlyRate);
+                balance = (balance + monthlySavingsNum) * (1 + monthlyRate);
             }
 
             // If we've passed fat FIRE by a lot, stop
@@ -47,14 +54,14 @@ export function FIRECalculator() {
     // Years to FIRE calculation
     const yearsToFIRE = useMemo(() => {
         const target = fireNumber;
-        if (monthlySavings <= 0 && currentSavings < target) return Infinity;
+        if (monthlySavingsNum <= 0 && savingsNum < target) return Infinity;
 
-        let balance = currentSavings;
+        let balance = savingsNum;
         let months = 0;
-        const monthlyRate = Math.pow(1 + annualReturn / 100, 1 / 12) - 1;
+        const monthlyRate = Math.pow(1 + annualReturnNum / 100, 1 / 12) - 1;
 
         while (balance < target && months < 1200) { // Max 100 years
-            balance = (balance + monthlySavings) * (1 + monthlyRate);
+            balance = (balance + monthlySavingsNum) * (1 + monthlyRate);
             months++;
         }
         return months / 12;
@@ -102,36 +109,46 @@ export function FIRECalculator() {
                     <h2 className="fire__section-title">Parámetros de Simulación</h2>
 
                     <div className="fire__input-group">
-                        <label>Gastos Mensuales (Estimados)</label>
+                        <div className="fire__label-row">
+                            <label>Gastos Mensuales (Estimados)</label>
+                            <input
+                                type="number"
+                                value={monthlyExpenses}
+                                className="fire__label-input"
+                                onChange={(e) => setMonthlyExpenses(e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                        </div>
                         <div className="fire__input-control">
                             <input
                                 type="range"
                                 min="500"
                                 max="10000"
                                 step="100"
-                                value={monthlyExpenses}
+                                value={expensesNum}
                                 onChange={(e) => setMonthlyExpenses(Number(e.target.value))}
                             />
-                            <div className="fire__input-value">
-                                <span className="fire__input-currency">{formatCurrency(monthlyExpenses)}</span>
-                            </div>
                         </div>
                     </div>
 
                     <div className="fire__input-group">
-                        <label>Ahorro/Inversión Mensual</label>
+                        <div className="fire__label-row">
+                            <label>Ahorro/Inversión Mensual</label>
+                            <input
+                                type="number"
+                                value={monthlySavings}
+                                className="fire__label-input"
+                                onChange={(e) => setMonthlySavings(e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                        </div>
                         <div className="fire__input-control">
                             <input
                                 type="range"
                                 min="0"
                                 max="10000"
                                 step="100"
-                                value={monthlySavings}
+                                value={monthlySavingsNum}
                                 onChange={(e) => setMonthlySavings(Number(e.target.value))}
                             />
-                            <div className="fire__input-value">
-                                <span className="fire__input-currency">{formatCurrency(monthlySavings)}</span>
-                            </div>
                         </div>
                     </div>
 
@@ -141,7 +158,7 @@ export function FIRECalculator() {
                             type="number"
                             className="fire__number-input"
                             value={currentSavings}
-                            onChange={(e) => setCurrentSavings(Number(e.target.value))}
+                            onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))}
                         />
                     </div>
 
@@ -152,7 +169,7 @@ export function FIRECalculator() {
                                 type="number"
                                 className="fire__number-input"
                                 value={annualReturn}
-                                onChange={(e) => setAnnualReturn(Number(e.target.value))}
+                                onChange={(e) => setAnnualReturn(e.target.value === '' ? '' : Number(e.target.value))}
                             />
                         </div>
                         <div className="fire__input-group">
@@ -161,7 +178,7 @@ export function FIRECalculator() {
                                 type="number"
                                 className="fire__number-input"
                                 value={withdrawalRate}
-                                onChange={(e) => setWithdrawalRate(Number(e.target.value))}
+                                onChange={(e) => setWithdrawalRate(e.target.value === '' ? '' : Number(e.target.value))}
                             />
                         </div>
                     </div>

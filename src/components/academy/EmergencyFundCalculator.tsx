@@ -4,30 +4,38 @@ import './EmergencyFundCalculator.css';
 
 export function EmergencyFundCalculator() {
     // Inputs
-    const [monthlyRent, setMonthlyRent] = useState(800);
-    const [monthlyFood, setMonthlyFood] = useState(400);
-    const [monthlyBills, setMonthlyBills] = useState(200);
-    const [monthlyOther, setMonthlyOther] = useState(300);
+    const [monthlyRent, setMonthlyRent] = useState<number | string>(800);
+    const [monthlyFood, setMonthlyFood] = useState<number | string>(400);
+    const [monthlyBills, setMonthlyBills] = useState<number | string>(200);
+    const [monthlyOther, setMonthlyOther] = useState<number | string>(300);
 
     // Risk factors
     const [jobStability, setJobStability] = useState('high'); // high, medium, low
-    const [dependents, setDependents] = useState(0);
-    const [currentSavings, setCurrentSavings] = useState(1000);
+    const [dependents, setDependents] = useState<number | string>(0);
+    const [currentSavings, setCurrentSavings] = useState<number | string>(1000);
+
+    // Numeric versions
+    const rentNum = Number(monthlyRent) || 0;
+    const foodNum = Number(monthlyFood) || 0;
+    const billsNum = Number(monthlyBills) || 0;
+    const otherNum = Number(monthlyOther) || 0;
+    const savingsNum = Number(currentSavings) || 0;
+    const dependentsNum = Number(dependents) || 0;
 
     // Calculations
-    const totalExpenses = monthlyRent + monthlyFood + monthlyBills + monthlyOther;
+    const totalExpenses = rentNum + foodNum + billsNum + otherNum;
 
     // Multiplier logic
     const monthsMultiplier = useMemo(() => {
         let base = 3;
         if (jobStability === 'medium') base += 3;
         if (jobStability === 'low') base += 6;
-        if (dependents > 0) base += Math.min(dependents * 1, 3);
+        if (dependentsNum > 0) base += Math.min(dependentsNum * 1, 3);
         return Math.min(base, 12); // Cap at 12 months
-    }, [jobStability, dependents]);
+    }, [jobStability, dependentsNum]);
 
     const recommendedAmount = totalExpenses * monthsMultiplier;
-    const progressPercent = Math.min((currentSavings / recommendedAmount) * 100, 100);
+    const progressPercent = recommendedAmount > 0 ? Math.min((savingsNum / recommendedAmount) * 100, 100) : 0;
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('es-ES', {
@@ -58,19 +66,19 @@ export function EmergencyFundCalculator() {
                         <div className="emergency__input-list">
                             <div className="emergency__input-item">
                                 <label>Vivienda (Alquiler/Hipoteca)</label>
-                                <input type="number" value={monthlyRent} onChange={(e) => setMonthlyRent(Number(e.target.value))} />
+                                <input type="number" value={monthlyRent} onChange={(e) => setMonthlyRent(e.target.value === '' ? '' : Number(e.target.value))} />
                             </div>
                             <div className="emergency__input-item">
                                 <label>Alimentación</label>
-                                <input type="number" value={monthlyFood} onChange={(e) => setMonthlyFood(Number(e.target.value))} />
+                                <input type="number" value={monthlyFood} onChange={(e) => setMonthlyFood(e.target.value === '' ? '' : Number(e.target.value))} />
                             </div>
                             <div className="emergency__input-item">
                                 <label>Suministros (Luz, Agua, Internet)</label>
-                                <input type="number" value={monthlyBills} onChange={(e) => setMonthlyBills(Number(e.target.value))} />
+                                <input type="number" value={monthlyBills} onChange={(e) => setMonthlyBills(e.target.value === '' ? '' : Number(e.target.value))} />
                             </div>
                             <div className="emergency__input-item">
                                 <label>Otros Gastos Fijos</label>
-                                <input type="number" value={monthlyOther} onChange={(e) => setMonthlyOther(Number(e.target.value))} />
+                                <input type="number" value={monthlyOther} onChange={(e) => setMonthlyOther(e.target.value === '' ? '' : Number(e.target.value))} />
                             </div>
                         </div>
                         <div className="emergency__total-expenses">
@@ -91,7 +99,7 @@ export function EmergencyFundCalculator() {
                         </div>
                         <div className="emergency__input-item">
                             <label>Personas a tu cargo (Hijos, dependientes...)</label>
-                            <input type="number" min="0" value={dependents} onChange={(e) => setDependents(Number(e.target.value))} />
+                            <input type="number" min="0" value={dependents} onChange={(e) => setDependents(e.target.value === '' ? '' : Number(e.target.value))} />
                         </div>
                     </div>
 
@@ -99,7 +107,7 @@ export function EmergencyFundCalculator() {
                         <h3 className="emergency__card-title">Estado Actual</h3>
                         <div className="emergency__input-item">
                             <label>Dinero ahorrado para el fondo</label>
-                            <input type="number" value={currentSavings} onChange={(e) => setCurrentSavings(Number(e.target.value))} />
+                            <input type="number" value={currentSavings} onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))} />
                         </div>
                     </div>
                 </section>
@@ -123,7 +131,7 @@ export function EmergencyFundCalculator() {
 
                         <div className="emergency__progress-section">
                             <div className="emergency__progress-labels">
-                                <span>Progreso: {formatCurrency(currentSavings)}</span>
+                                <span>Progreso: {formatCurrency(savingsNum)}</span>
                                 <span>{progressPercent.toFixed(0)}%</span>
                             </div>
                             <div className="emergency__progress-bar">
@@ -142,7 +150,7 @@ export function EmergencyFundCalculator() {
                                 <h4>¿Por qué {monthsMultiplier} meses?</h4>
                                 <p>
                                     Basado en tu estabilidad <strong>{jobStability === 'high' ? 'alta' : jobStability === 'medium' ? 'media' : 'baja'}</strong>
-                                    {dependents > 0 ? ` y en tener ${dependents} personas a tu cargo, ` : ' y tu situación personal, '}
+                                    {dependentsNum > 0 ? ` y en tener ${dependentsNum} personas a tu cargo, ` : ' y tu situación personal, '}
                                     este colchón te protege ante imprevistos graves.
                                 </p>
                             </div>
@@ -154,7 +162,7 @@ export function EmergencyFundCalculator() {
                                 <h4>Siguiente Paso</h4>
                                 <p>
                                     {progressPercent < 100
-                                        ? `Te faltan ${formatCurrency(recommendedAmount - currentSavings)} para completar tu tranquilidad.`
+                                        ? `Te faltan ${formatCurrency(recommendedAmount - savingsNum)} para completar tu tranquilidad.`
                                         : '¡Felicidades! Tienes tu fondo completo. Ahora puedes centrarte en la inversión a largo plazo.'}
                                 </p>
                             </div>

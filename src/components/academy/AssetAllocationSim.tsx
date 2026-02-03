@@ -5,13 +5,19 @@ import './AssetAllocationSim.css';
 
 export function AssetAllocationSim() {
     // Assets allocation (%)
-    const [stocks, setStocks] = useState(60);
-    const [bonds, setBonds] = useState(30);
-    const [crypto, setCrypto] = useState(5);
-    const [cash, setCash] = useState(5);
+    const [stocks, setStocks] = useState<number | string>(60);
+    const [bonds, setBonds] = useState<number | string>(30);
+    const [crypto, setCrypto] = useState<number | string>(5);
+    const [cash, setCash] = useState<number | string>(5);
+
+    // Numeric versions
+    const stocksNum = Number(stocks) || 0;
+    const bondsNum = Number(bonds) || 0;
+    const cryptoNum = Number(crypto) || 0;
+    const cashNum = Number(cash) || 0;
 
     // Derived values
-    const total = stocks + bonds + crypto + cash;
+    const total = stocksNum + bondsNum + cryptoNum + cashNum;
     const isOver100 = total > 100;
 
     // Simplified stats for assets
@@ -24,10 +30,10 @@ export function AssetAllocationSim() {
     };
 
     const portfolioStats = useMemo(() => {
-        const s = stocks / 100;
-        const b = bonds / 100;
-        const cr = crypto / 100;
-        const ca = cash / 100;
+        const s = stocksNum / 100;
+        const b = bondsNum / 100;
+        const cr = cryptoNum / 100;
+        const ca = cashNum / 100;
 
         const expectedReturn = (s * ASSET_STATS.stocks.return) +
             (b * ASSET_STATS.bonds.return) +
@@ -44,13 +50,13 @@ export function AssetAllocationSim() {
             return: expectedReturn * 100,
             risk: expectedRisk * 100
         };
-    }, [stocks, bonds, crypto, cash]);
+    }, [stocksNum, bondsNum, cryptoNum, cashNum]);
 
     const chartData = [
-        { name: 'Acciones', value: stocks, color: '#3b82f6' },
-        { name: 'Bonos', value: bonds, color: '#10b981' },
-        { name: 'Cripto', value: crypto, color: '#f59e0b' },
-        { name: 'Efectivo', value: cash, color: '#64748b' }
+        { name: 'Acciones', value: stocksNum, color: '#3b82f6' },
+        { name: 'Bonos', value: bondsNum, color: '#10b981' },
+        { name: 'Cripto', value: cryptoNum, color: '#f59e0b' },
+        { name: 'Efectivo', value: cashNum, color: '#64748b' }
     ].filter(d => d.value > 0);
 
     const getRiskLabel = (risk: number) => {
@@ -92,33 +98,57 @@ export function AssetAllocationSim() {
                     <div className="alloc-sim__slider-group">
                         <div className="slider-header">
                             <label>Renta Variable (Stocks)</label>
-                            <span>{stocks}%</span>
+                            <input
+                                type="number"
+                                value={stocks}
+                                className="alloc-sim__label-input"
+                                onChange={(e) => setStocks(e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                            <span className="unit">%</span>
                         </div>
-                        <input type="range" min="0" max="100" value={stocks} onChange={(e) => setStocks(Number(e.target.value))} />
+                        <input type="range" min="0" max="100" value={stocksNum} onChange={(e) => setStocks(Number(e.target.value))} />
                     </div>
 
                     <div className="alloc-sim__slider-group">
                         <div className="slider-header">
                             <label>Renta Fija (Bonds)</label>
-                            <span>{bonds}%</span>
+                            <input
+                                type="number"
+                                value={bonds}
+                                className="alloc-sim__label-input"
+                                onChange={(e) => setBonds(e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                            <span className="unit">%</span>
                         </div>
-                        <input type="range" min="0" max="100" value={bonds} onChange={(e) => setBonds(Number(e.target.value))} />
+                        <input type="range" min="0" max="100" value={bondsNum} onChange={(e) => setBonds(Number(e.target.value))} />
                     </div>
 
                     <div className="alloc-sim__slider-group">
                         <div className="slider-header">
                             <label>Criptoactivos</label>
-                            <span>{crypto}%</span>
+                            <input
+                                type="number"
+                                value={crypto}
+                                className="alloc-sim__label-input"
+                                onChange={(e) => setCrypto(e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                            <span className="unit">%</span>
                         </div>
-                        <input type="range" min="0" max="100" value={crypto} onChange={(e) => setCrypto(Number(e.target.value))} />
+                        <input type="range" min="0" max="100" value={cryptoNum} onChange={(e) => setCrypto(Number(e.target.value))} />
                     </div>
 
                     <div className="alloc-sim__slider-group">
                         <div className="slider-header">
                             <label>Efectivo / Cash</label>
-                            <span>{cash}%</span>
+                            <input
+                                type="number"
+                                value={cash}
+                                className="alloc-sim__label-input"
+                                onChange={(e) => setCash(e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                            <span className="unit">%</span>
                         </div>
-                        <input type="range" min="0" max="100" value={cash} onChange={(e) => setCash(Number(e.target.value))} />
+                        <input type="range" min="0" max="100" value={cashNum} onChange={(e) => setCash(Number(e.target.value))} />
                     </div>
 
                     <button

@@ -1,0 +1,343 @@
+.retirement {
+    background: var(--bg-primary);
+    border-radius: 20px;
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.retirement__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.retirement__title-group {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.retirement__icon-container {
+    padding: 12px;
+    background: rgba(139, 92, 246, 0.1);
+    border-radius: 12px;
+    color: #8b5cf6;
+}
+
+.retirement__title {
+    font-size: 1.85rem;
+    font-weight: 800;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.retirement__subtitle {
+    margin: 0.25rem 0 0 0;
+    color: var(--text-secondary);
+    font-size: 1rem;
+}
+
+.retirement__summary-badge {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 0.75rem 1.25rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.retirement__summary-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.retirement__summary-value {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--accent-primary);
+}
+
+.retirement__grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 2.5rem;
+}
+
+/* Inputs Sidebar */
+.retirement__inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.retirement__input-section {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--border-color);
+}
+
+.retirement__section-header {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin-bottom: 1.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.retirement__input-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.retirement__input-group {
+    margin-bottom: 1rem;
+}
+
+.retirement__input-group:last-child {
+    margin-bottom: 0;
+}
+
+.retirement__input-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+}
+
+.retirement__input-group input {
+    width: 100%;
+    padding: 0.75rem;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+.retirement__note {
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.1);
+    padding: 1rem;
+    border-radius: 12px;
+    display: flex;
+    gap: 0.75rem;
+}
+
+.retirement__note p {
+    font-size: 0.85rem;
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.retirement__note svg {
+    color: #3b82f6;
+    flex-shrink: 0;
+}
+
+/* Main Content */
+.retirement__metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.retirement__metric-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    transition: transform 0.2s ease;
+}
+
+.retirement__metric-card:hover {
+    transform: translateY(-2px);
+}
+
+.retirement__metric-card--highlight {
+    background: rgba(var(--accent-rgb), 0.02);
+    border-color: rgba(var(--accent-rgb), 0.2);
+}
+
+.retirement__metric-icon {
+    width: 32px;
+    height: 32px;
+    color: var(--text-secondary);
+}
+
+.retirement__metric-card--highlight .retirement__metric-icon {
+    color: #8b5cf6;
+}
+
+.retirement__metric-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.retirement__metric-label {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+}
+
+.retirement__metric-value {
+    font-size: 1.75rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.retirement__metric-desc {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    margin: 0;
+}
+
+.retirement__chart-box {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 2rem;
+    border-radius: 24px;
+    margin-bottom: 2rem;
+}
+
+.retirement__chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.retirement__chart-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin: 0;
+}
+
+.retirement__chart-legend {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+}
+
+.dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+}
+
+.dot.nominal {
+    background: #3b82f6;
+}
+
+.dot.real {
+    background: #8b5cf6;
+}
+
+.retirement__insight {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    border-radius: 16px;
+    display: flex;
+    gap: 1.25rem;
+    align-items: center;
+}
+
+.retirement__insight-icon {
+    color: #10b981;
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+}
+
+.retirement__insight-content h4 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.retirement__insight-content p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+/* Tooltip */
+.retirement-tooltip {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-lg);
+}
+
+.retirement-tooltip__label {
+    font-weight: 800;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.retirement-tooltip__value {
+    font-size: 0.85rem;
+    margin: 0.25rem 0;
+    font-weight: 600;
+}
+
+.retirement-tooltip__value.nominal {
+    color: #3b82f6;
+}
+
+.retirement-tooltip__value.real {
+    color: #8b5cf6;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+    .retirement__grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .retirement__header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+    }
+
+    .retirement__summary-badge {
+        align-items: flex-start;
+        width: 100%;
+    }
+
+    .retirement__metrics {
+        grid-template-columns: 1fr;
+    }
+}

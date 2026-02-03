@@ -1,0 +1,241 @@
+.tax-info {
+    max-width: 900px;
+    margin: 0 auto;
+    padding-bottom: 4rem;
+}
+
+.tax-info__header {
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.tax-info__title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.tax-info__subtitle {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 700px;
+    margin: 0 auto;
+}
+
+.tax-info__section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 3.5rem 0 1.5rem;
+    color: var(--text-primary);
+}
+
+/* Brackets Grid */
+.tax-info__brackets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.bracket-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    border-radius: 12px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.bracket-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-primary);
+}
+
+.bracket-range {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.bracket-rate {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--accent-primary);
+}
+
+.bracket-card.highlight {
+    background: rgba(var(--accent-rgb), 0.05);
+    border-color: var(--accent-primary);
+}
+
+/* Compensation Card */
+.tax-info__card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 2rem;
+}
+
+.tax-info__card-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.tax-info__card-header .icon {
+    color: var(--accent-primary);
+}
+
+.tax-info__card-header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+}
+
+.compensation-viz {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 1.5rem;
+    margin-top: 2rem;
+    padding: 1.5rem;
+    background: var(--bg-tertiary);
+    border-radius: 12px;
+}
+
+.viz-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+.viz-operator {
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: var(--text-secondary);
+}
+
+.viz-item.result {
+    color: #10b981;
+    background: rgba(16, 185, 129, 0.1);
+    padding: 0.75rem 1.25rem;
+    border-radius: 8px;
+}
+
+/* Comparison Section */
+.tax-info__two-cols {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+}
+
+.comparison-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 2rem;
+}
+
+.comparison-card .header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    color: var(--accent-primary);
+}
+
+.comparison-card .header h3 {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.comparison-card ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.comparison-card li {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.comparison-card li strong {
+    color: var(--text-primary);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+/* CTA */
+.tax-info__cta {
+    background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), rgba(var(--accent-rgb), 0.05));
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 3rem;
+    text-align: center;
+    margin-top: 4rem;
+}
+
+.cta__title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 1.5rem 0 1rem;
+}
+
+.cta__desc {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.cta__button {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 1rem 2.5rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.cta__button:hover {
+    transform: translateY(-2px);
+    background: var(--accent-secondary);
+    box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.4);
+}
+
+@media (max-width: 768px) {
+    .tax-info__two-cols {
+        grid-template-columns: 1fr;
+    }
+
+    .compensation-viz {
+        flex-direction: column;
+        gap: 1rem;
+    }
+
+    .viz-operator {
+        transform: rotate(90deg);
+    }
+}

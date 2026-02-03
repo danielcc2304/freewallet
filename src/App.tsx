@@ -16,6 +16,7 @@ import { TaxSimulator } from './components/academy/TaxSimulator';
 import { AssetAllocationSim } from './components/academy/AssetAllocationSim';
 import { InProcess } from './components/academy/InProcess';
 import { Calculators } from './components/academy/Calculators';
+import { PortfolioBuilder } from './components/academy/PortfolioBuilder';
 import './index.css';
 
 function App() {
@@ -39,7 +40,7 @@ function App() {
             {/* Sections in process */}
             <Route path="scenarios" element={<InProcess />} />
             <Route path="errors" element={<InProcess />} />
-            <Route path="portfolio" element={<InProcess />} />
+            <Route path="portfolio" element={<PortfolioBuilder />} />
             <Route path="tax" element={<InProcess />} />
             <Route path="strategies" element={<InProcess />} />
             <Route path="risk" element={<InProcess />} />

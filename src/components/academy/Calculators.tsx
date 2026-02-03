@@ -37,8 +37,8 @@ export function Calculators() {
                     <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
                 </Link>
 
-                {/* FIRE Calculator - COMING SOON */}
-                <div className="calculators__card calculators__card--soon">
+                {/* FIRE Calculator - IMPLEMENTED */}
+                <Link to="/academy/fire-calculator" className="calculators__card calculators__card--available">
                     <div className="calculators__card-icon calculators__card-icon--blue">
                         <Target size={32} />
                     </div>
@@ -48,16 +48,16 @@ export function Calculators() {
                         Basado en la regla del 4%.
                     </p>
                     <ul className="calculators__card-features">
-                        <li>• Años hasta FIRE</li>
-                        <li>• Capital necesario</li>
-                        <li>• Tasa de ahorro óptima</li>
-                        <li>• Simulación de gastos</li>
+                        <li>✓ Años hasta FIRE</li>
+                        <li>✓ Capital necesario</li>
+                        <li>✓ Tasa de ahorro óptima</li>
+                        <li>✓ Simulación de gastos</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--soon">Próximamente</span>
-                </div>
+                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
+                </Link>
 
-                {/* Retirement Calculator - COMING SOON */}
-                <div className="calculators__card calculators__card--soon">
+                {/* Retirement Calculator - IN PROCESS */}
+                <Link to="/academy/retirement" className="calculators__card calculators__card--soon">
                     <div className="calculators__card-icon calculators__card-icon--purple">
                         <Calendar size={32} />
                     </div>
@@ -72,10 +72,10 @@ export function Calculators() {
                         <li>• Diferentes escenarios</li>
                     </ul>
                     <span className="calculators__card-badge calculators__card-badge--soon">Próximamente</span>
-                </div>
+                </Link>
 
-                {/* Emergency Fund - COMING SOON */}
-                <div className="calculators__card calculators__card--soon">
+                {/* Emergency Fund - IN PROCESS */}
+                <Link to="/academy/emergency-fund" className="calculators__card calculators__card--soon">
                     <div className="calculators__card-icon calculators__card-icon--orange">
                         <PiggyBank size={32} />
                     </div>
@@ -90,10 +90,10 @@ export function Calculators() {
                         <li>• Consejos personalizados</li>
                     </ul>
                     <span className="calculators__card-badge calculators__card-badge--soon">Próximamente</span>
-                </div>
+                </Link>
 
-                {/* Tax Impact - COMING SOON */}
-                <div className="calculators__card calculators__card--soon">
+                {/* Tax Impact - IN PROCESS */}
+                <Link to="/academy/taxes" className="calculators__card calculators__card--soon">
                     <div className="calculators__card-icon calculators__card-icon--red">
                         <Percent size={32} />
                     </div>
@@ -108,10 +108,10 @@ export function Calculators() {
                         <li>• Ejemplos prácticos</li>
                     </ul>
                     <span className="calculators__card-badge calculators__card-badge--soon">Próximamente</span>
-                </div>
+                </Link>
 
-                {/* Asset Allocation - COMING SOON */}
-                <div className="calculators__card calculators__card--soon">
+                {/* Asset Allocation - IN PROCESS */}
+                <Link to="/academy/asset-allocation" className="calculators__card calculators__card--soon">
                     <div className="calculators__card-icon calculators__card-icon--teal">
                         <Calculator size={32} />
                     </div>
@@ -126,7 +126,7 @@ export function Calculators() {
                         <li>• Necesidad de rebalanceo</li>
                     </ul>
                     <span className="calculators__card-badge calculators__card-badge--soon">Próximamente</span>
-                </div>
+                </Link>
             </div>
 
             <div className="calculators__footer">

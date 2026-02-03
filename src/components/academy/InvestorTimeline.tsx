@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Check, AlertCircle, TrendingUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { TIMELINE_PHASES } from '../../data/academyData';
 import './InvestorTimeline.css';
 
@@ -157,15 +158,15 @@ export function InvestorTimeline() {
                 <h3>Continúa aprendiendo</h3>
                 <p>Profundiza en otros aspectos clave para tu journey:</p>
                 <div className="timeline__next-links">
-                    <a href="/academy/crisis" className="timeline__next-link">
+                    <Link to="/academy/crisis" className="timeline__next-link">
                         📊 Ver Crisis Históricas
-                    </a>
-                    <a href="/academy/scenarios" className="timeline__next-link">
+                    </Link>
+                    <Link to="/academy/scenarios" className="timeline__next-link">
                         🎯 Escenarios Prácticos
-                    </a>
-                    <a href="/academy/portfolio" className="timeline__next-link">
+                    </Link>
+                    <Link to="/academy/portfolio" className="timeline__next-link">
                         📈 Construir tu Cartera
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div>

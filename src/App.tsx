@@ -9,6 +9,8 @@ import { Fundamentos } from './components/academy/Fundamentos';
 import { InvestorTimeline } from './components/academy/InvestorTimeline';
 import { CrisisSimulator } from './components/academy/CrisisSimulator';
 import { CompoundInterestCalc } from './components/academy/CompoundInterestCalc';
+import { FIRECalculator } from './components/academy/FIRECalculator';
+import { InProcess } from './components/academy/InProcess';
 import { Calculators } from './components/academy/Calculators';
 import './index.css';
 
@@ -28,7 +30,24 @@ function App() {
             <Route path="crisis" element={<CrisisSimulator />} />
             <Route path="calculators" element={<Calculators />} />
             <Route path="compound-interest" element={<CompoundInterestCalc />} />
-            {/* TODO: Add more academy routes as components are created */}
+            <Route path="fire-calculator" element={<FIRECalculator />} />
+
+            {/* Sections in process */}
+            <Route path="scenarios" element={<InProcess />} />
+            <Route path="errors" element={<InProcess />} />
+            <Route path="portfolio" element={<InProcess />} />
+            <Route path="tax" element={<InProcess />} />
+            <Route path="strategies" element={<InProcess />} />
+            <Route path="risk" element={<InProcess />} />
+            <Route path="resources" element={<InProcess />} />
+            <Route path="glossary" element={<InProcess />} />
+            <Route path="asset-types" element={<InProcess />} />
+
+            {/* Calculator specific sub-pages in process */}
+            <Route path="retirement" element={<InProcess />} />
+            <Route path="emergency-fund" element={<InProcess />} />
+            <Route path="taxes" element={<InProcess />} />
+            <Route path="asset-allocation" element={<InProcess />} />
           </Route>
         </Route>
 

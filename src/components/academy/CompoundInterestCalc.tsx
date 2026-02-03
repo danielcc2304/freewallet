@@ -190,6 +190,36 @@ export function CompoundInterestCalc() {
         }).format(value);
     };
 
+    // Custom Tooltip Component
+    const CustomTooltip = ({ active, payload }: any) => {
+        if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            return (
+                <div style={{
+                    backgroundColor: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    boxShadow: 'var(--shadow-md)'
+                }}>
+                    <p style={{ margin: '0 0 8px 0', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {data.yearLabel}
+                    </p>
+                    <p style={{ margin: '4px 0', color: '#3b82f6', fontSize: '0.9rem' }}>
+                        Capital Aportado: {formatCurrency(data.contributed)}
+                    </p>
+                    <p style={{ margin: '4px 0', color: '#10b981', fontSize: '0.9rem' }}>
+                        Intereses: {formatCurrency(data.interest)}
+                    </p>
+                    <p style={{ margin: '8px 0 0 0', fontWeight: 700, color: 'var(--accent-primary)', fontSize: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
+                        Total: {formatCurrency(data.total)}
+                    </p>
+                </div>
+            );
+        }
+        return null;
+    };
+
     return (
         <div className="compound">
             <header className="compound__header">
@@ -474,14 +504,7 @@ export function CompoundInterestCalc() {
                                     tick={{ fontSize: 12 }}
                                     tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                                 />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: 'var(--bg-secondary)',
-                                        border: '1px solid var(--border-color)',
-                                        borderRadius: '8px'
-                                    }}
-                                    formatter={(value: number | undefined) => value !== undefined ? formatCurrency(value) : ''}
-                                />
+                                <Tooltip content={<CustomTooltip />} />
                                 <Legend />
                                 <Area
                                     type="monotone"

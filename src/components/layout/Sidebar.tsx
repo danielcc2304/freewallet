@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, Settings, Wallet, Feather, Menu, X } from 'lucide-react';
+import { LayoutDashboard, PlusCircle, Settings, Wallet, Feather, Menu, X, GraduationCap } from 'lucide-react';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -11,6 +11,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     const navItems = [
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/add', icon: PlusCircle, label: 'Añadir Inversión' },
+        { to: '/academy', icon: GraduationCap, label: 'Academia' },
         { to: '/settings', icon: Settings, label: 'Configuración' },
     ];
 

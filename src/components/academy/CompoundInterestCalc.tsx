@@ -498,7 +498,7 @@ export function CompoundInterestCalc() {
                                     {formatCurrency(requiredMonthlyAmount)}
                                 </div>
                                 <p className="compound__goal-details">
-                                    Para alcanzar {formatCurrency(targetAmount)} en {years} años al {annualRate}% (desde {formatCurrency(initialCapital)})
+                                    Para alcanzar {formatCurrency(Number(targetAmount) || 0)} en {years} años al {annualRate}% (desde {formatCurrency(Number(initialCapital) || 0)})
                                 </p>
                             </div>
                         </div>

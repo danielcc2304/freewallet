@@ -20,6 +20,8 @@ import { PortfolioBuilder } from './components/academy/PortfolioBuilder';
 import { Taxation } from './components/academy/Taxation';
 import { Strategies } from './components/academy/Strategies';
 import { RiskManagement } from './components/academy/RiskManagement';
+import { Scenarios } from './components/academy/Scenarios';
+import { CommonErrors } from './components/academy/CommonErrors';
 import './index.css';
 
 function App() {
@@ -41,8 +43,8 @@ function App() {
             <Route path="fire-calculator" element={<FIRECalculator />} />
 
             {/* Sections in process */}
-            <Route path="scenarios" element={<InProcess />} />
-            <Route path="errors" element={<InProcess />} />
+            <Route path="scenarios" element={<Scenarios />} />
+            <Route path="errors" element={<CommonErrors />} />
             <Route path="portfolio" element={<PortfolioBuilder />} />
             <Route path="tax" element={<Taxation />} />
             <Route path="strategies" element={<Strategies />} />

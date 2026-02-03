@@ -1,4 +1,4 @@
-import type { CrisisData, QuizQuestion, TimelinePhase, RiskProfileQuestion, GlossaryTerm } from '../types/types';
+import type { CrisisData, QuizQuestion, TimelinePhase, RiskProfileQuestion, GlossaryTerm, Scenario } from '../types/types';
 
 // ===== CRISIS HISTORICAL DATA =====
 // Core static data with architecture ready for updates
@@ -406,3 +406,100 @@ export const TRUSTED_RESOURCES = {
         { name: "El ático de los libros", description: "Educación financiera práctica" }
     ]
 };
+
+// ===== PRACTICAL SCENARIOS =====
+export const SCENARIOS: Scenario[] = [
+    {
+        id: 'market-crash',
+        title: "El mercado cae un 20%",
+        emoji: "📉",
+        sections: [
+            {
+                title: "Análisis de Situación",
+                content: "Las caídas de doble dígito son normales y ocurren de media cada 1.5 años. No son el fin del mundo, sino parte del ciclo de los mercados financieros. Históricamente, el 100% de las caídas han sido seguidas por nuevos máximos."
+            },
+            {
+                title: "Acciones Recomendadas",
+                content: [
+                    { icon: 'Shield', title: 'Mantén la calma', description: 'No vendas por pánico. El 90% de los errores se cometen en estos momentos de estrés emocional.', type: 'do' },
+                    { icon: 'TrendingUp', title: 'Sigue con tu DCA', description: 'Ahora estás comprando más participaciones por el mismo dinero. Es una oportunidad de acumulación.', type: 'do' },
+                    { icon: 'XCircle', title: 'No mires la cartera', description: 'Mirar el color rojo genera cortisol y ansiedad, lo que nubla el juicio racional.', type: 'dont' }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'extra-cash',
+        title: "Tengo un dinero extra",
+        emoji: "💰",
+        sections: [
+            {
+                title: "¿Qué hacer primero?",
+                content: "Antes de invertir un solo euro en activos volátiles, asegúrate de que tus 'cimientos financieros' son sólidos. Invertir sin base es construir sobre arena."
+            },
+            {
+                title: "Prioridades",
+                content: [
+                    { icon: 'PiggyBank', title: 'Fondo de Emergencia', description: 'Si no tienes 3-6 meses de gastos cubiertos, esto el lo primero. Aporta tranquilidad.', type: 'do' },
+                    { icon: 'Zap', title: 'Deudas > 10% TAE', description: 'Pagar una deuda cara es una inversión con retorno garantizado del 10%+. No hay mejor uso para tu dinero.', type: 'do' },
+                    { icon: 'Target', title: 'Inversión según Plan', description: 'Si lo anterior está cubierto, inyéctalo en tu cartera según tu asset allocation objetivo.', type: 'do' }
+                ]
+            }
+        ]
+    },
+    {
+        id: '接近jubilacion',
+        title: "Me acerco a la jubilación",
+        emoji: "👴",
+        sections: [
+            {
+                title: "El cambio de chip",
+                content: "A medida que el plazo de inversión se acorta, la preservación de capital gana importancia sobre el crecimiento agresivo. Tienes menos tiempo para recuperarte de una caída."
+            },
+            {
+                title: "Pasos a seguir",
+                content: [
+                    { icon: 'Scale', title: 'Reducción de Riesgo', description: 'Aumentar gradualmente el peso de la Renta Fija y Liquidez (Gilde Path).', type: 'do' },
+                    { icon: 'Landmark', title: 'Optimización Fiscal', description: 'Analiza cómo rescatar el dinero de forma progresiva para minimizar el impacto del IRPF.', type: 'do' },
+                    { icon: 'ShieldCheck', title: 'Fondo de Retiros', description: 'Tener al menos 2-3 años de retiradas previstas en activos muy seguros (cash/monetarios).', type: 'do' }
+                ]
+            }
+        ]
+    }
+];
+
+// ===== COMMON ERRORS =====
+export const COMMON_ERRORS = [
+    {
+        id: 'market-timing',
+        title: "Market Timing",
+        emoji: "🕰️",
+        desc: "Intentar predecir el suelo o el techo del mercado. Nadie sabe qué hará mañana la bolsa.",
+        consequence: "Perderse los mejores días de subida, que suelen ocurrir justo después de las grandes caídas.",
+        solution: "Entrar de forma promediada (DCA) y mantener el rumbo pase lo que pase."
+    },
+    {
+        id: 'fomo',
+        title: "FOMO (Miedo a perderse algo)",
+        emoji: "🚀",
+        desc: "Comprar un activo solo porque 'todo el mundo habla de ello' o porque acaba de subir un 50%.",
+        consequence: "Sueles comprar en el pico de euforia, justo antes de que los inversores profesionales empiecen a vender.",
+        solution: "Invertir basándote en fundamentales y en tu plan, no en las noticias o RRSS."
+    },
+    {
+        id: 'no-fondo',
+        title: "No tener Fondo de Emergencia",
+        emoji: "🆘",
+        desc: "Invertir el dinero que podrías necesitar para comer o pagar el alquiler el mes que viene.",
+        consequence: "Verte obligado a vender tus inversiones en el peor momento posible (en pérdidas) debido a un imprevisto.",
+        solution: "Ahorrar 3-6 meses de gastos en una cuenta remunerada antes de empezar a invertir."
+    },
+    {
+        id: 'recencia',
+        title: "Sesgo de Recencia",
+        emoji: "🔄",
+        desc: "Pensar que lo que ha pasado en los últimos 6 meses es lo que pasará siempre.",
+        consequence: "Extrapolar rentabilidades pasadas al futuro y asumir riesgos excesivos.",
+        solution: "Entender los ciclos económicos y mirar datos históricos de largo plazo (10+ años)."
+    }
+];

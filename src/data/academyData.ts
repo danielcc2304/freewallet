@@ -1,4 +1,4 @@
-import type { CrisisData, QuizQuestion, TimelinePhase, RiskProfileQuestion, GlossaryTerm } from '../types/types';
+import type { CrisisData, QuizQuestion, TimelinePhase, RiskProfileQuestion, GlossaryTerm, Scenario } from '../types/types';
 
 // ===== CRISIS HISTORICAL DATA =====
 // Core static data with architecture ready for updates
@@ -41,11 +41,14 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
         duration: "0-6 meses",
         objective: "Estabilidad financiera",
         checklist: [
-            "Deudas caras saldadas (tarjetas >10% TAE)",
+            "Préstamos tóxicos saldados (>10% TAE)",
             "Fondo de emergencia básico (3-6 meses gastos)",
             "Conocimientos básicos adquiridos"
         ],
-        commonError: "Invertir sin colchón → liquidar en pérdidas por emergencia"
+        commonErrors: [
+            "Invertir sin colchón → liquidar en pérdidas por emergencia",
+            "Invertir en lo que no comprendes por recomendación"
+        ]
     },
     {
         id: 'phase-1',
@@ -59,7 +62,10 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
             moderate: "70% RV / 30% RF",
             aggressive: "90% RV / 10% RF"
         },
-        commonError: "Parar DCA en crisis (justo cuando hay que seguir)"
+        commonErrors: [
+            "Parar DCA en crisis (justo cuando hay que seguir)",
+            "Mirar la cartera a diario → estrés innecesario"
+        ]
     },
     {
         id: 'phase-2',
@@ -68,7 +74,10 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
         duration: "3-10 años",
         objective: "Aceleración del capital compuesto",
         strategy: "Primer rebalanceo si deriva >5%, revisión anual, aumentar con subidas sueldo",
-        commonError: "No rebalancear → exceso de riesgo no deseado"
+        commonErrors: [
+            "No rebalancear → exceso de riesgo no deseado",
+            "Perseguir rentabilidades pasadas (comprar lo que ya subió)"
+        ]
     },
     {
         id: 'phase-3',
@@ -77,7 +86,10 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
         duration: "10+ años",
         objective: "Proteger lo ganado sin perder crecimiento",
         strategy: "Mantener rumbo, reducir riesgo gradualmente si te acercas a objetivo",
-        commonError: "Volverse ultra-conservador demasiado pronto"
+        commonErrors: [
+            "No ir reduciendo el riesgo a medida que te acercas a tu objetivo",
+            "Falta de optimización fiscal (no usar fondos traspasables)"
+        ]
     },
     {
         id: 'phase-crisis',
@@ -85,7 +97,10 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
         title: "Durante una Crisis",
         duration: "En cualquier momento",
         objective: "Mantener la calma y seguir el plan",
-        commonError: "Vender por pánico en el momento más bajo"
+        commonErrors: [
+            "Vender por pánico en el momento más bajo",
+            "Intentar hacer 'Market Timing' para buscar el suelo"
+        ]
     }
 ];
 
@@ -310,20 +325,188 @@ export const RISK_PROFILE_QUESTIONS: RiskProfileQuestion[] = [
 // ===== GLOSSARY (Empty for user to fill) =====
 export const GLOSSARY: GlossaryTerm[] = [
     {
-        id: 'sample-1',
+        id: 'diversificacion',
         term: "Diversificación",
         definition: "Estrategia de inversión que consiste en distribuir el capital entre diferentes activos, sectores o geografías para reducir el riesgo global de la cartera.",
         category: "Estrategia",
         relatedTerms: ["Asset Allocation", "Correlación", "Riesgo"]
     },
     {
-        id: 'sample-2',
+        id: 'per',
         term: "PER (Price/Earnings Ratio)",
         definition: "Ratio de valoración que indica cuántas veces estás pagando el beneficio anual de una empresa. Se calcula dividiendo el precio de la acción entre el beneficio por acción.",
         category: "Valoración",
         relatedTerms: ["PEG", "Valoración", "Beneficio"]
+    },
+    {
+        id: 'interes-compuesto',
+        term: "Interés Compuesto",
+        definition: "Es el interés de un capital al que se van acumulando los intereses que produce para que generen otros nuevos. Es la fuerza más potente del universo según Einstein.",
+        category: "Conceptos Básicos",
+        relatedTerms: ["Rentabilidad", "Tiempo", "Capitalización"]
+    },
+    {
+        id: 'inflacion',
+        term: "Inflación",
+        definition: "Proceso económico provocado por el desequilibrio existente entre la producción y la demanda; causa una subida continuada de los precios de la mayor parte de los productos y servicios.",
+        category: "Economía",
+        relatedTerms: ["Poder Adquisitivo", "IPC", "Deflación"]
+    },
+    {
+        id: 'etf',
+        term: "ETF (Exchange Traded Fund)",
+        definition: "Fondo de inversión cuya principal característica es que cotiza en bolsa, igual que una acción. Suelen replicar un índice bursátil.",
+        category: "Instrumentos",
+        relatedTerms: ["Fondo de Inversión", "Indexación", "Gestión Pasiva"]
+    },
+    {
+        id: 'dividendo',
+        term: "Dividendo",
+        definition: "Parte de los beneficios de una empresa que se reparte entre sus accionistas.",
+        category: "Rentabilidad",
+        relatedTerms: ["Payout", "Yield", "Acción"]
+    },
+    {
+        id: 'volatilidad',
+        term: "Volatilidad",
+        definition: "Medida de la variación del precio de un activo financiero respecto a su media en un periodo de tiempo determinado. A mayor volatilidad, mayor riesgo y potencial rentabilidad.",
+        category: "Riesgo",
+        relatedTerms: ["Desviación Típica", "Beta", "Riesgo"]
+    },
+    {
+        id: 'asset-allocation',
+        term: "Asset Allocation",
+        definition: "Distribución de los activos de una cartera entre diferentes clases (acciones, bonos, efectivo, etc.) según el perfil del inversor.",
+        category: "Estrategia",
+        relatedTerms: ["Diversificación", "Rebalanceo", "Perfil de Riesgo"]
+    },
+    {
+        id: 'ipc',
+        term: "IPC (Índice de Precios al Consumo)",
+        definition: "Indicador que mide la evolución de los precios de los bienes y servicios consumidos por las familias en España.",
+        category: "Economía",
+        relatedTerms: ["Inflación", "Cesta de la Compra"]
+    },
+    {
+        id: 'renta-fija',
+        term: "Renta Fija",
+        definition: "Tipo de inversión formada por todos los activos financieros en los que el emisor está obligado a pagar una rentabilidad fija o variable al inversor durante un periodo determinado.",
+        category: "Instrumentos",
+        relatedTerms: ["Bonos", "Letras del Tesoro", "Cupón"]
+    },
+    {
+        id: 'renta-variable',
+        term: "Renta Variable",
+        definition: "Tipo de inversión en la que la recuperación del capital invertido y la rentabilidad no están garantizadas, ni se conocen de antemano.",
+        category: "Instrumentos",
+        relatedTerms: ["Acciones", "Bolsa", "Riesgo"]
+    },
+    {
+        id: 'bear-market',
+        term: "Bear Market",
+        definition: "Mercado bajista. Periodo en el que los precios de los activos caen un 20% o más desde sus máximos recientes en medio de un pesimismo generalizado.",
+        category: "Bolsa",
+        relatedTerms: ["Bull Market", "Crash", "Corrección"]
+    },
+    {
+        id: 'bull-market',
+        term: "Bull Market",
+        definition: "Mercado alcista. Periodo prolongado en el que los precios de los activos suben o se espera que suban.",
+        category: "Bolsa",
+        relatedTerms: ["Bear Market", "Rally", "Euforia"]
+    },
+    {
+        id: 'margin-of-safety',
+        term: "Margen de Seguridad",
+        definition: "Diferencia entre el valor intrínseco de un activo y su precio de mercado. Es un concepto clave del Value Investing.",
+        category: "Valoración",
+        relatedTerms: ["Valor Intrínseco", "Value Investing"]
+    },
+    {
+        id: 'broker',
+        term: "Broker",
+        definition: "Entidad o individuo que actúa como intermediario en operaciones de compra y venta de valores financieros a cambio de una comisión.",
+        category: "Conceptos Básicos",
+        relatedTerms: ["Exchange", "Comisión", "Custodia"]
+    },
+    {
+        id: 'faci',
+        term: "Fondo de Acumulación",
+        definition: "Fondo de inversión en el que los dividendos o intereses generados se reinvierten automáticamente en el propio fondo en lugar de repartirse.",
+        category: "Instrumentos",
+        relatedTerms: ["Fondo de Distribución", "Interés Compuesto"]
+    },
+    {
+        id: 'pib',
+        term: "PIB (Producto Interior Bruto)",
+        definition: "Valor monetario de todos los bienes y servicios finales producidos por un país en un periodo determinado.",
+        category: "Economía",
+        relatedTerms: ["Crecimiento Económico", "Recesión"]
     }
-    // User will add more terms here
+];
+
+// ===== ASSET CLASSES DETAIL =====
+export const ASSET_CLASSES_DETAIL = [
+    {
+        id: 'acciones',
+        title: "Renta Variable (Acciones)",
+        description: "Representan la propiedad parcial de una empresa. Es el activo con mayor potencial de crecimiento a largo plazo, pero con mayor volatilidad.",
+        risk: "Alto",
+        return: "Histórico ~7-10%",
+        pros: ["Potencial de revalorización", "Dividendos", "Liquidez alta"],
+        cons: ["Alta volatilidad", "Riesgo de pérdida de capital", "Requiere tiempo"],
+        instruments: ["Acciones individuales", "Fondos Indexados", "ETFs"]
+    },
+    {
+        id: 'bonos',
+        title: "Renta Fija (Bonos)",
+        description: "Préstamos que el inversor hace a un gobierno o empresa a cambio de un interés (cupón). Sirven para mitigar la volatilidad de la cartera.",
+        risk: "Bajo / Medio",
+        return: "Histórico ~2-4%",
+        pros: ["Ingresos predecibles", "Menor volatilidad que acciones", "Prioridad en cobro"],
+        cons: ["Menor potencial de crecimiento", "Riesgo de insolvencia", "Riesgo de tipo de interés"],
+        instruments: ["Letras del Tesoro", "Bonos del Estado", "Bonos Corporativos"]
+    },
+    {
+        id: 'reits',
+        title: "Real Estate (REITs/SOCIMIs)",
+        description: "Inversión en el mercado inmobiliario a través de bolsa. Estas empresas gestionan propiedades y reparten la mayoría de sus beneficios.",
+        risk: "Medio / Alto",
+        return: "Histórico ~6-9%",
+        pros: ["Protección contra inflación", "Dividendos altos", "Diversificación real"],
+        cons: ["Ciclos inmobiliarios", "Sensibles a tipos de interés", "Riesgo de gestión"],
+        instruments: ["REITs (USA)", "SOCIMIs (España)", "ETFs Inmobiliarios"]
+    },
+    {
+        id: 'cash',
+        title: "Efectivo y Monetarios",
+        description: "Dinero en cuentas o activos a muy corto plazo y alta seguridad. Su función es la liquidez y la preservación nominal.",
+        risk: "Muy Bajo",
+        return: "Histórico ~0-2%",
+        pros: ["Liquidez inmediata", "Pérdida de valor nula a corto plazo", "Seguridad máxima"],
+        cons: ["Batido por la inflación", "Rentabilidad real negativa a menudo", "Coste de oportunidad"],
+        instruments: ["Cuentas remuneradas", "Depósitos", "Fondos Monetarios"]
+    },
+    {
+        id: 'crypto',
+        title: "Criptoactivos",
+        description: "Activos digitales basados en criptografía. Es una clase de activo nueva y extremadamente volátil usada para especulación o reserva de valor digital.",
+        risk: "Extremo",
+        return: "Impredecible",
+        pros: ["Potencial de retorno explosivo", "Descentralización", "Transferibilidad"],
+        cons: ["Volatilidad extrema", "Riesgo regulatorio", "Posibilidad de pérdida total"],
+        instruments: ["Bitcoin", "Ethereum", "Stablecoins"]
+    },
+    {
+        id: 'oro',
+        title: "Materias Primas (Oro/Commodities)",
+        description: "Activos físicos que suelen actuar como refugio en tiempos de crisis o alta inflación. No generan flujos de caja (dividendos).",
+        risk: "Medio",
+        return: "Reserva de Valor",
+        pros: ["Refugio seguro", "Desvinculado del mercado de acciones", "Cobertura inflación"],
+        cons: ["No produce rentas", "Costes de almacenamiento (físico)", "Precio cíclico"],
+        instruments: ["ETC de Oro", "Oro físico", "ETFs de Minería"]
+    }
 ];
 
 // ===== ASSET ALLOCATION PRESETS =====
@@ -391,3 +574,100 @@ export const TRUSTED_RESOURCES = {
         { name: "El ático de los libros", description: "Educación financiera práctica" }
     ]
 };
+
+// ===== PRACTICAL SCENARIOS =====
+export const SCENARIOS: Scenario[] = [
+    {
+        id: 'market-crash',
+        title: "El mercado cae un 20%",
+        emoji: "📉",
+        sections: [
+            {
+                title: "Análisis de Situación",
+                content: "Las caídas de doble dígito son normales y ocurren de media cada 1.5 años. No son el fin del mundo, sino parte del ciclo de los mercados financieros. Históricamente, el 100% de las caídas han sido seguidas por nuevos máximos."
+            },
+            {
+                title: "Acciones Recomendadas",
+                content: [
+                    { icon: 'Shield', title: 'Mantén la calma', description: 'No vendas por pánico. El 90% de los errores se cometen en estos momentos de estrés emocional.', type: 'do' },
+                    { icon: 'TrendingUp', title: 'Sigue con tu DCA', description: 'Ahora estás comprando más participaciones por el mismo dinero. Es una oportunidad de acumulación.', type: 'do' },
+                    { icon: 'XCircle', title: 'No mires la cartera', description: 'Mirar el color rojo genera cortisol y ansiedad, lo que nubla el juicio racional.', type: 'dont' }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'extra-cash',
+        title: "Tengo un dinero extra",
+        emoji: "💰",
+        sections: [
+            {
+                title: "¿Qué hacer primero?",
+                content: "Antes de invertir un solo euro en activos volátiles, asegúrate de que tus 'cimientos financieros' son sólidos. Invertir sin base es construir sobre arena."
+            },
+            {
+                title: "Prioridades",
+                content: [
+                    { icon: 'PiggyBank', title: 'Fondo de Emergencia', description: 'Si no tienes 3-6 meses de gastos cubiertos, esto el lo primero. Aporta tranquilidad.', type: 'do' },
+                    { icon: 'Zap', title: 'Deudas > 10% TAE', description: 'Pagar una deuda cara es una inversión con retorno garantizado del 10%+. No hay mejor uso para tu dinero.', type: 'do' },
+                    { icon: 'Target', title: 'Inversión según Plan', description: 'Si lo anterior está cubierto, inyéctalo en tu cartera según tu asset allocation objetivo.', type: 'do' }
+                ]
+            }
+        ]
+    },
+    {
+        id: '接近jubilacion',
+        title: "Me acerco a la jubilación",
+        emoji: "👴",
+        sections: [
+            {
+                title: "El cambio de chip",
+                content: "A medida que el plazo de inversión se acorta, la preservación de capital gana importancia sobre el crecimiento agresivo. Tienes menos tiempo para recuperarte de una caída."
+            },
+            {
+                title: "Pasos a seguir",
+                content: [
+                    { icon: 'Scale', title: 'Reducción de Riesgo', description: 'Aumentar gradualmente el peso de la Renta Fija y Liquidez (Gilde Path).', type: 'do' },
+                    { icon: 'Landmark', title: 'Optimización Fiscal', description: 'Analiza cómo rescatar el dinero de forma progresiva para minimizar el impacto del IRPF.', type: 'do' },
+                    { icon: 'ShieldCheck', title: 'Fondo de Retiros', description: 'Tener al menos 2-3 años de retiradas previstas en activos muy seguros (cash/monetarios).', type: 'do' }
+                ]
+            }
+        ]
+    }
+];
+
+// ===== COMMON ERRORS =====
+export const COMMON_ERRORS = [
+    {
+        id: 'market-timing',
+        title: "Market Timing",
+        emoji: "🕰️",
+        desc: "Intentar predecir el suelo o el techo del mercado. Nadie sabe qué hará mañana la bolsa.",
+        consequence: "Perderse los mejores días de subida, que suelen ocurrir justo después de las grandes caídas.",
+        solution: "Entrar de forma promediada (DCA) y mantener el rumbo pase lo que pase."
+    },
+    {
+        id: 'fomo',
+        title: "FOMO (Miedo a perderse algo)",
+        emoji: "🚀",
+        desc: "Comprar un activo solo porque 'todo el mundo habla de ello' o porque acaba de subir un 50%.",
+        consequence: "Sueles comprar en el pico de euforia, justo antes de que los inversores profesionales empiecen a vender.",
+        solution: "Invertir basándote en fundamentales y en tu plan, no en las noticias o RRSS."
+    },
+    {
+        id: 'no-fondo',
+        title: "No tener Fondo de Emergencia",
+        emoji: "🆘",
+        desc: "Invertir el dinero que podrías necesitar para comer o pagar el alquiler el mes que viene.",
+        consequence: "Verte obligado a vender tus inversiones en el peor momento posible (en pérdidas) debido a un imprevisto.",
+        solution: "Ahorrar 3-6 meses de gastos en una cuenta remunerada antes de empezar a invertir."
+    },
+    {
+        id: 'recencia',
+        title: "Sesgo de Recencia",
+        emoji: "🔄",
+        desc: "Pensar que lo que ha pasado en los últimos 6 meses es lo que pasará siempre.",
+        consequence: "Extrapolar rentabilidades pasadas al futuro y asumir riesgos excesivos.",
+        solution: "Entender los ciclos económicos y mirar datos históricos de largo plazo (10+ años)."
+    }
+];

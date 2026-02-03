@@ -1,0 +1,261 @@
+.portfolio-builder {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding-bottom: 4rem;
+}
+
+.portfolio-builder__header {
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.portfolio-builder__title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.portfolio-builder__subtitle {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    max-width: 700px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+
+/* Asset Classes Section */
+.portfolio-builder__section-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin: 3rem 0 1.5rem;
+    color: var(--text-primary);
+}
+
+.portfolio-builder__assets-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 3rem;
+}
+
+.asset-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1.5rem;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.asset-card:hover {
+    transform: translateY(-4px);
+    border-color: var(--accent-primary);
+    box-shadow: var(--shadow-md);
+}
+
+.asset-card__header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.asset-card__icon {
+    padding: 10px;
+    border-radius: 12px;
+    color: white;
+}
+
+.asset-card__name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.asset-card__desc {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.asset-card__stats {
+    margin-top: auto;
+    display: flex;
+    justify-content: space-between;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+.stat-item {
+    display: flex;
+    flex-direction: column;
+}
+
+.stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: var(--text-secondary);
+    font-weight: 600;
+}
+
+.stat-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+}
+
+/* Model Portfolios */
+.portfolio-builder__models {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.model-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.model-card__title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.model-card__desc {
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.model-card__chart {
+    height: 200px;
+}
+
+.model-card__allocation {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.alloc-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.alloc-label {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--text-secondary);
+}
+
+.alloc-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+}
+
+.alloc-val {
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+/* Diversification Section */
+.portfolio-builder__cta {
+    background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), rgba(var(--accent-rgb), 0.05));
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 3rem;
+    text-align: center;
+    margin-top: 2rem;
+}
+
+.cta__title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin-bottom: 1rem;
+}
+
+.cta__desc {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.cta__button {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+    padding: 1rem 2.5rem;
+    border-radius: 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.cta__button:hover {
+    transform: translateY(-2px);
+    background: var(--accent-secondary);
+    box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.4);
+}
+
+/* Risk Guide */
+.risk-guide {
+    background: var(--bg-tertiary);
+    border-radius: 20px;
+    padding: 2.5rem;
+    margin-bottom: 4rem;
+}
+
+.risk-guide__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 2rem;
+    margin-top: 1.5rem;
+}
+
+.risk-item {
+    text-align: center;
+}
+
+.risk-item__icon {
+    margin-bottom: 1rem;
+    color: var(--accent-primary);
+}
+
+.risk-item__name {
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.risk-item__allocation {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 768px) {
+    .portfolio-builder__title {
+        font-size: 2rem;
+    }
+
+    .portfolio-builder__cta {
+        padding: 2rem 1.5rem;
+    }
+}

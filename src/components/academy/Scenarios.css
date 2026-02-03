@@ -1,0 +1,158 @@
+.scenarios {
+    max-width: 900px;
+    margin: 0 auto;
+    padding-bottom: 4rem;
+}
+
+.scenarios__header {
+    margin-bottom: 3rem;
+    text-align: center;
+}
+
+.scenarios__title {
+    font-size: 2.5rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.scenarios__subtitle {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.scenarios__grid {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+.scenario-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 2.5rem;
+    transition: all 0.3s ease;
+}
+
+.scenario-card:hover {
+    border-color: var(--accent-primary);
+    box-shadow: var(--shadow-md);
+}
+
+.scenario-card__header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.scenario-card__emoji {
+    font-size: 3rem;
+    background: var(--bg-tertiary);
+    width: 80px;
+    height: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 20px;
+}
+
+.scenario-card__title {
+    font-size: 1.75rem;
+    font-weight: 800;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.scenario-section {
+    margin-bottom: 2rem;
+}
+
+.scenario-section:last-child {
+    margin-bottom: 0;
+}
+
+.scenario-section h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.scenario-section__content {
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.scenario-actions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.action-card {
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-radius: 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid transparent;
+}
+
+.action-card.do {
+    border-left: 4px solid #10b981;
+}
+
+.action-card.dont {
+    border-left: 4px solid #ef4444;
+}
+
+.action-card__icon {
+    padding-top: 2px;
+}
+
+.action-card.do .action-card__icon {
+    color: #10b981;
+}
+
+.action-card.dont .action-card__icon {
+    color: #ef4444;
+}
+
+.action-card__text h4 {
+    margin: 0 0 0.25rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.action-card__text p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+    .scenario-card {
+        padding: 1.5rem;
+    }
+
+    .scenario-card__header {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+    }
+
+    .scenario-card__emoji {
+        margin: 0 auto;
+    }
+}

@@ -24,19 +24,19 @@ interface ChartDataPoint {
 
 export function CompoundInterestCalc() {
     // Basic inputs
-    const [initialCapital, setInitialCapital] = useState<number>(10000);
-    const [monthlyContribution, setMonthlyContribution] = useState<number>(500);
-    const [annualRate, setAnnualRate] = useState<number>(7);
-    const [years, setYears] = useState<number>(20);
+    const [initialCapital, setInitialCapital] = useState<number | string>(10000);
+    const [monthlyContribution, setMonthlyContribution] = useState<number | string>(500);
+    const [annualRate, setAnnualRate] = useState<number | string>(7);
+    const [years, setYears] = useState<number | string>(20);
 
     // Advanced options
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
     const [withdrawalType, setWithdrawalType] = useState<'none' | 'percentage' | 'fixed'>('none');
-    const [withdrawalValue, setWithdrawalValue] = useState<number>(0);
+    const [withdrawalValue, setWithdrawalValue] = useState<number | string>(0);
 
     // Calculation mode
     const [calculationMode, setCalculationMode] = useState<CalculationMode>('normal');
-    const [targetAmount, setTargetAmount] = useState<number>(500000);
+    const [targetAmount, setTargetAmount] = useState<number | string>(500000);
 
     const calculateCompoundInterest = (
         initial: number,
@@ -132,42 +132,49 @@ export function CompoundInterestCalc() {
     };
 
     const chartData = useMemo(() => {
+        const initial = Number(initialCapital) || 0;
+        const monthly = Number(monthlyContribution) || 0;
+        const rate = Number(annualRate) || 0;
+        const periods = Number(years) || 0;
+        const target = Number(targetAmount) || 0;
+        const wValue = Number(withdrawalValue) || 0;
+
         if (calculationMode === 'normal') {
             return calculateCompoundInterest(
-                initialCapital,
-                monthlyContribution,
-                annualRate,
-                years,
+                initial,
+                monthly,
+                rate,
+                periods,
                 withdrawalType,
-                withdrawalValue
+                wValue
             );
         } else if (calculationMode === 'timeToGoal') {
             const yearsToGoal = Math.ceil(calculateTimeToGoal(
-                initialCapital,
-                monthlyContribution,
-                annualRate,
-                targetAmount
+                initial,
+                monthly,
+                rate,
+                target
             ));
             return calculateCompoundInterest(
-                initialCapital,
-                monthlyContribution,
-                annualRate,
-                yearsToGoal,
+                initial,
+                monthly,
+                rate,
+                yearsToGoal || 1,
                 'none',
                 0
             );
-        } else {
+        } else { // calculationMode === 'requiredContribution'
             const requiredMonthly = calculateRequiredMonthly(
-                initialCapital,
-                annualRate,
-                years,
-                targetAmount
+                initial,
+                rate,
+                periods,
+                target
             );
             return calculateCompoundInterest(
-                initialCapital,
+                initial,
                 requiredMonthly,
-                annualRate,
-                years,
+                rate,
+                periods,
                 'none',
                 0
             );
@@ -175,12 +182,24 @@ export function CompoundInterestCalc() {
     }, [initialCapital, monthlyContribution, annualRate, years, withdrawalType, withdrawalValue, calculationMode, targetAmount]);
 
     const finalData = chartData[chartData.length - 1];
-    const timeToGoalYears = calculationMode === 'timeToGoal'
-        ? calculateTimeToGoal(initialCapital, monthlyContribution, annualRate, targetAmount)
-        : null;
-    const requiredMonthlyAmount = calculationMode === 'requiredContribution'
-        ? calculateRequiredMonthly(initialCapital, annualRate, years, targetAmount)
-        : null;
+
+    const timeToGoalYears = useMemo(() => {
+        if (calculationMode !== 'timeToGoal') return null;
+        const initial = Number(initialCapital) || 0;
+        const monthly = Number(monthlyContribution) || 0;
+        const rate = Number(annualRate) || 0;
+        const target = Number(targetAmount) || 0;
+        return calculateTimeToGoal(initial, monthly, rate, target);
+    }, [calculationMode, initialCapital, monthlyContribution, annualRate, targetAmount]);
+
+    const requiredMonthlyAmount = useMemo(() => {
+        if (calculationMode !== 'requiredContribution') return null;
+        const initial = Number(initialCapital) || 0;
+        const rate = Number(annualRate) || 0;
+        const periods = Number(years) || 0;
+        const target = Number(targetAmount) || 0;
+        return calculateRequiredMonthly(initial, rate, periods, target);
+    }, [calculationMode, initialCapital, annualRate, years, targetAmount]);
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('es-ES', {
@@ -188,6 +207,36 @@ export function CompoundInterestCalc() {
             currency: 'EUR',
             maximumFractionDigits: 0
         }).format(value);
+    };
+
+    // Custom Tooltip Component
+    const CustomTooltip = ({ active, payload }: any) => {
+        if (active && payload && payload.length) {
+            const data = payload[0].payload;
+            return (
+                <div style={{
+                    backgroundColor: 'var(--bg-secondary)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '8px',
+                    padding: '12px',
+                    boxShadow: 'var(--shadow-md)'
+                }}>
+                    <p style={{ margin: '0 0 8px 0', fontWeight: 600, color: 'var(--text-primary)' }}>
+                        {data.yearLabel}
+                    </p>
+                    <p style={{ margin: '4px 0', color: '#3b82f6', fontSize: '0.9rem' }}>
+                        Capital Aportado: {formatCurrency(data.contributed)}
+                    </p>
+                    <p style={{ margin: '4px 0', color: '#10b981', fontSize: '0.9rem' }}>
+                        Intereses: {formatCurrency(data.interest)}
+                    </p>
+                    <p style={{ margin: '8px 0 0 0', fontWeight: 700, color: 'var(--accent-primary)', fontSize: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
+                        Total: {formatCurrency(data.total)}
+                    </p>
+                </div>
+            );
+        }
+        return null;
     };
 
     return (
@@ -237,7 +286,7 @@ export function CompoundInterestCalc() {
                                 id="initial"
                                 type="number"
                                 value={initialCapital}
-                                onChange={(e) => setInitialCapital(Number(e.target.value))}
+                                onChange={(e) => setInitialCapital(e.target.value === '' ? '' : Number(e.target.value))}
                                 min="0"
                                 step="1000"
                             />
@@ -254,7 +303,7 @@ export function CompoundInterestCalc() {
                                     id="monthly"
                                     type="number"
                                     value={monthlyContribution}
-                                    onChange={(e) => setMonthlyContribution(Number(e.target.value))}
+                                    onChange={(e) => setMonthlyContribution(e.target.value === '' ? '' : Number(e.target.value))}
                                     min="0"
                                     step="50"
                                 />
@@ -271,7 +320,7 @@ export function CompoundInterestCalc() {
                                 id="rate"
                                 type="number"
                                 value={annualRate}
-                                onChange={(e) => setAnnualRate(Number(e.target.value))}
+                                onChange={(e) => setAnnualRate(e.target.value === '' ? '' : Number(e.target.value))}
                                 min="0"
                                 max="30"
                                 step="0.5"
@@ -292,7 +341,7 @@ export function CompoundInterestCalc() {
                                     id="years"
                                     type="number"
                                     value={years}
-                                    onChange={(e) => setYears(Number(e.target.value))}
+                                    onChange={(e) => setYears(e.target.value === '' ? '' : Number(e.target.value))}
                                     min="1"
                                     max="50"
                                     step="1"
@@ -301,7 +350,7 @@ export function CompoundInterestCalc() {
                             </div>
                             <input
                                 type="range"
-                                value={years}
+                                value={Number(years) || 1}
                                 onChange={(e) => setYears(Number(e.target.value))}
                                 min="1"
                                 max="50"
@@ -319,7 +368,7 @@ export function CompoundInterestCalc() {
                                     id="target"
                                     type="number"
                                     value={targetAmount}
-                                    onChange={(e) => setTargetAmount(Number(e.target.value))}
+                                    onChange={(e) => setTargetAmount(e.target.value === '' ? '' : Number(e.target.value))}
                                     min="1000"
                                     step="10000"
                                 />
@@ -430,15 +479,12 @@ export function CompoundInterestCalc() {
 
                     {calculationMode === 'timeToGoal' && timeToGoalYears !== null && (
                         <div className="compound__goal-result">
-                            <div className="compound__goal-icon">🎯</div>
-                            <div className="compound__goal-content">
-                                <h3>Alcanzarás {formatCurrency(targetAmount)} en:</h3>
-                                <div className="compound__goal-years">
-                                    {timeToGoalYears.toFixed(1)} años
-                                </div>
-                                <p className="compound__goal-details">
-                                    Con {formatCurrency(initialCapital)} iniciales + {formatCurrency(monthlyContribution)}/mes al {annualRate}% anual
-                                </p>
+                            <div className="compound__goal-main">
+                                <span className="label">Tiempo hasta el objetivo:</span>
+                                <span className="value">{timeToGoalYears.toFixed(1)} años</span>
+                            </div>
+                            <div className="compound__goal-details">
+                                <p>Para alcanzar {formatCurrency(Number(targetAmount) || 0)}, ahorrando {formatCurrency(Number(monthlyContribution) || 0)}/mes al {annualRate}% anual.</p>
                             </div>
                         </div>
                     )}
@@ -452,7 +498,7 @@ export function CompoundInterestCalc() {
                                     {formatCurrency(requiredMonthlyAmount)}
                                 </div>
                                 <p className="compound__goal-details">
-                                    Para alcanzar {formatCurrency(targetAmount)} en {years} años al {annualRate}% (desde {formatCurrency(initialCapital)})
+                                    Para alcanzar {formatCurrency(Number(targetAmount) || 0)} en {years} años al {annualRate}% (desde {formatCurrency(Number(initialCapital) || 0)})
                                 </p>
                             </div>
                         </div>
@@ -474,14 +520,7 @@ export function CompoundInterestCalc() {
                                     tick={{ fontSize: 12 }}
                                     tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                                 />
-                                <Tooltip
-                                    contentStyle={{
-                                        backgroundColor: 'var(--bg-secondary)',
-                                        border: '1px solid var(--border-color)',
-                                        borderRadius: '8px'
-                                    }}
-                                    formatter={(value: number | undefined) => value !== undefined ? formatCurrency(value) : ''}
-                                />
+                                <Tooltip content={<CustomTooltip />} />
                                 <Legend />
                                 <Area
                                     type="monotone"

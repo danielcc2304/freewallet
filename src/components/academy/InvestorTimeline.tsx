@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Check, AlertCircle, TrendingUp } from 'lucide-react';
+import { Check, AlertCircle, TrendingUp, ChevronDown, ChevronUp, XCircle } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { TIMELINE_PHASES } from '../../data/academyData';
 import './InvestorTimeline.css';
 
@@ -100,8 +101,13 @@ export function InvestorTimeline() {
                                         </div>
                                     )}
 
-                                    <div className="timeline__phase-error">
-                                        <strong>⚠️ Error común:</strong> {phase.commonError}
+                                    <div className="timeline__phase-errors">
+                                        <strong>⚠️ Errores comunes:</strong>
+                                        <ul>
+                                            {phase.commonErrors.map((err, i) => (
+                                                <li key={i}>{err}</li>
+                                            ))}
+                                        </ul>
                                     </div>
                                 </div>
                             )}
@@ -109,6 +115,43 @@ export function InvestorTimeline() {
                     </div>
                 ))}
             </div>
+
+            <section className="timeline__errors-section">
+                <button
+                    className="timeline__errors-toggle"
+                    onClick={() => setExpandedPhase(expandedPhase === 'errors' ? null : 'errors')}
+                >
+                    <div className="toggle-content">
+                        <XCircle size={24} className="error-icon" />
+                        <div>
+                            <h3>Errores Comunes que debes evitar</h3>
+                            <p>Aprende de los fallos de otros para proteger tu capital.</p>
+                        </div>
+                    </div>
+                    {expandedPhase === 'errors' ? <ChevronUp /> : <ChevronDown />}
+                </button>
+
+                {expandedPhase === 'errors' && (
+                    <div className="timeline__errors-list">
+                        <div className="error-item">
+                            <h4>🕰️ Market Timing</h4>
+                            <p>Intentar predecir cuándo el mercado subirá o bajará. Nadie tiene una bola de cristal; es mejor estar invertido ("Time IN the market") que intentar acertar el momento ("Timing the market").</p>
+                        </div>
+                        <div className="error-item">
+                            <h4>🎢 Perseguir Rentabilidades</h4>
+                            <p>Invertir en el activo que más ha subido el último año. Normalmente, cuando algo es noticia, ya es tarde. Compra por fundamentales, no por FOMO.</p>
+                        </div>
+                        <div className="error-item">
+                            <h4>🫙 Falta de Diversificación</h4>
+                            <p>Poner todos los huevos en la misma cesta (una sola acción, un solo país o un solo sector). La diversificación es el único "almuerzo gratis" en la inversión.</p>
+                        </div>
+                        <div className="error-item">
+                            <h4>🧠 Sesgos Emocionales</h4>
+                            <p>Vender cuando hay miedo (caídas) y comprar cuando hay euforia (máximos). Tus emociones son el peor enemigo de tu rentabilidad a largo plazo.</p>
+                        </div>
+                    </div>
+                )}
+            </section>
 
             {/* Crisis phase - special styling */}
             {crisisPhase && (
@@ -146,8 +189,13 @@ export function InvestorTimeline() {
                             </div>
                         </div>
 
-                        <div className="timeline__crisis-error">
-                            <strong>⚠️ Mayor error:</strong> {crisisPhase.commonError}
+                        <div className="timeline__crisis-errors">
+                            <strong>⚠️ Errores críticos:</strong>
+                            <ul>
+                                {crisisPhase.commonErrors.map((err, i) => (
+                                    <li key={i}>{err}</li>
+                                ))}
+                            </ul>
                         </div>
                     </div>
                 </div>
@@ -157,15 +205,15 @@ export function InvestorTimeline() {
                 <h3>Continúa aprendiendo</h3>
                 <p>Profundiza en otros aspectos clave para tu journey:</p>
                 <div className="timeline__next-links">
-                    <a href="/academy/crisis" className="timeline__next-link">
+                    <Link to="/academy/crisis" className="timeline__next-link">
                         📊 Ver Crisis Históricas
-                    </a>
-                    <a href="/academy/scenarios" className="timeline__next-link">
+                    </Link>
+                    <Link to="/academy/scenarios" className="timeline__next-link">
                         🎯 Escenarios Prácticos
-                    </a>
-                    <a href="/academy/portfolio" className="timeline__next-link">
+                    </Link>
+                    <Link to="/academy/portfolio" className="timeline__next-link">
                         📈 Construir tu Cartera
-                    </a>
+                    </Link>
                 </div>
             </div>
         </div>

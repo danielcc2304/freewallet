@@ -9,7 +9,22 @@ import { Fundamentos } from './components/academy/Fundamentos';
 import { InvestorTimeline } from './components/academy/InvestorTimeline';
 import { CrisisSimulator } from './components/academy/CrisisSimulator';
 import { CompoundInterestCalc } from './components/academy/CompoundInterestCalc';
+import { FIRECalculator } from './components/academy/FIRECalculator';
+import { RetirementCalculator } from './components/academy/RetirementCalculator';
+import { EmergencyFundCalculator } from './components/academy/EmergencyFundCalculator';
+import { TaxSimulator } from './components/academy/TaxSimulator';
+import { AssetAllocationSim } from './components/academy/AssetAllocationSim';
+import { InProcess } from './components/academy/InProcess';
 import { Calculators } from './components/academy/Calculators';
+import { PortfolioBuilder } from './components/academy/PortfolioBuilder';
+import { Taxation } from './components/academy/Taxation';
+import { Strategies } from './components/academy/Strategies';
+import { RiskManagement } from './components/academy/RiskManagement';
+import { Scenarios } from './components/academy/Scenarios';
+import { CommonErrors } from './components/academy/CommonErrors';
+import { Glossary } from './components/academy/Glossary';
+import { AssetTypes } from './components/academy/AssetTypes';
+import { BondCalculator } from './components/academy/BondCalculator';
 import './index.css';
 
 function App() {
@@ -28,7 +43,25 @@ function App() {
             <Route path="crisis" element={<CrisisSimulator />} />
             <Route path="calculators" element={<Calculators />} />
             <Route path="compound-interest" element={<CompoundInterestCalc />} />
-            {/* TODO: Add more academy routes as components are created */}
+            <Route path="fire-calculator" element={<FIRECalculator />} />
+            <Route path="bond-calculator" element={<BondCalculator />} />
+
+            {/* Sections in process */}
+            <Route path="scenarios" element={<Scenarios />} />
+            <Route path="errors" element={<CommonErrors />} />
+            <Route path="portfolio" element={<PortfolioBuilder />} />
+            <Route path="tax" element={<Taxation />} />
+            <Route path="strategies" element={<Strategies />} />
+            <Route path="risk" element={<RiskManagement />} />
+            <Route path="resources" element={<InProcess />} />
+            <Route path="glossary" element={<Glossary />} />
+            <Route path="asset-types" element={<AssetTypes />} />
+
+            {/* Calculator specific sub-pages */}
+            <Route path="retirement" element={<RetirementCalculator />} />
+            <Route path="emergency-fund" element={<EmergencyFundCalculator />} />
+            <Route path="taxes" element={<TaxSimulator />} />
+            <Route path="asset-allocation" element={<AssetAllocationSim />} />
           </Route>
         </Route>
 

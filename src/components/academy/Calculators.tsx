@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Calculator, TrendingUp, Target, Calendar, PiggyBank, Percent } from 'lucide-react';
+import { Calculator, TrendingUp, Target, Calendar, PiggyBank, Percent, Scale } from 'lucide-react';
 import './Calculators.css';
 
 export function Calculators() {
@@ -37,8 +37,8 @@ export function Calculators() {
                     <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
                 </Link>
 
-                {/* FIRE Calculator - COMING SOON */}
-                <div className="calculators__card calculators__card--soon">
+                {/* FIRE Calculator - IMPLEMENTED */}
+                <Link to="/academy/fire-calculator" className="calculators__card calculators__card--available">
                     <div className="calculators__card-icon calculators__card-icon--blue">
                         <Target size={32} />
                     </div>
@@ -48,16 +48,16 @@ export function Calculators() {
                         Basado en la regla del 4%.
                     </p>
                     <ul className="calculators__card-features">
-                        <li>• Años hasta FIRE</li>
-                        <li>• Capital necesario</li>
-                        <li>• Tasa de ahorro óptima</li>
-                        <li>• Simulación de gastos</li>
+                        <li>✓ Años hasta FIRE</li>
+                        <li>✓ Capital necesario</li>
+                        <li>✓ Tasa de ahorro óptima</li>
+                        <li>✓ Simulación de gastos</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--soon">Próximamente</span>
-                </div>
+                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
+                </Link>
 
-                {/* Retirement Calculator - COMING SOON */}
-                <div className="calculators__card calculators__card--soon">
+                {/* Retirement Calculator - IMPLEMENTED */}
+                <Link to="/academy/retirement" className="calculators__card calculators__card--available">
                     <div className="calculators__card-icon calculators__card-icon--purple">
                         <Calendar size={32} />
                     </div>
@@ -66,16 +66,16 @@ export function Calculators() {
                         Planifica tu jubilación con proyecciones realistas ajustadas por inflación.
                     </p>
                     <ul className="calculators__card-features">
-                        <li>• Ahorro mensual necesario</li>
-                        <li>• Comparativa con pensión pública</li>
-                        <li>• Ajuste por inflación</li>
-                        <li>• Diferentes escenarios</li>
+                        <li>✓ Ahorro mensual necesario</li>
+                        <li>✓ Comparativa con pensión pública</li>
+                        <li>✓ Ajuste por inflación</li>
+                        <li>✓ Diferentes escenarios</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--soon">Próximamente</span>
-                </div>
+                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
+                </Link>
 
-                {/* Emergency Fund - COMING SOON */}
-                <div className="calculators__card calculators__card--soon">
+                {/* Emergency Fund - IMPLEMENTED */}
+                <Link to="/academy/emergency-fund" className="calculators__card calculators__card--available">
                     <div className="calculators__card-icon calculators__card-icon--orange">
                         <PiggyBank size={32} />
                     </div>
@@ -84,16 +84,16 @@ export function Calculators() {
                         Calcula el colchón financiero que necesitas según tu situación personal.
                     </p>
                     <ul className="calculators__card-features">
-                        <li>• Meses de gastos recomendados</li>
-                        <li>• Evaluación de riesgos</li>
-                        <li>• Prioridad vs inversión</li>
-                        <li>• Consejos personalizados</li>
+                        <li>✓ Meses de gastos recomendados</li>
+                        <li>✓ Evaluación de riesgos</li>
+                        <li>✓ Prioridad vs inversión</li>
+                        <li>✓ Consejos personalizados</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--soon">Próximamente</span>
-                </div>
+                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
+                </Link>
 
-                {/* Tax Impact - COMING SOON */}
-                <div className="calculators__card calculators__card--soon">
+                {/* Tax Impact - IMPLEMENTED */}
+                <Link to="/academy/taxes" className="calculators__card calculators__card--available">
                     <div className="calculators__card-icon calculators__card-icon--red">
                         <Percent size={32} />
                     </div>
@@ -102,16 +102,16 @@ export function Calculators() {
                         Estima el impacto fiscal de tus inversiones (contexto español).
                     </p>
                     <ul className="calculators__card-features">
-                        <li>• IRPF sobre ganancias</li>
-                        <li>• Comparación fondos vs ETFs</li>
-                        <li>• Compensación minusvalías</li>
-                        <li>• Ejemplos prácticos</li>
+                        <li>✓ IRPF sobre ganancias</li>
+                        <li>✓ Comparación fondos vs ETFs</li>
+                        <li>✓ Compensación minusvalías</li>
+                        <li>✓ Ejemplos prácticos</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--soon">Próximamente</span>
-                </div>
+                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
+                </Link>
 
-                {/* Asset Allocation - COMING SOON */}
-                <div className="calculators__card calculators__card--soon">
+                {/* Asset Allocation - IMPLEMENTED */}
+                <Link to="/academy/asset-allocation" className="calculators__card calculators__card--available">
                     <div className="calculators__card-icon calculators__card-icon--teal">
                         <Calculator size={32} />
                     </div>
@@ -120,13 +120,30 @@ export function Calculators() {
                         Prueba diferentes combinaciones de activos y visualiza riesgo/rentabilidad esperados.
                     </p>
                     <ul className="calculators__card-features">
-                        <li>• Asset allocation personalizado</li>
-                        <li>• Riesgo esperado</li>
-                        <li>• Rentabilidad histórica</li>
-                        <li>• Necesidad de rebalanceo</li>
+                        <li>✓ Asset allocation personalizado</li>
+                        <li>✓ Riesgo esperado</li>
+                        <li>✓ Rentabilidad histórica</li>
+                        <li>✓ Necesidad de rebalanceo</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--soon">Próximamente</span>
-                </div>
+                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
+                </Link>
+                {/* Bond Calculator - NEW */}
+                <Link to="/academy/bond-calculator" className="calculators__card calculators__card--available">
+                    <div className="calculators__card-icon calculators__card-icon--teal" style={{ background: 'rgba(99, 102, 241, 0.1)', color: '#6366f1' }}>
+                        <Scale size={32} />
+                    </div>
+                    <h3 className="calculators__card-title">Calculadora de Bonos (YTM)</h3>
+                    <p className="calculators__card-description">
+                        Calcula la rentabilidad real de un bono basándote en su precio actual de mercado.
+                    </p>
+                    <ul className="calculators__card-features">
+                        <li>✓ YTM / TIR anualizada</li>
+                        <li>✓ Aproximación Newton-Raphson</li>
+                        <li>✓ Análisis Prima/Descuento</li>
+                        <li>✓ Tips de riesgo de crédito</li>
+                    </ul>
+                    <span className="calculators__card-badge calculators__card-badge--available">Nuevo</span>
+                </Link>
             </div>
 
             <div className="calculators__footer">

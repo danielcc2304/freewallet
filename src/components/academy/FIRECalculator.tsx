@@ -108,78 +108,89 @@ export function FIRECalculator() {
                 <section className="fire__inputs">
                     <h2 className="fire__section-title">Parámetros de Simulación</h2>
 
-                    <div className="fire__input-group">
-                        <div className="fire__label-row">
-                            <label>Gastos Mensuales (Estimados)</label>
+                    <div className="calc__input-group">
+                        <label>Gastos Mensuales</label>
+                        <div className="calc__input-wrapper">
+                            <Wallet size={18} />
                             <input
                                 type="number"
                                 value={monthlyExpenses}
-                                className="fire__label-input"
                                 onChange={(e) => setMonthlyExpenses(e.target.value === '' ? '' : Number(e.target.value))}
                             />
+                            <span className="unit">€</span>
                         </div>
-                        <div className="fire__input-control">
-                            <input
-                                type="range"
-                                min="500"
-                                max="10000"
-                                step="100"
-                                value={expensesNum}
-                                onChange={(e) => setMonthlyExpenses(Number(e.target.value))}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="fire__input-group">
-                        <div className="fire__label-row">
-                            <label>Ahorro/Inversión Mensual</label>
-                            <input
-                                type="number"
-                                value={monthlySavings}
-                                className="fire__label-input"
-                                onChange={(e) => setMonthlySavings(e.target.value === '' ? '' : Number(e.target.value))}
-                            />
-                        </div>
-                        <div className="fire__input-control">
-                            <input
-                                type="range"
-                                min="0"
-                                max="10000"
-                                step="100"
-                                value={monthlySavingsNum}
-                                onChange={(e) => setMonthlySavings(Number(e.target.value))}
-                            />
-                        </div>
-                    </div>
-
-                    <div className="fire__input-group">
-                        <label>Capital Actual</label>
                         <input
-                            type="number"
-                            className="fire__number-input"
-                            value={currentSavings}
-                            onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))}
+                            type="range"
+                            min="500"
+                            max="10000"
+                            step="100"
+                            value={expensesNum}
+                            onChange={(e) => setMonthlyExpenses(Number(e.target.value))}
+                            className="custom-slider"
+                            style={{ '--progress': `${((expensesNum - 500) / (10000 - 500)) * 100}%` } as any}
                         />
                     </div>
 
-                    <div className="fire__input-row">
-                        <div className="fire__input-group">
-                            <label>Rentab. Anual (%)</label>
+                    <div className="calc__input-group">
+                        <label>Ahorro Mensual</label>
+                        <div className="calc__input-wrapper">
+                            <TrendingUp size={18} />
                             <input
                                 type="number"
-                                className="fire__number-input"
-                                value={annualReturn}
-                                onChange={(e) => setAnnualReturn(e.target.value === '' ? '' : Number(e.target.value))}
+                                value={monthlySavings}
+                                onChange={(e) => setMonthlySavings(e.target.value === '' ? '' : Number(e.target.value))}
                             />
+                            <span className="unit">€</span>
                         </div>
-                        <div className="fire__input-group">
-                            <label>Tasa Retirada (%)</label>
+                        <input
+                            type="range"
+                            min="0"
+                            max="10000"
+                            step="100"
+                            value={monthlySavingsNum}
+                            onChange={(e) => setMonthlySavings(Number(e.target.value))}
+                            className="custom-slider"
+                            style={{ '--progress': `${(monthlySavingsNum / 10000) * 100}%` } as any}
+                        />
+                    </div>
+
+                    <div className="calc__input-group">
+                        <label>Capital Actual</label>
+                        <div className="calc__input-wrapper">
+                            <ShieldCheck size={18} />
                             <input
                                 type="number"
-                                className="fire__number-input"
-                                value={withdrawalRate}
-                                onChange={(e) => setWithdrawalRate(e.target.value === '' ? '' : Number(e.target.value))}
+                                value={currentSavings}
+                                onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))}
                             />
+                            <span className="unit">€</span>
+                        </div>
+                    </div>
+
+                    <div className="fire__input-grid">
+                        <div className="calc__input-group">
+                            <label>Rentab. Anual</label>
+                            <div className="calc__input-wrapper">
+                                <TrendingUp size={18} />
+                                <input
+                                    type="number"
+                                    value={annualReturn}
+                                    onChange={(e) => setAnnualReturn(e.target.value === '' ? '' : Number(e.target.value))}
+                                />
+                                <span className="unit">%</span>
+                            </div>
+                        </div>
+                        <div className="calc__input-group">
+                            <label>Tasa Retirada</label>
+                            <div className="calc__input-wrapper">
+                                <Info size={18} />
+                                <input
+                                    type="number"
+                                    value={withdrawalRate}
+                                    onChange={(e) => setWithdrawalRate(e.target.value === '' ? '' : Number(e.target.value))}
+                                />
+                                <span className="unit">%</span>
+                            </div>
                         </div>
                     </div>
 
@@ -211,7 +222,7 @@ export function FIRECalculator() {
                     <div className="fire__chart-container">
                         <h3 className="fire__chart-title">Proyección de Patrimonio vs Objetivo</h3>
                         <ResponsiveContainer width="100%" height={300}>
-                            <AreaChart data={projectionData}>
+                            <AreaChart data={projectionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.3} />
@@ -222,13 +233,17 @@ export function FIRECalculator() {
                                 <XAxis
                                     dataKey="year"
                                     stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 12 }}
-                                    label={{ value: 'Años', position: 'insideBottom', offset: -5, fontSize: 12 }}
+                                    tick={{ fontSize: 11 }}
+                                    axisLine={false}
+                                    tickLine={false}
                                 />
                                 <YAxis
                                     stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 12 }}
+                                    tick={{ fontSize: 11 }}
                                     tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                    width={40}
+                                    axisLine={false}
+                                    tickLine={false}
                                 />
                                 <Tooltip content={<CustomTooltip />} />
                                 <Area

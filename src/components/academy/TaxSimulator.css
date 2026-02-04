@@ -65,71 +65,14 @@
     margin-bottom: 1.25rem;
 }
 
-.tax-sim__input-group label {
-    display: block;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-}
-
-.tax-sim__label-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 0.75rem;
-}
-
-.tax-sim__label-input {
-    width: 60px;
-    padding: 0.4rem;
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 6px;
-    color: var(--accent-primary);
-    font-weight: 800;
-    text-align: center;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-
-.tax-sim__main-input {
-    width: 100%;
-    padding: 0.875rem;
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 10px;
-    color: var(--text-primary);
-    font-weight: 700;
-    font-size: 1.1rem;
-    font-family: 'JetBrains Mono', monospace;
-}
-
-.tax-sim__input-hint {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin: 0.5rem 0 0 0;
-    line-height: 1.4;
-}
-
 .tax-sim__deferral-info {
-    margin-top: 1rem;
+    background: rgba(59, 130, 246, 0.05);
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    border-radius: 12px;
+    padding: 1rem;
     display: flex;
     gap: 0.75rem;
-    padding: 0.75rem;
-    background: var(--bg-tertiary);
-    border-radius: 8px;
-}
-
-.tax-sim__deferral-info p {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin: 0;
-    line-height: 1.4;
-}
-
-.tax-sim__deferral-info svg {
-    color: #3b82f6;
-    flex-shrink: 0;
+    margin-top: 1rem;
 }
 
 .tax-sim__brackets {
@@ -220,6 +163,12 @@
     border-radius: 20px;
     border: 1px solid var(--border-color);
     margin-bottom: 2rem;
+}
+
+@media (max-width: 640px) {
+    .tax-sim__chart-container {
+        padding: 1rem 0.5rem;
+    }
 }
 
 .tax-sim__chart-title {

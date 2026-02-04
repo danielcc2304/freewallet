@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Percent, Info, ShieldCheck, Landmark, Receipt } from 'lucide-react';
+import { Percent, Info, ShieldCheck, Landmark, Receipt, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import './TaxSimulator.css';
 
@@ -103,29 +103,33 @@ export function TaxSimulator() {
                 <aside className="tax-sim__inputs">
                     <div className="tax-sim__card">
                         <h3 className="tax-sim__card-title">Tus Beneficios</h3>
-                        <div className="tax-sim__input-group">
+                        <div className="calc__input-group">
                             <label>Plusvalía Bruta (Ganancias)</label>
-                            <input
-                                type="number"
-                                value={gain}
-                                onChange={(e) => setGain(e.target.value === '' ? '' : Number(e.target.value))}
-                                className="tax-sim__main-input"
-                            />
+                            <div className="calc__input-wrapper">
+                                <TrendingUp size={18} />
+                                <input
+                                    type="number"
+                                    value={gain}
+                                    onChange={(e) => setGain(e.target.value === '' ? '' : Number(e.target.value))}
+                                />
+                                <span className="unit">€</span>
+                            </div>
                             <p className="tax-sim__input-hint">Solo tributas por lo ganado, no por lo invertido.</p>
                         </div>
                     </div>
 
                     <div className="tax-sim__card">
                         <h3 className="tax-sim__card-title">Poder del Diferimiento</h3>
-                        <div className="tax-sim__input-group">
-                            <div className="tax-sim__label-row">
-                                <label>Años de Inversión</label>
+                        <div className="calc__input-group">
+                            <label>Años de Inversión</label>
+                            <div className="calc__input-wrapper">
+                                <Landmark size={18} />
                                 <input
                                     type="number"
                                     value={holdingYears}
-                                    className="tax-sim__label-input"
                                     onChange={(e) => setHoldingYears(e.target.value === '' ? '' : Number(e.target.value))}
                                 />
+                                <span className="unit">años</span>
                             </div>
                             <input
                                 type="range"
@@ -133,6 +137,8 @@ export function TaxSimulator() {
                                 max="40"
                                 value={yearsNum}
                                 onChange={(e) => setHoldingYears(Number(e.target.value))}
+                                className="custom-slider"
+                                style={{ '--progress': `${((yearsNum - 1) / (40 - 1)) * 100}%` } as any}
                             />
                         </div>
                         <div className="tax-sim__deferral-info">
@@ -170,15 +176,31 @@ export function TaxSimulator() {
                     <div className="tax-sim__chart-container">
                         <h3 className="tax-sim__chart-title">Desglose Fiscal</h3>
                         <ResponsiveContainer width="100%" height={250}>
-                            <BarChart data={chartData} layout="vertical" margin={{ left: 20, right: 40 }}>
+                            <BarChart data={chartData} layout="vertical" margin={{ left: -10, right: 30, top: 0, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border-color)" />
-                                <XAxis type="number" hide />
-                                <YAxis dataKey="name" type="category" axisLine={false} tickLine={false} />
-                                <Tooltip
-                                    formatter={(value: any) => formatCurrency(Number(value))}
-                                    contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
+                                <XAxis
+                                    type="number"
+                                    stroke="var(--text-secondary)"
+                                    tick={{ fontSize: 11 }}
+                                    tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`}
+                                    axisLine={false}
+                                    tickLine={false}
                                 />
-                                <Bar dataKey="value" radius={[0, 4, 4, 0]} barSize={40}>
+                                <YAxis
+                                    dataKey="name"
+                                    type="category"
+                                    stroke="var(--text-secondary)"
+                                    tick={{ fontSize: 11 }}
+                                    width={70}
+                                    axisLine={false}
+                                    tickLine={false}
+                                />
+                                <Tooltip
+                                    cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
+                                    contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
+                                    formatter={(val: any) => formatCurrency(Number(val))}
+                                />
+                                <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                                     {chartData.map((entry, index) => (
                                         <Cell key={`cell-${index}`} fill={entry.fill} />
                                     ))}

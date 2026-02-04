@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { PiggyBank, ShieldCheck, AlertCircle, TrendingUp, HelpCircle } from 'lucide-react';
+import { PiggyBank, ShieldCheck, AlertCircle, TrendingUp, HelpCircle, Home, Utensils, Zap, Plus, Users } from 'lucide-react';
 import './EmergencyFundCalculator.css';
 
 export function EmergencyFundCalculator() {
@@ -64,21 +64,37 @@ export function EmergencyFundCalculator() {
                     <div className="emergency__card">
                         <h3 className="emergency__card-title">Tus Gastos Mensuales</h3>
                         <div className="emergency__input-list">
-                            <div className="emergency__input-item">
+                            <div className="calc__input-group">
                                 <label>Vivienda (Alquiler/Hipoteca)</label>
-                                <input type="number" value={monthlyRent} onChange={(e) => setMonthlyRent(e.target.value === '' ? '' : Number(e.target.value))} />
+                                <div className="calc__input-wrapper">
+                                    <Home size={18} />
+                                    <input type="number" value={monthlyRent} onChange={(e) => setMonthlyRent(e.target.value === '' ? '' : Number(e.target.value))} />
+                                    <span className="unit">€</span>
+                                </div>
                             </div>
-                            <div className="emergency__input-item">
+                            <div className="calc__input-group">
                                 <label>Alimentación</label>
-                                <input type="number" value={monthlyFood} onChange={(e) => setMonthlyFood(e.target.value === '' ? '' : Number(e.target.value))} />
+                                <div className="calc__input-wrapper">
+                                    <Utensils size={18} />
+                                    <input type="number" value={monthlyFood} onChange={(e) => setMonthlyFood(e.target.value === '' ? '' : Number(e.target.value))} />
+                                    <span className="unit">€</span>
+                                </div>
                             </div>
-                            <div className="emergency__input-item">
+                            <div className="calc__input-group">
                                 <label>Suministros (Luz, Agua, Internet)</label>
-                                <input type="number" value={monthlyBills} onChange={(e) => setMonthlyBills(e.target.value === '' ? '' : Number(e.target.value))} />
+                                <div className="calc__input-wrapper">
+                                    <Zap size={18} />
+                                    <input type="number" value={monthlyBills} onChange={(e) => setMonthlyBills(e.target.value === '' ? '' : Number(e.target.value))} />
+                                    <span className="unit">€</span>
+                                </div>
                             </div>
-                            <div className="emergency__input-item">
+                            <div className="calc__input-group">
                                 <label>Otros Gastos Fijos</label>
-                                <input type="number" value={monthlyOther} onChange={(e) => setMonthlyOther(e.target.value === '' ? '' : Number(e.target.value))} />
+                                <div className="calc__input-wrapper">
+                                    <Plus size={18} />
+                                    <input type="number" value={monthlyOther} onChange={(e) => setMonthlyOther(e.target.value === '' ? '' : Number(e.target.value))} />
+                                    <span className="unit">€</span>
+                                </div>
                             </div>
                         </div>
                         <div className="emergency__total-expenses">
@@ -89,25 +105,37 @@ export function EmergencyFundCalculator() {
 
                     <div className="emergency__card">
                         <h3 className="emergency__card-title">Perfil de Riesgo</h3>
-                        <div className="emergency__input-item">
-                            <label>Estabilidad Laboral</label>
-                            <select value={jobStability} onChange={(e) => setJobStability(e.target.value)}>
-                                <option value="high">Alta (Funcionario o contrato muy estable)</option>
-                                <option value="medium">Media (Empleado por cuenta ajena)</option>
-                                <option value="low">Baja (Autónomo o sector volátil)</option>
-                            </select>
-                        </div>
-                        <div className="emergency__input-item">
-                            <label>Personas a tu cargo (Hijos, dependientes...)</label>
-                            <input type="number" min="0" value={dependents} onChange={(e) => setDependents(e.target.value === '' ? '' : Number(e.target.value))} />
+                        <div className="emergency__input-list">
+                            <div className="calc__input-group">
+                                <label>Estabilidad Laboral</label>
+                                <div className="calc__input-wrapper">
+                                    <ShieldCheck size={18} />
+                                    <select value={jobStability} onChange={(e) => setJobStability(e.target.value)}>
+                                        <option value="high">Alta (Estable)</option>
+                                        <option value="medium">Media (Empleado)</option>
+                                        <option value="low">Baja (Autónomo)</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div className="calc__input-group">
+                                <label>Personas a tu cargo</label>
+                                <div className="calc__input-wrapper">
+                                    <Users size={18} />
+                                    <input type="number" min="0" value={dependents} onChange={(e) => setDependents(e.target.value === '' ? '' : Number(e.target.value))} />
+                                </div>
+                            </div>
                         </div>
                     </div>
 
                     <div className="emergency__card">
                         <h3 className="emergency__card-title">Estado Actual</h3>
-                        <div className="emergency__input-item">
+                        <div className="calc__input-group">
                             <label>Dinero ahorrado para el fondo</label>
-                            <input type="number" value={currentSavings} onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))} />
+                            <div className="calc__input-wrapper">
+                                <PiggyBank size={18} />
+                                <input type="number" value={currentSavings} onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))} />
+                                <span className="unit">€</span>
+                            </div>
                         </div>
                     </div>
                 </section>

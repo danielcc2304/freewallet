@@ -242,10 +242,15 @@ export function CompoundInterestCalc() {
     return (
         <div className="compound">
             <header className="compound__header">
-                <h1 className="compound__title">Calculadora de Interés Compuesto</h1>
-                <p className="compound__description">
-                    Visualiza el poder del interés compuesto. Tu capital trabajando para ti a lo largo del tiempo.
-                </p>
+                <div className="compound__title-group">
+                    <TrendingUp className="compound__title-icon" size={32} />
+                    <div className="compound__title-content">
+                        <h1 className="compound__title">Calculadora de Interés Compuesto</h1>
+                        <p className="compound__description">
+                            Visualiza el poder del interés compuesto. Tu capital trabajando para ti a lo largo del tiempo.
+                        </p>
+                    </div>
+                </div>
             </header>
 
             {/* Calculation Mode Selector */}

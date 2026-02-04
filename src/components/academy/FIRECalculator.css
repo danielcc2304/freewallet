@@ -1,8 +1,4 @@
 .fire {
-    background: var(--bg-primary);
-    border-radius: 20px;
-    padding: 2rem;
-    box-shadow: var(--shadow-sm);
     max-width: 1200px;
     margin: 0 auto;
 }

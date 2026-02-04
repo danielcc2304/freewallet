@@ -4,21 +4,39 @@
 }
 
 .compound__header {
-    margin-bottom: 2rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.compound__title-group {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.compound__title-icon {
+    min-width: 54px;
+    width: 54px;
+    height: 54px;
+    padding: 10px;
+    background: rgba(16, 185, 129, 0.1);
+    color: #10b981;
+    border-radius: 12px;
 }
 
 .compound__title {
-    font-size: 2.5rem;
-    font-weight: 700;
+    font-size: 2rem;
+    font-weight: 800;
     color: var(--text-primary);
-    margin: 0 0 0.75rem 0;
+    margin: 0;
 }
 
 .compound__description {
-    font-size: 1.125rem;
+    font-size: 1.1rem;
     color: var(--text-secondary);
-    line-height: 1.6;
-    margin: 0;
+    margin: 0.25rem 0 0 0;
+    line-height: 1.5;
 }
 
 /* ===== MODE SELECTOR ===== */

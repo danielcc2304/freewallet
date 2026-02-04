@@ -1,7 +1,4 @@
 .tax-sim {
-    background: var(--bg-primary);
-    border-radius: 20px;
-    padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -15,14 +12,17 @@
 .tax-sim__title-group {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    gap: 1.5rem;
 }
 
-.tax-sim__icon-container {
-    padding: 12px;
+.tax-sim__title-icon {
+    min-width: 54px;
+    width: 54px;
+    height: 54px;
+    padding: 10px;
     background: rgba(239, 68, 68, 0.1);
-    border-radius: 12px;
     color: #ef4444;
+    border-radius: 12px;
 }
 
 .tax-sim__title {
@@ -175,6 +175,15 @@
     font-size: 1.1rem;
     font-weight: 700;
     margin-bottom: 1.5rem;
+}
+
+.tax-sim__input-hint {
+    margin-top: 0.5rem;
+    /* separa del input */
+    margin-bottom: 0;
+    /* evita que empuje de más hacia abajo */
+    font-size: 0.85rem;
+    color: var(--text-muted);
 }
 
 .tax-sim__strategy {

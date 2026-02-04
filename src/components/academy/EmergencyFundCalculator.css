@@ -1,7 +1,4 @@
 .emergency {
-    background: var(--bg-primary);
-    border-radius: 20px;
-    padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -15,14 +12,17 @@
 .emergency__title-group {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    gap: 1.5rem;
 }
 
-.emergency__icon-container {
-    padding: 12px;
-    background: rgba(245, 158, 11, 0.1);
+.emergency__title-icon {
+    min-width: 54px;
+    width: 54px;
+    height: 54px;
+    padding: 10px;
+    background: rgba(249, 115, 22, 0.1);
+    color: #f97316;
     border-radius: 12px;
-    color: #f59e0b;
 }
 
 .emergency__title {

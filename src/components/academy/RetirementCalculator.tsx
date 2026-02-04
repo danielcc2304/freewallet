@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Calendar, Info, ShieldAlert, BadgeInfo, Wallet2 } from 'lucide-react';
+import { Calendar, Info, ShieldAlert, BadgeInfo, Wallet2, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './RetirementCalculator.css';
 
@@ -94,65 +94,91 @@ export function RetirementCalculator() {
                 <aside className="retirement__inputs">
                     <div className="retirement__input-section">
                         <h3 className="retirement__section-header">Tiempos</h3>
-                        <div className="retirement__input-row">
-                            <div className="retirement__input-group">
+                        <div className="retirement__input-grid">
+                            <div className="calc__input-group">
                                 <label>Edad Actual</label>
-                                <input
-                                    type="number"
-                                    value={currentAge}
-                                    onChange={(e) => setCurrentAge(e.target.value === '' ? '' : Number(e.target.value))}
-                                />
+                                <div className="calc__input-wrapper">
+                                    <Calendar size={18} />
+                                    <input
+                                        type="number"
+                                        value={currentAge}
+                                        onChange={(e) => setCurrentAge(e.target.value === '' ? '' : Number(e.target.value))}
+                                    />
+                                    <span className="unit">años</span>
+                                </div>
                             </div>
-                            <div className="retirement__input-group">
+                            <div className="calc__input-group">
                                 <label>Edad Jubilación</label>
-                                <input
-                                    type="number"
-                                    value={retirementAge}
-                                    onChange={(e) => setRetirementAge(e.target.value === '' ? '' : Number(e.target.value))}
-                                />
+                                <div className="calc__input-wrapper">
+                                    <Calendar size={18} />
+                                    <input
+                                        type="number"
+                                        value={retirementAge}
+                                        onChange={(e) => setRetirementAge(e.target.value === '' ? '' : Number(e.target.value))}
+                                    />
+                                    <span className="unit">años</span>
+                                </div>
                             </div>
                         </div>
                     </div>
 
                     <div className="retirement__input-section">
                         <h3 className="retirement__section-header">Ahorro y Aportaciones</h3>
-                        <div className="retirement__input-group">
+                        <div className="calc__input-group">
                             <label>Ahorro Actual</label>
-                            <input
-                                type="number"
-                                value={currentSavings}
-                                onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))}
-                            />
+                            <div className="calc__input-wrapper">
+                                <Wallet2 size={18} />
+                                <input
+                                    type="number"
+                                    value={currentSavings}
+                                    onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))}
+                                />
+                                <span className="unit">€</span>
+                            </div>
                         </div>
-                        <div className="retirement__input-group">
+                        <div className="calc__input-group">
                             <label>Aportación Mensual</label>
-                            <input
-                                type="number"
-                                value={monthlyContribution}
-                                onChange={(e) => setMonthlyContribution(e.target.value === '' ? '' : Number(e.target.value))}
-                            />
+                            <div className="calc__input-wrapper">
+                                <TrendingUp size={18} />
+                                <input
+                                    type="number"
+                                    value={monthlyContribution}
+                                    onChange={(e) => setMonthlyContribution(e.target.value === '' ? '' : Number(e.target.value))}
+                                />
+                                <span className="unit">€</span>
+                            </div>
                         </div>
                     </div>
 
                     <div className="retirement__input-section">
                         <h3 className="retirement__section-header">Mercado e Inflación</h3>
-                        <div className="retirement__input-group">
-                            <label>Rentabilidad Esperada (%)</label>
-                            <input
-                                type="number"
-                                step="0.5"
-                                value={annualReturn}
-                                onChange={(e) => setAnnualReturn(e.target.value === '' ? '' : Number(e.target.value))}
-                            />
-                        </div>
-                        <div className="retirement__input-group">
-                            <label>Inflación Estimada (%)</label>
-                            <input
-                                type="number"
-                                step="0.1"
-                                value={inflationRate}
-                                onChange={(e) => setInflationRate(e.target.value === '' ? '' : Number(e.target.value))}
-                            />
+                        <div className="retirement__input-grid">
+                            <div className="calc__input-group">
+                                <label>Rentabilidad Anual</label>
+                                <div className="calc__input-wrapper">
+                                    <TrendingUp size={18} />
+                                    <input
+                                        type="number"
+                                        step="0.5"
+                                        value={annualReturn}
+                                        onChange={(e) => setAnnualReturn(e.target.value === '' ? '' : Number(e.target.value))}
+                                    />
+                                    <span className="unit">%</span>
+                                </div>
+                            </div>
+                            <div className="calc__input-group">
+                                <label>Inflación Estimada</label>
+                                <div className="calc__input-wrapper">
+                                    <Info size={18} />
+                                    <input
+                                        type="number"
+                                        step="0.1"
+                                        value={inflationRate}
+                                        onChange={(e) => setInflationRate(e.target.value === '' ? '' : Number(e.target.value))}
+                                    />
+                                    <span className="unit">%</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
@@ -190,7 +216,7 @@ export function RetirementCalculator() {
                         </div>
                         <div className="retirement__chart-wrapper">
                             <ResponsiveContainer width="100%" height={350}>
-                                <AreaChart data={projectionData}>
+                                <AreaChart data={projectionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
                                     <defs>
                                         <linearGradient id="colorNominal" x1="0" y1="0" x2="0" y2="1">
                                             <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.1} />
@@ -205,13 +231,17 @@ export function RetirementCalculator() {
                                     <XAxis
                                         dataKey="age"
                                         stroke="var(--text-secondary)"
-                                        tick={{ fontSize: 12 }}
-                                        label={{ value: 'Edad (Años)', position: 'insideBottom', offset: -5, fontSize: 12 }}
+                                        tick={{ fontSize: 11 }}
+                                        axisLine={false}
+                                        tickLine={false}
                                     />
                                     <YAxis
                                         stroke="var(--text-secondary)"
-                                        tick={{ fontSize: 12 }}
+                                        tick={{ fontSize: 11 }}
                                         tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                        width={40}
+                                        axisLine={false}
+                                        tickLine={false}
                                     />
                                     <Tooltip content={<CustomTooltip />} />
                                     <Area
@@ -222,6 +252,7 @@ export function RetirementCalculator() {
                                         fill="url(#colorNominal)"
                                         strokeWidth={2}
                                         strokeDasharray="5 5"
+                                        name="Valor Futuro"
                                     />
                                     <Area
                                         type="monotone"
@@ -230,6 +261,7 @@ export function RetirementCalculator() {
                                         fillOpacity={1}
                                         fill="url(#colorReal)"
                                         strokeWidth={3}
+                                        name="Poder de Compra Real"
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>

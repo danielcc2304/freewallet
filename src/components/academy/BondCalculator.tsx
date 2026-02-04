@@ -85,10 +85,10 @@ export function BondCalculator() {
 
             <div className="bond-calc__grid">
                 <div className="bond-calc__inputs">
-                    <div className="bond-calc__input-group">
+                    <div className="calc__input-group">
                         <label>Precio Actual</label>
-                        <div className="bond-calc__field">
-                            <Scale size={18} className="bond-calc__field-icon" />
+                        <div className="calc__input-wrapper">
+                            <Scale size={18} />
                             <input
                                 type="number"
                                 value={price}
@@ -96,14 +96,14 @@ export function BondCalculator() {
                                 step="0.1"
                                 placeholder="83.7"
                             />
-                            <span className="bond-calc__field-unit">% s/ par</span>
+                            <span className="unit">% s/ par</span>
                         </div>
                     </div>
 
-                    <div className="bond-calc__input-group">
+                    <div className="calc__input-group">
                         <label>Cupón Anual</label>
-                        <div className="bond-calc__field">
-                            <TrendingDown size={18} className="bond-calc__field-icon" />
+                        <div className="calc__input-wrapper">
+                            <TrendingDown size={18} />
                             <input
                                 type="number"
                                 value={coupon}
@@ -111,14 +111,14 @@ export function BondCalculator() {
                                 step="0.01"
                                 placeholder="8.875"
                             />
-                            <span className="bond-calc__field-unit">%</span>
+                            <span className="unit">%</span>
                         </div>
                     </div>
 
-                    <div className="bond-calc__input-group">
+                    <div className="calc__input-group">
                         <label>Años al Vencimiento</label>
-                        <div className="bond-calc__field">
-                            <Landmark size={18} className="bond-calc__field-icon" />
+                        <div className="calc__input-wrapper">
+                            <Landmark size={18} />
                             <input
                                 type="number"
                                 value={years}
@@ -126,20 +126,21 @@ export function BondCalculator() {
                                 min="1"
                                 placeholder="4"
                             />
-                            <span className="bond-calc__field-unit">años</span>
+                            <span className="unit">años</span>
                         </div>
                     </div>
 
-                    <div className="bond-calc__input-group">
+                    <div className="calc__input-group">
                         <label>Valor Nominal (Par)</label>
-                        <div className="bond-calc__field">
-                            <Info size={18} className="bond-calc__field-icon" />
+                        <div className="calc__input-wrapper">
+                            <Info size={18} />
                             <input
                                 type="number"
                                 value={face}
                                 onChange={handleInput(setFace)}
                                 placeholder="100"
                             />
+                            <span className="unit">€</span>
                         </div>
                     </div>
                 </div>

@@ -108,6 +108,11 @@
     color: white;
 }
 
+.calculators__card-icon--orange-fire {
+    background: linear-gradient(135deg, #ff5722, #f4511e);
+    color: white;
+}
+
 .calculators__card-icon--purple {
     background: linear-gradient(135deg, #a855f7, #9333ea);
     color: white;

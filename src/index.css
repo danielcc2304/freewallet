@@ -383,3 +383,119 @@ button:disabled {
     --spacing-2xl: 2rem;
   }
 }
+
+/* ===== CALCULATOR UI HOMOGENIZATION ===== */
+.calc__input-group {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.calc__input-group label {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+}
+
+.calc__input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-md);
+  padding: 0.75rem 0.6rem;
+  transition: all var(--transition-fast);
+}
+
+.calc__input-wrapper:focus-within {
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+  background: var(--bg-secondary);
+}
+
+.calc__input-wrapper svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.calc__input-wrapper input,
+.calc__input-wrapper select {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-weight: 600;
+  outline: none;
+  min-width: 0;
+  text-align: center;
+}
+
+.calc__input-wrapper .unit {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Custom Slider with Progress */
+.custom-slider {
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-full);
+  outline: none;
+  margin-top: 1rem;
+  cursor: pointer;
+}
+
+.custom-slider::-webkit-slider-runnable-track {
+  width: 100%;
+  height: 6px;
+  cursor: pointer;
+  background: linear-gradient(to right,
+      var(--accent-primary) 0%,
+      var(--accent-primary) var(--progress, 0%),
+      var(--bg-tertiary) var(--progress, 0%),
+      var(--bg-tertiary) 100%);
+  border-radius: var(--radius-full);
+}
+
+.custom-slider::-webkit-slider-thumb {
+  height: 18px;
+  width: 18px;
+  border-radius: 50%;
+  background: #ffffff;
+  cursor: pointer;
+  appearance: none;
+  margin-top: -6px;
+  /* (Track height / 2) - (Thumb height / 2) */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  border: 2px solid var(--accent-primary);
+  transition: transform var(--transition-fast);
+}
+
+.custom-slider:active::-webkit-slider-thumb {
+  transform: scale(1.1);
+}
+
+/* Fix for select options visibility */
+.calc__input-wrapper select option {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+/* Chrome, Edge, Safari: ocultar flechas */
+.calc__input-wrapper input[type="number"]::-webkit-inner-spin-button,
+.calc__input-wrapper input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox: ocultar flechas */
+.calc__input-wrapper input[type="number"] {
+  -moz-appearance: textfield;
+}

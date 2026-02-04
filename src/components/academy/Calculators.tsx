@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Calculator, TrendingUp, Target, Calendar, PiggyBank, Percent, Scale } from 'lucide-react';
+import { Calculator, TrendingUp, Flame, Calendar, PiggyBank, Percent, Scale } from 'lucide-react';
 import './Calculators.css';
 
 export function Calculators() {
@@ -39,8 +39,8 @@ export function Calculators() {
 
                 {/* FIRE Calculator - IMPLEMENTED */}
                 <Link to="/academy/fire-calculator" className="calculators__card calculators__card--available">
-                    <div className="calculators__card-icon calculators__card-icon--blue">
-                        <Target size={32} />
+                    <div className="calculators__card-icon calculators__card-icon--orange-fire">
+                        <Flame size={32} />
                     </div>
                     <h3 className="calculators__card-title">Independencia Financiera (FIRE)</h3>
                     <p className="calculators__card-description">

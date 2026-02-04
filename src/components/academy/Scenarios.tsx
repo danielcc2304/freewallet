@@ -8,7 +8,18 @@ import {
     Scale,
     Landmark,
     ShieldCheck,
-    Info
+    Info,
+    PauseCircle,
+    Repeat,
+    Clock,
+    Twitter,
+    ArrowUpCircle,
+    ClipboardCheck,
+    Thermometer,
+    EyeOff,
+    Briefcase,
+    TrendingDown,
+    Calendar
 } from 'lucide-react';
 import { SCENARIOS } from '../../data/academyData';
 import './Scenarios.css';
@@ -23,7 +34,18 @@ const IconMap: Record<string, any> = {
     Scale,
     Landmark,
     ShieldCheck,
-    Info
+    Info,
+    PauseCircle,
+    Repeat,
+    Clock,
+    Twitter,
+    ArrowUpCircle,
+    ClipboardCheck,
+    Thermometer,
+    EyeOff,
+    Briefcase,
+    TrendingDown,
+    Calendar
 };
 
 export function Scenarios() {

@@ -41,9 +41,10 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
         duration: "0-6 meses",
         objective: "Estabilidad financiera",
         checklist: [
-            "Préstamos tóxicos saldados (>10% TAE)",
+            "Sin préstamos tóxicos",
             "Fondo de emergencia básico (3-6 meses gastos)",
-            "Conocimientos básicos adquiridos"
+            "Conocimientos básicos adquiridos",
+            "Ahorrar al menos el 10% de tus ingresos"
         ],
         commonErrors: [
             "Invertir sin colchón → liquidar en pérdidas por emergencia",
@@ -55,7 +56,7 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
         phase: 1,
         title: "Primeros Pasos",
         duration: "1-3 años",
-        objective: "Construir hábito + aprovechar volatilidad",
+        objective: "Construir hábito, invertir más y aprovechar la volatilidad",
         strategy: "Dollar-Cost Averaging (DCA) mensual/trimestral",
         allocation: {
             conservative: "50% RV / 50% RF",
@@ -63,7 +64,7 @@ export const TIMELINE_PHASES: TimelinePhase[] = [
             aggressive: "90% RV / 10% RF"
         },
         commonErrors: [
-            "Parar DCA en crisis (justo cuando hay que seguir)",
+            "Parar DCA en crisis (justo cuando es más importante seguir inviertiendo)",
             "Mirar la cartera a diario → estrés innecesario"
         ]
     },
@@ -121,7 +122,7 @@ export const BIAS_QUIZ: QuizQuestion[] = [
     },
     {
         id: 'q2',
-        question: "Un gurú en Twitter dice que 'X acción va a triplicar'. Ya tienes exposición. ¿Qué haces?",
+        question: "Un gurú en X dice que 'X acción va a triplicar'. Ya tienes exposición. ¿Qué haces?",
         options: [
             "Compro más, debe saber algo",
             "Vendo, suena a trampa",
@@ -442,7 +443,99 @@ export const GLOSSARY: GlossaryTerm[] = [
         definition: "Valor monetario de todos los bienes y servicios finales producidos por un país en un periodo determinado.",
         category: "Economía",
         relatedTerms: ["Crecimiento Económico", "Recesión"]
+    },
+    {
+        id: 'dca',
+        term: "DCA (Dollar-Cost Averaging)",
+        definition: "Estrategia de inversión que consiste en invertir una cantidad fija de dinero de forma periódica, independientemente de si el mercado sube o baja. Reduce el impacto emocional y el riesgo de invertir todo en un mal momento.",
+        category: "Estrategia",
+        relatedTerms: ["Interés Compuesto", "Lump Sum", "Volatilidad"]
+    },
+    {
+        id: 'equity',
+        term: "Equity",
+        definition: "Participación en la propiedad de una empresa. En inversión suele usarse como sinónimo de acciones o renta variable.",
+        category: "Instrumentos",
+        relatedTerms: ["Renta Variable", "Acciones", "Capital"]
+    },
+    {
+        id: 'yield',
+        term: "Yield",
+        definition: "Rentabilidad que genera una inversión en relación a su precio. Suele expresarse como un porcentaje anual.",
+        category: "Rentabilidad",
+        relatedTerms: ["Dividendo", "Dividend Yield", "Rentabilidad"]
+    },
+    {
+        id: 'breakeven',
+        term: "Breakeven (Punto de Equilibrio)",
+        definition: "Nivel a partir del cual una inversión deja de generar pérdidas y empieza a ser rentable, cuando los beneficios igualan los costes iniciales.",
+        category: "Conceptos Básicos",
+        relatedTerms: ["Rentabilidad", "Costes", "Comisiones"]
+    },
+    {
+        id: 'apalancamiento',
+        term: "Apalancamiento",
+        definition: "Uso de deuda o instrumentos financieros para aumentar la exposición a una inversión. Amplifica tanto las ganancias como las pérdidas, incrementando significativamente el riesgo.",
+        category: "Riesgo",
+        relatedTerms: ["Deuda", "Riesgo", "Margen"]
+    },
+    {
+        id: 'portfolio',
+        term: "Portfolio (Cartera)",
+        definition: "Conjunto de activos financieros que posee un inversor. Su composición determina el nivel de riesgo y la rentabilidad esperada.",
+        category: "Conceptos Básicos",
+        relatedTerms: ["Asset Allocation", "Diversificación", "Rebalanceo"]
+    },
+    {
+        id: 'chicharro',
+        term: "Chicharro",
+        definition: "Acción de baja capitalización, poca liquidez y alta volatilidad. Suele moverse más por especulación que por fundamentos económicos.",
+        category: "Bolsa",
+        relatedTerms: ["Volatilidad", "Riesgo", "Small Caps"]
+    },
+    {
+        id: 'hawkish',
+        term: "Hawkish",
+        definition: "Postura de política monetaria orientada a combatir la inflación, normalmente mediante subidas de tipos de interés y retirada de estímulos.",
+        category: "Economía",
+        relatedTerms: ["Tipos de Interés", "Dovish", "Inflación"]
+    },
+    {
+        id: 'dovish',
+        term: "Dovish",
+        definition: "Postura de política monetaria que prioriza el crecimiento económico, normalmente mediante tipos de interés bajos y políticas monetarias expansivas.",
+        category: "Economía",
+        relatedTerms: ["Tipos de Interés", "Hawkish", "Política Monetaria"]
+    },
+    {
+        id: 'lump-sum',
+        term: "Lump Sum",
+        definition: "Estrategia de inversión que consiste en invertir todo el capital disponible de una sola vez, en lugar de hacerlo de forma periódica.",
+        category: "Estrategia",
+        relatedTerms: ["DCA", "Volatilidad", "Market Timing"]
+    },
+    {
+        id: 'liquidez',
+        term: "Liquidez",
+        definition: "Facilidad con la que un activo puede convertirse en dinero sin perder valor. El efectivo es el activo más líquido.",
+        category: "Conceptos Básicos",
+        relatedTerms: ["Mercado", "Riesgo", "Cash"]
+    },
+    {
+        id: 'drawdown',
+        term: "Drawdown",
+        definition: "Caída máxima desde un pico hasta un mínimo en el valor de una inversión o cartera. Representa el peor escenario histórico vivido.",
+        category: "Riesgo",
+        relatedTerms: ["Volatilidad", "Riesgo", "Crisis"]
+    },
+    {
+        id: 'market-timing',
+        term: "Market Timing",
+        definition: "Intento de anticipar los movimientos del mercado para comprar en mínimos y vender en máximos. Históricamente, muy difícil de hacer de forma consistente.",
+        category: "Estrategia",
+        relatedTerms: ["DCA", "Lump Sum", "Sesgos Cognitivos"]
     }
+
 ];
 
 // ===== ASSET CLASSES DETAIL =====
@@ -584,7 +677,7 @@ export const SCENARIOS: Scenario[] = [
         sections: [
             {
                 title: "Análisis de Situación",
-                content: "Las caídas de doble dígito son normales y ocurren de media cada 1.5 años. No son el fin del mundo, sino parte del ciclo de los mercados financieros. Históricamente, el 100% de las caídas han sido seguidas por nuevos máximos."
+                content: "Las caídas de doble dígito son normales y ocurren de media cada 1.5 años. No son el fin del mundo, sino parte del ciclo de los mercados financieros. Históricamente, los grandes índices han acabado recuperándose, pero el plazo importa."
             },
             {
                 title: "Acciones Recomendadas",
@@ -616,7 +709,7 @@ export const SCENARIOS: Scenario[] = [
         ]
     },
     {
-        id: '接近jubilacion',
+        id: 'jubilacion',
         title: "Me acerco a la jubilación",
         emoji: "👴",
         sections: [
@@ -630,6 +723,104 @@ export const SCENARIOS: Scenario[] = [
                     { icon: 'Scale', title: 'Reducción de Riesgo', description: 'Aumentar gradualmente el peso de la Renta Fija y Liquidez (Gilde Path).', type: 'do' },
                     { icon: 'Landmark', title: 'Optimización Fiscal', description: 'Analiza cómo rescatar el dinero de forma progresiva para minimizar el impacto del IRPF.', type: 'do' },
                     { icon: 'ShieldCheck', title: 'Fondo de Retiros', description: 'Tener al menos 2-3 años de retiradas previstas en activos muy seguros (cash/monetarios).', type: 'do' }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'salary-increase',
+        title: "Me suben el sueldo",
+        emoji: "💵",
+        sections: [
+            {
+                title: "Análisis de Situación",
+                content: "No te lo fundas en 'lifestyle inflation'. El aumento de ingresos es la herramienta más potente para acelerar tu libertad financiera, no para comprar un coche más caro automáticamente."
+            },
+            {
+                title: "Acciones Recomendadas",
+                content: [
+                    { icon: 'TrendingUp', title: 'Auto-incremento', description: 'Destina el 50-70% de la subida neta a aumentar tu inversión mensual. Ahorrarás sin esfuerzo percibido.', type: 'do' },
+                    { icon: 'Target', title: 'Recalcular objetivos', description: 'Aprovecha para rellenar antes el fondo de emergencia o liquidar deudas pendientes.', type: 'do' },
+                    { icon: 'Scale', title: 'Rebalanceo inteligente', description: 'Usa las nuevas aportaciones mayores para comprar los activos que se hayan quedado atrás en tu cartera.', type: 'do' },
+                    { icon: 'XCircle', title: 'Evita gastos fijos', description: 'No subas gastos recurrentes (alquiler, suscripciones, cuotas) de forma automática como reacción a la subida.', type: 'dont' }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'emergency-fund-use',
+        title: "He tirado del fondo de emergencia",
+        emoji: "🆘",
+        sections: [
+            {
+                title: "Análisis de Situación",
+                content: "Primero encárgate de reponer el colchón, luego sigue invirtiendo. El fondo de emergencia ha cumplido su función; ahora tu prioridad absoluta es volver a estar protegido ante lo imprevisible."
+            },
+            {
+                title: "Acciones Recomendadas",
+                content: [
+                    { icon: 'PauseCircle', title: 'Pausar inversión', description: 'Si es necesario, detén temporalmente las aportaciones a bolsa y redirígelas a reconstruir el fondo.', type: 'do' },
+                    { icon: 'Calendar', title: 'Plan de reposición', description: 'Define una cantidad fija mensual hasta volver a tener cubiertos de 3 a 6 meses de gastos.', type: 'do' },
+                    { icon: 'ShieldCheck', title: 'Revisar causa', description: '¿Era la emergencia previsible? Quizás necesites mejores seguros o un fondo específico para gastos anuales (sinking funds).', type: 'do' },
+                    { icon: 'Zap', title: 'No te endeudes', description: 'No pidas préstamos caros o uses tarjetas para mantener tus inversiones intactas por orgullo.', type: 'dont' }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'fomo-market',
+        title: "Me entra FOMO porque todo sube",
+        emoji: "🚀",
+        sections: [
+            {
+                title: "Análisis de Situación",
+                content: "Comprar por ansiedad suele salir caro. La euforia es tan peligrosa como el miedo. Invertir porque 'está subiendo mucho' es la receta perfecta para comprar en el pico."
+            },
+            {
+                title: "Acciones Recomendadas",
+                content: [
+                    { icon: 'Repeat', title: 'Sigue tu DCA', description: 'Si ya estás dentro, no cambies nada. Tu plan mensual ya aprovecha las subidas de forma disciplinada.', type: 'do' },
+                    { icon: 'Clock', title: 'Entrada promediada', description: 'Si estabas fuera, divide tu capital en 6-12 meses. Si la mano te tiembla, el DCA es tu mejor aliado emocional.', type: 'do' },
+                    { icon: 'Twitter', title: 'Apaga el ruido', description: 'Recuerda que tu plan manda sobre lo que diga X o las noticias de última hora.', type: 'do' },
+                    { icon: 'ArrowUpCircle', title: 'Evita el All-in', description: 'No metas todo tu capital disponible en máximos históricos solo por miedo a perderte lo que queda de subida.', type: 'dont' }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'panic-selling',
+        title: "Quiero vender por miedo",
+        emoji: "😱",
+        sections: [
+            {
+                title: "Análisis de Situación",
+                content: "Vender en un 'drawdown' es cristalizar el error. Si vendes cuando el mercado cae, conviertes una pérdida temporal en una pérdida definitiva y real."
+            },
+            {
+                title: "Acciones Recomendadas",
+                content: [
+                    { icon: 'ClipboardCheck', title: 'Checklist de pánico', description: '¿Necesitas de verdad el dinero en menos de 3 años? Si la respuesta es no, no hay razón financiera para vender.', type: 'do' },
+                    { icon: 'Thermometer', title: 'Ajuste en frío', description: 'Si el riesgo es demasiado para ti, cambia tu plan (p.ej. más renta fija), pero hazlo cuando el mercado esté calmado, no hoy.', type: 'do' },
+                    { icon: 'EyeOff', title: 'Desconexión total', description: 'Deja de mirar la cartera a diario y deja de leer titulares alarmistas que buscan tu click.', type: 'dont' }
+                ]
+            }
+        ]
+    },
+    {
+        id: 'goal-change',
+        title: "Cambio de objetivo (Casa/Boda)",
+        emoji: "🏠",
+        sections: [
+            {
+                title: "Análisis de Situación",
+                content: "Si el plazo es corto (2-3 años), el riesgo debe bajar sí o sí. La renta variable es para horizontes largos; no puedes jugarte la entrada de tu casa a la volatilidad bursátil."
+            },
+            {
+                title: "Acciones Recomendadas",
+                content: [
+                    { icon: 'Landmark', title: 'Mover a seguridad', description: 'Traslada el dinero destinado a ese objetivo a activos monetarios o renta fija de ultra-corto plazo.', type: 'do' },
+                    { icon: 'Briefcase', title: 'Separar buckets', description: 'Diferencia claramente tu cartera de largo plazo (jubilación) de tu hucha para objetivos a corto plazo.', type: 'do' },
+                    { icon: 'TrendingDown', title: 'No uses Bolsa', description: 'No mantengas en renta variable dinero que tengas que desembolsar en los próximos 24 meses.', type: 'dont' }
                 ]
             }
         ]

@@ -109,10 +109,66 @@
 
 .action-card.do {
     border-left: 4px solid #10b981;
+    background: rgba(16, 185, 129, 0.05);
 }
 
 .action-card.dont {
     border-left: 4px solid #ef4444;
+    background: rgba(239, 68, 68, 0.05);
+}
+
+.action-card::before {
+    content: attr(data-type);
+    position: absolute;
+    top: -10px;
+    right: 12px;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 8px;
+    border-radius: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.action-card.do::after {
+    content: "DO";
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: #10b981;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.action-card.dont::after {
+    content: "DON'T";
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    background: #ef4444;
+    color: white;
+    font-size: 0.65rem;
+    font-weight: 800;
+    padding: 2px 6px;
+    border-radius: 4px;
+}
+
+.action-card {
+    position: relative;
+    display: flex;
+    gap: 1rem;
+    padding: 1.25rem;
+    border-radius: 12px;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    transition: transform 0.2s ease;
+}
+
+.action-card:hover {
+    transform: translateX(4px);
 }
 
 .action-card__icon {
@@ -132,6 +188,8 @@
     font-size: 0.95rem;
     font-weight: 700;
     color: var(--text-primary);
+    padding-right: 40px;
+    /* Space for the DO/DON'T label */
 }
 
 .action-card__text p {

@@ -1,7 +1,4 @@
 .emergency {
-    background: var(--bg-primary);
-    border-radius: 20px;
-    padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
 }
@@ -15,14 +12,17 @@
 .emergency__title-group {
     display: flex;
     align-items: center;
-    gap: 1.25rem;
+    gap: 1.5rem;
 }
 
-.emergency__icon-container {
-    padding: 12px;
-    background: rgba(245, 158, 11, 0.1);
+.emergency__title-icon {
+    min-width: 54px;
+    width: 54px;
+    height: 54px;
+    padding: 10px;
+    background: rgba(249, 115, 22, 0.1);
+    color: #f97316;
     border-radius: 12px;
-    color: #f59e0b;
 }
 
 .emergency__title {
@@ -68,38 +68,13 @@
 .emergency__input-list {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-}
-
-.emergency__input-item {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin-bottom: 1rem;
-}
-
-.emergency__input-item label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--text-secondary);
-}
-
-.emergency__input-item input,
-.emergency__input-item select {
-    width: 100%;
-    padding: 0.75rem;
-    background: var(--bg-primary);
-    border: 1px solid var(--border-color);
-    border-radius: 8px;
-    color: var(--text-primary);
-    font-weight: 600;
-    font-size: 0.95rem;
+    gap: 1.25rem;
 }
 
 .emergency__total-expenses {
     margin-top: 1.5rem;
-    padding-top: 1.25rem;
-    border-top: 1px dashed var(--border-color);
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border-color);
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -111,9 +86,8 @@
 }
 
 .emergency__total-expenses strong {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     color: var(--accent-primary);
-    font-family: 'JetBrains Mono', monospace;
 }
 
 /* Main Content */

@@ -242,10 +242,15 @@ export function CompoundInterestCalc() {
     return (
         <div className="compound">
             <header className="compound__header">
-                <h1 className="compound__title">Calculadora de Interés Compuesto</h1>
-                <p className="compound__description">
-                    Visualiza el poder del interés compuesto. Tu capital trabajando para ti a lo largo del tiempo.
-                </p>
+                <div className="compound__title-group">
+                    <TrendingUp className="compound__title-icon" size={32} />
+                    <div className="compound__title-content">
+                        <h1 className="compound__title">Calculadora de Interés Compuesto</h1>
+                        <p className="compound__description">
+                            Visualiza el poder del interés compuesto. Tu capital trabajando para ti a lo largo del tiempo.
+                        </p>
+                    </div>
+                </div>
             </header>
 
             {/* Calculation Mode Selector */}
@@ -278,9 +283,9 @@ export function CompoundInterestCalc() {
                 <div className="compound__inputs">
                     <h3>Parámetros</h3>
 
-                    <div className="compound__input-group">
+                    <div className="calc__input-group">
                         <label htmlFor="initial">Patrimonio Inicial</label>
-                        <div className="compound__input-wrapper">
+                        <div className="calc__input-wrapper">
                             <DollarSign size={18} />
                             <input
                                 id="initial"
@@ -290,14 +295,14 @@ export function CompoundInterestCalc() {
                                 min="0"
                                 step="1000"
                             />
-                            <span>€</span>
+                            <span className="unit">€</span>
                         </div>
                     </div>
 
                     {calculationMode !== 'requiredContribution' && (
-                        <div className="compound__input-group">
+                        <div className="calc__input-group">
                             <label htmlFor="monthly">Aportación Mensual</label>
-                            <div className="compound__input-wrapper">
+                            <div className="calc__input-wrapper">
                                 <DollarSign size={18} />
                                 <input
                                     id="monthly"
@@ -307,14 +312,14 @@ export function CompoundInterestCalc() {
                                     min="0"
                                     step="50"
                                 />
-                                <span>€/mes</span>
+                                <span className="unit">€/mes</span>
                             </div>
                         </div>
                     )}
 
-                    <div className="compound__input-group">
+                    <div className="calc__input-group">
                         <label htmlFor="rate">Rentabilidad Anual</label>
-                        <div className="compound__input-wrapper">
+                        <div className="calc__input-wrapper">
                             <TrendingUp size={18} />
                             <input
                                 id="rate"
@@ -325,17 +330,17 @@ export function CompoundInterestCalc() {
                                 max="30"
                                 step="0.5"
                             />
-                            <span>%</span>
+                            <span className="unit">%</span>
                         </div>
                         <small className="compound__input-hint">
-                            Histórico S&P 500: ~10% anual. Conservador: 5-7%
+                            Histórico S&P 500: ~10% anual.
                         </small>
                     </div>
 
                     {calculationMode !== 'timeToGoal' && (
-                        <div className="compound__input-group">
+                        <div className="calc__input-group">
                             <label htmlFor="years">Horizonte Temporal</label>
-                            <div className="compound__input-wrapper">
+                            <div className="calc__input-wrapper">
                                 <Calendar size={18} />
                                 <input
                                     id="years"
@@ -346,7 +351,7 @@ export function CompoundInterestCalc() {
                                     max="50"
                                     step="1"
                                 />
-                                <span>años</span>
+                                <span className="unit">años</span>
                             </div>
                             <input
                                 type="range"
@@ -354,15 +359,16 @@ export function CompoundInterestCalc() {
                                 onChange={(e) => setYears(Number(e.target.value))}
                                 min="1"
                                 max="50"
-                                className="compound__slider"
+                                className="custom-slider"
+                                style={{ '--progress': `${((Number(years) - 1) / (50 - 1)) * 100}%` } as any}
                             />
                         </div>
                     )}
 
                     {(calculationMode === 'timeToGoal' || calculationMode === 'requiredContribution') && (
-                        <div className="compound__input-group">
+                        <div className="calc__input-group">
                             <label htmlFor="target">Objetivo de Capital</label>
-                            <div className="compound__input-wrapper">
+                            <div className="calc__input-wrapper">
                                 <Target size={18} />
                                 <input
                                     id="target"
@@ -372,7 +378,7 @@ export function CompoundInterestCalc() {
                                     min="1000"
                                     step="10000"
                                 />
-                                <span>€</span>
+                                <span className="unit">€</span>
                             </div>
                         </div>
                     )}
@@ -390,7 +396,7 @@ export function CompoundInterestCalc() {
 
                             {showAdvanced && (
                                 <div className="compound__advanced-content">
-                                    <div className="compound__input-group">
+                                    <div className="calc__input-group">
                                         <label>Retiradas Anuales</label>
                                         <div className="compound__radio-group">
                                             <label className="compound__radio">
@@ -424,11 +430,11 @@ export function CompoundInterestCalc() {
                                     </div>
 
                                     {withdrawalType !== 'none' && (
-                                        <div className="compound__input-group">
+                                        <div className="calc__input-group">
                                             <label htmlFor="withdrawal">
                                                 {withdrawalType === 'percentage' ? 'Porcentaje anual' : 'Cantidad anual'}
                                             </label>
-                                            <div className="compound__input-wrapper">
+                                            <div className="calc__input-wrapper">
                                                 <DollarSign size={18} />
                                                 <input
                                                     id="withdrawal"
@@ -438,7 +444,7 @@ export function CompoundInterestCalc() {
                                                     min="0"
                                                     step={withdrawalType === 'percentage' ? '0.5' : '1000'}
                                                 />
-                                                <span>{withdrawalType === 'percentage' ? '%' : '€'}</span>
+                                                <span className="unit">{withdrawalType === 'percentage' ? '%' : '€'}</span>
                                             </div>
                                             {withdrawalType === 'percentage' && (
                                                 <small className="compound__input-hint">
@@ -478,14 +484,26 @@ export function CompoundInterestCalc() {
                     )}
 
                     {calculationMode === 'timeToGoal' && timeToGoalYears !== null && (
-                        <div className="compound__goal-result">
-                            <div className="compound__goal-main">
-                                <span className="label">Tiempo hasta el objetivo:</span>
-                                <span className="value">{timeToGoalYears.toFixed(1)} años</span>
-                            </div>
-                            <div className="compound__goal-details">
-                                <p>Para alcanzar {formatCurrency(Number(targetAmount) || 0)}, ahorrando {formatCurrency(Number(monthlyContribution) || 0)}/mes al {annualRate}% anual.</p>
-                            </div>
+                        <div className={`compound__goal-result ${timeToGoalYears <= 0 ? 'compound__goal-result--achieved' : ''}`}>
+                            {timeToGoalYears <= 0 ? (
+                                <div className="compound__goal-achieved">
+                                    <div className="compound__goal-badge">🎉</div>
+                                    <div className="compound__goal-content">
+                                        <h3>¡Objetivo Conseguido!</h3>
+                                        <p>Tu patrimonio actual ya supera los {formatCurrency(Number(targetAmount) || 0)}.</p>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="compound__goal-pending">
+                                    <div className="compound__goal-years-vibe">
+                                        <div className="number">{timeToGoalYears.toFixed(1)}</div>
+                                        <div className="label">Años restantes</div>
+                                    </div>
+                                    <div className="compound__goal-text">
+                                        <p>Para alcanzar <span className="highlight">{formatCurrency(Number(targetAmount) || 0)}</span> aportando <span className="highlight">{formatCurrency(Number(monthlyContribution) || 0)}</span> al mes.</p>
+                                    </div>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -508,27 +526,33 @@ export function CompoundInterestCalc() {
                     <div className="compound__chart">
                         <h4>Evolución Temporal</h4>
                         <ResponsiveContainer width="100%" height={350}>
-                            <AreaChart data={chartData}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                                 <XAxis
                                     dataKey="yearLabel"
                                     stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 12 }}
+                                    tick={{ fontSize: 11 }}
+                                    axisLine={false}
+                                    tickLine={false}
                                 />
                                 <YAxis
                                     stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 12 }}
+                                    tick={{ fontSize: 11 }}
                                     tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                    width={40}
+                                    axisLine={false}
+                                    tickLine={false}
                                 />
                                 <Tooltip content={<CustomTooltip />} />
-                                <Legend />
+                                <Legend wrapperStyle={{ paddingTop: '20px' }} />
                                 <Area
                                     type="monotone"
                                     dataKey="contributed"
                                     stackId="1"
                                     stroke="#3b82f6"
                                     fill="#3b82f6"
-                                    fillOpacity={0.6}
+                                    fillOpacity={0.4}
+                                    strokeWidth={2}
                                     name="Capital Aportado"
                                 />
                                 <Area
@@ -537,7 +561,8 @@ export function CompoundInterestCalc() {
                                     stackId="1"
                                     stroke="#10b981"
                                     fill="#10b981"
-                                    fillOpacity={0.6}
+                                    fillOpacity={0.4}
+                                    strokeWidth={2}
                                     name="Intereses Generados"
                                 />
                             </AreaChart>
@@ -562,7 +587,7 @@ export function CompoundInterestCalc() {
                             }}>
                                 <span>{((finalData.interest / finalData.total) * 100).toFixed(1)}%</span>
                             </div>
-                            <div className="compound__breakdown-label">Magia del compuesto</div>
+                            <div className="compound__breakdown-label">Magia del interés compuesto</div>
                         </div>
                     </div>
                 </div>

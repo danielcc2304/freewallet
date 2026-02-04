@@ -443,7 +443,99 @@ export const GLOSSARY: GlossaryTerm[] = [
         definition: "Valor monetario de todos los bienes y servicios finales producidos por un país en un periodo determinado.",
         category: "Economía",
         relatedTerms: ["Crecimiento Económico", "Recesión"]
+    },
+    {
+        id: 'dca',
+        term: "DCA (Dollar-Cost Averaging)",
+        definition: "Estrategia de inversión que consiste en invertir una cantidad fija de dinero de forma periódica, independientemente de si el mercado sube o baja. Reduce el impacto emocional y el riesgo de invertir todo en un mal momento.",
+        category: "Estrategia",
+        relatedTerms: ["Interés Compuesto", "Lump Sum", "Volatilidad"]
+    },
+    {
+        id: 'equity',
+        term: "Equity",
+        definition: "Participación en la propiedad de una empresa. En inversión suele usarse como sinónimo de acciones o renta variable.",
+        category: "Instrumentos",
+        relatedTerms: ["Renta Variable", "Acciones", "Capital"]
+    },
+    {
+        id: 'yield',
+        term: "Yield",
+        definition: "Rentabilidad que genera una inversión en relación a su precio. Suele expresarse como un porcentaje anual.",
+        category: "Rentabilidad",
+        relatedTerms: ["Dividendo", "Dividend Yield", "Rentabilidad"]
+    },
+    {
+        id: 'breakeven',
+        term: "Breakeven (Punto de Equilibrio)",
+        definition: "Nivel a partir del cual una inversión deja de generar pérdidas y empieza a ser rentable, cuando los beneficios igualan los costes iniciales.",
+        category: "Conceptos Básicos",
+        relatedTerms: ["Rentabilidad", "Costes", "Comisiones"]
+    },
+    {
+        id: 'apalancamiento',
+        term: "Apalancamiento",
+        definition: "Uso de deuda o instrumentos financieros para aumentar la exposición a una inversión. Amplifica tanto las ganancias como las pérdidas, incrementando significativamente el riesgo.",
+        category: "Riesgo",
+        relatedTerms: ["Deuda", "Riesgo", "Margen"]
+    },
+    {
+        id: 'portfolio',
+        term: "Portfolio (Cartera)",
+        definition: "Conjunto de activos financieros que posee un inversor. Su composición determina el nivel de riesgo y la rentabilidad esperada.",
+        category: "Conceptos Básicos",
+        relatedTerms: ["Asset Allocation", "Diversificación", "Rebalanceo"]
+    },
+    {
+        id: 'chicharro',
+        term: "Chicharro",
+        definition: "Acción de baja capitalización, poca liquidez y alta volatilidad. Suele moverse más por especulación que por fundamentos económicos.",
+        category: "Bolsa",
+        relatedTerms: ["Volatilidad", "Riesgo", "Small Caps"]
+    },
+    {
+        id: 'hawkish',
+        term: "Hawkish",
+        definition: "Postura de política monetaria orientada a combatir la inflación, normalmente mediante subidas de tipos de interés y retirada de estímulos.",
+        category: "Economía",
+        relatedTerms: ["Tipos de Interés", "Dovish", "Inflación"]
+    },
+    {
+        id: 'dovish',
+        term: "Dovish",
+        definition: "Postura de política monetaria que prioriza el crecimiento económico, normalmente mediante tipos de interés bajos y políticas monetarias expansivas.",
+        category: "Economía",
+        relatedTerms: ["Tipos de Interés", "Hawkish", "Política Monetaria"]
+    },
+    {
+        id: 'lump-sum',
+        term: "Lump Sum",
+        definition: "Estrategia de inversión que consiste en invertir todo el capital disponible de una sola vez, en lugar de hacerlo de forma periódica.",
+        category: "Estrategia",
+        relatedTerms: ["DCA", "Volatilidad", "Market Timing"]
+    },
+    {
+        id: 'liquidez',
+        term: "Liquidez",
+        definition: "Facilidad con la que un activo puede convertirse en dinero sin perder valor. El efectivo es el activo más líquido.",
+        category: "Conceptos Básicos",
+        relatedTerms: ["Mercado", "Riesgo", "Cash"]
+    },
+    {
+        id: 'drawdown',
+        term: "Drawdown",
+        definition: "Caída máxima desde un pico hasta un mínimo en el valor de una inversión o cartera. Representa el peor escenario histórico vivido.",
+        category: "Riesgo",
+        relatedTerms: ["Volatilidad", "Riesgo", "Crisis"]
+    },
+    {
+        id: 'market-timing',
+        term: "Market Timing",
+        definition: "Intento de anticipar los movimientos del mercado para comprar en mínimos y vender en máximos. Históricamente, muy difícil de hacer de forma consistente.",
+        category: "Estrategia",
+        relatedTerms: ["DCA", "Lump Sum", "Sesgos Cognitivos"]
     }
+
 ];
 
 // ===== ASSET CLASSES DETAIL =====

@@ -36,7 +36,7 @@ export function AssetTypes() {
                                 <div className="asset-stats">
                                     <div className="stat-item">
                                         <span className="label">Riesgo</span>
-                                        <span className={`value risk-${asset.risk.toLowerCase().split(' ')[0]}`}>
+                                        <span className={`value risk-${asset.risk?.toLowerCase().split(' ')[0]}`}>
                                             {asset.risk}
                                         </span>
                                     </div>

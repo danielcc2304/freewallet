@@ -67,10 +67,11 @@
     color: var(--accent-primary);
 }
 
-.bracket-card.highlight {
-    background: rgba(var(--accent-rgb), 0.05);
-    border-color: var(--accent-primary);
+.bracket-card.highlight .bracket-range {
+    color: var(--text-primary);
+    opacity: 0.85;
 }
+
 
 /* Compensation Card */
 .tax-info__card {

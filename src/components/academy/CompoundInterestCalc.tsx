@@ -508,7 +508,7 @@ export function CompoundInterestCalc() {
                     <div className="compound__chart">
                         <h4>Evolución Temporal</h4>
                         <ResponsiveContainer width="100%" height={350}>
-                            <AreaChart data={chartData}>
+                            <AreaChart data={chartData} margin={{ top: 10, right: 0, left: -20, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
                                 <XAxis
                                     dataKey="yearLabel"
@@ -519,6 +519,7 @@ export function CompoundInterestCalc() {
                                     stroke="var(--text-secondary)"
                                     tick={{ fontSize: 12 }}
                                     tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
+                                    width={45}
                                 />
                                 <Tooltip content={<CustomTooltip />} />
                                 <Legend />
@@ -562,7 +563,7 @@ export function CompoundInterestCalc() {
                             }}>
                                 <span>{((finalData.interest / finalData.total) * 100).toFixed(1)}%</span>
                             </div>
-                            <div className="compound__breakdown-label">Magia del compuesto</div>
+                            <div className="compound__breakdown-label">Magia del interés compuesto</div>
                         </div>
                     </div>
                 </div>

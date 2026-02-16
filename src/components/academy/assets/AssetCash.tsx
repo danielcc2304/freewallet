@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import {
-    Wallet, ArrowLeft, Globe, Zap, CheckCircle2, AlertTriangle,
+    Wallet, ArrowLeft, Globe, CheckCircle2, AlertTriangle,
     Lightbulb, BarChart3, Clock, Shield
 } from 'lucide-react';
 import './AssetPage.css';

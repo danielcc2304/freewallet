@@ -233,13 +233,13 @@ export function FIRECalculator() {
                                 <XAxis
                                     dataKey="year"
                                     stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 11 }}
+                                    tick={{ fontSize: 11, fill: '#a1a1aa' }}
                                     axisLine={false}
                                     tickLine={false}
                                 />
                                 <YAxis
                                     stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 11 }}
+                                    tick={{ fontSize: 11, fill: '#a1a1aa' }}
                                     tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
                                     width={40}
                                     axisLine={false}

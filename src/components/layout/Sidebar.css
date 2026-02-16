@@ -77,6 +77,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--spacing-xs);
+    overflow-y: auto;
 }
 
 .sidebar__link {
@@ -89,6 +90,12 @@
     text-decoration: none;
     font-weight: 500;
     transition: all var(--transition-fast);
+    border: none;
+    background: none;
+    cursor: pointer;
+    font-size: inherit;
+    width: 100%;
+    text-align: left;
 }
 
 .sidebar__link:hover {
@@ -104,6 +111,95 @@
 
 .sidebar__link-icon {
     flex-shrink: 0;
+}
+
+/* Academy group */
+.sidebar__group {
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebar__group-toggle {
+    position: relative;
+}
+
+.sidebar__chevron {
+    margin-left: auto;
+    flex-shrink: 0;
+    transition: transform 0.25s ease;
+    color: var(--text-muted);
+}
+
+.sidebar__chevron--open {
+    transform: rotate(180deg);
+}
+
+/* Sub-navigation */
+.sidebar__sub-nav {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 0.3s ease;
+}
+
+.sidebar__sub-nav--open {
+    grid-template-rows: 1fr;
+}
+
+.sidebar__sub-nav>div,
+.sidebar__sub-nav>a {
+    overflow: hidden;
+}
+
+/* Inner wrapper for animation */
+.sidebar__sub-nav {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+}
+
+.sidebar__sub-nav--open {
+    max-height: 600px;
+}
+
+.sidebar__sub-link {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 0.5rem 0.75rem 0.5rem 2.75rem;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 400;
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.sidebar__sub-link:hover {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+}
+
+.sidebar__sub-link--active {
+    color: var(--accent-primary);
+    background: rgba(var(--accent-rgb, 99, 102, 241), 0.08);
+    font-weight: 500;
+}
+
+.sidebar__sub-icon {
+    flex-shrink: 0;
+    opacity: 0.7;
+}
+
+.sidebar__sub-link--active .sidebar__sub-icon {
+    opacity: 1;
+}
+
+.sidebar__sub-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Footer */

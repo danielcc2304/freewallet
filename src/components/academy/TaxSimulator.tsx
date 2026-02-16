@@ -181,7 +181,7 @@ export function TaxSimulator() {
                                 <XAxis
                                     type="number"
                                     stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 11 }}
+                                    tick={{ fontSize: 11, fill: '#a1a1aa' }}
                                     tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`}
                                     axisLine={false}
                                     tickLine={false}
@@ -190,7 +190,7 @@ export function TaxSimulator() {
                                     dataKey="name"
                                     type="category"
                                     stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 11 }}
+                                    tick={{ fontSize: 11, fill: '#a1a1aa' }}
                                     width={70}
                                     axisLine={false}
                                     tickLine={false}

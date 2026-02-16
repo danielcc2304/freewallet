@@ -1,5 +1,27 @@
-import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, PlusCircle, Settings, Wallet, Feather, Menu, X, GraduationCap } from 'lucide-react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import {
+    LayoutDashboard,
+    PlusCircle,
+    Settings,
+    Wallet,
+    Feather,
+    Menu,
+    X,
+    GraduationCap,
+    ChevronDown,
+    BookOpen,
+    TrendingUp,
+    AlertCircle,
+    Target,
+    Calculator,
+    PieChart,
+    Receipt,
+    Lightbulb,
+    BarChart3,
+    Shield,
+    Library
+} from 'lucide-react';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -7,13 +29,44 @@ interface SidebarProps {
     onToggle: () => void;
 }
 
+const academySections = [
+    { path: '/academy', icon: BookOpen, label: 'Fundamentos', end: true },
+    { path: '/academy/timeline', icon: TrendingUp, label: 'Tu Journey' },
+    { path: '/academy/crisis', icon: AlertCircle, label: 'Crisis Históricas' },
+    { path: '/academy/scenarios', icon: Target, label: '¿Qué hacer cuando...?' },
+    { path: '/academy/errors', icon: Lightbulb, label: 'Errores Comunes' },
+    { path: '/academy/portfolio', icon: PieChart, label: 'Construir Cartera' },
+    { path: '/academy/tax', icon: Receipt, label: 'Fiscalidad' },
+    { path: '/academy/strategies', icon: BarChart3, label: 'Estrategias' },
+    { path: '/academy/calculators', icon: Calculator, label: 'Calculadoras' },
+    { path: '/academy/risk', icon: Shield, label: 'Gestión Riesgo' },
+    { path: '/academy/resources', icon: Library, label: 'Recursos' }
+];
+
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
+    const location = useLocation();
+    const isAcademyRoute = location.pathname.startsWith('/academy');
+    const [academyExpanded, setAcademyExpanded] = useState(isAcademyRoute);
+
+    // Auto-expand when navigating to academy routes
+    useEffect(() => {
+        if (isAcademyRoute) {
+            setAcademyExpanded(true);
+        }
+    }, [isAcademyRoute]);
+
     const navItems = [
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/add', icon: PlusCircle, label: 'Añadir Inversión' },
-        { to: '/academy', icon: GraduationCap, label: 'Academia' },
-        { to: '/settings', icon: Settings, label: 'Configuración' },
     ];
+
+    const handleAcademyToggle = () => {
+        setAcademyExpanded(!academyExpanded);
+    };
+
+    const closeMobileSidebar = () => {
+        if (window.innerWidth < 1024) onToggle();
+    };
 
     return (
         <>
@@ -44,12 +97,55 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                             className={({ isActive }) =>
                                 `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
                             }
-                            onClick={() => window.innerWidth < 1024 && onToggle()}
+                            onClick={closeMobileSidebar}
                         >
                             <Icon className="sidebar__link-icon" size={20} />
                             <span className="sidebar__link-text">{label}</span>
                         </NavLink>
                     ))}
+
+                    {/* Academy section with collapsible sub-nav */}
+                    <div className={`sidebar__group ${isAcademyRoute ? 'sidebar__group--active' : ''}`}>
+                        <button
+                            className={`sidebar__link sidebar__group-toggle ${isAcademyRoute ? 'sidebar__link--active' : ''}`}
+                            onClick={handleAcademyToggle}
+                        >
+                            <GraduationCap className="sidebar__link-icon" size={20} />
+                            <span className="sidebar__link-text">Academia</span>
+                            <ChevronDown
+                                className={`sidebar__chevron ${academyExpanded ? 'sidebar__chevron--open' : ''}`}
+                                size={16}
+                            />
+                        </button>
+
+                        <div className={`sidebar__sub-nav ${academyExpanded ? 'sidebar__sub-nav--open' : ''}`}>
+                            {academySections.map(({ path, icon: Icon, label, end }) => (
+                                <NavLink
+                                    key={path}
+                                    to={path}
+                                    end={end}
+                                    className={({ isActive }) =>
+                                        `sidebar__sub-link ${isActive ? 'sidebar__sub-link--active' : ''}`
+                                    }
+                                    onClick={closeMobileSidebar}
+                                >
+                                    <Icon className="sidebar__sub-icon" size={16} />
+                                    <span className="sidebar__sub-text">{label}</span>
+                                </NavLink>
+                            ))}
+                        </div>
+                    </div>
+
+                    <NavLink
+                        to="/settings"
+                        className={({ isActive }) =>
+                            `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
+                        }
+                        onClick={closeMobileSidebar}
+                    >
+                        <Settings className="sidebar__link-icon" size={20} />
+                        <span className="sidebar__link-text">Configuración</span>
+                    </NavLink>
                 </nav>
 
                 <div className="sidebar__footer">

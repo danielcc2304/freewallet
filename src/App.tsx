@@ -25,6 +25,11 @@ import { CommonErrors } from './components/academy/CommonErrors';
 import { Glossary } from './components/academy/Glossary';
 import { AssetTypes } from './components/academy/AssetTypes';
 import { BondCalculator } from './components/academy/BondCalculator';
+import { AssetEquities } from './components/academy/assets/AssetEquities';
+import { AssetBonds } from './components/academy/assets/AssetBonds';
+import { AssetCash } from './components/academy/assets/AssetCash';
+import { AssetREITs } from './components/academy/assets/AssetREITs';
+import { AssetCrypto } from './components/academy/assets/AssetCrypto';
 import './index.css';
 
 function App() {
@@ -56,6 +61,13 @@ function App() {
             <Route path="resources" element={<InProcess />} />
             <Route path="glossary" element={<Glossary />} />
             <Route path="asset-types" element={<AssetTypes />} />
+
+            {/* Asset Deep Dives */}
+            <Route path="assets/equities" element={<AssetEquities />} />
+            <Route path="assets/bonds" element={<AssetBonds />} />
+            <Route path="assets/cash" element={<AssetCash />} />
+            <Route path="assets/reits" element={<AssetREITs />} />
+            <Route path="assets/crypto" element={<AssetCrypto />} />
 
             {/* Calculator specific sub-pages */}
             <Route path="retirement" element={<RetirementCalculator />} />

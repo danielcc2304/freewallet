@@ -526,20 +526,25 @@ export function CompoundInterestCalc() {
                     <div className="compound__chart">
                         <h4>Evolución Temporal</h4>
                         <ResponsiveContainer width="100%" height={350}>
-                            <AreaChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
                                 <XAxis
                                     dataKey="yearLabel"
                                     stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 11 }}
+                                    tick={{ fontSize: 11, fill: '#a1a1aa' }}
                                     axisLine={false}
                                     tickLine={false}
                                 />
                                 <YAxis
                                     stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 11 }}
-                                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                                    width={40}
+                                    tick={{ fontSize: 11, fill: '#a1a1aa' }}
+                                    tickFormatter={(value) =>
+                                        new Intl.NumberFormat('es-ES', {
+                                            notation: 'compact',
+                                            compactDisplay: 'short'
+                                        }).format(value)
+                                    }
+                                    width={50}
                                     axisLine={false}
                                     tickLine={false}
                                 />

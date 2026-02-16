@@ -29,10 +29,20 @@ const routes = [
     '/academy/retirement',
     '/academy/emergency-fund',
     '/academy/taxes',
-    '/academy/asset-allocation'
+    '/academy/asset-allocation',
+    '/academy/assets/equities',
+    '/academy/assets/bonds',
+    '/academy/assets/cash',
+    '/academy/assets/reits',
+    '/academy/assets/crypto'
 ];
 
 async function prerender() {
+    if (process.env.VERCEL || process.env.SKIP_PRERENDER) {
+        console.log('⚠️ Skipping prerender on Vercel environment to avoid Puppeteer dependency issues.');
+        return;
+    }
+
     console.log('🚀 Starting post-build prerender...');
 
     // Start a temporary server to serve the dist folder

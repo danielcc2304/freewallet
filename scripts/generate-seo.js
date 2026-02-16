@@ -30,7 +30,12 @@ const routes = [
     '/academy/retirement',
     '/academy/emergency-fund',
     '/academy/taxes',
-    '/academy/asset-allocation'
+    '/academy/asset-allocation',
+    '/academy/assets/equities',
+    '/academy/assets/bonds',
+    '/academy/assets/cash',
+    '/academy/assets/reits',
+    '/academy/assets/crypto'
 ];
 
 const DOMAIN = 'https://freewallet-v2.vercel.app'; // Update with your actual domain

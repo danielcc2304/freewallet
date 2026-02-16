@@ -182,7 +182,12 @@ export function TaxSimulator() {
                                     type="number"
                                     stroke="var(--text-secondary)"
                                     tick={{ fontSize: 11, fill: '#a1a1aa' }}
-                                    tickFormatter={(val) => `${(val / 1000).toFixed(0)}k`}
+                                    tickFormatter={(value) =>
+                                        new Intl.NumberFormat('es-ES', {
+                                            notation: 'compact',
+                                            compactDisplay: 'short'
+                                        }).format(value)
+                                    }
                                     axisLine={false}
                                     tickLine={false}
                                 />

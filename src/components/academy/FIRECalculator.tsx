@@ -222,7 +222,7 @@ export function FIRECalculator() {
                     <div className="fire__chart-container">
                         <h3 className="fire__chart-title">Proyección de Patrimonio vs Objetivo</h3>
                         <ResponsiveContainer width="100%" height={300}>
-                            <AreaChart data={projectionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                            <AreaChart data={projectionData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
                                 <defs>
                                     <linearGradient id="colorBalance" x1="0" y1="0" x2="0" y2="1">
                                         <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.3} />
@@ -240,8 +240,13 @@ export function FIRECalculator() {
                                 <YAxis
                                     stroke="var(--text-secondary)"
                                     tick={{ fontSize: 11, fill: '#a1a1aa' }}
-                                    tickFormatter={(value) => `${(value / 1000).toFixed(0)}k`}
-                                    width={40}
+                                    tickFormatter={(value) =>
+                                        new Intl.NumberFormat('es-ES', {
+                                            notation: 'compact',
+                                            compactDisplay: 'short'
+                                        }).format(value)
+                                    }
+                                    width={50}
                                     axisLine={false}
                                     tickLine={false}
                                 />

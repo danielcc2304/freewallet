@@ -32,6 +32,13 @@
     color: var(--text-primary);
 }
 
+.portfolio-builder__section-hint {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    font-style: italic;
+}
+
 .portfolio-builder__assets-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -43,17 +50,30 @@
     background: var(--bg-secondary);
     border: 1px solid var(--border-color);
     border-radius: 16px;
-    padding: 1.5rem;
+    padding: 0;
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
-    gap: 1rem;
+    overflow: hidden;
 }
 
 .asset-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--accent-primary);
-    box-shadow: var(--shadow-md);
+    border-color: var(--asset-color, var(--accent-primary));
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.asset-card--expanded {
+    border-color: var(--asset-color, var(--accent-primary));
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.12);
+}
+
+.asset-card__clickable {
+    padding: 1.5rem;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    user-select: none;
 }
 
 .asset-card__header {
@@ -66,12 +86,25 @@
     padding: 10px;
     border-radius: 12px;
     color: white;
+    flex-shrink: 0;
 }
 
 .asset-card__name {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 700;
     color: var(--text-primary);
+    flex: 1;
+}
+
+.asset-card__chevron {
+    color: var(--text-muted);
+    transition: transform 0.3s ease;
+    flex-shrink: 0;
+}
+
+.asset-card__chevron--open {
+    transform: rotate(180deg);
+    color: var(--asset-color, var(--accent-primary));
 }
 
 .asset-card__desc {
@@ -81,7 +114,6 @@
 }
 
 .asset-card__stats {
-    margin-top: auto;
     display: flex;
     justify-content: space-between;
     padding-top: 1rem;
@@ -103,6 +135,200 @@
 .stat-value {
     font-size: 0.95rem;
     font-weight: 700;
+}
+
+/* === Expandable Detail Panel === */
+.asset-detail {
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s ease;
+}
+
+.asset-detail--open {
+    max-height: 1200px;
+}
+
+.asset-detail__inner {
+    padding: 0 1.5rem 1.5rem;
+    border-top: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    padding-top: 1.25rem;
+}
+
+.asset-detail__section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.asset-detail__heading {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.asset-detail__heading svg {
+    color: var(--asset-color, var(--accent-primary));
+    flex-shrink: 0;
+}
+
+.asset-detail__heading--pros {
+    color: #10b981;
+}
+
+.asset-detail__heading--pros svg {
+    color: #10b981;
+}
+
+.asset-detail__heading--cons {
+    color: #ef4444;
+}
+
+.asset-detail__heading--cons svg {
+    color: #ef4444;
+}
+
+.asset-detail__section p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.asset-detail__list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+}
+
+.asset-detail__list li {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    padding-left: 1.25rem;
+    position: relative;
+}
+
+.asset-detail__list li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: var(--asset-color, var(--text-muted));
+    font-weight: bold;
+}
+
+.asset-detail__list--pros li::before {
+    content: '✓';
+    color: #10b981;
+}
+
+.asset-detail__list--cons li::before {
+    content: '×';
+    color: #ef4444;
+    font-size: 1.1em;
+}
+
+/* Pros & Cons side by side */
+.asset-detail__pros-cons {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.asset-detail__section--pros,
+.asset-detail__section--cons {
+    padding: 1rem;
+    border-radius: 12px;
+}
+
+.asset-detail__section--pros {
+    background: rgba(16, 185, 129, 0.06);
+    border: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+.asset-detail__section--cons {
+    background: rgba(239, 68, 68, 0.06);
+    border: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+/* Metrics grid */
+.asset-detail__metrics {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+}
+
+.asset-detail__metric {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border-radius: 10px;
+}
+
+.asset-detail__metric-label {
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.asset-detail__metric-value {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+/* Tip callout */
+.asset-detail__tip {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 1rem;
+    border-radius: 12px;
+    background: rgba(var(--accent-rgb), 0.06);
+    border-left: 3px solid var(--accent-primary);
+}
+
+.asset-detail__tip svg {
+    color: var(--accent-primary);
+    flex-shrink: 0;
+    margin-top: 2px;
+}
+
+.asset-detail__tip strong {
+    font-size: 0.85rem;
+    color: var(--accent-primary);
+    display: block;
+    margin-bottom: 0.25rem;
+}
+
+.asset-detail__tip p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0;
+}
+
+@media (max-width: 640px) {
+    .asset-detail__pros-cons {
+        grid-template-columns: 1fr;
+    }
+
+    .asset-detail__metrics {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* Model Portfolios */

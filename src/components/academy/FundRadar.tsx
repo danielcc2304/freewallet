@@ -2,18 +2,185 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
     Search, Filter, ExternalLink, Info,
-    ArrowLeft, Landmark, Award, BarChart3
+    ArrowLeft, Landmark, Award, BarChart3,
+    ChevronDown, ChevronUp
 } from 'lucide-react';
 import { BEST_FUNDS } from '../../data/academyData';
+import type { Fund } from '../../types/types';
 import './FundRadar.css';
+
+interface FundCardProps {
+    fund: Fund;
+    getRiskColor: (risk: number) => string;
+    isExpanded: boolean;
+    onToggle: () => void;
+}
+
+function FundCard({ fund, getRiskColor, isExpanded, onToggle }: FundCardProps) {
+    return (
+        <div className={`fund-card ${isExpanded ? 'fund-card--expanded' : ''}`} onClick={onToggle}>
+            <div className="fund-card__header">
+                <div className="fund-card__title-row">
+                    <span className="fund-card__category">{fund.category}</span>
+                    <div className="fund-card__risk" style={{ background: getRiskColor(fund.risk) }}>
+                        Riesgo SRRI {fund.risk}
+                    </div>
+                </div>
+                <h3 className="fund-card__name">{fund.name}</h3>
+                <div className="fund-card__meta">
+                    <div className="fund-card__isin">
+                        <Landmark size={12} />
+                        <span>{fund.isin}</span>
+                    </div>
+                    {isExpanded && fund.aum && (
+                        <div className="fund-card__aum">
+                            <BarChart3 size={12} />
+                            <span>Patr: {fund.aum}</span>
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            <div className="fund-card__body">
+                <div className="fund-card__summary">
+                    <div className="fund-card__metrics-grid">
+                        <div className="fund-stat">
+                            <span className="fund-stat__label">Rent. YTD</span>
+                            <span className={`fund-stat__value ${fund.returns.ytd >= 0 ? 'pos' : 'neg'}`}>
+                                {fund.returns.ytd > 0 ? '+' : ''}{fund.returns.ytd}%
+                            </span>
+                        </div>
+                        <div className="fund-stat">
+                            <span className="fund-stat__label">Rent. 1Y</span>
+                            <span className={`fund-stat__value ${fund.returns.y1 >= 0 ? 'pos' : 'neg'}`}>
+                                {fund.returns.y1 > 0 ? '+' : ''}{fund.returns.y1}%
+                            </span>
+                        </div>
+                        <div className="fund-stat fund-stat--highlight">
+                            <span className="fund-stat__label">Volatilidad</span>
+                            <span className="fund-stat__value">{fund.volatility}%</span>
+                        </div>
+                        <div className="fund-stat">
+                            <span className="fund-stat__label">Máx. Caída</span>
+                            <span className="fund-stat__value neg">{fund.maxDrawdown}%</span>
+                        </div>
+                        <div className="fund-stat">
+                            <span className="fund-stat__label">TER (Costes)</span>
+                            <span className="fund-stat__value">{fund.ter}%</span>
+                        </div>
+                        {fund.yieldToMaturity !== undefined && (
+                            <div className="fund-stat">
+                                <span className="fund-stat__label">Yield (TIR)</span>
+                                <span className="fund-stat__value pos">{fund.yieldToMaturity}%</span>
+                            </div>
+                        )}
+                        {fund.rating && (
+                            <div className="fund-stat">
+                                <span className="fund-stat__label">Rating</span>
+                                <span className="fund-stat__value">{fund.rating}</span>
+                            </div>
+                        )}
+                    </div>
+                </div>
+
+                {isExpanded && (
+                    <div className="fund-card__expanded-content">
+                        <div className="expanded-divider">Analítica Avanzada</div>
+
+                        <div className="fund-card__metrics-grid">
+                            <div className="fund-stat">
+                                <span className="fund-stat__label">Sharpe Ratio</span>
+                                <span className="fund-stat__value">{fund.sharpe ?? '--'}</span>
+                            </div>
+                            {fund.returns.y3 !== undefined && (
+                                <div className="fund-stat">
+                                    <span className="fund-stat__label">Rent. 3Y (An.)</span>
+                                    <span className={`fund-stat__value ${fund.returns.y3 >= 0 ? 'pos' : 'neg'}`}>
+                                        {fund.returns.y3 > 0 ? '+' : ''}{fund.returns.y3}%
+                                    </span>
+                                </div>
+                            )}
+                            {fund.returns.y5 !== undefined && (
+                                <div className="fund-stat">
+                                    <span className="fund-stat__label">Rent. 5Y (An.)</span>
+                                    <span className={`fund-stat__value ${fund.returns.y5 >= 0 ? 'pos' : 'neg'}`}>
+                                        {fund.returns.y5 > 0 ? '+' : ''}{fund.returns.y5}%
+                                    </span>
+                                </div>
+                            )}
+                            {fund.duration !== undefined && (
+                                <div className="fund-stat">
+                                    <span className="fund-stat__label">Duración</span>
+                                    <span className="fund-stat__value">{fund.duration}y</span>
+                                </div>
+                            )}
+                        </div>
+
+                        {fund.allocation && fund.allocation.length > 0 && (
+                            <div className="fund-card__allocation">
+                                <h4 className="section-title">Distribución de Cartera</h4>
+                                <div className="allocation-bar">
+                                    {fund.allocation.map((item, i) => (
+                                        <div
+                                            key={i}
+                                            className="allocation-segment"
+                                            style={{ width: `${item.value}%`, backgroundColor: `hsl(${i * 60 + 200}, 70%, 45%)` }}
+                                        />
+                                    ))}
+                                </div>
+                                <div className="allocation-labels">
+                                    {fund.allocation.map((item, i) => (
+                                        <span key={i} className="alloc-label">
+                                            {item.label} <strong>{item.value}%</strong>
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
+                        <p className="fund-card__desc">{fund.description}</p>
+                    </div>
+                )}
+            </div>
+
+            <div className="fund-card__footer">
+                <div className="fund-card__toggle-hint">
+                    {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                    <span>{isExpanded ? 'Menos info' : 'Análisis completo'}</span>
+                </div>
+                <div className="fund-card__actions">
+                    <a
+                        href={fund.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="fund-card__link"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        Finect <ExternalLink size={14} />
+                    </a>
+                </div>
+            </div>
+        </div>
+    );
+}
 
 export function FundRadar() {
     const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState('Todas');
+    const [allExpanded, setAllExpanded] = useState(false);
 
     const categories = useMemo(() => {
         const cats = new Set(BEST_FUNDS.map(fund => fund.category));
-        return ['Todas', ...Array.from(cats)].sort();
+        const sortedCats = Array.from(cats).sort((a, b) => {
+            // Prioritize "Monetario"
+            if (a.includes('Monetario') && !b.includes('Monetario')) return -1;
+            if (!a.includes('Monetario') && b.includes('Monetario')) return 1;
+            // Prioritize Mixed/Defensive
+            if (a.includes('Mixto') && !b.includes('Mixto')) return -1;
+            if (!a.includes('Mixto') && b.includes('Mixto')) return 1;
+            return a.localeCompare(b);
+        });
+        return ['Todas', ...sortedCats];
     }, []);
 
     const filteredFunds = useMemo(() => {
@@ -23,13 +190,17 @@ export function FundRadar() {
                 fund.manager.toLowerCase().includes(search.toLowerCase());
             const matchesCategory = activeCategory === 'Todas' || fund.category === activeCategory;
             return matchesSearch && matchesCategory;
-        }).sort((a, b) => a.volatility - b.volatility);
+        }).sort((a, b) => {
+            // Sort by risk (Monetary -> RF -> Mixed -> Equity) then by volatility
+            if (a.risk !== b.risk) return a.risk - b.risk;
+            return a.volatility - b.volatility;
+        });
     }, [search, activeCategory]);
 
     const getRiskColor = (risk: number) => {
-        if (risk <= 2) return '#10b981'; // Green (Bajo)
-        if (risk <= 4) return '#f59e0b'; // Amber (Medio)
-        return '#ef4444'; // Red (Alto)
+        if (risk <= 2) return '#10b981';
+        if (risk <= 4) return '#f59e0b';
+        return '#ef4444';
     };
 
     return (
@@ -44,24 +215,33 @@ export function FundRadar() {
                 </div>
                 <h1>Radar de Fondos de Inversión</h1>
                 <p>
-                    Una selección curada de los mejores instrumentos por categoría.
-                    Listados de <strong>menor a mayor volatilidad</strong> para que elijas según tu perfil.
+                    Usa esta herramienta para comparar instrumentos de inversión reales.
+                    Ordenados por perfil de riesgo y volatilidad.
                 </p>
                 <div className="fund-radar__srri-info">
                     <Info size={14} />
-                    <span>El <strong>SRRI</strong> es el Indicador Sintético de Riesgo (1-7). A mayor número, más riesgo pero más potencial de retorno.</span>
+                    <span>El <strong>SRRI</strong> (1-7) indica el riesgo histórico. A mayor número, más volatilidad.</span>
                 </div>
             </header>
 
             <div className="fund-radar__filters">
-                <div className="fund-radar__search">
-                    <Search className="search-icon" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Buscar por nombre, ISIN o gestora..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
+                <div className="fund-radar__search-row">
+                    <div className="fund-radar__search">
+                        <Search className="search-icon" size={20} />
+                        <input
+                            type="text"
+                            placeholder="Buscar por nombre, ISIN o gestora..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+                    <button
+                        className={`expand-all-btn ${allExpanded ? 'active' : ''}`}
+                        onClick={() => setAllExpanded(!allExpanded)}
+                    >
+                        {allExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                        {allExpanded ? 'Colapsar Todos' : 'Expandir Todos'}
+                    </button>
                 </div>
 
                 <div className="fund-radar__categories">
@@ -82,133 +262,13 @@ export function FundRadar() {
 
             <div className="fund-radar__grid">
                 {filteredFunds.map(fund => (
-                    <div key={fund.id} className="fund-card">
-                        <div className="fund-card__header">
-                            <div className="fund-card__title-row">
-                                <span className="fund-card__category">{fund.category}</span>
-                                <div className="fund-card__risk" style={{ background: getRiskColor(fund.risk) }}>
-                                    Riesgo SRRI {fund.risk}
-                                </div>
-                            </div>
-                            <h3 className="fund-card__name">{fund.name}</h3>
-                            <div className="fund-card__meta">
-                                <div className="fund-card__isin">
-                                    <Landmark size={12} />
-                                    <span>{fund.isin}</span>
-                                </div>
-                                {fund.aum && (
-                                    <div className="fund-card__aum">
-                                        <BarChart3 size={12} />
-                                        <span>Patr: {fund.aum}</span>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-
-                        <div className="fund-card__body">
-                            {/* 1. Métricas de Riesgo y Eficiencia */}
-                            <div className="fund-card__metrics-section">
-                                <h4 className="section-title">Análisis de Riesgo</h4>
-                                <div className="fund-card__metrics-grid">
-                                    <div className="fund-stat fund-stat--highlight">
-                                        <span className="fund-stat__label">Volatilidad</span>
-                                        <span className="fund-stat__value">{fund.volatility}%</span>
-                                    </div>
-                                    <div className="fund-stat">
-                                        <span className="fund-stat__label">Máx. Caída</span>
-                                        <span className="fund-stat__value neg">{fund.maxDrawdown}%</span>
-                                    </div>
-                                    <div className="fund-stat">
-                                        <span className="fund-stat__label">Sharpe</span>
-                                        <span className="fund-stat__value">{fund.sharpe ?? '--'}</span>
-                                    </div>
-                                    <div className="fund-stat">
-                                        <span className="fund-stat__label">Costes (TER)</span>
-                                        <span className="fund-stat__value">{fund.ter}%</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* 2. Métricas de Renta Fija (Si aplican) */}
-                            {(fund.yieldToMaturity || fund.duration || fund.rating) && (
-                                <div className="fund-card__metrics-section fund-card__metrics-section--rf">
-                                    <h4 className="section-title">Métricas de Renta Fija</h4>
-                                    <div className="fund-card__metrics-grid">
-                                        <div className="fund-stat">
-                                            <span className="fund-stat__label">TIR (Yield)</span>
-                                            <span className="fund-stat__value pos">{fund.yieldToMaturity}%</span>
-                                        </div>
-                                        <div className="fund-stat">
-                                            <span className="fund-stat__label">Duración</span>
-                                            <span className="fund-stat__value">{fund.duration}y</span>
-                                        </div>
-                                        <div className="fund-stat">
-                                            <span className="fund-stat__label">Rating</span>
-                                            <span className="fund-stat__value">{fund.rating}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* 3. Rentabilidades Históricas */}
-                            <div className="fund-card__metrics-section">
-                                <h4 className="section-title">Rentabilidades</h4>
-                                <div className="fund-card__metrics-grid">
-                                    <div className="fund-stat">
-                                        <span className="fund-stat__label">1 Año</span>
-                                        <span className={`fund-stat__value ${fund.returns.y1 >= 0 ? 'pos' : 'neg'}`}>
-                                            {fund.returns.y1 > 0 ? '+' : ''}{fund.returns.y1}%
-                                        </span>
-                                    </div>
-                                    <div className="fund-stat">
-                                        <span className="fund-stat__label">3 Años (An.)</span>
-                                        <span className={`fund-stat__value ${fund.returns.y3 >= 0 ? 'pos' : 'neg'}`}>
-                                            {fund.returns.y3 > 0 ? '+' : ''}{fund.returns.y3}%
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* 4. Distribución / Asset Allocation */}
-                            {fund.allocation && fund.allocation.length > 0 && (
-                                <div className="fund-card__allocation">
-                                    <h4 className="section-title">Distribución Principal</h4>
-                                    <div className="allocation-bar">
-                                        {fund.allocation.map((item, i) => (
-                                            <div
-                                                key={i}
-                                                className="allocation-segment"
-                                                style={{ width: `${item.value}%`, backgroundColor: `hsl(${i * 60 + 200}, 70%, 45%)` }}
-                                                title={`${item.label}: ${item.value}%`}
-                                            />
-                                        ))}
-                                    </div>
-                                    <div className="allocation-labels">
-                                        {fund.allocation.slice(0, 3).map((item, i) => (
-                                            <span key={i} className="alloc-label">
-                                                {item.label} <strong>{item.value}%</strong>
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="fund-card__footer">
-                            <div className="fund-card__manager">
-                                <span className="manager-label">Gestora:</span>
-                                <span className="manager-name">{fund.manager}</span>
-                            </div>
-                            <a
-                                href={fund.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="fund-card__link"
-                            >
-                                Perfil Finect <ExternalLink size={14} />
-                            </a>
-                        </div>
-                    </div>
+                    <FundCard
+                        key={fund.id}
+                        fund={fund}
+                        getRiskColor={getRiskColor}
+                        isExpanded={allExpanded}
+                        onToggle={() => setAllExpanded(!allExpanded)}
+                    />
                 ))}
             </div>
 
@@ -221,11 +281,16 @@ export function FundRadar() {
 
             <footer className="fund-radar__footer-info">
                 <div className="info-box">
-                    <Info size={20} />
-                    <p>
-                        Los datos de rentabilidad y volatilidad son orientativos y se basan en registros históricos.
-                        Rentabilidades pasadas no garantizan rentabilidades futuras. Datos actualizados vía Finect.
-                    </p>
+                    <div className="info-icon-wrapper">
+                        <Info size={24} />
+                    </div>
+                    <div className="info-text">
+                        <p>
+                            Los datos se basan en registros históricos de Finect.
+                            Usa las métricas de <strong>Sharpe</strong> y <strong>Drawdown</strong> para entender mejor la eficiencia de cada gestor.
+                        </p>
+                        <span className="disclaimer">Rentabilidades pasadas no garantizan retornos futuros.</span>
+                    </div>
                 </div>
             </footer>
         </div>

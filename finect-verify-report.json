@@ -1,0 +1,82 @@
+[
+  {
+    "id": "dws-floating-rate",
+    "ok": true,
+    "status": 200,
+    "isinExpected": "LU0034353002",
+    "nameExpected": "DWS Floating Rate Notes LC",
+    "problems": []
+  },
+  {
+    "id": "groupama-tresorerie",
+    "ok": true,
+    "status": 200,
+    "isinExpected": "FR0000989626",
+    "nameExpected": "Groupama Trésorerie IC",
+    "problems": []
+  },
+  {
+    "id": "abaco-rf-mixta",
+    "ok": true,
+    "status": 200,
+    "isinExpected": "ES0140072010",
+    "nameExpected": "Ábaco Renta Fija Mixta Global R FI",
+    "problems": []
+  },
+  {
+    "id": "carmignac-credit",
+    "ok": true,
+    "status": 200,
+    "isinExpected": "LU1623762843",
+    "nameExpected": "Carmignac Portfolio Credit A EUR Acc",
+    "problems": []
+  },
+  {
+    "id": "fidelity-msci-world",
+    "ok": true,
+    "status": 200,
+    "isinExpected": "IE00BYX5NX33",
+    "nameExpected": "Fidelity MSCI World Index Fund P-ACC-EUR",
+    "problems": []
+  },
+  {
+    "id": "vanguard-emerging",
+    "ok": true,
+    "status": 200,
+    "isinExpected": "IE0031786142",
+    "nameExpected": "Vanguard Emerging Markets Stock Index Fund Inv EUR Acc",
+    "problems": []
+  },
+  {
+    "id": "myinvestor-value",
+    "ok": true,
+    "status": 200,
+    "isinExpected": "ES0165243025",
+    "nameExpected": "MyInvestor Value C FI",
+    "problems": []
+  },
+  {
+    "id": "cobas-internacional",
+    "ok": true,
+    "status": 200,
+    "isinExpected": "ES0119199000",
+    "nameExpected": "Cobas Internacional C FI",
+    "problems": []
+  },
+  {
+    "id": "fidelity-global-technology",
+    "ok": true,
+    "status": 200,
+    "isinExpected": "LU1213836080",
+    "nameExpected": "Fidelity Funds - Global Technology Fund A-Acc-EUR",
+    "problems": []
+  },
+  {
+    "id": "fidelity-sp500-index",
+    "ok": true,
+    "status": 200,
+    "isinExpected": "IE00BYX5MX67",
+    "nameExpected": "Fidelity S&P 500 Index Fund EUR P Acc",
+    "problems": []
+  }
+]

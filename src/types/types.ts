@@ -243,8 +243,9 @@ export interface Fund {
     risk: number; // SRRI 1-7
     ter: number; // Fixed/Management fees
     returns: {
+        ytd: number;
         y1: number;
-        y3: number;
+        y3?: number;
         y5?: number;
     };
     volatility: number;

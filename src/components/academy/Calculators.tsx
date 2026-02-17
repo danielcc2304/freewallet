@@ -150,16 +150,25 @@ export function Calculators() {
                 <h3>¿Qué calculadora debería usar primero?</h3>
                 <div className="calculators__recommendations">
                     <div className="calculators__recommendation">
-                        <strong>🟢 Principiante:</strong>
-                        <p>Empieza con <strong>Interés Compuesto</strong> para entender el poder del crecimiento exponencial.</p>
+                        <div className="recommendation-header">
+                            <span className="dot dot--green"></span>
+                            <strong>Paso 1: Seguridad Financiera</strong>
+                        </div>
+                        <p>Antes de invertir, usa el <strong>Fondo de Emergencia</strong> para asegurar tu base y el de <strong>Interés Compuesto</strong> para entender por qué debes empezar cuanto antes.</p>
                     </div>
                     <div className="calculators__recommendation">
-                        <strong>🟡 Intermedio:</strong>
-                        <p>Salta a <strong>FIRE</strong> o <strong>Jubilación</strong> si ya tienes un colchón y quieres objetivos claros.</p>
+                        <div className="recommendation-header">
+                            <span className="dot dot--yellow"></span>
+                            <strong>Paso 2: Objetivos de Vida</strong>
+                        </div>
+                        <p>Con tus finanzas bajo control, usa <strong>FIRE</strong> o <strong>Jubilación</strong> para definir tu meta final y el ahorro mensual necesario para alcanzarla.</p>
                     </div>
                     <div className="calculators__recommendation">
-                        <strong>🔴 Avanzado:</strong>
-                        <p>Usa <strong>Impacto Fiscal</strong> y <strong>Simulador de Cartera</strong> para optimizar tu estrategia.</p>
+                        <div className="recommendation-header">
+                            <span className="dot dot--red"></span>
+                            <strong>Paso 3: Optimización y Renta Fija</strong>
+                        </div>
+                        <p>Usa el <strong>Simulador de Cartera</strong> y el de <strong>Impacto Fiscal</strong> para pulir tu estrategia. Si inviertes en renta fija, la <strong>Calculadora de Bonos</strong> es clave para conocer tu rentabilidad real (YTM).</p>
                     </div>
                 </div>
             </div>

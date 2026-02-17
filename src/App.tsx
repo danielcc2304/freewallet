@@ -30,6 +30,7 @@ import { AssetBonds } from './components/academy/assets/AssetBonds';
 import { AssetCash } from './components/academy/assets/AssetCash';
 import { AssetREITs } from './components/academy/assets/AssetREITs';
 import { AssetCrypto } from './components/academy/assets/AssetCrypto';
+import { NotFound } from './pages/NotFound';
 import './index.css';
 
 function App() {
@@ -74,11 +75,17 @@ function App() {
             <Route path="emergency-fund" element={<EmergencyFundCalculator />} />
             <Route path="taxes" element={<TaxSimulator />} />
             <Route path="asset-allocation" element={<AssetAllocationSim />} />
+
+            {/* Academy 404 */}
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Route>
 
         {/* Terms & Conditions - outside main layout */}
         <Route path="/terms" element={<TermsAndConditions />} />
+
+        {/* Global 404 */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

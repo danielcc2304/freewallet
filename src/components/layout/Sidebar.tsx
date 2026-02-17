@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, Link, useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import {
     LayoutDashboard,
@@ -141,6 +141,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 </nav>
 
                 <div className="sidebar__footer">
+                    <Link to="/terms" className="sidebar__terms-link" onClick={closeMobileSidebar}>
+                        Términos y Condiciones
+                    </Link>
                     <div className="sidebar__version">v2.3.1</div>
                 </div>
             </aside>

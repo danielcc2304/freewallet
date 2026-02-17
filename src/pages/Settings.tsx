@@ -1,4 +1,5 @@
 import { Sun, Moon, Monitor, Trash2, Database, Info } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardContent } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { useTheme } from '../context/ThemeContext';
@@ -160,6 +161,11 @@ export function Settings() {
                         <p className="about-api">
                             Datos de mercado proporcionados por Alpha Vantage y Finnhub.
                         </p>
+                        <div className="about-links">
+                            <Link to="/terms" className="settings__terms-link">
+                                Ver Términos y Condiciones de Uso
+                            </Link>
+                        </div>
                     </div>
                 </CardContent>
             </Card>

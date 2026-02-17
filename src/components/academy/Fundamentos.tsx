@@ -47,6 +47,48 @@ export function Fundamentos() {
                     </p>
                     <span className="fundamentos__card-badge">🟢 Principiante</span>
                 </Link>
+
+                <Link to="/academy/resources" className="fundamentos__card">
+                    <div className="fundamentos__card-icon">🎁</div>
+                    <h3 className="fundamentos__card-title">Recursos y Guías</h3>
+                    <p className="fundamentos__card-description">
+                        Selección de herramientas externas, libros recomendados
+                        y material descargable para tu formación.
+                    </p>
+                    <span className="fundamentos__card-badge">🟡 Intermedio</span>
+                </Link>
+
+                <Link to="/academy/inflation-predator" className="fundamentos__card">
+                    <div className="fundamentos__card-icon">👻</div>
+                    <h3 className="fundamentos__card-title">Depredador de la Inflación</h3>
+                    <p className="fundamentos__card-description">
+                        Visualiza cómo la inflación devora tus ahorros si no los inviertes.
+                        Un simulador visual de poder adquisitivo.
+                    </p>
+                    <span className="fundamentos__card-badge">🟢 Principiante</span>
+                </Link>
+
+                <Link to="/academy/market-timing-game" className="fundamentos__card">
+                    <div className="fundamentos__card-icon">🎮</div>
+                    <h3 className="fundamentos__card-title">Reto: Timing vs DCA</h3>
+                    <p className="fundamentos__card-description">
+                        ¿Crees que puedes ganarle al mercado? Intenta comprar barato
+                        y vender caro en este simulador en tiempo real.
+                    </p>
+                    <span className="fundamentos__card-badge">🟡 Juego</span>
+                </Link>
+            </div>
+
+            <div className="fundamentos__interact">
+                <div className="interact-card">
+                    <div className="interact-card__content">
+                        <h3>🎯 ¿No sabes por dónde empezar?</h3>
+                        <p>Realiza nuestro test interactivo para descubrir tu perfil de riesgo y obtener una recomendación de cartera personalizada.</p>
+                        <Link to="/academy/investor-profile-test" className="fundamentos__card-badge fundamentos__card-badge--interact">
+                            Empezar Test de Perfil →
+                        </Link>
+                    </div>
+                </div>
             </div>
 
             <div className="fundamentos__next">
@@ -58,11 +100,11 @@ export function Fundamentos() {
                     <Link to="/academy/timeline" className="fundamentos__next-link">
                         🚀 Tu Journey como Inversor
                     </Link>
-                    <Link to="/academy/crisis" className="fundamentos__next-link">
-                        📊 Crisis Históricas
+                    <Link to="/academy/portfolio" className="fundamentos__next-link">
+                        🏗️ Estrategia y Cartera
                     </Link>
-                    <Link to="/academy/scenarios" className="fundamentos__next-link">
-                        🎯 Escenarios Prácticos
+                    <Link to="/academy/calculators" className="fundamentos__next-link">
+                        🧮 Calculadoras
                     </Link>
                 </div>
             </div>

@@ -1,0 +1,105 @@
+.not-found {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 70vh;
+    padding: 2rem;
+}
+
+.not-found__container {
+    max-width: 500px;
+    text-align: center;
+    background: var(--bg-secondary);
+    padding: 3.5rem;
+    border-radius: 24px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow-xl);
+}
+
+.not-found__icon {
+    width: 120px;
+    height: 120px;
+    background: rgba(59, 130, 246, 0.1);
+    color: #3b82f6;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 2rem;
+    animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+}
+
+.not-found__title {
+    font-size: 3rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.not-found__subtitle {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 1rem;
+}
+
+.not-found__description {
+    font-size: 1.125rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 2.5rem;
+}
+
+.not-found__actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.not-found__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem 2rem;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.not-found__button--primary {
+    background: var(--accent-primary);
+    color: white;
+    border: none;
+}
+
+.not-found__button--primary:hover {
+    transform: translateY(-2px);
+    background: var(--accent-secondary);
+    box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.3);
+}
+
+.not-found__button--secondary {
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.not-found__button--secondary:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent-primary);
+}

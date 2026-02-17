@@ -30,6 +30,11 @@ import { AssetBonds } from './components/academy/assets/AssetBonds';
 import { AssetCash } from './components/academy/assets/AssetCash';
 import { AssetREITs } from './components/academy/assets/AssetREITs';
 import { AssetCrypto } from './components/academy/assets/AssetCrypto';
+import { ValuationGuide } from './components/academy/ValuationGuide';
+import { InvestorProfileTest } from './components/academy/InvestorProfileTest';
+import { InflationPredator } from './components/academy/InflationPredator';
+import { MarketTimingGame } from './components/academy/MarketTimingGame';
+import { NotFound } from './pages/NotFound';
 import './index.css';
 
 function App() {
@@ -69,16 +74,34 @@ function App() {
             <Route path="assets/reits" element={<AssetREITs />} />
             <Route path="assets/crypto" element={<AssetCrypto />} />
 
+            {/* Valuation Guide */}
+            <Route path="valuation" element={<ValuationGuide />} />
+
+            {/* Investor Profile Test */}
+            <Route path="investor-profile-test" element={<InvestorProfileTest />} />
+
+            {/* Inflation Predator */}
+            <Route path="inflation-predator" element={<InflationPredator />} />
+
+            {/* Market Timing Game */}
+            <Route path="market-timing-game" element={<MarketTimingGame />} />
+
             {/* Calculator specific sub-pages */}
             <Route path="retirement" element={<RetirementCalculator />} />
             <Route path="emergency-fund" element={<EmergencyFundCalculator />} />
             <Route path="taxes" element={<TaxSimulator />} />
             <Route path="asset-allocation" element={<AssetAllocationSim />} />
+
+            {/* Academy 404 */}
+            <Route path="*" element={<NotFound />} />
           </Route>
         </Route>
 
         {/* Terms & Conditions - outside main layout */}
         <Route path="/terms" element={<TermsAndConditions />} />
+
+        {/* Global 404 */}
+        <Route path="*" element={<NotFound />} />
       </Routes>
     </BrowserRouter>
   );

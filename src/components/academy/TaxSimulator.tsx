@@ -148,7 +148,7 @@ export function TaxSimulator() {
                     </div>
 
                     <div className="tax-sim__brackets">
-                        <h4 className="tax-sim__brackets-title">Tramos IRPF 2024</h4>
+                        <h4 className="tax-sim__brackets-title">Tramos IRPF 2026</h4>
                         <ul className="tax-sim__brackets-list">
                             <li>0 - 6.000€: <span>19%</span></li>
                             <li>6.000 - 50.000€: <span>21%</span></li>

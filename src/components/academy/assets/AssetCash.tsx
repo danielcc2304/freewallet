@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import {
     Wallet, ArrowLeft, Globe, CheckCircle2, AlertTriangle,
-    Lightbulb, BarChart3, Clock, Shield
+    Lightbulb, BarChart3, Clock, Shield, Activity
 } from 'lucide-react';
 import './AssetPage.css';
 
@@ -148,6 +148,25 @@ export function AssetCash() {
                                 <span className="inflation-bar__value">{item.value.toLocaleString('es-ES')}€</span>
                             </div>
                         ))}
+                    </div>
+                </div>
+
+                <div className="asset-page__callout asset-page__callout--warning" style={{ marginTop: '2rem' }}>
+                    <Activity size={24} />
+                    <div>
+                        <strong>¿Quieres ver cómo afecta la inflación a tus propios ahorros?</strong>
+                        <p>
+                            Usa nuestro simulador interactivo para calcular cuánto poder adquisitivo perderás en el tiempo si no inviertes tu dinero.
+                        </p>
+                        <Link to="/academy/inflation-predator" className="asset-page__cta-link" style={{
+                            display: 'inline-block',
+                            marginTop: '0.5rem',
+                            color: 'var(--accent-primary)',
+                            fontWeight: '600',
+                            textDecoration: 'none'
+                        }}>
+                            Ir al Depredador de la Inflación →
+                        </Link>
                     </div>
                 </div>
             </section>

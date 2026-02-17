@@ -1,4 +1,212 @@
-import type { CrisisData, QuizQuestion, TimelinePhase, RiskProfileQuestion, GlossaryTerm, Scenario } from '../types/types';
+import type { CrisisData, QuizQuestion, TimelinePhase, RiskProfileQuestion, GlossaryTerm, Scenario, Fund } from '../types/types';
+
+// ... (existing code)
+
+// ===== BEST FUNDS SELECTION =====
+export const BEST_FUNDS: Fund[] = [
+    {
+        id: 'dws-floating-rate',
+        name: "DWS Deutsche Floating Rate Notes LC",
+        isin: "LU0034353002",
+        category: "Monetario / RF Corto Plazo",
+        manager: "DWS (Deutsche Bank)",
+        risk: 1,
+        ter: 0.15,
+        returns: { y1: 4.10, y3: 2.20, y5: 1.50 },
+        volatility: 0.45,
+        sharpe: 2.15,
+        maxDrawdown: -0.35,
+        aum: "1.140M €",
+        duration: 0.12,
+        rating: "A-",
+        yieldToMaturity: 3.90,
+        allocation: [
+            { label: "Efec. y Float.", value: 92 },
+            { label: "Deuda Corp.", value: 8 }
+        ],
+        description: "Fondo que invierte en bonos de interés flotante. Muy baja volatilidad y gran alternativa al cash puro.",
+        link: "https://www.finect.com/fondos-inversion/LU0034353002-Dws_floating_rate_notes_lc"
+    },
+    {
+        id: 'groupama-tresorerie',
+        name: "Groupama Trésorerie IC",
+        isin: "FR0000989626",
+        category: "Monetario",
+        manager: "Groupama Asset Management",
+        risk: 1,
+        ter: 0.08,
+        returns: { y1: 3.95, y3: 2.15, y5: 1.45 },
+        volatility: 0.15,
+        sharpe: 2.80,
+        maxDrawdown: -0.12,
+        aum: "5.450M €",
+        duration: 0.08,
+        rating: "A",
+        yieldToMaturity: 3.85,
+        allocation: [
+            { label: "Mercado Monetario", value: 100 }
+        ],
+        description: "Uno de los fondos monetarios más consistentes del mercado europeo. Ideal para el fondo de emergencia.",
+        link: "https://www.finect.com/fondos-inversion/FR0000989626-Groupama_tresorerie_ic"
+    },
+    {
+        id: 'abaco-rf-mixta',
+        name: "Ábaco Renta Fija Mixta Global FI",
+        isin: "ES0105151007",
+        category: "Mixto Defensivo",
+        manager: "Ábaco Capital",
+        risk: 3,
+        ter: 1.25,
+        returns: { y1: 6.80, y3: 1.20, y5: 1.40 },
+        volatility: 4.80,
+        sharpe: 0.42,
+        maxDrawdown: -8.40,
+        aum: "142M €",
+        duration: 3.20,
+        rating: "BBB-",
+        yieldToMaturity: 5.40,
+        allocation: [
+            { label: "Renta Fija", value: 75 },
+            { label: "Acciones", value: 20 },
+            { label: "Caja", value: 5 }
+        ],
+        description: "Fondo mixto que combina renta fija global con una pequeña exposición a renta variable para potenciar retornos.",
+        link: "https://www.finect.com/fondos-inversion/ES0105151007-Abaco_renta_fija_mixta_global_fi"
+    },
+    {
+        id: 'carmignac-credit',
+        name: "Carmignac Portfolio Credit A EUR Acc",
+        isin: "LU1623762843",
+        category: "Renta Fija Corporativa",
+        manager: "Carmignac Gestion",
+        risk: 3,
+        ter: 1.15,
+        returns: { y1: 10.20, y3: 2.10, y5: 2.80 },
+        volatility: 5.90,
+        sharpe: 0.85,
+        maxDrawdown: -12.50,
+        aum: "1.230M €",
+        duration: 2.80,
+        rating: "BB+",
+        yieldToMaturity: 6.80,
+        allocation: [
+            { label: "Bonos Corp.", value: 85 },
+            { label: "Deuda Púb.", value: 10 },
+            { label: "Liquidez", value: 5 }
+        ],
+        description: "Fondo de renta fija flexible especializado en crédito corporativo global.",
+        link: "https://www.finect.com/fondos-inversion/LU1623762843-Carmignac_portfolio_credit_a_eur_acc"
+    },
+    {
+        id: 'fidelity-msci-world',
+        name: "Fidelity MSCI World Index P-ACC-EUR",
+        isin: "IE00BYX5NX33",
+        category: "Renta Variable Pasiva",
+        manager: "Fidelity International",
+        risk: 6,
+        ter: 0.12,
+        returns: { y1: 19.80, y3: 11.20, y5: 12.80 },
+        volatility: 14.20,
+        sharpe: 0.82,
+        maxDrawdown: -24.50,
+        aum: "12.450M €",
+        allocation: [
+            { label: "EE.UU.", value: 70 },
+            { label: "Europa", value: 15 },
+            { label: "Japón", value: 6 },
+            { label: "Otros", value: 9 }
+        ],
+        description: "Uno de los fondos indexados al MSCI World más baratos y eficientes para diversificación global.",
+        link: "https://www.finect.com/fondos-inversion/IE00BYX5NX33-Fidelity_msci_world_index_p_acc_eur"
+    },
+    {
+        id: 'vanguard-emerging',
+        name: "Vanguard Emerging Markets Stock Index EUR",
+        isin: "IE0031786142",
+        category: "Renta Variable Pasiva",
+        manager: "Vanguard",
+        risk: 6,
+        ter: 0.23,
+        returns: { y1: 8.50, y3: -1.80, y5: 2.40 },
+        volatility: 16.50,
+        sharpe: 0.25,
+        maxDrawdown: -28.20,
+        aum: "8.120M €",
+        allocation: [
+            { label: "China", value: 25 },
+            { label: "India", value: 18 },
+            { label: "Taiwán", value: 15 },
+            { label: "Otros", value: 42 }
+        ],
+        description: "Exposición a los mercados emergentes (China, India, Brasil...) con los costes mínimos de Vanguard.",
+        link: "https://www.finect.com/fondos-inversion/IE0031786142-Vanguard_emerging_markets_stock_index_inv_eur"
+    },
+    {
+        id: 'myinvestor-value',
+        name: "MyInvestor Value FI",
+        isin: "ES0165181001",
+        category: "Renta Variable Activa (Value)",
+        manager: "MyInvestor / Andbank",
+        risk: 6,
+        ter: 0.70,
+        returns: { y1: 12.40, y3: 9.80, y5: undefined },
+        volatility: 17.20,
+        sharpe: 0.68,
+        maxDrawdown: -18.40,
+        aum: "85M €",
+        allocation: [
+            { label: "Europa", value: 45 },
+            { label: "EE.UU.", value: 35 },
+            { label: "Caja", value: 20 }
+        ],
+        description: "Fondo de gestión activa que busca empresas infravaloradas por el mercado siguiendo la filosofía Value.",
+        link: "https://www.finect.com/fondos-inversion/ES0165181001-Myinvestor_value_fi"
+    },
+    {
+        id: 'cobas-internacional',
+        name: "Cobas Internacional FI",
+        isin: "ES0119199000",
+        category: "Renta Variable Activa (Value)",
+        manager: "Cobas Asset Management",
+        risk: 6,
+        ter: 1.75,
+        returns: { y1: 15.60, y3: 12.40, y5: 4.80 },
+        volatility: 18.50,
+        sharpe: 0.72,
+        maxDrawdown: -45.20,
+        aum: "542M €",
+        allocation: [
+            { label: "Europa", value: 55 },
+            { label: "Asia", value: 20 },
+            { label: "Otros", value: 25 }
+        ],
+        description: "Fondo de autor liderado por Francisco García Paramés. Cartera global de empresas con alto margen de seguridad.",
+        link: "https://www.finect.com/fondos-inversion/ES0119199000-Cobas_internacional_fi"
+    },
+    {
+        id: 'pictet-china',
+        name: "Pictet China Index P EUR",
+        isin: "LU0255977455",
+        category: "Renta Variable Activa",
+        manager: "Pictet Asset Management",
+        risk: 7,
+        ter: 0.60,
+        returns: { y1: -8.20, y3: -18.50, y5: -5.40 },
+        volatility: 26.80,
+        sharpe: -0.45,
+        maxDrawdown: -52.40,
+        aum: "320M €",
+        allocation: [
+            { label: "Consumer Disc.", value: 30 },
+            { label: "Telecom", value: 20 },
+            { label: "Finance", value: 15 },
+            { label: "Tech", value: 15 },
+            { label: "Otros", value: 20 }
+        ],
+        description: "Fondo indexado para capturar el crecimiento del mercado chino. Riesgo alto debido a la volatilidad regional.",
+        link: "https://www.finect.com/fondos-inversion/LU0255977455-Pictet_china_index_p_eur"
+    }
+];
 
 // ===== CRISIS HISTORICAL DATA =====
 // Core static data with architecture ready for updates
@@ -345,6 +553,13 @@ export const GLOSSARY: GlossaryTerm[] = [
         definition: "Es el interés de un capital al que se van acumulando los intereses que produce para que generen otros nuevos. Es la fuerza más potente del universo según Einstein.",
         category: "Conceptos Básicos",
         relatedTerms: ["Rentabilidad", "Tiempo", "Capitalización"]
+    },
+    {
+        id: 'coste-oportunidad',
+        term: "Coste de Oportunidad",
+        definition: "Beneficio que se deja de percibir al elegir una opción de inversión en lugar de otra. En finanzas, suele referirse a la rentabilidad perdida por mantener el dinero en efectivo en lugar de invertirlo.",
+        category: "Conceptos Básicos",
+        relatedTerms: ["Riesgo", "Inflación", "Estrategia"]
     },
     {
         id: 'inflacion',

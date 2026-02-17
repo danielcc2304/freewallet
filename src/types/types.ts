@@ -233,3 +233,34 @@ export interface Scenario {
         content: string | ScenarioAction[];
     }[];
 }
+
+export interface Fund {
+    id: string;
+    name: string;
+    isin: string;
+    category: string;
+    manager: string;
+    risk: number; // SRRI 1-7
+    ter: number; // Fixed/Management fees
+    returns: {
+        y1: number;
+        y3: number;
+        y5?: number;
+    };
+    volatility: number;
+    sharpe?: number;
+    maxDrawdown?: number;
+    aum?: string; // Assets Under Management (e.g. "1.2B €")
+    // Fixed Income specifics
+    duration?: number;
+    rating?: string;
+    yieldToMaturity?: number;
+    // Allocation
+    allocation?: {
+        label: string;
+        value: number;
+    }[];
+    minInvestment?: string;
+    description?: string;
+    link?: string;
+}

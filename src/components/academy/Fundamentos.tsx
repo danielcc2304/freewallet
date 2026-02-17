@@ -77,6 +77,16 @@ export function Fundamentos() {
                     </p>
                     <span className="fundamentos__card-badge">🟡 Juego</span>
                 </Link>
+
+                <Link to="/academy/fund-radar" className="fundamentos__card">
+                    <div className="fundamentos__card-icon">🎯</div>
+                    <h3 className="fundamentos__card-title">Radar de Fondos</h3>
+                    <p className="fundamentos__card-description">
+                        Selección curada de los mejores fondos por categoría.
+                        ISIN, rentabilidades y análisis de costes.
+                    </p>
+                    <span className="fundamentos__card-badge">🟠 Selección</span>
+                </Link>
             </div>
 
             <div className="fundamentos__interact">

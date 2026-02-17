@@ -32,7 +32,7 @@ const ASSET_CLASSES = [
         color: '#10b981',
         desc: 'Préstamos a gobiernos o empresas. Actúan como el "seguro" de tu cartera, reduciendo la volatilidad y aportando estabilidad.',
         risk: 'Bajo/Medio',
-        return: '2-4% (histórico)',
+        return: '2-10% (histórico)',
         path: '/academy/assets/bonds'
     },
     {
@@ -41,7 +41,7 @@ const ASSET_CLASSES = [
         color: '#64748b',
         desc: 'Efectivo, cuentas remuneradas o fondos monetarios. Máxima seguridad y disponibilidad, pero riesgo de perder poder adquisitivo por inflación.',
         risk: 'Muy Bajo',
-        return: '0-4%',
+        return: '0-2%',
         path: '/academy/assets/cash'
     },
     {

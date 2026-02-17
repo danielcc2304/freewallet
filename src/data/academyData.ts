@@ -1,4 +1,221 @@
-import type { CrisisData, QuizQuestion, TimelinePhase, RiskProfileQuestion, GlossaryTerm, Scenario } from '../types/types';
+import type { CrisisData, QuizQuestion, TimelinePhase, RiskProfileQuestion, GlossaryTerm, Scenario, Fund } from '../types/types';
+
+// ===== BEST FUNDS SELECTION =====
+// Datos revisados en Finect (Feb 2026)
+
+export const BEST_FUNDS: Fund[] = [
+    {
+        id: "dws-floating-rate",
+        name: "DWS Floating Rate Notes LC",
+        isin: "LU0034353002",
+        category: "Monetario",
+        manager: "DWS Investment S.A.",
+        risk: 1,
+        ter: 0.26,
+        returns: { ytd: 0.34, y1: 2.67, y3: 3.75, y5: 2.13 },
+        volatility: 0.25,
+        sharpe: 2.34,
+        maxDrawdown: -0.07,
+        aum: "5.760,2 M€ (clase) / 11.234,2 M€ (fondo)",
+        description: "Fondo de renta fija ultra corto plazo con exposición a instrumentos de tipo flotante.",
+        link: "https://www.finect.com/fondos-inversion/LU0034353002-Dws_floating_rate_notes_lc",
+    },
+    {
+        id: "groupama-tresorerie",
+        name: "Groupama Trésorerie IC",
+        isin: "FR0000989626",
+        category: "Monetario",
+        manager: "Groupama Asset Management",
+        risk: 1,
+        ter: 0.15,
+        returns: { ytd: 0.24, y1: 2.27, y3: 3.24, y5: 1.90 },
+        volatility: 0.11,
+        sharpe: 7.87,
+        maxDrawdown: -0.02,
+        aum: "4.688,8 M€ (clase) / 7.102,5 M€ (fondo)",
+        description: "Monetario EUR. Datos de ratios y comisiones según Finect/Morningstar.",
+        link: "https://www.finect.com/fondos-inversion/FR0000989626-Groupama_tresorerie_ic",
+    },
+    {
+        id: "abaco-rf-mixta",
+        name: "Ábaco Renta Fija Mixta Global R FI",
+        isin: "ES0140072010",
+        category: "Mixto Defensivo",
+        manager: "Ábaco Capital SGIIC",
+        risk: 3,
+        ter: 1.03,
+        returns: { ytd: 2.84, y1: 8.33, y3: 6.53, y5: 7.41 },
+        volatility: 2.55,
+        sharpe: 1.7,
+        maxDrawdown: -0.95,
+        aum: "16,7 M€ (clase) / 109,4 M€ (fondo)",
+        description: "Mixto defensivo global. ISIN corregido a la clase que aparece en Finect.",
+        link: "https://www.finect.com/fondos-inversion/ES0140072010-Abaco_renta_fija_mixta_global_r_fi",
+    },
+    {
+        id: "carmignac-credit",
+        name: "Carmignac Portfolio Credit A EUR Acc",
+        isin: "LU1623762843",
+        category: "Renta Fija Corporativa",
+        manager: "Carmignac Gestion Luxembourg S.A.",
+        risk: 2,
+        ter: 1.2,
+        returns: { ytd: 1.18, y1: 5.86, y3: 7.71, y5: 2.68 },
+        volatility: 2.6,
+        sharpe: 1.68,
+        maxDrawdown: -1.1,
+        aum: "1.414,7 M€ (clase) / 2.610,9 M€ (fondo)",
+        description: "RF flexible centrada en crédito. Ratios/fees y patrimonio según Finect.",
+        link: "https://www.finect.com/fondos-inversion/LU1623762843-Carmignac_pf_credit_a_eur_acc",
+    },
+    {
+        id: "fidelity-msci-world",
+        name: "Fidelity MSCI World Index Fund P-ACC-EUR",
+        isin: "IE00BYX5NX33",
+        category: "Renta Variable Pasiva",
+        manager: "FIL Investment Management (Luxembourg) S.A., Ireland Branch",
+        risk: 6,
+        ter: 0.12,
+        returns: { ytd: 0.96, y1: 3.26, y3: 14.81, y5: 11.98 },
+        volatility: 13.32,
+        sharpe: 0.39,
+        maxDrawdown: -12.49,
+        aum: "1.531,1 M€ (clase) / 2.305,5 M€ (fondo)",
+        description: "Indexado MSCI World. Ojo: ratios de Finect son del fondo (no de tu broker).",
+        link: "https://www.finect.com/fondos-inversion/IE00BYX5NX33-Fidelity_msci_world_index_eur_p_acc",
+    },
+    {
+        id: "vanguard-emerging",
+        name: "Vanguard Emerging Markets Stock Index Fund Inv EUR Acc",
+        isin: "IE0031786142",
+        category: "Renta Variable Pasiva",
+        manager: "Vanguard Group (Ireland) Limited",
+        risk: 6,
+        ter: 0.23,
+        returns: { ytd: 9.71, y1: 25.23, y3: 13.95, y5: 4.41 },
+        volatility: 12.48,
+        sharpe: 1.19,
+        maxDrawdown: -6.95,
+        aum: "377,6 M€ (clase) / 15.790,0 M€ (fondo)",
+        description: "Indexado EM. Datos de ratios/patrimonio según Finect.",
+        link: "https://www.finect.com/fondos-inversion/IE0031786142-Vanguard_emerg_mkts_stk_idx_inv_eur_acc",
+    },
+    {
+        id: "myinvestor-value",
+        name: "MyInvestor Value C FI",
+        isin: "ES0165243025",
+        category: "Renta Variable Activa",
+        manager: "Andbank Wealth Management SGIIC",
+        risk: 5,
+        ter: 1.49,
+        returns: { ytd: 6.39, y1: 19.30, y3: undefined, y5: undefined },
+        volatility: 8.03,
+        sharpe: 1.98,
+        maxDrawdown: -3.94,
+        aum: "27,6 M€ (clase/fondo)",
+        description: "ISIN corregido: ES0165181001 no coincide en Finect. Esta clase (C) sí aparece.",
+        link: "https://www.finect.com/fondos-inversion/ES0165243025-Myinvestor_value_c_fi",
+    },
+    {
+        id: "cobas-internacional",
+        name: "Cobas Internacional C FI",
+        isin: "ES0119199000",
+        category: "Renta Variable Activa",
+        manager: "Cobas Asset Management SGIIC S.A.",
+        risk: 5,
+        ter: 1.62,
+        returns: { ytd: 11.34, y1: 37.30, y3: 20.55, y5: 20.40 },
+        volatility: 10.13,
+        sharpe: 2.11,
+        maxDrawdown: -3.5,
+        aum: "119,0 M€ (clase) / 926,2 M€ (fondo)",
+        description: "Value global small/mid según categorización Finect/Morningstar.",
+        link: "https://www.finect.com/fondos-inversion/ES0119199000-Cobas_internacional_c_fi",
+    },
+    {
+        id: "fidelity-global-technology",
+        name: "Fidelity Funds - Global Technology Fund A-Acc-EUR",
+        isin: "LU1213836080",
+        category: "Renta Variable Activa",
+        manager: "Fidelity (FIL Inv Mgmt (Lux) S.A.)",
+        risk: 6,
+        ter: 1.89,
+        returns: { ytd: -1.14, y1: 4.88, y3: 17.64, y5: 12.70 },
+        volatility: 18.16,
+        sharpe: 0.49,
+        maxDrawdown: -15.30,
+        aum: "3.613,4 M€ (clase) / 28.367,7 M€ (fondo)",
+        description: "Renta variable global centrada en tecnología; no indexado. Datos Finect/Morningstar.",
+        link: "https://www.finect.com/fondos-inversion/LU1213836080-Fidelity_global_technology_aacceur",
+    },
+    {
+        id: "fidelity-sp500-index",
+        name: "Fidelity S&P 500 Index Fund EUR P Acc",
+        isin: "IE00BYX5MX67",
+        category: "Renta Variable Pasiva",
+        manager: "FIL Investment Management (Luxembourg) S.A., Ireland Branch",
+        risk: 6,
+        ter: 0.06,
+        returns: { ytd: -0.93, y1: -0.73, y3: 15.44, y5: 13.31 },
+        volatility: 15.43,
+        sharpe: 0.16,
+        maxDrawdown: -15.52,
+        aum: "1.069,0 M€ (clase) / 1.646,3 M€ (fondo)",
+        description: "Indexado al S&P 500 (clase EUR P Acc). Datos Finect/Morningstar.",
+        link: "https://www.finect.com/fondos-inversion/IE00BYX5MX67-Fidelity_sp_500_index_eur_p_acc",
+    },
+    {
+        id: "carmignac-securite",
+        name: "Carmignac Sécurité AW EUR Acc",
+        isin: "FR0010149120",
+        category: "Renta Fija Corto Plazo",
+        manager: "Carmignac Gestion",
+        risk: 3,
+        ter: 1.11,
+        returns: {
+            ytd: 0.56,
+            y1: 2.23,
+            y3: 3.57,
+            y5: 1.37
+        },
+        volatility: 1.61,
+        sharpe: 0.56,
+        maxDrawdown: -1.23,
+        aum: "4.956,7 M€ (clase) / 5.226,9 M€ (fondo)",
+        duration: undefined,
+        rating: undefined,
+        yieldToMaturity: undefined,
+        allocation: [], // Puedes completar si quieres desglose de cartera
+        description: "Fondo de renta fija diversificada de corto plazo que busca rendimiento superior a su benchmark con volatilidad contenida.",
+        link: "https://www.finect.com/fondos-inversion/FR0010149120-Carmignac_securite_aw_eur_acc"
+    },
+    {
+        id: "neuberger-short-duration",
+        name: "Neuberger Berman Short Duration Euro Bond Fund EUR I2 Acc",
+        isin: "IE00BKLC3S38",
+        category: "Renta Fija Corto Plazo",
+        manager: "Neuberger Berman Asset Management Ireland Limited",
+        risk: 2,
+        ter: 0.00,
+        returns: {
+            ytd: 0.86,
+            y1: 3.94,
+            y3: 5.68,
+            y5: 2.66
+        },
+        volatility: 1.40,
+        sharpe: 2.17,
+        maxDrawdown: -0.18,
+        aum: "111,8 M€ (clase) / 3.812,8 M€ (fondo)",
+        duration: undefined,
+        rating: undefined,
+        yieldToMaturity: undefined,
+        allocation: [], // Puedes completar si quieres desglose
+        description: "Fondo de renta fija de duración corta en euros con gestión activa, buscando superar el índice Bloomberg Euro Agg 1-3Y.",
+        link: "https://www.finect.com/fondos-inversion/IE00BKLC3S38-Neuberger_berman_ultr_st_er_bd_euri2acc"
+    }
+];
+
 
 // ===== CRISIS HISTORICAL DATA =====
 // Core static data with architecture ready for updates
@@ -10,7 +227,7 @@ export const CRISIS_DATA: Record<number, CrisisData> = {
         monthsDown: 17,
         monthsRecovery: 49,
         return5y: 95.5, // S&P 500 return 5 years after bottom (Mar 2009 - Mar 2014)
-        description: "Colapso del mercado inmobiliario y crisis bancaria. Mayor caída desde la Gran Depresión."
+        description: "Colapso del mercado inmobiliario bancario por crisis de hipotecas subprime. Mayor caída desde la Gran Depresión."
     },
     2020: {
         year: 2020,
@@ -347,6 +564,13 @@ export const GLOSSARY: GlossaryTerm[] = [
         relatedTerms: ["Rentabilidad", "Tiempo", "Capitalización"]
     },
     {
+        id: 'coste-oportunidad',
+        term: "Coste de Oportunidad",
+        definition: "Beneficio que se deja de percibir al elegir una opción de inversión en lugar de otra. En finanzas, suele referirse a la rentabilidad perdida por mantener el dinero en efectivo en lugar de invertirlo.",
+        category: "Conceptos Básicos",
+        relatedTerms: ["Riesgo", "Inflación", "Estrategia"]
+    },
+    {
         id: 'inflacion',
         term: "Inflación",
         definition: "Proceso económico provocado por el desequilibrio existente entre la producción y la demanda; causa una subida continuada de los precios de la mayor parte de los productos y servicios.",
@@ -488,7 +712,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     },
     {
         id: 'chicharro',
-        term: "Chicharro",
+        term: "Chicharro (Penny Stock)",
         definition: "Acción de baja capitalización, poca liquidez y alta volatilidad. Suele moverse más por especulación que por fundamentos económicos.",
         category: "Bolsa",
         relatedTerms: ["Volatilidad", "Riesgo", "Small Caps"]
@@ -534,6 +758,13 @@ export const GLOSSARY: GlossaryTerm[] = [
         definition: "Intento de anticipar los movimientos del mercado para comprar en mínimos y vender en máximos. Históricamente, muy difícil de hacer de forma consistente.",
         category: "Estrategia",
         relatedTerms: ["DCA", "Lump Sum", "Sesgos Cognitivos"]
+    },
+    {
+        id: 'value-trap',
+        term: "Value Trap (Trampa de Valor)",
+        definition: "Acción que parece barata basándose en ratios de valoración (como un PER bajo), pero que en realidad es una mala inversión porque los fundamentos de la empresa están deteriorándose permanentemente.",
+        category: "Riesgo",
+        relatedTerms: ["PER", "Value Investing", "Análisis Fundamental"]
     }
 
 ];
@@ -555,7 +786,7 @@ export const ASSET_CLASSES_DETAIL = [
         title: "Renta Fija (Bonos)",
         description: "Préstamos que el inversor hace a un gobierno o empresa a cambio de un interés (cupón). Sirven para mitigar la volatilidad de la cartera.",
         risk: "Bajo / Medio",
-        return: "Histórico ~2-4%",
+        return: "Histórico ~2-10%",
         pros: ["Ingresos predecibles", "Menor volatilidad que acciones", "Prioridad en cobro"],
         cons: ["Menor potencial de crecimiento", "Riesgo de insolvencia", "Riesgo de tipo de interés"],
         instruments: ["Letras del Tesoro", "Bonos del Estado", "Bonos Corporativos"]

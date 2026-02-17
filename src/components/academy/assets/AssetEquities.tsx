@@ -300,6 +300,22 @@ export function AssetEquities() {
                 </div>
             </section>
 
+            {/* Deep Dive CTA */}
+            <section className="asset-page__section asset-page__section--cta">
+                <div className="cta-box">
+                    <div className="cta-box__content">
+                        <h3>🔍 ¿Quieres aprender a valorar empresas como un profesional?</h3>
+                        <p>
+                            Hemos preparado una guía detallada donde exploramos métricas avanzadas (ROIC, FCF Yield, Deuda/EBITDA)
+                            y te enseñamos a distinguir entre un gran negocio y una trampa de valor.
+                        </p>
+                        <Link to="/academy/valuation" className="cta-box__button">
+                            Ver Guía de Valoración <Zap size={18} />
+                        </Link>
+                    </div>
+                </div>
+            </section>
+
             {/* Final tip */}
             <section className="asset-page__final-tip">
                 <Lightbulb size={28} />

@@ -30,6 +30,7 @@ import { AssetBonds } from './components/academy/assets/AssetBonds';
 import { AssetCash } from './components/academy/assets/AssetCash';
 import { AssetREITs } from './components/academy/assets/AssetREITs';
 import { AssetCrypto } from './components/academy/assets/AssetCrypto';
+import { ValuationGuide } from './components/academy/ValuationGuide';
 import { NotFound } from './pages/NotFound';
 import './index.css';
 
@@ -69,6 +70,9 @@ function App() {
             <Route path="assets/cash" element={<AssetCash />} />
             <Route path="assets/reits" element={<AssetREITs />} />
             <Route path="assets/crypto" element={<AssetCrypto />} />
+
+            {/* Valuation Guide */}
+            <Route path="valuation" element={<ValuationGuide />} />
 
             {/* Calculator specific sub-pages */}
             <Route path="retirement" element={<RetirementCalculator />} />

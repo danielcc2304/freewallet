@@ -3,17 +3,6 @@
     "trailingSlash": false,
     "rewrites": [
         {
-            "source": "/academy/(.*)",
-            "destination": "/academy/$1.html",
-            "has": [
-                {
-                    "type": "query",
-                    "key": "prerender",
-                    "value": "true"
-                }
-            ]
-        },
-        {
             "source": "/(.*)",
             "destination": "/index.html"
         }

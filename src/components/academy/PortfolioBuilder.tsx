@@ -293,11 +293,13 @@ export function PortfolioBuilder() {
                                                     </Pie>
                                                     <Tooltip
                                                         contentStyle={{
-                                                            backgroundColor: 'var(--bg-secondary)',
-                                                            borderColor: 'var(--border-color)',
-                                                            borderRadius: '8px',
+                                                            backgroundColor: 'var(--bg-card)',
+                                                            border: '1px solid var(--border-primary)',
+                                                            borderRadius: '10px',
+                                                            boxShadow: 'var(--shadow-md)',
                                                             color: 'var(--text-primary)'
                                                         }}
+                                                        itemStyle={{ color: 'var(--text-primary)' }}
                                                     />
                                                 </PieChart>
                                             </ResponsiveContainer>

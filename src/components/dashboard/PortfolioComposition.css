@@ -7,7 +7,7 @@
 .portfolio-composition__section-title {
     font-size: var(--font-size-base);
     font-weight: 600;
-    color: var(--text-secondary);
+    color: var(--text-primary);
     margin-bottom: var(--spacing-md);
 }
 

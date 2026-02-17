@@ -46,17 +46,20 @@
 }
 
 .chart-tooltip__label {
-    font-size: var(--font-size-sm);
-    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    color: var(--text-primary);
+    font-weight: 700;
     margin-bottom: var(--spacing-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .chart-tooltip__value {
     display: flex;
     align-items: center;
-    gap: var(--spacing-xs);
+    gap: var(--spacing-sm);
     font-size: var(--font-size-sm);
-    font-weight: 500;
+    font-weight: 600;
     margin: var(--spacing-xs) 0;
 }
 

@@ -12,6 +12,12 @@
     transition: transform var(--transition-base);
 }
 
+[data-theme="light"] .sidebar {
+    background: #eaf4f0;
+    /* Pastel mint specifically for sidebar */
+    border-right: 1px solid rgba(16, 185, 129, 0.08);
+}
+
 .sidebar-overlay {
     display: none;
 }

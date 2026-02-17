@@ -452,3 +452,89 @@
         justify-content: center;
     }
 }
+
+/* Ranking Badges */
+.fund-card__rank-badge {
+    position: absolute;
+    top: 10px;
+    left: -28px;
+    background: var(--bg-secondary);
+    padding: 4px 30px;
+    font-size: 9px;
+    font-weight: 800;
+    transform: rotate(-35deg);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    box-shadow: var(--shadow-sm);
+    z-index: 2;
+    border: 1px solid var(--border-primary);
+}
+
+.rank-1 {
+    background: linear-gradient(135deg, #ffd700, #b8860b);
+    color: white;
+    border: none;
+}
+
+.rank-2 {
+    background: linear-gradient(135deg, #c0c0c0, #708090);
+    color: white;
+    border: none;
+}
+
+.rank-3 {
+    background: linear-gradient(135deg, #cd7f32, #8b4513);
+    color: white;
+    border: none;
+}
+
+.fund-card--gold {
+    border-color: #ffd700;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+}
+
+.fund-card--gold:hover {
+    border-color: #ffd700;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.2);
+}
+
+/* Score Metric */
+.fund-stat--score {
+    background: rgba(16, 185, 129, 0.05);
+    padding: 4px 8px;
+    border-radius: var(--radius-sm);
+    border: 1px solid rgba(16, 185, 129, 0.1);
+}
+
+.fund-stat__value.score {
+    color: var(--accent-primary);
+    font-size: 14px;
+}
+
+/* Formula UI */
+.info-box--formula {
+    background: var(--bg-secondary) !important;
+    border-style: dashed !important;
+    margin-bottom: var(--spacing-md);
+    text-align: center;
+    display: block !important;
+}
+
+.formula-code {
+    display: block;
+    background: var(--bg-card);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--font-size-sm);
+    color: var(--accent-primary);
+    margin: var(--spacing-sm) 0;
+    border: 1px solid var(--border-primary);
+}
+
+.formula-note {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin: 0;
+}

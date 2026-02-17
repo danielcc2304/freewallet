@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import {
     Search, Filter, ExternalLink, Info,
     ArrowLeft, Landmark, Award, BarChart3,
-    ChevronDown, ChevronUp
+    ChevronDown, ChevronUp, Star, Trophy
 } from 'lucide-react';
 import { BEST_FUNDS } from '../../data/academyData';
 import type { Fund } from '../../types/types';
@@ -14,11 +14,28 @@ interface FundCardProps {
     getRiskColor: (risk: number) => string;
     isExpanded: boolean;
     onToggle: () => void;
+    score: number;
+    rank?: number;
 }
 
-function FundCard({ fund, getRiskColor, isExpanded, onToggle }: FundCardProps) {
+const formatPercent = (val: number | undefined) => {
+    if (val === undefined || isNaN(val)) return { text: '—', className: '' };
+    const formatted = val.toFixed(2);
+    const sign = val > 0 ? '+' : '';
+    const className = val > 0 ? 'pos' : val < 0 ? 'neg' : '';
+    return { text: `${sign}${formatted}%`, className };
+};
+
+function FundCard({ fund, getRiskColor, isExpanded, onToggle, score, rank }: FundCardProps) {
     return (
-        <div className={`fund-card ${isExpanded ? 'fund-card--expanded' : ''}`} onClick={onToggle}>
+        <div className={`fund-card ${isExpanded ? 'fund-card--expanded' : ''} ${rank === 1 ? 'fund-card--gold' : ''}`} onClick={onToggle}>
+            {rank && rank <= 3 && (
+                <div className={`fund-card__rank-badge rank-${rank}`}>
+                    <Trophy size={14} />
+                    <span>Top {rank}</span>
+                </div>
+            )}
+
             <div className="fund-card__header">
                 <div className="fund-card__title-row">
                     <span className="fund-card__category">{fund.category}</span>
@@ -46,14 +63,14 @@ function FundCard({ fund, getRiskColor, isExpanded, onToggle }: FundCardProps) {
                     <div className="fund-card__metrics-grid">
                         <div className="fund-stat">
                             <span className="fund-stat__label">Rent. YTD</span>
-                            <span className={`fund-stat__value ${fund.returns.ytd >= 0 ? 'pos' : 'neg'}`}>
-                                {fund.returns.ytd > 0 ? '+' : ''}{fund.returns.ytd}%
+                            <span className={`fund-stat__value ${formatPercent(fund.returns.ytd).className}`}>
+                                {formatPercent(fund.returns.ytd).text}
                             </span>
                         </div>
                         <div className="fund-stat">
                             <span className="fund-stat__label">Rent. 1Y</span>
-                            <span className={`fund-stat__value ${fund.returns.y1 >= 0 ? 'pos' : 'neg'}`}>
-                                {fund.returns.y1 > 0 ? '+' : ''}{fund.returns.y1}%
+                            <span className={`fund-stat__value ${formatPercent(fund.returns.y1).className}`}>
+                                {formatPercent(fund.returns.y1).text}
                             </span>
                         </div>
                         <div className="fund-stat fund-stat--highlight">
@@ -62,24 +79,18 @@ function FundCard({ fund, getRiskColor, isExpanded, onToggle }: FundCardProps) {
                         </div>
                         <div className="fund-stat">
                             <span className="fund-stat__label">Máx. Caída</span>
-                            <span className="fund-stat__value neg">{fund.maxDrawdown}%</span>
+                            <span className={`fund-stat__value ${formatPercent(fund.maxDrawdown).className}`}>
+                                {formatPercent(fund.maxDrawdown).text}
+                            </span>
                         </div>
                         <div className="fund-stat">
                             <span className="fund-stat__label">TER (Costes)</span>
                             <span className="fund-stat__value">{fund.ter}%</span>
                         </div>
-                        {fund.yieldToMaturity !== undefined && (
-                            <div className="fund-stat">
-                                <span className="fund-stat__label">Yield (TIR)</span>
-                                <span className="fund-stat__value pos">{fund.yieldToMaturity}%</span>
-                            </div>
-                        )}
-                        {fund.rating && (
-                            <div className="fund-stat">
-                                <span className="fund-stat__label">Rating</span>
-                                <span className="fund-stat__value">{fund.rating}</span>
-                            </div>
-                        )}
+                        <div className="fund-stat fund-stat--score">
+                            <span className="fund-stat__label">Puntuación</span>
+                            <span className="fund-stat__value score">{score.toFixed(1)}</span>
+                        </div>
                     </div>
                 </div>
 
@@ -95,16 +106,16 @@ function FundCard({ fund, getRiskColor, isExpanded, onToggle }: FundCardProps) {
                             {fund.returns.y3 !== undefined && (
                                 <div className="fund-stat">
                                     <span className="fund-stat__label">Rent. 3Y (An.)</span>
-                                    <span className={`fund-stat__value ${fund.returns.y3 >= 0 ? 'pos' : 'neg'}`}>
-                                        {fund.returns.y3 > 0 ? '+' : ''}{fund.returns.y3}%
+                                    <span className={`fund-stat__value ${formatPercent(fund.returns.y3).className}`}>
+                                        {formatPercent(fund.returns.y3).text}
                                     </span>
                                 </div>
                             )}
                             {fund.returns.y5 !== undefined && (
                                 <div className="fund-stat">
                                     <span className="fund-stat__label">Rent. 5Y (An.)</span>
-                                    <span className={`fund-stat__value ${fund.returns.y5 >= 0 ? 'pos' : 'neg'}`}>
-                                        {fund.returns.y5 > 0 ? '+' : ''}{fund.returns.y5}%
+                                    <span className={`fund-stat__value ${formatPercent(fund.returns.y5).className}`}>
+                                        {formatPercent(fund.returns.y5).text}
                                     </span>
                                 </div>
                             )}
@@ -164,6 +175,34 @@ function FundCard({ fund, getRiskColor, isExpanded, onToggle }: FundCardProps) {
     );
 }
 
+const clamp = (x: number, min: number, max: number) => Math.min(max, Math.max(min, x));
+
+const percentile = (arr: number[], p: number) => {
+    if (arr.length === 0) return 0;
+    const a = [...arr].sort((x, y) => x - y);
+    const idx = (a.length - 1) * p;
+    const lo = Math.floor(idx);
+    const hi = Math.ceil(idx);
+    if (lo === hi) return a[lo];
+    return a[lo] + (a[hi] - a[lo]) * (idx - lo);
+};
+
+const calculateRawScore = (f: Fund) => {
+    const y5 = f.returns.y5 ?? f.returns.y3 ?? f.returns.y1;
+    const y3 = f.returns.y3 ?? f.returns.y1;
+    const R = 0.6 * y5 + 0.4 * y3;
+
+    const vol = f.volatility ?? NaN;
+    const dd = f.maxDrawdown !== undefined ? Math.abs(f.maxDrawdown) : NaN;
+
+    // Missing-data penalty suave: si falta, usa un valor neutral (0) pero con pequeño castigo fijo
+    const volTerm = Number.isFinite(vol) ? vol : 0;
+    const ddTerm = Number.isFinite(dd) ? dd : 0;
+    const missingPenalty = (!Number.isFinite(vol) ? 0.75 : 0) + (!Number.isFinite(dd) ? 0.75 : 0);
+
+    return R - 0.30 * volTerm - 0.10 * ddTerm - 2 * f.ter - missingPenalty;
+};
+
 export function FundRadar() {
     const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState('Todas');
@@ -172,10 +211,8 @@ export function FundRadar() {
     const categories = useMemo(() => {
         const cats = new Set(BEST_FUNDS.map(fund => fund.category));
         const sortedCats = Array.from(cats).sort((a, b) => {
-            // Prioritize "Monetario"
             if (a.includes('Monetario') && !b.includes('Monetario')) return -1;
             if (!a.includes('Monetario') && b.includes('Monetario')) return 1;
-            // Prioritize Mixed/Defensive
             if (a.includes('Mixto') && !b.includes('Mixto')) return -1;
             if (!a.includes('Mixto') && b.includes('Mixto')) return 1;
             return a.localeCompare(b);
@@ -183,19 +220,83 @@ export function FundRadar() {
         return ['Todas', ...sortedCats];
     }, []);
 
+    const processedFunds = useMemo(() => {
+        // 1. Calcular Score Bruto
+        const scored = BEST_FUNDS.map(f => ({ fund: f, raw: calculateRawScore(f) }));
+
+        // 2. Normalizar 0–100 por categoría con winsorization p5–p95
+        const catStats = new Map<string, { p5: number; p95: number; min: number; max: number; size: number }>();
+        const uniqueCats = Array.from(new Set(scored.map(x => x.fund.category)));
+
+        uniqueCats.forEach(cat => {
+            const raws = scored.filter(x => x.fund.category === cat).map(x => x.raw);
+            const p5 = percentile(raws, 0.05);
+            const p95 = percentile(raws, 0.95);
+
+            const clipped = raws.map(r => clamp(r, p5, p95));
+            const min = Math.min(...clipped);
+            const max = Math.max(...clipped);
+
+            catStats.set(cat, { p5, p95, min, max, size: raws.length });
+        });
+
+        // 3. Precalcular Ranks por categoría
+        const rankMaps = new Map<string, Map<string, number>>();
+        uniqueCats.forEach(cat => {
+            const catRankMap = new Map<string, number>();
+            scored
+                .filter(item => item.fund.category === cat)
+                .sort((a, b) => b.raw - a.raw)
+                .forEach((item, index) => {
+                    catRankMap.set(item.fund.id, index + 1);
+                });
+            rankMaps.set(cat, catRankMap);
+        });
+
+        return scored.map(({ fund, raw }) => {
+            const stats = catStats.get(fund.category)!;
+            const clipped = clamp(raw, stats.p5, stats.p95);
+
+            // Si hay un solo fondo o todos son iguales, score = 100
+            let finalScore = 100;
+            if (stats.size > 1 && stats.max !== stats.min) {
+                const denom = stats.max - stats.min;
+                const score01 = (clipped - stats.min) / denom;
+
+                if (stats.size < 4) {
+                    // Escala comprimida 40-100 para evitar que el 'peor' de una muestra pequeña parezca un 0
+                    finalScore = 40 + (score01 * 60);
+                } else {
+                    finalScore = score01 * 100;
+                }
+            }
+
+            const rank = rankMaps.get(fund.category)?.get(fund.id) || 999;
+
+            return {
+                ...fund,
+                calculatedScore: finalScore,
+                rank
+            };
+        });
+    }, []);
+
     const filteredFunds = useMemo(() => {
-        return BEST_FUNDS.filter(fund => {
+        return processedFunds.filter(fund => {
             const matchesSearch = fund.name.toLowerCase().includes(search.toLowerCase()) ||
                 fund.isin.toLowerCase().includes(search.toLowerCase()) ||
                 fund.manager.toLowerCase().includes(search.toLowerCase());
             const matchesCategory = activeCategory === 'Todas' || fund.category === activeCategory;
             return matchesSearch && matchesCategory;
         }).sort((a, b) => {
-            // Sort by risk (Monetary -> RF -> Mixed -> Equity) then by volatility
-            if (a.risk !== b.risk) return a.risk - b.risk;
-            return a.volatility - b.volatility;
+            // Default sort by category priority, then by rank within category
+            if (a.category !== b.category) {
+                const cats = categories.slice(1);
+                return cats.indexOf(a.category) - cats.indexOf(b.category);
+            }
+            return a.rank - b.rank;
         });
-    }, [search, activeCategory]);
+    }, [search, activeCategory, processedFunds, categories]);
 
     const getRiskColor = (risk: number) => {
         if (risk <= 2) return '#10b981';
@@ -213,14 +314,18 @@ export function FundRadar() {
                 <div className="fund-radar__icon-wrapper">
                     <Award size={48} />
                 </div>
-                <h1>Radar de Fondos de Inversión</h1>
+                <h1>Ranking de Consistencia Histórica</h1>
+                <div className="fund-radar__last-update">
+                    <Star size={12} />
+                    <span>Última actualización: Febrero 2026</span>
+                </div>
                 <p>
-                    Usa esta herramienta para comparar instrumentos de inversión reales.
-                    Ordenados por perfil de riesgo y volatilidad.
+                    Clasificamos cada fondo mediante una métrica de eficiencia que considera
+                    rentabilidad a largo plazo, riesgo gestionado y costes.
                 </p>
                 <div className="fund-radar__srri-info">
-                    <Info size={14} />
-                    <span>El <strong>SRRI</strong> (1-7) indica el riesgo histórico. A mayor número, más volatilidad.</span>
+                    <Star size={14} />
+                    <span>Esta puntuación es un <strong>análisis cuantitativo</strong> basado en datos históricos. No constituye una recomendación de compra.</span>
                 </div>
             </header>
 
@@ -240,7 +345,7 @@ export function FundRadar() {
                         onClick={() => setAllExpanded(!allExpanded)}
                     >
                         {allExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                        {allExpanded ? 'Colapsar Todos' : 'Expandir Todos'}
+                        {allExpanded ? 'Colapsar Detalles' : 'Ver Análisis Avanzado'}
                     </button>
                 </div>
 
@@ -268,6 +373,8 @@ export function FundRadar() {
                         getRiskColor={getRiskColor}
                         isExpanded={allExpanded}
                         onToggle={() => setAllExpanded(!allExpanded)}
+                        score={fund.calculatedScore}
+                        rank={fund.rank}
                     />
                 ))}
             </div>
@@ -280,16 +387,27 @@ export function FundRadar() {
             )}
 
             <footer className="fund-radar__footer-info">
+                <div className="info-box info-box--formula">
+                    <div className="info-text">
+                        <p><strong>Fórmula de Eficiencia:</strong> Siendo y5/y3 las rentabilidades anualizadas.</p>
+                        <code className="formula-code">Score (Winsorized) = Normalización p5–p95 por Categoría</code>
+                        <p className="formula-note">Penalización suave por datos faltantes y recorte de outliers. Costes (TER) ponderados a 2x para priorizar eficiencia operativa sin castigar en exceso la gestión activa.</p>
+                    </div>
+                </div>
+
                 <div className="info-box">
                     <div className="info-icon-wrapper">
                         <Info size={24} />
                     </div>
                     <div className="info-text">
                         <p>
-                            Los datos se basan en registros históricos de Finect.
-                            Usa las métricas de <strong>Sharpe</strong> y <strong>Drawdown</strong> para entender mejor la eficiencia de cada gestor.
+                            Los datos se basan en registros históricos de Finect y Morningstar.
+                            Las puntuaciones reflejan la eficiencia relativa del gestor dentro de su categoría de activos.
                         </p>
-                        <span className="disclaimer">Rentabilidades pasadas no garantizan retornos futuros.</span>
+                        <span className="disclaimer">
+                            <strong>Aviso Legal:</strong> Este ranking es exclusivamente informativo. FreeWallet no ofrece asesoramiento financiero.
+                            La elección de cualquier producto de inversión debe basarse en un estudio personal y/o con un asesor certificado.
+                        </span>
                     </div>
                 </div>
             </footer>

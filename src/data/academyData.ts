@@ -8,7 +8,7 @@ export const BEST_FUNDS: Fund[] = [
         id: "dws-floating-rate",
         name: "DWS Floating Rate Notes LC",
         isin: "LU0034353002",
-        category: "Monetario / RF Corto Plazo",
+        category: "Monetario",
         manager: "DWS Investment S.A.",
         risk: 1,
         ter: 0.26,
@@ -163,6 +163,56 @@ export const BEST_FUNDS: Fund[] = [
         aum: "1.069,0 M€ (clase) / 1.646,3 M€ (fondo)",
         description: "Indexado al S&P 500 (clase EUR P Acc). Datos Finect/Morningstar.",
         link: "https://www.finect.com/fondos-inversion/IE00BYX5MX67-Fidelity_sp_500_index_eur_p_acc",
+    },
+    {
+        id: "carmignac-securite",
+        name: "Carmignac Sécurité AW EUR Acc",
+        isin: "FR0010149120",
+        category: "Renta Fija Corto Plazo",
+        manager: "Carmignac Gestion",
+        risk: 3,
+        ter: 1.11,
+        returns: {
+            ytd: 0.56,
+            y1: 2.23,
+            y3: 3.57,
+            y5: 1.37
+        },
+        volatility: 1.61,
+        sharpe: 0.56,
+        maxDrawdown: -1.23,
+        aum: "4.956,7 M€ (clase) / 5.226,9 M€ (fondo)",
+        duration: undefined,
+        rating: undefined,
+        yieldToMaturity: undefined,
+        allocation: [], // Puedes completar si quieres desglose de cartera
+        description: "Fondo de renta fija diversificada de corto plazo que busca rendimiento superior a su benchmark con volatilidad contenida.",
+        link: "https://www.finect.com/fondos-inversion/FR0010149120-Carmignac_securite_aw_eur_acc"
+    },
+    {
+        id: "neuberger-short-duration",
+        name: "Neuberger Berman Short Duration Euro Bond Fund EUR I2 Acc",
+        isin: "IE00BKLC3S38",
+        category: "Renta Fija Corto Plazo",
+        manager: "Neuberger Berman Asset Management Ireland Limited",
+        risk: 2,
+        ter: 0.00,
+        returns: {
+            ytd: 0.86,
+            y1: 3.94,
+            y3: 5.68,
+            y5: 2.66
+        },
+        volatility: 1.40,
+        sharpe: 2.17,
+        maxDrawdown: -0.18,
+        aum: "111,8 M€ (clase) / 3.812,8 M€ (fondo)",
+        duration: undefined,
+        rating: undefined,
+        yieldToMaturity: undefined,
+        allocation: [], // Puedes completar si quieres desglose
+        description: "Fondo de renta fija de duración corta en euros con gestión activa, buscando superar el índice Bloomberg Euro Agg 1-3Y.",
+        link: "https://www.finect.com/fondos-inversion/IE00BKLC3S38-Neuberger_berman_ultr_st_er_bd_euri2acc"
     }
 ];
 

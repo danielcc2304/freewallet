@@ -78,5 +78,21 @@
     "isinExpected": "IE00BYX5MX67",
     "nameExpected": "Fidelity S&P 500 Index Fund EUR P Acc",
     "problems": []
+  },
+  {
+    "id": "carmignac-securite",
+    "ok": true,
+    "status": 200,
+    "isinExpected": "FR0010149120",
+    "nameExpected": "Carmignac Sécurité AW EUR Acc",
+    "problems": []
+  },
+  {
+    "id": "neuberger-short-duration",
+    "ok": true,
+    "status": 200,
+    "isinExpected": "IE00BKLC3S38",
+    "nameExpected": "Neuberger Berman Short Duration Euro Bond Fund EUR I2 Acc",
+    "problems": []
   }
 ]

@@ -153,6 +153,52 @@
     transform: translateX(4px);
 }
 
+.fundamentos__interact {
+    margin-bottom: 3rem;
+}
+
+.interact-card {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, rgba(var(--accent-rgb), 0.1) 100%);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 2.5rem;
+    position: relative;
+    overflow: hidden;
+    border-left: 5px solid var(--accent-primary);
+}
+
+.interact-card__content h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    color: var(--text-primary);
+}
+
+.interact-card__content p {
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+    max-width: 600px;
+    line-height: 1.6;
+}
+
+.fundamentos__card-badge--interact {
+    display: inline-flex;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    background: var(--accent-primary);
+    color: white;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(var(--accent-rgb), 0.2);
+}
+
+.fundamentos__card-badge--interact:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(var(--accent-rgb), 0.3);
+    background: var(--accent-secondary);
+    color: white;
+}
+
 @media (max-width: 768px) {
     .fundamentos__title {
         font-size: 2rem;

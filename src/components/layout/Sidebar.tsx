@@ -13,14 +13,10 @@ import {
     BookOpen,
     TrendingUp,
     AlertCircle,
-    Target,
     Calculator,
     PieChart,
-    Receipt,
     Lightbulb,
-    BarChart3,
-    Shield,
-    Library
+    Shield
 } from 'lucide-react';
 import './Sidebar.css';
 
@@ -32,15 +28,11 @@ interface SidebarProps {
 const academySections = [
     { path: '/academy', icon: BookOpen, label: 'Fundamentos', end: true },
     { path: '/academy/timeline', icon: TrendingUp, label: 'Tu Journey' },
-    { path: '/academy/crisis', icon: AlertCircle, label: 'Crisis Históricas' },
-    { path: '/academy/scenarios', icon: Target, label: '¿Qué hacer cuando...?' },
-    { path: '/academy/errors', icon: Lightbulb, label: 'Errores Comunes' },
-    { path: '/academy/portfolio', icon: PieChart, label: 'Construir Cartera' },
-    { path: '/academy/tax', icon: Receipt, label: 'Fiscalidad' },
-    { path: '/academy/strategies', icon: BarChart3, label: 'Estrategias' },
+    { path: '/academy/crisis', icon: AlertCircle, label: 'Mercado y Crisis' },
+    { path: '/academy/portfolio', icon: PieChart, label: 'Estrategia y Cartera' },
     { path: '/academy/calculators', icon: Calculator, label: 'Calculadoras' },
-    { path: '/academy/risk', icon: Shield, label: 'Gestión Riesgo' },
-    { path: '/academy/resources', icon: Library, label: 'Recursos' }
+    { path: '/academy/tax', icon: Shield, label: 'Fiscalidad y Riesgo' },
+    { path: '/academy/errors', icon: Lightbulb, label: 'Errores Comunes' }
 ];
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {

@@ -229,7 +229,7 @@ export function FIRECalculator() {
                                         <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0} />
                                     </linearGradient>
                                 </defs>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-primary)" />
                                 <XAxis
                                     dataKey="year"
                                     stroke="var(--text-secondary)"

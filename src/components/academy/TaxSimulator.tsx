@@ -177,11 +177,11 @@ export function TaxSimulator() {
                         <h3 className="tax-sim__chart-title">Desglose Fiscal</h3>
                         <ResponsiveContainer width="100%" height={250}>
                             <BarChart data={chartData} layout="vertical" margin={{ left: -10, right: 30, top: 0, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border-color)" />
+                                <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border-primary)" />
                                 <XAxis
                                     type="number"
                                     stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 11, fill: '#a1a1aa' }}
+                                    tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
                                     tickFormatter={(value) =>
                                         new Intl.NumberFormat('es-ES', {
                                             notation: 'compact',
@@ -195,14 +195,20 @@ export function TaxSimulator() {
                                     dataKey="name"
                                     type="category"
                                     stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 11, fill: '#a1a1aa' }}
+                                    tick={{ fontSize: 11, fill: 'var(--text-secondary)' }}
                                     width={70}
                                     axisLine={false}
                                     tickLine={false}
                                 />
                                 <Tooltip
-                                    cursor={{ fill: 'rgba(255, 255, 255, 0.05)' }}
-                                    contentStyle={{ background: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
+                                    cursor={{ fill: 'var(--border-primary)' }}
+                                    contentStyle={{
+                                        backgroundColor: 'var(--bg-card)',
+                                        border: '1px solid var(--border-primary)',
+                                        borderRadius: '10px',
+                                        color: 'var(--text-primary)'
+                                    }}
+                                    itemStyle={{ color: 'var(--text-primary)' }}
                                     formatter={(val: any) => formatCurrency(Number(val))}
                                 />
                                 <Bar dataKey="value" radius={[0, 4, 4, 0]}>

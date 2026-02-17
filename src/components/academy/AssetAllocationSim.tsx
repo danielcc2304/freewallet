@@ -118,9 +118,22 @@ export function AssetAllocationSim() {
                                 </Pie>
                                 <Tooltip
                                     formatter={(value: any) => `${value}%`}
-                                    contentStyle={{ backgroundColor: 'var(--bg-secondary)', border: '1px solid var(--border-color)', borderRadius: '8px' }}
+                                    contentStyle={{
+                                        backgroundColor: 'var(--bg-card)',
+                                        border: '1px solid var(--border-primary)',
+                                        borderRadius: '8px',
+                                        color: 'var(--text-primary)'
+                                    }}
+                                    itemStyle={{ color: 'var(--text-primary)' }}
                                 />
-                                <Legend verticalAlign="bottom" height={36} wrapperStyle={{ paddingTop: '10px' }} />
+                                <Legend
+                                    verticalAlign="bottom"
+                                    height={36}
+                                    wrapperStyle={{
+                                        paddingTop: '20px',
+                                        color: 'var(--text-secondary)'
+                                    }}
+                                />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>

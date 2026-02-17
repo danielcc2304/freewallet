@@ -141,7 +141,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 </nav>
 
                 <div className="sidebar__footer">
-                    <div className="sidebar__version">v2.3.0</div>
+                    <div className="sidebar__version">v2.3.1</div>
                 </div>
             </aside>
 

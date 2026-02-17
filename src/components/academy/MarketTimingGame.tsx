@@ -5,7 +5,7 @@ import {
     TrendingDown, Zap, Lightbulb
 } from 'lucide-react';
 import {
-    LineChart, Line, XAxis, YAxis,
+    LineChart, Line, Area, XAxis, YAxis,
     CartesianGrid, ResponsiveContainer
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
@@ -133,28 +133,46 @@ export function MarketTimingGame() {
                 <div className="game-chart">
                     <ResponsiveContainer width="100%" height="100%">
                         <LineChart data={data}>
-                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.05)" />
+                            <defs>
+                                <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.3} />
+                                    <stop offset="95%" stopColor="var(--accent-primary)" stopOpacity={0} />
+                                </linearGradient>
+                                <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feGaussianBlur stdDeviation="3" result="blur" />
+                                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                                </filter>
+                            </defs>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="rgba(255,255,255,0.03)" />
                             <XAxis dataKey="time" hide domain={[0, MAX_TICKS]} />
                             <YAxis
                                 hide
-                                domain={['dataMin - 10', 'dataMax + 10']}
+                                domain={['dataMin - 5', 'dataMax + 5']}
+                            />
+                            <Area
+                                type="monotone"
+                                dataKey="price"
+                                stroke="none"
+                                fill="url(#lineGradient)"
+                                isAnimationActive={false}
                             />
                             <Line
                                 type="monotone"
                                 dataKey="price"
                                 stroke="var(--accent-primary)"
-                                strokeWidth={3}
+                                strokeWidth={4}
                                 dot={false}
                                 isAnimationActive={false}
+                                filter="url(#glow)"
                             />
                         </LineChart>
                     </ResponsiveContainer>
                 </div>
 
-                <div className="game-controls">
+                <div className={`game-controls ${!isPlaying && !isFinished ? 'game-controls--start' : ''}`}>
                     {!isPlaying && !isFinished ? (
-                        <button className="game-btn game-btn--buy" onClick={initGame}>
-                            <Zap size={20} /> Empezar Desafío
+                        <button className="game-btn game-btn--buy game-btn--start" onClick={initGame}>
+                            <Zap size={24} /> Empezar Desafío
                         </button>
                     ) : (
                         <>

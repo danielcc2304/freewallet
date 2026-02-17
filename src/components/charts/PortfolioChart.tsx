@@ -119,7 +119,10 @@ export function PortfolioChart({
                             tickFormatter={formatCurrency}
                             width={80}
                         />
-                        <Tooltip content={<CustomTooltip />} />
+                        <Tooltip
+                            content={<CustomTooltip />}
+                            contentStyle={{ backgroundColor: 'transparent', border: 'none' }}
+                        />
                         <Area
                             type="monotone"
                             dataKey="value"

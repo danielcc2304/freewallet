@@ -227,7 +227,7 @@ export function RetirementCalculator() {
                                             <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
                                         </linearGradient>
                                     </defs>
-                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-primary)" />
                                     <XAxis
                                         dataKey="age"
                                         stroke="var(--text-secondary)"

@@ -75,7 +75,10 @@ export function DonutChart({ data, title }: DonutChartProps) {
                             <Cell key={`cell-${index}`} fill={entry.color} />
                         ))}
                     </Pie>
-                    <Tooltip content={<CustomTooltip />} />
+                    <Tooltip
+                        content={<CustomTooltip />}
+                        contentStyle={{ backgroundColor: 'transparent', border: 'none' }}
+                    />
                     <Legend content={renderLegend} />
                 </PieChart>
             </ResponsiveContainer>

@@ -317,7 +317,7 @@ export function FundRadar() {
                 <h1>Ranking de Consistencia Histórica</h1>
                 <div className="fund-radar__last-update">
                     <Star size={12} />
-                    <span>Última actualización: Febrero 2026</span>
+                    <span>Última actualización: 17 de Febrero del 2026</span>
                 </div>
                 <p>
                     Clasificamos cada fondo mediante una métrica de eficiencia que considera

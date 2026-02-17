@@ -53,6 +53,23 @@
     margin: 0 auto var(--spacing-md);
 }
 
+.fund-radar__last-update {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    margin-top: calc(var(--spacing-xs) * -1);
+    margin-bottom: var(--spacing-md);
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    font-weight: 500;
+    opacity: 0.8;
+}
+
+.fund-radar__last-update svg {
+    color: var(--accent-primary);
+}
+
 .fund-radar__srri-info {
     display: inline-flex;
     align-items: center;

@@ -10,7 +10,7 @@ export const CRISIS_DATA: Record<number, CrisisData> = {
         monthsDown: 17,
         monthsRecovery: 49,
         return5y: 95.5, // S&P 500 return 5 years after bottom (Mar 2009 - Mar 2014)
-        description: "Colapso del mercado inmobiliario y crisis bancaria. Mayor caída desde la Gran Depresión."
+        description: "Colapso del mercado inmobiliario bancario por crisis de hipotecas subprime. Mayor caída desde la Gran Depresión."
     },
     2020: {
         year: 2020,
@@ -488,7 +488,7 @@ export const GLOSSARY: GlossaryTerm[] = [
     },
     {
         id: 'chicharro',
-        term: "Chicharro",
+        term: "Chicharro (Penny Stock)",
         definition: "Acción de baja capitalización, poca liquidez y alta volatilidad. Suele moverse más por especulación que por fundamentos económicos.",
         category: "Bolsa",
         relatedTerms: ["Volatilidad", "Riesgo", "Small Caps"]
@@ -534,6 +534,13 @@ export const GLOSSARY: GlossaryTerm[] = [
         definition: "Intento de anticipar los movimientos del mercado para comprar en mínimos y vender en máximos. Históricamente, muy difícil de hacer de forma consistente.",
         category: "Estrategia",
         relatedTerms: ["DCA", "Lump Sum", "Sesgos Cognitivos"]
+    },
+    {
+        id: 'value-trap',
+        term: "Value Trap (Trampa de Valor)",
+        definition: "Acción que parece barata basándose en ratios de valoración (como un PER bajo), pero que en realidad es una mala inversión porque los fundamentos de la empresa están deteriorándose permanentemente.",
+        category: "Riesgo",
+        relatedTerms: ["PER", "Value Investing", "Análisis Fundamental"]
     }
 
 ];
@@ -555,7 +562,7 @@ export const ASSET_CLASSES_DETAIL = [
         title: "Renta Fija (Bonos)",
         description: "Préstamos que el inversor hace a un gobierno o empresa a cambio de un interés (cupón). Sirven para mitigar la volatilidad de la cartera.",
         risk: "Bajo / Medio",
-        return: "Histórico ~2-4%",
+        return: "Histórico ~2-10%",
         pros: ["Ingresos predecibles", "Menor volatilidad que acciones", "Prioridad en cobro"],
         cons: ["Menor potencial de crecimiento", "Riesgo de insolvencia", "Riesgo de tipo de interés"],
         instruments: ["Letras del Tesoro", "Bonos del Estado", "Bonos Corporativos"]

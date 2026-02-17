@@ -364,11 +364,11 @@ export function AssetBonds() {
                 <div className="rating-scale">
                     {[
                         { rating: 'AAA', label: 'Máxima calidad', example: 'Alemania, Microsoft', color: '#10b981', width: '100%' },
-                        { rating: 'AA', label: 'Muy alta calidad', example: 'Francia, Apple', color: '#22c55e', width: '92%' },
+                        { rating: 'AA', label: 'Muy alta calidad', example: 'Bélgica, Apple', color: '#22c55e', width: '92%' },
                         { rating: 'A', label: 'Alta calidad', example: 'España, BBVA', color: '#3b82f6', width: '84%' },
                         { rating: 'BBB', label: 'Grado inversión (límite)', example: 'Italia, muchas empresas', color: '#f59e0b', width: '72%' },
-                        { rating: 'BB', label: 'Especulativo', example: 'Grecia, empresas mid-cap', color: '#f97316', width: '58%' },
-                        { rating: 'B', label: 'Alto riesgo', example: 'Empresas en dificultad', color: '#ef4444', width: '40%' },
+                        { rating: 'BB', label: 'Especulativo', example: 'Albania, empresas mid-cap', color: '#f97316', width: '58%' },
+                        { rating: 'B', label: 'Alto riesgo', example: 'Turquía, Empresas en dificultad', color: '#ef4444', width: '40%' },
                         { rating: 'CCC-D', label: 'Riesgo de impago', example: 'Default inminente', color: '#991b1b', width: '20%' },
                     ].map(r => (
                         <div key={r.rating} className="rating-row">

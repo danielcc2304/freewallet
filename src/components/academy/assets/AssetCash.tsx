@@ -8,7 +8,7 @@ import './AssetPage.css';
 const CASH_INSTRUMENTS = [
     {
         name: 'Cuentas Remuneradas',
-        yield: '2-3.5%',
+        yield: '1-2%',
         liquidity: 'Inmediata',
         risk: 'Mínimo',
         desc: 'Dinero disponible al instante con interés. Trade Republic, MyInvestor, Openbank ofrecen las mejores condiciones.',
@@ -17,7 +17,7 @@ const CASH_INSTRUMENTS = [
     },
     {
         name: 'Fondos Monetarios',
-        yield: '3-4%',
+        yield: '2-3%',
         liquidity: '1-2 días',
         risk: 'Mínimo',
         desc: 'Fondos que invierten en deuda a muy corto plazo. Rendimiento superior a depósitos, sin penalización por retirada.',
@@ -35,7 +35,7 @@ const CASH_INSTRUMENTS = [
     },
     {
         name: 'Letras del Tesoro (3-6m)',
-        yield: '3-3.8%',
+        yield: '0-2%',
         liquidity: 'Al vencimiento',
         risk: 'Mínimo',
         desc: 'Máxima seguridad respaldada por el Estado. Se compran directamente en el Tesoro Público sin comisiones.',
@@ -62,7 +62,7 @@ export function AssetCash() {
                 </p>
                 <div className="asset-page__hero-stats">
                     <div className="hero-stat">
-                        <span className="hero-stat__value">0-4%</span>
+                        <span className="hero-stat__value">0-2%</span>
                         <span className="hero-stat__label">Rendimiento actual</span>
                     </div>
                     <div className="hero-stat">

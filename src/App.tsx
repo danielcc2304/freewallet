@@ -34,6 +34,7 @@ import { ValuationGuide } from './components/academy/ValuationGuide';
 import { InvestorProfileTest } from './components/academy/InvestorProfileTest';
 import { InflationPredator } from './components/academy/InflationPredator';
 import { MarketTimingGame } from './components/academy/MarketTimingGame';
+import { FundRadar } from './components/academy/FundRadar';
 import { NotFound } from './pages/NotFound';
 import './index.css';
 
@@ -85,6 +86,9 @@ function App() {
 
             {/* Market Timing Game */}
             <Route path="market-timing-game" element={<MarketTimingGame />} />
+
+            {/* Fund Radar */}
+            <Route path="fund-radar" element={<FundRadar />} />
 
             {/* Calculator specific sub-pages */}
             <Route path="retirement" element={<RetirementCalculator />} />

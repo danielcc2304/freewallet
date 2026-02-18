@@ -75,13 +75,13 @@ export function AssetTypes() {
                 })}
             </div>
 
-            <section style={{ marginTop: '5rem', background: 'var(--bg-tertiary)', padding: '3rem', borderRadius: '24px', textAlign: 'center' }}>
-                <h2 style={{ fontSize: '1.75rem', fontWeight: 800, marginBottom: '1rem' }}>¿Cómo combinarlos?</h2>
-                <p style={{ color: 'var(--text-secondary)', maxWidth: '600px', margin: '0 auto 2rem' }}>
+            <section className="asset-types-footer-cta">
+                <h2>¿Cómo combinarlos?</h2>
+                <p>
                     Ahora que conoces las piezas del tablero, el siguiente paso es aprender a combinarlas según tu perfil de riesgo y objetivos.
                 </p>
-                <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-                    <a href="/academy/portfolio" style={{ background: 'var(--accent-primary)', color: 'white', padding: '0.85rem 2rem', borderRadius: '12px', textDecoration: 'none', fontWeight: 700 }}>
+                <div className="cta-container">
+                    <a href="/academy/portfolio" className="cta-button">
                         Construir mi Cartera
                     </a>
                 </div>

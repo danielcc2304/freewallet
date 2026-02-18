@@ -7,6 +7,10 @@
     margin-bottom: 2.5rem;
     padding-bottom: 2rem;
     border-bottom: 1px solid var(--border-color);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 2rem;
 }
 
 .retirement__title-group {
@@ -326,6 +330,7 @@
     .retirement__summary-badge {
         align-items: flex-start;
         width: 100%;
+        margin-top: 0.5rem;
     }
 
     .retirement__metrics {

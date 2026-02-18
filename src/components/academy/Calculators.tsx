@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Calculator, TrendingUp, Flame, Calendar, PiggyBank, Percent, Scale } from 'lucide-react';
+import { Calculator, TrendingUp, Flame, Calendar, PiggyBank, Receipt, Scale } from 'lucide-react';
 import './Calculators.css';
 
 export function Calculators() {
@@ -34,7 +34,7 @@ export function Calculators() {
                         <li>✓ Aportación necesaria</li>
                         <li>✓ Gráficos en tiempo real</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
+
                 </Link>
 
                 {/* FIRE Calculator - IMPLEMENTED */}
@@ -53,7 +53,7 @@ export function Calculators() {
                         <li>✓ Tasa de ahorro óptima</li>
                         <li>✓ Simulación de gastos</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
+
                 </Link>
 
                 {/* Retirement Calculator - IMPLEMENTED */}
@@ -71,7 +71,7 @@ export function Calculators() {
                         <li>✓ Ajuste por inflación</li>
                         <li>✓ Diferentes escenarios</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
+
                 </Link>
 
                 {/* Emergency Fund - IMPLEMENTED */}
@@ -89,13 +89,13 @@ export function Calculators() {
                         <li>✓ Prioridad vs inversión</li>
                         <li>✓ Consejos personalizados</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
+
                 </Link>
 
                 {/* Tax Impact - IMPLEMENTED */}
                 <Link to="/academy/taxes" className="calculators__card calculators__card--available">
                     <div className="calculators__card-icon calculators__card-icon--red">
-                        <Percent size={32} />
+                        <Receipt size={32} />
                     </div>
                     <h3 className="calculators__card-title">Simulador de Impacto Fiscal</h3>
                     <p className="calculators__card-description">
@@ -107,7 +107,7 @@ export function Calculators() {
                         <li>✓ Compensación minusvalías</li>
                         <li>✓ Ejemplos prácticos</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
+
                 </Link>
 
                 {/* Asset Allocation - IMPLEMENTED */}
@@ -125,7 +125,7 @@ export function Calculators() {
                         <li>✓ Rentabilidad histórica</li>
                         <li>✓ Necesidad de rebalanceo</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--available">Disponible</span>
+
                 </Link>
                 {/* Bond Calculator - NEW */}
                 <Link to="/academy/bond-calculator" className="calculators__card calculators__card--available">
@@ -142,7 +142,7 @@ export function Calculators() {
                         <li>✓ Análisis Prima/Descuento</li>
                         <li>✓ Tips de riesgo de crédito</li>
                     </ul>
-                    <span className="calculators__card-badge calculators__card-badge--available">Nuevo</span>
+
                 </Link>
             </div>
 

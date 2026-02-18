@@ -165,19 +165,17 @@ export function InflationPredator() {
                         </div>
                     </div>
 
-                    <div className="inflation-predator__cta" style={{ marginTop: '3rem' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', background: 'rgba(var(--accent-rgb), 0.1)', padding: '1.5rem', borderRadius: '16px', textAlign: 'left' }}>
-                            <Lightbulb size={24} color="var(--accent-primary)" />
-                            <div>
-                                <h4 style={{ margin: 0, fontSize: '1.1rem' }}>La solución: Invertir</h4>
-                                <p style={{ margin: 0, fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                                    Invertir no es opcional si quieres mantener tu nivel de vida futuro.
-                                </p>
-                            </div>
-                            <Link to="/academy/compound-interest" className="quiz-button" style={{ marginLeft: 'auto', whiteSpace: 'nowrap', fontSize: '0.9rem', padding: '0.75rem 1.25rem' }}>
-                                Combatir Inflación <TrendingUp size={16} />
-                            </Link>
+                    <div className="inflation-predator__cta-box">
+                        <Lightbulb size={24} color="var(--accent-primary)" className="icon" />
+                        <div className="cta-text">
+                            <h4>La solución: Invertir</h4>
+                            <p>
+                                Invertir no es opcional si quieres mantener tu nivel de vida futuro.
+                            </p>
                         </div>
+                        <Link to="/academy/compound-interest" className="quiz-button">
+                            Combatir Inflación <TrendingUp size={16} />
+                        </Link>
                     </div>
                 </main>
             </div>

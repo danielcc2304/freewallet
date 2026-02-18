@@ -311,10 +311,8 @@ export function FundRadar() {
             </Link>
 
             <header className="fund-radar__header">
-                <div className="fund-radar__icon-wrapper">
-                    <Award size={48} />
-                </div>
-                <h1>Ranking de Consistencia Histórica</h1>
+
+                <h1>Ranking de Fondos por Categorías</h1>
                 <div className="fund-radar__last-update">
                     <Star size={12} />
                     <span>Última actualización: 17 de Febrero del 2026</span>

@@ -144,27 +144,27 @@
 .sidebar__sub-nav {
     display: grid;
     grid-template-rows: 0fr;
-    transition: grid-template-rows 0.3s ease;
+    transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
 }
 
 .sidebar__sub-nav--open {
     grid-template-rows: 1fr;
 }
 
-.sidebar__sub-nav>div,
-.sidebar__sub-nav>a {
-    overflow: hidden;
+.sidebar__sub-nav-inner {
+    min-height: 0;
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(-10px);
+    transition: all 0.3s ease;
 }
 
-/* Inner wrapper for animation */
-.sidebar__sub-nav {
-    overflow: hidden;
-    max-height: 0;
-    transition: max-height 0.3s ease;
-}
-
-.sidebar__sub-nav--open {
-    max-height: 600px;
+.sidebar__sub-nav--open .sidebar__sub-nav-inner {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0);
+    transition-delay: 0.1s;
 }
 
 .sidebar__sub-link {

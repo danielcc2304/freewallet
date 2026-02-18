@@ -1,6 +1,7 @@
 .crisis {
     max-width: 1000px;
     margin: 0 auto;
+    padding: 0 1.5rem 4rem;
 }
 
 .crisis__header {

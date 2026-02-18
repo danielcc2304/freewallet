@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
     Search, Filter, ExternalLink, Info,
-    ArrowLeft, Landmark, Award, BarChart3,
+    ArrowLeft, Landmark, BarChart3,
     ChevronDown, ChevronUp, Star, Trophy
 } from 'lucide-react';
 import { BEST_FUNDS } from '../../data/academyData';

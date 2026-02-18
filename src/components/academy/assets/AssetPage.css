@@ -1236,10 +1236,87 @@
     box-shadow: 0 6px 16px rgba(var(--accent-rgb), 0.3);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 850px) {
+    .asset-page {
+        padding: 1rem;
+    }
+
+    .asset-page__hero {
+        padding: 2.5rem 1.5rem;
+        border-radius: 20px;
+        margin-bottom: 2rem;
+    }
+
+    .asset-page__hero h1 {
+        font-size: 2rem;
+    }
+
+    .asset-page__hero-stats {
+        gap: 1.5rem;
+        justify-content: center;
+    }
+
+    .asset-page__section {
+        margin-bottom: 3rem;
+    }
+
+    .asset-page__section h2 {
+        font-size: 1.5rem;
+    }
+
+    .asset-page__pros-cons {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+
+    .pc-column {
+        padding: 1.5rem;
+    }
+
+    .convexity-content {
+        flex-direction: column;
+        gap: 2rem;
+    }
+
+    .inverse-relationship {
+        flex-direction: column;
+    }
+
+    .asset-page__versus {
+        flex-direction: column;
+    }
+
+    .versus-card {
+        padding: 1.5rem;
+    }
+
+    .asset-page__metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .asset-page__subtype-grid {
+        grid-template-columns: 1fr;
+    }
+
     .asset-page__final-tip {
         flex-direction: column;
         text-align: center;
         padding: 2rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .asset-page__hero h1 {
+        font-size: 1.75rem;
+    }
+
+    .hero-stat__value {
+        font-size: 1.25rem;
+    }
+
+    .asset-page__hero-stats {
+        flex-direction: column;
+        gap: 1rem;
+        align-items: center;
     }
 }

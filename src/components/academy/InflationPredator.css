@@ -7,7 +7,7 @@
 .inflation-predator__hero {
     text-align: center;
     margin-bottom: 3.5rem;
-    padding: 3rem;
+    padding: 3rem 2rem;
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
     border-radius: 32px;
     color: white;
@@ -53,12 +53,12 @@
 /* Visualizer */
 .inflation-predator__visualizer {
     background: var(--bg-secondary);
-    padding: 3rem;
+    padding: 2.5rem;
     border-radius: 24px;
     border: 1px solid var(--border-color);
     text-align: center;
     position: relative;
-    min-height: 500px;
+    min-height: 450px;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -175,8 +175,76 @@
     line-height: 1.6;
 }
 
+.inflation-predator__cta-box {
+    margin-top: 3rem;
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    background: rgba(var(--accent-rgb), 0.05);
+    padding: 1.5rem;
+    border-radius: 16px;
+    text-align: left;
+}
+
+.cta-text h4 {
+    margin: 0 0 0.25rem 0;
+    font-size: 1.1rem;
+}
+
+.cta-text p {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.inflation-predator__cta-box .quiz-button {
+    margin-left: auto;
+    white-space: nowrap;
+}
+
 @media (max-width: 850px) {
     .inflation-predator__grid {
         grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+
+    .inflation-predator__controls {
+        position: static;
+        padding: 1.5rem;
+    }
+
+    .inflation-predator__visualizer {
+        padding: 1.5rem;
+        min-height: auto;
+    }
+}
+
+@media (max-width: 600px) {
+    .inflation-predator {
+        padding: 0 1rem 4rem;
+    }
+
+    .inflation-predator__hero {
+        padding: 2rem 1rem;
+        border-radius: 24px;
+    }
+
+    .inflation-predator__hero h1 {
+        font-size: 1.75rem;
+    }
+
+    .result-main {
+        font-size: 2.25rem;
+    }
+
+    .inflation-predator__cta-box {
+        flex-direction: column;
+        text-align: center;
+        gap: 1.25rem;
+    }
+
+    .inflation-predator__cta-box .quiz-button {
+        margin-left: 0;
+        width: 100%;
     }
 }

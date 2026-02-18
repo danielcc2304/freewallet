@@ -33,7 +33,7 @@ export const BEST_FUNDS: Fund[] = [
         sharpe: 7.87,
         maxDrawdown: -0.02,
         aum: "4.688,8 M€ (clase) / 7.102,5 M€ (fondo)",
-        description: "Monetario EUR. Datos de ratios y comisiones según Finect/Morningstar.",
+        description: "Monetario EUR.",
         link: "https://www.finect.com/fondos-inversion/FR0000989626-Groupama_tresorerie_ic",
     },
     {
@@ -49,7 +49,7 @@ export const BEST_FUNDS: Fund[] = [
         sharpe: 1.7,
         maxDrawdown: -0.95,
         aum: "16,7 M€ (clase) / 109,4 M€ (fondo)",
-        description: "Mixto defensivo global. ISIN corregido a la clase que aparece en Finect.",
+        description: "Mixto defensivo global.",
         link: "https://www.finect.com/fondos-inversion/ES0140072010-Abaco_renta_fija_mixta_global_r_fi",
     },
     {
@@ -65,7 +65,7 @@ export const BEST_FUNDS: Fund[] = [
         sharpe: 1.68,
         maxDrawdown: -1.1,
         aum: "1.414,7 M€ (clase) / 2.610,9 M€ (fondo)",
-        description: "RF flexible centrada en crédito. Ratios/fees y patrimonio según Finect.",
+        description: "RF flexible centrada en crédito.",
         link: "https://www.finect.com/fondos-inversion/LU1623762843-Carmignac_pf_credit_a_eur_acc",
     },
     {
@@ -81,7 +81,7 @@ export const BEST_FUNDS: Fund[] = [
         sharpe: 0.39,
         maxDrawdown: -12.49,
         aum: "1.531,1 M€ (clase) / 2.305,5 M€ (fondo)",
-        description: "Indexado MSCI World. Ojo: ratios de Finect son del fondo (no de tu broker).",
+        description: "Indexado MSCI World.",
         link: "https://www.finect.com/fondos-inversion/IE00BYX5NX33-Fidelity_msci_world_index_eur_p_acc",
     },
     {
@@ -97,7 +97,7 @@ export const BEST_FUNDS: Fund[] = [
         sharpe: 1.19,
         maxDrawdown: -6.95,
         aum: "377,6 M€ (clase) / 15.790,0 M€ (fondo)",
-        description: "Indexado EM. Datos de ratios/patrimonio según Finect.",
+        description: "Indexado de Mercados Emergentes.",
         link: "https://www.finect.com/fondos-inversion/IE0031786142-Vanguard_emerg_mkts_stk_idx_inv_eur_acc",
     },
     {
@@ -113,7 +113,7 @@ export const BEST_FUNDS: Fund[] = [
         sharpe: 1.98,
         maxDrawdown: -3.94,
         aum: "27,6 M€ (clase/fondo)",
-        description: "ISIN corregido: ES0165181001 no coincide en Finect. Esta clase (C) sí aparece.",
+        description: "Fondo Value de empresas de pequeña y mediana capitalización europeas.",
         link: "https://www.finect.com/fondos-inversion/ES0165243025-Myinvestor_value_c_fi",
     },
     {
@@ -129,7 +129,7 @@ export const BEST_FUNDS: Fund[] = [
         sharpe: 2.11,
         maxDrawdown: -3.5,
         aum: "119,0 M€ (clase) / 926,2 M€ (fondo)",
-        description: "Value global small/mid según categorización Finect/Morningstar.",
+        description: "Value global small/mid.",
         link: "https://www.finect.com/fondos-inversion/ES0119199000-Cobas_internacional_c_fi",
     },
     {
@@ -145,7 +145,7 @@ export const BEST_FUNDS: Fund[] = [
         sharpe: 0.49,
         maxDrawdown: -15.30,
         aum: "3.613,4 M€ (clase) / 28.367,7 M€ (fondo)",
-        description: "Renta variable global centrada en tecnología; no indexado. Datos Finect/Morningstar.",
+        description: "Renta variable global centrada en tecnología; no indexado.",
         link: "https://www.finect.com/fondos-inversion/LU1213836080-Fidelity_global_technology_aacceur",
     },
     {
@@ -161,7 +161,7 @@ export const BEST_FUNDS: Fund[] = [
         sharpe: 0.16,
         maxDrawdown: -15.52,
         aum: "1.069,0 M€ (clase) / 1.646,3 M€ (fondo)",
-        description: "Indexado al S&P 500 (clase EUR P Acc). Datos Finect/Morningstar.",
+        description: "Indexado al S&P 500 (clase EUR P Acc).",
         link: "https://www.finect.com/fondos-inversion/IE00BYX5MX67-Fidelity_sp_500_index_eur_p_acc",
     },
     {

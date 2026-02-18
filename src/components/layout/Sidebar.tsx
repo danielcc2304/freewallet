@@ -113,20 +113,22 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         </button>
 
                         <div className={`sidebar__sub-nav ${academyExpanded ? 'sidebar__sub-nav--open' : ''}`}>
-                            {academySections.map(({ path, icon: Icon, label, end }) => (
-                                <NavLink
-                                    key={path}
-                                    to={path}
-                                    end={end}
-                                    className={({ isActive }) =>
-                                        `sidebar__sub-link ${isActive ? 'sidebar__sub-link--active' : ''}`
-                                    }
-                                    onClick={closeMobileSidebar}
-                                >
-                                    <Icon className="sidebar__sub-icon" size={16} />
-                                    <span className="sidebar__sub-text">{label}</span>
-                                </NavLink>
-                            ))}
+                            <div className="sidebar__sub-nav-inner">
+                                {academySections.map(({ path, icon: Icon, label, end }) => (
+                                    <NavLink
+                                        key={path}
+                                        to={path}
+                                        end={end}
+                                        className={({ isActive }) =>
+                                            `sidebar__sub-link ${isActive ? 'sidebar__sub-link--active' : ''}`
+                                        }
+                                        onClick={closeMobileSidebar}
+                                    >
+                                        <Icon className="sidebar__sub-icon" size={16} />
+                                        <span className="sidebar__sub-text">{label}</span>
+                                    </NavLink>
+                                ))}
+                            </div>
                         </div>
                     </div>
 

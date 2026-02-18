@@ -450,16 +450,40 @@
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
+    .crisis {
+        padding: 0 1rem 4rem;
+    }
+
     .crisis__title {
-        font-size: 2rem;
+        font-size: 1.85rem;
+    }
+
+    .crisis__warning {
+        padding: 1.25rem;
+        flex-direction: column;
+        gap: 0.5rem;
     }
 
     .crisis__tabs {
         grid-template-columns: 1fr;
     }
 
+    .crisis__info {
+        padding: 1.5rem;
+        border-radius: 12px;
+    }
+
+    .crisis__info h2 {
+        font-size: 1.5rem;
+    }
+
     .crisis__stats {
         grid-template-columns: 1fr;
+    }
+
+    .crisis__simulator {
+        padding: 1.5rem;
+        border-radius: 12px;
     }
 
     .crisis__inputs {
@@ -470,18 +494,35 @@
         grid-template-columns: 1fr;
     }
 
-    .crisis__simulator,
-    .crisis__info,
+    .crisis__scenario-value {
+        font-size: 1.5rem;
+    }
+
     .crisis__comparison {
-        padding: 1.5rem;
+        padding: 1.25rem;
+        border-radius: 12px;
     }
 
     .crisis__table {
-        font-size: 0.9rem;
+        font-size: 0.85rem;
     }
 
     .crisis__table th,
     .crisis__table td {
         padding: 0.75rem 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .crisis__title {
+        font-size: 1.6rem;
+    }
+
+    .crisis__stat-value {
+        font-size: 1.25rem;
+    }
+
+    .crisis__scenario-value {
+        font-size: 1.35rem;
     }
 }

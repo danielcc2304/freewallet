@@ -191,6 +191,10 @@
     margin-bottom: 0.55rem;
 }
 
+.portfolio-csv-chart--risk-map .recharts-default-legend {
+    padding-top: 0.35rem !important;
+}
+
 .portfolio-csv-pie-legend {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -354,7 +358,7 @@
 
 @media (max-width: 700px) {
     .portfolio-csv-page {
-        padding: 0 0.9rem 2.4rem;
+        padding: 0 0.7rem 2.3rem;
     }
 
     .portfolio-csv-hero {
@@ -366,7 +370,11 @@
     }
 
     .portfolio-csv-chart {
-        height: 270px;
+        height: 276px;
+    }
+
+    .portfolio-csv-chart .recharts-responsive-container {
+        margin: 0 !important;
     }
 
     .portfolio-csv-pie-legend {
@@ -376,5 +384,13 @@
     .portfolio-csv-insights li {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .portfolio-csv-card {
+        padding: 0.85rem 0.7rem;
+    }
+
+    .portfolio-csv-chart--risk-map {
+        margin-left: 0;
     }
 }

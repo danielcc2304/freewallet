@@ -1,0 +1,25 @@
+.academy {
+    min-height: calc(100vh - var(--header-height, 70px));
+    background: var(--bg-primary);
+    overflow-x: hidden;
+}
+
+/* ===== CONTENT AREA ===== */
+.academy__content {
+    padding: 2rem;
+    max-width: 1200px;
+    overflow-x: hidden;
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 1024px) {
+    .academy__content {
+        padding: 1.5rem 1rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .academy__content {
+        padding: 1rem 0.5rem;
+    }
+}

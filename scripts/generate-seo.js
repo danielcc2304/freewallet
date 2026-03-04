@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 const routes = [
     '/',
     '/add',
+    '/portfolio-csv',
     '/settings',
     '/terms',
     '/academy',

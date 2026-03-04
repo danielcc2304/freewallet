@@ -1,8 +1,6 @@
 import { useState, useMemo } from 'react';
 import { ArrowUpDown, Trash2, ChevronUp, ChevronDown, Pencil, PlusCircle } from 'lucide-react';
-import { Card, CardHeader, CardContent } from '../ui/Card';
-import { Button } from '../ui/Button';
-import { ConfirmDialog } from '../ui/Modal';
+import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../ui';
 import type { Asset } from '../../types/types';
 import './AssetsTable.css';
 

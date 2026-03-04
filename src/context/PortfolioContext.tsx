@@ -1,7 +1,7 @@
 import { createContext, useContext, useReducer, useEffect, useCallback } from 'react';
 import type { ReactNode } from 'react';
 import type { Asset } from '../types/types';
-import { getAssets, saveAssets, addAsset as addAssetToStorage, updateAsset as updateAssetInStorage, deleteAsset as deleteAssetFromStorage, saveHistory } from '../services/storageService';
+import { getAssets, saveAssets, addAsset as addAssetToStorage, updateAsset as updateAssetInStorage, deleteAsset as deleteAssetFromStorage, saveHistory, isApiEnabled } from '../services/storageService';
 import { getQuote } from '../services/apiService';
 import { mockAssets, generateMockHistory } from '../data/mockData';
 
@@ -93,7 +93,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             dispatch({ type: 'SET_INITIALIZED', payload: true });
 
             // Auto-update prices if we have assets
-            if (storedAssets.length > 0) {
+            if (storedAssets.length > 0 && isApiEnabled()) {
                 updatePricesInternal(storedAssets);
             }
         }
@@ -140,6 +140,10 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'ADD_ASSET', payload: asset });
 
         // Refresh prices for all assets after adding new one
+        if (!isApiEnabled()) {
+            return;
+        }
+
         const allAssets = [...state.assets, asset];
         await updatePricesInternal(allAssets);
     }, [state.assets]);
@@ -155,6 +159,10 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     }, []);
 
     const refreshPrices = useCallback(async () => {
+        if (!isApiEnabled()) {
+            return;
+        }
+
         await updatePricesInternal(state.assets);
     }, [state.assets]);
 

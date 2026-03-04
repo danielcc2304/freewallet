@@ -11,7 +11,6 @@ import './Settings.css';
 type ThemeMode = 'light' | 'dark' | 'system';
 
 export function Settings() {
-    const API_NOTICE_SESSION_KEY = 'freewallet_dashboard_api_notice_seen';
     const { themeMode, setThemeMode } = useTheme();
     const { state, loadDemoData } = usePortfolio();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
@@ -39,9 +38,6 @@ export function Settings() {
         const nextValue = !apiEnabled;
         setApiEnabled(nextValue);
         updateSettings({ apiEnabled: nextValue });
-        if (nextValue) {
-            sessionStorage.removeItem(API_NOTICE_SESSION_KEY);
-        }
     };
 
     return (

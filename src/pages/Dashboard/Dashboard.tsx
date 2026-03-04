@@ -10,8 +10,6 @@ import { isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, ChartDataPoint, PerformerData, TimePeriod, Asset } from '../../types/types';
 import './Dashboard.css';
 
-const API_NOTICE_SESSION_KEY = 'freewallet_dashboard_api_notice_seen';
-
 export function Dashboard() {
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
     const { assets, loading, updatingPrices, lastPriceUpdate } = state;
@@ -22,17 +20,10 @@ export function Dashboard() {
     const apiEnabled = isApiEnabled();
 
     useEffect(() => {
-        if (!apiEnabled) {
-            setShowApiNotice(false);
-            return;
-        }
-
-        const alreadySeen = sessionStorage.getItem(API_NOTICE_SESSION_KEY) === 'true';
-        setShowApiNotice(!alreadySeen);
+        setShowApiNotice(apiEnabled);
     }, [apiEnabled]);
 
     const handleCloseApiNotice = () => {
-        sessionStorage.setItem(API_NOTICE_SESSION_KEY, 'true');
         setShowApiNotice(false);
     };
 

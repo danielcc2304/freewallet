@@ -10,6 +10,7 @@ const __dirname = path.dirname(__filename);
 const DIST_DIR = path.join(__dirname, '../dist');
 
 const routes = [
+    '/portfolio-csv',
     '/academy',
     '/academy/timeline',
     '/academy/crisis',

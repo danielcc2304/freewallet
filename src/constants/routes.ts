@@ -27,6 +27,7 @@ export const ACADEMY_ROUTES = [
 export const ALL_PRERENDER_ROUTES = [
     '/',
     '/add',
+    '/portfolio-csv',
     '/settings',
     '/terms',
     ...ACADEMY_ROUTES.map(r => r.path)

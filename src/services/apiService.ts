@@ -1,5 +1,6 @@
 import axios from 'axios';
 import type { StockQuote, SearchResult, HistoricalDataPoint, AssetType, TimePeriod } from '../types/types';
+import { isApiEnabled } from './storageService';
 
 // ===== API CONFIGURATION =====
 const ALPHA_VANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
@@ -204,6 +205,10 @@ async function waitForFinnhubRateLimit(): Promise<void> {
 
 // ===== SEARCH SYMBOLS (with fallback) =====
 export async function searchSymbol(query: string, signal?: AbortSignal): Promise<SearchResult[]> {
+    if (!isApiEnabled()) {
+        return [];
+    }
+
     const q = normalizeQuery(query);
     const allResults: SearchResult[] = [];
     const seenSymbols = new Set<string>();
@@ -456,6 +461,10 @@ async function searchSymbolYahoo(query: string, signal?: AbortSignal): Promise<S
 
 // ===== GET QUOTE (with fallback) =====
 export async function getQuote(symbol: string, signal?: AbortSignal): Promise<StockQuote | null> {
+    if (!isApiEnabled()) {
+        return null;
+    }
+
     // Check cache first
     const cached = QUOTE_CACHE.get(symbol);
     if (cached && Date.now() - cached.timestamp < TTL.QUOTE) {
@@ -664,6 +673,10 @@ export async function getQuotesYahooBatch(symbols: string[], signal?: AbortSigna
 
 // ===== YAHOO FINANCE GET FUNDAMENTALS =====
 export async function getFundamentalData(symbol: string, signal?: AbortSignal): Promise<Partial<StockQuote>> {
+    if (!isApiEnabled()) {
+        return {};
+    }
+
     // Strategy: Progressive Enhancement.
     // 1. Always get the "basic" quote first (v7), which we know is reliable (used in "Add Asset").
     // 2. Try to get "advanced" details (v10).
@@ -750,6 +763,10 @@ export async function getAssetChartData(
     period: TimePeriod = '1M',
     signal?: AbortSignal
 ): Promise<HistoricalDataPoint[]> {
+    if (!isApiEnabled()) {
+        return [];
+    }
+
     let range = '1mo';
     let interval = '1d';
 
@@ -827,6 +844,10 @@ export async function getHistoricalData(
     outputSize: 'compact' | 'full' = 'compact',
     signal?: AbortSignal
 ): Promise<HistoricalDataPoint[]> {
+    if (!isApiEnabled()) {
+        return [];
+    }
+
     await waitForAlphaVantageRateLimit();
 
     try {
@@ -874,6 +895,7 @@ export async function updateAssetPrices(
 ): Promise<Map<string, { price: number; previousClose: number }>> {
     const prices = new Map<string, { price: number; previousClose: number }>();
     if (assets.length === 0) return prices;
+    if (!isApiEnabled()) return prices;
 
     const uniqueSymbols = Array.from(new Set(assets.map(a => a.symbol)));
 

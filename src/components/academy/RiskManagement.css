@@ -1,7 +1,8 @@
 .risk-mgmt {
     max-width: 900px;
     margin: 0 auto;
-    padding-bottom: 4rem;
+    padding: 0 1.5rem 4rem;
+    overflow-x: hidden;
 }
 
 .risk-mgmt__header {
@@ -249,6 +250,9 @@
 }
 
 @media (max-width: 768px) {
+    .risk-mgmt__title {
+        font-size: 1.85rem;
+    }
 
     .risk-mgmt__box,
     .time-box {
@@ -274,5 +278,15 @@
     .cta__actions {
         flex-direction: column;
         gap: 1.25rem;
+    }
+
+    .risk-mgmt__cta {
+        padding: 2rem 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .risk-mgmt__title {
+        font-size: 1.6rem;
     }
 }

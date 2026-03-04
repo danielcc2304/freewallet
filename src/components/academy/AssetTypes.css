@@ -1,7 +1,8 @@
 .asset-types-page {
     max-width: 1000px;
     margin: 0 auto;
-    padding-bottom: 4rem;
+    padding: 0 1.5rem 4rem;
+    overflow-x: hidden;
 }
 
 .asset-types-page__header {
@@ -10,7 +11,7 @@
 }
 
 .asset-types-page__title {
-    font-size: 2.75rem;
+    font-size: 2.5rem;
     font-weight: 800;
     margin-bottom: 1.25rem;
 }
@@ -198,7 +199,7 @@
     }
 
     .asset-types-page__title {
-        font-size: 2rem;
+        font-size: 1.85rem;
     }
 }
 
@@ -213,8 +214,8 @@
         gap: 1rem;
     }
 
-    .asset-types-page {
-        padding: 0 1rem 4rem;
+    .asset-types-page__title {
+        font-size: 1.6rem;
     }
 }
 

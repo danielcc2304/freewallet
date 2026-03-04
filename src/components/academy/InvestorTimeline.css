@@ -2,6 +2,7 @@
     max-width: 900px;
     margin: 0 auto;
     padding: 0 1.5rem 4rem;
+    overflow-x: hidden;
 }
 
 .timeline__header {
@@ -11,7 +12,7 @@
 
 .timeline__title {
     font-size: 2.5rem;
-    font-weight: 700;
+    font-weight: 800;
     color: var(--text-primary);
     margin: 0 0 0.75rem 0;
 }
@@ -491,7 +492,7 @@
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .timeline__title {
-        font-size: 2rem;
+        font-size: 1.85rem;
     }
 
     .timeline__phase {
@@ -526,5 +527,15 @@
 
     .timeline__errors-list {
         grid-template-columns: 1fr;
+    }
+
+    .timeline__next {
+        padding: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .timeline__title {
+        font-size: 1.6rem;
     }
 }

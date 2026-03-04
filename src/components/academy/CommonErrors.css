@@ -1,7 +1,8 @@
 .errors-page {
     max-width: 900px;
     margin: 0 auto;
-    padding-bottom: 4rem;
+    padding: 0 1.5rem 4rem;
+    overflow-x: hidden;
 }
 
 .errors-page__header {
@@ -125,6 +126,10 @@
 }
 
 @media (max-width: 768px) {
+    .errors-page__title {
+        font-size: 1.85rem;
+    }
+
     .errors-page__grid {
         grid-template-columns: 1fr;
     }
@@ -135,5 +140,11 @@
 
     .error-detail-card {
         padding: 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .errors-page__title {
+        font-size: 1.6rem;
     }
 }

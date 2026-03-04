@@ -1,7 +1,8 @@
 .scenarios {
     max-width: 900px;
     margin: 0 auto;
-    padding-bottom: 4rem;
+    padding: 0 1.5rem 4rem;
+    overflow-x: hidden;
 }
 
 .scenarios__header {
@@ -200,6 +201,10 @@
 }
 
 @media (max-width: 768px) {
+    .scenarios__title {
+        font-size: 1.85rem;
+    }
+
     .scenario-card {
         padding: 1.5rem;
     }
@@ -212,5 +217,15 @@
 
     .scenario-card__emoji {
         margin: 0 auto;
+    }
+
+    .scenario-actions {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .scenarios__title {
+        font-size: 1.6rem;
     }
 }

@@ -1,7 +1,8 @@
 .valuation-guide {
     max-width: 1000px;
     margin: 0 auto;
-    padding-bottom: 5rem;
+    padding: 0 1.5rem 5rem;
+    overflow-x: hidden;
 }
 
 .valuation-guide__back {
@@ -234,6 +235,16 @@
     }
 
     .valuation-guide__hero h1 {
-        font-size: 1.75rem;
+        font-size: 1.85rem;
+    }
+
+    .valuation-guide__grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .valuation-guide__hero h1 {
+        font-size: 1.6rem;
     }
 }

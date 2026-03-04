@@ -1,7 +1,8 @@
 .glossary-page {
     max-width: 1000px;
     margin: 0 auto;
-    padding-bottom: 4rem;
+    padding: 0 1.5rem 4rem;
+    overflow-x: hidden;
 }
 
 .glossary-page__header {
@@ -178,11 +179,21 @@
 }
 
 @media (max-width: 768px) {
+    .glossary-page__title {
+        font-size: 1.85rem;
+    }
+
     .glossary-grid {
         grid-template-columns: 1fr;
     }
 
     .glossary-controls {
         position: static;
+    }
+}
+
+@media (max-width: 480px) {
+    .glossary-page__title {
+        font-size: 1.6rem;
     }
 }

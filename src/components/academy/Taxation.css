@@ -1,7 +1,8 @@
 .tax-info {
     max-width: 900px;
     margin: 0 auto;
-    padding-bottom: 4rem;
+    padding: 0 1.5rem 4rem;
+    overflow-x: hidden;
 }
 
 .tax-info__header {
@@ -227,6 +228,10 @@
 }
 
 @media (max-width: 768px) {
+    .tax-info__title {
+        font-size: 1.85rem;
+    }
+
     .tax-info__two-cols {
         grid-template-columns: 1fr;
     }
@@ -238,5 +243,15 @@
 
     .viz-operator {
         transform: rotate(90deg);
+    }
+
+    .tax-info__cta {
+        padding: 2rem 1.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .tax-info__title {
+        font-size: 1.6rem;
     }
 }

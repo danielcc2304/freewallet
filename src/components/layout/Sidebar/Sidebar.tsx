@@ -17,7 +17,8 @@ import {
     PieChart,
     Lightbulb,
     Shield,
-    Award
+    Award,
+    FileSpreadsheet
 } from 'lucide-react';
 import './Sidebar.css';
 
@@ -42,7 +43,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     const isAcademyRoute = location.pathname.startsWith('/academy');
     const [academyExpanded, setAcademyExpanded] = useState(isAcademyRoute);
 
-    // Auto-expand when navigating to academy routes
     useEffect(() => {
         if (isAcademyRoute) {
             setAcademyExpanded(true);
@@ -52,6 +52,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     const navItems = [
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/add', icon: PlusCircle, label: 'Añadir Inversión' },
+        { to: '/portfolio-csv', icon: FileSpreadsheet, label: 'Portfolio CSV' },
     ];
 
     const handleAcademyToggle = () => {
@@ -64,7 +65,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
     return (
         <>
-            {/* Mobile overlay */}
             {isOpen && (
                 <div className="sidebar-overlay" onClick={onToggle} />
             )}
@@ -98,7 +98,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         </NavLink>
                     ))}
 
-                    {/* Academy section with collapsible sub-nav */}
                     <div className={`sidebar__group ${isAcademyRoute ? 'sidebar__group--active' : ''}`}>
                         <button
                             className={`sidebar__link sidebar__group-toggle ${isAcademyRoute ? 'sidebar__link--active' : ''}`}
@@ -152,7 +151,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                 </div>
             </aside>
 
-            {/* Mobile menu button */}
             <button className="sidebar__toggle sidebar__toggle--fixed" onClick={onToggle}>
                 <Menu size={24} />
             </button>

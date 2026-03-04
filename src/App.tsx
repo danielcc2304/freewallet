@@ -1,48 +1,44 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Layout } from './components/layout/Layout';
-import { Dashboard } from './pages/Dashboard';
-import { AddInvestment } from './pages/AddInvestment';
-import { Settings } from './pages/Settings';
-import { TermsAndConditions } from './pages/TermsAndConditions';
-import { AcademyLayout } from './components/academy/AcademyLayout';
-import { Fundamentos } from './components/academy/Fundamentos';
-import { InvestorTimeline } from './components/academy/InvestorTimeline';
-import { CrisisSimulator } from './components/academy/CrisisSimulator';
-import { CompoundInterestCalc } from './components/academy/CompoundInterestCalc';
-import { FIRECalculator } from './components/academy/FIRECalculator';
-import { RetirementCalculator } from './components/academy/RetirementCalculator';
-import { EmergencyFundCalculator } from './components/academy/EmergencyFundCalculator';
-import { TaxSimulator } from './components/academy/TaxSimulator';
-import { AssetAllocationSim } from './components/academy/AssetAllocationSim';
-import { InProcess } from './components/academy/InProcess';
-import { Calculators } from './components/academy/Calculators';
-import { PortfolioBuilder } from './components/academy/PortfolioBuilder';
-import { Taxation } from './components/academy/Taxation';
-import { Strategies } from './components/academy/Strategies';
-import { RiskManagement } from './components/academy/RiskManagement';
-import { Scenarios } from './components/academy/Scenarios';
-import { CommonErrors } from './components/academy/CommonErrors';
-import { Glossary } from './components/academy/Glossary';
-import { AssetTypes } from './components/academy/AssetTypes';
-import { BondCalculator } from './components/academy/BondCalculator';
+import { MainLayout } from './components/layout/MainLayout';
+import { Dashboard, AddInvestment, Settings, TermsAndConditions, NotFound } from './pages';
+import { AcademyLayout } from './components/academy/layout/AcademyLayout';
+import { Fundamentos } from './components/academy/guides/Fundamentos';
+import { InvestorTimeline } from './components/academy/guides/InvestorTimeline';
+import { CrisisSimulator } from './components/academy/simulators/CrisisSimulator';
+import { CompoundInterestCalc } from './components/academy/calculators/CompoundInterestCalc';
+import { FIRECalculator } from './components/academy/calculators/FIRECalculator';
+import { RetirementCalculator } from './components/academy/calculators/RetirementCalculator';
+import { EmergencyFundCalculator } from './components/academy/calculators/EmergencyFundCalculator';
+import { TaxSimulator } from './components/academy/calculators/TaxSimulator';
+import { AssetAllocationSim } from './components/academy/simulators/AssetAllocationSim';
+import { InProcess } from './components/academy/guides/InProcess';
+import { Calculators } from './components/academy/calculators/Calculators';
+import { PortfolioBuilder } from './components/academy/simulators/PortfolioBuilder';
+import { Taxation } from './components/academy/guides/Taxation';
+import { Strategies } from './components/academy/guides/Strategies';
+import { RiskManagement } from './components/academy/guides/RiskManagement';
+import { Scenarios } from './components/academy/guides/Scenarios';
+import { CommonErrors } from './components/academy/guides/CommonErrors';
+import { Glossary } from './components/academy/guides/Glossary';
+import { AssetTypes } from './components/academy/guides/AssetTypes';
+import { BondCalculator } from './components/academy/calculators/BondCalculator';
 import { AssetEquities } from './components/academy/assets/AssetEquities';
 import { AssetBonds } from './components/academy/assets/AssetBonds';
 import { AssetCash } from './components/academy/assets/AssetCash';
 import { AssetREITs } from './components/academy/assets/AssetREITs';
 import { AssetCrypto } from './components/academy/assets/AssetCrypto';
-import { ValuationGuide } from './components/academy/ValuationGuide';
-import { InvestorProfileTest } from './components/academy/InvestorProfileTest';
-import { InflationPredator } from './components/academy/InflationPredator';
-import { MarketTimingGame } from './components/academy/MarketTimingGame';
-import { FundRadar } from './components/academy/FundRadar';
-import { NotFound } from './pages/NotFound';
+import { ValuationGuide } from './components/academy/guides/ValuationGuide';
+import { InvestorProfileTest } from './components/academy/simulators/InvestorProfileTest';
+import { InflationPredator } from './components/academy/calculators/InflationPredator';
+import { MarketTimingGame } from './components/academy/simulators/MarketTimingGame';
+import { FundRadar } from './components/academy/simulators/FundRadar';
 import './index.css';
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<Layout />}>
+        <Route path="/" element={<MainLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="add" element={<AddInvestment />} />
           <Route path="settings" element={<Settings />} />

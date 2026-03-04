@@ -1,5 +1,5 @@
 import { AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
-import { COMMON_ERRORS } from '../../data/academyData';
+import { COMMON_ERRORS } from '../../../data/academyData';
 import './CommonErrors.css';
 
 export function CommonErrors() {

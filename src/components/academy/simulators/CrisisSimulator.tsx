@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { TrendingDown, TrendingUp, DollarSign, AlertTriangle } from 'lucide-react';
-import { CRISIS_DATA } from '../../data/academyData';
-import type { CrisisData } from '../../types/types';
+import { CRISIS_DATA } from '../../../data/academyData';
+import type { CrisisData } from '../../../types/types';
 import './CrisisSimulator.css';
 
 type ScenarioType = 'panic' | 'hold' | 'dca';

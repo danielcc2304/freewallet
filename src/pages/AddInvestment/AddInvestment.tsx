@@ -2,13 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Search, Calendar, DollarSign, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp } from 'lucide-react';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { Input } from '../components/ui/Input';
-import { Button } from '../components/ui/Button';
-import { searchSymbol, getQuote } from '../services/apiService';
-import { generateId } from '../services/storageService';
-import { usePortfolio } from '../context/PortfolioContext';
-import type { SearchResult, AssetType, Asset } from '../types/types';
+import { Card, CardHeader, CardContent, Input, Button } from '../../components/ui';
+import { searchSymbol, getQuote } from '../../services/apiService';
+import { generateId } from '../../services/storageService';
+import { usePortfolio } from '../../context/PortfolioContext';
+import type { SearchResult, AssetType, Asset } from '../../types/types';
 import './AddInvestment.css';
 
 interface FormData {

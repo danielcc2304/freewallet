@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { Search, Info } from 'lucide-react';
-import { GLOSSARY } from '../../data/academyData';
+import { GLOSSARY } from '../../../data/academyData';
 import './Glossary.css';
 
 export function Glossary() {

@@ -21,7 +21,7 @@ import {
     TrendingDown,
     Calendar
 } from 'lucide-react';
-import { SCENARIOS } from '../../data/academyData';
+import { SCENARIOS } from '../../../data/academyData';
 import './Scenarios.css';
 
 const IconMap: Record<string, any> = {

@@ -5,8 +5,9 @@ import {
     ArrowLeft, Landmark, BarChart3,
     ChevronDown, ChevronUp, Star, Trophy
 } from 'lucide-react';
-import { BEST_FUNDS } from '../../data/academyData';
-import type { Fund } from '../../types/types';
+import { BEST_FUNDS } from '../../../data/academyData';
+import type { Fund } from '../../../types/types';
+import { calculateRawScore, calculatePercentile, normalizeScore } from '../../../services/funds/fundScoring';
 import './FundRadar.css';
 
 interface FundCardProps {
@@ -177,32 +178,6 @@ function FundCard({ fund, getRiskColor, isExpanded, onToggle, score, rank }: Fun
 
 const clamp = (x: number, min: number, max: number) => Math.min(max, Math.max(min, x));
 
-const percentile = (arr: number[], p: number) => {
-    if (arr.length === 0) return 0;
-    const a = [...arr].sort((x, y) => x - y);
-    const idx = (a.length - 1) * p;
-    const lo = Math.floor(idx);
-    const hi = Math.ceil(idx);
-    if (lo === hi) return a[lo];
-    return a[lo] + (a[hi] - a[lo]) * (idx - lo);
-};
-
-const calculateRawScore = (f: Fund) => {
-    const y5 = f.returns.y5 ?? f.returns.y3 ?? f.returns.y1;
-    const y3 = f.returns.y3 ?? f.returns.y1;
-    const R = 0.6 * y5 + 0.4 * y3;
-
-    const vol = f.volatility ?? NaN;
-    const dd = f.maxDrawdown !== undefined ? Math.abs(f.maxDrawdown) : NaN;
-
-    // Missing-data penalty suave: si falta, usa un valor neutral (0) pero con pequeño castigo fijo
-    const volTerm = Number.isFinite(vol) ? vol : 0;
-    const ddTerm = Number.isFinite(dd) ? dd : 0;
-    const missingPenalty = (!Number.isFinite(vol) ? 0.75 : 0) + (!Number.isFinite(dd) ? 0.75 : 0);
-
-    return R - 0.30 * volTerm - 0.10 * ddTerm - 2 * f.ter - missingPenalty;
-};
-
 export function FundRadar() {
     const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState('Todas');
@@ -230,8 +205,8 @@ export function FundRadar() {
 
         uniqueCats.forEach(cat => {
             const raws = scored.filter(x => x.fund.category === cat).map(x => x.raw);
-            const p5 = percentile(raws, 0.05);
-            const p95 = percentile(raws, 0.95);
+            const p5 = calculatePercentile(raws, 0.05);
+            const p95 = calculatePercentile(raws, 0.95);
 
             const clipped = raws.map(r => clamp(r, p5, p95));
             const min = Math.min(...clipped);
@@ -256,20 +231,7 @@ export function FundRadar() {
         return scored.map(({ fund, raw }) => {
             const stats = catStats.get(fund.category)!;
             const clipped = clamp(raw, stats.p5, stats.p95);
-
-            // Si hay un solo fondo o todos son iguales, score = 100
-            let finalScore = 100;
-            if (stats.size > 1 && stats.max !== stats.min) {
-                const denom = stats.max - stats.min;
-                const score01 = (clipped - stats.min) / denom;
-
-                if (stats.size < 4) {
-                    // Escala comprimida 40-100 para evitar que el 'peor' de una muestra pequeña parezca un 0
-                    finalScore = 40 + (score01 * 60);
-                } else {
-                    finalScore = score01 * 100;
-                }
-            }
+            const finalScore = normalizeScore(clipped, stats.min, stats.max, stats.size);
 
             const rank = rankMaps.get(fund.category)?.get(fund.id) || 999;
 
@@ -315,7 +277,7 @@ export function FundRadar() {
                 <h1>Ranking de Fondos por Categorías</h1>
                 <div className="fund-radar__last-update">
                     <Star size={12} />
-                    <span>Última actualización: 17 de Febrero del 2026</span>
+                    <span>Última actualización: 4 de Marzo del 2026</span>
                 </div>
                 <p>
                     Clasificamos cada fondo mediante una métrica de eficiencia que considera
@@ -387,9 +349,9 @@ export function FundRadar() {
             <footer className="fund-radar__footer-info">
                 <div className="info-box info-box--formula">
                     <div className="info-text">
-                        <p><strong>Fórmula de Eficiencia:</strong> Siendo y5/y3 las rentabilidades anualizadas.</p>
-                        <code className="formula-code">Score (Winsorized) = Normalización p5–p95 por Categoría</code>
-                        <p className="formula-note">Penalización suave por datos faltantes y recorte de outliers. Costes (TER) ponderados a 2x para priorizar eficiencia operativa sin castigar en exceso la gestión activa.</p>
+                        <p><strong>Fórmula de Eficiencia:</strong> Prioriza historial a 5 años (80%) y penaliza riesgos extremos.</p>
+                        <code className="formula-code">Score = (0.8 * Rent.5Y + 0.2 * Rent.3Y) - 0.4 * Vol - 0.4 * MDD - TER</code>
+                        <p className="formula-note">Penalización por falta de histórico a 5 años. Se utiliza Winsorization p5–p95 para normalización relativa por categoría.</p>
                     </div>
                 </div>
 

@@ -1,13 +1,11 @@
 import { Sun, Moon, Monitor, Trash2, Database, Info } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { Card, CardHeader, CardContent } from '../components/ui/Card';
-import { Button } from '../components/ui/Button';
-import { useTheme } from '../context/ThemeContext';
-import { usePortfolio } from '../context/PortfolioContext';
-import { ConfirmDialog } from '../components/ui/Modal';
+import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../../components/ui';
+import { useTheme } from '../../context/ThemeContext';
+import { usePortfolio } from '../../context/PortfolioContext';
 import { useState } from 'react';
-import { clearAllData } from '../services/storageService';
-import { getFinnhubApiKey, setFinnhubApiKey as setFinnhubApiKeyAction } from '../services/apiService';
+import { clearAllData } from '../../services/storageService';
+import { getFinnhubApiKey, setFinnhubApiKey as setFinnhubApiKeyAction } from '../../services/apiService';
 import './Settings.css';
 
 type ThemeMode = 'light' | 'dark' | 'system';

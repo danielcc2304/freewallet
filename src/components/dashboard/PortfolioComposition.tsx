@@ -1,7 +1,6 @@
 import { useState } from 'react';
-import { Card, CardHeader, CardContent } from '../ui/Card';
-import { DonutChart } from '../charts/DonutChart';
-import { Heatmap } from '../charts/Heatmap';
+import { Card, CardHeader, CardContent } from '../ui';
+import { DonutChart, Heatmap } from '../charts';
 import type { Asset, CompositionItem, HeatmapItem } from '../../types/types';
 import { getColorForIndex } from '../../data/mockData';
 import './PortfolioComposition.css';

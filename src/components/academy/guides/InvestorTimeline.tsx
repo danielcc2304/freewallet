@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Check, AlertCircle, TrendingUp, ChevronDown, ChevronUp, XCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { TIMELINE_PHASES } from '../../data/academyData';
+import { TIMELINE_PHASES } from '../../../data/academyData';
 import './InvestorTimeline.css';
 
 export function InvestorTimeline() {

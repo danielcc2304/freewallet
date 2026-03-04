@@ -1,19 +1,13 @@
 import { useState, useMemo } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PlusCircle, RefreshCw, Wallet, Feather, Loader2 } from 'lucide-react';
-import { PortfolioSummary } from '../components/dashboard/PortfolioSummary';
-import { PortfolioChart } from '../components/charts/PortfolioChart';
-import { Performers } from '../components/dashboard/Performers';
-import { AssetsTable } from '../components/dashboard/AssetsTable';
-import { PortfolioComposition } from '../components/dashboard/PortfolioComposition';
-import { AssetDetail } from '../components/dashboard/AssetDetail';
-import { Button } from '../components/ui/Button';
-import { Card, CardContent } from '../components/ui/Card';
-import { Modal } from '../components/ui/Modal';
-import { usePortfolio } from '../context/PortfolioContext';
-import { filterHistoryByPeriod } from '../data/mockData';
-import { generateMockHistory } from '../data/mockData';
-import type { PortfolioMetrics, ChartDataPoint, PerformerData, TimePeriod, Asset } from '../types/types';
+import { PortfolioSummary, Performers, AssetsTable, PortfolioComposition, AssetDetail } from '../../components/dashboard';
+import { PortfolioChart } from '../../components/charts';
+import { Button, Card, CardContent, Modal } from '../../components/ui';
+import { usePortfolio } from '../../context/PortfolioContext';
+import { filterHistoryByPeriod } from '../../data/mockData';
+import { generateMockHistory } from '../../data/mockData';
+import type { PortfolioMetrics, ChartDataPoint, PerformerData, TimePeriod, Asset } from '../../types/types';
 import './Dashboard.css';
 
 export function Dashboard() {

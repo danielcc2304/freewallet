@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { MetricCard } from '../ui/MetricCard';
+import { MetricCard } from '../../ui/MetricCard';
 import { Wallet, TrendingUp, PiggyBank, BarChart3 } from 'lucide-react';
-import type { PortfolioMetrics } from '../../types/types';
+import type { PortfolioMetrics } from '../../../types/types';
 import './PortfolioSummary.css';
 
 interface PortfolioSummaryProps {

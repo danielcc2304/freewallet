@@ -1,5 +1,5 @@
 import { TrendingUp, ShieldCheck, Building2, Coins, Wallet, Landmark, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
-import { ASSET_CLASSES_DETAIL } from '../../data/academyData';
+import { ASSET_CLASSES_DETAIL } from '../../../data/academyData';
 import './AssetTypes.css';
 
 const IconMap: Record<string, any> = {

@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
-import { Sidebar } from './Sidebar';
-import './Layout.css';
+import { Sidebar } from '../Sidebar';
+import './MainLayout.css';
 
-export function Layout() {
+export function MainLayout() {
     const [sidebarOpen, setSidebarOpen] = useState(false);
 
     return (

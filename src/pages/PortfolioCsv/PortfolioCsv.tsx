@@ -570,8 +570,8 @@ export function PortfolioCsv() {
                                 <XAxis dataKey="period" tickFormatter={formatPeriodTick} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={isMobile ? 22 : 12} />
                                 <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k`} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
                                 <Tooltip content={<SeriesTooltip valueType="currency" />} />
-                                <Area type="monotone" dataKey="totalValue" stroke="#10b981" fill="url(#portfolioCsvTotal)" strokeWidth={2.3} />
-                                <Area type="monotone" dataKey="investedValue" stroke="#3b82f6" fill="url(#portfolioCsvInvested)" strokeWidth={2.1} />
+                                <Area type="monotone" dataKey="totalValue" name="Valor total" stroke="#10b981" fill="url(#portfolioCsvTotal)" strokeWidth={2.3} />
+                                <Area type="monotone" dataKey="investedValue" name="Capital invertido" stroke="#3b82f6" fill="url(#portfolioCsvInvested)" strokeWidth={2.1} />
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>

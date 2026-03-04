@@ -372,6 +372,9 @@ export function PortfolioCsv() {
 
     const legendFormatter = (value: string) => (<span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{value}</span>);
     const formatPeriodTick = (value: string) => (!isMobile ? value : value.replace(' 2025', '').replace(' 2026', ''));
+    const mobileChartMargin = isMobile
+        ? { top: 8, right: 2, left: 0, bottom: 34 }
+        : { top: 8, right: 10, left: 0, bottom: 18 };
 
     const SeriesTooltip = ({
         active,
@@ -582,10 +585,17 @@ export function PortfolioCsv() {
                     <p>Descompone el avance mensual entre nuevo ahorro y comportamiento de mercado.</p>
                     <div className="portfolio-csv-chart">
                         <ResponsiveContainer width="100%" height={320}>
-                            <ComposedChart data={evolution}>
+                            <ComposedChart data={evolution} margin={mobileChartMargin}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                                 <XAxis dataKey="period" tickFormatter={formatPeriodTick} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={isMobile ? 22 : 12} />
-                                <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k`} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
+                                <YAxis
+                                    tickFormatter={(value) => `${Math.round(value / 1000)}k`}
+                                    tick={{ fill: 'var(--text-secondary)', fontSize: isMobile ? 11 : 12 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tickMargin={6}
+                                    width={isMobile ? 40 : 48}
+                                />
                                 <Tooltip content={<SeriesTooltip valueType="currency" />} />
                                 <Legend formatter={legendFormatter} wrapperStyle={{ color: 'var(--text-secondary)' }} />
                                 <Bar dataKey="monthlyContribution" name="Aportacion" fill="#3b82f6" radius={[6, 6, 0, 0]} />
@@ -601,16 +611,44 @@ export function PortfolioCsv() {
                 <article className="portfolio-csv-card">
                     <h2><AlertTriangle size={18} /> Mapa de riesgo: retorno mensual y drawdown</h2>
                     <p>Cruza retorno mensual, drawdown y TWR YTD para detectar deterioro de calidad en la serie.</p>
-                    <div className="portfolio-csv-chart">
+                    <div className="portfolio-csv-chart portfolio-csv-chart--risk-map">
                         <ResponsiveContainer width="100%" height={320}>
-                            <ComposedChart data={evolution}>
+                            <ComposedChart
+                                data={evolution}
+                                margin={mobileChartMargin}
+                            >
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                                <XAxis dataKey="period" tickFormatter={formatPeriodTick} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={isMobile ? 22 : 12} />
-                                <YAxis yAxisId="left" tickFormatter={(value) => `${value}%`} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
-                                <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => `${value}%`} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
-                                <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined) => formatPct(Number(value ?? 0))} />
+                                <XAxis
+                                    dataKey="period"
+                                    tickFormatter={formatPeriodTick}
+                                    tick={{ fill: 'var(--text-secondary)', fontSize: isMobile ? 11 : 12 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    interval="preserveStartEnd"
+                                    minTickGap={isMobile ? 28 : 14}
+                                />
+                                <YAxis
+                                    yAxisId="left"
+                                    tickFormatter={(value) => `${value}%`}
+                                    tick={{ fill: 'var(--text-secondary)', fontSize: isMobile ? 11 : 12 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tickMargin={6}
+                                    width={isMobile ? 36 : 44}
+                                />
+                                <YAxis
+                                    yAxisId="right"
+                                    orientation="right"
+                                    tickFormatter={(value) => `${value}%`}
+                                    tick={{ fill: 'var(--text-secondary)', fontSize: isMobile ? 11 : 12 }}
+                                    axisLine={false}
+                                    tickLine={false}
+                                    tickMargin={6}
+                                    width={isMobile ? 36 : 44}
+                                />
+                                <Tooltip content={<SeriesTooltip valueType="percent" />} />
                                 <Legend formatter={legendFormatter} wrapperStyle={{ color: 'var(--text-secondary)' }} />
-                                <Bar yAxisId="left" dataKey="monthlyReturnPct" name="% Mensual" fill="#10b981" radius={[6, 6, 0, 0]} />
+                                <Bar yAxisId="left" dataKey="monthlyReturnPct" name="% Mensual" fill="#10b981" radius={[6, 6, 0, 0]} barSize={isMobile ? 10 : 18} />
                                 <Line yAxisId="right" type="monotone" dataKey="drawdownPct" name="Drawdown %" stroke="#ef4444" strokeWidth={2.1} dot={false} />
                                 <Line yAxisId="right" type="monotone" dataKey="twrYtdPct" name="TWR YTD %" stroke="#8b5cf6" strokeWidth={2.1} dot={false} />
                             </ComposedChart>

@@ -52,6 +52,29 @@
     animation: fadeIn 0.3s ease-out;
 }
 
+.dashboard__notice {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.dashboard__notice p {
+    margin: 0;
+}
+
+.dashboard__notice-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    background: rgba(245, 158, 11, 0.14);
+    color: #d97706;
+}
+
 /* Spinning animation */
 .spinning {
     animation: spin 1s linear infinite;

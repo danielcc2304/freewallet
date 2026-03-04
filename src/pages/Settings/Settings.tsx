@@ -1,21 +1,23 @@
-import { Sun, Moon, Monitor, Trash2, Database, Info } from 'lucide-react';
+import { Sun, Moon, Monitor, Trash2, Database, Info, Power } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../../components/ui';
 import { useTheme } from '../../context/ThemeContext';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { useState } from 'react';
-import { clearAllData } from '../../services/storageService';
+import { clearAllData, isApiEnabled, updateSettings } from '../../services/storageService';
 import { getFinnhubApiKey, setFinnhubApiKey as setFinnhubApiKeyAction } from '../../services/apiService';
 import './Settings.css';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
 export function Settings() {
+    const API_NOTICE_SESSION_KEY = 'freewallet_dashboard_api_notice_seen';
     const { themeMode, setThemeMode } = useTheme();
     const { state, loadDemoData } = usePortfolio();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [showDemoConfirm, setShowDemoConfirm] = useState(false);
     const [finnhubKey, setFinnhubKey] = useState(getFinnhubApiKey());
+    const [apiEnabled, setApiEnabled] = useState(isApiEnabled());
 
     const themeOptions: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
         { value: 'light', label: 'Claro', icon: <Sun size={20} /> },
@@ -31,6 +33,15 @@ export function Settings() {
     const handleLoadDemo = () => {
         loadDemoData();
         setShowDemoConfirm(false);
+    };
+
+    const handleApiToggle = () => {
+        const nextValue = !apiEnabled;
+        setApiEnabled(nextValue);
+        updateSettings({ apiEnabled: nextValue });
+        if (nextValue) {
+            sessionStorage.removeItem(API_NOTICE_SESSION_KEY);
+        }
     };
 
     return (
@@ -111,6 +122,28 @@ export function Settings() {
                 />
                 <CardContent>
                     <div className="settings__api-config">
+                        <div className="settings__toggle-card">
+                            <div className="settings__toggle-copy">
+                                <div className="settings__toggle-title">
+                                    <Power size={18} />
+                                    <span>Activar peticiones a APIs</span>
+                                </div>
+                                <p className="settings__hint">
+                                    Por defecto estara desactivado. Mientras el dashboard sigue en construccion,
+                                    puedes mantener el modo manual y activar las APIs solo cuando quieras probarlo.
+                                </p>
+                            </div>
+                            <button
+                                type="button"
+                                className={`settings__toggle ${apiEnabled ? 'settings__toggle--active' : ''}`}
+                                onClick={handleApiToggle}
+                                aria-pressed={apiEnabled}
+                            >
+                                <span className="settings__toggle-thumb" />
+                                <span className="settings__toggle-text">{apiEnabled ? 'On' : 'Off'}</span>
+                            </button>
+                        </div>
+
                         <div className="settings__input-group">
                             <label htmlFor="finnhub-key">Finnhub API Key</label>
                             <input

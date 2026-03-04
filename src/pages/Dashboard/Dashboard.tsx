@@ -1,21 +1,40 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PlusCircle, RefreshCw, Wallet, Feather, Loader2 } from 'lucide-react';
+import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Wrench } from 'lucide-react';
 import { PortfolioSummary, Performers, AssetsTable, PortfolioComposition, AssetDetail } from '../../components/dashboard';
 import { PortfolioChart } from '../../components/charts';
 import { Button, Card, CardContent, Modal } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { filterHistoryByPeriod } from '../../data/mockData';
-import { generateMockHistory } from '../../data/mockData';
+import { filterHistoryByPeriod, generateMockHistory } from '../../data/mockData';
+import { isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, ChartDataPoint, PerformerData, TimePeriod, Asset } from '../../types/types';
 import './Dashboard.css';
+
+const API_NOTICE_SESSION_KEY = 'freewallet_dashboard_api_notice_seen';
 
 export function Dashboard() {
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
     const { assets, loading, updatingPrices, lastPriceUpdate } = state;
     const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M');
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
+    const [showApiNotice, setShowApiNotice] = useState(false);
     const navigate = useNavigate();
+    const apiEnabled = isApiEnabled();
+
+    useEffect(() => {
+        if (!apiEnabled) {
+            setShowApiNotice(false);
+            return;
+        }
+
+        const alreadySeen = sessionStorage.getItem(API_NOTICE_SESSION_KEY) === 'true';
+        setShowApiNotice(!alreadySeen);
+    }, [apiEnabled]);
+
+    const handleCloseApiNotice = () => {
+        sessionStorage.setItem(API_NOTICE_SESSION_KEY, 'true');
+        setShowApiNotice(false);
+    };
 
     const handleEditAsset = (asset: Asset) => {
         navigate('/add', { state: { editAsset: asset } });
@@ -25,7 +44,6 @@ export function Dashboard() {
         navigate('/add', { state: { dcaAsset: asset } });
     };
 
-    // Calculate portfolio metrics
     const metrics: PortfolioMetrics = useMemo(() => {
         const totalInvested = assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0);
         const currentValue = assets.reduce(
@@ -57,13 +75,11 @@ export function Dashboard() {
         };
     }, [assets]);
 
-    // Generate chart data
     const chartData: ChartDataPoint[] = useMemo(() => {
         const history = generateMockHistory(365);
         return filterHistoryByPeriod(history, selectedPeriod);
     }, [selectedPeriod]);
 
-    // Generate performers data
     const performersData: PerformerData[] = useMemo(() => {
         return assets.map((asset) => {
             const currentValue = (asset.currentPrice || asset.purchasePrice) * asset.quantity;
@@ -82,51 +98,78 @@ export function Dashboard() {
         });
     }, [assets]);
 
+    const apiNoticeModal = (
+        <Modal
+            isOpen={showApiNotice}
+            onClose={handleCloseApiNotice}
+            title="Dashboard en construccion"
+            size="sm"
+        >
+            <div className="dashboard__notice">
+                <div className="dashboard__notice-icon">
+                    <Wrench size={20} />
+                </div>
+                <p>
+                    Las peticiones a APIs estan activadas, pero la experiencia del dashboard todavia no esta cerrada.
+                    Puede haber datos incompletos o comportamientos provisionales mientras se termina esta parte.
+                </p>
+                <Button onClick={handleCloseApiNotice}>
+                    Entendido
+                </Button>
+            </div>
+        </Modal>
+    );
+
     if (loading) {
         return (
-            <div className="dashboard dashboard--loading">
-                <div className="skeleton skeleton--large" />
-                <div className="skeleton skeleton--medium" />
-                <div className="skeleton skeleton--medium" />
-            </div>
+            <>
+                <div className="dashboard dashboard--loading">
+                    <div className="skeleton skeleton--large" />
+                    <div className="skeleton skeleton--medium" />
+                    <div className="skeleton skeleton--medium" />
+                </div>
+                {apiNoticeModal}
+            </>
         );
     }
 
     if (assets.length === 0) {
         return (
-            <div className="dashboard dashboard--empty">
-                <Card className="dashboard__welcome">
-                    <CardContent>
-                        <div className="welcome-content">
-                            <div className="welcome-content__icons">
-                                <Wallet className="welcome-content__icon" size={64} />
-                                <Feather className="welcome-content__icon-feather" size={32} />
-                            </div>
-                            <h1 className="welcome-content__title">Bienvenido a FreeWallet</h1>
-                            <p className="welcome-content__description">
-                                Tu plataforma personal para gestionar y visualizar tu portfolio de inversiones.
-                                Comienza añadiendo tu primera inversión o carga datos de demostración para explorar.
-                            </p>
-                            <div className="welcome-content__actions">
-                                <Link to="/add">
-                                    <Button icon={<PlusCircle size={18} />} size="lg">
-                                        Añadir Primera Inversión
+            <>
+                <div className="dashboard dashboard--empty">
+                    <Card className="dashboard__welcome">
+                        <CardContent>
+                            <div className="welcome-content">
+                                <div className="welcome-content__icons">
+                                    <Wallet className="welcome-content__icon" size={64} />
+                                    <Feather className="welcome-content__icon-feather" size={32} />
+                                </div>
+                                <h1 className="welcome-content__title">Bienvenido a FreeWallet</h1>
+                                <p className="welcome-content__description">
+                                    Tu plataforma personal para gestionar y visualizar tu portfolio de inversiones.
+                                    Comienza anadiendo tu primera inversion o carga datos de demostracion para explorar.
+                                </p>
+                                <div className="welcome-content__actions">
+                                    <Link to="/add">
+                                        <Button icon={<PlusCircle size={18} />} size="lg">
+                                            Anadir Primera Inversion
+                                        </Button>
+                                    </Link>
+                                    <Button variant="secondary" onClick={loadDemoData} icon={<RefreshCw size={18} />}>
+                                        Cargar Datos Demo
                                     </Button>
-                                </Link>
-                                <Button variant="secondary" onClick={loadDemoData} icon={<RefreshCw size={18} />}>
-                                    Cargar Datos Demo
-                                </Button>
+                                </div>
                             </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+                        </CardContent>
+                    </Card>
+                </div>
+                {apiNoticeModal}
+            </>
         );
     }
 
     return (
         <div className="dashboard">
-            {/* Header with actions */}
             <div className="dashboard__header">
                 <div>
                     <h1 className="dashboard__title">Dashboard</h1>
@@ -145,19 +188,18 @@ export function Dashboard() {
                         onClick={refreshPrices}
                         icon={updatingPrices ? <Loader2 size={16} className="spinning" /> : <RefreshCw size={16} />}
                         size="sm"
-                        disabled={updatingPrices}
+                        disabled={updatingPrices || !apiEnabled}
                     >
-                        {updatingPrices ? 'Actualizando...' : 'Actualizar Precios'}
+                        {!apiEnabled ? 'APIs desactivadas' : updatingPrices ? 'Actualizando...' : 'Actualizar Precios'}
                     </Button>
                     <Link to="/add">
                         <Button icon={<PlusCircle size={16} />} size="sm">
-                            Añadir
+                            Anadir
                         </Button>
                     </Link>
                 </div>
             </div>
 
-            {/* Updating indicator */}
             {updatingPrices && (
                 <div className="dashboard__updating-banner">
                     <Loader2 size={16} className="spinning" />
@@ -165,10 +207,8 @@ export function Dashboard() {
                 </div>
             )}
 
-            {/* Portfolio Summary */}
             <PortfolioSummary metrics={metrics} />
 
-            {/* Portfolio Chart */}
             <section className="dashboard__section">
                 <PortfolioChart
                     data={chartData}
@@ -177,18 +217,15 @@ export function Dashboard() {
                 />
             </section>
 
-            {/* Best & Worst Performers */}
             <section className="dashboard__section dashboard__performers">
                 <Performers data={performersData} type="best" />
                 <Performers data={performersData} type="worst" />
             </section>
 
-            {/* Portfolio Composition */}
             <section className="dashboard__section">
                 <PortfolioComposition assets={assets} />
             </section>
 
-            {/* Assets Table */}
             <section className="dashboard__section">
                 <AssetsTable
                     assets={assets}
@@ -199,7 +236,6 @@ export function Dashboard() {
                 />
             </section>
 
-            {/* Asset Detail Modal */}
             <Modal
                 isOpen={selectedAsset !== null}
                 onClose={() => setSelectedAsset(null)}
@@ -208,6 +244,8 @@ export function Dashboard() {
             >
                 {selectedAsset && <AssetDetail asset={selectedAsset} />}
             </Modal>
+
+            {apiNoticeModal}
         </div>
     );
 }

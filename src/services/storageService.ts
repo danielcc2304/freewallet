@@ -6,6 +6,14 @@ const STORAGE_KEYS = {
     SETTINGS: 'freewallet_settings',
 } as const;
 
+export interface AppSettings {
+    apiEnabled: boolean;
+}
+
+const DEFAULT_SETTINGS: AppSettings = {
+    apiEnabled: false,
+};
+
 // ===== ASSETS CRUD =====
 export function getAssets(): Asset[] {
     try {
@@ -60,6 +68,46 @@ export function getHistory(): PortfolioHistoryPoint[] {
         console.error('Error reading history from localStorage');
         return [];
     }
+}
+
+// ===== SETTINGS =====
+export function getSettings(): AppSettings {
+    try {
+        const data = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+        if (!data) {
+            return DEFAULT_SETTINGS;
+        }
+
+        const parsed = JSON.parse(data) as Partial<AppSettings>;
+        return {
+            ...DEFAULT_SETTINGS,
+            ...parsed,
+        };
+    } catch {
+        console.error('Error reading settings from localStorage');
+        return DEFAULT_SETTINGS;
+    }
+}
+
+export function saveSettings(settings: AppSettings): void {
+    try {
+        localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+    } catch (error) {
+        console.error('Error saving settings to localStorage:', error);
+    }
+}
+
+export function updateSettings(updates: Partial<AppSettings>): AppSettings {
+    const nextSettings = {
+        ...getSettings(),
+        ...updates,
+    };
+    saveSettings(nextSettings);
+    return nextSettings;
+}
+
+export function isApiEnabled(): boolean {
+    return getSettings().apiEnabled;
 }
 
 export function saveHistory(history: PortfolioHistoryPoint[]): void {

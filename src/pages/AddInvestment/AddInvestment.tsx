@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
-import { Search, Calendar, DollarSign, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp } from 'lucide-react';
+import { Search, Calendar, DollarSign, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp, Wrench } from 'lucide-react';
 import { Card, CardHeader, CardContent, Input, Button } from '../../components/ui';
 import { searchSymbol, getQuote } from '../../services/apiService';
-import { generateId } from '../../services/storageService';
+import { generateId, isApiEnabled } from '../../services/storageService';
 import { usePortfolio } from '../../context/PortfolioContext';
 import type { SearchResult, AssetType, Asset } from '../../types/types';
 import './AddInvestment.css';
@@ -39,6 +39,7 @@ export function AddInvestment() {
     const isEditMode = !!editAsset;
     const isDcaMode = !!dcaAsset;
     const targetAsset = editAsset || dcaAsset;
+    const apiEnabled = isApiEnabled();
 
     const [formData, setFormData] = useState<FormData>({
         symbol: targetAsset?.symbol || '',
@@ -77,6 +78,14 @@ export function AddInvestment() {
         const controller = new AbortController();
 
         const timer = setTimeout(async () => {
+            if (!apiEnabled) {
+                setSearchResults([]);
+                setShowResults(false);
+                setNoResultsFound(false);
+                setIsSearching(false);
+                return;
+            }
+
             if (searchQuery.length >= 2) {
                 setIsSearching(true);
                 setNoResultsFound(false);
@@ -105,7 +114,7 @@ export function AddInvestment() {
             clearTimeout(timer);
             controller.abort();
         };
-    }, [searchQuery, isEditMode, editAsset]);
+    }, [searchQuery, isEditMode, editAsset, apiEnabled]);
 
     const handleSearchChange = (value: string) => {
         setSearchQuery(value);
@@ -341,6 +350,14 @@ export function AddInvestment() {
                 />
                 <CardContent>
                     <form onSubmit={handleSubmit} className="add-investment__form">
+                        {!apiEnabled && (
+                            <div className="manual-mode-badge">
+                                <Wrench size={16} />
+                                <span>
+                                    Las APIs estan desactivadas. Esta pantalla funciona en modo manual mientras el dashboard sigue en construccion.
+                                </span>
+                            </div>
+                        )}
 
                         {/* DCA Current Position Info */}
                         {isDcaMode && dcaAsset && (

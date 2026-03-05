@@ -2,7 +2,24 @@ import { Shield, AlertTriangle, Layers, Clock, Globe, BarChart, Zap, Scale, Arro
 import { Link } from 'react-router-dom';
 import './RiskManagement.css';
 
+const CORRELATION_ASSETS = ['RV Global', 'Bonos IG', 'REITs', 'Oro', 'Cash', 'Cripto'];
+const CORRELATION_MATRIX = [
+    [1.0, -0.2, 0.6, 0.1, 0.0, 0.5],
+    [-0.2, 1.0, 0.2, 0.1, 0.5, -0.1],
+    [0.6, 0.2, 1.0, 0.0, 0.1, 0.3],
+    [0.1, 0.1, 0.0, 1.0, 0.1, 0.0],
+    [0.0, 0.5, 0.1, 0.1, 1.0, 0.0],
+    [0.5, -0.1, 0.3, 0.0, 0.0, 1.0]
+];
+
 export function RiskManagement() {
+    const correlationColor = (value: number) => {
+        if (value >= 0.6) return '#ef4444';
+        if (value >= 0.3) return '#f59e0b';
+        if (value > -0.1) return '#64748b';
+        return '#10b981';
+    };
+
     return (
         <div className="risk-mgmt">
             <header className="risk-mgmt__header">
@@ -82,7 +99,61 @@ export function RiskManagement() {
             </section>
 
             <section className="risk-mgmt__time">
-                <h2 className="risk-mgmt__section-title">4. El Tiempo: El mejor antídoto</h2>
+                <h2 className="risk-mgmt__section-title">4. Descorrelación: Tu Airbag Invisible</h2>
+                <p className="risk-mgmt__fx-intro">
+                    Diversificar no es tener muchos activos, sino combinar activos que no caen a la vez.
+                    La <strong>correlación</strong> va de -1 a +1: cuanto más baja, mayor efecto amortiguador
+                    sobre la volatilidad total de tu cartera.
+                </p>
+
+                <div className="corr-matrix-wrap">
+                    <h4>Matriz de correlación (ilustrativa)</h4>
+                    <div className="corr-matrix">
+                        <div className="corr-row corr-row--head">
+                            <div className="corr-cell corr-cell--label"></div>
+                            {CORRELATION_ASSETS.map((asset) => (
+                                <div key={asset} className="corr-cell corr-cell--head">{asset}</div>
+                            ))}
+                        </div>
+
+                        {CORRELATION_MATRIX.map((row, i) => (
+                            <div key={CORRELATION_ASSETS[i]} className="corr-row">
+                                <div className="corr-cell corr-cell--label">{CORRELATION_ASSETS[i]}</div>
+                                {row.map((val, j) => (
+                                    <div
+                                        key={`${i}-${j}`}
+                                        className="corr-cell corr-cell--value"
+                                        style={{
+                                            backgroundColor: `${correlationColor(val)}20`,
+                                            color: correlationColor(val)
+                                        }}
+                                    >
+                                        {val.toFixed(1)}
+                                    </div>
+                                ))}
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                <div className="fx-rules-grid">
+                    <div className="fx-rule">
+                        <strong>Correlación alta (+0.6 a +1)</strong>
+                        <p>Los activos suelen moverse juntos. Aporta menos diversificación real.</p>
+                    </div>
+                    <div className="fx-rule">
+                        <strong>Correlación media (0 a +0.5)</strong>
+                        <p>Puede ayudar algo, pero no esperes gran protección en estrés severo.</p>
+                    </div>
+                    <div className="fx-rule">
+                        <strong>Correlación baja/negativa</strong>
+                        <p>Mejor combinación defensiva para reducir drawdowns y suavizar el viaje.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section className="risk-mgmt__time">
+                <h2 className="risk-mgmt__section-title">5. El Tiempo: El mejor antídoto</h2>
                 <div className="time-box">
                     <div className="time-box__content">
                         <p>
@@ -111,7 +182,7 @@ export function RiskManagement() {
             </section>
 
             <section className="risk-mgmt__fx">
-                <h2 className="risk-mgmt__section-title">5. Riesgo de Divisa y Cobertura</h2>
+                <h2 className="risk-mgmt__section-title">6. Riesgo de Divisa y Cobertura</h2>
                 <p className="risk-mgmt__fx-intro">
                     Si inviertes en activos fuera de la Eurozona, no solo asumes el riesgo del activo:
                     también asumes el movimiento EUR/USD, EUR/JPY, etc. Esa capa puede sumar o restar

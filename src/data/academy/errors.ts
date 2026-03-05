@@ -1,4 +1,4 @@
-// ===== COMMON ERRORS =====
+﻿// ===== COMMON ERRORS =====
 export const COMMON_ERRORS = [
     {
         id: 'market-timing',
@@ -31,5 +31,61 @@ export const COMMON_ERRORS = [
         desc: "Pensar que lo que ha pasado en los últimos 6 meses es lo que pasará siempre.",
         consequence: "Extrapolar rentabilidades pasadas al futuro y asumir riesgos excesivos.",
         solution: "Entender los ciclos económicos y mirar datos históricos de largo plazo (10+ años)."
+    },
+    {
+        id: 'sobrediversificar',
+        title: "Sobrediversificación sin sentido",
+        emoji: "🧩",
+        desc: "Tener demasiados fondos o ETFs que invierten en lo mismo y pensar que eso reduce más el riesgo.",
+        consequence: "Complejidad innecesaria, costes ocultos y sensación falsa de control sin mejora real de la cartera.",
+        solution: "Mantener una estructura simple con pocos vehículos bien elegidos y sin solapamientos excesivos."
+    },
+    {
+        id: 'ignorarcostes',
+        title: "Ignorar comisiones y fricción",
+        emoji: "💸",
+        desc: "Centrarte solo en rentabilidad bruta sin revisar TER, costes de transacción, spread o fiscalidad.",
+        consequence: "La rentabilidad neta acaba muy por debajo de lo esperado, sobre todo a largo plazo.",
+        solution: "Evaluar siempre rentabilidad neta de costes y priorizar productos eficientes en costes."
+    },
+    {
+        id: 'nocontrolriesgo',
+        title: "No definir el riesgo máximo",
+        emoji: "🧨",
+        desc: "Entrar al mercado sin saber qué caída máxima estás dispuesto a tolerar emocionalmente.",
+        consequence: "Vender en pánico cuando llega una corrección seria y romper tu plan en el peor momento.",
+        solution: "Definir por adelantado tu drawdown tolerable y ajustar tu asset allocation a ese límite."
+    },
+    {
+        id: 'apalancamientoimprudente',
+        title: "Usar apalancamiento demasiado pronto",
+        emoji: "⚠️",
+        desc: "Aumentar exposición con deuda o derivados sin tener experiencia en gestión del riesgo.",
+        consequence: "Las pérdidas se amplifican y puedes destruir capital en movimientos normales del mercado.",
+        solution: "Evitar apalancamiento hasta dominar una estrategia simple y consistente sin deuda."
+    },
+    {
+        id: 'cambioplan',
+        title: "Cambiar de estrategia cada pocos meses",
+        emoji: "🔀",
+        desc: "Pasar de value a growth, de indexación a stock picking, o de largo plazo a trading según el ruido.",
+        consequence: "Acumulas errores de timing, pierdes foco y nunca das tiempo a que una estrategia funcione.",
+        solution: "Escribir una política de inversión personal y revisarla solo en fechas concretas."
+    },
+    {
+        id: 'norebalancear',
+        title: "No rebalancear la cartera",
+        emoji: "⚖️",
+        desc: "Dejar que los activos ganadores pesen cada vez más sin volver a tu asignación objetivo.",
+        consequence: "Tu perfil de riesgo real se dispara sin que te des cuenta.",
+        solution: "Rebalancear por calendario o por bandas (por ejemplo, desviaciones de ±5%)."
+    },
+    {
+        id: 'planificacionsalidas',
+        title: "No planificar salidas ni liquidez",
+        emoji: "🚪",
+        desc: "Invertir sin pensar cuándo podrías necesitar el dinero ni en qué orden desinvertir.",
+        consequence: "Terminas vendiendo activos en mal momento para cubrir necesidades de corto plazo.",
+        solution: "Separar objetivos por horizonte temporal y mantener colchón de liquidez fuera de mercado."
     }
 ];

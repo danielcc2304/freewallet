@@ -189,6 +189,58 @@
     color: var(--text-primary);
 }
 
+/* Correlation matrix */
+.corr-matrix-wrap {
+    margin: 1.25rem 0 1rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    padding: 1rem;
+}
+
+.corr-matrix-wrap h4 {
+    margin: 0 0 0.75rem;
+}
+
+.corr-matrix {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    overflow-x: auto;
+}
+
+.corr-row {
+    display: grid;
+    grid-template-columns: 95px repeat(6, minmax(62px, 1fr));
+    gap: 0.35rem;
+    min-width: 520px;
+}
+
+.corr-cell {
+    border-radius: 8px;
+    padding: 0.45rem 0.4rem;
+    text-align: center;
+    font-size: 0.78rem;
+}
+
+.corr-cell--head {
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.corr-cell--label {
+    background: var(--bg-tertiary);
+    text-align: left;
+    color: var(--text-secondary);
+    font-weight: 700;
+}
+
+.corr-cell--value {
+    border: 1px solid var(--border-color);
+    font-weight: 800;
+}
+
 /* Currency risk */
 .risk-mgmt__fx-intro {
     color: var(--text-secondary);

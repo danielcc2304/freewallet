@@ -87,6 +87,16 @@ export function Fundamentos() {
                     </p>
                     <span className="fundamentos__card-badge">🟠 Selección</span>
                 </Link>
+
+                <Link to="/academy/valuation" className="fundamentos__card">
+                    <div className="fundamentos__card-icon">📐</div>
+                    <h3 className="fundamentos__card-title">Guía de Valoración</h3>
+                    <p className="fundamentos__card-description">
+                        Aprende a interpretar ratios clave como PER, ROE o EV/EBITDA.
+                        Un marco práctico para no pagar de más por un activo.
+                    </p>
+                    <span className="fundamentos__card-badge">🟡 Intermedio</span>
+                </Link>
             </div>
 
             <div className="fundamentos__interact">

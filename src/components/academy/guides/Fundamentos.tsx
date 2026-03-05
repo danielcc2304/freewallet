@@ -28,12 +28,12 @@ export function Fundamentos() {
                     <span className="fundamentos__card-badge">🟢 Principiante</span>
                 </Link>
 
-                <Link to="/academy/asset-types" className="fundamentos__card">
+                <Link to="/academy/portfolio" className="fundamentos__card">
                     <div className="fundamentos__card-icon">🏛️</div>
-                    <h3 className="fundamentos__card-title">Tipos de Activos</h3>
+                    <h3 className="fundamentos__card-title">Tipos de Activos y Cartera</h3>
                     <p className="fundamentos__card-description">
-                        Renta fija, variable, monetarios, inmobiliario, cripto.
-                        Entiende las diferencias y niveles de riesgo.
+                        Introducción práctica a los activos clave y cómo combinarlos
+                        según tu perfil de riesgo.
                     </p>
                     <span className="fundamentos__card-badge">🟢 Principiante</span>
                 </Link>

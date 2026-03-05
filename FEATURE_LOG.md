@@ -93,3 +93,31 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Mejora de legibilidad del icono en pestaña/navegador.
 - Archivos:
   - `public/wallet-icon.svg`
+
+### 2026-03-05 - Academy + Build: deduplicacion de contenido y optimizacion de carga
+- Funcionalidad:
+  - Fundamentos:
+    - La tarjeta de activos ahora enlaza a `/academy/portfolio` y se reformulo como introduccion (`Tipos de Activos y Cartera`).
+    - Ajustes responsive para evitar recortes de texto en movil.
+  - Portfolio/Scenarios:
+    - Mejora de wrapping en tarjetas/filtros de Portfolio Builder para pantallas pequenas.
+    - Sustitucion visual de etiquetas `DO/DON'T` por badges con `tick/cruz` en Scenarios.
+  - Rutas y consistencia:
+    - Eliminacion de `/academy/asset-types` del listado central de rutas.
+    - Redireccion de compatibilidad `/academy/asset-types` -> `/academy/portfolio`.
+    - Eliminacion de `/academy/asset-types` del prerender.
+  - Build/performance:
+    - Endurecimiento del prerender para evitar fallos intermitentes de Puppeteer (timeout + reintento).
+    - Split de chunks de Vite con `manualChunks` para separar dependencias pesadas.
+    - Lazy-loading de rutas con `React.lazy` + `Suspense` en `App.tsx`.
+- Resumen:
+  - Se elimino solape entre secciones de Academy, se corrigio UX movil y se redujo el peso del bundle inicial mediante code splitting y carga diferida de rutas.
+- Archivos:
+  - `src/components/academy/guides/Fundamentos.tsx`
+  - `src/components/academy/guides/Fundamentos.css`
+  - `src/components/academy/simulators/PortfolioBuilder.css`
+  - `src/components/academy/guides/Scenarios.css`
+  - `src/App.tsx`
+  - `src/constants/routes.ts`
+  - `scripts/prerender.js`
+  - `vite.config.ts`

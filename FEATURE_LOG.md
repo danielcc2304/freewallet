@@ -169,3 +169,11 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Se corrigio el descuadre de bloques como retorno historico/volatilidad y se mejoro consistencia de presentacion entre subsecciones de activos.
 - Archivos:
   - `src/components/academy/assets/AssetPage.css`
+
+### 2026-03-05 - Rollback: manualChunks desactivado por incidencia en produccion
+- Funcionalidad:
+  - Reversion de configuracion `manualChunks` en Vite.
+- Resumen:
+  - Se deshace el split manual de bundles al confirmar regresion de visualizacion en home en entorno productivo.
+- Archivos:
+  - `vite.config.ts`

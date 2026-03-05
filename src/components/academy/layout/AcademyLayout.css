@@ -11,6 +11,34 @@
     overflow-x: hidden;
 }
 
+/* Academy page headers: unified style inspired by Portfolio CSV */
+.academy__content > * > header {
+    position: relative;
+    margin-bottom: 1.4rem;
+    padding: 2rem;
+    border-radius: 18px;
+    border: 1px solid var(--border-primary);
+    background:
+        radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.14), transparent 45%),
+        radial-gradient(circle at 90% 20%, rgba(59, 130, 246, 0.14), transparent 42%),
+        var(--bg-secondary);
+    text-align: left;
+    overflow: hidden;
+}
+
+.academy__content > * > header h1 {
+    margin: 0 0 0.65rem;
+    font-size: clamp(1.6rem, 2.3vw, 2.35rem);
+    max-width: 820px;
+}
+
+.academy__content > * > header p {
+    margin: 0;
+    max-width: 820px;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
     .academy__content {
@@ -21,5 +49,10 @@
 @media (max-width: 640px) {
     .academy__content {
         padding: 1rem 0.5rem;
+    }
+
+    .academy__content > * > header {
+        padding: 1.25rem;
+        border-radius: 14px;
     }
 }

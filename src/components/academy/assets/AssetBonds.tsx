@@ -1,3 +1,4 @@
+import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
     Landmark, ArrowLeft, Globe, Zap, CheckCircle2, AlertTriangle,
@@ -76,7 +77,136 @@ const YIELD_CURVE_SCENARIOS = [
 
 const DURATION_LABELS = ['3m', '1a', '2a', '5a', '10a', '30a'];
 
+const CREDIT_SPREAD_REGIMES = [
+    {
+        name: 'Spreads Estrechos',
+        range: '< 120 pb',
+        meaning: 'Complacencia de mercado. Prima de riesgo baja y valoraciones exigentes en crédito.',
+        implication: 'Mejor priorizar calidad (IG corto/medio) y no perseguir yield a cualquier precio.',
+        color: '#10b981'
+    },
+    {
+        name: 'Spreads Normales',
+        range: '120 - 250 pb',
+        meaning: 'Riesgo percibido razonable. Entorno neutro para crédito corporativo.',
+        implication: 'Se puede combinar gobierno + IG + algo de high yield de forma táctica.',
+        color: '#f59e0b'
+    },
+    {
+        name: 'Spreads Amplios',
+        range: '> 250 pb',
+        meaning: 'Estrés financiero o miedo a recesión. El mercado exige mucha prima por riesgo.',
+        implication: 'Suelen aparecer mejores oportunidades, pero con mayor volatilidad y defaults.',
+        color: '#ef4444'
+    }
+];
+
+const BOND_ETF_CHECKLIST = [
+    {
+        title: 'Duración',
+        desc: 'Si esperas tipos altos más tiempo, evita duraciones largas por sensibilidad.'
+    },
+    {
+        title: 'Calidad crediticia',
+        desc: 'No es lo mismo AAA/AA que BBB o high yield. Mira la distribución por rating.'
+    },
+    {
+        title: 'Spread actual',
+        desc: 'Compara el spread con su media histórica: ¿estás cobrando suficiente prima?'
+    },
+    {
+        title: 'Vencimiento medio',
+        desc: 'Confirma que encaja con tu horizonte temporal y con tu necesidad de liquidez.'
+    },
+    {
+        title: 'Costes',
+        desc: 'En renta fija, 0.30% de comisión puede comerse gran parte del retorno real.'
+    },
+    {
+        title: 'Riesgo divisa',
+        desc: 'Si el fondo está en USD y tú gastas en EUR, valora cobertura de moneda.'
+    }
+];
+
+const LADDER_MODEL = [
+    { rung: 'Tramo 1', maturity: '0-1 años', objective: 'Liquidez inmediata', yieldHint: 'Baja duración, baja volatilidad' },
+    { rung: 'Tramo 2', maturity: '1-3 años', objective: 'Estabilidad', yieldHint: 'Equilibrio entre cupón y riesgo' },
+    { rung: 'Tramo 3', maturity: '3-5 años', objective: 'Renta intermedia', yieldHint: 'Más carry, algo más sensible' },
+    { rung: 'Tramo 4', maturity: '5-7 años', objective: 'Mejorar yield', yieldHint: 'Duración moderada-alta' },
+    { rung: 'Tramo 5', maturity: '7-10 años', objective: 'Tramo largo táctico', yieldHint: 'Más riesgo de tipos' }
+];
+
+const COMMON_BOND_ERRORS = [
+    {
+        mistake: 'Perseguir el cupón más alto',
+        impact: 'Suele esconder más riesgo de crédito o liquidez.',
+        fix: 'Mirar retorno ajustado a riesgo: rating, spread y drawdowns históricos.'
+    },
+    {
+        mistake: 'Comprar duración larga sin querer',
+        impact: 'Una subida de tipos puede generar pérdidas fuertes temporales.',
+        fix: 'Alinear duración con horizonte y tolerancia a volatilidad.'
+    },
+    {
+        mistake: 'Ignorar comisiones en renta fija',
+        impact: 'Con retornos esperados bajos, los costes pesan mucho.',
+        fix: 'Priorizar vehículos de bajo TER y revisar coste total (TER + spread).'
+    },
+    {
+        mistake: 'No revisar calidad media del fondo',
+        impact: 'Un ETF puede llamarse "bond" pero asumir demasiado high yield.',
+        fix: 'Comprobar porcentaje en IG/HY y concentración por emisor.'
+    },
+    {
+        mistake: 'Confundir “bono” con “sin riesgo”',
+        impact: 'Hay riesgo de tipos, crédito, liquidez e inflación.',
+        fix: 'Diversificar por plazo, calidad y emisor; no depender de una sola pata.'
+    },
+    {
+        mistake: 'No planificar vencimientos',
+        impact: 'Puedes verte obligado a vender en mal momento.',
+        fix: 'Usar una escalera (ladder) para escalonar liquidez y reinversión.'
+    }
+];
+
+const STRESS_PRESETS = [
+    { label: 'Liquidez tensa', shock: 50 },
+    { label: 'Risk-off serio', shock: 100 },
+    { label: 'Credito bajo presion', shock: 200 },
+    { label: 'Capitulacion', shock: 300 }
+];
+
 export function AssetBonds() {
+    const [spreadClass, setSpreadClass] = useState<'ig' | 'hy'>('ig');
+    const [isStressMode, setIsStressMode] = useState(false);
+    const [spreadDuration, setSpreadDuration] = useState(4.5);
+    const [spreadShockBps, setSpreadShockBps] = useState(100);
+    const [weightShort, setWeightShort] = useState(40);
+    const [weightMid, setWeightMid] = useState(35);
+    const [weightLong, setWeightLong] = useState(25);
+    const [durShort, setDurShort] = useState(1.8);
+    const [durMid, setDurMid] = useState(5.2);
+    const [durLong, setDurLong] = useState(9.5);
+
+    const spreadPresets = useMemo(() => ({
+        ig: { label: 'Investment Grade', duration: 4.5, spread: 130 },
+        hy: { label: 'High Yield', duration: 3.2, spread: 380 }
+    }), []);
+
+    const shockMin = isStressMode ? 0 : -150;
+    const shockMax = isStressMode ? 500 : 300;
+    const estimatedPriceImpact = -(spreadDuration * spreadShockBps) / 100;
+    const newSpread = Math.max(0, spreadPresets[spreadClass].spread + spreadShockBps);
+    const portfolioWeightTotal = weightShort + weightMid + weightLong;
+    const portfolioDuration = portfolioWeightTotal > 0
+        ? ((weightShort * durShort) + (weightMid * durMid) + (weightLong * durLong)) / portfolioWeightTotal
+        : 0;
+    const up100bpImpact = -portfolioDuration;
+    const down100bpImpact = portfolioDuration;
+    const normalizedShort = portfolioWeightTotal > 0 ? (weightShort / portfolioWeightTotal) * 100 : 0;
+    const normalizedMid = portfolioWeightTotal > 0 ? (weightMid / portfolioWeightTotal) * 100 : 0;
+    const normalizedLong = portfolioWeightTotal > 0 ? (weightLong / portfolioWeightTotal) * 100 : 0;
+
     return (
         <div className="asset-page">
             <Link to="/academy/portfolio" className="asset-page__back">
@@ -386,6 +516,321 @@ export function AssetBonds() {
                         <span>↑ Investment Grade</span>
                         <span>↓ High Yield (Basura)</span>
                     </div>
+                </div>
+            </section>
+
+            {/* Credit spread */}
+            <section className="asset-page__section">
+                <h2><TrendingDown size={22} /> Spread de Crédito: El Termómetro del Riesgo</h2>
+                <div className="asset-page__text-block">
+                    <p>
+                        El <strong>spread de crédito</strong> es la prima extra que exige el mercado por prestar a una empresa
+                        en lugar de a un Estado "libre de riesgo" (como Alemania o EE.UU.).
+                    </p>
+                    <p>
+                        Fórmula rápida: <strong>Yield corporativo = Yield soberano + Spread</strong>.
+                        Si un bono público a 5 años rinde 2.4% y un corporativo similar rinde 4.0%,
+                        el spread es 1.6% (160 puntos básicos).
+                    </p>
+                </div>
+
+                <div className="credit-spreads-grid">
+                    {CREDIT_SPREAD_REGIMES.map((regime) => (
+                        <div
+                            key={regime.name}
+                            className="credit-spread-card"
+                            style={{ '--spread-color': regime.color } as React.CSSProperties}
+                        >
+                            <h3>{regime.name}</h3>
+                            <span className="credit-spread-card__range">{regime.range}</span>
+                            <p>{regime.meaning}</p>
+                            <div className="credit-spread-card__implication">
+                                <strong>Lectura práctica:</strong> {regime.implication}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="asset-page__callout asset-page__callout--warning">
+                    <AlertTriangle size={20} />
+                    <div>
+                        <strong>Cuando el spread se abre rápido, manda el riesgo</strong>
+                        <p>
+                            Si los spreads se amplían de golpe, el crédito suele caer aunque los tipos oficiales no cambien.
+                            En ese entorno, la calidad del emisor y la liquidez importan más que rascar unas décimas extra de yield.
+                        </p>
+                    </div>
+                </div>
+
+                <div className="spread-sim">
+                    <h3>Mini simulador: impacto de spread</h3>
+                    <p className="spread-sim__intro">
+                        Estimación rápida usando <strong>duración de spread</strong>:
+                        impacto (%) ≈ - duración x cambio de spread (en %).
+                    </p>
+
+                    <div className="spread-sim__mode">
+                        <button
+                            type="button"
+                            className={`spread-sim__mode-btn ${!isStressMode ? 'is-active' : ''}`}
+                            onClick={() => setIsStressMode(false)}
+                        >
+                            Normal
+                        </button>
+                        <button
+                            type="button"
+                            className={`spread-sim__mode-btn ${isStressMode ? 'is-active' : ''}`}
+                            onClick={() => {
+                                setIsStressMode(true);
+                                if (spreadShockBps < 0) setSpreadShockBps(100);
+                            }}
+                        >
+                            Modo estres
+                        </button>
+                    </div>
+
+                    <div className="spread-sim__preset-buttons">
+                        <button
+                            type="button"
+                            className={`spread-sim__preset ${spreadClass === 'ig' ? 'is-active' : ''}`}
+                            onClick={() => {
+                                setSpreadClass('ig');
+                                setSpreadDuration(spreadPresets.ig.duration);
+                            }}
+                        >
+                            {spreadPresets.ig.label}
+                        </button>
+                        <button
+                            type="button"
+                            className={`spread-sim__preset ${spreadClass === 'hy' ? 'is-active' : ''}`}
+                            onClick={() => {
+                                setSpreadClass('hy');
+                                setSpreadDuration(spreadPresets.hy.duration);
+                            }}
+                        >
+                            {spreadPresets.hy.label}
+                        </button>
+                    </div>
+
+                    {isStressMode && (
+                        <div className="spread-sim__stress-presets">
+                            {STRESS_PRESETS.map((preset) => (
+                                <button
+                                    key={preset.label}
+                                    type="button"
+                                    className={`spread-sim__stress-btn ${spreadShockBps === preset.shock ? 'is-active' : ''}`}
+                                    onClick={() => setSpreadShockBps(preset.shock)}
+                                >
+                                    {preset.label} (+{preset.shock} pb)
+                                </button>
+                            ))}
+                        </div>
+                    )}
+
+                    <div className="spread-sim__controls">
+                        <label className="spread-sim__control">
+                            <span>Duración de spread: {spreadDuration.toFixed(1)}</span>
+                            <input
+                                type="range"
+                                min={1}
+                                max={8}
+                                step={0.1}
+                                value={spreadDuration}
+                                onChange={(e) => setSpreadDuration(Number(e.target.value))}
+                            />
+                        </label>
+
+                        <label className="spread-sim__control">
+                            <span>Shock de spread: {spreadShockBps > 0 ? `+${spreadShockBps}` : spreadShockBps} pb</span>
+                            <input
+                                type="range"
+                                min={shockMin}
+                                max={shockMax}
+                                step={10}
+                                value={spreadShockBps}
+                                onChange={(e) => setSpreadShockBps(Number(e.target.value))}
+                            />
+                        </label>
+                    </div>
+
+                    <div className="spread-sim__result">
+                        <div className="spread-sim__metric">
+                            <span className="spread-sim__metric-label">Spread inicial</span>
+                            <strong>{spreadPresets[spreadClass].spread} pb</strong>
+                        </div>
+                        <div className="spread-sim__metric">
+                            <span className="spread-sim__metric-label">Spread estimado final</span>
+                            <strong>{newSpread} pb</strong>
+                        </div>
+                        <div className="spread-sim__metric">
+                            <span className="spread-sim__metric-label">Impacto estimado en precio</span>
+                            <strong className={estimatedPriceImpact <= 0 ? 'is-negative' : 'is-positive'}>
+                                {estimatedPriceImpact > 0 ? '+' : ''}{estimatedPriceImpact.toFixed(2)}%
+                            </strong>
+                        </div>
+                    </div>
+
+                    <p className="spread-sim__note">
+                        Aproximación de primer orden. No incluye cambios de tipos soberanos, convexidad, defaults ni efecto de cupones.
+                    </p>
+                </div>
+            </section>
+
+            {/* Checklist */}
+            <section className="asset-page__section">
+                <h2><CheckCircle2 size={22} /> Checklist Antes de Comprar Bonos o ETFs</h2>
+                <div className="asset-page__text-block">
+                    <p>
+                        Esta revisión de 60 segundos evita la mayoría de errores típicos en renta fija:
+                        comprar demasiada duración, asumir más crédito del que creías, o pagar comisiones altas para retornos bajos.
+                    </p>
+                </div>
+                <div className="bond-checklist-grid">
+                    {BOND_ETF_CHECKLIST.map((item) => (
+                        <div key={item.title} className="bond-checklist-item">
+                            <h4>{item.title}</h4>
+                            <p>{item.desc}</p>
+                        </div>
+                    ))}
+                </div>
+            </section>
+
+            {/* Ladder strategy */}
+            <section className="asset-page__section">
+                <h2><Clock size={22} /> Estrategia Ladder (Escalera de Vencimientos)</h2>
+                <div className="asset-page__text-block">
+                    <p>
+                        La estrategia <strong>ladder</strong> consiste en repartir tu renta fija por vencimientos
+                        escalonados. Así reduces el riesgo de entrar todo en un único momento de tipos y mantienes
+                        liquidez recurrente para reinvertir.
+                    </p>
+                </div>
+
+                <div className="bond-ladder">
+                    {LADDER_MODEL.map((step) => (
+                        <div key={step.rung} className="bond-ladder__step">
+                            <span className="bond-ladder__rung">{step.rung}</span>
+                            <h4>{step.maturity}</h4>
+                            <p>{step.objective}</p>
+                            <span className="bond-ladder__hint">{step.yieldHint}</span>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="asset-page__callout asset-page__callout--info">
+                    <Lightbulb size={20} />
+                    <div>
+                        <strong>Ventaja clave del ladder</strong>
+                        <p>
+                            Cada año vence una parte de la cartera. Puedes usar ese flujo para gasto,
+                            o reinvertir al nuevo nivel de tipos sin tener que deshacer toda la posición.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            {/* Portfolio duration calculator */}
+            <section className="asset-page__section">
+                <h2><BarChart3 size={22} /> Duración Total de tu Cartera de Bonos</h2>
+                <div className="asset-page__text-block">
+                    <p>
+                        Esta mini calculadora estima la sensibilidad conjunta de tu cartera de renta fija
+                        ante movimientos paralelos de tipos.
+                    </p>
+                </div>
+
+                <div className="bond-duration-calc">
+                    <div className="bond-duration-calc__inputs">
+                        <div className="duration-input-card">
+                            <h4>RF Corto Plazo</h4>
+                            <label>
+                                <span>Peso: {weightShort}%</span>
+                                <input type="range" min={0} max={100} step={1} value={weightShort} onChange={(e) => setWeightShort(Number(e.target.value))} />
+                            </label>
+                            <label>
+                                <span>Duración: {durShort.toFixed(1)}</span>
+                                <input type="range" min={0.5} max={4} step={0.1} value={durShort} onChange={(e) => setDurShort(Number(e.target.value))} />
+                            </label>
+                        </div>
+
+                        <div className="duration-input-card">
+                            <h4>RF Media</h4>
+                            <label>
+                                <span>Peso: {weightMid}%</span>
+                                <input type="range" min={0} max={100} step={1} value={weightMid} onChange={(e) => setWeightMid(Number(e.target.value))} />
+                            </label>
+                            <label>
+                                <span>Duración: {durMid.toFixed(1)}</span>
+                                <input type="range" min={2} max={8} step={0.1} value={durMid} onChange={(e) => setDurMid(Number(e.target.value))} />
+                            </label>
+                        </div>
+
+                        <div className="duration-input-card">
+                            <h4>RF Larga</h4>
+                            <label>
+                                <span>Peso: {weightLong}%</span>
+                                <input type="range" min={0} max={100} step={1} value={weightLong} onChange={(e) => setWeightLong(Number(e.target.value))} />
+                            </label>
+                            <label>
+                                <span>Duración: {durLong.toFixed(1)}</span>
+                                <input type="range" min={5} max={15} step={0.1} value={durLong} onChange={(e) => setDurLong(Number(e.target.value))} />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div className="bond-duration-calc__summary">
+                        <div className="duration-summary-card">
+                            <span>Total pesos introducidos</span>
+                            <strong>{portfolioWeightTotal}%</strong>
+                        </div>
+                        <div className="duration-summary-card">
+                            <span>Duración agregada estimada</span>
+                            <strong>{portfolioDuration.toFixed(2)}</strong>
+                        </div>
+                        <div className="duration-summary-card">
+                            <span>Impacto estimado con +1% tipos</span>
+                            <strong className="is-negative">{up100bpImpact.toFixed(2)}%</strong>
+                        </div>
+                        <div className="duration-summary-card">
+                            <span>Impacto estimado con -1% tipos</span>
+                            <strong className="is-positive">+{down100bpImpact.toFixed(2)}%</strong>
+                        </div>
+                    </div>
+
+                    <div className="duration-mix">
+                        <h4>Mix normalizado de cartera</h4>
+                        <div className="duration-mix__bars">
+                            <div className="duration-mix__row">
+                                <span>Corto</span>
+                                <div className="duration-mix__track"><div className="duration-mix__fill duration-mix__fill--short" style={{ width: `${normalizedShort}%` }} /></div>
+                                <strong>{normalizedShort.toFixed(1)}%</strong>
+                            </div>
+                            <div className="duration-mix__row">
+                                <span>Medio</span>
+                                <div className="duration-mix__track"><div className="duration-mix__fill duration-mix__fill--mid" style={{ width: `${normalizedMid}%` }} /></div>
+                                <strong>{normalizedMid.toFixed(1)}%</strong>
+                            </div>
+                            <div className="duration-mix__row">
+                                <span>Largo</span>
+                                <div className="duration-mix__track"><div className="duration-mix__fill duration-mix__fill--long" style={{ width: `${normalizedLong}%` }} /></div>
+                                <strong>{normalizedLong.toFixed(1)}%</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Common mistakes */}
+            <section className="asset-page__section">
+                <h2><AlertTriangle size={22} /> Errores Comunes en Renta Fija</h2>
+                <div className="bond-mistakes-grid">
+                    {COMMON_BOND_ERRORS.map((item) => (
+                        <article key={item.mistake} className="bond-mistake-card">
+                            <h4>{item.mistake}</h4>
+                            <p><strong>Qué pasa:</strong> {item.impact}</p>
+                            <p><strong>Cómo evitarlo:</strong> {item.fix}</p>
+                        </article>
+                    ))}
                 </div>
             </section>
 

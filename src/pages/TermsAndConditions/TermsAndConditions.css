@@ -13,6 +13,26 @@
     box-shadow: var(--shadow-md);
 }
 
+.terms__back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.terms__back:hover {
+    border-color: var(--accent-primary);
+    color: var(--accent-primary);
+}
+
 .terms__title {
     font-size: 2.5rem;
     font-weight: 700;
@@ -95,6 +115,11 @@
 
     .terms__container {
         padding: 1.5rem;
+    }
+
+    .terms__back {
+        width: 100%;
+        justify-content: center;
     }
 
     .terms__title {

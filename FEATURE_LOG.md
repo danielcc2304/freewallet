@@ -177,3 +177,40 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Se deshace el split manual de bundles al confirmar regresion de visualizacion en home en entorno productivo.
 - Archivos:
   - `vite.config.ts`
+
+### 2026-03-05 - Academy: recursos y guias con videos de conocimientos basicos
+- Funcionalidad:
+  - Se reemplazo la vista "en desarrollo" por un listado real de videos de conocimientos basicos referenciados en La Pizarra de Andres.
+  - Se anadio enlace a pagina fuente y busqueda directa de cada video en YouTube.
+- Resumen:
+  - La seccion `/academy/resources` pasa a ser util y accionable con recursos reales listados por tema.
+- Archivos:
+  - `src/components/academy/guides/InProcess.tsx`
+  - `src/components/academy/guides/InProcess.css`
+
+### 2026-03-05 - Academy resources: urls exactas de YouTube
+- Funcionalidad:
+  - Cada recurso de `/academy/resources` ahora enlaza al video exacto en YouTube.
+  - Se elimino el texto de placeholder "siguiente paso" del footer.
+- Resumen:
+  - La seccion queda cerrada y lista para uso directo sin pasos intermedios de busqueda.
+- Archivos:
+  - `src/components/academy/guides/InProcess.tsx`
+
+### 2026-03-05 - Academy resources: enlaces YouTube robustos en canal
+- Funcionalidad:
+  - Sustitucion de URLs de videos rotas por enlaces de busqueda directa dentro del canal oficial de La Pizarra de Andres.
+- Resumen:
+  - Se evita el error "Este video ya no esta disponible" y cada recurso abre un resultado vigente dentro del canal.
+- Archivos:
+  - `src/components/academy/guides/InProcess.tsx`
+
+### 2026-03-05 - Terminos y condiciones: boton volver atras
+- Funcionalidad:
+  - Se anade boton de retorno en la parte superior de la pagina de terminos y condiciones (`navigate(-1)`).
+  - Estilos responsive para mantener usabilidad en movil.
+- Resumen:
+  - Mejora de navegacion para salir facilmente de `/terms` sin depender del navegador del usuario.
+- Archivos:
+  - `src/pages/TermsAndConditions/TermsAndConditions.tsx`
+  - `src/pages/TermsAndConditions/TermsAndConditions.css`

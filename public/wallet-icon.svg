@@ -1,12 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="FreeWallet">
   <defs>
-    <linearGradient id="walletGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
-      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0b1220" />
+      <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="feather" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#67e8f9" />
+      <stop offset="100%" stop-color="#22d3ee" />
     </linearGradient>
   </defs>
-  <rect x="10" y="25" width="80" height="55" rx="8" fill="url(#walletGrad)"/>
-  <rect x="55" y="45" width="30" height="15" rx="4" fill="#0d9488"/>
-  <circle cx="70" cy="52.5" r="4" fill="#fbbf24"/>
-  <path d="M30 20 L50 10 L70 20" stroke="url(#walletGrad)" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+  <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#bg)" />
+
+  <g fill="none" stroke="url(#feather)" stroke-linecap="round" stroke-linejoin="round" transform="translate(14 10) rotate(8 18 20)">
+    <path d="M4 30C11 14 22 10 34 12C32 24 25 34 10 42" stroke-width="4" />
+    <path d="M10 38L24 24" stroke-width="3" />
+    <path d="M12 33C17 28 22 24 29 21" stroke-width="2.2" />
+  </g>
 </svg>

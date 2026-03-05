@@ -10,6 +10,10 @@ const __dirname = path.dirname(__filename);
 const DIST_DIR = path.join(__dirname, '../dist');
 
 const routes = [
+    '/',
+    '/add',
+    '/settings',
+    '/terms',
     '/portfolio-csv',
     '/academy',
     '/academy/timeline',
@@ -27,6 +31,11 @@ const routes = [
     '/academy/compound-interest',
     '/academy/fire-calculator',
     '/academy/bond-calculator',
+    '/academy/valuation',
+    '/academy/investor-profile-test',
+    '/academy/inflation-predator',
+    '/academy/market-timing-game',
+    '/academy/fund-radar',
     '/academy/retirement',
     '/academy/emergency-fund',
     '/academy/taxes',

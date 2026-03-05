@@ -203,6 +203,9 @@ export function AssetEquities() {
                     <div>
                         <strong>Sesgo doméstico (Home Bias)</strong>
                         <p>Los inversores tienden a sobreponderar su propio país. España representa solo el ~0.6% del mercado mundial. Si inviertes solo en el IBEX35, estás concentrando riesgo innecesariamente.</p>
+                        <Link to="/academy/risk" className="asset-page__cta-link">
+                            Ver guía de riesgo de divisa y cobertura →
+                        </Link>
                     </div>
                 </div>
             </section>

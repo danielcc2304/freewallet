@@ -355,9 +355,18 @@
 }
 
 .timeline__crisis-column li {
-    padding: 0.5rem 0;
+    position: relative;
+    padding: 0.5rem 0 0.5rem 1.25rem;
     color: var(--text-secondary);
     line-height: 1.6;
+}
+
+.timeline__crisis-column li::before {
+    content: "•";
+    position: absolute;
+    left: 0;
+    color: var(--text-primary);
+    font-weight: 700;
 }
 
 .timeline__crisis-column a {

@@ -151,6 +151,17 @@
     color: var(--accent-primary);
 }
 
+.fund-radar__categories {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.fund-radar__filter-icon {
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
 .categories-list {
     display: flex;
     gap: var(--spacing-xs);
@@ -177,6 +188,123 @@
     background: var(--accent-primary);
     border-color: var(--accent-primary);
     color: white;
+}
+
+/* Morningstar education block */
+.fund-radar__edu {
+    margin-bottom: var(--spacing-2xl);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+}
+
+.fund-radar__edu h2 {
+    margin: 0 0 var(--spacing-sm);
+    font-size: var(--font-size-xl);
+}
+
+.fund-radar__edu-intro {
+    margin: 0 0 var(--spacing-md);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.edu-example {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-secondary);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+}
+
+.edu-example__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+}
+
+.edu-example__tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: var(--accent-primary);
+    margin-bottom: 4px;
+}
+
+.edu-example__header h3 {
+    margin: 0 0 4px 0;
+    font-size: var(--font-size-lg);
+}
+
+.edu-example__header p {
+    margin: 0;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+}
+
+.edu-example__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--spacing-sm);
+}
+
+.edu-metric {
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.edu-metric span {
+    font-size: 10px;
+    text-transform: uppercase;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
+.edu-metric strong {
+    font-size: 15px;
+    color: var(--text-primary);
+}
+
+.edu-metric p {
+    margin: 0;
+    font-size: 11px;
+    color: var(--text-secondary);
+    line-height: 1.4;
+}
+
+.edu-checklist {
+    margin-top: var(--spacing-md);
+    background: rgba(16, 185, 129, 0.06);
+    border: 1px solid rgba(16, 185, 129, 0.2);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+}
+
+.edu-checklist h4 {
+    margin: 0 0 8px;
+    font-size: var(--font-size-sm);
+}
+
+.edu-checklist ul {
+    margin: 0;
+    padding-left: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.edu-checklist li {
+    font-size: 12px;
+    color: var(--text-secondary);
+    line-height: 1.4;
 }
 
 /* Fund Cards */
@@ -467,6 +595,14 @@
     .expand-all-btn {
         height: 42px;
         justify-content: center;
+    }
+
+    .edu-example__header {
+        flex-direction: column;
+    }
+
+    .edu-example__grid {
+        grid-template-columns: 1fr;
     }
 }
 

@@ -140,3 +140,13 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Se evita que errores de storage o compatibilidad de listeners rompan el render inicial en produccion.
 - Archivos:
   - `src/context/ThemeContext.tsx`
+
+### 2026-03-05 - Mitigacion produccion: rollback de optimizaciones de bundle
+- Funcionalidad:
+  - Se retiraron temporalmente `React.lazy`/`Suspense` a nivel de rutas en `App.tsx`.
+  - Se retiro `manualChunks` custom de `vite.config.ts`.
+- Resumen:
+  - Cambio orientado a aislar y evitar regresion visual en home de produccion asociada a optimizaciones recientes.
+- Archivos:
+  - `src/App.tsx`
+  - `vite.config.ts`

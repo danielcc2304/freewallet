@@ -17,6 +17,7 @@ import {
     PieChart,
     Lightbulb,
     Shield,
+    Scale,
     Award,
     FileSpreadsheet
 } from 'lucide-react';
@@ -33,7 +34,8 @@ const academySections = [
     { path: '/academy/crisis', icon: AlertCircle, label: 'Mercado y Crisis' },
     { path: '/academy/portfolio', icon: PieChart, label: 'Estrategia y Cartera' },
     { path: '/academy/calculators', icon: Calculator, label: 'Calculadoras' },
-    { path: '/academy/tax', icon: Shield, label: 'Fiscalidad y Riesgo' },
+    { path: '/academy/risk', icon: Shield, label: 'Gestión del Riesgo' },
+    { path: '/academy/tax', icon: Scale, label: 'Fiscalidad' },
     { path: '/academy/fund-radar', icon: Award, label: 'Radar de Fondos' },
     { path: '/academy/errors', icon: Lightbulb, label: 'Errores Comunes' }
 ];
@@ -147,7 +149,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     <Link to="/terms" className="sidebar__terms-link" onClick={closeMobileSidebar}>
                         Términos y Condiciones
                     </Link>
-                    <div className="sidebar__version">v3.1.0</div>
+                    <div className="sidebar__version">v3.2.0</div>
                 </div>
             </aside>
 

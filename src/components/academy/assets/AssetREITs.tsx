@@ -112,6 +112,17 @@ export function AssetREITs() {
                         </div>
                     ))}
                 </div>
+
+                <div className="asset-page__callout asset-page__callout--info" style={{ marginTop: '1.5rem' }}>
+                    <Lightbulb size={20} />
+                    <div>
+                        <strong>REITs globales = también riesgo divisa</strong>
+                        <p>Si compras REITs USA o globales desde EUR, parte del resultado vendrá de la moneda. Decide conscientemente si quieres versión cubierta (hedged) o no cubierta.</p>
+                        <Link to="/academy/risk" className="asset-page__cta-link">
+                            Revisar cuándo cubrir divisa →
+                        </Link>
+                    </div>
+                </div>
             </section>
 
             <section className="asset-page__section">

@@ -266,6 +266,11 @@ export function FundRadar() {
         return '#ef4444';
     };
 
+    const morningstarExampleFund = useMemo(
+        () => BEST_FUNDS.find(f => f.id === 'fidelity-msci-world') ?? BEST_FUNDS[0],
+        []
+    );
+
     return (
         <div className="fund-radar">
             <Link to="/academy" className="fund-radar__back">
@@ -289,6 +294,74 @@ export function FundRadar() {
                 </div>
             </header>
 
+            <section className="fund-radar__edu">
+                <h2>Cómo interpretar una ficha Morningstar (ejemplo real)</h2>
+                <p className="fund-radar__edu-intro">
+                    Usa esta guía rápida con un caso conocido para leer una ficha sin perderte en métricas.
+                </p>
+
+                <div className="edu-example">
+                    <div className="edu-example__header">
+                        <div>
+                            <span className="edu-example__tag">Ejemplo</span>
+                            <h3>{morningstarExampleFund.name}</h3>
+                            <p>{morningstarExampleFund.category} · ISIN {morningstarExampleFund.isin}</p>
+                        </div>
+                        <a href={morningstarExampleFund.link} target="_blank" rel="noopener noreferrer" className="fund-card__link">
+                            Ver ficha completa <ExternalLink size={14} />
+                        </a>
+                    </div>
+
+                    <div className="edu-example__grid">
+                        <div className="edu-metric">
+                            <span>Rent. 5Y (anual)</span>
+                            <strong className={formatPercent(morningstarExampleFund.returns.y5).className}>
+                                {formatPercent(morningstarExampleFund.returns.y5).text}
+                            </strong>
+                            <p>Mide consistencia de largo plazo, no solo el último año.</p>
+                        </div>
+                        <div className="edu-metric">
+                            <span>Volatilidad</span>
+                            <strong>{morningstarExampleFund.volatility}%</strong>
+                            <p>Cuánto se mueve el fondo. Más volatilidad implica más estrés potencial.</p>
+                        </div>
+                        <div className="edu-metric">
+                            <span>Máx. Caída</span>
+                            <strong className={formatPercent(morningstarExampleFund.maxDrawdown).className}>
+                                {formatPercent(morningstarExampleFund.maxDrawdown).text}
+                            </strong>
+                            <p>Tu peor bajada histórica para preparar la parte emocional.</p>
+                        </div>
+                        <div className="edu-metric">
+                            <span>TER</span>
+                            <strong>{morningstarExampleFund.ter}%</strong>
+                            <p>Coste anual. En horizontes largos, pequeñas diferencias pesan mucho.</p>
+                        </div>
+                        <div className="edu-metric">
+                            <span>Sharpe</span>
+                            <strong>{morningstarExampleFund.sharpe ?? '--'}</strong>
+                            <p>Rentabilidad por unidad de riesgo: útil para comparar fondos similares.</p>
+                        </div>
+                        <div className="edu-metric">
+                            <span>SRRI</span>
+                            <strong>{morningstarExampleFund.risk}/7</strong>
+                            <p>Escala regulatoria de riesgo. No sustituye al análisis completo.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="edu-checklist">
+                    <h4>Checklist de lectura en 60 segundos</h4>
+                    <ul>
+                        <li>1) Comprueba que categoría y benchmark encajan con tu objetivo.</li>
+                        <li>2) Mira 3Y/5Y anualizados y no te quedes solo con YTD o 1Y.</li>
+                        <li>3) Revisa volatilidad y máximo drawdown antes de invertir.</li>
+                        <li>4) Contrasta TER frente a alternativas de la misma categoría.</li>
+                        <li>5) Valora consistencia del gestor y tamaño del fondo (AUM).</li>
+                    </ul>
+                </div>
+            </section>
+
             <div className="fund-radar__filters">
                 <div className="fund-radar__search-row">
                     <div className="fund-radar__search">
@@ -310,7 +383,7 @@ export function FundRadar() {
                 </div>
 
                 <div className="fund-radar__categories">
-                    <Filter size={16} />
+                    <Filter className="fund-radar__filter-icon" size={16} />
                     <div className="categories-list">
                         {categories.map(cat => (
                             <button

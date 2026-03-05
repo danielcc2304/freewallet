@@ -225,6 +225,41 @@ export const GLOSSARY: GlossaryTerm[] = [
         definition: "Acci\u00f3n que parece barata bas\u00e1ndose en ratios de valoraci\u00f3n (como un PER bajo), pero que en realidad es una mala inversi\u00f3n porque los fundamentos de la empresa est\u00e1n deterior\u00e1ndose permanentemente.",
         category: "Riesgo",
         relatedTerms: ["PER", "Value Investing", "An\u00e1lisis Fundamental"]
+    },
+    {
+        id: 'base-currency',
+        term: "Moneda Base (Base Currency)",
+        definition: "Divisa en la que mides tu patrimonio y tus objetivos (por ejemplo EUR). Una inversi\u00f3n en otra moneda a\u00f1ade riesgo de tipo de cambio.",
+        category: "Riesgo",
+        relatedTerms: ["Riesgo de Divisa", "Hedged", "Unhedged"]
+    },
+    {
+        id: 'riesgo-divisa',
+        term: "Riesgo de Divisa",
+        definition: "Variaci\u00f3n del valor de una inversi\u00f3n causada por cambios en el tipo de cambio entre la moneda del activo y tu moneda base.",
+        category: "Riesgo",
+        relatedTerms: ["Moneda Base", "Cobertura", "Volatilidad"]
+    },
+    {
+        id: 'hedged',
+        term: "Hedged (Cubierto de Divisa)",
+        definition: "Versi\u00f3n de un fondo o ETF que intenta neutralizar el impacto de la moneda extranjera mediante derivados. Suele reducir volatilidad, pero tiene coste de cobertura.",
+        category: "Instrumentos",
+        relatedTerms: ["Unhedged", "Riesgo de Divisa", "Tracking Difference"]
+    },
+    {
+        id: 'unhedged',
+        term: "Unhedged (Sin Cobertura de Divisa)",
+        definition: "Versi\u00f3n de un fondo o ETF que no cubre la moneda. La rentabilidad final refleja tanto el activo subyacente como el movimiento de la divisa.",
+        category: "Instrumentos",
+        relatedTerms: ["Hedged", "Riesgo de Divisa", "Moneda Base"]
+    },
+    {
+        id: 'tracking-difference',
+        term: "Tracking Difference",
+        definition: "Diferencia real de rentabilidad entre un fondo/ETF y su \u00edndice de referencia. Incluye costes, impuestos, fricciones y, en productos cubiertos, el coste de cobertura.",
+        category: "Instrumentos",
+        relatedTerms: ["TER", "Hedged", "\u00cdndice de Referencia"]
     }
 ];
 

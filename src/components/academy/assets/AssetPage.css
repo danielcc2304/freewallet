@@ -313,6 +313,18 @@
     margin: 0;
 }
 
+.asset-page__cta-link {
+    display: inline-block;
+    margin-top: 0.55rem;
+    color: var(--accent-primary);
+    font-weight: 700;
+    text-decoration: none;
+}
+
+.asset-page__cta-link:hover {
+    text-decoration: underline;
+}
+
 /* Steps */
 .asset-page__steps {
     display: grid;

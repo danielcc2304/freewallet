@@ -110,6 +110,61 @@ export function RiskManagement() {
                 </div>
             </section>
 
+            <section className="risk-mgmt__fx">
+                <h2 className="risk-mgmt__section-title">5. Riesgo de Divisa y Cobertura</h2>
+                <p className="risk-mgmt__fx-intro">
+                    Si inviertes en activos fuera de la Eurozona, no solo asumes el riesgo del activo:
+                    también asumes el movimiento EUR/USD, EUR/JPY, etc. Esa capa puede sumar o restar
+                    mucho a tu resultado final.
+                </p>
+
+                <div className="risk-mgmt__fx-grid">
+                    <article className="fx-card fx-card--hedged">
+                        <h3>Versión cubierta (Hedged)</h3>
+                        <p>
+                            El fondo/ETF intenta neutralizar el efecto de la divisa mediante derivados.
+                            Suele reducir volatilidad en EUR, pero tiene coste de cobertura.
+                        </p>
+                        <ul>
+                            <li>Más estable en tu moneda base (EUR)</li>
+                            <li>Útil para renta fija global y horizontes cortos/medios</li>
+                            <li>Puede rendir menos que la versión sin cubrir en ciertos periodos</li>
+                        </ul>
+                    </article>
+
+                    <article className="fx-card fx-card--unhedged">
+                        <h3>Versión sin cubrir (Unhedged)</h3>
+                        <p>
+                            Asumes totalmente el riesgo de divisa. Tu rentabilidad en euros depende
+                            del activo y del cruce de moneda.
+                        </p>
+                        <ul>
+                            <li>Menor coste directo</li>
+                            <li>Más volatilidad de corto plazo</li>
+                            <li>Razonable para renta variable global a muy largo plazo</li>
+                        </ul>
+                    </article>
+                </div>
+
+                <div className="risk-mgmt__fx-rules">
+                    <h4>Regla rápida para decidir</h4>
+                    <div className="fx-rules-grid">
+                        <div className="fx-rule">
+                            <strong>Renta Fija Global</strong>
+                            <p>Prioriza EUR-hedged si tu objetivo es estabilizar cartera.</p>
+                        </div>
+                        <div className="fx-rule">
+                            <strong>Renta Variable Global</strong>
+                            <p>A largo plazo suele ser válido mantener sin cobertura.</p>
+                        </div>
+                        <div className="fx-rule">
+                            <strong>Necesidad de gasto en EUR</strong>
+                            <p>Cuanto más cercano el gasto, más sentido tiene cubrir divisa.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <section className="risk-mgmt__cta">
                 <Shield className="icon" size={48} />
                 <h2 className="cta__title">¿Estás asumiendo demasiado riesgo?</h2>

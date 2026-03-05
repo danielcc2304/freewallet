@@ -693,6 +693,20 @@ export function AssetBonds() {
                         </div>
                     ))}
                 </div>
+
+                <div className="asset-page__callout asset-page__callout--info" style={{ marginTop: '1.5rem' }}>
+                    <Lightbulb size={20} />
+                    <div>
+                        <strong>En bonos globales, cubrir divisa suele tener más sentido</strong>
+                        <p>
+                            Si tu objetivo de renta fija es estabilizar cartera en EUR, la cobertura de divisa
+                            suele reducir ruido y hacer más predecible el comportamiento.
+                        </p>
+                        <Link to="/academy/risk" className="asset-page__cta-link">
+                            Ver guía completa de cobertura de divisa →
+                        </Link>
+                    </div>
+                </div>
             </section>
 
             {/* Ladder strategy */}

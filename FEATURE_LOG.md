@@ -121,3 +121,22 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - `src/constants/routes.ts`
   - `scripts/prerender.js`
   - `vite.config.ts`
+
+### 2026-03-05 - Hotfix: estabilidad de arranque tras lazy-load
+- Funcionalidad:
+  - Se dejo `MainLayout` y paginas base en carga normal para evitar bloqueo visual en el primer render.
+  - Se mantuvo lazy-loading en secciones pesadas de Academy.
+  - Fallback de `Suspense` visible sobre tema (`bg/text`) para no mostrar pantalla negra durante carga.
+- Resumen:
+  - Se corrigio incidencia de pantalla negra al iniciar y se preservo la optimizacion de carga diferida en rutas secundarias.
+- Archivos:
+  - `src/App.tsx`
+
+### 2026-03-05 - Hotfix produccion: pantalla negra en inicio
+- Funcionalidad:
+  - Hardening de `ThemeProvider` ante errores de acceso a `localStorage`.
+  - Fallback compatible con Safari para listeners de `matchMedia` (`addEventListener`/`addListener`).
+- Resumen:
+  - Se evita que errores de storage o compatibilidad de listeners rompan el render inicial en produccion.
+- Archivos:
+  - `src/context/ThemeContext.tsx`

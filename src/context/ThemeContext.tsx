@@ -15,10 +15,29 @@ const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 // Storage key
 const THEME_STORAGE_KEY = 'freewallet_theme_mode';
 
+function readStoredThemeMode(): ThemeMode {
+    try {
+        const stored = localStorage.getItem(THEME_STORAGE_KEY);
+        if (stored === 'light' || stored === 'dark' || stored === 'system') {
+            return stored;
+        }
+    } catch {
+        // Ignore storage access errors (private mode/restricted contexts).
+    }
+    return 'dark';
+}
+
+function persistThemeMode(mode: ThemeMode): void {
+    try {
+        localStorage.setItem(THEME_STORAGE_KEY, mode);
+    } catch {
+        // Ignore storage access errors to avoid blocking app render.
+    }
+}
+
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [themeMode, setThemeModeState] = useState<ThemeMode>(() => {
-        const stored = localStorage.getItem(THEME_STORAGE_KEY);
-        return (stored as ThemeMode) || 'dark';
+        return readStoredThemeMode();
     });
 
     const [systemTheme, setSystemTheme] = useState<'light' | 'dark'>(() => {
@@ -36,8 +55,14 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
             setSystemTheme(e.matches ? 'dark' : 'light');
         };
 
-        mediaQuery.addEventListener('change', handleChange);
-        return () => mediaQuery.removeEventListener('change', handleChange);
+        // Safari compatibility fallback.
+        if (typeof mediaQuery.addEventListener === 'function') {
+            mediaQuery.addEventListener('change', handleChange);
+            return () => mediaQuery.removeEventListener('change', handleChange);
+        }
+
+        mediaQuery.addListener(handleChange);
+        return () => mediaQuery.removeListener(handleChange);
     }, []);
 
     // Calculate actual theme
@@ -58,7 +83,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     // Set theme mode
     const setThemeMode = useCallback((mode: ThemeMode) => {
         setThemeModeState(mode);
-        localStorage.setItem(THEME_STORAGE_KEY, mode);
+        persistThemeMode(mode);
     }, []);
 
     return (

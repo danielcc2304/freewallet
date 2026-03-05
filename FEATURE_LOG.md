@@ -140,3 +140,32 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Se evita que errores de storage o compatibilidad de listeners rompan el render inicial en produccion.
 - Archivos:
   - `src/context/ThemeContext.tsx`
+
+### 2026-03-05 - Mitigacion produccion: rollback de optimizaciones de bundle
+- Funcionalidad:
+  - Se retiraron temporalmente `React.lazy`/`Suspense` a nivel de rutas en `App.tsx`.
+  - Se retiro `manualChunks` custom de `vite.config.ts`.
+- Resumen:
+  - Cambio orientado a aislar y evitar regresion visual en home de produccion asociada a optimizaciones recientes.
+- Archivos:
+  - `src/App.tsx`
+  - `vite.config.ts`
+
+### 2026-03-05 - Optimizacion segura fase 1: chunks + recuperacion automatica
+- Funcionalidad:
+  - Reintroduccion de `manualChunks` en Vite para separar vendors pesados sin lazy-routing.
+  - Handler global de errores de carga de chunks en runtime (`error` + `unhandledrejection`) con recarga unica controlada.
+- Resumen:
+  - Se mantiene mejora de bundle inicial reduciendo riesgo de pantalla en blanco por desfase de cache entre `index.html` y assets versionados.
+- Archivos:
+  - `vite.config.ts`
+  - `src/main.tsx`
+
+### 2026-03-05 - Academy assets: alineacion de hero y metricas
+- Funcionalidad:
+  - Correccion de alineacion en cabeceras de `/academy/assets/*` (icono y bloque de stats centrados en desktop).
+  - Homogeneizacion visual de tarjetas de metricas para evitar desajustes verticales.
+- Resumen:
+  - Se corrigio el descuadre de bloques como retorno historico/volatilidad y se mejoro consistencia de presentacion entre subsecciones de activos.
+- Archivos:
+  - `src/components/academy/assets/AssetPage.css`

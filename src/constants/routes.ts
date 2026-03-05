@@ -14,7 +14,6 @@ export const ACADEMY_ROUTES = [
     { path: '/academy/risk', label: 'Gestión Riesgo' },
     { path: '/academy/resources', label: 'Recursos' },
     { path: '/academy/glossary', label: 'Glosario' },
-    { path: '/academy/asset-types', label: 'Tipos de Activos' },
     { path: '/academy/compound-interest', label: 'Interés Compuesto' },
     { path: '/academy/fire-calculator', label: 'Calculadora FIRE' },
     { path: '/academy/bond-calculator', label: 'Calculadora de Bonos' },

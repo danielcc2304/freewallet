@@ -47,6 +47,23 @@ const routes = [
     '/academy/assets/crypto'
 ];
 
+const NAV_TIMEOUT_MS = 60000;
+
+async function navigateWithRetry(page, url) {
+    try {
+        await page.goto(url, {
+            waitUntil: 'networkidle2',
+            timeout: NAV_TIMEOUT_MS
+        });
+    } catch (firstError) {
+        console.warn(`Navigation retry for ${url} after timeout/network idle issue.`);
+        await page.goto(url, {
+            waitUntil: 'domcontentloaded',
+            timeout: NAV_TIMEOUT_MS
+        });
+    }
+}
+
 async function prerender() {
     if (process.env.VERCEL || process.env.SKIP_PRERENDER) {
         console.log('⚠️ Skipping prerender on Vercel environment to avoid Puppeteer dependency issues.');
@@ -74,7 +91,7 @@ async function prerender() {
             const url = `http://localhost:${PORT}${route}`;
 
             console.log(`Rendering: ${route}...`);
-            await page.goto(url, { waitUntil: 'networkidle0' });
+            await navigateWithRetry(page, url);
 
             // Wait for custom trigger or just wait a bit
             // await page.evaluate(() => new Promise(resolve => {

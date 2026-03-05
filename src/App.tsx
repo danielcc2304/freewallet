@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { Dashboard, AddInvestment, Settings, TermsAndConditions, NotFound, PortfolioCsv } from './pages';
 import { AcademyLayout } from './components/academy/layout/AcademyLayout';
@@ -20,7 +20,6 @@ import { RiskManagement } from './components/academy/guides/RiskManagement';
 import { Scenarios } from './components/academy/guides/Scenarios';
 import { CommonErrors } from './components/academy/guides/CommonErrors';
 import { Glossary } from './components/academy/guides/Glossary';
-import { AssetTypes } from './components/academy/guides/AssetTypes';
 import { BondCalculator } from './components/academy/calculators/BondCalculator';
 import { AssetEquities } from './components/academy/assets/AssetEquities';
 import { AssetBonds } from './components/academy/assets/AssetBonds';
@@ -63,7 +62,7 @@ function App() {
             <Route path="risk" element={<RiskManagement />} />
             <Route path="resources" element={<InProcess />} />
             <Route path="glossary" element={<Glossary />} />
-            <Route path="asset-types" element={<AssetTypes />} />
+            <Route path="asset-types" element={<Navigate to="/academy/portfolio" replace />} />
 
             {/* Asset Deep Dives */}
             <Route path="assets/equities" element={<AssetEquities />} />

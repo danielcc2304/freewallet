@@ -27,7 +27,6 @@ const routes = [
     '/academy/risk',
     '/academy/resources',
     '/academy/glossary',
-    '/academy/asset-types',
     '/academy/compound-interest',
     '/academy/fire-calculator',
     '/academy/bond-calculator',

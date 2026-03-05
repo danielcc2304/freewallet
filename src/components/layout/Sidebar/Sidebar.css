@@ -167,6 +167,19 @@
     transition-delay: 0.1s;
 }
 
+.sidebar__sub-group {
+    margin-top: 0.35rem;
+}
+
+.sidebar__sub-group-title {
+    padding: 0.45rem 0.75rem 0.2rem 2.75rem;
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+    font-weight: 700;
+}
+
 .sidebar__sub-link {
     display: flex;
     align-items: center;

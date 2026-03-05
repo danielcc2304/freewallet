@@ -15,11 +15,11 @@ import {
     AlertCircle,
     Calculator,
     PieChart,
-    Lightbulb,
     Shield,
     Scale,
     Award,
-    FileSpreadsheet
+    FileSpreadsheet,
+    LineChart
 } from 'lucide-react';
 import './Sidebar.css';
 
@@ -28,16 +28,27 @@ interface SidebarProps {
     onToggle: () => void;
 }
 
-const academySections = [
-    { path: '/academy', icon: BookOpen, label: 'Fundamentos', end: true },
-    { path: '/academy/timeline', icon: TrendingUp, label: 'Tu Journey' },
-    { path: '/academy/crisis', icon: AlertCircle, label: 'Mercado y Crisis' },
-    { path: '/academy/portfolio', icon: PieChart, label: 'Estrategia y Cartera' },
-    { path: '/academy/calculators', icon: Calculator, label: 'Calculadoras' },
-    { path: '/academy/risk', icon: Shield, label: 'Gestión del Riesgo' },
-    { path: '/academy/tax', icon: Scale, label: 'Fiscalidad' },
-    { path: '/academy/fund-radar', icon: Award, label: 'Radar de Fondos' },
-    { path: '/academy/errors', icon: Lightbulb, label: 'Errores Comunes' }
+type AcademySection = {
+    path: string;
+    icon: any;
+    label: string;
+    group: 'Aprender' | 'Construir' | 'Analizar';
+    end?: boolean;
+};
+
+const academySections: AcademySection[] = [
+    { path: '/academy', icon: BookOpen, label: 'Fundamentos', end: true, group: 'Aprender' },
+    { path: '/academy/timeline', icon: TrendingUp, label: 'Tu Journey', group: 'Aprender' },
+
+    { path: '/academy/portfolio', icon: PieChart, label: 'Estrategia y Cartera', group: 'Construir' },
+    { path: '/academy/risk', icon: Shield, label: 'Gestión del Riesgo', group: 'Construir' },
+    { path: '/academy/tax', icon: Scale, label: 'Fiscalidad', group: 'Construir' },
+    { path: '/academy/calculators', icon: Calculator, label: 'Calculadoras', group: 'Construir' },
+
+    { path: '/academy/fund-radar', icon: Award, label: 'Fondos (Radar + Guía)', group: 'Analizar' },
+    { path: '/academy/valuation', icon: LineChart, label: 'Valoración', group: 'Analizar' },
+    { path: '/academy/crisis', icon: AlertCircle, label: 'Mercado y Crisis', group: 'Analizar' },
+    { path: '/academy/scenarios', icon: AlertCircle, label: 'Escenarios prácticos', group: 'Analizar' }
 ];
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
@@ -56,6 +67,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         { to: '/add', icon: PlusCircle, label: 'Añadir Inversión' },
         { to: '/portfolio-csv', icon: FileSpreadsheet, label: 'Portfolio CSV' },
     ];
+
+    const academyGroups: Array<AcademySection['group']> = ['Aprender', 'Construir', 'Analizar'];
 
     const handleAcademyToggle = () => {
         setAcademyExpanded(!academyExpanded);
@@ -115,19 +128,26 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
                         <div className={`sidebar__sub-nav ${academyExpanded ? 'sidebar__sub-nav--open' : ''}`}>
                             <div className="sidebar__sub-nav-inner">
-                                {academySections.map(({ path, icon: Icon, label, end }) => (
-                                    <NavLink
-                                        key={path}
-                                        to={path}
-                                        end={end}
-                                        className={({ isActive }) =>
-                                            `sidebar__sub-link ${isActive ? 'sidebar__sub-link--active' : ''}`
-                                        }
-                                        onClick={closeMobileSidebar}
-                                    >
-                                        <Icon className="sidebar__sub-icon" size={16} />
-                                        <span className="sidebar__sub-text">{label}</span>
-                                    </NavLink>
+                                {academyGroups.map((group) => (
+                                    <div key={group} className="sidebar__sub-group">
+                                        <div className="sidebar__sub-group-title">{group}</div>
+                                        {academySections
+                                            .filter((item) => item.group === group)
+                                            .map(({ path, icon: Icon, label, end }) => (
+                                                <NavLink
+                                                    key={path}
+                                                    to={path}
+                                                    end={end}
+                                                    className={({ isActive }) =>
+                                                        `sidebar__sub-link ${isActive ? 'sidebar__sub-link--active' : ''}`
+                                                    }
+                                                    onClick={closeMobileSidebar}
+                                                >
+                                                    <Icon className="sidebar__sub-icon" size={16} />
+                                                    <span className="sidebar__sub-text">{label}</span>
+                                                </NavLink>
+                                            ))}
+                                    </div>
                                 ))}
                             </div>
                         </div>
@@ -149,7 +169,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     <Link to="/terms" className="sidebar__terms-link" onClick={closeMobileSidebar}>
                         Términos y Condiciones
                     </Link>
-                    <div className="sidebar__version">v3.2.1</div>
+                    <div className="sidebar__version">v3.3.0</div>
                 </div>
             </aside>
 

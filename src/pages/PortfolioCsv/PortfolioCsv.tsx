@@ -251,7 +251,7 @@ export function PortfolioCsv() {
             localStorage.setItem(STORAGE_KEYS.evolutionFile, evolutionFileLabel);
             localStorage.setItem(STORAGE_KEYS.updatedAt, updatedAt);
         } catch {
-            // Ignore localStorage errors.
+            // localStorage puede fallar en modo privado o por límites de cuota.
         }
     }, [holdingsRaw, evolutionRaw, holdingsFileLabel, evolutionFileLabel, updatedAt]);
 
@@ -316,7 +316,7 @@ export function PortfolioCsv() {
         try {
             const text = await file.text();
             if (!text.trim()) {
-                setError('El archivo esta vacio. Sube un CSV con contenido.');
+                setError('El archivo está vacío. Sube un CSV con contenido.');
                 return;
             }
             if (type === 'holdings') {
@@ -328,7 +328,7 @@ export function PortfolioCsv() {
                 setHoldingsFileLabel(file.name);
             } else {
                 if (parseEvolution(text).length === 0) {
-                    setError('No pude interpretar el CSV de evolucion. Revisa cabeceras y formato.');
+                    setError('No pude interpretar el CSV de evolución. Revisa cabeceras y formato.');
                     return;
                 }
                 setEvolutionRaw(text);
@@ -416,15 +416,15 @@ export function PortfolioCsv() {
     return (
         <div className="portfolio-csv-page">
             <header className="portfolio-csv-hero">
-                <div className="portfolio-csv-hero__badge">Portfolio Intelligence Lab</div>
-                <h1>Analisis visual completo de tu cartera con CSV mensuales</h1>
-                <p>Esta pantalla esta fuera de Academia para uso operativo. Sube tus CSV cada mes y obtendras una lectura directa de concentracion, drivers de rentabilidad, consistencia, drawdown y evolucion real.</p>
+                <div className="portfolio-csv-hero__badge">Portfolio CSV</div>
+                <h1>Análisis de cartera con CSV mensuales</h1>
+                <p>Sube los CSV de cartera y evolución para ver concentración, rendimiento, drawdown y tendencia del patrimonio.</p>
             </header>
 
             <section className="portfolio-csv-upload">
                 <article className="portfolio-csv-upload__card">
                     <h3><FileSpreadsheet size={18} /> CSV de Cartera</h3>
-                    <p>Columnas esperadas: Activo, Importe, Peso.</p>
+                    <p>Columnas: Activo, Importe, Peso %.</p>
                     <div className="portfolio-csv-upload__actions">
                         <button type="button" className="portfolio-csv-btn" onClick={() => holdingsInputRef.current?.click()}>
                             <Upload size={16} /> Subir CSV
@@ -448,8 +448,8 @@ export function PortfolioCsv() {
                 </article>
 
                 <article className="portfolio-csv-upload__card">
-                    <h3><CalendarClock size={18} /> CSV de Evolucion</h3>
-                    <p>Columnas esperadas: Mes, Valor Total, Capital Inicial, Capital Aportado, Plusvalias, % mens., TWR YTD.</p>
+                    <h3><CalendarClock size={18} /> CSV de Evolución</h3>
+                    <p>Columnas esperadas: Mes, Valor Total, Capital Inicial, Capital Aportado, Plusvalías, % mens., TWR YTD.</p>
                     <div className="portfolio-csv-upload__actions">
                         <button type="button" className="portfolio-csv-btn" onClick={() => evolutionInputRef.current?.click()}>
                             <Upload size={16} /> Subir CSV
@@ -474,13 +474,13 @@ export function PortfolioCsv() {
 
                 <article className="portfolio-csv-upload__card portfolio-csv-upload__card--utility">
                     <h3><RefreshCw size={18} /> Estado y persistencia</h3>
-                    <p>Los CSV quedan guardados en localStorage y siguen tras recargar.</p>
+                    <p>Los CSV se guardan en este navegador.</p>
                     <div className="portfolio-csv-upload__actions">
                         <button type="button" className="portfolio-csv-btn" onClick={resetToDemo}>
                             Restaurar demo
                         </button>
                     </div>
-                    <small>Ultima actualizacion: {updatedAt ? new Date(updatedAt).toLocaleString('es-ES') : 'sin registrar'}</small>
+                    <small>Última actualización: {updatedAt ? new Date(updatedAt).toLocaleString('es-ES') : 'sin registrar'}</small>
                 </article>
             </section>
 
@@ -493,8 +493,8 @@ export function PortfolioCsv() {
 
             <section className="portfolio-csv-kpis">
                 <article className="portfolio-csv-kpi"><span>Patrimonio actual</span><strong>{formatCurrency(totalPortfolioValue)}</strong></article>
-                <article className="portfolio-csv-kpi"><span>Top 3 concentracion</span><strong>{formatPct(topConcentration)}</strong></article>
-                <article className="portfolio-csv-kpi"><span>Diversificacion efectiva</span><strong>{effectivePositions.toFixed(1)} posiciones</strong></article>
+                <article className="portfolio-csv-kpi"><span>Top 3 concentración</span><strong>{formatPct(topConcentration)}</strong></article>
+                <article className="portfolio-csv-kpi"><span>Diversificación efectiva</span><strong>{effectivePositions.toFixed(1)} posiciones</strong></article>
                 <article className="portfolio-csv-kpi"><span>Meses positivos</span><strong>{formatPct(positiveMonthRatio)}</strong></article>
                 <article className="portfolio-csv-kpi"><span>Retorno medio mensual</span><strong>{formatPct(avgMonthlyReturn)}</strong></article>
                 <article className="portfolio-csv-kpi"><span>Volatilidad mensual</span><strong>{formatPct(monthlyVolatility)}</strong></article>
@@ -502,8 +502,8 @@ export function PortfolioCsv() {
 
             <section className="portfolio-csv-grid">
                 <article className="portfolio-csv-card">
-                    <h2><Layers3 size={18} /> Composicion por activos (peso real)</h2>
-                    <p>Se cuida el margen del donut y los nombres para evitar cortes en desktop y movil.</p>
+                    <h2><Layers3 size={18} /> Composición por activos (peso real)</h2>
+                    <p>Distribución de pesos por posición, incluyendo agrupación de activos minoritarios en "Otros activos".</p>
                     <div className="portfolio-csv-chart portfolio-csv-chart--composition">
                         <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                             <PieChart margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
@@ -528,8 +528,8 @@ export function PortfolioCsv() {
                 </article>
 
                 <article className="portfolio-csv-card">
-                    <h2><TrendingUp size={18} /> Asignacion por bloques</h2>
-                    <p>Lectura tactica por tipo de activo. En movil las etiquetas se abrevian para mantener legibilidad.</p>
+                    <h2><TrendingUp size={18} /> Asignación por bloques</h2>
+                    <p>Peso agregado por tipo de activo.</p>
                     <div className="portfolio-csv-chart">
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={categoryAllocationData}>
@@ -555,7 +555,7 @@ export function PortfolioCsv() {
             <section className="portfolio-csv-grid">
                 <article className="portfolio-csv-card">
                     <h2><CalendarClock size={18} /> Valor total vs capital invertido</h2>
-                    <p>Compara patrimonio frente a capital invertido para separar efecto mercado de efecto aportacion.</p>
+                    <p>Separa el efecto mercado del efecto aportaciones.</p>
                     <div className="portfolio-csv-chart">
                         <ResponsiveContainer width="100%" height={320}>
                             <AreaChart data={evolution}>
@@ -581,8 +581,8 @@ export function PortfolioCsv() {
                 </article>
 
                 <article className="portfolio-csv-card">
-                    <h2><TrendingUp size={18} /> Drivers del mes: aportado vs plusvalia</h2>
-                    <p>Descompone el avance mensual entre nuevo ahorro y comportamiento de mercado.</p>
+                    <h2><TrendingUp size={18} /> Drivers del mes: aportado vs plusvalía</h2>
+                    <p>Desglose mensual entre aportación y resultado de mercado.</p>
                     <div className="portfolio-csv-chart">
                         <ResponsiveContainer width="100%" height={320}>
                             <ComposedChart data={evolution} margin={mobileChartMargin}>
@@ -598,8 +598,8 @@ export function PortfolioCsv() {
                                 />
                                 <Tooltip content={<SeriesTooltip valueType="currency" />} />
                                 <Legend formatter={legendFormatter} wrapperStyle={{ color: 'var(--text-secondary)' }} />
-                                <Bar dataKey="monthlyContribution" name="Aportacion" fill="#3b82f6" radius={[6, 6, 0, 0]} />
-                                <Bar dataKey="profit" name="Plusvalia" fill="#10b981" radius={[6, 6, 0, 0]} />
+                                <Bar dataKey="monthlyContribution" name="Aportación" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                                <Bar dataKey="profit" name="Plusvalía" fill="#10b981" radius={[6, 6, 0, 0]} />
                                 <Line type="monotone" dataKey="gainVsInvested" name="Ganancia acumulada" stroke="#f59e0b" strokeWidth={2} dot={false} />
                             </ComposedChart>
                         </ResponsiveContainer>
@@ -610,7 +610,7 @@ export function PortfolioCsv() {
             <section className="portfolio-csv-grid">
                 <article className="portfolio-csv-card">
                     <h2><AlertTriangle size={18} /> Mapa de riesgo: retorno mensual y drawdown</h2>
-                    <p>Cruza retorno mensual, drawdown y TWR YTD para detectar deterioro de calidad en la serie.</p>
+                    <p>Compara retorno mensual, drawdown y TWR YTD.</p>
                     <div className="portfolio-csv-chart portfolio-csv-chart--risk-map">
                         <ResponsiveContainer width="100%" height={320}>
                             <ComposedChart
@@ -657,18 +657,17 @@ export function PortfolioCsv() {
                 </article>
 
                 <article className="portfolio-csv-card">
-                    <h2><Layers3 size={18} /> Lecturas de utilidad mensual</h2>
+                    <h2><Layers3 size={18} /> Resumen mensual</h2>
                     <ul className="portfolio-csv-insights">
-                        <li><span>Concentracion Top 3</span><strong>{formatPct(topConcentration)} ({concentrationLevel})</strong></li>
+                        <li><span>Concentración Top 3</span><strong>{formatPct(topConcentration)} ({concentrationLevel})</strong></li>
                         <li><span>Mejor mes registrado</span><strong>{bestMonth ? `${bestMonth.period} (${formatPct(bestMonth.monthlyReturnPct)})` : 'N/D'}</strong></li>
                         <li><span>Peor mes registrado</span><strong>{worstMonth ? `${worstMonth.period} (${formatPct(worstMonth.monthlyReturnPct)})` : 'N/D'}</strong></li>
                         <li><span>Ganancia neta vs invertido</span><strong>{latestEvolution ? formatCurrency(latestEvolution.gainVsInvested) : 'N/D'}</strong></li>
-                        <li><span>Proyeccion 12 meses (escenario base)</span><strong>{formatCurrency(projection12m)}</strong></li>
+                        <li><span>Proyección 12 meses (escenario base)</span><strong>{formatCurrency(projection12m)}</strong></li>
                     </ul>
                     <div className="portfolio-csv-note">
                         <p>
-                            Sugerencia: si sube la concentracion, empeora el drawdown y cae el porcentaje de meses positivos a la vez,
-                            prioriza rebalanceo y control de riesgo antes de escalar exposicion.
+                            Si sube la concentración y empeora el drawdown, revisa rebalanceo y riesgo antes de aumentar exposición.
                         </p>
                     </div>
                 </article>

@@ -94,6 +94,7 @@
     font-weight: 600;
     color: var(--text-primary);
     margin: 0 0 0.75rem 0;
+    overflow-wrap: anywhere;
 }
 
 .fundamentos__card-description {
@@ -101,6 +102,7 @@
     line-height: 1.6;
     margin: 0 0 1.5rem 0;
     flex: 1;
+    overflow-wrap: anywhere;
 }
 
 .fundamentos__card-badge {
@@ -150,6 +152,7 @@
     text-decoration: none;
     transition: all 0.2s ease;
     font-weight: 500;
+    overflow-wrap: anywhere;
 }
 
 .fundamentos__next-link:hover {
@@ -177,6 +180,7 @@
     font-weight: 700;
     margin-bottom: 0.75rem;
     color: var(--text-primary);
+    overflow-wrap: anywhere;
 }
 
 .interact-card__content p {
@@ -184,6 +188,7 @@
     margin-bottom: 2rem;
     max-width: 600px;
     line-height: 1.6;
+    overflow-wrap: anywhere;
 }
 
 .fundamentos__card-badge--interact {
@@ -223,6 +228,10 @@
 }
 
 @media (max-width: 480px) {
+    .fundamentos {
+        padding: 0 1rem 3rem;
+    }
+
     .fundamentos__title {
         font-size: 1.6rem;
     }

@@ -333,6 +333,92 @@
 }
 
 /* Model Portfolios */
+.portfolio-builder__filters {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+}
+
+.portfolio-builder__filters-head {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    align-items: baseline;
+    margin-bottom: 1rem;
+}
+
+.portfolio-builder__filters-head p {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.portfolio-builder__filters-head span {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    white-space: nowrap;
+}
+
+.portfolio-builder__filter-row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 0.75rem;
+    align-items: start;
+    margin-bottom: 0.9rem;
+}
+
+.portfolio-builder__filter-label {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding-top: 0.35rem;
+}
+
+.portfolio-builder__filter-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.portfolio-builder__filter-chip {
+    border: 1px solid var(--border-color);
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.portfolio-builder__filter-chip:hover {
+    border-color: var(--accent-primary);
+    color: var(--text-primary);
+}
+
+.portfolio-builder__filter-chip--active {
+    border-color: var(--accent-primary);
+    background: rgba(var(--accent-rgb), 0.13);
+    color: var(--text-primary);
+}
+
+.portfolio-builder__filters-reset {
+    border: 1px solid var(--border-color);
+    background: transparent;
+    color: var(--text-secondary);
+    border-radius: 10px;
+    padding: 0.45rem 0.75rem;
+    cursor: pointer;
+}
+
+.portfolio-builder__filters-reset:hover {
+    color: var(--text-primary);
+    border-color: var(--accent-primary);
+}
+
 .category-block {
     margin-bottom: 4rem;
 }
@@ -444,6 +530,24 @@
     margin-top: 2px;
 }
 
+.portfolio-builder__empty {
+    background: var(--bg-secondary);
+    border: 1px dashed var(--border-color);
+    border-radius: 16px;
+    padding: 1.25rem;
+}
+
+.portfolio-builder__empty h3 {
+    margin: 0 0 0.35rem;
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.portfolio-builder__empty p {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
 /* Diversification Section */
 .portfolio-builder__cta {
     background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), rgba(var(--accent-rgb), 0.05));
@@ -538,6 +642,20 @@
 
     .portfolio-builder__assets-grid {
         grid-template-columns: 1fr;
+    }
+
+    .portfolio-builder__filters-head {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .portfolio-builder__filter-row {
+        grid-template-columns: 1fr;
+        margin-bottom: 1rem;
+    }
+
+    .portfolio-builder__filter-label {
+        padding-top: 0;
     }
 }
 

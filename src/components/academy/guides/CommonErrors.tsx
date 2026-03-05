@@ -34,7 +34,7 @@ export function CommonErrors() {
                             </div>
                         </div>
 
-                        <div className="error-detail-card__footer" style={{ marginTop: 'auto', paddingTop: '1rem', borderTop: '1px solid var(--border-color)', fontSize: '0.8rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <div className="error-detail-card__footer">
                             <AlertCircle size={14} /> Evitar esto mejora tu rentabilidad a largo plazo.
                         </div>
                     </article>

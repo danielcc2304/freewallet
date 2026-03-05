@@ -27,7 +27,7 @@
 
 .errors-page__grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: 1.5rem;
 }
 
@@ -70,6 +70,7 @@
     font-weight: 800;
     margin: 0;
     color: var(--text-primary);
+    overflow-wrap: anywhere;
 }
 
 .error-detail-card__desc {
@@ -125,6 +126,22 @@
     color: var(--text-secondary);
 }
 
+.error-detail-card__footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.error-detail-card__footer svg {
+    flex-shrink: 0;
+}
+
 @media (max-width: 768px) {
     .errors-page__title {
         font-size: 1.85rem;
@@ -146,5 +163,23 @@
 @media (max-width: 480px) {
     .errors-page__title {
         font-size: 1.6rem;
+    }
+
+    .errors-page {
+        padding: 0 1rem 3rem;
+    }
+
+    .error-detail-card__header {
+        gap: 0.8rem;
+    }
+
+    .error-detail-card__emoji {
+        width: 52px;
+        height: 52px;
+        font-size: 2rem;
+    }
+
+    .error-detail-card__title {
+        font-size: 1.2rem;
     }
 }

@@ -1,23 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="FreeWallet">
   <defs>
     <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#0f172a" />
+      <stop offset="0%" stop-color="#0b1220" />
       <stop offset="100%" stop-color="#1e293b" />
+    </linearGradient>
+    <linearGradient id="feather" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#67e8f9" />
+      <stop offset="100%" stop-color="#22d3ee" />
     </linearGradient>
   </defs>
 
   <rect x="4" y="4" width="56" height="56" rx="14" fill="url(#bg)" />
 
-  <g fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <path d="M16 24h26a4 4 0 0 1 4 4v12a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4V28a4 4 0 0 1 4-4z"
-      stroke="#10b981" stroke-width="3.2"/>
-    <path d="M34 31h12v6H34z" stroke="#10b981" stroke-width="2.8"/>
-    <circle cx="40" cy="34" r="1.8" fill="#10b981" stroke="none"/>
-
-    <g transform="translate(39 9) rotate(14)">
-      <path d="M2 15c4-7 10-9 16-8-1 6-4 12-13 17" stroke="#22d3ee" stroke-width="3"/>
-      <path d="M6 20l7-7" stroke="#22d3ee" stroke-width="2.2"/>
-      <path d="M5 17c3-3 6-5 10-6" stroke="#22d3ee" stroke-width="1.6"/>
-    </g>
+  <g fill="none" stroke="url(#feather)" stroke-linecap="round" stroke-linejoin="round" transform="translate(14 10) rotate(8 18 20)">
+    <path d="M4 30C11 14 22 10 34 12C32 24 25 34 10 42" stroke-width="4" />
+    <path d="M10 38L24 24" stroke-width="3" />
+    <path d="M12 33C17 28 22 24 29 21" stroke-width="2.2" />
   </g>
 </svg>

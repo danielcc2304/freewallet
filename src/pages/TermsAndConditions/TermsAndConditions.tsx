@@ -1,9 +1,18 @@
+import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import './TermsAndConditions.css';
 
 export function TermsAndConditions() {
+    const navigate = useNavigate();
+
     return (
         <div className="terms">
             <div className="terms__container">
+                <button className="terms__back" onClick={() => navigate(-1)}>
+                    <ArrowLeft size={18} />
+                    Volver atrás
+                </button>
+
                 <h1 className="terms__title">Términos y Condiciones de Uso</h1>
                 <p className="terms__updated">Última actualización: 17 de febrero de 2026</p>
 

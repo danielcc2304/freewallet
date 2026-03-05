@@ -1,14 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { MainLayout } from './components/layout/MainLayout';
+import { Dashboard, AddInvestment, Settings, TermsAndConditions, NotFound, PortfolioCsv } from './pages';
 import './index.css';
-
-const MainLayout = lazy(() => import('./components/layout/MainLayout').then((m) => ({ default: m.MainLayout })));
-const Dashboard = lazy(() => import('./pages/Dashboard').then((m) => ({ default: m.Dashboard })));
-const AddInvestment = lazy(() => import('./pages/AddInvestment').then((m) => ({ default: m.AddInvestment })));
-const Settings = lazy(() => import('./pages/Settings').then((m) => ({ default: m.Settings })));
-const TermsAndConditions = lazy(() => import('./pages/TermsAndConditions').then((m) => ({ default: m.TermsAndConditions })));
-const NotFound = lazy(() => import('./pages/NotFound').then((m) => ({ default: m.NotFound })));
-const PortfolioCsv = lazy(() => import('./pages/PortfolioCsv').then((m) => ({ default: m.PortfolioCsv })));
 
 const AcademyLayout = lazy(() => import('./components/academy/layout/AcademyLayout').then((m) => ({ default: m.AcademyLayout })));
 const Fundamentos = lazy(() => import('./components/academy/guides/Fundamentos').then((m) => ({ default: m.Fundamentos })));
@@ -44,7 +38,11 @@ const AssetAllocationSim = lazy(() => import('./components/academy/simulators/As
 function App() {
   return (
     <BrowserRouter>
-      <Suspense fallback={<div style={{ padding: '2rem' }}>Cargando...</div>}>
+      <Suspense fallback={(
+        <div style={{ padding: '2rem', color: 'var(--text-primary)', background: 'var(--bg-primary)', minHeight: '100vh' }}>
+          Cargando...
+        </div>
+      )}>
         <Routes>
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Dashboard />} />

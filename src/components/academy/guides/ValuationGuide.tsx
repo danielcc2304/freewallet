@@ -248,28 +248,28 @@ export function ValuationGuide() {
                 <div className="example-box example-box--bad">
                     <div className="example-box__header">
                         <AlertCircle size={24} color="#ef4444" />
-                        <h3 className="example-box__title">Empresa B: "El Pozo de Deuda" (Ej: Tipo Aerolínea en crisis o 'Zombie')</h3>
+                        <h3 className="example-box__title">Empresa B: "Múltiplos Baratos, Calidad Floja" (Ej: Telefónica)</h3>
                     </div>
                     <div className="example-box__grid">
                         <div className="example-metric">
-                            <span className="example-metric__label">Margen Bruto</span>
-                            <span className="example-metric__value">12%</span>
+                            <span className="example-metric__label">Margen Operativo</span>
+                            <span className="example-metric__value">13%</span>
                         </div>
                         <div className="example-metric">
-                            <span className="example-metric__label">ROIC</span>
-                            <span className="example-metric__value">4%</span>
+                            <span className="example-metric__label">ROE</span>
+                            <span className="example-metric__value">-2.3%</span>
                         </div>
                         <div className="example-metric">
-                            <span className="example-metric__label">D. Neta / EBITDA</span>
-                            <span className="example-metric__value">5.5x</span>
+                            <span className="example-metric__label">Deuda / Patrimonio</span>
+                            <span className="example-metric__value">201%</span>
                         </div>
                         <div className="example-metric">
-                            <span className="example-metric__label">FCF</span>
-                            <span className="example-metric__value">Negativo (Quema)</span>
+                            <span className="example-metric__label">Current Ratio</span>
+                            <span className="example-metric__value">0.84</span>
                         </div>
                     </div>
                     <div className="example-box__conclusion">
-                        Negocio intensivo en capital, altamente endeudado y que destruye valor (ROIC {"<"} Coste de Capital). Posible riesgo de quiebra si el crédito se endurece.
+                        Múltiplos bajos no bastan. Aunque sigue generando caja, el beneficio neto es negativo, el ROE está en rojo, la deuda pesa mucho sobre el balance y la liquidez de corto plazo es justa. Caso clásico de empresa que puede parecer barata pero no ofrece una calidad acorde.
                     </div>
                 </div>
             </section>

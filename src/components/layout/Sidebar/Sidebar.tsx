@@ -12,14 +12,21 @@ import {
     ChevronDown,
     BookOpen,
     TrendingUp,
-    AlertCircle,
+    LibraryBig,
+    CircleAlert,
+    Activity,
     Calculator,
     PieChart,
     Shield,
     Scale,
     Award,
     FileSpreadsheet,
-    LineChart
+    LineChart,
+    Target,
+    Sparkles,
+    Gamepad2,
+    Flame,
+    FolderOpen
 } from 'lucide-react';
 import './Sidebar.css';
 
@@ -32,23 +39,32 @@ type AcademySection = {
     path: string;
     icon: any;
     label: string;
-    group: 'Aprender' | 'Construir' | 'Analizar';
+    group: 'Aprender' | 'Construir' | 'Herramientas' | 'Escenarios' | 'Recursos';
     end?: boolean;
 };
 
 const academySections: AcademySection[] = [
     { path: '/academy', icon: BookOpen, label: 'Fundamentos', end: true, group: 'Aprender' },
+    { path: '/academy/glossary', icon: LibraryBig, label: 'Glosario', group: 'Aprender' },
     { path: '/academy/timeline', icon: TrendingUp, label: 'Tu Journey', group: 'Aprender' },
+    { path: '/academy/errors', icon: CircleAlert, label: 'Errores comunes', group: 'Aprender' },
 
+    { path: '/academy/investor-profile-test', icon: Sparkles, label: 'Perfil de inversor', group: 'Construir' },
     { path: '/academy/portfolio', icon: PieChart, label: 'Estrategia y Cartera', group: 'Construir' },
     { path: '/academy/risk', icon: Shield, label: 'Gestión del Riesgo', group: 'Construir' },
     { path: '/academy/tax', icon: Scale, label: 'Fiscalidad', group: 'Construir' },
-    { path: '/academy/calculators', icon: Calculator, label: 'Calculadoras', group: 'Construir' },
+    { path: '/academy/strategies', icon: Target, label: 'Estrategias', group: 'Construir' },
 
-    { path: '/academy/fund-radar', icon: Award, label: 'Fondos (Radar + Guía)', group: 'Analizar' },
-    { path: '/academy/valuation', icon: LineChart, label: 'Valoración', group: 'Analizar' },
-    { path: '/academy/crisis', icon: AlertCircle, label: 'Mercado y Crisis', group: 'Analizar' },
-    { path: '/academy/scenarios', icon: AlertCircle, label: 'Escenarios prácticos', group: 'Analizar' }
+    { path: '/academy/calculators', icon: Calculator, label: 'Calculadoras', group: 'Herramientas' },
+    { path: '/academy/fund-radar', icon: Award, label: 'Radar de Fondos', group: 'Herramientas' },
+    { path: '/academy/valuation', icon: LineChart, label: 'Valoración', group: 'Herramientas' },
+    { path: '/academy/market-timing-game', icon: Gamepad2, label: 'Timing vs DCA', group: 'Herramientas' },
+
+    { path: '/academy/crisis', icon: Activity, label: 'Mercado y Crisis', group: 'Escenarios' },
+    { path: '/academy/scenarios', icon: Target, label: 'Qué hacer si...', group: 'Escenarios' },
+    { path: '/academy/inflation-predator', icon: Flame, label: 'Depredador de la Inflación', group: 'Escenarios' },
+
+    { path: '/academy/resources', icon: FolderOpen, label: 'Recursos y guías', group: 'Recursos' }
 ];
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
@@ -68,7 +84,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         { to: '/portfolio-csv', icon: FileSpreadsheet, label: 'Portfolio CSV' },
     ];
 
-    const academyGroups: Array<AcademySection['group']> = ['Aprender', 'Construir', 'Analizar'];
+    const academyGroups: Array<AcademySection['group']> = ['Aprender', 'Construir', 'Herramientas', 'Escenarios', 'Recursos'];
 
     const handleAcademyToggle = () => {
         setAcademyExpanded(!academyExpanded);

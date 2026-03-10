@@ -46,23 +46,23 @@ type AcademySection = {
 const academySections: AcademySection[] = [
     { path: '/academy', icon: BookOpen, label: 'Fundamentos', end: true, group: 'Aprender' },
     { path: '/academy/glossary', icon: LibraryBig, label: 'Glosario', group: 'Aprender' },
-    { path: '/academy/timeline', icon: TrendingUp, label: 'Tu Journey', group: 'Aprender' },
+    { path: '/academy/timeline', icon: TrendingUp, label: 'Tu recorrido', group: 'Aprender' },
     { path: '/academy/errors', icon: CircleAlert, label: 'Errores comunes', group: 'Aprender' },
 
-    { path: '/academy/investor-profile-test', icon: Sparkles, label: 'Perfil de inversor', group: 'Construir' },
+    { path: '/academy/investor-profile-test', icon: Sparkles, label: 'Perfil inversor', group: 'Construir' },
     { path: '/academy/portfolio', icon: PieChart, label: 'Estrategia y Cartera', group: 'Construir' },
     { path: '/academy/risk', icon: Shield, label: 'Gestión del Riesgo', group: 'Construir' },
     { path: '/academy/tax', icon: Scale, label: 'Fiscalidad', group: 'Construir' },
     { path: '/academy/strategies', icon: Target, label: 'Estrategias', group: 'Construir' },
 
     { path: '/academy/calculators', icon: Calculator, label: 'Calculadoras', group: 'Herramientas' },
-    { path: '/academy/fund-radar', icon: Award, label: 'Radar de Fondos', group: 'Herramientas' },
+    { path: '/academy/fund-radar', icon: Award, label: 'Radar de fondos', group: 'Herramientas' },
     { path: '/academy/valuation', icon: LineChart, label: 'Valoración', group: 'Herramientas' },
     { path: '/academy/market-timing-game', icon: Gamepad2, label: 'Timing vs DCA', group: 'Herramientas' },
 
-    { path: '/academy/crisis', icon: Activity, label: 'Mercado y Crisis', group: 'Escenarios' },
+    { path: '/academy/crisis', icon: Activity, label: 'Mercado y crisis', group: 'Escenarios' },
     { path: '/academy/scenarios', icon: Target, label: 'Qué hacer si...', group: 'Escenarios' },
-    { path: '/academy/inflation-predator', icon: Flame, label: 'Depredador de la Inflación', group: 'Escenarios' },
+    { path: '/academy/inflation-predator', icon: Flame, label: 'Impacto de la inflación', group: 'Escenarios' },
 
     { path: '/academy/resources', icon: FolderOpen, label: 'Recursos y guías', group: 'Recursos' }
 ];

@@ -515,6 +515,30 @@ export function PortfolioBuilder() {
                     Ir al Simulador
                 </Link>
             </section>
+            <section className="portfolio-builder__next-steps">
+                <div className="portfolio-builder__next-header">
+                    <h2>Después de definir cartera</h2>
+                    <p>Estas piezas te ayudan a validar si esa distribución encaja con tu perfil, tus fondos y tu tolerancia a la caída.</p>
+                </div>
+
+                <div className="portfolio-builder__next-grid">
+                    <Link to="/academy/investor-profile-test" className="portfolio-builder__next-card">
+                        <span className="portfolio-builder__next-kicker">Antes de ejecutarla</span>
+                        <strong>Perfil inversor</strong>
+                        <p>Comprueba si la cartera que te gusta coincide con la que realmente puedes soportar.</p>
+                    </Link>
+                    <Link to="/academy/fund-radar" className="portfolio-builder__next-card">
+                        <span className="portfolio-builder__next-kicker">Al elegir vehículos</span>
+                        <strong>Radar de fondos</strong>
+                        <p>Usa el ranking para aterrizar la asignación en fondos concretos.</p>
+                    </Link>
+                    <Link to="/academy/risk" className="portfolio-builder__next-card">
+                        <span className="portfolio-builder__next-kicker">Al revisar la mezcla</span>
+                        <strong>Gestión del riesgo</strong>
+                        <p>Evalúa drawdown, correlación y riesgo de divisa antes de comprometerte.</p>
+                    </Link>
+                </div>
+            </section>
         </div>
     );
 }

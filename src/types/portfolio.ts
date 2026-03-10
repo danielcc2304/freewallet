@@ -21,6 +21,46 @@ export interface PortfolioHistoryPoint {
     invested: number;
 }
 
+export type PortfolioTransactionType = 'buy' | 'edit' | 'delete';
+
+export interface PortfolioTransaction {
+    id: string;
+    assetId: string;
+    assetSymbol: string;
+    assetName: string;
+    assetType: Asset['type'];
+    type: PortfolioTransactionType;
+    date: string;
+    quantity?: number;
+    price?: number;
+    total?: number;
+    notes?: string;
+    createdAt: string;
+}
+
+export type PortfolioGoalCategory = 'retirement' | 'home' | 'emergency' | 'education' | 'other';
+
+export interface PortfolioGoal {
+    id: string;
+    title: string;
+    category: PortfolioGoalCategory;
+    targetAmount: number;
+    currentAmount: number;
+    targetDate?: string;
+    notes?: string;
+    createdAt: string;
+}
+
+export interface WatchlistItem {
+    id: string;
+    symbol: string;
+    name: string;
+    assetType: Asset['type'];
+    targetPrice?: number;
+    notes?: string;
+    createdAt: string;
+}
+
 export interface Portfolio {
     assets: Asset[];
     metrics: PortfolioMetrics;

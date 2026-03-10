@@ -691,3 +691,54 @@
     color: var(--text-muted);
     margin: 0;
 }
+
+.fund-radar__next {
+    margin-top: var(--spacing-xl);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    padding: var(--spacing-xl);
+}
+
+.fund-radar__next-header h2 {
+    margin: 0 0 var(--spacing-xs);
+}
+
+.fund-radar__next-header p {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+.fund-radar__next-grid {
+    margin-top: var(--spacing-lg);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--spacing-md);
+}
+
+.fund-radar__next-card {
+    text-decoration: none;
+    color: var(--text-primary);
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-lg);
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.fund-radar__next-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(var(--accent-rgb), 0.35);
+    background: rgba(var(--accent-rgb), 0.06);
+}
+
+.fund-radar__next-card strong {
+    display: block;
+    margin-bottom: var(--spacing-xs);
+}
+
+.fund-radar__next-card p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.55;
+}

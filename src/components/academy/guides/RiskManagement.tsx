@@ -251,6 +251,23 @@ export function RiskManagement() {
                     </Link>
                 </div>
             </section>
+            <section className="risk-mgmt__next">
+                <h2 className="risk-mgmt__section-title">Si quieres llevarlo a la práctica</h2>
+                <div className="risk-mgmt__next-grid">
+                    <Link to="/academy/crisis" className="risk-mgmt__next-card">
+                        <strong>Mercado y crisis</strong>
+                        <p>Mide qué significa una caí­da real para tu capital y para tu comportamiento.</p>
+                    </Link>
+                    <Link to="/academy/scenarios" className="risk-mgmt__next-card">
+                        <strong>Qué hacer si...</strong>
+                        <p>Trabaja respuestas concretas para rebalanceos, pánico y entradas en mercado.</p>
+                    </Link>
+                    <Link to="/portfolio-csv" className="risk-mgmt__next-card">
+                        <strong>Portfolio CSV</strong>
+                        <p>Aplica los checks de concentración y buckets sobre tu cartera real.</p>
+                    </Link>
+                </div>
+            </section>
         </div>
     );
 }

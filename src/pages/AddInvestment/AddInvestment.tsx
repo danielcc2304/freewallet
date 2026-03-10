@@ -243,6 +243,17 @@ export function AddInvestment() {
                     purchaseDate: formData.purchaseDate,
                     quantity: parseFloat(formData.quantity),
                     isin: formData.isin || undefined,
+                }, {
+                    assetId: editAsset.id,
+                    assetSymbol: formData.symbol.toUpperCase(),
+                    assetName: formData.name || formData.symbol,
+                    assetType: formData.type,
+                    type: 'edit',
+                    date: formData.purchaseDate,
+                    quantity: parseFloat(formData.quantity),
+                    price: parseFloat(formData.purchasePrice),
+                    total: parseFloat(formData.purchasePrice) * parseFloat(formData.quantity),
+                    notes: 'Edición manual de la posición',
                 });
             } else if (isDcaMode && dcaAsset) {
                 // DCA Logic: Calculate weighted average
@@ -260,6 +271,17 @@ export function AddInvestment() {
                     quantity: totalQty,
                     purchasePrice: newAvgPrice,
                     purchaseDate: formData.purchaseDate,
+                }, {
+                    assetId: dcaAsset.id,
+                    assetSymbol: dcaAsset.symbol,
+                    assetName: dcaAsset.name,
+                    assetType: dcaAsset.type,
+                    type: 'buy',
+                    date: formData.purchaseDate,
+                    quantity: newQty,
+                    price: newPrice,
+                    total: newQty * newPrice,
+                    notes: 'Compra adicional para promediar precio',
                 });
             } else {
                 // Add new asset
@@ -275,7 +297,18 @@ export function AddInvestment() {
                     currentPrice: parseFloat(formData.purchasePrice),
                     previousClose: parseFloat(formData.purchasePrice),
                 };
-                addAsset(newAsset);
+                addAsset(newAsset, {
+                    assetId: newAsset.id,
+                    assetSymbol: newAsset.symbol,
+                    assetName: newAsset.name,
+                    assetType: newAsset.type,
+                    type: 'buy',
+                    date: newAsset.purchaseDate,
+                    quantity: newAsset.quantity,
+                    price: newAsset.purchasePrice,
+                    total: newAsset.purchasePrice * newAsset.quantity,
+                    notes: 'Alta inicial de la posición',
+                });
             }
 
             setSubmitSuccess(true);

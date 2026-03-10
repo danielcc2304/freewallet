@@ -50,21 +50,21 @@ const academySections: AcademySection[] = [
     { path: '/academy/errors', icon: CircleAlert, label: 'Errores comunes', group: 'Aprender' },
 
     { path: '/academy/investor-profile-test', icon: Sparkles, label: 'Perfil inversor', group: 'Construir' },
-    { path: '/academy/portfolio', icon: PieChart, label: 'Estrategia y Cartera', group: 'Construir' },
-    { path: '/academy/risk', icon: Shield, label: 'Gestión del Riesgo', group: 'Construir' },
+    { path: '/academy/portfolio', icon: PieChart, label: 'Estrategia y cartera', group: 'Construir' },
+    { path: '/academy/risk', icon: Shield, label: 'Gestion del riesgo', group: 'Construir' },
     { path: '/academy/tax', icon: Scale, label: 'Fiscalidad', group: 'Construir' },
     { path: '/academy/strategies', icon: Target, label: 'Estrategias', group: 'Construir' },
 
     { path: '/academy/calculators', icon: Calculator, label: 'Calculadoras', group: 'Herramientas' },
     { path: '/academy/fund-radar', icon: Award, label: 'Radar de fondos', group: 'Herramientas' },
-    { path: '/academy/valuation', icon: LineChart, label: 'Valoración', group: 'Herramientas' },
+    { path: '/academy/valuation', icon: LineChart, label: 'Valoracion', group: 'Herramientas' },
     { path: '/academy/market-timing-game', icon: Gamepad2, label: 'Timing vs DCA', group: 'Herramientas' },
 
     { path: '/academy/crisis', icon: Activity, label: 'Mercado y crisis', group: 'Escenarios' },
-    { path: '/academy/scenarios', icon: Target, label: 'Qué hacer si...', group: 'Escenarios' },
-    { path: '/academy/inflation-predator', icon: Flame, label: 'Impacto de la inflación', group: 'Escenarios' },
+    { path: '/academy/scenarios', icon: Target, label: 'Que hacer si...', group: 'Escenarios' },
+    { path: '/academy/inflation-predator', icon: Flame, label: 'Impacto de la inflacion', group: 'Escenarios' },
 
-    { path: '/academy/resources', icon: FolderOpen, label: 'Recursos y guías', group: 'Recursos' }
+    { path: '/academy/resources', icon: FolderOpen, label: 'Recursos y guias', group: 'Recursos' }
 ];
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
@@ -80,8 +80,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
     const navItems = [
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-        { to: '/add', icon: PlusCircle, label: 'Añadir Inversión' },
-        { to: '/portfolio-csv', icon: FileSpreadsheet, label: 'Portfolio CSV' },
+        { to: '/add', icon: PlusCircle, label: 'Anadir inversion' },
     ];
 
     const academyGroups: Array<AcademySection['group']> = ['Aprender', 'Construir', 'Herramientas', 'Escenarios', 'Recursos'];
@@ -170,6 +169,17 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     </div>
 
                     <NavLink
+                        to="/portfolio-csv"
+                        className={({ isActive }) =>
+                            `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
+                        }
+                        onClick={closeMobileSidebar}
+                    >
+                        <FileSpreadsheet className="sidebar__link-icon" size={20} />
+                        <span className="sidebar__link-text">Portfolio CSV</span>
+                    </NavLink>
+
+                    <NavLink
                         to="/settings"
                         className={({ isActive }) =>
                             `sidebar__link ${isActive ? 'sidebar__link--active' : ''}`
@@ -177,13 +187,13 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         onClick={closeMobileSidebar}
                     >
                         <Settings className="sidebar__link-icon" size={20} />
-                        <span className="sidebar__link-text">Configuración</span>
+                        <span className="sidebar__link-text">Configuracion</span>
                     </NavLink>
                 </nav>
 
                 <div className="sidebar__footer">
                     <Link to="/terms" className="sidebar__terms-link" onClick={closeMobileSidebar}>
-                        Términos y Condiciones
+                        Terminos y condiciones
                     </Link>
                     <div className="sidebar__version">v3.4.0</div>
                 </div>

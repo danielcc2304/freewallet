@@ -187,6 +187,25 @@ export function InvestorTimeline() {
                     </Link>
                 </div>
             </div>
+
+            <section className="timeline__guide-next">
+                <h3>Siguiente paso segun tu momento</h3>
+                <p>Usa esta guia como punto de partida y baja luego a riesgo, crisis o construccion de cartera.</p>
+                <div className="timeline__guide-links">
+                    <Link to="/academy/crisis" className="timeline__guide-link">
+                        <strong>Mercado y crisis</strong>
+                        <span>Para saber que esperar cuando llegue una caida fuerte.</span>
+                    </Link>
+                    <Link to="/academy/scenarios" className="timeline__guide-link">
+                        <strong>Que hacer si...</strong>
+                        <span>Para convertir teoria en decisiones practicas.</span>
+                    </Link>
+                    <Link to="/academy/portfolio" className="timeline__guide-link">
+                        <strong>Construir cartera</strong>
+                        <span>Para traducir tu fase inversora en una asignacion real.</span>
+                    </Link>
+                </div>
+            </section>
         </div>
     );
 }

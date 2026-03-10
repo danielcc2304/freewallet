@@ -597,6 +597,70 @@
     box-shadow: 0 4px 15px rgba(var(--accent-rgb), 0.4);
 }
 
+.portfolio-builder__next-steps {
+    margin-top: 2rem;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 24px;
+    padding: 2rem;
+}
+
+.portfolio-builder__next-header h2 {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+}
+
+.portfolio-builder__next-header p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.portfolio-builder__next-grid {
+    margin-top: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+}
+
+.portfolio-builder__next-card {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    padding: 1.1rem;
+    text-decoration: none;
+    color: var(--text-primary);
+    transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
+}
+
+.portfolio-builder__next-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(var(--accent-rgb), 0.35);
+    background: rgba(var(--accent-rgb), 0.06);
+}
+
+.portfolio-builder__next-kicker {
+    display: inline-block;
+    font-size: 0.78rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--accent-primary);
+    margin-bottom: 0.6rem;
+}
+
+.portfolio-builder__next-card strong {
+    display: block;
+    margin-bottom: 0.45rem;
+    font-size: 1rem;
+}
+
+.portfolio-builder__next-card p {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.55;
+}
+
 /* Risk Guide */
 .risk-guide {
     background: var(--bg-tertiary);
@@ -638,6 +702,10 @@
 
     .portfolio-builder__cta {
         padding: 2rem 1.5rem;
+    }
+
+    .portfolio-builder__next-steps {
+        padding: 1.5rem;
     }
 
     .portfolio-builder__models {

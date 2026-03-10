@@ -286,6 +286,23 @@ export function ValuationGuide() {
                     <div className="checklist-item"><CheckCircle2 size={18} /> Dividendos cubiertos por FCF (no por deuda)</div>
                 </div>
             </section>
+            <section className="valuation-guide__section valuation-guide__next">
+                <h2><TrendingUp size={24} /> Dónde continuar después de valorar</h2>
+                <div className="valuation-guide__next-grid">
+                    <Link to="/academy/risk" className="valuation-guide__next-card">
+                        <strong>Gestión del riesgo</strong>
+                        <p>Una empresa buena puede seguir siendo una mala posición si el peso o el timing son malos.</p>
+                    </Link>
+                    <Link to="/academy/scenarios" className="valuation-guide__next-card">
+                        <strong>Qué hacer si...</strong>
+                        <p>Lleva la valoración a escenarios prácticos de compra, espera y caídas de mercado.</p>
+                    </Link>
+                    <Link to="/portfolio-csv" className="valuation-guide__next-card">
+                        <strong>Portfolio CSV</strong>
+                        <p>Contrasta tu tesis con el peso real que esa posición ocupa dentro de toda la cartera.</p>
+                    </Link>
+                </div>
+            </section>
         </div>
     );
 }

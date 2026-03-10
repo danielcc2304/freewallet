@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
-import { Dashboard, AddInvestment, Settings, TermsAndConditions, NotFound, PortfolioCsv } from './pages';
+import { Dashboard, Planning, Transactions, AddInvestment, Settings, TermsAndConditions, NotFound, PortfolioCsv } from './pages';
 import { AcademyLayout } from './components/academy/layout/AcademyLayout';
 import { Fundamentos } from './components/academy/guides/Fundamentos';
 import { InvestorTimeline } from './components/academy/guides/InvestorTimeline';
@@ -39,6 +39,8 @@ function App() {
       <Routes>
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Dashboard />} />
+          <Route path="planning" element={<Planning />} />
+          <Route path="transactions" element={<Transactions />} />
           <Route path="add" element={<AddInvestment />} />
           <Route path="settings" element={<Settings />} />
           <Route path="portfolio-csv" element={<PortfolioCsv />} />

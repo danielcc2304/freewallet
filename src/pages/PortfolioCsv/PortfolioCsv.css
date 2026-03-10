@@ -167,6 +167,10 @@
     padding: 1rem;
 }
 
+.portfolio-csv-card--full {
+    margin-bottom: 0.9rem;
+}
+
 .portfolio-csv-card h2 {
     margin: 0 0 0.5rem;
     font-size: var(--font-size-lg);
@@ -295,6 +299,167 @@
     line-height: 1.6;
 }
 
+.portfolio-csv-checks {
+    display: grid;
+    gap: 0.7rem;
+}
+
+.portfolio-csv-check {
+    border: 1px solid var(--border-primary);
+    border-radius: 10px;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+}
+
+.portfolio-csv-check--good {
+    background: rgba(16, 185, 129, 0.08);
+}
+
+.portfolio-csv-check--warn {
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.portfolio-csv-check__top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.35rem;
+}
+
+.portfolio-csv-check__title {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.portfolio-csv-check__value {
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+}
+
+.portfolio-csv-check p {
+    margin: 0;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.5;
+}
+
+.portfolio-csv-controls-table {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.portfolio-csv-controls-table__head,
+.portfolio-csv-controls-table__row {
+    display: grid;
+    grid-template-columns: minmax(220px, 2fr) minmax(90px, 0.7fr) minmax(150px, 1fr) minmax(150px, 1fr);
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.portfolio-csv-controls-table__head {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0 0.25rem;
+}
+
+.portfolio-csv-controls-table__row {
+    border: 1px solid var(--border-primary);
+    border-radius: 10px;
+    padding: 0.7rem 0.75rem;
+    background: var(--bg-tertiary);
+}
+
+.portfolio-csv-controls-table__asset {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.portfolio-csv-controls-table__asset small {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.portfolio-csv-select {
+    width: 100%;
+    min-height: 40px;
+    border: 1px solid var(--border-secondary);
+    border-radius: 10px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    padding: 0.45rem 0.65rem;
+}
+
+.portfolio-csv-targets {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+}
+
+.portfolio-csv-targets__item {
+    display: grid;
+    gap: 0.35rem;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.portfolio-csv-targets__total {
+    margin-top: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    border: 1px solid var(--border-primary);
+    border-radius: 10px;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+}
+
+.portfolio-csv-targets__total--warn {
+    border-color: rgba(245, 158, 11, 0.45);
+    background: rgba(245, 158, 11, 0.1);
+}
+
+.portfolio-csv-plan-table {
+    display: grid;
+    gap: 0.55rem;
+}
+
+.portfolio-csv-plan-table__head,
+.portfolio-csv-plan-table__row {
+    display: grid;
+    grid-template-columns: minmax(140px, 1.2fr) repeat(3, minmax(80px, 0.8fr));
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.portfolio-csv-plan-table__head {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0 0.25rem;
+}
+
+.portfolio-csv-plan-table__row {
+    border: 1px solid var(--border-primary);
+    border-radius: 10px;
+    padding: 0.7rem 0.75rem;
+    background: var(--bg-tertiary);
+}
+
+.portfolio-csv-plan-table__delta--over {
+    color: #ef4444;
+    font-weight: 700;
+}
+
+.portfolio-csv-plan-table__delta--under {
+    color: #10b981;
+    font-weight: 700;
+}
+
 .portfolio-csv-tooltip {
     min-width: 190px;
     background: var(--bg-secondary);
@@ -384,6 +549,26 @@
     .portfolio-csv-insights li {
         flex-direction: column;
         align-items: flex-start;
+    }
+
+    .portfolio-csv-controls-table__head {
+        display: none;
+    }
+
+    .portfolio-csv-controls-table__row {
+        grid-template-columns: 1fr;
+    }
+
+    .portfolio-csv-targets {
+        grid-template-columns: 1fr;
+    }
+
+    .portfolio-csv-plan-table__head {
+        display: none;
+    }
+
+    .portfolio-csv-plan-table__row {
+        grid-template-columns: 1fr;
     }
 
     .portfolio-csv-card {

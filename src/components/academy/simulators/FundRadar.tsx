@@ -172,6 +172,26 @@ function FundCard({ fund, getRiskColor, isExpanded, onToggle, score, rank }: Fun
                     </a>
                 </div>
             </div>
+            <section className="fund-radar__next">
+                <div className="fund-radar__next-header">
+                    <h2>Qué hacer después del radar</h2>
+                    <p>Una vez filtrados los fondos, contrasta encaje, riesgo y lectura de cartera.</p>
+                </div>
+                <div className="fund-radar__next-grid">
+                    <Link to="/academy/portfolio" className="fund-radar__next-card">
+                        <strong>Estrategia y cartera</strong>
+                        <p>Comprueba si el fondo mejora una asignación completa y no solo una posición aislada.</p>
+                    </Link>
+                    <Link to="/academy/risk" className="fund-radar__next-card">
+                        <strong>Gestión del riesgo</strong>
+                        <p>Revisa riesgo de divisa, correlación y drawdown antes de decidir.</p>
+                    </Link>
+                    <Link to="/portfolio-csv" className="fund-radar__next-card">
+                        <strong>Portfolio CSV</strong>
+                        <p>Comprueba si ese fondo reduce o empeora la concentración de tu cartera real.</p>
+                    </Link>
+                </div>
+            </section>
         </div>
     );
 }
@@ -444,6 +464,27 @@ export function FundRadar() {
                     </div>
                 </div>
             </footer>
+
+            <section className="fund-radar__next">
+                <div className="fund-radar__next-header">
+                    <h2>Que hacer despues del radar</h2>
+                    <p>Una vez filtrados los fondos, contrasta encaje, riesgo y lectura de cartera.</p>
+                </div>
+                <div className="fund-radar__next-grid">
+                    <Link to="/academy/portfolio" className="fund-radar__next-card">
+                        <strong>Estrategia y cartera</strong>
+                        <p>Comprueba si el fondo mejora una asignacion completa y no solo una posicion aislada.</p>
+                    </Link>
+                    <Link to="/academy/risk" className="fund-radar__next-card">
+                        <strong>Gestion del riesgo</strong>
+                        <p>Revisa riesgo de divisa, correlacion y drawdown antes de decidir.</p>
+                    </Link>
+                    <Link to="/portfolio-csv" className="fund-radar__next-card">
+                        <strong>Portfolio CSV</strong>
+                        <p>Comprueba si ese fondo reduce o empeora la concentracion de tu cartera real.</p>
+                    </Link>
+                </div>
+            </section>
         </div>
     );
 }

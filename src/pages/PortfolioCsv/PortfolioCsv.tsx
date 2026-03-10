@@ -29,7 +29,9 @@ import {
 import './PortfolioCsv.css';
 
 type HoldingCategory = 'equity' | 'fixedIncome' | 'cash' | 'alternatives' | 'other';
+type HoldingBucket = 'longTerm' | 'income' | 'liquidity' | 'goal';
 type Holding = { asset: string; amount: number; weight: number; category: HoldingCategory };
+type HoldingControl = Holding & { categoryOverride?: HoldingCategory; bucket: HoldingBucket };
 type EvolutionPoint = {
     period: string;
     totalValue: number;
@@ -48,7 +50,32 @@ const STORAGE_KEYS = {
     holdingsFile: 'freewallet_portfolio_csv_holdings_file',
     evolutionFile: 'freewallet_portfolio_csv_evolution_file',
     updatedAt: 'freewallet_portfolio_csv_updated_at',
+    categoryOverrides: 'freewallet_portfolio_csv_category_overrides',
+    bucketOverrides: 'freewallet_portfolio_csv_bucket_overrides',
+    bucketTargets: 'freewallet_portfolio_csv_bucket_targets',
 } as const;
+
+const CATEGORY_LABELS: Record<HoldingCategory, string> = {
+    equity: 'Renta variable',
+    fixedIncome: 'Renta fija',
+    cash: 'Liquidez',
+    alternatives: 'Alternativos',
+    other: 'Otros',
+};
+
+const BUCKET_LABELS: Record<HoldingBucket, string> = {
+    longTerm: 'Largo plazo',
+    income: 'Rentas',
+    liquidity: 'Liquidez',
+    goal: 'Objetivo',
+};
+
+const DEFAULT_BUCKET_TARGETS: Record<HoldingBucket, number> = {
+    longTerm: 55,
+    income: 20,
+    liquidity: 10,
+    goal: 15,
+};
 
 const DEFAULT_HOLDINGS_CSV = `Activo,Importe (EUR),Peso %
 "Fidelity MSCI World (euros, no hedge)","18.759,00EUR","24,36%"
@@ -87,6 +114,26 @@ function readStoredValue(key: string, fallback: string): string {
     if (typeof window === 'undefined') return fallback;
     try {
         return localStorage.getItem(key) || fallback;
+    } catch {
+        return fallback;
+    }
+}
+
+function readStoredMap<T extends string>(key: string): Record<string, T> {
+    if (typeof window === 'undefined') return {};
+    try {
+        const raw = localStorage.getItem(key);
+        return raw ? JSON.parse(raw) as Record<string, T> : {};
+    } catch {
+        return {};
+    }
+}
+
+function readStoredNumberMap(key: string, fallback: Record<string, number>): Record<string, number> {
+    if (typeof window === 'undefined') return fallback;
+    try {
+        const raw = localStorage.getItem(key);
+        return raw ? { ...fallback, ...(JSON.parse(raw) as Record<string, number>) } : fallback;
     } catch {
         return fallback;
     }
@@ -150,6 +197,12 @@ function classifyAsset(asset: string): HoldingCategory {
     if (name.includes('reits') || name.includes('commodity') || name.includes('gold') || name.includes('crypto')) return 'alternatives';
     if (name.includes('world') || name.includes('emerging') || name.includes('china') || name.includes('value') || name.includes('nextil') || name.includes('amper') || name.includes('obrascon')) return 'equity';
     return 'other';
+}
+
+function defaultBucketForCategory(category: HoldingCategory): HoldingBucket {
+    if (category === 'cash') return 'liquidity';
+    if (category === 'fixedIncome') return 'income';
+    return 'longTerm';
 }
 
 function parseHoldings(raw: string): Holding[] {
@@ -218,6 +271,9 @@ export function PortfolioCsv() {
     const [holdingsFileLabel, setHoldingsFileLabel] = useState(() => readStoredValue(STORAGE_KEYS.holdingsFile, 'Demo precargada'));
     const [evolutionFileLabel, setEvolutionFileLabel] = useState(() => readStoredValue(STORAGE_KEYS.evolutionFile, 'Demo precargada'));
     const [updatedAt, setUpdatedAt] = useState(() => readStoredValue(STORAGE_KEYS.updatedAt, ''));
+    const [categoryOverrides, setCategoryOverrides] = useState<Record<string, HoldingCategory>>(() => readStoredMap<HoldingCategory>(STORAGE_KEYS.categoryOverrides));
+    const [bucketOverrides, setBucketOverrides] = useState<Record<string, HoldingBucket>>(() => readStoredMap<HoldingBucket>(STORAGE_KEYS.bucketOverrides));
+    const [bucketTargets, setBucketTargets] = useState<Record<string, number>>(() => readStoredNumberMap(STORAGE_KEYS.bucketTargets, DEFAULT_BUCKET_TARGETS));
     const [error, setError] = useState('');
     const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 700 : false));
 
@@ -227,7 +283,16 @@ export function PortfolioCsv() {
     const deferredHoldingsRaw = useDeferredValue(holdingsRaw);
     const deferredEvolutionRaw = useDeferredValue(evolutionRaw);
 
-    const holdings = useMemo(() => parseHoldings(deferredHoldingsRaw), [deferredHoldingsRaw]);
+    const holdings = useMemo<HoldingControl[]>(() => parseHoldings(deferredHoldingsRaw).map((holding) => {
+        const categoryOverride = categoryOverrides[holding.asset];
+        const category = categoryOverride || holding.category;
+        return {
+            ...holding,
+            category,
+            categoryOverride,
+            bucket: bucketOverrides[holding.asset] || defaultBucketForCategory(category),
+        };
+    }), [bucketOverrides, categoryOverrides, deferredHoldingsRaw]);
     const evolutionBase = useMemo(() => parseEvolution(deferredEvolutionRaw), [deferredEvolutionRaw]);
 
     const evolution = useMemo<EnrichedEvolutionPoint[]>(() => {
@@ -250,10 +315,13 @@ export function PortfolioCsv() {
             localStorage.setItem(STORAGE_KEYS.holdingsFile, holdingsFileLabel);
             localStorage.setItem(STORAGE_KEYS.evolutionFile, evolutionFileLabel);
             localStorage.setItem(STORAGE_KEYS.updatedAt, updatedAt);
+            localStorage.setItem(STORAGE_KEYS.categoryOverrides, JSON.stringify(categoryOverrides));
+            localStorage.setItem(STORAGE_KEYS.bucketOverrides, JSON.stringify(bucketOverrides));
+            localStorage.setItem(STORAGE_KEYS.bucketTargets, JSON.stringify(bucketTargets));
         } catch {
             // localStorage puede fallar en modo privado o por límites de cuota.
         }
-    }, [holdingsRaw, evolutionRaw, holdingsFileLabel, evolutionFileLabel, updatedAt]);
+    }, [bucketOverrides, bucketTargets, categoryOverrides, holdingsRaw, evolutionRaw, holdingsFileLabel, evolutionFileLabel, updatedAt]);
 
     useEffect(() => {
         const onResize = () => setIsMobile(window.innerWidth <= 700);
@@ -279,6 +347,36 @@ export function PortfolioCsv() {
             { name: 'Otros', weight: byCategory.other },
         ];
     }, [holdings]);
+
+    const bucketAllocationData = useMemo(() => {
+        const byBucket: Record<HoldingBucket, number> = { longTerm: 0, income: 0, liquidity: 0, goal: 0 };
+        holdings.forEach((row) => { byBucket[row.bucket] += row.weight; });
+        return [
+            { name: BUCKET_LABELS.longTerm, weight: byBucket.longTerm },
+            { name: BUCKET_LABELS.income, weight: byBucket.income },
+            { name: BUCKET_LABELS.liquidity, weight: byBucket.liquidity },
+            { name: BUCKET_LABELS.goal, weight: byBucket.goal },
+        ];
+    }, [holdings]);
+
+    const bucketPlanData = useMemo(() => {
+        return (Object.keys(BUCKET_LABELS) as HoldingBucket[]).map((bucket) => {
+            const currentWeight = holdings
+                .filter((holding) => holding.bucket === bucket)
+                .reduce((acc, holding) => acc + holding.weight, 0);
+            const targetWeight = Number(bucketTargets[bucket] ?? 0);
+            const deviation = currentWeight - targetWeight;
+            const amountDelta = (deviation / 100) * totalPortfolioValue;
+            return {
+                bucket,
+                label: BUCKET_LABELS[bucket],
+                currentWeight,
+                targetWeight,
+                deviation,
+                amountDelta,
+            };
+        });
+    }, [bucketTargets, holdings, totalPortfolioValue]);
 
     const compositionLegendData = useMemo<PieRow[]>(() => {
         const baseRows = holdings.length <= 8
@@ -311,6 +409,80 @@ export function PortfolioCsv() {
     }, [latestEvolution, evolution, avgMonthlyReturn]);
 
     const concentrationLevel = topConcentration >= 55 ? 'Alta' : topConcentration >= 40 ? 'Media' : 'Baja';
+    const totalTargetWeight = useMemo(
+        () => (Object.keys(BUCKET_LABELS) as HoldingBucket[]).reduce((acc, bucket) => acc + Number(bucketTargets[bucket] ?? 0), 0),
+        [bucketTargets]
+    );
+
+    const riskChecks = useMemo(() => {
+        const maxDrawdown = evolution.length ? Math.min(...evolution.map((row) => row.drawdownPct)) : 0;
+        const liquidityWeight = holdings.filter((row) => row.category === 'cash').reduce((acc, row) => acc + row.weight, 0);
+        const uncategorizedWeight = holdings.filter((row) => row.category === 'other').reduce((acc, row) => acc + row.weight, 0);
+        const topHolding = holdings[0];
+        return [
+            {
+                title: 'Concentración principal',
+                value: topHolding ? formatPct(topHolding.weight) : 'N/D',
+                tone: topHolding && topHolding.weight > 20 ? 'warn' : 'good',
+                detail: topHolding ? `${topHolding.asset} es la mayor posición.` : 'Sin posiciones cargadas.',
+            },
+            {
+                title: 'Top 3 agregado',
+                value: formatPct(topConcentration),
+                tone: topConcentration >= 55 ? 'warn' : 'good',
+                detail: topConcentration >= 55 ? 'La cartera depende mucho de tres posiciones.' : 'La concentración está contenida.',
+            },
+            {
+                title: 'Liquidez en cartera',
+                value: formatPct(liquidityWeight),
+                tone: liquidityWeight < 2 ? 'warn' : 'good',
+                detail: liquidityWeight < 2 ? 'El peso de liquidez es muy bajo.' : 'Hay reserva visible dentro del CSV.',
+            },
+            {
+                title: 'Drawdown máximo',
+                value: formatPct(maxDrawdown),
+                tone: maxDrawdown <= -15 ? 'warn' : 'good',
+                detail: maxDrawdown <= -15 ? 'La serie registra caídas relevantes.' : 'El drawdown histórico es moderado.',
+            },
+            {
+                title: 'Meses positivos',
+                value: formatPct(positiveMonthRatio),
+                tone: positiveMonthRatio < 55 ? 'warn' : 'good',
+                detail: positiveMonthRatio < 55 ? 'La consistencia mensual es mejorable.' : 'Predominan los meses positivos.',
+            },
+            {
+                title: 'Peso sin clasificar',
+                value: formatPct(uncategorizedWeight),
+                tone: uncategorizedWeight > 10 ? 'warn' : 'good',
+                detail: uncategorizedWeight > 10 ? 'Conviene revisar categorías manualmente.' : 'La clasificación actual cubre casi toda la cartera.',
+            },
+        ] as const;
+    }, [evolution, holdings, positiveMonthRatio, topConcentration]);
+
+    const setHoldingCategoryOverride = (asset: string, category: HoldingCategory) => {
+        setCategoryOverrides((current) => {
+            const next = { ...current };
+            const inferred = classifyAsset(asset);
+            if (category === inferred) {
+                delete next[asset];
+            } else {
+                next[asset] = category;
+            }
+            return next;
+        });
+    };
+
+    const setHoldingBucketOverride = (asset: string, bucket: HoldingBucket) => {
+        setBucketOverrides((current) => ({ ...current, [asset]: bucket }));
+    };
+
+    const setBucketTarget = (bucket: HoldingBucket, value: string) => {
+        const parsed = Number(value);
+        setBucketTargets((current) => ({
+            ...current,
+            [bucket]: Number.isFinite(parsed) ? parsed : 0,
+        }));
+    };
 
     const onUploadCsv = async (file: File, type: 'holdings' | 'evolution') => {
         try {
@@ -668,6 +840,136 @@ export function PortfolioCsv() {
                     <div className="portfolio-csv-note">
                         <p>
                             Si sube la concentración y empeora el drawdown, revisa rebalanceo y riesgo antes de aumentar exposición.
+                        </p>
+                    </div>
+                </article>
+            </section>
+
+            <section className="portfolio-csv-grid">
+                <article className="portfolio-csv-card">
+                    <h2><AlertTriangle size={18} /> Checks automáticos</h2>
+                    <p>Lectura rápida de concentración, liquidez y consistencia del CSV actual.</p>
+                    <div className="portfolio-csv-checks">
+                        {riskChecks.map((check) => (
+                            <div key={check.title} className={`portfolio-csv-check portfolio-csv-check--${check.tone}`}>
+                                <div className="portfolio-csv-check__top">
+                                    <span className="portfolio-csv-check__title">{check.title}</span>
+                                    <strong className="portfolio-csv-check__value">{check.value}</strong>
+                                </div>
+                                <p>{check.detail}</p>
+                            </div>
+                        ))}
+                    </div>
+                </article>
+
+                <article className="portfolio-csv-card">
+                    <h2><Layers3 size={18} /> Buckets por objetivo</h2>
+                    <p>Agrupa las posiciones en largo plazo, rentas, liquidez y objetivos concretos.</p>
+                    <div className="portfolio-csv-chart">
+                        <ResponsiveContainer width="100%" height={300}>
+                            <BarChart data={bucketAllocationData}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                                <XAxis dataKey="name" tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} interval={0} />
+                                <YAxis tickFormatter={(value) => `${value}%`} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
+                                <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined) => formatPct(Number(value ?? 0))} />
+                                <Bar dataKey="weight" fill="#f59e0b" radius={[8, 8, 0, 0]} />
+                            </BarChart>
+                        </ResponsiveContainer>
+                    </div>
+                    <ul className="portfolio-csv-insights">
+                        {bucketAllocationData.map((row) => (
+                            <li key={row.name}><span>{row.name}</span><strong>{formatPct(row.weight)}</strong></li>
+                        ))}
+                    </ul>
+                </article>
+            </section>
+
+            <section className="portfolio-csv-card portfolio-csv-card--full">
+                <h2><FileSpreadsheet size={18} /> Tabla de control de posiciones</h2>
+                <p>Corrige categorías cuando la heurística falle y asigna cada activo a un bucket de seguimiento.</p>
+                <div className="portfolio-csv-controls-table">
+                    <div className="portfolio-csv-controls-table__head">
+                        <span>Activo</span>
+                        <span>Peso</span>
+                        <span>Categoría</span>
+                        <span>Bucket</span>
+                    </div>
+                    {holdings.map((holding) => (
+                        <div key={holding.asset} className="portfolio-csv-controls-table__row">
+                            <div className="portfolio-csv-controls-table__asset">
+                                <strong>{holding.asset}</strong>
+                                <small>{formatCurrency(holding.amount)}</small>
+                            </div>
+                            <strong>{formatPct(holding.weight)}</strong>
+                            <select className="portfolio-csv-select" value={holding.category} onChange={(event) => setHoldingCategoryOverride(holding.asset, event.target.value as HoldingCategory)}>
+                                {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
+                                    <option key={value} value={value}>{label}</option>
+                                ))}
+                            </select>
+                            <select className="portfolio-csv-select" value={holding.bucket} onChange={(event) => setHoldingBucketOverride(holding.asset, event.target.value as HoldingBucket)}>
+                                {Object.entries(BUCKET_LABELS).map(([value, label]) => (
+                                    <option key={value} value={value}>{label}</option>
+                                ))}
+                            </select>
+                        </div>
+                    ))}
+                </div>
+            </section>
+            <section className="portfolio-csv-grid">
+                <article className="portfolio-csv-card">
+                    <h2><TrendingUp size={18} /> Asignación objetivo</h2>
+                    <p>Define el peso deseado para cada bucket. La suma ideal es 100%.</p>
+                    <div className="portfolio-csv-targets">
+                        {(Object.keys(BUCKET_LABELS) as HoldingBucket[]).map((bucket) => (
+                            <label key={bucket} className="portfolio-csv-targets__item">
+                                <span>{BUCKET_LABELS[bucket]}</span>
+                                <input
+                                    className="portfolio-csv-select"
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    step="0.5"
+                                    value={bucketTargets[bucket] ?? 0}
+                                    onChange={(event) => setBucketTarget(bucket, event.target.value)}
+                                />
+                            </label>
+                        ))}
+                    </div>
+                    <div className={`portfolio-csv-targets__total ${Math.abs(totalTargetWeight - 100) > 0.01 ? 'portfolio-csv-targets__total--warn' : ''}`}>
+                        <span>Suma objetivo</span>
+                        <strong>{formatPct(totalTargetWeight)}</strong>
+                    </div>
+                </article>
+
+                <article className="portfolio-csv-card">
+                    <h2><Layers3 size={18} /> Desviación vs objetivo</h2>
+                    <p>Lectura práctica para saber qué bloque pesa de más o de menos respecto al plan.</p>
+                    <div className="portfolio-csv-plan-table">
+                        <div className="portfolio-csv-plan-table__head">
+                            <span>Bucket</span>
+                            <span>Actual</span>
+                            <span>Objetivo</span>
+                            <span>Desvío</span>
+                        </div>
+                        {bucketPlanData.map((row) => (
+                            <div key={row.bucket} className="portfolio-csv-plan-table__row">
+                                <strong>{row.label}</strong>
+                                <span>{formatPct(row.currentWeight)}</span>
+                                <span>{formatPct(row.targetWeight)}</span>
+                                <span className={row.deviation > 0.25 ? 'portfolio-csv-plan-table__delta--over' : row.deviation < -0.25 ? 'portfolio-csv-plan-table__delta--under' : ''}>
+                                    {row.deviation > 0 ? '+' : ''}{formatPct(row.deviation)}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                    <div className="portfolio-csv-note">
+                        <p>
+                            Rebalanceo orientativo:
+                            {' '}
+                            {bucketPlanData
+                                .filter((row) => Math.abs(row.amountDelta) >= Math.max(totalPortfolioValue * 0.01, 100))
+                                .map((row) => `${row.amountDelta > 0 ? 'reducir' : 'aumentar'} ${row.label} en ${formatCurrency(Math.abs(row.amountDelta))}`)
+                                .join(' · ') || 'la cartera ya está cerca del objetivo definido.'}
                         </p>
                     </div>
                 </article>

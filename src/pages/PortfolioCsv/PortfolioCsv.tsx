@@ -953,10 +953,13 @@ export function PortfolioCsv() {
                         </div>
                         {bucketPlanData.map((row) => (
                             <div key={row.bucket} className="portfolio-csv-plan-table__row">
-                                <strong>{row.label}</strong>
-                                <span>{formatPct(row.currentWeight)}</span>
-                                <span>{formatPct(row.targetWeight)}</span>
-                                <span className={row.deviation > 0.25 ? 'portfolio-csv-plan-table__delta--over' : row.deviation < -0.25 ? 'portfolio-csv-plan-table__delta--under' : ''}>
+                                <strong className="portfolio-csv-plan-table__bucket">{row.label}</strong>
+                                <span data-label="Actual">{formatPct(row.currentWeight)}</span>
+                                <span data-label="Objetivo">{formatPct(row.targetWeight)}</span>
+                                <span
+                                    data-label="Desvio"
+                                    className={row.deviation > 0.25 ? 'portfolio-csv-plan-table__delta--over' : row.deviation < -0.25 ? 'portfolio-csv-plan-table__delta--under' : ''}
+                                >
                                     {row.deviation > 0 ? '+' : ''}{formatPct(row.deviation)}
                                 </span>
                             </div>

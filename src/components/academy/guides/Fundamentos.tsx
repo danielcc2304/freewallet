@@ -140,6 +140,15 @@ export function Fundamentos() {
 
     const getStatus = (moduleId: string): ModuleStatus => progress[moduleId]?.status || 'pending';
     const isFavorite = (moduleId: string): boolean => progress[moduleId]?.favorite || false;
+    const markAsDone = (moduleId: string) => {
+        updateProgress((current) => ({
+            ...current,
+            [moduleId]: {
+                status: 'done',
+                favorite: current[moduleId]?.favorite || false,
+            },
+        }));
+    };
 
     return (
         <div className="fundamentos">
@@ -147,8 +156,7 @@ export function Fundamentos() {
                 <div className="fundamentos__eyebrow">Academia</div>
                 <h1 className="fundamentos__title">Tu mapa para aprender a invertir</h1>
                 <p className="fundamentos__description">
-                    Ordena la Academia por nivel, por objetivo y por formato para encontrar antes lo que ya existe
-                    y avanzar con criterio, no saltando al azar entre módulos.
+                    Aprende desde 0 sobre el mundo de la inversión en una ruta guiada para perfiles de todo tipo.
                 </p>
             </header>
 
@@ -192,7 +200,7 @@ export function Fundamentos() {
                             <div className="fundamentos__mini-list">
                                 {modules.map((module) => (
                                     <div key={module.id} className={`fundamentos__mini-card ${getStatus(module.id) === 'done' ? 'fundamentos__mini-card--done' : ''}`}>
-                                        <Link to={module.to} className="fundamentos__mini-link">
+                                        <Link to={module.to} className="fundamentos__mini-link" onClick={() => markAsDone(module.id)}>
                                             <span className="fundamentos__mini-icon">{module.icon}</span>
                                             <div>
                                                 <strong>{module.title}</strong>
@@ -218,7 +226,7 @@ export function Fundamentos() {
             <section className="fundamentos__section-block">
                 <div className="fundamentos__section-head">
                     <h2>Academia por objetivo</h2>
-                    <p>Atajos prácticos para entrar por intención, no por nombre de página.</p>
+                    <p>Atajos prácticos para entrar por intención.</p>
                 </div>
                 <div className="fundamentos__goal-grid">
                     {GOALS.map((goal) => (
@@ -229,7 +237,7 @@ export function Fundamentos() {
                                 {goal.modules.map((moduleId) => {
                                     const module = modulesById[moduleId];
                                     return (
-                                        <Link key={module.id} to={module.to} className="fundamentos__goal-link">
+                                        <Link key={module.id} to={module.to} className="fundamentos__goal-link" onClick={() => markAsDone(module.id)}>
                                             <span>{module.icon}</span>
                                             <span>{module.title}</span>
                                         </Link>
@@ -270,7 +278,7 @@ export function Fundamentos() {
                 </div>
                 <div className="fundamentos__sections">
                     {simulatorModules.map((module) => (
-                        <Link key={module.id} to={module.to} className="fundamentos__card">
+                        <Link key={module.id} to={module.to} className="fundamentos__card" onClick={() => markAsDone(module.id)}>
                             <div className="fundamentos__card-icon">{module.icon}</div>
                             <h3 className="fundamentos__card-title">{module.title}</h3>
                             <p className="fundamentos__card-description">{module.description}</p>

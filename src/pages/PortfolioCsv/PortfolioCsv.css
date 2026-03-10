@@ -450,6 +450,10 @@
     background: var(--bg-tertiary);
 }
 
+.portfolio-csv-plan-table__bucket {
+    color: var(--text-primary);
+}
+
 .portfolio-csv-plan-table__delta--over {
     color: #ef4444;
     font-weight: 700;
@@ -569,6 +573,28 @@
 
     .portfolio-csv-plan-table__row {
         grid-template-columns: 1fr;
+        gap: 0.55rem;
+    }
+
+    .portfolio-csv-plan-table__bucket {
+        padding-bottom: 0.35rem;
+        border-bottom: 1px solid var(--border-primary);
+    }
+
+    .portfolio-csv-plan-table__row span {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.8rem;
+        font-size: var(--font-size-sm);
+    }
+
+    .portfolio-csv-plan-table__row span::before {
+        content: attr(data-label);
+        color: var(--text-muted);
+        font-size: var(--font-size-xs);
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
     }
 
     .portfolio-csv-card {

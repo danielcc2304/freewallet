@@ -248,28 +248,28 @@ export function ValuationGuide() {
                 <div className="example-box example-box--bad">
                     <div className="example-box__header">
                         <AlertCircle size={24} color="#ef4444" />
-                        <h3 className="example-box__title">Empresa B: "El Pozo de Deuda" (Ej: Tipo Aerolínea en crisis o 'Zombie')</h3>
+                        <h3 className="example-box__title">Empresa B: "Múltiplos Baratos, Calidad Floja" (Ej: Telefónica)</h3>
                     </div>
                     <div className="example-box__grid">
                         <div className="example-metric">
-                            <span className="example-metric__label">Margen Bruto</span>
-                            <span className="example-metric__value">12%</span>
+                            <span className="example-metric__label">Margen Operativo</span>
+                            <span className="example-metric__value">13%</span>
                         </div>
                         <div className="example-metric">
-                            <span className="example-metric__label">ROIC</span>
-                            <span className="example-metric__value">4%</span>
+                            <span className="example-metric__label">ROE</span>
+                            <span className="example-metric__value">-2.3%</span>
                         </div>
                         <div className="example-metric">
-                            <span className="example-metric__label">D. Neta / EBITDA</span>
-                            <span className="example-metric__value">5.5x</span>
+                            <span className="example-metric__label">Deuda / Patrimonio</span>
+                            <span className="example-metric__value">201%</span>
                         </div>
                         <div className="example-metric">
-                            <span className="example-metric__label">FCF</span>
-                            <span className="example-metric__value">Negativo (Quema)</span>
+                            <span className="example-metric__label">Current Ratio</span>
+                            <span className="example-metric__value">0.84</span>
                         </div>
                     </div>
                     <div className="example-box__conclusion">
-                        Negocio intensivo en capital, altamente endeudado y que destruye valor (ROIC {"<"} Coste de Capital). Posible riesgo de quiebra si el crédito se endurece.
+                        Múltiplos bajos no bastan. Aunque sigue generando caja, el beneficio neto es negativo, el ROE está en rojo, la deuda pesa mucho sobre el balance y la liquidez de corto plazo es justa. Caso clásico de empresa que puede parecer barata pero no ofrece una calidad acorde.
                     </div>
                 </div>
             </section>
@@ -284,6 +284,23 @@ export function ValuationGuide() {
                     <div className="checklist-item"><CheckCircle2 size={18} /> Deuda Neta {"<"} 2x EBITDA</div>
                     <div className="checklist-item"><CheckCircle2 size={18} /> Margen Operativo constante o al alza</div>
                     <div className="checklist-item"><CheckCircle2 size={18} /> Dividendos cubiertos por FCF (no por deuda)</div>
+                </div>
+            </section>
+            <section className="valuation-guide__section valuation-guide__next">
+                <h2><TrendingUp size={24} /> Dónde continuar después de valorar</h2>
+                <div className="valuation-guide__next-grid">
+                    <Link to="/academy/risk" className="valuation-guide__next-card">
+                        <strong>Gestión del riesgo</strong>
+                        <p>Una empresa buena puede seguir siendo una mala posición si el peso o el timing son malos.</p>
+                    </Link>
+                    <Link to="/academy/scenarios" className="valuation-guide__next-card">
+                        <strong>Qué hacer si...</strong>
+                        <p>Lleva la valoración a escenarios prácticos de compra, espera y caídas de mercado.</p>
+                    </Link>
+                    <Link to="/portfolio-csv" className="valuation-guide__next-card">
+                        <strong>Portfolio CSV</strong>
+                        <p>Contrasta tu tesis con el peso real que esa posición ocupa dentro de toda la cartera.</p>
+                    </Link>
                 </div>
             </section>
         </div>

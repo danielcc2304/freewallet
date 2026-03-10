@@ -18,7 +18,7 @@ type AcademyModule = {
 
 type ProgressState = Record<
   string,
-  { status: ModuleStatus; favorite: boolean }
+  { status: ModuleStatus }
 >;
 
 const STORAGE_KEY = "freewallet_academy_progress";
@@ -331,41 +331,22 @@ export function Fundamentos() {
     [progress],
   );
 
-  const favoriteCount = useMemo(
-    () => Object.values(progress).filter((entry) => entry.favorite).length,
-    [progress],
-  );
-
   const toggleDone = (moduleId: string) => {
     updateProgress((current) => ({
       ...current,
       [moduleId]: {
         status: current[moduleId]?.status === "done" ? "pending" : "done",
-        favorite: current[moduleId]?.favorite || false,
-      },
-    }));
-  };
-
-  const toggleFavorite = (moduleId: string) => {
-    updateProgress((current) => ({
-      ...current,
-      [moduleId]: {
-        status: current[moduleId]?.status || "pending",
-        favorite: !current[moduleId]?.favorite,
       },
     }));
   };
 
   const getStatus = (moduleId: string): ModuleStatus =>
     progress[moduleId]?.status || "pending";
-  const isFavorite = (moduleId: string): boolean =>
-    progress[moduleId]?.favorite || false;
   const markAsDone = (moduleId: string) => {
     updateProgress((current) => ({
       ...current,
       [moduleId]: {
         status: "done",
-        favorite: current[moduleId]?.favorite || false,
       },
     }));
   };
@@ -381,28 +362,17 @@ export function Fundamentos() {
         </p>
       </header>
 
-      <div className="fundamentos__disclaimer">
-        <strong>Nota importante</strong>
-        Todo el contenido de esta Academia es puramente educativo y no
-        constituye asesoramiento financiero personalizado. Consulta con un
-        profesional antes de tomar decisiones de inversión.
-      </div>
-
       <section className="fundamentos__summary">
         <article className="fundamentos__summary-card">
           <span>Completados</span>
           <strong>{completedCount}</strong>
         </article>
         <article className="fundamentos__summary-card">
-          <span>Favoritos</span>
-          <strong>{favoriteCount}</strong>
-        </article>
-        <article className="fundamentos__summary-card">
           <span>Simuladores</span>
           <strong>{simulatorModules.length}</strong>
         </article>
         <article className="fundamentos__summary-card">
-          <span>Módulos visibles</span>
+          <span>MÃ³dulos visibles</span>
           <strong>{MODULES.length}</strong>
         </article>
       </section>
@@ -411,7 +381,7 @@ export function Fundamentos() {
         <div className="fundamentos__section-head">
           <h2>Ruta guiada por nivel</h2>
           <p>
-            Empieza por la base, sube de nivel y usa progreso/favoritos para no
+            Empieza por la base, sube de nivel y usa el progreso para no
             perder el hilo.
           </p>
         </div>
@@ -444,17 +414,12 @@ export function Fundamentos() {
                     <div className="fundamentos__mini-actions">
                       <button
                         type="button"
+                        className={`fundamentos__mini-action fundamentos__mini-action--status ${getStatus(module.id) === "done" ? "fundamentos__mini-action--done" : "fundamentos__mini-action--pending"}`}
                         onClick={() => toggleDone(module.id)}
                       >
                         {getStatus(module.id) === "done"
                           ? "Visto"
                           : "Pendiente"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => toggleFavorite(module.id)}
-                      >
-                        {isFavorite(module.id) ? "★" : "☆"}
                       </button>
                     </div>
                   </div>
@@ -549,9 +514,6 @@ export function Fundamentos() {
               </p>
               <div className="fundamentos__card-meta">
                 <span className="fundamentos__card-badge">{module.level}</span>
-                {isFavorite(module.id) && (
-                  <span className="fundamentos__card-chip">Favorito</span>
-                )}
               </div>
             </Link>
           ))}

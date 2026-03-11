@@ -7,12 +7,11 @@ export function TermsAndConditions() {
 
     return (
         <div className="terms">
-            <div className="terms__container">
-                <button className="terms__back" onClick={() => navigate(-1)}>
-                    <ArrowLeft size={18} />
-                    Volver atrás
-                </button>
+            <button className="terms__back-fab" onClick={() => navigate(-1)} aria-label="Volver atrás">
+                <ArrowLeft size={20} />
+            </button>
 
+            <div className="terms__container">
                 <h1 className="terms__title">Términos y Condiciones de Uso</h1>
                 <p className="terms__updated">Última actualización: 17 de febrero de 2026</p>
 
@@ -28,7 +27,7 @@ export function TermsAndConditions() {
                 <section className="terms__section">
                     <h2>1. Aceptación de los Términos</h2>
                     <p>
-                        Al acceder y utilizar FreeWallet ("la Aplicación"), usted acepta estar sujeto a estos
+                        Al acceder y utilizar FreeWallet (&quot;la Aplicación&quot;), usted acepta estar sujeto a estos
                         Términos y Condiciones. El acceso a la Aplicación es voluntario y atribuye la condición de Usuario a quien lo realiza.
                     </p>
                 </section>
@@ -75,8 +74,8 @@ export function TermsAndConditions() {
                     </p>
                     <ul>
                         <li><strong>Código Fuente:</strong> Se distribuye bajo la licencia MIT, permitiendo su uso y modificación según los términos de dicha licencia.</li>
-                        <li><strong>Marca y Diseño:</strong> El nombre "FreeWallet", el logotipo y los elementos distintivos de la interfaz son propiedad del desarrollador y no se concede licencia alguna sobre los mismos fuera de su uso dentro de la Aplicación.</li>
-                        <li><strong>Contenido "Academia":</strong> El contenido educativo y las guías originales están protegidos por derechos de autor y se proporcionan exclusivamente para uso personal y educativo. Salvo que se indique lo contrario en el repositorio oficial, este contenido no se licencia bajo los términos de la licencia MIT.</li>
+                        <li><strong>Marca y Diseño:</strong> El nombre &quot;FreeWallet&quot;, el logotipo y los elementos distintivos de la interfaz son propiedad del desarrollador y no se concede licencia alguna sobre los mismos fuera de su uso dentro de la Aplicación.</li>
+                        <li><strong>Contenido &quot;Academia&quot;:</strong> El contenido educativo y las guías originales están protegidos por derechos de autor y se proporcionan exclusivamente para uso personal y educativo. Salvo que se indique lo contrario en el repositorio oficial, este contenido no se licencia bajo los términos de la licencia MIT.</li>
                     </ul>
                 </section>
 
@@ -96,7 +95,7 @@ export function TermsAndConditions() {
                 <section className="terms__section">
                     <h2>7. Limitación de Responsabilidad</h2>
                     <p>
-                        La Aplicación se proporciona “tal cual” (“as-is”), sin garantías expresas ni implícitas sobre su funcionamiento, disponibilidad o adecuación para un propósito específico. En la medida máxima permitida por la ley, FreeWallet no será responsable de:
+                        La Aplicación se proporciona &quot;tal cual&quot; (&quot;as-is&quot;), sin garantías expresas ni implícitas sobre su funcionamiento, disponibilidad o adecuación para un propósito específico. En la medida máxima permitida por la ley, FreeWallet no será responsable de:
                     </p>
                     <ul>
                         <li>Errores en los cálculos o fallos técnicos de la Aplicación</li>

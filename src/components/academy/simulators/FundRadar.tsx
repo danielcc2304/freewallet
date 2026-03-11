@@ -172,26 +172,6 @@ function FundCard({ fund, getRiskColor, isExpanded, onToggle, score, rank }: Fun
                     </a>
                 </div>
             </div>
-            <section className="fund-radar__next">
-                <div className="fund-radar__next-header">
-                    <h2>Qué hacer después del radar</h2>
-                    <p>Una vez filtrados los fondos, contrasta encaje, riesgo y lectura de cartera.</p>
-                </div>
-                <div className="fund-radar__next-grid">
-                    <Link to="/academy/portfolio" className="fund-radar__next-card">
-                        <strong>Estrategia y cartera</strong>
-                        <p>Comprueba si el fondo mejora una asignación completa y no solo una posición aislada.</p>
-                    </Link>
-                    <Link to="/academy/risk" className="fund-radar__next-card">
-                        <strong>Gestión del riesgo</strong>
-                        <p>Revisa riesgo de divisa, correlación y drawdown antes de decidir.</p>
-                    </Link>
-                    <Link to="/portfolio-csv" className="fund-radar__next-card">
-                        <strong>Portfolio CSV</strong>
-                        <p>Comprueba si ese fondo reduce o empeora la concentración de tu cartera real.</p>
-                    </Link>
-                </div>
-            </section>
         </div>
     );
 }
@@ -314,74 +294,6 @@ export function FundRadar() {
                 </div>
             </header>
 
-            <section className="fund-radar__edu">
-                <h2>Cómo interpretar una ficha Morningstar (ejemplo real)</h2>
-                <p className="fund-radar__edu-intro">
-                    Usa esta guía rápida con un caso conocido para leer una ficha sin perderte en métricas.
-                </p>
-
-                <div className="edu-example">
-                    <div className="edu-example__header">
-                        <div>
-                            <span className="edu-example__tag">Ejemplo</span>
-                            <h3>{morningstarExampleFund.name}</h3>
-                            <p>{morningstarExampleFund.category} · ISIN {morningstarExampleFund.isin}</p>
-                        </div>
-                        <a href={morningstarExampleFund.link} target="_blank" rel="noopener noreferrer" className="fund-card__link">
-                            Ver ficha completa <ExternalLink size={14} />
-                        </a>
-                    </div>
-
-                    <div className="edu-example__grid">
-                        <div className="edu-metric">
-                            <span>Rent. 5Y (anual)</span>
-                            <strong className={formatPercent(morningstarExampleFund.returns.y5).className}>
-                                {formatPercent(morningstarExampleFund.returns.y5).text}
-                            </strong>
-                            <p>Mide consistencia de largo plazo, no solo el último año.</p>
-                        </div>
-                        <div className="edu-metric">
-                            <span>Volatilidad</span>
-                            <strong>{morningstarExampleFund.volatility}%</strong>
-                            <p>Cuánto se mueve el fondo. Más volatilidad implica más estrés potencial.</p>
-                        </div>
-                        <div className="edu-metric">
-                            <span>Máx. Caída</span>
-                            <strong className={formatPercent(morningstarExampleFund.maxDrawdown).className}>
-                                {formatPercent(morningstarExampleFund.maxDrawdown).text}
-                            </strong>
-                            <p>Tu peor bajada histórica para preparar la parte emocional.</p>
-                        </div>
-                        <div className="edu-metric">
-                            <span>TER</span>
-                            <strong>{morningstarExampleFund.ter}%</strong>
-                            <p>Coste anual. En horizontes largos, pequeñas diferencias pesan mucho.</p>
-                        </div>
-                        <div className="edu-metric">
-                            <span>Sharpe</span>
-                            <strong>{morningstarExampleFund.sharpe ?? '--'}</strong>
-                            <p>Rentabilidad por unidad de riesgo: útil para comparar fondos similares.</p>
-                        </div>
-                        <div className="edu-metric">
-                            <span>SRRI</span>
-                            <strong>{morningstarExampleFund.risk}/7</strong>
-                            <p>Escala regulatoria de riesgo. No sustituye al análisis completo.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="edu-checklist">
-                    <h4>Checklist de lectura en 60 segundos</h4>
-                    <ul>
-                        <li>1) Comprueba que categoría y benchmark encajan con tu objetivo.</li>
-                        <li>2) Mira 3Y/5Y anualizados y no te quedes solo con YTD o 1Y.</li>
-                        <li>3) Revisa volatilidad y máximo drawdown antes de invertir.</li>
-                        <li>4) Contrasta TER frente a alternativas de la misma categoría.</li>
-                        <li>5) Valora consistencia del gestor y tamaño del fondo (AUM).</li>
-                    </ul>
-                </div>
-            </section>
-
             <div className="fund-radar__filters">
                 <div className="fund-radar__search-row">
                     <div className="fund-radar__search">
@@ -465,6 +377,75 @@ export function FundRadar() {
                 </div>
             </footer>
 
+            <section className="fund-radar__edu">
+                <h2>Cómo interpretar una ficha Morningstar (ejemplo real)</h2>
+                <p className="fund-radar__edu-intro">
+                    Usa esta guía rápida con un caso conocido para leer una ficha sin perderte en métricas.
+                </p>
+
+                <div className="edu-example">
+                    <div className="edu-example__header">
+                        <div>
+                            <span className="edu-example__tag">Ejemplo</span>
+                            <h3>{morningstarExampleFund.name}</h3>
+                            <p>{morningstarExampleFund.category} · ISIN {morningstarExampleFund.isin}</p>
+                        </div>
+                        <a href={morningstarExampleFund.link} target="_blank" rel="noopener noreferrer" className="fund-card__link">
+                            Ver ficha completa <ExternalLink size={14} />
+                        </a>
+                    </div>
+
+                    <div className="edu-example__grid">
+                        <div className="edu-metric">
+                            <span>Rent. 5Y (anual)</span>
+                            <strong className={formatPercent(morningstarExampleFund.returns.y5).className}>
+                                {formatPercent(morningstarExampleFund.returns.y5).text}
+                            </strong>
+                            <p>Mide consistencia de largo plazo, no solo el último año.</p>
+                        </div>
+                        <div className="edu-metric">
+                            <span>Volatilidad</span>
+                            <strong>{morningstarExampleFund.volatility}%</strong>
+                            <p>Cuánto se mueve el fondo. Más volatilidad implica más estrés potencial.</p>
+                        </div>
+                        <div className="edu-metric">
+                            <span>Máx. Caída</span>
+                            <strong className={formatPercent(morningstarExampleFund.maxDrawdown).className}>
+                                {formatPercent(morningstarExampleFund.maxDrawdown).text}
+                            </strong>
+                            <p>Tu peor bajada histórica para preparar la parte emocional.</p>
+                        </div>
+                        <div className="edu-metric">
+                            <span>TER</span>
+                            <strong>{morningstarExampleFund.ter}%</strong>
+                            <p>Coste anual. En horizontes largos, pequeñas diferencias pesan mucho.</p>
+                        </div>
+                        <div className="edu-metric">
+                            <span>Sharpe</span>
+                            <strong>{morningstarExampleFund.sharpe ?? '--'}</strong>
+                            <p>Rentabilidad por unidad de riesgo: útil para comparar fondos similares.</p>
+                        </div>
+                        <div className="edu-metric">
+                            <span>SRRI</span>
+                            <strong>{morningstarExampleFund.risk}/7</strong>
+                            <p>Escala regulatoria de riesgo. No sustituye al análisis completo.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div className="edu-checklist">
+                    <h4>Checklist de lectura en 60 segundos</h4>
+                    <ul>
+                        <li>1) Comprueba que categoría y benchmark encajan con tu objetivo.</li>
+                        <li>2) Mira 3Y/5Y anualizados y no te quedes solo con YTD o 1Y.</li>
+                        <li>3) Revisa volatilidad y máximo drawdown antes de invertir.</li>
+                        <li>4) Contrasta TER frente a alternativas de la misma categoría.</li>
+                        <li>5) Valora consistencia del gestor y tamaño del fondo (AUM).</li>
+                    </ul>
+                </div>
+            </section>
+
+
             <section className="fund-radar__next">
                 <div className="fund-radar__next-header">
                     <h2>Que hacer despues del radar</h2>
@@ -488,3 +469,4 @@ export function FundRadar() {
         </div>
     );
 }
+

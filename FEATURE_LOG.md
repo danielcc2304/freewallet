@@ -214,3 +214,28 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 - Archivos:
   - `src/pages/TermsAndConditions/TermsAndConditions.tsx`
   - `src/pages/TermsAndConditions/TermsAndConditions.css`
+
+### 2026-03-11 - Portfolio CSV: soporte Excel unico y hardening de parseo
+- Funcionalidad:
+  - Se anadio soporte para subir un unico archivo Excel (`.xlsx/.xls`) con hojas `Cartera` y `Evolucion`.
+  - Se corrigio el parseo numerico para soportar formatos ES/EN en importes y porcentajes.
+  - Se resolvio un fallo de etiquetas duplicadas en movil para meses de distintos anos y se ajusto el tooltip superior para no tapar el eje inferior.
+  - Se sustituyeron los datos demo iniciales por un dataset sintetico y las subidas vuelven a mostrarse tal cual, sin anonimizar automaticamente.
+- Resumen:
+  - `PortfolioCsv` queda listo para usar con plantillas CSV o con un unico Excel exportado, manteniendo metricas y graficos coherentes tanto en desktop como en movil.
+- Archivos:
+  - `src/pages/PortfolioCsv/PortfolioCsv.tsx`
+  - `src/pages/PortfolioCsv/PortfolioCsv.css`
+  - `package.json`
+  - `package-lock.json`
+
+### 2026-03-11 - Terminos y condiciones: flecha flotante persistente
+- Funcionalidad:
+  - Se reemplazo el boton incrustado de "volver atras" por una flecha flotante fija arriba a la izquierda.
+  - La posicion se adapta para convivir con el sidebar en desktop y mantenerse accesible en movil durante el scroll.
+  - Se reescribio el contenido del componente para normalizar el texto y evitar problemas de codificacion visibles.
+- Resumen:
+  - La pagina de terminos gana una salida mas limpia y consistente con el patron flotante de controles de navegacion de la app.
+- Archivos:
+  - `src/pages/TermsAndConditions/TermsAndConditions.tsx`
+  - `src/pages/TermsAndConditions/TermsAndConditions.css`

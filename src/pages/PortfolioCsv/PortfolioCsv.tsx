@@ -43,6 +43,7 @@ type EvolutionPoint = {
 };
 type EnrichedEvolutionPoint = EvolutionPoint & { investedValue: number; gainVsInvested: number; drawdownPct: number };
 type PieRow = { name: string; value: number; weight: number; color: string };
+type ParsedPeriod = { monthKey: string; monthIndex: number; year?: number };
 
 const STORAGE_KEYS = {
     holdingsRaw: 'freewallet_portfolio_csv_holdings_raw',
@@ -109,6 +110,7 @@ Feb,76422,76000,700,-278,"-0,362","2,043"
 "Mar 2026",74710,76422,0,-1712,"-2,24","-0,242"`;
 
 const PIE_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7', '#84cc16', '#64748b'];
+const MONTH_KEYS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'] as const;
 
 function readStoredValue(key: string, fallback: string): string {
     if (typeof window === 'undefined') return fallback;
@@ -222,6 +224,72 @@ function isMonthLabel(value: string): boolean {
     return /^(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)\b/i.test(value.trim());
 }
 
+function parsePeriodParts(value: string): ParsedPeriod | null {
+    const match = value.trim().toLowerCase().match(/^(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)(?:\s+(\d{2,4}))?$/i);
+    if (!match) return null;
+    const monthKey = match[1].toLowerCase();
+    const monthIndex = MONTH_KEYS.indexOf(monthKey as typeof MONTH_KEYS[number]);
+    if (monthIndex < 0) return null;
+    const rawYear = match[2];
+    const year = rawYear ? (rawYear.length === 2 ? 2000 + Number(rawYear) : Number(rawYear)) : undefined;
+    return { monthKey, monthIndex, year: Number.isFinite(year) ? year : undefined };
+}
+
+function formatPeriodLabel(period: string, compactYear = false): string {
+    const parsed = parsePeriodParts(period);
+    if (!parsed) return period;
+    const month = parsed.monthKey.charAt(0).toUpperCase() + parsed.monthKey.slice(1);
+    if (!parsed.year) return month;
+    return compactYear ? `${month} ${String(parsed.year).slice(-2)}` : `${month} ${parsed.year}`;
+}
+
+function resolveEvolutionPeriods(points: EvolutionPoint[]): Map<string, string> {
+    const parsed = points.map((point) => parsePeriodParts(point.period));
+    const explicitYearIndex = parsed.findIndex((item) => item?.year !== undefined);
+    if (explicitYearIndex === -1) {
+        return new Map(points.map((point) => [point.period, formatPeriodLabel(point.period)]));
+    }
+
+    const resolved = parsed.map((item) => (item ? { ...item } : null));
+
+    let currentYear = resolved[explicitYearIndex]?.year;
+    let currentMonth = resolved[explicitYearIndex]?.monthIndex;
+    for (let i = explicitYearIndex - 1; i >= 0; i -= 1) {
+        const item = resolved[i];
+        if (!item || currentYear === undefined || currentMonth === undefined) continue;
+        if (item.year !== undefined) {
+            currentYear = item.year;
+            currentMonth = item.monthIndex;
+            continue;
+        }
+        if (item.monthIndex > currentMonth) currentYear -= 1;
+        item.year = currentYear;
+        currentMonth = item.monthIndex;
+    }
+
+    currentYear = resolved[explicitYearIndex]?.year;
+    currentMonth = resolved[explicitYearIndex]?.monthIndex;
+    for (let i = explicitYearIndex + 1; i < resolved.length; i += 1) {
+        const item = resolved[i];
+        if (!item || currentYear === undefined || currentMonth === undefined) continue;
+        if (item.year !== undefined) {
+            currentYear = item.year;
+            currentMonth = item.monthIndex;
+            continue;
+        }
+        if (item.monthIndex < currentMonth) currentYear += 1;
+        item.year = currentYear;
+        currentMonth = item.monthIndex;
+    }
+
+    return new Map(points.map((point, index) => {
+        const item = resolved[index];
+        if (!item) return [point.period, point.period];
+        const month = item.monthKey.charAt(0).toUpperCase() + item.monthKey.slice(1);
+        return [point.period, item.year ? `${month} ${item.year}` : month];
+    }));
+}
+
 function parseEvolution(raw: string): EvolutionPoint[] {
     const rows = parseCsvRows(raw);
     if (rows.length <= 1) return [];
@@ -307,6 +375,23 @@ export function PortfolioCsv() {
             return { ...row, investedValue, gainVsInvested: row.totalValue - investedValue, drawdownPct: peak > 0 ? ((row.totalValue - peak) / peak) * 100 : 0 };
         });
     }, [evolutionBase]);
+    const resolvedPeriodMap = useMemo(() => resolveEvolutionPeriods(evolutionBase), [evolutionBase]);
+    const mobilePeriodMap = useMemo(() => {
+        const monthCounts = evolutionBase.reduce<Record<string, number>>((acc, point) => {
+            const parsed = parsePeriodParts(point.period);
+            const key = parsed?.monthKey ?? point.period;
+            acc[key] = (acc[key] || 0) + 1;
+            return acc;
+        }, {});
+
+        return new Map(evolutionBase.map((point) => {
+            const parsed = parsePeriodParts(point.period);
+            if (!parsed) return [point.period, point.period];
+            const resolvedLabel = resolvedPeriodMap.get(point.period) || formatPeriodLabel(point.period);
+            const needsYear = monthCounts[parsed.monthKey] > 1 || /\d{2,4}/.test(point.period);
+            return [point.period, needsYear ? formatPeriodLabel(resolvedLabel, true) : formatPeriodLabel(resolvedLabel)];
+        }));
+    }, [evolutionBase, resolvedPeriodMap]);
 
     useEffect(() => {
         try {
@@ -543,10 +628,14 @@ export function PortfolioCsv() {
     };
 
     const legendFormatter = (value: string) => (<span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{value}</span>);
-    const formatPeriodTick = (value: string) => (!isMobile ? value : value.replace(' 2025', '').replace(' 2026', ''));
+    const formatPeriodTick = (value: string) => {
+        if (isMobile) return mobilePeriodMap.get(value) || value;
+        return resolvedPeriodMap.get(value) || formatPeriodLabel(value);
+    };
     const mobileChartMargin = isMobile
         ? { top: 8, right: 2, left: 0, bottom: 34 }
         : { top: 8, right: 10, left: 0, bottom: 18 };
+    const mobilePinnedTooltipPosition = isMobile ? { x: 12, y: 12 } : undefined;
 
     const SeriesTooltip = ({
         active,
@@ -565,10 +654,11 @@ export function PortfolioCsv() {
             const value = Number(raw ?? 0);
             return valueType === 'currency' ? formatCurrency(value) : formatPct(value);
         };
+        const formattedLabel = label ? (resolvedPeriodMap.get(label) || formatPeriodLabel(label)) : '';
 
         return (
             <div className="portfolio-csv-tooltip">
-                <div className="portfolio-csv-tooltip__label">{label}</div>
+                <div className="portfolio-csv-tooltip__label">{formattedLabel}</div>
                 <div className="portfolio-csv-tooltip__rows">
                     {payload.map((entry, index) => (
                         <div key={`${entry.name}-${index}`} className="portfolio-csv-tooltip__row">
@@ -744,7 +834,7 @@ export function PortfolioCsv() {
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                                 <XAxis dataKey="period" tickFormatter={formatPeriodTick} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={isMobile ? 22 : 12} />
                                 <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k`} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
-                                <Tooltip content={<SeriesTooltip valueType="currency" />} />
+                                <Tooltip content={<SeriesTooltip valueType="currency" />} position={mobilePinnedTooltipPosition} />
                                 <Area type="monotone" dataKey="totalValue" name="Valor total" stroke="#10b981" fill="url(#portfolioCsvTotal)" strokeWidth={2.3} />
                                 <Area type="monotone" dataKey="investedValue" name="Capital invertido" stroke="#3b82f6" fill="url(#portfolioCsvInvested)" strokeWidth={2.1} />
                             </AreaChart>

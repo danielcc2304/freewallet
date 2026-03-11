@@ -239,3 +239,11 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 - Archivos:
   - `src/pages/TermsAndConditions/TermsAndConditions.tsx`
   - `src/pages/TermsAndConditions/TermsAndConditions.css`
+
+### 2026-03-11 - Portfolio CSV: anos implicitos en Excel de evolucion
+- Funcionalidad:
+  - El parser de evolucion detecta filas de ano (`2026`) y resumentes `YTD 2025` para asignar el ano correcto a meses sin sufijo explicito.
+- Resumen:
+  - Se elimina la colision entre meses repetidos de distintos bloques anuales al cargar ciertos Excel, especialmente en el grafico "Drivers del mes".
+- Archivos:
+  - `src/pages/PortfolioCsv/PortfolioCsv.tsx`

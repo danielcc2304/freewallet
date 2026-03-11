@@ -340,29 +340,55 @@ function resolveEvolutionPeriods(points: EvolutionPoint[]): Map<string, string> 
 function parseEvolution(raw: string): EvolutionPoint[] {
     const rows = parseCsvRows(raw);
     if (rows.length <= 1) return [];
-    return rows
-        .slice(1)
-        .map((row) => {
-            const period = (row[0] || '').replace(/"/g, '').trim();
-            let monthlyReturnRaw = row[5] || '';
-            let twrRaw = row[6] || '';
-            if (row.length >= 9) {
-                monthlyReturnRaw = `${row[5] || ''},${row[6] || ''}`;
-                twrRaw = `${row[7] || ''},${row[8] || ''}`;
-            } else if (row.length === 8) {
-                twrRaw = `${row[6] || ''},${row[7] || ''}`;
-            }
-            return {
-                period,
-                totalValue: parseFlexibleNumber(row[1] || ''),
-                initialCapital: parseFlexibleNumber(row[2] || ''),
-                monthlyContribution: parseFlexibleNumber(row[3] || ''),
-                profit: parseFlexibleNumber(row[4] || ''),
-                monthlyReturnPct: parsePercentNumber(monthlyReturnRaw),
-                twrYtdPct: parsePercentNumber(twrRaw),
-            };
-        })
-        .filter((point) => isMonthLabel(point.period) && point.totalValue > 0);
+    const points: EvolutionPoint[] = [];
+    let currentYear: number | undefined;
+
+    for (const row of rows.slice(1)) {
+        const rawPeriod = (row[0] || '').replace(/"/g, '').trim();
+        if (!rawPeriod) continue;
+
+        const yearSectionMatch = rawPeriod.match(/^(20\d{2})$/);
+        if (yearSectionMatch) {
+            currentYear = Number(yearSectionMatch[1]);
+            continue;
+        }
+
+        const ytdYearMatch = rawPeriod.match(/^ytd\s+(20\d{2})$/i);
+        if (ytdYearMatch) {
+            currentYear = Number(ytdYearMatch[1]);
+            continue;
+        }
+
+        if (/^mes$/i.test(rawPeriod)) continue;
+        if (!isMonthLabel(rawPeriod)) continue;
+
+        const period = /\d{2,4}$/.test(rawPeriod) || currentYear === undefined
+            ? rawPeriod
+            : `${rawPeriod} ${currentYear}`;
+
+        let monthlyReturnRaw = row[5] || '';
+        let twrRaw = row[6] || '';
+        if (row.length >= 9) {
+            monthlyReturnRaw = `${row[5] || ''},${row[6] || ''}`;
+            twrRaw = `${row[7] || ''},${row[8] || ''}`;
+        } else if (row.length === 8) {
+            twrRaw = `${row[6] || ''},${row[7] || ''}`;
+        }
+
+        const point = {
+            period,
+            totalValue: parseFlexibleNumber(row[1] || ''),
+            initialCapital: parseFlexibleNumber(row[2] || ''),
+            monthlyContribution: parseFlexibleNumber(row[3] || ''),
+            profit: parseFlexibleNumber(row[4] || ''),
+            monthlyReturnPct: parsePercentNumber(monthlyReturnRaw),
+            twrYtdPct: parsePercentNumber(twrRaw),
+        };
+
+        if (point.totalValue > 0) points.push(point);
+    }
+
+    return points;
 }
 
 function formatCurrency(value: number): string {

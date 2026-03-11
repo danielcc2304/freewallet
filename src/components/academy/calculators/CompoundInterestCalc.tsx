@@ -22,6 +22,18 @@ interface ChartDataPoint {
     yearLabel: string;
 }
 
+interface YearlyDetailRow {
+    year: number;
+    startingBalance: number;
+    yearlyDeposits: number;
+    interestEarned: number;
+    endingBalance: number;
+    balanceChange: number;
+    totalContributed: number;
+    totalDeposits: number;
+    totalInterest: number;
+}
+
 export function CompoundInterestCalc() {
     // Basic inputs
     const [initialCapital, setInitialCapital] = useState<number | string>(10000);
@@ -37,6 +49,7 @@ export function CompoundInterestCalc() {
     // Calculation mode
     const [calculationMode, setCalculationMode] = useState<CalculationMode>('normal');
     const [targetAmount, setTargetAmount] = useState<number | string>(500000);
+    const [expandedYear, setExpandedYear] = useState<number | null>(1);
 
     const calculateCompoundInterest = (
         initial: number,
@@ -201,6 +214,28 @@ export function CompoundInterestCalc() {
         return calculateRequiredMonthly(initial, rate, periods, target);
     }, [calculationMode, initialCapital, annualRate, years, targetAmount]);
 
+    const yearlyDetailRows = useMemo<YearlyDetailRow[]>(() => {
+        if (chartData.length <= 1) return [];
+
+        return chartData.slice(1).map((point, index) => {
+            const previousPoint = chartData[index];
+            const yearlyDeposits = point.contributed - previousPoint.contributed;
+            const interestEarned = point.interest - previousPoint.interest;
+
+            return {
+                year: point.year,
+                startingBalance: previousPoint.total,
+                yearlyDeposits,
+                interestEarned,
+                endingBalance: point.total,
+                balanceChange: point.total - previousPoint.total,
+                totalContributed: point.contributed,
+                totalDeposits: point.contributed - (Number(initialCapital) || 0),
+                totalInterest: point.interest
+            };
+        });
+    }, [chartData, initialCapital]);
+
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('es-ES', {
             style: 'currency',
@@ -208,6 +243,8 @@ export function CompoundInterestCalc() {
             maximumFractionDigits: 0
         }).format(value);
     };
+
+    const formatPercent = (value: number) => `${value.toFixed(2)}%`;
 
     // Custom Tooltip Component
     const CustomTooltip = ({ active, payload }: any) => {
@@ -583,7 +620,10 @@ export function CompoundInterestCalc() {
                             }}>
                                 <span>{((finalData.contributed / finalData.total) * 100).toFixed(1)}%</span>
                             </div>
-                            <div className="compound__breakdown-label">Tu dinero</div>
+                            <div className="compound__breakdown-label-row">
+                                <div className="compound__breakdown-label">Tu dinero</div>
+                                <div className="compound__breakdown-value">{formatCurrency(finalData.contributed)}</div>
+                            </div>
                         </div>
                         <div className="compound__breakdown-item">
                             <div className="compound__breakdown-bar" style={{
@@ -592,9 +632,88 @@ export function CompoundInterestCalc() {
                             }}>
                                 <span>{((finalData.interest / finalData.total) * 100).toFixed(1)}%</span>
                             </div>
-                            <div className="compound__breakdown-label">Magia del interés compuesto</div>
+                            <div className="compound__breakdown-label-row">
+                                <div className="compound__breakdown-label">Magia del interés compuesto</div>
+                                <div className="compound__breakdown-value">{formatCurrency(finalData.interest)}</div>
+                            </div>
                         </div>
                     </div>
+                    <section className="compound__detail">
+                        <div className="compound__detail-header">
+                            <div>
+                                <h4>Detalle año a año</h4>
+                                <p>Cada fila resume saldo total y rendimiento del año. Abre una fila para ver el resto del detalle.</p>
+                            </div>
+                        </div>
+
+                        <div className="compound__detail-list">
+                            {yearlyDetailRows.map((row) => {
+                                const isOpen = expandedYear === row.year;
+                                const effectiveRate = (row.interestEarned / Math.max(row.startingBalance + row.yearlyDeposits, 1)) * 100;
+
+                                return (
+                                    <article key={row.year} className={`compound__detail-item ${isOpen ? 'compound__detail-item--open' : ''}`}>
+                                        <button
+                                            type="button"
+                                            className="compound__detail-summary"
+                                            onClick={() => setExpandedYear(isOpen ? null : row.year)}
+                                        >
+                                            <div className="compound__detail-summary-main">
+                                                <span className="compound__detail-year">Año {row.year}</span>
+                                                <strong className="compound__detail-total">{formatCurrency(row.endingBalance)}</strong>
+                                            </div>
+                                            <div className="compound__detail-summary-side">
+                                                <span className="compound__detail-yield">{formatCurrency(row.interestEarned)}</span>
+                                                <span className="compound__detail-yield-label">Rendimiento</span>
+                                            </div>
+                                            {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                                        </button>
+
+                                        {isOpen && (
+                                            <div className="compound__detail-body">
+                                                <div className="compound__detail-grid">
+                                                    <div className="compound__detail-metric">
+                                                        <span>Saldo inicial</span>
+                                                        <strong>{formatCurrency(row.startingBalance)}</strong>
+                                                    </div>
+                                                    <div className="compound__detail-metric">
+                                                        <span>Saldo final</span>
+                                                        <strong>{formatCurrency(row.endingBalance)}</strong>
+                                                    </div>
+                                                    <div className="compound__detail-metric">
+                                                        <span>Cambio de saldo</span>
+                                                        <strong>{formatCurrency(row.balanceChange)}</strong>
+                                                    </div>
+                                                    <div className="compound__detail-metric">
+                                                        <span>Aportes totales hasta el momento</span>
+                                                        <strong>{formatCurrency(row.totalContributed)}</strong>
+                                                    </div>
+                                                    <div className="compound__detail-metric">
+                                                        <span>Todos los depósitos hasta ahora</span>
+                                                        <strong>{formatCurrency(row.totalDeposits)}</strong>
+                                                    </div>
+                                                    <div className="compound__detail-metric">
+                                                        <span>Depósitos este año</span>
+                                                        <strong>{formatCurrency(row.yearlyDeposits)}</strong>
+                                                    </div>
+                                                    <div className="compound__detail-metric">
+                                                        <span>Intereses recibidos hasta ahora</span>
+                                                        <strong className="compound__detail-positive">{formatCurrency(row.totalInterest)}</strong>
+                                                    </div>
+                                                    <div className="compound__detail-metric">
+                                                        <span>Intereses recibidos este año</span>
+                                                        <strong className="compound__detail-positive">
+                                                            {formatCurrency(row.interestEarned)} ({formatPercent(effectiveRate)})
+                                                        </strong>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </article>
+                                );
+                            })}
+                        </div>
+                    </section>
                 </div>
             </div>
 

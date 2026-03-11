@@ -26,6 +26,7 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
+import * as XLSX from 'xlsx';
 import './PortfolioCsv.css';
 
 type HoldingCategory = 'equity' | 'fixedIncome' | 'cash' | 'alternatives' | 'other';
@@ -43,6 +44,7 @@ type EvolutionPoint = {
 };
 type EnrichedEvolutionPoint = EvolutionPoint & { investedValue: number; gainVsInvested: number; drawdownPct: number };
 type PieRow = { name: string; value: number; weight: number; color: string };
+type ParsedPeriod = { monthKey: string; monthIndex: number; year?: number };
 
 const STORAGE_KEYS = {
     holdingsRaw: 'freewallet_portfolio_csv_holdings_raw',
@@ -78,37 +80,33 @@ const DEFAULT_BUCKET_TARGETS: Record<HoldingBucket, number> = {
 };
 
 const DEFAULT_HOLDINGS_CSV = `Activo,Importe (EUR),Peso %
-"Fidelity MSCI World (euros, no hedge)","18.759,00EUR","24,36%"
-Vanguard Emerging Markets,"6.261,00EUR","8,13%"
-Pictet China,"2.468,00EUR","3,20%"
-MyInvestor Value C,"6.448,00EUR","8,37%"
-Cobas Internacional,"4.747,00EUR","6,16%"
-Evercapital UCITS,"3.000,00EUR","3,90%"
-Carmignac Portfolio Credit,"10.312,00EUR","13,39%"
-Abaco Renta Fija Mixta Global,"8.573,00EUR","11,13%"
-Neuberger Berman Short Duration,"1.140,00EUR","1,48%"
-Revolut,"470,00EUR","0,61%"
-Nextil,"12.289,00EUR","15,96%"
-Amper,"1.851,00EUR","2,40%"
-Obrascon Huarte Lain,"701,00EUR","0,91%"
-TOTAL,"77.019,00EUR",`;
+"ETF Global Equity","3.200,00EUR","32,00%"
+"ETF USA Quality","1.800,00EUR","18,00%"
+"ETF Europe Dividend","1.250,00EUR","12,50%"
+"ETF Emerging Markets","950,00EUR","9,50%"
+"Global Bond Fund","1.450,00EUR","14,50%"
+"Short Duration Bond","550,00EUR","5,50%"
+"Gold ETC","300,00EUR","3,00%"
+"Cash Reserve","500,00EUR","5,00%"
+TOTAL,"10.000,00EUR",`;
 
 const DEFAULT_EVOLUTION_CSV = `Mes,Valor Total,Capital Inicial,Capital Aportado,Plusvalias,% mens.,TWR YTD
-Mar,55139,52428,700,2011,"3,785","3,785"
-Abr,57033,55139,700,1194,"4,276","8,222"
-May,59028,57033,700,1295,"2,243","10,649"
-Jun,60385,59028,700,657,"1,099","11,865"
-Jul,61988,60385,700,903,"1,478","13,518"
-Ago,63184,61988,700,496,"0,791","14,415"
-Sep,67169,63184,700,3285,"5,142","20,298"
-Oct,69786,67169,700,1917,"2,824","23,695"
-Nov,70299,69786,700,-187,"-0,265","23,367"
-Dic,73708,70299,700,2709,"3,815","28,073"
-Ene,76000,73708,500,1792,"2,414","2,414"
-Feb,76422,76000,700,-278,"-0,362","2,043"
-"Mar 2026",74710,76422,0,-1712,"-2,24","-0,242"`;
+Mar,8200,8000,200,0,"0,000","0,000"
+Abr,8450,8200,200,50,"0,610","0,610"
+May,8615,8450,200,-35,"-0,414","0,193"
+Jun,8890,8615,200,75,"0,871","1,066"
+Jul,9120,8890,200,30,"0,337","1,407"
+Ago,9345,9120,200,25,"0,274","1,685"
+Sep,9580,9345,200,35,"0,375","2,066"
+Oct,9790,9580,200,10,"0,104","2,173"
+Nov,9650,9790,200,-340,"-3,473","-1,375"
+Dic,9885,9650,200,35,"0,363","-1,017"
+Ene,10090,9885,200,5,"0,051","0,033"
+Feb,10180,10090,0,90,"0,892","0,925"
+"Mar 2026",10000,10180,0,-180,"-1,768","-0,859"`;
 
 const PIE_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7', '#84cc16', '#64748b'];
+const MONTH_KEYS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'] as const;
 
 function readStoredValue(key: string, fallback: string): string {
     if (typeof window === 'undefined') return fallback;
@@ -152,6 +150,49 @@ function parseLooseNumber(value: string): number {
     return Number.isFinite(parsed) ? parsed : 0;
 }
 
+function parseFlexibleNumber(value: string): number {
+    const sanitized = value
+        .replace(/\uFEFF/g, '')
+        .replace(/EUR|â‚¬|Ã¢â€šÂ¬/gi, '')
+        .replace(/%/g, '')
+        .replace(/\s/g, '')
+        .replace(/[^0-9,.-]/g, '');
+    const lastComma = sanitized.lastIndexOf(',');
+    const lastDot = sanitized.lastIndexOf('.');
+    let normalized = sanitized;
+
+    if (lastComma >= 0 && lastDot >= 0) {
+        const decimalSeparator = lastComma > lastDot ? ',' : '.';
+        const thousandsSeparator = decimalSeparator === ',' ? '.' : ',';
+        normalized = sanitized.replace(new RegExp(`\\${thousandsSeparator}`, 'g'), '');
+        if (decimalSeparator === ',') normalized = normalized.replace(',', '.');
+    } else if (lastComma >= 0) {
+        const decimalDigits = sanitized.length - lastComma - 1;
+        normalized = decimalDigits === 3 ? sanitized.replace(/,/g, '') : sanitized.replace(',', '.');
+    } else if (lastDot >= 0) {
+        const decimalDigits = sanitized.length - lastDot - 1;
+        normalized = decimalDigits === 3 ? sanitized.replace(/\./g, '') : sanitized;
+    }
+
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : parseLooseNumber(value);
+}
+
+function parsePercentNumber(value: string): number {
+    const sanitized = value
+        .replace(/\uFEFF/g, '')
+        .replace(/%/g, '')
+        .replace(/\s/g, '')
+        .replace(/[^0-9,.-]/g, '');
+    if (!sanitized) return 0;
+
+    const normalized = sanitized.includes(',')
+        ? sanitized.replace(/\./g, '').replace(',', '.')
+        : sanitized;
+    const parsed = Number(normalized);
+    return Number.isFinite(parsed) ? parsed : parseLooseNumber(value);
+}
+
 function parseCsvRows(raw: string): string[][] {
     const rows: string[][] = [];
     let row: string[] = [];
@@ -190,6 +231,14 @@ function parseCsvRows(raw: string): string[][] {
     return rows;
 }
 
+function normalizeSheetName(value: string): string {
+    return value
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]/gi, '')
+        .toLowerCase();
+}
+
 function classifyAsset(asset: string): HoldingCategory {
     const name = asset.toLowerCase();
     if (name.includes('renta fija') || name.includes('credit') || name.includes('short duration') || name.includes('bond')) return 'fixedIncome';
@@ -210,7 +259,7 @@ function parseHoldings(raw: string): Holding[] {
     if (rows.length <= 1) return [];
     const base = rows
         .slice(1)
-        .map((row) => ({ asset: (row[0] || '').replace(/"/g, '').trim(), amount: parseLooseNumber(row[1] || ''), weight: parseLooseNumber(row[2] || '') }))
+        .map((row) => ({ asset: (row[0] || '').replace(/"/g, '').trim(), amount: parseFlexibleNumber(row[1] || ''), weight: parseFlexibleNumber(row[2] || '') }))
         .filter((row) => row.asset && row.asset.toUpperCase() !== 'TOTAL' && row.amount > 0);
     const totalAmount = base.reduce((acc, row) => acc + row.amount, 0);
     return base
@@ -220,6 +269,72 @@ function parseHoldings(raw: string): Holding[] {
 
 function isMonthLabel(value: string): boolean {
     return /^(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)\b/i.test(value.trim());
+}
+
+function parsePeriodParts(value: string): ParsedPeriod | null {
+    const match = value.trim().toLowerCase().match(/^(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)(?:\s+(\d{2,4}))?$/i);
+    if (!match) return null;
+    const monthKey = match[1].toLowerCase();
+    const monthIndex = MONTH_KEYS.indexOf(monthKey as typeof MONTH_KEYS[number]);
+    if (monthIndex < 0) return null;
+    const rawYear = match[2];
+    const year = rawYear ? (rawYear.length === 2 ? 2000 + Number(rawYear) : Number(rawYear)) : undefined;
+    return { monthKey, monthIndex, year: Number.isFinite(year) ? year : undefined };
+}
+
+function formatPeriodLabel(period: string, compactYear = false): string {
+    const parsed = parsePeriodParts(period);
+    if (!parsed) return period;
+    const month = parsed.monthKey.charAt(0).toUpperCase() + parsed.monthKey.slice(1);
+    if (!parsed.year) return month;
+    return compactYear ? `${month} ${String(parsed.year).slice(-2)}` : `${month} ${parsed.year}`;
+}
+
+function resolveEvolutionPeriods(points: EvolutionPoint[]): Map<string, string> {
+    const parsed = points.map((point) => parsePeriodParts(point.period));
+    const explicitYearIndex = parsed.findIndex((item) => item?.year !== undefined);
+    if (explicitYearIndex === -1) {
+        return new Map(points.map((point) => [point.period, formatPeriodLabel(point.period)]));
+    }
+
+    const resolved = parsed.map((item) => (item ? { ...item } : null));
+
+    let currentYear = resolved[explicitYearIndex]?.year;
+    let currentMonth = resolved[explicitYearIndex]?.monthIndex;
+    for (let i = explicitYearIndex - 1; i >= 0; i -= 1) {
+        const item = resolved[i];
+        if (!item || currentYear === undefined || currentMonth === undefined) continue;
+        if (item.year !== undefined) {
+            currentYear = item.year;
+            currentMonth = item.monthIndex;
+            continue;
+        }
+        if (item.monthIndex > currentMonth) currentYear -= 1;
+        item.year = currentYear;
+        currentMonth = item.monthIndex;
+    }
+
+    currentYear = resolved[explicitYearIndex]?.year;
+    currentMonth = resolved[explicitYearIndex]?.monthIndex;
+    for (let i = explicitYearIndex + 1; i < resolved.length; i += 1) {
+        const item = resolved[i];
+        if (!item || currentYear === undefined || currentMonth === undefined) continue;
+        if (item.year !== undefined) {
+            currentYear = item.year;
+            currentMonth = item.monthIndex;
+            continue;
+        }
+        if (item.monthIndex < currentMonth) currentYear += 1;
+        item.year = currentYear;
+        currentMonth = item.monthIndex;
+    }
+
+    return new Map(points.map((point, index) => {
+        const item = resolved[index];
+        if (!item) return [point.period, point.period];
+        const month = item.monthKey.charAt(0).toUpperCase() + item.monthKey.slice(1);
+        return [point.period, item.year ? `${month} ${item.year}` : month];
+    }));
 }
 
 function parseEvolution(raw: string): EvolutionPoint[] {
@@ -239,12 +354,12 @@ function parseEvolution(raw: string): EvolutionPoint[] {
             }
             return {
                 period,
-                totalValue: parseLooseNumber(row[1] || ''),
-                initialCapital: parseLooseNumber(row[2] || ''),
-                monthlyContribution: parseLooseNumber(row[3] || ''),
-                profit: parseLooseNumber(row[4] || ''),
-                monthlyReturnPct: parseLooseNumber(monthlyReturnRaw),
-                twrYtdPct: parseLooseNumber(twrRaw),
+                totalValue: parseFlexibleNumber(row[1] || ''),
+                initialCapital: parseFlexibleNumber(row[2] || ''),
+                monthlyContribution: parseFlexibleNumber(row[3] || ''),
+                profit: parseFlexibleNumber(row[4] || ''),
+                monthlyReturnPct: parsePercentNumber(monthlyReturnRaw),
+                twrYtdPct: parsePercentNumber(twrRaw),
             };
         })
         .filter((point) => isMonthLabel(point.period) && point.totalValue > 0);
@@ -279,6 +394,7 @@ export function PortfolioCsv() {
 
     const holdingsInputRef = useRef<HTMLInputElement | null>(null);
     const evolutionInputRef = useRef<HTMLInputElement | null>(null);
+    const workbookInputRef = useRef<HTMLInputElement | null>(null);
 
     const deferredHoldingsRaw = useDeferredValue(holdingsRaw);
     const deferredEvolutionRaw = useDeferredValue(evolutionRaw);
@@ -307,6 +423,23 @@ export function PortfolioCsv() {
             return { ...row, investedValue, gainVsInvested: row.totalValue - investedValue, drawdownPct: peak > 0 ? ((row.totalValue - peak) / peak) * 100 : 0 };
         });
     }, [evolutionBase]);
+    const resolvedPeriodMap = useMemo(() => resolveEvolutionPeriods(evolutionBase), [evolutionBase]);
+    const mobilePeriodMap = useMemo(() => {
+        const monthCounts = evolutionBase.reduce<Record<string, number>>((acc, point) => {
+            const parsed = parsePeriodParts(point.period);
+            const key = parsed?.monthKey ?? point.period;
+            acc[key] = (acc[key] || 0) + 1;
+            return acc;
+        }, {});
+
+        return new Map(evolutionBase.map((point) => {
+            const parsed = parsePeriodParts(point.period);
+            if (!parsed) return [point.period, point.period];
+            const resolvedLabel = resolvedPeriodMap.get(point.period) || formatPeriodLabel(point.period);
+            const needsYear = monthCounts[parsed.monthKey] > 1 || /\d{2,4}/.test(point.period);
+            return [point.period, needsYear ? formatPeriodLabel(resolvedLabel, true) : formatPeriodLabel(resolvedLabel)];
+        }));
+    }, [evolutionBase, resolvedPeriodMap]);
 
     useEffect(() => {
         try {
@@ -513,6 +646,46 @@ export function PortfolioCsv() {
         }
     };
 
+    const onUploadWorkbook = async (file: File) => {
+        try {
+            const buffer = await file.arrayBuffer();
+            const workbook = XLSX.read(buffer, { type: 'array' });
+            const normalizedNames = workbook.SheetNames.reduce<Record<string, string>>((acc, sheetName) => {
+                acc[normalizeSheetName(sheetName)] = sheetName;
+                return acc;
+            }, {});
+
+            const holdingsSheetName = normalizedNames.cartera;
+            const evolutionSheetName = normalizedNames.evolucion || normalizedNames.evolution;
+
+            if (!holdingsSheetName || !evolutionSheetName) {
+                setError('El Excel debe incluir las hojas "Cartera" y "Evolucion".');
+                return;
+            }
+
+            const holdingsText = XLSX.utils.sheet_to_csv(workbook.Sheets[holdingsSheetName]);
+            const evolutionText = XLSX.utils.sheet_to_csv(workbook.Sheets[evolutionSheetName]);
+
+            if (parseHoldings(holdingsText).length === 0) {
+                setError('No pude interpretar la hoja de cartera del Excel. Revisa cabeceras y formato.');
+                return;
+            }
+            if (parseEvolution(evolutionText).length === 0) {
+                setError('No pude interpretar la hoja de evolucion del Excel. Revisa cabeceras y formato.');
+                return;
+            }
+
+            setHoldingsRaw(holdingsText);
+            setEvolutionRaw(evolutionText);
+            setHoldingsFileLabel(`${file.name} - ${holdingsSheetName}`);
+            setEvolutionFileLabel(`${file.name} - ${evolutionSheetName}`);
+            setUpdatedAt(new Date().toISOString());
+            setError('');
+        } catch {
+            setError('Error leyendo el Excel. Sube un .xlsx valido con hojas de cartera y evolucion.');
+        }
+    };
+
     const resetToDemo = () => {
         setHoldingsRaw(DEFAULT_HOLDINGS_CSV);
         setEvolutionRaw(DEFAULT_EVOLUTION_CSV);
@@ -543,10 +716,14 @@ export function PortfolioCsv() {
     };
 
     const legendFormatter = (value: string) => (<span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{value}</span>);
-    const formatPeriodTick = (value: string) => (!isMobile ? value : value.replace(' 2025', '').replace(' 2026', ''));
+    const formatPeriodTick = (value: string) => {
+        if (isMobile) return mobilePeriodMap.get(value) || value;
+        return resolvedPeriodMap.get(value) || formatPeriodLabel(value);
+    };
     const mobileChartMargin = isMobile
         ? { top: 8, right: 2, left: 0, bottom: 34 }
         : { top: 8, right: 10, left: 0, bottom: 18 };
+    const mobilePinnedTooltipPosition = isMobile ? { x: 12, y: 12 } : undefined;
 
     const SeriesTooltip = ({
         active,
@@ -565,10 +742,11 @@ export function PortfolioCsv() {
             const value = Number(raw ?? 0);
             return valueType === 'currency' ? formatCurrency(value) : formatPct(value);
         };
+        const formattedLabel = label ? (resolvedPeriodMap.get(label) || formatPeriodLabel(label)) : '';
 
         return (
             <div className="portfolio-csv-tooltip">
-                <div className="portfolio-csv-tooltip__label">{label}</div>
+                <div className="portfolio-csv-tooltip__label">{formattedLabel}</div>
                 <div className="portfolio-csv-tooltip__rows">
                     {payload.map((entry, index) => (
                         <div key={`${entry.name}-${index}`} className="portfolio-csv-tooltip__row">
@@ -645,13 +823,27 @@ export function PortfolioCsv() {
                 </article>
 
                 <article className="portfolio-csv-upload__card portfolio-csv-upload__card--utility">
-                    <h3><RefreshCw size={18} /> Estado y persistencia</h3>
-                    <p>Los CSV se guardan en este navegador.</p>
+                    <h3><RefreshCw size={18} /> Excel unico y persistencia</h3>
+                    <p>Tambien puedes subir un archivo Excel con hojas `Cartera` y `Evolucion`. El demo inicial es ficticio, pero los archivos que subas se muestran tal cual.</p>
                     <div className="portfolio-csv-upload__actions">
+                        <button type="button" className="portfolio-csv-btn" onClick={() => workbookInputRef.current?.click()}>
+                            <Upload size={16} /> Subir Excel
+                        </button>
                         <button type="button" className="portfolio-csv-btn" onClick={resetToDemo}>
                             Restaurar demo
                         </button>
                     </div>
+                    <input
+                        ref={workbookInputRef}
+                        type="file"
+                        accept=".xlsx,.xls"
+                        hidden
+                        onChange={(event) => {
+                            const file = event.target.files?.[0];
+                            if (file) void onUploadWorkbook(file);
+                            event.target.value = '';
+                        }}
+                    />
                     <small>Última actualización: {updatedAt ? new Date(updatedAt).toLocaleString('es-ES') : 'sin registrar'}</small>
                 </article>
             </section>
@@ -744,7 +936,7 @@ export function PortfolioCsv() {
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                                 <XAxis dataKey="period" tickFormatter={formatPeriodTick} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={isMobile ? 22 : 12} />
                                 <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k`} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
-                                <Tooltip content={<SeriesTooltip valueType="currency" />} />
+                                <Tooltip content={<SeriesTooltip valueType="currency" />} position={mobilePinnedTooltipPosition} />
                                 <Area type="monotone" dataKey="totalValue" name="Valor total" stroke="#10b981" fill="url(#portfolioCsvTotal)" strokeWidth={2.3} />
                                 <Area type="monotone" dataKey="investedValue" name="Capital invertido" stroke="#3b82f6" fill="url(#portfolioCsvInvested)" strokeWidth={2.1} />
                             </AreaChart>

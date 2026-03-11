@@ -4,6 +4,8 @@
     left: 0;
     width: var(--sidebar-width);
     height: 100vh;
+    height: 100dvh;
+    max-height: 100dvh;
     background: var(--bg-secondary);
     border-right: 1px solid var(--border-primary);
     display: flex;
@@ -224,6 +226,7 @@
 /* Footer */
 .sidebar__footer {
     padding: var(--spacing-md);
+    padding-bottom: calc(var(--spacing-md) + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--border-primary);
 }
 
@@ -283,6 +286,9 @@
     .sidebar {
         transform: translateX(-100%);
         width: 280px;
+        height: 100svh;
+        height: 100dvh;
+        max-height: 100dvh;
     }
 
     .sidebar--open {

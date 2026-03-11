@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { DollarSign, TrendingUp, Calendar, Target, ChevronDown, ChevronUp } from 'lucide-react';
 import {
     AreaChart,
@@ -34,6 +34,21 @@ interface YearlyDetailRow {
     totalInterest: number;
 }
 
+interface CompoundInterestCalcStorage {
+    initialCapital: number | string;
+    monthlyContribution: number | string;
+    annualRate: number | string;
+    years: number | string;
+    showAdvanced: boolean;
+    withdrawalType: 'none' | 'percentage' | 'fixed';
+    withdrawalValue: number | string;
+    calculationMode: CalculationMode;
+    targetAmount: number | string;
+    expandedYear: number | null;
+}
+
+const COMPOUND_INTEREST_STORAGE_KEY = 'freewallet_compound_interest_calc';
+
 export function CompoundInterestCalc() {
     // Basic inputs
     const [initialCapital, setInitialCapital] = useState<number | string>(10000);
@@ -50,6 +65,66 @@ export function CompoundInterestCalc() {
     const [calculationMode, setCalculationMode] = useState<CalculationMode>('normal');
     const [targetAmount, setTargetAmount] = useState<number | string>(500000);
     const [expandedYear, setExpandedYear] = useState<number | null>(1);
+
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(COMPOUND_INTEREST_STORAGE_KEY);
+            if (!raw) return;
+
+            const stored = JSON.parse(raw) as Partial<CompoundInterestCalcStorage>;
+
+            if (stored.initialCapital !== undefined) setInitialCapital(stored.initialCapital);
+            if (stored.monthlyContribution !== undefined) setMonthlyContribution(stored.monthlyContribution);
+            if (stored.annualRate !== undefined) setAnnualRate(stored.annualRate);
+            if (stored.years !== undefined) setYears(stored.years);
+            if (typeof stored.showAdvanced === 'boolean') setShowAdvanced(stored.showAdvanced);
+            if (stored.withdrawalType === 'none' || stored.withdrawalType === 'percentage' || stored.withdrawalType === 'fixed') {
+                setWithdrawalType(stored.withdrawalType);
+            }
+            if (stored.withdrawalValue !== undefined) setWithdrawalValue(stored.withdrawalValue);
+            if (stored.calculationMode === 'normal' || stored.calculationMode === 'timeToGoal' || stored.calculationMode === 'requiredContribution') {
+                setCalculationMode(stored.calculationMode);
+            }
+            if (stored.targetAmount !== undefined) setTargetAmount(stored.targetAmount);
+            if (typeof stored.expandedYear === 'number' || stored.expandedYear === null) {
+                setExpandedYear(stored.expandedYear);
+            }
+        } catch {
+            // Ignore localStorage failures or malformed saved values.
+        }
+    }, []);
+
+    useEffect(() => {
+        const payload: CompoundInterestCalcStorage = {
+            initialCapital,
+            monthlyContribution,
+            annualRate,
+            years,
+            showAdvanced,
+            withdrawalType,
+            withdrawalValue,
+            calculationMode,
+            targetAmount,
+            expandedYear
+        };
+
+        try {
+            localStorage.setItem(COMPOUND_INTEREST_STORAGE_KEY, JSON.stringify(payload));
+        } catch {
+            // Ignore localStorage failures.
+        }
+    }, [
+        initialCapital,
+        monthlyContribution,
+        annualRate,
+        years,
+        showAdvanced,
+        withdrawalType,
+        withdrawalValue,
+        calculationMode,
+        targetAmount,
+        expandedYear
+    ]);
 
     const calculateCompoundInterest = (
         initial: number,
@@ -267,7 +342,7 @@ export function CompoundInterestCalc() {
                     <p style={{ margin: '4px 0', color: '#10b981', fontSize: '0.9rem' }}>
                         Intereses: {formatCurrency(data.interest)}
                     </p>
-                    <p style={{ margin: '8px 0 0 0', fontWeight: 700, color: 'var(--accent-primary)', fontSize: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
+                    <p style={{ margin: '8px 0 0 0', fontWeight: 700, color: '#5280c7', fontSize: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
                         Total: {formatCurrency(data.total)}
                     </p>
                 </div>

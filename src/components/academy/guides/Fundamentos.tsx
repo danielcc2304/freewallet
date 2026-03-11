@@ -372,7 +372,7 @@ export function Fundamentos() {
           <strong>{simulatorModules.length}</strong>
         </article>
         <article className="fundamentos__summary-card">
-          <span>MÃ³dulos visibles</span>
+          <span>Módulos visibles</span>
           <strong>{MODULES.length}</strong>
         </article>
       </section>

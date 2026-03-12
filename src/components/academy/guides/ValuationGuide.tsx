@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom';
+﻿import { Link } from 'react-router-dom';
 import {
     ArrowLeft, BarChart3, ShieldCheck, TrendingUp,
     Calculator, AlertCircle, CheckCircle2, DollarSign, Activity,
@@ -157,6 +157,15 @@ export function ValuationGuide() {
                 <h2><DollarSign size={24} /> 4. Flujo de Caja (Cash Flow)</h2>
                 <div className="valuation-guide__grid">
                     <Metric
+                        title="Operating Cash Flow (OCF)"
+                        formula="CFO = Net Income + Depreciation & Amortization +/- Working Capital"
+                        description="Caja generada por la operativa del negocio tras ajustes contables y variaciones de capital circulante."
+                        benchmarks={[
+                            { label: "Sano", value: "Positivo y estable", type: "good" },
+                            { label: "Alerta", value: "Volátil o negativo", type: "bad" }
+                        ]}
+                    />
+                    <Metric
                         title="Free Cash Flow (FCF)"
                         formula="OCF - CapEx"
                         description="La caja real que sobra tras mantener el negocio. La sangre de la empresa."
@@ -308,3 +317,4 @@ export function ValuationGuide() {
 }
 
 export default ValuationGuide;
+

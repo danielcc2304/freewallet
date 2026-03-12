@@ -244,7 +244,7 @@ export function RiskManagement() {
                 </p>
                 <div className="cta__actions">
                     <Link to="/academy/timeline" className="cta__link">
-                        Ver mi Journey <ArrowRight size={18} />
+                        Ver Tu Recorrido <ArrowRight size={18} />
                     </Link>
                     <Link to="/academy/portfolio" className="cta__button">
                         Configurar mi Cartera

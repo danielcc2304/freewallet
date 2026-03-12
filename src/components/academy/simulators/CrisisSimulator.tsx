@@ -90,14 +90,14 @@ export function CrisisSimulator() {
                     <div className="crisis__stat crisis__stat--negative">
                         <TrendingDown className="crisis__stat-icon" />
                         <div className="crisis__stat-content">
-                            <div className="crisis__stat-label">Caida maxima</div>
+                            <div className="crisis__stat-label">Caída maxima</div>
                             <div className="crisis__stat-value">{crisis.maxDrawdown}%</div>
                         </div>
                     </div>
 
                     <div className="crisis__stat">
                         <div className="crisis__stat-content">
-                            <div className="crisis__stat-label">Duracion de la caida</div>
+                            <div className="crisis__stat-label">Duración de la caída</div>
                             <div className="crisis__stat-value">{crisis.monthsDown} meses</div>
                         </div>
                     </div>
@@ -105,7 +105,7 @@ export function CrisisSimulator() {
                     <div className="crisis__stat crisis__stat--positive">
                         <TrendingUp className="crisis__stat-icon" />
                         <div className="crisis__stat-content">
-                            <div className="crisis__stat-label">Tiempo de recuperacion</div>
+                            <div className="crisis__stat-label">Tiempo de recuperación</div>
                             <div className="crisis__stat-value">{crisis.monthsRecovery} meses</div>
                         </div>
                     </div>
@@ -113,7 +113,7 @@ export function CrisisSimulator() {
                     {crisis.return5y !== undefined && (
                         <div className="crisis__stat crisis__stat--positive">
                             <div className="crisis__stat-content">
-                                <div className="crisis__stat-label">Rentabilidad a 5 anos</div>
+                                <div className="crisis__stat-label">Rentabilidad a 5 años</div>
                                 <div className="crisis__stat-value">+{crisis.return5y}%</div>
                             </div>
                         </div>
@@ -142,7 +142,7 @@ export function CrisisSimulator() {
                     </div>
 
                     <div className="crisis__input-group">
-                        <label htmlFor="dca">Aportacion mensual para el escenario DCA</label>
+                        <label htmlFor="dca">Aportación mensual para el escenario DCA</label>
                         <div className="crisis__input-wrapper">
                             <DollarSign size={18} />
                             <input
@@ -164,10 +164,9 @@ export function CrisisSimulator() {
                         onClick={() => setSelectedScenario('panic')}
                     >
                         <div className="crisis__scenario-header">
-                            <span className="crisis__scenario-icon">A</span>
-                            <h4>Escenario A: Panico</h4>
+                            <h4>Escenario A: Pánico</h4>
                         </div>
-                        <p className="crisis__scenario-description">Vendes en el minimo de la crisis</p>
+                        <p className="crisis__scenario-description">Vendes en el mínimo de la crisis</p>
                         <div className="crisis__scenario-result">
                             <div className="crisis__scenario-value crisis__scenario-value--negative">
                                 {scenarios.panic.value.toLocaleString('es-ES', { maximumFractionDigits: 0 })} EUR
@@ -184,10 +183,9 @@ export function CrisisSimulator() {
                         onClick={() => setSelectedScenario('hold')}
                     >
                         <div className="crisis__scenario-header">
-                            <span className="crisis__scenario-icon">B</span>
                             <h4>Escenario B: Aguantar</h4>
                         </div>
-                        <p className="crisis__scenario-description">Mantienes y esperas la recuperacion</p>
+                        <p className="crisis__scenario-description">Mantienes y esperas la recuperación</p>
                         <div className="crisis__scenario-result">
                             <div className="crisis__scenario-value">
                                 {scenarios.hold.value.toLocaleString('es-ES', { maximumFractionDigits: 0 })} EUR
@@ -203,10 +201,9 @@ export function CrisisSimulator() {
                         onClick={() => setSelectedScenario('dca')}
                     >
                         <div className="crisis__scenario-header">
-                            <span className="crisis__scenario-icon">C</span>
                             <h4>Escenario C: DCA durante la crisis</h4>
                         </div>
-                        <p className="crisis__scenario-description">Sigues invirtiendo {monthlyDCA} EUR al mes durante la caida</p>
+                        <p className="crisis__scenario-description">Sigues invirtiendo {monthlyDCA} EUR al mes durante la caída</p>
                         <div className="crisis__scenario-result">
                             <div className="crisis__scenario-value crisis__scenario-value--positive">
                                 {scenarios.dca.value.toLocaleString('es-ES', { maximumFractionDigits: 0 })} EUR
@@ -252,23 +249,22 @@ export function CrisisSimulator() {
 
             <div className="crisis__next">
                 <h3>Si vienes de una crisis, sigue por aqui</h3>
-                <p className="crisis__next-copy">Pasa del impacto emocional a la construccion de un plan mas robusto para la siguiente caida.</p>
+                <p className="crisis__next-copy">Pasa del impacto emocional a la construcción de un plan más robusto para la siguiente caída.</p>
                 <div className="crisis__next-links">
                     <Link to="/academy/timeline" className="crisis__next-link">
                         <strong>Tu recorrido</strong>
-                        <span>Para entender en que fase suele aparecer el panico y como evitarlo.</span>
+                        <span>Para entender en que fase suele aparecer el pánico y como evitarlo.</span>
                     </Link>
                     <Link to="/academy/scenarios" className="crisis__next-link">
-                        <strong>QuÃ© hacer si...</strong>
+                        <strong>Qué hacer si...</strong>
                         <span>Para ensayar decisiones concretas cuando el mercado se complica.</span>
                     </Link>
                     <Link to="/academy/errors" className="crisis__next-link">
                         <strong>Errores comunes</strong>
-                        <span>Para identificar sesgos y fallos repetidos en momentos de estres.</span>
+                        <span>Para identificar sesgos y fallos repetidos en momentos de estrés.</span>
                     </Link>
                 </div>
             </div>
         </div>
     );
 }
-

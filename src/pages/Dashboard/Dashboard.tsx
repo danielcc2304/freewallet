@@ -137,16 +137,17 @@ export function Dashboard() {
                                 </div>
                                 <h1 className="welcome-content__title">Bienvenido a FreeWallet</h1>
                                 <p className="welcome-content__description">
-                                    Tu plataforma personal para gestionar y visualizar tu portfolio de inversiones.
-                                    Comienza anadiendo tu primera inversion o carga datos de demostracion para explorar.
+                                    Empieza por la academia para entender conceptos, practicar con simuladores y tomar mejores decisiones
+                                    antes de mover capital real. Después puedes añadir tu primera inversión o cargar datos demo para explorar
+                                    el dashboard completo.
                                 </p>
                                 <div className="welcome-content__actions">
                                     <Link to="/add">
-                                        <Button icon={<PlusCircle size={18} />} size="lg">
-                                            Anadir Primera Inversion
+                                        <Button icon={<PlusCircle size={18} />} size="lg" fullWidth>
+                                            Añadir primera inversión
                                         </Button>
                                     </Link>
-                                    <Button variant="secondary" onClick={loadDemoData} icon={<RefreshCw size={18} />}>
+                                    <Button variant="secondary" onClick={loadDemoData} icon={<RefreshCw size={18} />} size="lg" fullWidth>
                                         Cargar Datos Demo
                                     </Button>
                                 </div>

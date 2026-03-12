@@ -849,8 +849,8 @@ export function PortfolioCsv() {
                 </article>
 
                 <article className="portfolio-csv-upload__card portfolio-csv-upload__card--utility">
-                    <h3><RefreshCw size={18} /> Excel unico y persistencia</h3>
-                    <p>Tambien puedes subir un archivo Excel con hojas `Cartera` y `Evolucion`. El demo inicial es ficticio, pero los archivos que subas se muestran tal cual.</p>
+                    <h3><RefreshCw size={18} /> Excel único</h3>
+                    <p>Tambien puedes subir un archivo Excel con hojas `Cartera` y `Evolucion`.</p>
                     <div className="portfolio-csv-upload__actions">
                         <button type="button" className="portfolio-csv-btn" onClick={() => workbookInputRef.current?.click()}>
                             <Upload size={16} /> Subir Excel
@@ -893,7 +893,7 @@ export function PortfolioCsv() {
             <section className="portfolio-csv-grid">
                 <article className="portfolio-csv-card">
                     <h2><Layers3 size={18} /> Composición por activos (peso real)</h2>
-                    <p>Distribución de pesos por posición, incluyendo agrupación de activos minoritarios en "Otros activos".</p>
+                    <p>Distribución de pesos por posición.</p>
                     <div className="portfolio-csv-chart portfolio-csv-chart--composition">
                         <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                             <PieChart margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
@@ -1136,7 +1136,7 @@ export function PortfolioCsv() {
             <section className="portfolio-csv-grid">
                 <article className="portfolio-csv-card">
                     <h2><TrendingUp size={18} /> Asignación objetivo</h2>
-                    <p>Define el peso deseado para cada bucket. La suma ideal es 100%.</p>
+                    <p>Define el peso deseado para cada bloque.</p>
                     <div className="portfolio-csv-targets">
                         {(Object.keys(BUCKET_LABELS) as HoldingBucket[]).map((bucket) => (
                             <label key={bucket} className="portfolio-csv-targets__item">
@@ -1160,7 +1160,7 @@ export function PortfolioCsv() {
                 </article>
 
                 <article className="portfolio-csv-card">
-                    <h2><Layers3 size={18} /> Desviación vs objetivo</h2>
+                    <h2><Layers3 size={18} /> Desviación vs Objetivo</h2>
                     <p>Lectura práctica para saber qué bloque pesa de más o de menos respecto al plan.</p>
                     <div className="portfolio-csv-plan-table">
                         <div className="portfolio-csv-plan-table__head">

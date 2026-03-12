@@ -24,7 +24,7 @@ function readStoredThemeMode(): ThemeMode {
     } catch {
         // Ignore storage access errors (private mode/restricted contexts).
     }
-    return 'dark';
+    return 'system';
 }
 
 function persistThemeMode(mode: ThemeMode): void {

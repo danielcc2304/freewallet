@@ -717,7 +717,7 @@ export function CompoundInterestCalc() {
                         <div className="compound__detail-header">
                             <div>
                                 <h4>Detalle año a año</h4>
-                                <p>Cada fila resume saldo total y rendimiento del año. Abre una fila para ver el resto del detalle.</p>
+                                <p>Cada fila resume saldo total y rendimiento del año.</p>
                             </div>
                         </div>
 

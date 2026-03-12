@@ -1,4 +1,7 @@
 .fund-radar {
+    --academy-space-section: var(--spacing-2xl);
+    --academy-space-card: var(--spacing-lg);
+    --academy-space-stack: var(--spacing-md);
     padding-bottom: var(--spacing-2xl);
     animation: fadeIn var(--transition-base) ease-out;
 }
@@ -20,7 +23,7 @@
 
 .fund-radar__header {
     text-align: center;
-    margin-bottom: var(--spacing-2xl);
+    margin-bottom: var(--academy-space-section);
 }
 
 .fund-radar__icon-wrapper {
@@ -86,17 +89,17 @@
 .fund-radar__filters {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-md);
-    margin-bottom: var(--spacing-2xl);
+    gap: var(--academy-space-stack);
+    margin-bottom: var(--academy-space-section);
     background: var(--bg-card);
-    padding: var(--spacing-lg);
+    padding: var(--academy-space-card);
     border-radius: var(--radius-lg);
     border: 1px solid var(--border-primary);
 }
 
 .fund-radar__search-row {
     display: flex;
-    gap: var(--spacing-md);
+    gap: var(--academy-space-stack);
     align-items: stretch;
 }
 
@@ -192,11 +195,11 @@
 
 /* Morningstar education block */
 .fund-radar__edu {
-    margin-bottom: var(--spacing-2xl);
+    margin-bottom: var(--academy-space-section);
     background: var(--bg-card);
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
+    padding: var(--academy-space-card);
 }
 
 .fund-radar__edu h2 {
@@ -205,7 +208,7 @@
 }
 
 .fund-radar__edu-intro {
-    margin: 0 0 var(--spacing-md);
+    margin: 0 0 var(--academy-space-stack);
     color: var(--text-secondary);
     font-size: var(--font-size-sm);
 }
@@ -214,7 +217,7 @@
     background: var(--bg-secondary);
     border: 1px solid var(--border-secondary);
     border-radius: var(--radius-md);
-    padding: var(--spacing-md);
+    padding: var(--academy-space-stack);
 }
 
 .edu-example__header {
@@ -222,7 +225,7 @@
     justify-content: space-between;
     align-items: flex-start;
     gap: var(--spacing-md);
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--academy-space-stack);
 }
 
 .edu-example__tag {
@@ -248,7 +251,7 @@
 .edu-example__grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--spacing-sm);
+    gap: var(--academy-space-stack);
 }
 
 .edu-metric {
@@ -281,11 +284,11 @@
 }
 
 .edu-checklist {
-    margin-top: var(--spacing-md);
+    margin-top: var(--academy-space-stack);
     background: rgba(16, 185, 129, 0.06);
     border: 1px solid rgba(16, 185, 129, 0.2);
     border-radius: var(--radius-md);
-    padding: var(--spacing-md);
+    padding: var(--academy-space-stack);
 }
 
 .edu-checklist h4 {
@@ -311,7 +314,7 @@
 .fund-radar__grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
-    gap: var(--spacing-lg);
+    gap: var(--academy-space-card);
 }
 
 .fund-card {
@@ -584,6 +587,12 @@
 }
 
 @media (max-width: 600px) {
+    .fund-radar {
+        --academy-space-section: var(--spacing-xl);
+        --academy-space-card: var(--spacing-md);
+        --academy-space-stack: var(--spacing-sm);
+    }
+
     .fund-radar__grid {
         grid-template-columns: 1fr;
     }
@@ -693,11 +702,11 @@
 }
 
 .fund-radar__next {
-    margin-top: var(--spacing-xl);
+    margin-top: var(--academy-space-section);
     background: var(--bg-secondary);
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-xl);
-    padding: var(--spacing-xl);
+    padding: var(--academy-space-card);
 }
 
 .fund-radar__next-header h2 {
@@ -710,10 +719,10 @@
 }
 
 .fund-radar__next-grid {
-    margin-top: var(--spacing-lg);
+    margin-top: var(--academy-space-card);
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--spacing-md);
+    gap: var(--academy-space-stack);
 }
 
 .fund-radar__next-card {
@@ -722,7 +731,7 @@
     background: var(--bg-card);
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-lg);
-    padding: var(--spacing-lg);
+    padding: var(--academy-space-card);
     transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 

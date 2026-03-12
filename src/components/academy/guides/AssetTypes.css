@@ -1,4 +1,4 @@
-.asset-types-page {
+﻿.asset-types-page {
     --academy-space-section: 2.5rem;
     --academy-space-card: 1.5rem;
     --academy-space-card-lg: 2rem;
@@ -186,12 +186,12 @@
 }
 
 .asset-pros li::before {
-    content: "✓";
+    content: "\2713";
     font-weight: 800;
 }
 
 .asset-cons li::before {
-    content: "✕";
+    content: "\2715";
     font-weight: 800;
 }
 
@@ -271,3 +271,4 @@
         margin-top: var(--academy-space-section);
     }
 }
+

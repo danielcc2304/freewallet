@@ -1,4 +1,4 @@
-import { useState } from 'react';
+﻿import { useState } from 'react';
 import { TrendingDown, TrendingUp, DollarSign, AlertTriangle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { CRISIS_DATA } from '../../../data/academyData';
@@ -46,22 +46,22 @@ export function CrisisSimulator() {
     return (
         <div className="crisis">
             <header className="crisis__header">
-                <h1 className="crisis__title">Simulador de crisis historicas</h1>
+                <h1 className="crisis__title">Simulador de crisis históricas</h1>
                 <p className="crisis__description">
-                    Aprende de las caidas pasadas. Observa que habria pasado con tu dinero en las peores crisis del mercado.
+                    Aprende de las caídas pasadas. Observa qué habría pasado con tu dinero en las peores crisis del mercado.
                 </p>
             </header>
 
             <div className="crisis__warning">
                 <AlertTriangle size={20} />
                 <div>
-                    <strong>En todas las crisis de los ultimos 100 anos, el mercado se ha recuperado.</strong>
+                    <strong>En todas las crisis de los últimos 100 años, el mercado se ha recuperado.</strong>
                     <p>
                         Sin embargo, que el mercado siempre se haya recuperado no garantiza que lo haga en tu horizonte temporal concreto.
-                        <strong> Por eso el plazo importa mas que el activo.</strong>
+                        <strong> Por eso el plazo importa más que el activo.</strong>
                     </p>
                     <p className="crisis__warning-highlight">
-                        El mayor error es vender en el minimo por panico.
+                        El mayor error es vender en el mínimo por pánico.
                     </p>
                 </div>
             </div>
@@ -259,7 +259,7 @@ export function CrisisSimulator() {
                         <span>Para entender en que fase suele aparecer el panico y como evitarlo.</span>
                     </Link>
                     <Link to="/academy/scenarios" className="crisis__next-link">
-                        <strong>Qué hacer si...</strong>
+                        <strong>QuÃ© hacer si...</strong>
                         <span>Para ensayar decisiones concretas cuando el mercado se complica.</span>
                     </Link>
                     <Link to="/academy/errors" className="crisis__next-link">
@@ -271,3 +271,4 @@ export function CrisisSimulator() {
         </div>
     );
 }
+

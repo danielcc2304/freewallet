@@ -182,6 +182,11 @@
     max-width: 300px;
 }
 
+.welcome-content__actions a,
+.welcome-content__actions .btn {
+    width: 100%;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .dashboard__performers {

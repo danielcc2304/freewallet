@@ -80,7 +80,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
     const navItems = [
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-        { to: '/add', icon: PlusCircle, label: 'Anadir inversion' },
+        { to: '/add', icon: PlusCircle, label: 'Añadir inversión' },
     ];
 
     const academyGroups: Array<AcademySection['group']> = ['Aprender', 'Construir', 'Herramientas', 'Escenarios', 'Recursos'];

@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
     AlertTriangle,
     CalendarClock,
@@ -575,7 +575,7 @@ export function PortfolioCsv() {
                 title: 'Concentración principal',
                 value: topHolding ? formatPct(topHolding.weight) : 'N/D',
                 tone: topHolding && topHolding.weight > 20 ? 'warn' : 'good',
-                detail: topHolding ? `${topHolding.asset} es la mayor posicion.` : 'Sin posiciones cargadas.',
+                detail: topHolding ? `${topHolding.asset} es la mayor posición.` : 'Sin posiciones cargadas.',
             },
             {
                 title: 'Top 3 agregado',
@@ -593,7 +593,7 @@ export function PortfolioCsv() {
                 title: 'Drawdown máximo',
                 value: formatPct(maxDrawdown),
                 tone: maxDrawdown <= -15 ? 'warn' : 'good',
-                detail: maxDrawdown <= -15 ? 'La serie registra caidas relevantes.' : 'El drawdown historico es moderado.',
+                detail: maxDrawdown <= -15 ? 'La serie registra caídas relevantes.' : 'El drawdown histórico es moderado.',
             },
             {
                 title: 'Meses positivos',
@@ -746,7 +746,7 @@ export function PortfolioCsv() {
         <div className="portfolio-csv-page">
             <header className="portfolio-csv-hero">
                 <div className="portfolio-csv-hero__badge">Portfolio CSV</div>
-                <h1>Análisis de cartera con Excel único</h1>
+                <h1>Análisis de cartera</h1>
                 <p>Sube un Excel con las hojas `Cartera` y `Evolución` para ver concentración, rendimiento, drawdown y tendencia del patrimonio.</p>
             </header>
 
@@ -1099,3 +1099,5 @@ export function PortfolioCsv() {
         </div>
     );
 }
+
+

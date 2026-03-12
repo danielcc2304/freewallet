@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+﻿import { useState, useEffect, useRef } from 'react';
 import {
     TrendingUp, RotateCcw,
     Trophy, Info, ArrowLeft,
@@ -33,6 +33,7 @@ export function MarketTimingGame() {
     const STARTING_CASH = 10000;
     const MAX_TICKS = 100;
     const TICK_SPEED = 200; // ms
+    const TRADE_FEE_RATE = 0.004;
 
     const initGame = () => {
         const initialPoint = { time: 0, price: 100 };
@@ -58,9 +59,11 @@ export function MarketTimingGame() {
             gameLoopRef.current = window.setInterval(() => {
                 tickRef.current += 1;
 
-                // Random walk price generation
-                const change = (Math.random() - 0.48) * 4; // Slight upward bias
-                const newPrice = Math.max(10, lastPriceRef.current + change);
+                // Harder tape: less friendly drift, more chop and occasional fake breakouts.
+                const drift = (Math.random() - 0.505) * 5.2;
+                const shock = Math.random() < 0.12 ? (Math.random() - 0.5) * 10 : 0;
+                const meanReversion = (100 - lastPriceRef.current) * 0.018;
+                const newPrice = Math.max(10, lastPriceRef.current + drift + shock + meanReversion);
                 lastPriceRef.current = newPrice;
 
                 setData(prev => [...prev, { time: tickRef.current, price: newPrice }]);
@@ -83,7 +86,8 @@ export function MarketTimingGame() {
     const handleBuy = () => {
         if (!isPlaying || cash <= 0) return;
         const currentPrice = lastPriceRef.current;
-        const affordableShares = cash / currentPrice;
+        const netCash = cash * (1 - TRADE_FEE_RATE);
+        const affordableShares = netCash / currentPrice;
         setShares(prev => prev + affordableShares);
         setCash(0);
     };
@@ -91,7 +95,7 @@ export function MarketTimingGame() {
     const handleSell = () => {
         if (!isPlaying || shares <= 0) return;
         const currentPrice = lastPriceRef.current;
-        const sellValue = shares * currentPrice;
+        const sellValue = shares * currentPrice * (1 - TRADE_FEE_RATE);
         setCash(prev => prev + sellValue);
         setShares(0);
     };
@@ -259,3 +263,4 @@ export function MarketTimingGame() {
 }
 
 export default MarketTimingGame;
+

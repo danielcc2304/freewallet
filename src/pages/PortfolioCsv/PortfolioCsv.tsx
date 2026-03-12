@@ -572,7 +572,7 @@ export function PortfolioCsv() {
         const topHolding = holdings[0];
         return [
             {
-                title: 'Concentracion principal',
+                title: 'Concentración principal',
                 value: topHolding ? formatPct(topHolding.weight) : 'N/D',
                 tone: topHolding && topHolding.weight > 20 ? 'warn' : 'good',
                 detail: topHolding ? `${topHolding.asset} es la mayor posicion.` : 'Sin posiciones cargadas.',
@@ -581,7 +581,7 @@ export function PortfolioCsv() {
                 title: 'Top 3 agregado',
                 value: formatPct(topConcentration),
                 tone: topConcentration >= 55 ? 'warn' : 'good',
-                detail: topConcentration >= 55 ? 'La cartera depende mucho de tres posiciones.' : 'La concentracion esta contenida.',
+                detail: topConcentration >= 55 ? 'La cartera depende mucho de tres posiciones.' : 'La concentración está contenida.',
             },
             {
                 title: 'Liquidez en cartera',
@@ -590,7 +590,7 @@ export function PortfolioCsv() {
                 detail: liquidityWeight < 2 ? 'El peso de liquidez es muy bajo.' : 'Hay reserva visible dentro del CSV.',
             },
             {
-                title: 'Drawdown maximo',
+                title: 'Drawdown máximo',
                 value: formatPct(maxDrawdown),
                 tone: maxDrawdown <= -15 ? 'warn' : 'good',
                 detail: maxDrawdown <= -15 ? 'La serie registra caidas relevantes.' : 'El drawdown historico es moderado.',
@@ -605,7 +605,7 @@ export function PortfolioCsv() {
                 title: 'Peso sin clasificar',
                 value: formatPct(uncategorizedWeight),
                 tone: uncategorizedWeight > 10 ? 'warn' : 'good',
-                detail: uncategorizedWeight > 10 ? 'Conviene revisar categorias manualmente.' : 'La clasificacion actual cubre casi toda la cartera.',
+                detail: uncategorizedWeight > 10 ? 'Conviene revisar categorías manualmente.' : 'La clasificación actual cubre casi toda la cartera.',
             },
         ] as const;
     }, [evolution, holdings, positiveMonthRatio, topConcentration]);
@@ -644,7 +644,7 @@ export function PortfolioCsv() {
             const evolutionSheetName = normalizedNames.evolucion || normalizedNames.evolution;
 
             if (!holdingsSheetName || !evolutionSheetName) {
-                setError('El Excel debe incluir las hojas "Cartera" y "Evolucion".');
+                setError('El Excel debe incluir las hojas "Cartera" y "Evolución".');
                 return;
             }
 
@@ -684,7 +684,7 @@ export function PortfolioCsv() {
         const evolutionSheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_EVOLUTION_CSV));
 
         XLSX.utils.book_append_sheet(workbook, holdingsSheet, 'Cartera');
-        XLSX.utils.book_append_sheet(workbook, evolutionSheet, 'Evolucion');
+        XLSX.utils.book_append_sheet(workbook, evolutionSheet, 'Evolución');
         XLSX.writeFile(workbook, 'plantilla-cartera-evolucion.xlsx');
     };
 
@@ -746,14 +746,14 @@ export function PortfolioCsv() {
         <div className="portfolio-csv-page">
             <header className="portfolio-csv-hero">
                 <div className="portfolio-csv-hero__badge">Portfolio CSV</div>
-                <h1>Analisis de cartera con Excel unico</h1>
-                <p>Sube un Excel con las hojas `Cartera` y `Evolucion` para ver concentracion, rendimiento, drawdown y tendencia del patrimonio.</p>
+                <h1>Análisis de cartera con Excel único</h1>
+                <p>Sube un Excel con las hojas `Cartera` y `Evolución` para ver concentración, rendimiento, drawdown y tendencia del patrimonio.</p>
             </header>
 
             <section className="portfolio-csv-upload">
                 <article className="portfolio-csv-upload__card portfolio-csv-upload__card--utility">
-                    <h3><FileSpreadsheet size={18} /> Excel unico</h3>
-                    <p>Sube un archivo `.xlsx` con hojas `Cartera` y `Evolucion`, o descarga una plantilla lista para rellenar.</p>
+                    <h3><FileSpreadsheet size={18} /> Excel único</h3>
+                    <p>Sube un archivo `.xlsx` con hojas `Cartera` y `Evolución`, o descarga una plantilla lista para rellenar.</p>
                     <div className="portfolio-csv-upload__actions">
                         <button type="button" className="portfolio-csv-btn" onClick={() => workbookInputRef.current?.click()}>
                             <Upload size={16} /> Subir Excel
@@ -777,7 +777,7 @@ export function PortfolioCsv() {
                         }}
                     />
                     <small>{workbookFileLabel}</small>
-                    <small>Ultima actualizacion: {updatedAt ? new Date(updatedAt).toLocaleString('es-ES') : 'sin registrar'}</small>
+                    <small>Última actualización: {updatedAt ? new Date(updatedAt).toLocaleString('es-ES') : 'sin registrar'}</small>
                 </article>
             </section>
 
@@ -790,8 +790,8 @@ export function PortfolioCsv() {
 
             <section className="portfolio-csv-kpis">
                 <article className="portfolio-csv-kpi"><span>Patrimonio actual</span><strong>{formatCurrency(totalPortfolioValue)}</strong></article>
-                <article className="portfolio-csv-kpi"><span>Top 3 concentracion</span><strong>{formatPct(topConcentration)}</strong></article>
-                <article className="portfolio-csv-kpi"><span>Diversificacion efectiva</span><strong>{effectivePositions.toFixed(1)} posiciones</strong></article>
+                <article className="portfolio-csv-kpi"><span>Top 3 concentración</span><strong>{formatPct(topConcentration)}</strong></article>
+                <article className="portfolio-csv-kpi"><span>Diversificación efectiva</span><strong>{effectivePositions.toFixed(1)} posiciones</strong></article>
                 <article className="portfolio-csv-kpi"><span>Meses positivos</span><strong>{formatPct(positiveMonthRatio)}</strong></article>
                 <article className="portfolio-csv-kpi"><span>Retorno medio mensual</span><strong>{formatPct(avgMonthlyReturn)}</strong></article>
                 <article className="portfolio-csv-kpi"><span>Volatilidad mensual</span><strong>{formatPct(monthlyVolatility)}</strong></article>
@@ -799,8 +799,8 @@ export function PortfolioCsv() {
 
             <section className="portfolio-csv-grid">
                 <article className="portfolio-csv-card">
-                    <h2><Layers3 size={18} /> Composicion por activos (peso real)</h2>
-                    <p>Distribucion de pesos por posicion.</p>
+                    <h2><Layers3 size={18} /> Composición por activos</h2>
+                    <p>Distribución de pesos por posición.</p>
                     <div className="portfolio-csv-chart portfolio-csv-chart--composition">
                         <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                             <PieChart margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
@@ -825,7 +825,7 @@ export function PortfolioCsv() {
                 </article>
 
                 <article className="portfolio-csv-card">
-                    <h2><TrendingUp size={18} /> Asignacion por bloques</h2>
+                    <h2><TrendingUp size={18} /> Asignación por bloques</h2>
                     <p>Peso agregado por tipo de activo.</p>
                     <div className="portfolio-csv-chart">
                         <ResponsiveContainer width="100%" height={300}>
@@ -878,7 +878,7 @@ export function PortfolioCsv() {
                 </article>
 
                 <article className="portfolio-csv-card">
-                    <h2><TrendingUp size={18} /> Drivers del mes: aportado vs plusvalia</h2>
+                    <h2><TrendingUp size={18} /> Drivers del mes: aportado vs plusvalía</h2>
                     <p>Desglose mensual entre aportacion y resultado de mercado.</p>
                     <div className="portfolio-csv-chart">
                         <ResponsiveContainer width="100%" height={320}>
@@ -895,7 +895,7 @@ export function PortfolioCsv() {
                                 />
                                 <Tooltip content={<SeriesTooltip valueType="currency" />} />
                                 <Legend formatter={legendFormatter} wrapperStyle={{ color: 'var(--text-secondary)' }} />
-                                <Bar dataKey="monthlyContribution" name="Aportacion" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                                <Bar dataKey="monthlyContribution" name="Aportación" fill="#3b82f6" radius={[6, 6, 0, 0]} />
                                 <Bar dataKey="profit" name="Plusvalia" fill="#10b981" radius={[6, 6, 0, 0]} />
                                 <Line type="monotone" dataKey="gainVsInvested" name="Ganancia acumulada" stroke="#f59e0b" strokeWidth={2} dot={false} />
                             </ComposedChart>
@@ -960,11 +960,11 @@ export function PortfolioCsv() {
                         <li><span>Mejor mes registrado</span><strong>{bestMonth ? `${bestMonth.period} (${formatPct(bestMonth.monthlyReturnPct)})` : 'N/D'}</strong></li>
                         <li><span>Peor mes registrado</span><strong>{worstMonth ? `${worstMonth.period} (${formatPct(worstMonth.monthlyReturnPct)})` : 'N/D'}</strong></li>
                         <li><span>Ganancia neta vs invertido</span><strong>{latestEvolution ? formatCurrency(latestEvolution.gainVsInvested) : 'N/D'}</strong></li>
-                        <li><span>Proyeccion 12 meses (escenario base)</span><strong>{formatCurrency(projection12m)}</strong></li>
+                        <li><span>Proyección 12 meses (escenario base)</span><strong>{formatCurrency(projection12m)}</strong></li>
                     </ul>
                     <div className="portfolio-csv-note">
                         <p>
-                            Si sube la concentracion y empeora el drawdown, revisa rebalanceo y riesgo antes de aumentar exposicion.
+                            Si sube la concentración y empeora el drawdown, revisa rebalanceo y riesgo antes de aumentar exposición.
                         </p>
                     </div>
                 </article>
@@ -972,8 +972,8 @@ export function PortfolioCsv() {
 
             <section className="portfolio-csv-grid">
                 <article className="portfolio-csv-card">
-                    <h2><AlertTriangle size={18} /> Checks automaticos</h2>
-                    <p>Lectura rapida de concentracion, liquidez y consistencia del CSV actual.</p>
+                    <h2><AlertTriangle size={18} /> Checks automáticos</h2>
+                    <p>Lectura rápida de concentración, liquidez y consistencia del CSV actual.</p>
                     <div className="portfolio-csv-checks">
                         {riskChecks.map((check) => (
                             <div key={check.title} className={`portfolio-csv-check portfolio-csv-check--${check.tone}`}>
@@ -989,7 +989,7 @@ export function PortfolioCsv() {
 
                 <article className="portfolio-csv-card">
                     <h2><Layers3 size={18} /> Buckets por objetivo</h2>
-                    <p>Agrupa las posiciones en largo plazo, rentas, liquidez y objetivos concretos.</p>
+                    <p>Agrupa las posiciones en largo plazo, medio plazo, liquidez y objetivos concretos.</p>
                     <div className="portfolio-csv-chart">
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={bucketAllocationData}>
@@ -1011,12 +1011,12 @@ export function PortfolioCsv() {
 
             <section className="portfolio-csv-card portfolio-csv-card--full">
                 <h2><FileSpreadsheet size={18} /> Tabla de control de posiciones</h2>
-                <p>Corrige categorias cuando la heuristica falle.</p>
+                <p>Corrige categorías cuando la heurística falle.</p>
                 <div className="portfolio-csv-controls-table">
                     <div className="portfolio-csv-controls-table__head">
                         <span>Activo</span>
                         <span>Peso</span>
-                        <span>Categoria</span>
+                        <span>Categoría</span>
                     </div>
                     {holdings.map((holding) => (
                         <div key={holding.asset} className="portfolio-csv-controls-table__row">
@@ -1036,7 +1036,7 @@ export function PortfolioCsv() {
             </section>
             <section className="portfolio-csv-grid">
                 <article className="portfolio-csv-card">
-                    <h2><TrendingUp size={18} /> Asignacion objetivo</h2>
+                    <h2><TrendingUp size={18} /> Asignación objetivo</h2>
                     <p>Define el peso deseado para cada bloque.</p>
                     <div className="portfolio-csv-targets">
                         {(Object.keys(BUCKET_LABELS) as HoldingBucket[]).map((bucket) => (
@@ -1061,14 +1061,14 @@ export function PortfolioCsv() {
                 </article>
 
                 <article className="portfolio-csv-card">
-                    <h2><Layers3 size={18} /> Desviacion vs Objetivo</h2>
+                    <h2><Layers3 size={18} /> Desviación vs Objetivo</h2>
                     <p>Lectura practica para saber que bloque pesa de mas o de menos respecto al plan.</p>
                     <div className="portfolio-csv-plan-table">
                         <div className="portfolio-csv-plan-table__head">
                             <span>Bucket</span>
                             <span>Actual</span>
                             <span>Objetivo</span>
-                            <span>Desvio</span>
+                            <span>Desvío</span>
                         </div>
                         {bucketPlanData.map((row) => (
                             <div key={row.bucket} className="portfolio-csv-plan-table__row">
@@ -1076,7 +1076,7 @@ export function PortfolioCsv() {
                                 <span data-label="Actual">{formatPct(row.currentWeight)}</span>
                                 <span data-label="Objetivo">{formatPct(row.targetWeight)}</span>
                                 <span
-                                    data-label="Desvio"
+                                    data-label="Desvío"
                                     className={row.deviation > 0.25 ? 'portfolio-csv-plan-table__delta--over' : row.deviation < -0.25 ? 'portfolio-csv-plan-table__delta--under' : ''}
                                 >
                                     {row.deviation > 0 ? '+' : ''}{formatPct(row.deviation)}
@@ -1091,7 +1091,7 @@ export function PortfolioCsv() {
                             {bucketPlanData
                                 .filter((row) => Math.abs(row.amountDelta) >= Math.max(totalPortfolioValue * 0.01, 100))
                                 .map((row) => `${row.amountDelta > 0 ? 'reducir' : 'aumentar'} ${row.label} en ${formatCurrency(Math.abs(row.amountDelta))}`)
-                                .join(' | ') || 'la cartera ya esta cerca del objetivo definido.'}
+                                .join(' | ') || 'la cartera ya está cerca del objetivo definido.'}
                         </p>
                     </div>
                 </article>

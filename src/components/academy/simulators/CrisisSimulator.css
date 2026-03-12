@@ -265,7 +265,7 @@
 }
 
 .crisis__scenario {
-    background: var(--bg-tertiary);
+    background: color-mix(in srgb, var(--bg-tertiary) 82%, transparent);
     border: 2px solid var(--border-color);
     border-radius: 12px;
     padding: 1.25rem;
@@ -287,47 +287,44 @@
 }
 
 .crisis__scenario--panic {
-    background: rgba(239, 68, 68, 0.03);
+    background: linear-gradient(180deg, rgba(239, 68, 68, 0.08), rgba(239, 68, 68, 0.03));
+    border-color: rgba(239, 68, 68, 0.18);
 }
 
 .crisis__scenario--panic.crisis__scenario--selected {
     border-color: var(--error-color, #ef4444);
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
+    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
 }
 
 .crisis__scenario--hold {
-    background: rgba(234, 179, 8, 0.03);
+    background: linear-gradient(180deg, rgba(234, 179, 8, 0.08), rgba(234, 179, 8, 0.03));
+    border-color: rgba(234, 179, 8, 0.16);
 }
 
 .crisis__scenario--hold.crisis__scenario--selected {
     border-color: var(--warning-color, #eab308);
-    box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.1);
+    box-shadow: 0 0 0 3px rgba(234, 179, 8, 0.12);
 }
 
 .crisis__scenario--dca {
-    background: rgba(16, 185, 129, 0.03);
+    background: linear-gradient(180deg, rgba(16, 185, 129, 0.08), rgba(16, 185, 129, 0.03));
+    border-color: rgba(16, 185, 129, 0.18);
 }
 
 .crisis__scenario--dca.crisis__scenario--selected {
     border-color: var(--success-color, #10b981);
-    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.12);
 }
 
 .crisis__scenario-header {
     display: flex;
     align-items: center;
-    gap: 0.75rem;
     margin-bottom: 0.75rem;
 }
 
-.crisis__scenario-icon {
-    font-size: 1.75rem;
-    flex-shrink: 0;
-}
-
 .crisis__scenario-header h4 {
-    font-size: 1rem;
-    font-weight: 600;
+    font-size: 1.02rem;
+    font-weight: 700;
     color: var(--text-primary);
     margin: 0;
     word-break: break-word;
@@ -341,7 +338,8 @@
 }
 
 .crisis__scenario-result {
-    background: var(--bg-secondary);
+    background: rgba(7, 10, 20, 0.46);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: 8px;
     padding: 1rem;
     overflow: hidden;

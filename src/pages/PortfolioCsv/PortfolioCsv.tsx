@@ -1,4 +1,4 @@
-import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+﻿import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
     AlertTriangle,
     CalendarClock,
@@ -49,11 +49,9 @@ type ParsedPeriod = { monthKey: string; monthIndex: number; year?: number };
 const STORAGE_KEYS = {
     holdingsRaw: 'freewallet_portfolio_csv_holdings_raw',
     evolutionRaw: 'freewallet_portfolio_csv_evolution_raw',
-    holdingsFile: 'freewallet_portfolio_csv_holdings_file',
-    evolutionFile: 'freewallet_portfolio_csv_evolution_file',
+    workbookFile: 'freewallet_portfolio_csv_workbook_file',
     updatedAt: 'freewallet_portfolio_csv_updated_at',
     categoryOverrides: 'freewallet_portfolio_csv_category_overrides',
-    bucketOverrides: 'freewallet_portfolio_csv_bucket_overrides',
     bucketTargets: 'freewallet_portfolio_csv_bucket_targets',
 } as const;
 
@@ -67,7 +65,7 @@ const CATEGORY_LABELS: Record<HoldingCategory, string> = {
 
 const BUCKET_LABELS: Record<HoldingBucket, string> = {
     longTerm: 'Largo plazo',
-    income: 'Rentas',
+    income: 'Medio plazo',
     liquidity: 'Liquidez',
     goal: 'Objetivo',
 };
@@ -140,7 +138,7 @@ function readStoredNumberMap(key: string, fallback: Record<string, number>): Rec
 function parseLooseNumber(value: string): number {
     const normalized = value
         .replace(/\uFEFF/g, '')
-        .replace(/EUR|€|â‚¬/gi, '')
+        .replace(/EUR/gi, '')
         .replace(/%/g, '')
         .replace(/\s/g, '')
         .replace(/\./g, '')
@@ -153,7 +151,7 @@ function parseLooseNumber(value: string): number {
 function parseFlexibleNumber(value: string): number {
     const sanitized = value
         .replace(/\uFEFF/g, '')
-        .replace(/EUR|â‚¬|Ã¢â€šÂ¬/gi, '')
+        .replace(/EUR/gi, '')
         .replace(/%/g, '')
         .replace(/\s/g, '')
         .replace(/[^0-9,.-]/g, '');
@@ -409,17 +407,13 @@ function standardDeviation(values: number[]): number {
 export function PortfolioCsv() {
     const [holdingsRaw, setHoldingsRaw] = useState(() => readStoredValue(STORAGE_KEYS.holdingsRaw, DEFAULT_HOLDINGS_CSV));
     const [evolutionRaw, setEvolutionRaw] = useState(() => readStoredValue(STORAGE_KEYS.evolutionRaw, DEFAULT_EVOLUTION_CSV));
-    const [holdingsFileLabel, setHoldingsFileLabel] = useState(() => readStoredValue(STORAGE_KEYS.holdingsFile, 'Demo precargada'));
-    const [evolutionFileLabel, setEvolutionFileLabel] = useState(() => readStoredValue(STORAGE_KEYS.evolutionFile, 'Demo precargada'));
+    const [workbookFileLabel, setWorkbookFileLabel] = useState(() => readStoredValue(STORAGE_KEYS.workbookFile, 'Demo precargada'));
     const [updatedAt, setUpdatedAt] = useState(() => readStoredValue(STORAGE_KEYS.updatedAt, ''));
     const [categoryOverrides, setCategoryOverrides] = useState<Record<string, HoldingCategory>>(() => readStoredMap<HoldingCategory>(STORAGE_KEYS.categoryOverrides));
-    const [bucketOverrides, setBucketOverrides] = useState<Record<string, HoldingBucket>>(() => readStoredMap<HoldingBucket>(STORAGE_KEYS.bucketOverrides));
     const [bucketTargets, setBucketTargets] = useState<Record<string, number>>(() => readStoredNumberMap(STORAGE_KEYS.bucketTargets, DEFAULT_BUCKET_TARGETS));
     const [error, setError] = useState('');
     const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 700 : false));
 
-    const holdingsInputRef = useRef<HTMLInputElement | null>(null);
-    const evolutionInputRef = useRef<HTMLInputElement | null>(null);
     const workbookInputRef = useRef<HTMLInputElement | null>(null);
 
     const deferredHoldingsRaw = useDeferredValue(holdingsRaw);
@@ -432,9 +426,9 @@ export function PortfolioCsv() {
             ...holding,
             category,
             categoryOverride,
-            bucket: bucketOverrides[holding.asset] || defaultBucketForCategory(category),
+            bucket: defaultBucketForCategory(category),
         };
-    }), [bucketOverrides, categoryOverrides, deferredHoldingsRaw]);
+    }), [categoryOverrides, deferredHoldingsRaw]);
     const evolutionBase = useMemo(() => parseEvolution(deferredEvolutionRaw), [deferredEvolutionRaw]);
 
     const evolution = useMemo<EnrichedEvolutionPoint[]>(() => {
@@ -471,16 +465,14 @@ export function PortfolioCsv() {
         try {
             localStorage.setItem(STORAGE_KEYS.holdingsRaw, holdingsRaw);
             localStorage.setItem(STORAGE_KEYS.evolutionRaw, evolutionRaw);
-            localStorage.setItem(STORAGE_KEYS.holdingsFile, holdingsFileLabel);
-            localStorage.setItem(STORAGE_KEYS.evolutionFile, evolutionFileLabel);
+            localStorage.setItem(STORAGE_KEYS.workbookFile, workbookFileLabel);
             localStorage.setItem(STORAGE_KEYS.updatedAt, updatedAt);
             localStorage.setItem(STORAGE_KEYS.categoryOverrides, JSON.stringify(categoryOverrides));
-            localStorage.setItem(STORAGE_KEYS.bucketOverrides, JSON.stringify(bucketOverrides));
             localStorage.setItem(STORAGE_KEYS.bucketTargets, JSON.stringify(bucketTargets));
         } catch {
-            // localStorage puede fallar en modo privado o por límites de cuota.
+            // localStorage puede fallar en modo privado o por limites de cuota.
         }
-    }, [bucketOverrides, bucketTargets, categoryOverrides, holdingsRaw, evolutionRaw, holdingsFileLabel, evolutionFileLabel, updatedAt]);
+    }, [bucketTargets, categoryOverrides, holdingsRaw, evolutionRaw, workbookFileLabel, updatedAt]);
 
     useEffect(() => {
         const onResize = () => setIsMobile(window.innerWidth <= 700);
@@ -631,45 +623,12 @@ export function PortfolioCsv() {
         });
     };
 
-    const setHoldingBucketOverride = (asset: string, bucket: HoldingBucket) => {
-        setBucketOverrides((current) => ({ ...current, [asset]: bucket }));
-    };
-
     const setBucketTarget = (bucket: HoldingBucket, value: string) => {
         const parsed = Number(value);
         setBucketTargets((current) => ({
             ...current,
             [bucket]: Number.isFinite(parsed) ? parsed : 0,
         }));
-    };
-
-    const onUploadCsv = async (file: File, type: 'holdings' | 'evolution') => {
-        try {
-            const text = await file.text();
-            if (!text.trim()) {
-                setError('El archivo está vacío. Sube un CSV con contenido.');
-                return;
-            }
-            if (type === 'holdings') {
-                if (parseHoldings(text).length === 0) {
-                    setError('No pude interpretar el CSV de cartera. Revisa cabeceras y formato.');
-                    return;
-                }
-                setHoldingsRaw(text);
-                setHoldingsFileLabel(file.name);
-            } else {
-                if (parseEvolution(text).length === 0) {
-                    setError('No pude interpretar el CSV de evolución. Revisa cabeceras y formato.');
-                    return;
-                }
-                setEvolutionRaw(text);
-                setEvolutionFileLabel(file.name);
-            }
-            setUpdatedAt(new Date().toISOString());
-            setError('');
-        } catch {
-            setError('Error leyendo el archivo. Asegura CSV UTF-8 o ANSI exportado desde Excel.');
-        }
     };
 
     const onUploadWorkbook = async (file: File) => {
@@ -685,7 +644,7 @@ export function PortfolioCsv() {
             const evolutionSheetName = normalizedNames.evolucion || normalizedNames.evolution;
 
             if (!holdingsSheetName || !evolutionSheetName) {
-                setError('El Excel debe incluir las hojas "Cartera" y "Evolucion".');
+                setError('El Excel debe incluir las hojas "Cartera" y "Evolución".');
                 return;
             }
 
@@ -703,8 +662,7 @@ export function PortfolioCsv() {
 
             setHoldingsRaw(holdingsText);
             setEvolutionRaw(evolutionText);
-            setHoldingsFileLabel(`${file.name} - ${holdingsSheetName}`);
-            setEvolutionFileLabel(`${file.name} - ${evolutionSheetName}`);
+            setWorkbookFileLabel(file.name);
             setUpdatedAt(new Date().toISOString());
             setError('');
         } catch {
@@ -715,24 +673,19 @@ export function PortfolioCsv() {
     const resetToDemo = () => {
         setHoldingsRaw(DEFAULT_HOLDINGS_CSV);
         setEvolutionRaw(DEFAULT_EVOLUTION_CSV);
-        setHoldingsFileLabel('Demo precargada');
-        setEvolutionFileLabel('Demo precargada');
+        setWorkbookFileLabel('Demo precargada');
         setUpdatedAt(new Date().toISOString());
         setError('');
     };
 
-    const downloadTemplate = (type: 'holdings' | 'evolution') => {
-        const content = type === 'holdings' ? DEFAULT_HOLDINGS_CSV : DEFAULT_EVOLUTION_CSV;
-        const filename = type === 'holdings' ? 'plantilla-cartera.csv' : 'plantilla-evolucion.csv';
-        const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const link = document.createElement('a');
-        link.href = url;
-        link.download = filename;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
+    const downloadWorkbookTemplate = () => {
+        const workbook = XLSX.utils.book_new();
+        const holdingsSheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_HOLDINGS_CSV));
+        const evolutionSheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_EVOLUTION_CSV));
+
+        XLSX.utils.book_append_sheet(workbook, holdingsSheet, 'Cartera');
+        XLSX.utils.book_append_sheet(workbook, evolutionSheet, 'Evolución');
+        XLSX.writeFile(workbook, 'plantilla-cartera-evolucion.xlsx');
     };
 
     const tooltipTheme = {
@@ -793,70 +746,23 @@ export function PortfolioCsv() {
         <div className="portfolio-csv-page">
             <header className="portfolio-csv-hero">
                 <div className="portfolio-csv-hero__badge">Portfolio CSV</div>
-                <h1>Análisis de cartera con CSV mensuales</h1>
-                <p>Sube los CSV de cartera y evolución para ver concentración, rendimiento, drawdown y tendencia del patrimonio.</p>
+                <h1>Análisis de cartera</h1>
+                <p>Sube un Excel con las hojas `Cartera` y `Evolución` para ver concentración, rendimiento, drawdown y tendencia del patrimonio.</p>
             </header>
 
             <section className="portfolio-csv-upload">
-                <article className="portfolio-csv-upload__card">
-                    <h3><FileSpreadsheet size={18} /> CSV de Cartera</h3>
-                    <p>Columnas: Activo, Importe, Peso %.</p>
-                    <div className="portfolio-csv-upload__actions">
-                        <button type="button" className="portfolio-csv-btn" onClick={() => holdingsInputRef.current?.click()}>
-                            <Upload size={16} /> Subir CSV
-                        </button>
-                        <button type="button" className="portfolio-csv-btn portfolio-csv-btn--ghost" onClick={() => downloadTemplate('holdings')}>
-                            <Download size={16} /> Plantilla
-                        </button>
-                    </div>
-                    <small>{holdingsFileLabel}</small>
-                    <input
-                        ref={holdingsInputRef}
-                        type="file"
-                        accept=".csv,text/csv"
-                        hidden
-                        onChange={(event) => {
-                            const file = event.target.files?.[0];
-                            if (file) void onUploadCsv(file, 'holdings');
-                            event.target.value = '';
-                        }}
-                    />
-                </article>
-
-                <article className="portfolio-csv-upload__card">
-                    <h3><CalendarClock size={18} /> CSV de Evolución</h3>
-                    <p>Columnas esperadas: Mes, Valor Total, Capital Inicial, Capital Aportado, Plusvalías, % mens., TWR YTD.</p>
-                    <div className="portfolio-csv-upload__actions">
-                        <button type="button" className="portfolio-csv-btn" onClick={() => evolutionInputRef.current?.click()}>
-                            <Upload size={16} /> Subir CSV
-                        </button>
-                        <button type="button" className="portfolio-csv-btn portfolio-csv-btn--ghost" onClick={() => downloadTemplate('evolution')}>
-                            <Download size={16} /> Plantilla
-                        </button>
-                    </div>
-                    <small>{evolutionFileLabel}</small>
-                    <input
-                        ref={evolutionInputRef}
-                        type="file"
-                        accept=".csv,text/csv"
-                        hidden
-                        onChange={(event) => {
-                            const file = event.target.files?.[0];
-                            if (file) void onUploadCsv(file, 'evolution');
-                            event.target.value = '';
-                        }}
-                    />
-                </article>
-
                 <article className="portfolio-csv-upload__card portfolio-csv-upload__card--utility">
-                    <h3><RefreshCw size={18} /> Excel unico y persistencia</h3>
-                    <p>Tambien puedes subir un archivo Excel con hojas `Cartera` y `Evolucion`. El demo inicial es ficticio, pero los archivos que subas se muestran tal cual.</p>
+                    <h3><FileSpreadsheet size={18} /> Excel único</h3>
+                    <p>Sube un archivo `.xlsx` con hojas `Cartera` y `Evolución`, o descarga una plantilla lista para rellenar.</p>
                     <div className="portfolio-csv-upload__actions">
                         <button type="button" className="portfolio-csv-btn" onClick={() => workbookInputRef.current?.click()}>
                             <Upload size={16} /> Subir Excel
                         </button>
+                        <button type="button" className="portfolio-csv-btn portfolio-csv-btn--ghost" onClick={downloadWorkbookTemplate}>
+                            <Download size={16} /> Descargar plantilla
+                        </button>
                         <button type="button" className="portfolio-csv-btn" onClick={resetToDemo}>
-                            Restaurar demo
+                            <RefreshCw size={16} /> Restaurar demo
                         </button>
                     </div>
                     <input
@@ -870,6 +776,7 @@ export function PortfolioCsv() {
                             event.target.value = '';
                         }}
                     />
+                    <small>{workbookFileLabel}</small>
                     <small>Última actualización: {updatedAt ? new Date(updatedAt).toLocaleString('es-ES') : 'sin registrar'}</small>
                 </article>
             </section>
@@ -892,8 +799,8 @@ export function PortfolioCsv() {
 
             <section className="portfolio-csv-grid">
                 <article className="portfolio-csv-card">
-                    <h2><Layers3 size={18} /> Composición por activos (peso real)</h2>
-                    <p>Distribución de pesos por posición, incluyendo agrupación de activos minoritarios en "Otros activos".</p>
+                    <h2><Layers3 size={18} /> Composición por activos</h2>
+                    <p>Distribución de pesos por posición.</p>
                     <div className="portfolio-csv-chart portfolio-csv-chart--composition">
                         <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                             <PieChart margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
@@ -972,7 +879,7 @@ export function PortfolioCsv() {
 
                 <article className="portfolio-csv-card">
                     <h2><TrendingUp size={18} /> Drivers del mes: aportado vs plusvalía</h2>
-                    <p>Desglose mensual entre aportación y resultado de mercado.</p>
+                    <p>Desglose mensual entre aportacion y resultado de mercado.</p>
                     <div className="portfolio-csv-chart">
                         <ResponsiveContainer width="100%" height={320}>
                             <ComposedChart data={evolution} margin={mobileChartMargin}>
@@ -989,7 +896,7 @@ export function PortfolioCsv() {
                                 <Tooltip content={<SeriesTooltip valueType="currency" />} />
                                 <Legend formatter={legendFormatter} wrapperStyle={{ color: 'var(--text-secondary)' }} />
                                 <Bar dataKey="monthlyContribution" name="Aportación" fill="#3b82f6" radius={[6, 6, 0, 0]} />
-                                <Bar dataKey="profit" name="Plusvalía" fill="#10b981" radius={[6, 6, 0, 0]} />
+                                <Bar dataKey="profit" name="Plusvalia" fill="#10b981" radius={[6, 6, 0, 0]} />
                                 <Line type="monotone" dataKey="gainVsInvested" name="Ganancia acumulada" stroke="#f59e0b" strokeWidth={2} dot={false} />
                             </ComposedChart>
                         </ResponsiveContainer>
@@ -1049,7 +956,7 @@ export function PortfolioCsv() {
                 <article className="portfolio-csv-card">
                     <h2><Layers3 size={18} /> Resumen mensual</h2>
                     <ul className="portfolio-csv-insights">
-                        <li><span>Concentración Top 3</span><strong>{formatPct(topConcentration)} ({concentrationLevel})</strong></li>
+                        <li><span>Concentracion Top 3</span><strong>{formatPct(topConcentration)} ({concentrationLevel})</strong></li>
                         <li><span>Mejor mes registrado</span><strong>{bestMonth ? `${bestMonth.period} (${formatPct(bestMonth.monthlyReturnPct)})` : 'N/D'}</strong></li>
                         <li><span>Peor mes registrado</span><strong>{worstMonth ? `${worstMonth.period} (${formatPct(worstMonth.monthlyReturnPct)})` : 'N/D'}</strong></li>
                         <li><span>Ganancia neta vs invertido</span><strong>{latestEvolution ? formatCurrency(latestEvolution.gainVsInvested) : 'N/D'}</strong></li>
@@ -1082,7 +989,7 @@ export function PortfolioCsv() {
 
                 <article className="portfolio-csv-card">
                     <h2><Layers3 size={18} /> Buckets por objetivo</h2>
-                    <p>Agrupa las posiciones en largo plazo, rentas, liquidez y objetivos concretos.</p>
+                    <p>Agrupa las posiciones en largo plazo, medio plazo, liquidez y objetivos concretos.</p>
                     <div className="portfolio-csv-chart">
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={bucketAllocationData}>
@@ -1104,13 +1011,12 @@ export function PortfolioCsv() {
 
             <section className="portfolio-csv-card portfolio-csv-card--full">
                 <h2><FileSpreadsheet size={18} /> Tabla de control de posiciones</h2>
-                <p>Corrige categorías cuando la heurística falle y asigna cada activo a un bucket de seguimiento.</p>
+                <p>Corrige categorías cuando la heurística falle.</p>
                 <div className="portfolio-csv-controls-table">
                     <div className="portfolio-csv-controls-table__head">
                         <span>Activo</span>
                         <span>Peso</span>
                         <span>Categoría</span>
-                        <span>Bucket</span>
                     </div>
                     {holdings.map((holding) => (
                         <div key={holding.asset} className="portfolio-csv-controls-table__row">
@@ -1124,11 +1030,6 @@ export function PortfolioCsv() {
                                     <option key={value} value={value}>{label}</option>
                                 ))}
                             </select>
-                            <select className="portfolio-csv-select" value={holding.bucket} onChange={(event) => setHoldingBucketOverride(holding.asset, event.target.value as HoldingBucket)}>
-                                {Object.entries(BUCKET_LABELS).map(([value, label]) => (
-                                    <option key={value} value={value}>{label}</option>
-                                ))}
-                            </select>
                         </div>
                     ))}
                 </div>
@@ -1136,7 +1037,7 @@ export function PortfolioCsv() {
             <section className="portfolio-csv-grid">
                 <article className="portfolio-csv-card">
                     <h2><TrendingUp size={18} /> Asignación objetivo</h2>
-                    <p>Define el peso deseado para cada bucket. La suma ideal es 100%.</p>
+                    <p>Define el peso deseado para cada bloque.</p>
                     <div className="portfolio-csv-targets">
                         {(Object.keys(BUCKET_LABELS) as HoldingBucket[]).map((bucket) => (
                             <label key={bucket} className="portfolio-csv-targets__item">
@@ -1160,8 +1061,8 @@ export function PortfolioCsv() {
                 </article>
 
                 <article className="portfolio-csv-card">
-                    <h2><Layers3 size={18} /> Desviación vs objetivo</h2>
-                    <p>Lectura práctica para saber qué bloque pesa de más o de menos respecto al plan.</p>
+                    <h2><Layers3 size={18} /> Desviación vs Objetivo</h2>
+                    <p>Lectura practica para saber que bloque pesa de mas o de menos respecto al plan.</p>
                     <div className="portfolio-csv-plan-table">
                         <div className="portfolio-csv-plan-table__head">
                             <span>Bucket</span>
@@ -1175,7 +1076,7 @@ export function PortfolioCsv() {
                                 <span data-label="Actual">{formatPct(row.currentWeight)}</span>
                                 <span data-label="Objetivo">{formatPct(row.targetWeight)}</span>
                                 <span
-                                    data-label="Desvio"
+                                    data-label="Desvío"
                                     className={row.deviation > 0.25 ? 'portfolio-csv-plan-table__delta--over' : row.deviation < -0.25 ? 'portfolio-csv-plan-table__delta--under' : ''}
                                 >
                                     {row.deviation > 0 ? '+' : ''}{formatPct(row.deviation)}
@@ -1190,7 +1091,7 @@ export function PortfolioCsv() {
                             {bucketPlanData
                                 .filter((row) => Math.abs(row.amountDelta) >= Math.max(totalPortfolioValue * 0.01, 100))
                                 .map((row) => `${row.amountDelta > 0 ? 'reducir' : 'aumentar'} ${row.label} en ${formatCurrency(Math.abs(row.amountDelta))}`)
-                                .join(' · ') || 'la cartera ya está cerca del objetivo definido.'}
+                                .join(' | ') || 'la cartera ya está cerca del objetivo definido.'}
                         </p>
                     </div>
                 </article>
@@ -1198,3 +1099,5 @@ export function PortfolioCsv() {
         </div>
     );
 }
+
+

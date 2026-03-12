@@ -2,7 +2,7 @@ import { useState } from 'react';
 import {
     Ghost, TrendingDown,
     ArrowLeft, Info, Lightbulb, TrendingUp,
-    DollarSign, Calendar, Percent
+    Banknote, Calendar, Percent
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import './InflationPredator.css';
@@ -43,7 +43,7 @@ export function InflationPredator() {
                     <div className="calc__input-group">
                         <label htmlFor="amount">Capital Inicial</label>
                         <div className="calc__input-wrapper">
-                            <DollarSign size={18} />
+                            <Banknote size={18} />
                             <input
                                 id="amount"
                                 type="number"

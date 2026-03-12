@@ -57,14 +57,14 @@ const academySections: AcademySection[] = [
 
     { path: '/academy/calculators', icon: Calculator, label: 'Calculadoras', group: 'Herramientas' },
     { path: '/academy/fund-radar', icon: Award, label: 'Radar de fondos', group: 'Herramientas' },
-    { path: '/academy/valuation', icon: LineChart, label: 'Valoracion', group: 'Herramientas' },
+    { path: '/academy/valuation', icon: LineChart, label: 'Valoración', group: 'Herramientas' },
     { path: '/academy/market-timing-game', icon: Gamepad2, label: 'Timing vs DCA', group: 'Herramientas' },
 
     { path: '/academy/crisis', icon: Activity, label: 'Mercado y crisis', group: 'Escenarios' },
-    { path: '/academy/scenarios', icon: Target, label: 'Que hacer si...', group: 'Escenarios' },
-    { path: '/academy/inflation-predator', icon: Flame, label: 'Impacto de la inflacion', group: 'Escenarios' },
+    { path: '/academy/scenarios', icon: Target, label: 'Qué hacer si...', group: 'Escenarios' },
+    { path: '/academy/inflation-predator', icon: Flame, label: 'Impacto de la inflación', group: 'Escenarios' },
 
-    { path: '/academy/resources', icon: FolderOpen, label: 'Recursos y guias', group: 'Recursos' }
+    { path: '/academy/resources', icon: FolderOpen, label: 'Recursos y guías', group: 'Recursos' }
 ];
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {

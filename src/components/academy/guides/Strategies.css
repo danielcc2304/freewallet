@@ -98,6 +98,12 @@
     color: var(--text-secondary);
 }
 
+.strategies__insight svg {
+    width: 1.35rem;
+    height: 1.35rem;
+    flex-shrink: 0;
+}
+
 /* Entry Method */
 .strategies__entry-grid {
     display: grid;

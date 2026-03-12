@@ -351,32 +351,6 @@ export function FundRadar() {
                 </div>
             )}
 
-            <footer className="fund-radar__footer-info">
-                <div className="info-box info-box--formula">
-                    <div className="info-text">
-                        <p><strong>Fórmula de Eficiencia:</strong> Prioriza historial a 5 años (80%) y penaliza riesgos extremos.</p>
-                        <code className="formula-code">Score = (0.8 * Rent.5Y + 0.2 * Rent.3Y) - 0.4 * Vol - 0.4 * MDD - TER</code>
-                        <p className="formula-note">Penalización por falta de histórico a 5 años. Se utiliza Winsorization p5–p95 para normalización relativa por categoría.</p>
-                    </div>
-                </div>
-
-                <div className="info-box">
-                    <div className="info-icon-wrapper">
-                        <Info size={24} />
-                    </div>
-                    <div className="info-text">
-                        <p>
-                            Los datos se basan en registros históricos de Finect y Morningstar.
-                            Las puntuaciones reflejan la eficiencia relativa del gestor dentro de su categoría de activos.
-                        </p>
-                        <span className="disclaimer">
-                            <strong>Aviso Legal:</strong> Este ranking es exclusivamente informativo. FreeWallet no ofrece asesoramiento financiero.
-                            La elección de cualquier producto de inversión debe basarse en un estudio personal y/o con un asesor certificado.
-                        </span>
-                    </div>
-                </div>
-            </footer>
-
             <section className="fund-radar__edu">
                 <h2>Cómo interpretar una ficha Morningstar (ejemplo real)</h2>
                 <p className="fund-radar__edu-intro">
@@ -445,16 +419,42 @@ export function FundRadar() {
                 </div>
             </section>
 
+            <footer className="fund-radar__footer-info">
+                <div className="info-box info-box--formula">
+                    <div className="info-text">
+                        <p><strong>Fórmula de Eficiencia:</strong> Prioriza historial a 5 años (80%) y penaliza riesgos extremos.</p>
+                        <code className="formula-code">Score = (0.8 * Rent.5Y + 0.2 * Rent.3Y) - 0.4 * Vol - 0.4 * MDD - TER</code>
+                        <p className="formula-note">Penalización por falta de histórico a 5 años. Se utiliza Winsorization p5–p95 para normalización relativa por categoría.</p>
+                    </div>
+                </div>
+
+                <div className="info-box">
+                    <div className="info-icon-wrapper">
+                        <Info size={24} />
+                    </div>
+                    <div className="info-text">
+                        <p>
+                            Los datos se basan en registros históricos de Finect y Morningstar.
+                            Las puntuaciones reflejan la eficiencia relativa del gestor dentro de su categoría de activos.
+                        </p>
+                        <span className="disclaimer">
+                            <strong>Aviso Legal:</strong> Este ranking es exclusivamente informativo. FreeWallet no ofrece asesoramiento financiero.
+                            La elección de cualquier producto de inversión debe basarse en un estudio personal y/o con un asesor certificado.
+                        </span>
+                    </div>
+                </div>
+            </footer>
+
 
             <section className="fund-radar__next">
                 <div className="fund-radar__next-header">
-                    <h2>Que hacer despues del radar</h2>
+                    <h2>Qué hacer despues del radar</h2>
                     <p>Una vez filtrados los fondos, contrasta encaje, riesgo y lectura de cartera.</p>
                 </div>
                 <div className="fund-radar__next-grid">
                     <Link to="/academy/portfolio" className="fund-radar__next-card">
                         <strong>Estrategia y cartera</strong>
-                        <p>Comprueba si el fondo mejora una asignacion completa y no solo una posicion aislada.</p>
+                        <p>Comprueba si el fondo mejora una asignacion completa y no solo una posición aislada.</p>
                     </Link>
                     <Link to="/academy/risk" className="fund-radar__next-card">
                         <strong>Gestion del riesgo</strong>

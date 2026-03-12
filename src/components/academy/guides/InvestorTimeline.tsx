@@ -197,7 +197,7 @@ export function InvestorTimeline() {
                         <span>Para saber que esperar cuando llegue una caida fuerte.</span>
                     </Link>
                     <Link to="/academy/scenarios" className="timeline__guide-link">
-                        <strong>Que hacer si...</strong>
+                        <strong>Qué hacer si...</strong>
                         <span>Para convertir teoria en decisiones practicas.</span>
                     </Link>
                     <Link to="/academy/portfolio" className="timeline__guide-link">

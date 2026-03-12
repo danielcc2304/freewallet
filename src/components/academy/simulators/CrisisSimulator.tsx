@@ -259,7 +259,7 @@ export function CrisisSimulator() {
                         <span>Para entender en que fase suele aparecer el panico y como evitarlo.</span>
                     </Link>
                     <Link to="/academy/scenarios" className="crisis__next-link">
-                        <strong>Que hacer si...</strong>
+                        <strong>Qué hacer si...</strong>
                         <span>Para ensayar decisiones concretas cuando el mercado se complica.</span>
                     </Link>
                     <Link to="/academy/errors" className="crisis__next-link">

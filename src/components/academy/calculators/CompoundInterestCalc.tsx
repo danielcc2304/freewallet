@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { DollarSign, TrendingUp, Calendar, Target, ChevronDown, ChevronUp } from 'lucide-react';
+import { Banknote, TrendingUp, Calendar, Target, ChevronDown, ChevronUp } from 'lucide-react';
 import {
     AreaChart,
     Area,
@@ -398,7 +398,7 @@ export function CompoundInterestCalc() {
                     <div className="calc__input-group">
                         <label htmlFor="initial">Patrimonio Inicial</label>
                         <div className="calc__input-wrapper">
-                            <DollarSign size={18} />
+                            <Banknote size={18} />
                             <input
                                 id="initial"
                                 type="number"
@@ -415,7 +415,7 @@ export function CompoundInterestCalc() {
                         <div className="calc__input-group">
                             <label htmlFor="monthly">Aportación Mensual</label>
                             <div className="calc__input-wrapper">
-                                <DollarSign size={18} />
+                                <Banknote size={18} />
                                 <input
                                     id="monthly"
                                     type="number"
@@ -547,7 +547,7 @@ export function CompoundInterestCalc() {
                                                 {withdrawalType === 'percentage' ? 'Porcentaje anual' : 'Cantidad anual'}
                                             </label>
                                             <div className="calc__input-wrapper">
-                                                <DollarSign size={18} />
+                                                <Banknote size={18} />
                                                 <input
                                                     id="withdrawal"
                                                     type="number"

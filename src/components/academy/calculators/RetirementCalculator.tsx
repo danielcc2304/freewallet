@@ -1,7 +1,18 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Calendar, Info, ShieldAlert, BadgeInfo, Wallet2, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './RetirementCalculator.css';
+
+interface RetirementCalculatorStorage {
+    currentAge: number | string;
+    retirementAge: number | string;
+    currentSavings: number | string;
+    monthlyContribution: number | string;
+    annualReturn: number | string;
+    inflationRate: number | string;
+}
+
+const RETIREMENT_CALCULATOR_STORAGE_KEY = 'freewallet_retirement_calculator';
 
 export function RetirementCalculator() {
     // Inputs
@@ -11,6 +22,40 @@ export function RetirementCalculator() {
     const [monthlyContribution, setMonthlyContribution] = useState<number | string>(300);
     const [annualReturn, setAnnualReturn] = useState<number | string>(7);
     const [inflationRate, setInflationRate] = useState<number | string>(2.5);
+
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(RETIREMENT_CALCULATOR_STORAGE_KEY);
+            if (!raw) return;
+
+            const stored = JSON.parse(raw) as Partial<RetirementCalculatorStorage>;
+            if (stored.currentAge !== undefined) setCurrentAge(stored.currentAge);
+            if (stored.retirementAge !== undefined) setRetirementAge(stored.retirementAge);
+            if (stored.currentSavings !== undefined) setCurrentSavings(stored.currentSavings);
+            if (stored.monthlyContribution !== undefined) setMonthlyContribution(stored.monthlyContribution);
+            if (stored.annualReturn !== undefined) setAnnualReturn(stored.annualReturn);
+            if (stored.inflationRate !== undefined) setInflationRate(stored.inflationRate);
+        } catch {
+            // Ignore localStorage failures or malformed saved values.
+        }
+    }, []);
+
+    useEffect(() => {
+        const payload: RetirementCalculatorStorage = {
+            currentAge,
+            retirementAge,
+            currentSavings,
+            monthlyContribution,
+            annualReturn,
+            inflationRate
+        };
+
+        try {
+            localStorage.setItem(RETIREMENT_CALCULATOR_STORAGE_KEY, JSON.stringify(payload));
+        } catch {
+            // Ignore localStorage failures.
+        }
+    }, [currentAge, retirementAge, currentSavings, monthlyContribution, annualReturn, inflationRate]);
 
     // Numeric versions
     const ageNum = Number(currentAge) || 0;

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
     Ghost, TrendingDown,
     ArrowLeft, Info, Lightbulb, TrendingUp,
@@ -7,11 +7,42 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 import './InflationPredator.css';
 
+interface InflationPredatorStorage {
+    amount: number;
+    years: number;
+    inflation: number;
+}
+
+const INFLATION_PREDATOR_STORAGE_KEY = 'freewallet_inflation_predator';
+
 export function InflationPredator() {
     const navigate = useNavigate();
     const [amount, setAmount] = useState<number>(10000);
     const [years, setYears] = useState<number>(10);
     const [inflation, setInflation] = useState<number>(3);
+
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(INFLATION_PREDATOR_STORAGE_KEY);
+            if (!raw) return;
+
+            const stored = JSON.parse(raw) as Partial<InflationPredatorStorage>;
+            if (typeof stored.amount === 'number') setAmount(stored.amount);
+            if (typeof stored.years === 'number') setYears(stored.years);
+            if (typeof stored.inflation === 'number') setInflation(stored.inflation);
+        } catch {
+            // Ignore localStorage failures or malformed saved values.
+        }
+    }, []);
+
+    useEffect(() => {
+        const payload: InflationPredatorStorage = { amount, years, inflation };
+        try {
+            localStorage.setItem(INFLATION_PREDATOR_STORAGE_KEY, JSON.stringify(payload));
+        } catch {
+            // Ignore localStorage failures.
+        }
+    }, [amount, years, inflation]);
 
     // Calculation: P = Amount / (1 + r)^n
     const r = inflation / 100;

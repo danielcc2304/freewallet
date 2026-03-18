@@ -1,7 +1,9 @@
 .inflation-predator {
     max-width: 900px;
     margin: 0 auto;
-    padding-bottom: 5rem;
+    padding: 0 1rem 5rem;
+    box-sizing: border-box;
+    overflow-x: clip;
 }
 
 .inflation-predator__hero {
@@ -33,7 +35,7 @@
 
 .inflation-predator__grid {
     display: grid;
-    grid-template-columns: 1fr 1.5fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
     gap: 2.5rem;
     align-items: start;
 }
@@ -41,6 +43,8 @@
 /* Controls */
 .inflation-predator__controls {
     background: var(--bg-secondary);
+    width: 100%;
+    min-width: 0;
     padding: 2.5rem;
     border-radius: 24px;
     border: 1px solid var(--border-color);
@@ -53,6 +57,8 @@
 /* Visualizer */
 .inflation-predator__visualizer {
     background: var(--bg-secondary);
+    width: 100%;
+    min-width: 0;
     padding: 2.5rem;
     border-radius: 24px;
     border: 1px solid var(--border-color);
@@ -179,11 +185,18 @@
     margin-top: 3rem;
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: 1.5rem;
     background: rgba(var(--accent-rgb), 0.05);
     padding: 1.5rem;
     border-radius: 16px;
     text-align: left;
+    min-width: 0;
+}
+
+.cta-text {
+    min-width: 0;
+    flex: 1 1 220px;
 }
 
 .cta-text h4 {
@@ -200,6 +213,7 @@
 .inflation-predator__cta-box .quiz-button {
     margin-left: auto;
     white-space: nowrap;
+    max-width: 100%;
 }
 
 @media (max-width: 850px) {

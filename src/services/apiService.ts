@@ -1,101 +1,37 @@
 import axios from 'axios';
 import type { StockQuote, SearchResult, HistoricalDataPoint, AssetType, TimePeriod } from '../types/types';
+import {
+    QUOTE_CACHE,
+    SEARCH_CACHE,
+    TTL,
+} from './market/marketCache';
+import {
+    ALPHA_VANTAGE_API_KEY,
+    ALPHA_VANTAGE_BASE_URL,
+    FINNHUB_BASE_URL,
+    MAX_FAILURES_BEFORE_SWITCH,
+    YAHOO_BASE_URL,
+    YAHOO_SEARCH_URL,
+} from './market/marketConfig';
+import {
+    CORS_PROXIES,
+    fetchFromProxy,
+    getNextProxy,
+    markProxyFailure,
+} from './market/marketProxy';
+import {
+    getAlphaVantageFailures,
+    getFinnhubApiKey,
+    getYahooFinanceFailures,
+    incrementAlphaVantageFailures,
+    incrementYahooFinanceFailures,
+    resetAlphaVantageFailures,
+    resetYahooFinanceFailures,
+    setFinnhubApiKey,
+    waitForAlphaVantageRateLimit,
+    waitForFinnhubRateLimit,
+} from './market/marketState';
 import { isApiEnabled } from './storageService';
-
-// ===== API CONFIGURATION =====
-const ALPHA_VANTAGE_BASE_URL = 'https://www.alphavantage.co/query';
-const ALPHA_VANTAGE_API_KEY = 'OTGRPQ9ZJ1MQSNLZ';
-
-const FINNHUB_BASE_URL = 'https://finnhub.io/api/v1';
-const FINNHUB_API_KEY = 'demo'; // User can set their own Finnhub key for additional fallback
-
-// Rate limiting for Alpha Vantage (25 calls/day on free tier = be conservative)
-let lastAlphaVantageCall = 0;
-const ALPHA_VANTAGE_MIN_INTERVAL = 3000; // 3 seconds between calls
-
-// Rate limiting for Finnhub (60 calls/min on free tier)
-let lastFinnhubCall = 0;
-const FINNHUB_MIN_INTERVAL = 1000; // 1 second between calls
-
-// Track API failures to switch providers
-let alphaVantageFailures = 0;
-let yahooFinanceFailures = 0;
-const MAX_FAILURES_BEFORE_SWITCH = 3;
-
-// Configure Yahoo Finance
-// Note: In browser, direct calls to Yahoo are blocked by CORS.
-// We use multiple proxies for fallback
-const YAHOO_BASE_URL = 'https://query1.finance.yahoo.com/v7/finance';
-const YAHOO_SEARCH_URL = 'https://query2.finance.yahoo.com/v1/finance/search';
-
-interface ProxyConfig {
-    url: string;
-    type: 'raw' | 'json';
-}
-
-const CORS_PROXIES: ProxyConfig[] = [
-    { url: 'https://api.allorigins.win/raw?url=', type: 'raw' },
-    { url: 'https://thingproxy.freeboard.io/fetch/', type: 'raw' },
-    { url: 'https://api.allorigins.win/get?url=', type: 'json' },
-    { url: 'https://corsproxy.org/?url=', type: 'raw' },
-    { url: 'https://corsproxy.is/?url=', type: 'raw' },
-    { url: 'https://api.codetabs.com/v1/proxy?quest=', type: 'raw' },
-];
-let currentProxyIndex = 0;
-
-// ===== CACHE CONFIGURATION =====
-interface CacheEntry<T> {
-    data: T;
-    timestamp: number;
-}
-const QUOTE_CACHE = new Map<string, CacheEntry<StockQuote>>();
-const SEARCH_CACHE = new Map<string, CacheEntry<SearchResult[]>>();
-
-// Fix 4: Granular TTLs
-const TTL = {
-    QUOTE: 60 * 1000,         // 60 seconds
-    SEARCH: 10 * 60 * 1000,   // 10 minutes
-    FUNDAMENTALS: 6 * 60 * 60 * 1000, // 6 hours
-    CHART: 5 * 60 * 1000      // 5 minutes
-};
-
-// ===== HELPER FUNCTIONS =====
-const PROXY_COOLDOWN = new Map<string, number>();
-const COOLDOWN_MS = 30000; // Increased to 30s to be safe
-
-function getNextProxy(): ProxyConfig {
-    const now = Date.now();
-    for (let i = 0; i < CORS_PROXIES.length; i++) {
-        const index = (currentProxyIndex + i) % CORS_PROXIES.length;
-        const proxy = CORS_PROXIES[index];
-        const cooldownUntil = PROXY_COOLDOWN.get(proxy.url) || 0;
-
-        if (now > cooldownUntil) {
-            currentProxyIndex = (index + 1) % CORS_PROXIES.length;
-            return proxy;
-        }
-    }
-    const proxy = CORS_PROXIES[currentProxyIndex];
-    currentProxyIndex = (currentProxyIndex + 1) % CORS_PROXIES.length;
-    return proxy;
-}
-
-// Fix 5: Smart markProxyFailure
-function markProxyFailure(proxyUrl: string, err?: any) {
-    // Ignore AbortError (user cancelled)
-    if (axios.isCancel(err) || err?.name === 'AbortError') return;
-
-    // Penalize only specific errors
-    const status = err?.response?.status;
-    const isNetworkError = !status && err?.code; // e.g. ECONNABORTED
-    const isRateLimit = status === 429;
-    const isServerError = status >= 500;
-
-    if (isNetworkError || isRateLimit || isServerError) {
-        console.warn(`[Proxy] Penalty for ${proxyUrl}:`, err?.message || status);
-        PROXY_COOLDOWN.set(proxyUrl, Date.now() + COOLDOWN_MS);
-    }
-}
 
 function looksLikeISIN(q: string): boolean {
     return /^[A-Z]{2}[A-Z0-9]{10}$/.test(q.trim().toUpperCase());
@@ -125,55 +61,6 @@ function queryLooksLikeFund(query: string): boolean {
     );
 }
 
-
-function buildProxyUrl(proxyConfig: ProxyConfig, url: string, forceRefresh = false): string {
-    const { url: proxyBase } = proxyConfig;
-
-    // Only add cache buster if explicitly requested (retries)
-    let targetUrl = url;
-    if (forceRefresh) {
-        const cacheBuster = `&_cb=${Date.now()}`;
-        targetUrl = url + (url.includes('?') ? cacheBuster : `?${cacheBuster.substring(1)}`);
-    }
-
-    const encodedUrl = encodeURIComponent(targetUrl);
-
-    if (proxyBase.includes('allorigins') || proxyBase.includes('codetabs')) {
-        return `${proxyBase}${encodedUrl}`;
-    }
-    if (proxyBase.includes('?') && !proxyBase.endsWith('=')) {
-        return `${proxyBase}${targetUrl}`;
-    }
-    if (proxyBase.endsWith('url=')) {
-        return `${proxyBase}${encodedUrl}`;
-    }
-    return `${proxyBase}${targetUrl}`;
-}
-
-async function fetchFromProxy(proxyConfig: ProxyConfig, url: string, signal?: AbortSignal, forceRefresh = false) {
-    const proxyUrl = buildProxyUrl(proxyConfig, url, forceRefresh);
-    const response = await axios.get(proxyUrl, { timeout: 10000, signal });
-
-    if (proxyConfig.type === 'json') {
-        const data = response.data;
-        if (data && data.contents !== undefined) {
-            if (typeof data.contents === 'string') {
-                try {
-                    // Try to parse if it looks like JSON
-                    if (data.contents.trim().startsWith('{') || data.contents.trim().startsWith('[')) {
-                        return JSON.parse(data.contents);
-                    }
-                    return data.contents;
-                } catch (e) {
-                    return data.contents;
-                }
-            }
-            return data.contents;
-        }
-    }
-    return response.data;
-}
-
 function addUniqueResult(
     allResults: SearchResult[],
     seenSymbols: Set<string>,
@@ -183,24 +70,6 @@ function addUniqueResult(
         allResults.push(res);
         seenSymbols.add(res.symbol);
     }
-}
-
-async function waitForAlphaVantageRateLimit(): Promise<void> {
-    const now = Date.now();
-    const elapsed = now - lastAlphaVantageCall;
-    if (elapsed < ALPHA_VANTAGE_MIN_INTERVAL) {
-        await new Promise(resolve => setTimeout(resolve, ALPHA_VANTAGE_MIN_INTERVAL - elapsed));
-    }
-    lastAlphaVantageCall = Date.now();
-}
-
-async function waitForFinnhubRateLimit(): Promise<void> {
-    const now = Date.now();
-    const elapsed = now - lastFinnhubCall;
-    if (elapsed < FINNHUB_MIN_INTERVAL) {
-        await new Promise(resolve => setTimeout(resolve, FINNHUB_MIN_INTERVAL - elapsed));
-    }
-    lastFinnhubCall = Date.now();
 }
 
 // ===== SEARCH SYMBOLS (with fallback) =====
@@ -264,15 +133,15 @@ export async function searchSymbol(query: string, signal?: AbortSignal): Promise
     }
 
     // 1) Yahoo Finance search (mejor cobertura)
-    if (yahooFinanceFailures < MAX_FAILURES_BEFORE_SWITCH) {
+    if (getYahooFinanceFailures() < MAX_FAILURES_BEFORE_SWITCH) {
         try {
             const results = await searchSymbolYahoo(q, signal);
             results.forEach(res => addUniqueResult(allResults, seenSymbols, res));
-            yahooFinanceFailures = 0;
+            resetYahooFinanceFailures();
         } catch (error) {
             if (axios.isCancel(error)) throw error;
             console.warn('Yahoo Finance search failed:', error);
-            yahooFinanceFailures++;
+            incrementYahooFinanceFailures();
         }
     }
 
@@ -280,14 +149,14 @@ export async function searchSymbol(query: string, signal?: AbortSignal): Promise
     // En las siguientes funciones async, pasar el signal a axios.get(..., { signal })
 
     // 2) Alpha Vantage (si falta chicha)
-    if (allResults.length < 8 && alphaVantageFailures < MAX_FAILURES_BEFORE_SWITCH) {
+    if (allResults.length < 8 && getAlphaVantageFailures() < MAX_FAILURES_BEFORE_SWITCH) {
         try {
             const results = await searchSymbolAlphaVantage(q);
             results.forEach(res => addUniqueResult(allResults, seenSymbols, res));
-            alphaVantageFailures = 0;
+            resetAlphaVantageFailures();
         } catch (error) {
             console.warn('Alpha Vantage search failed:', error);
-            alphaVantageFailures++;
+            incrementAlphaVantageFailures();
         }
     }
 
@@ -473,34 +342,34 @@ export async function getQuote(symbol: string, signal?: AbortSignal): Promise<St
     }
 
     // Try Yahoo Finance first as it's generally more reliable and has better coverage
-    if (yahooFinanceFailures < MAX_FAILURES_BEFORE_SWITCH) {
+    if (getYahooFinanceFailures() < MAX_FAILURES_BEFORE_SWITCH) {
         try {
             const quote = await getQuoteYahoo(symbol, signal);
             if (quote) {
-                yahooFinanceFailures = 0;
+                resetYahooFinanceFailures();
                 QUOTE_CACHE.set(symbol, { data: quote, timestamp: Date.now() });
                 return quote;
             }
         } catch (error) {
             if (axios.isCancel(error)) throw error;
             console.warn('Yahoo Finance quote failed, trying Alpha Vantage...', error);
-            yahooFinanceFailures++;
+            incrementYahooFinanceFailures();
         }
     }
 
     // Try Alpha Vantage second
-    if (alphaVantageFailures < MAX_FAILURES_BEFORE_SWITCH) {
+    if (getAlphaVantageFailures() < MAX_FAILURES_BEFORE_SWITCH) {
         try {
             const quote = await getQuoteAlphaVantage(symbol, signal);
             if (quote) {
-                alphaVantageFailures = 0;
+                resetAlphaVantageFailures();
                 QUOTE_CACHE.set(symbol, { data: quote, timestamp: Date.now() });
                 return quote;
             }
         } catch (error) {
             if (axios.isCancel(error)) throw error;
             console.warn('Alpha Vantage quote failed, trying Finnhub...', error);
-            alphaVantageFailures++;
+            incrementAlphaVantageFailures();
         }
     }
 
@@ -900,7 +769,7 @@ export async function updateAssetPrices(
     const uniqueSymbols = Array.from(new Set(assets.map(a => a.symbol)));
 
     // Try batch first (best for performance)
-    if (yahooFinanceFailures < MAX_FAILURES_BEFORE_SWITCH) {
+    if (getYahooFinanceFailures() < MAX_FAILURES_BEFORE_SWITCH) {
         try {
             const quotes = await getQuotesYahooBatch(uniqueSymbols);
             quotes.forEach(q => {
@@ -908,12 +777,12 @@ export async function updateAssetPrices(
                 // Also update cache
                 QUOTE_CACHE.set(q.symbol, { data: q, timestamp: Date.now() });
             });
-            yahooFinanceFailures = 0;
+            resetYahooFinanceFailures();
 
             console.log(`[Batch Update] Succeeded for ${prices.size}/${uniqueSymbols.length} symbols`);
         } catch (error) {
             console.warn('Batch price update failed:', error);
-            yahooFinanceFailures++;
+            incrementYahooFinanceFailures();
         }
     }
 
@@ -972,16 +841,9 @@ function mapYahooType(type: string): AssetType {
 // ===== API STATUS =====
 export function getApiStatus(): { alphaVantage: boolean; finnhub: boolean } {
     return {
-        alphaVantage: alphaVantageFailures < MAX_FAILURES_BEFORE_SWITCH,
+        alphaVantage: getAlphaVantageFailures() < MAX_FAILURES_BEFORE_SWITCH,
         finnhub: true, // Finnhub is always available as fallback
     };
 }
 
-// ===== SET CUSTOM FINNHUB KEY =====
-export function setFinnhubApiKey(key: string): void {
-    localStorage.setItem('freewallet_finnhub_key', key);
-}
-
-export function getFinnhubApiKey(): string {
-    return localStorage.getItem('freewallet_finnhub_key') || FINNHUB_API_KEY;
-}
+export { getFinnhubApiKey, setFinnhubApiKey };

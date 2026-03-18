@@ -27,382 +27,42 @@ import {
     YAxis,
 } from 'recharts';
 import * as XLSX from 'xlsx';
+import {
+    BUCKET_LABELS,
+    CATEGORY_LABELS,
+    DEFAULT_BUCKET_TARGETS,
+    DEFAULT_EVOLUTION_CSV,
+    DEFAULT_HOLDINGS_CSV,
+    PIE_COLORS,
+    STORAGE_KEYS,
+} from './portfolioCsvConstants';
+import {
+    readStoredMap,
+    readStoredNumberMap,
+    readStoredValue,
+} from './portfolioCsvStorage';
+import type {
+    EnrichedEvolutionPoint,
+    HoldingBucket,
+    HoldingCategory,
+    HoldingControl,
+    PieRow,
+} from './portfolioCsvTypes';
+import {
+    classifyAsset,
+    defaultBucketForCategory,
+    formatCurrency,
+    formatPct,
+    formatPeriodLabel,
+    normalizeSheetName,
+    parseCsvRows,
+    parseEvolution,
+    parseHoldings,
+    parsePeriodParts,
+    resolveEvolutionPeriods,
+    standardDeviation,
+} from './portfolioCsvUtils';
 import './PortfolioCsv.css';
-
-type HoldingCategory = 'equity' | 'fixedIncome' | 'cash' | 'alternatives' | 'other';
-type HoldingBucket = 'longTerm' | 'income' | 'liquidity' | 'goal';
-type Holding = { asset: string; amount: number; weight: number; category: HoldingCategory };
-type HoldingControl = Holding & { categoryOverride?: HoldingCategory; bucket: HoldingBucket };
-type EvolutionPoint = {
-    period: string;
-    totalValue: number;
-    initialCapital: number;
-    monthlyContribution: number;
-    profit: number;
-    monthlyReturnPct: number;
-    twrYtdPct: number;
-};
-type EnrichedEvolutionPoint = EvolutionPoint & { investedValue: number; gainVsInvested: number; drawdownPct: number };
-type PieRow = { name: string; value: number; weight: number; color: string };
-type ParsedPeriod = { monthKey: string; monthIndex: number; year?: number };
-
-const STORAGE_KEYS = {
-    holdingsRaw: 'freewallet_portfolio_csv_holdings_raw',
-    evolutionRaw: 'freewallet_portfolio_csv_evolution_raw',
-    workbookFile: 'freewallet_portfolio_csv_workbook_file',
-    updatedAt: 'freewallet_portfolio_csv_updated_at',
-    categoryOverrides: 'freewallet_portfolio_csv_category_overrides',
-    bucketTargets: 'freewallet_portfolio_csv_bucket_targets',
-} as const;
-
-const CATEGORY_LABELS: Record<HoldingCategory, string> = {
-    equity: 'Renta variable',
-    fixedIncome: 'Renta fija',
-    cash: 'Liquidez',
-    alternatives: 'Alternativos',
-    other: 'Otros',
-};
-
-const BUCKET_LABELS: Record<HoldingBucket, string> = {
-    longTerm: 'Largo plazo',
-    income: 'Medio plazo',
-    liquidity: 'Liquidez',
-    goal: 'Objetivo',
-};
-
-const DEFAULT_BUCKET_TARGETS: Record<HoldingBucket, number> = {
-    longTerm: 55,
-    income: 20,
-    liquidity: 10,
-    goal: 15,
-};
-
-const DEFAULT_HOLDINGS_CSV = `Activo,Importe (EUR),Peso %
-"ETF Global Equity","3.200,00EUR","32,00%"
-"ETF USA Quality","1.800,00EUR","18,00%"
-"ETF Europe Dividend","1.250,00EUR","12,50%"
-"ETF Emerging Markets","950,00EUR","9,50%"
-"Global Bond Fund","1.450,00EUR","14,50%"
-"Short Duration Bond","550,00EUR","5,50%"
-"Gold ETC","300,00EUR","3,00%"
-"Cash Reserve","500,00EUR","5,00%"
-TOTAL,"10.000,00EUR",`;
-
-const DEFAULT_EVOLUTION_CSV = `Mes,Valor Total,Capital Inicial,Capital Aportado,Plusvalias,% mens.,TWR YTD
-Mar,8200,8000,200,0,"0,000","0,000"
-Abr,8450,8200,200,50,"0,610","0,610"
-May,8615,8450,200,-35,"-0,414","0,193"
-Jun,8890,8615,200,75,"0,871","1,066"
-Jul,9120,8890,200,30,"0,337","1,407"
-Ago,9345,9120,200,25,"0,274","1,685"
-Sep,9580,9345,200,35,"0,375","2,066"
-Oct,9790,9580,200,10,"0,104","2,173"
-Nov,9650,9790,200,-340,"-3,473","-1,375"
-Dic,9885,9650,200,35,"0,363","-1,017"
-Ene,10090,9885,200,5,"0,051","0,033"
-Feb,10180,10090,0,90,"0,892","0,925"
-"Mar 2026",10000,10180,0,-180,"-1,768","-0,859"`;
-
-const PIE_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7', '#84cc16', '#64748b'];
-const MONTH_KEYS = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'] as const;
-
-function readStoredValue(key: string, fallback: string): string {
-    if (typeof window === 'undefined') return fallback;
-    try {
-        return localStorage.getItem(key) || fallback;
-    } catch {
-        return fallback;
-    }
-}
-
-function readStoredMap<T extends string>(key: string): Record<string, T> {
-    if (typeof window === 'undefined') return {};
-    try {
-        const raw = localStorage.getItem(key);
-        return raw ? JSON.parse(raw) as Record<string, T> : {};
-    } catch {
-        return {};
-    }
-}
-
-function readStoredNumberMap(key: string, fallback: Record<string, number>): Record<string, number> {
-    if (typeof window === 'undefined') return fallback;
-    try {
-        const raw = localStorage.getItem(key);
-        return raw ? { ...fallback, ...(JSON.parse(raw) as Record<string, number>) } : fallback;
-    } catch {
-        return fallback;
-    }
-}
-
-function parseLooseNumber(value: string): number {
-    const normalized = value
-        .replace(/\uFEFF/g, '')
-        .replace(/EUR/gi, '')
-        .replace(/%/g, '')
-        .replace(/\s/g, '')
-        .replace(/\./g, '')
-        .replace(',', '.')
-        .replace(/[^0-9.-]/g, '');
-    const parsed = Number(normalized);
-    return Number.isFinite(parsed) ? parsed : 0;
-}
-
-function parseFlexibleNumber(value: string): number {
-    const sanitized = value
-        .replace(/\uFEFF/g, '')
-        .replace(/EUR/gi, '')
-        .replace(/%/g, '')
-        .replace(/\s/g, '')
-        .replace(/[^0-9,.-]/g, '');
-    const lastComma = sanitized.lastIndexOf(',');
-    const lastDot = sanitized.lastIndexOf('.');
-    let normalized = sanitized;
-
-    if (lastComma >= 0 && lastDot >= 0) {
-        const decimalSeparator = lastComma > lastDot ? ',' : '.';
-        const thousandsSeparator = decimalSeparator === ',' ? '.' : ',';
-        normalized = sanitized.replace(new RegExp(`\\${thousandsSeparator}`, 'g'), '');
-        if (decimalSeparator === ',') normalized = normalized.replace(',', '.');
-    } else if (lastComma >= 0) {
-        const decimalDigits = sanitized.length - lastComma - 1;
-        normalized = decimalDigits === 3 ? sanitized.replace(/,/g, '') : sanitized.replace(',', '.');
-    } else if (lastDot >= 0) {
-        const decimalDigits = sanitized.length - lastDot - 1;
-        normalized = decimalDigits === 3 ? sanitized.replace(/\./g, '') : sanitized;
-    }
-
-    const parsed = Number(normalized);
-    return Number.isFinite(parsed) ? parsed : parseLooseNumber(value);
-}
-
-function parsePercentNumber(value: string): number {
-    const sanitized = value
-        .replace(/\uFEFF/g, '')
-        .replace(/%/g, '')
-        .replace(/\s/g, '')
-        .replace(/[^0-9,.-]/g, '');
-    if (!sanitized) return 0;
-
-    const normalized = sanitized.includes(',')
-        ? sanitized.replace(/\./g, '').replace(',', '.')
-        : sanitized;
-    const parsed = Number(normalized);
-    return Number.isFinite(parsed) ? parsed : parseLooseNumber(value);
-}
-
-function parseCsvRows(raw: string): string[][] {
-    const rows: string[][] = [];
-    let row: string[] = [];
-    let cell = '';
-    let inQuotes = false;
-    const normalized = raw.replace(/\uFEFF/g, '');
-
-    for (let i = 0; i < normalized.length; i += 1) {
-        const ch = normalized[i];
-        if (ch === '"') {
-            if (inQuotes && normalized[i + 1] === '"') {
-                cell += '"';
-                i += 1;
-            } else {
-                inQuotes = !inQuotes;
-            }
-            continue;
-        }
-        if (ch === ',' && !inQuotes) {
-            row.push(cell.trim());
-            cell = '';
-            continue;
-        }
-        if ((ch === '\n' || ch === '\r') && !inQuotes) {
-            if (ch === '\r' && normalized[i + 1] === '\n') i += 1;
-            row.push(cell.trim());
-            if (row.some((v) => v.length > 0)) rows.push(row);
-            row = [];
-            cell = '';
-            continue;
-        }
-        cell += ch;
-    }
-    row.push(cell.trim());
-    if (row.some((v) => v.length > 0)) rows.push(row);
-    return rows;
-}
-
-function normalizeSheetName(value: string): string {
-    return value
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]/gi, '')
-        .toLowerCase();
-}
-
-function classifyAsset(asset: string): HoldingCategory {
-    const name = asset.toLowerCase();
-    if (name.includes('renta fija') || name.includes('credit') || name.includes('short duration') || name.includes('bond')) return 'fixedIncome';
-    if (name.includes('revolut') || name.includes('cash') || name.includes('liquidez')) return 'cash';
-    if (name.includes('reits') || name.includes('commodity') || name.includes('gold') || name.includes('crypto')) return 'alternatives';
-    if (name.includes('world') || name.includes('emerging') || name.includes('china') || name.includes('value') || name.includes('nextil') || name.includes('amper') || name.includes('obrascon')) return 'equity';
-    return 'other';
-}
-
-function defaultBucketForCategory(category: HoldingCategory): HoldingBucket {
-    if (category === 'cash') return 'liquidity';
-    if (category === 'fixedIncome') return 'income';
-    return 'longTerm';
-}
-
-function parseHoldings(raw: string): Holding[] {
-    const rows = parseCsvRows(raw);
-    if (rows.length <= 1) return [];
-    const base = rows
-        .slice(1)
-        .map((row) => ({ asset: (row[0] || '').replace(/"/g, '').trim(), amount: parseFlexibleNumber(row[1] || ''), weight: parseFlexibleNumber(row[2] || '') }))
-        .filter((row) => row.asset && row.asset.toUpperCase() !== 'TOTAL' && row.amount > 0);
-    const totalAmount = base.reduce((acc, row) => acc + row.amount, 0);
-    return base
-        .map((row) => ({ asset: row.asset, amount: row.amount, weight: row.weight > 0 ? row.weight : (totalAmount > 0 ? (row.amount / totalAmount) * 100 : 0), category: classifyAsset(row.asset) }))
-        .sort((a, b) => b.amount - a.amount);
-}
-
-function isMonthLabel(value: string): boolean {
-    return /^(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)\b/i.test(value.trim());
-}
-
-function parsePeriodParts(value: string): ParsedPeriod | null {
-    const match = value.trim().toLowerCase().match(/^(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)(?:\s+(\d{2,4}))?$/i);
-    if (!match) return null;
-    const monthKey = match[1].toLowerCase();
-    const monthIndex = MONTH_KEYS.indexOf(monthKey as typeof MONTH_KEYS[number]);
-    if (monthIndex < 0) return null;
-    const rawYear = match[2];
-    const year = rawYear ? (rawYear.length === 2 ? 2000 + Number(rawYear) : Number(rawYear)) : undefined;
-    return { monthKey, monthIndex, year: Number.isFinite(year) ? year : undefined };
-}
-
-function formatPeriodLabel(period: string, compactYear = false): string {
-    const parsed = parsePeriodParts(period);
-    if (!parsed) return period;
-    const month = parsed.monthKey.charAt(0).toUpperCase() + parsed.monthKey.slice(1);
-    if (!parsed.year) return month;
-    return compactYear ? `${month} ${String(parsed.year).slice(-2)}` : `${month} ${parsed.year}`;
-}
-
-function resolveEvolutionPeriods(points: EvolutionPoint[]): Map<string, string> {
-    const parsed = points.map((point) => parsePeriodParts(point.period));
-    const explicitYearIndex = parsed.findIndex((item) => item?.year !== undefined);
-    if (explicitYearIndex === -1) {
-        return new Map(points.map((point) => [point.period, formatPeriodLabel(point.period)]));
-    }
-
-    const resolved = parsed.map((item) => (item ? { ...item } : null));
-
-    let currentYear = resolved[explicitYearIndex]?.year;
-    let currentMonth = resolved[explicitYearIndex]?.monthIndex;
-    for (let i = explicitYearIndex - 1; i >= 0; i -= 1) {
-        const item = resolved[i];
-        if (!item || currentYear === undefined || currentMonth === undefined) continue;
-        if (item.year !== undefined) {
-            currentYear = item.year;
-            currentMonth = item.monthIndex;
-            continue;
-        }
-        if (item.monthIndex > currentMonth) currentYear -= 1;
-        item.year = currentYear;
-        currentMonth = item.monthIndex;
-    }
-
-    currentYear = resolved[explicitYearIndex]?.year;
-    currentMonth = resolved[explicitYearIndex]?.monthIndex;
-    for (let i = explicitYearIndex + 1; i < resolved.length; i += 1) {
-        const item = resolved[i];
-        if (!item || currentYear === undefined || currentMonth === undefined) continue;
-        if (item.year !== undefined) {
-            currentYear = item.year;
-            currentMonth = item.monthIndex;
-            continue;
-        }
-        if (item.monthIndex < currentMonth) currentYear += 1;
-        item.year = currentYear;
-        currentMonth = item.monthIndex;
-    }
-
-    return new Map(points.map((point, index) => {
-        const item = resolved[index];
-        if (!item) return [point.period, point.period];
-        const month = item.monthKey.charAt(0).toUpperCase() + item.monthKey.slice(1);
-        return [point.period, item.year ? `${month} ${item.year}` : month];
-    }));
-}
-
-function parseEvolution(raw: string): EvolutionPoint[] {
-    const rows = parseCsvRows(raw);
-    if (rows.length <= 1) return [];
-    const points: EvolutionPoint[] = [];
-    let currentYear: number | undefined;
-
-    for (const row of rows.slice(1)) {
-        const rawPeriod = (row[0] || '').replace(/"/g, '').trim();
-        if (!rawPeriod) continue;
-
-        const yearSectionMatch = rawPeriod.match(/^(20\d{2})$/);
-        if (yearSectionMatch) {
-            currentYear = Number(yearSectionMatch[1]);
-            continue;
-        }
-
-        const ytdYearMatch = rawPeriod.match(/^ytd\s+(20\d{2})$/i);
-        if (ytdYearMatch) {
-            currentYear = Number(ytdYearMatch[1]);
-            continue;
-        }
-
-        if (/^mes$/i.test(rawPeriod)) continue;
-        if (!isMonthLabel(rawPeriod)) continue;
-
-        const period = /\d{2,4}$/.test(rawPeriod) || currentYear === undefined
-            ? rawPeriod
-            : `${rawPeriod} ${currentYear}`;
-
-        let monthlyReturnRaw = row[5] || '';
-        let twrRaw = row[6] || '';
-        if (row.length >= 9) {
-            monthlyReturnRaw = `${row[5] || ''},${row[6] || ''}`;
-            twrRaw = `${row[7] || ''},${row[8] || ''}`;
-        } else if (row.length === 8) {
-            twrRaw = `${row[6] || ''},${row[7] || ''}`;
-        }
-
-        const point = {
-            period,
-            totalValue: parseFlexibleNumber(row[1] || ''),
-            initialCapital: parseFlexibleNumber(row[2] || ''),
-            monthlyContribution: parseFlexibleNumber(row[3] || ''),
-            profit: parseFlexibleNumber(row[4] || ''),
-            monthlyReturnPct: parsePercentNumber(monthlyReturnRaw),
-            twrYtdPct: parsePercentNumber(twrRaw),
-        };
-
-        if (point.totalValue > 0) points.push(point);
-    }
-
-    return points;
-}
-
-function formatCurrency(value: number): string {
-    return value.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 0 });
-}
-
-function formatPct(value: number): string {
-    return `${value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
-}
-
-function standardDeviation(values: number[]): number {
-    if (values.length === 0) return 0;
-    const mean = values.reduce((acc, value) => acc + value, 0) / values.length;
-    const variance = values.reduce((acc, value) => acc + ((value - mean) ** 2), 0) / values.length;
-    return Math.sqrt(variance);
-}
 
 export function PortfolioCsv() {
     const [holdingsRaw, setHoldingsRaw] = useState(() => readStoredValue(STORAGE_KEYS.holdingsRaw, DEFAULT_HOLDINGS_CSV));

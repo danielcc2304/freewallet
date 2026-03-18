@@ -1,6 +1,18 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { PiggyBank, ShieldCheck, AlertCircle, TrendingUp, HelpCircle, Home, Utensils, Zap, Plus, Users } from 'lucide-react';
 import './EmergencyFundCalculator.css';
+
+interface EmergencyFundCalculatorStorage {
+    monthlyRent: number | string;
+    monthlyFood: number | string;
+    monthlyBills: number | string;
+    monthlyOther: number | string;
+    jobStability: 'high' | 'medium' | 'low';
+    dependents: number | string;
+    currentSavings: number | string;
+}
+
+const EMERGENCY_FUND_STORAGE_KEY = 'freewallet_emergency_fund_calculator';
 
 export function EmergencyFundCalculator() {
     // Inputs
@@ -13,6 +25,44 @@ export function EmergencyFundCalculator() {
     const [jobStability, setJobStability] = useState('high'); // high, medium, low
     const [dependents, setDependents] = useState<number | string>(0);
     const [currentSavings, setCurrentSavings] = useState<number | string>(1000);
+
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(EMERGENCY_FUND_STORAGE_KEY);
+            if (!raw) return;
+
+            const stored = JSON.parse(raw) as Partial<EmergencyFundCalculatorStorage>;
+            if (stored.monthlyRent !== undefined) setMonthlyRent(stored.monthlyRent);
+            if (stored.monthlyFood !== undefined) setMonthlyFood(stored.monthlyFood);
+            if (stored.monthlyBills !== undefined) setMonthlyBills(stored.monthlyBills);
+            if (stored.monthlyOther !== undefined) setMonthlyOther(stored.monthlyOther);
+            if (stored.jobStability === 'high' || stored.jobStability === 'medium' || stored.jobStability === 'low') {
+                setJobStability(stored.jobStability);
+            }
+            if (stored.dependents !== undefined) setDependents(stored.dependents);
+            if (stored.currentSavings !== undefined) setCurrentSavings(stored.currentSavings);
+        } catch {
+            // Ignore localStorage failures or malformed saved values.
+        }
+    }, []);
+
+    useEffect(() => {
+        const payload: EmergencyFundCalculatorStorage = {
+            monthlyRent,
+            monthlyFood,
+            monthlyBills,
+            monthlyOther,
+            jobStability: jobStability as 'high' | 'medium' | 'low',
+            dependents,
+            currentSavings
+        };
+
+        try {
+            localStorage.setItem(EMERGENCY_FUND_STORAGE_KEY, JSON.stringify(payload));
+        } catch {
+            // Ignore localStorage failures.
+        }
+    }, [monthlyRent, monthlyFood, monthlyBills, monthlyOther, jobStability, dependents, currentSavings]);
 
     // Numeric versions
     const rentNum = Number(monthlyRent) || 0;

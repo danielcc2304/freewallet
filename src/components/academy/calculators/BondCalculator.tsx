@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Info, AlertTriangle, TrendingDown, Scale, Landmark, HelpCircle, Wallet } from 'lucide-react';
 import './BondCalculator.css';
 
@@ -8,6 +8,15 @@ type YtmInputs = {
     years: number;        // N: años enteros hasta vencimiento (ej 4)
     face?: number;        // F: nominal (default 100)
 };
+
+interface BondCalculatorStorage {
+    price: number | string;
+    coupon: number | string;
+    years: number | string;
+    face: number | string;
+}
+
+const BOND_CALCULATOR_STORAGE_KEY = 'freewallet_bond_calculator';
 
 /**
  * Fórmula Newton-Raphson para YTM proporcionada por el usuario
@@ -54,6 +63,30 @@ export function BondCalculator() {
     const [coupon, setCoupon] = useState<number | string>(8.875);
     const [years, setYears] = useState<number | string>(4);
     const [face, setFace] = useState<number | string>(100);
+
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(BOND_CALCULATOR_STORAGE_KEY);
+            if (!raw) return;
+
+            const stored = JSON.parse(raw) as Partial<BondCalculatorStorage>;
+            if (stored.price !== undefined) setPrice(stored.price);
+            if (stored.coupon !== undefined) setCoupon(stored.coupon);
+            if (stored.years !== undefined) setYears(stored.years);
+            if (stored.face !== undefined) setFace(stored.face);
+        } catch {
+            // Ignore localStorage failures or malformed saved values.
+        }
+    }, []);
+
+    useEffect(() => {
+        const payload: BondCalculatorStorage = { price, coupon, years, face };
+        try {
+            localStorage.setItem(BOND_CALCULATOR_STORAGE_KEY, JSON.stringify(payload));
+        } catch {
+            // Ignore localStorage failures.
+        }
+    }, [price, coupon, years, face]);
 
     const ytm = useMemo(() => {
         const p = price === '' ? 0 : Number(price);

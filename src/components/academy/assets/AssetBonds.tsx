@@ -224,7 +224,7 @@ export function AssetBonds() {
                 </p>
                 <div className="asset-page__hero-stats">
                     <div className="hero-stat">
-                        <span className="hero-stat__value">2-5%</span>
+                        <span className="hero-stat__value">2-10%</span>
                         <span className="hero-stat__label">Retorno típico</span>
                     </div>
                     <div className="hero-stat">

@@ -1,71 +1,24 @@
-import { NavLink, Link, useLocation } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import {
+    ChevronDown,
+    Feather,
+    FileSpreadsheet,
+    GraduationCap,
     LayoutDashboard,
+    Menu,
     PlusCircle,
     Settings,
     Wallet,
-    Feather,
-    Menu,
     X,
-    GraduationCap,
-    ChevronDown,
-    BookOpen,
-    TrendingUp,
-    LibraryBig,
-    CircleAlert,
-    Activity,
-    Calculator,
-    PieChart,
-    Shield,
-    Scale,
-    Award,
-    FileSpreadsheet,
-    LineChart,
-    Target,
-    Sparkles,
-    Gamepad2,
-    Flame,
-    FolderOpen
 } from 'lucide-react';
+import { Link, NavLink, useLocation } from 'react-router-dom';
+import { academySidebarGroups, academySidebarSections } from '../../../app/routes/academyRoutes';
 import './Sidebar.css';
 
 interface SidebarProps {
     isOpen: boolean;
     onToggle: () => void;
 }
-
-type AcademySection = {
-    path: string;
-    icon: any;
-    label: string;
-    group: 'Aprender' | 'Construir' | 'Herramientas' | 'Escenarios' | 'Recursos';
-    end?: boolean;
-};
-
-const academySections: AcademySection[] = [
-    { path: '/academy', icon: BookOpen, label: 'Fundamentos', end: true, group: 'Aprender' },
-    { path: '/academy/glossary', icon: LibraryBig, label: 'Glosario', group: 'Aprender' },
-    { path: '/academy/timeline', icon: TrendingUp, label: 'Tu recorrido', group: 'Aprender' },
-    { path: '/academy/errors', icon: CircleAlert, label: 'Errores comunes', group: 'Aprender' },
-
-    { path: '/academy/investor-profile-test', icon: Sparkles, label: 'Perfil inversor', group: 'Construir' },
-    { path: '/academy/portfolio', icon: PieChart, label: 'Estrategia y cartera', group: 'Construir' },
-    { path: '/academy/risk', icon: Shield, label: 'Gestion del riesgo', group: 'Construir' },
-    { path: '/academy/tax', icon: Scale, label: 'Fiscalidad', group: 'Construir' },
-    { path: '/academy/strategies', icon: Target, label: 'Estrategias', group: 'Construir' },
-
-    { path: '/academy/calculators', icon: Calculator, label: 'Calculadoras', group: 'Herramientas' },
-    { path: '/academy/fund-radar', icon: Award, label: 'Radar de fondos', group: 'Herramientas' },
-    { path: '/academy/valuation', icon: LineChart, label: 'Valoración', group: 'Herramientas' },
-    { path: '/academy/market-timing-game', icon: Gamepad2, label: 'Timing vs DCA', group: 'Herramientas' },
-
-    { path: '/academy/crisis', icon: Activity, label: 'Mercado y crisis', group: 'Escenarios' },
-    { path: '/academy/scenarios', icon: Target, label: 'Qué hacer si...', group: 'Escenarios' },
-    { path: '/academy/inflation-predator', icon: Flame, label: 'Impacto de la inflación', group: 'Escenarios' },
-
-    { path: '/academy/resources', icon: FolderOpen, label: 'Recursos y guías', group: 'Recursos' }
-];
 
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     const location = useLocation();
@@ -80,10 +33,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
     const navItems = [
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-        { to: '/add', icon: PlusCircle, label: 'Añadir inversión' },
+        { to: '/add', icon: PlusCircle, label: 'Anadir inversion' },
     ];
-
-    const academyGroups: Array<AcademySection['group']> = ['Aprender', 'Construir', 'Herramientas', 'Escenarios', 'Recursos'];
 
     const handleAcademyToggle = () => {
         setAcademyExpanded(!academyExpanded);
@@ -143,15 +94,15 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
                         <div className={`sidebar__sub-nav ${academyExpanded ? 'sidebar__sub-nav--open' : ''}`}>
                             <div className="sidebar__sub-nav-inner">
-                                {academyGroups.map((group) => (
+                                {academySidebarGroups.map((group) => (
                                     <div key={group} className="sidebar__sub-group">
                                         <div className="sidebar__sub-group-title">{group}</div>
-                                        {academySections
+                                        {academySidebarSections
                                             .filter((item) => item.group === group)
                                             .map(({ path, icon: Icon, label, end }) => (
                                                 <NavLink
-                                                    key={path}
-                                                    to={path}
+                                                    key={path || 'academy-index'}
+                                                    to={path ? `/academy/${path}` : '/academy'}
                                                     end={end}
                                                     className={({ isActive }) =>
                                                         `sidebar__sub-link ${isActive ? 'sidebar__sub-link--active' : ''}`

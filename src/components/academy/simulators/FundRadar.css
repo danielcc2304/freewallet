@@ -22,6 +22,9 @@
 }
 
 .fund-radar__header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     text-align: center;
     margin-bottom: var(--academy-space-section);
 }
@@ -50,23 +53,26 @@
 }
 
 .fund-radar__header p {
+    order: 2;
     color: var(--text-muted);
     font-size: var(--font-size-base);
     max-width: 600px;
-    margin: 0 auto var(--spacing-md);
+    margin: 0 auto var(--spacing-sm);
+    line-height: 1.65;
 }
 
 .fund-radar__last-update {
+    order: 4;
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    margin-top: calc(var(--spacing-xs) * -1);
-    margin-bottom: var(--spacing-md);
-    font-size: var(--font-size-xs);
+    margin-top: 0.35rem;
+    margin-bottom: 0;
+    font-size: 0.72rem;
     color: var(--text-muted);
     font-weight: 500;
-    opacity: 0.8;
+    opacity: 0.78;
 }
 
 .fund-radar__last-update svg {
@@ -74,15 +80,24 @@
 }
 
 .fund-radar__srri-info {
+    order: 3;
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    background: var(--bg-secondary);
-    padding: 6px 12px;
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-xs);
-    color: var(--text-muted);
-    border: 1px solid var(--border-secondary);
+    max-width: 620px;
+    padding: 0;
+    border-radius: 0;
+    font-size: 0.78rem;
+    line-height: 1.55;
+    color: var(--text-secondary);
+    border: 0;
+    opacity: 0.9;
+    text-wrap: balance;
+}
+
+.fund-radar__srri-info strong {
+    color: var(--text-primary);
 }
 
 /* Filters */
@@ -91,16 +106,18 @@
     flex-direction: column;
     gap: var(--academy-space-stack);
     margin-bottom: var(--academy-space-section);
-    background: var(--bg-card);
-    padding: var(--academy-space-card);
-    border-radius: var(--radius-lg);
-    border: 1px solid var(--border-primary);
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    border: 0;
 }
 
 .fund-radar__search-row {
     display: flex;
     gap: var(--academy-space-stack);
     align-items: stretch;
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-primary);
 }
 
 .fund-radar__search {
@@ -158,6 +175,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    padding-top: 2px;
 }
 
 .fund-radar__filter-icon {
@@ -195,11 +213,13 @@
 
 /* Morningstar education block */
 .fund-radar__edu {
+    margin-top: calc(var(--academy-space-section) * 1.1);
     margin-bottom: var(--academy-space-section);
+    padding: var(--academy-space-card);
     background: var(--bg-card);
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-lg);
-    padding: var(--academy-space-card);
+    min-width: 0;
 }
 
 .fund-radar__edu h2 {
@@ -214,10 +234,11 @@
 }
 
 .edu-example {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-secondary);
-    border-radius: var(--radius-md);
-    padding: var(--academy-space-stack);
+    background: transparent;
+    border: 0;
+    border-radius: 0;
+    padding: 0;
+    min-width: 0;
 }
 
 .edu-example__header {
@@ -226,6 +247,9 @@
     align-items: flex-start;
     gap: var(--spacing-md);
     margin-bottom: var(--academy-space-stack);
+    padding-bottom: var(--spacing-sm);
+    border-bottom: 1px solid var(--border-primary);
+    min-width: 0;
 }
 
 .edu-example__tag {
@@ -240,28 +264,33 @@
 .edu-example__header h3 {
     margin: 0 0 4px 0;
     font-size: var(--font-size-lg);
+    overflow-wrap: anywhere;
 }
 
 .edu-example__header p {
     margin: 0;
     font-size: var(--font-size-xs);
     color: var(--text-muted);
+    overflow-wrap: anywhere;
 }
 
 .edu-example__grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: var(--academy-space-stack);
+    min-width: 0;
 }
 
 .edu-metric {
-    background: var(--bg-card);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
-    padding: 10px;
+    background: transparent;
+    border: 0;
+    border-left: 3px solid rgba(var(--accent-rgb), 0.22);
+    border-radius: 0;
+    padding: 0.2rem 0 0.2rem 0.85rem;
     display: flex;
     flex-direction: column;
     gap: 4px;
+    min-width: 0;
 }
 
 .edu-metric span {
@@ -274,6 +303,7 @@
 .edu-metric strong {
     font-size: 15px;
     color: var(--text-primary);
+    overflow-wrap: anywhere;
 }
 
 .edu-metric p {
@@ -281,14 +311,17 @@
     font-size: 11px;
     color: var(--text-secondary);
     line-height: 1.4;
+    overflow-wrap: anywhere;
 }
 
 .edu-checklist {
     margin-top: var(--academy-space-stack);
-    background: rgba(16, 185, 129, 0.06);
-    border: 1px solid rgba(16, 185, 129, 0.2);
-    border-radius: var(--radius-md);
-    padding: var(--academy-space-stack);
+    background: transparent;
+    border: 0;
+    border-top: 1px solid var(--border-primary);
+    border-radius: 0;
+    padding: var(--academy-space-stack) 0 0;
+    min-width: 0;
 }
 
 .edu-checklist h4 {
@@ -536,20 +569,21 @@
 /* Bottom Footer Tooltip Box */
 .fund-radar__footer-info {
     margin-top: var(--spacing-2xl);
-    max-width: 800px;
-    margin-left: auto;
-    margin-right: auto;
+    display: grid;
+    gap: var(--academy-space-stack);
 }
 
 .info-box {
     display: flex;
     align-items: flex-start;
     gap: var(--spacing-lg);
-    background: rgba(59, 130, 246, 0.05);
-    border: 1px solid rgba(59, 130, 246, 0.1);
-    padding: var(--spacing-lg);
-    border-radius: var(--radius-lg);
+    background: transparent;
+    border: 0;
+    border-left: 3px solid rgba(var(--accent-rgb), 0.22);
+    padding: 0.25rem 0 0.25rem 0.9rem;
+    border-radius: 0;
     color: var(--text-secondary);
+    min-width: 0;
 }
 
 .info-icon-wrapper {
@@ -562,6 +596,7 @@
     margin: 0 0 4px 0;
     font-size: 13px;
     line-height: 1.5;
+    overflow-wrap: anywhere;
 }
 
 .info-text strong {
@@ -612,6 +647,11 @@
 
     .edu-example__grid {
         grid-template-columns: 1fr;
+        gap: var(--spacing-sm);
+    }
+
+    .edu-metric {
+        padding-left: 0.7rem;
     }
 }
 
@@ -663,36 +703,40 @@
 
 /* Score Metric */
 .fund-stat--score {
-    background: rgba(16, 185, 129, 0.05);
-    padding: 4px 8px;
-    border-radius: var(--radius-sm);
-    border: 1px solid rgba(16, 185, 129, 0.1);
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
+    border: 0;
 }
 
 .fund-stat__value.score {
     color: var(--accent-primary);
     font-size: 14px;
+    letter-spacing: -0.01em;
+}
+
+.fund-stat--score .fund-stat__label {
+    color: var(--accent-primary);
 }
 
 /* Formula UI */
 .info-box--formula {
-    background: var(--bg-secondary) !important;
-    border-style: dashed !important;
-    margin-bottom: var(--spacing-md);
-    text-align: center;
-    display: block !important;
+    margin-bottom: 0;
+    text-align: left;
+    display: flex !important;
 }
 
 .formula-code {
     display: block;
-    background: var(--bg-card);
-    padding: var(--spacing-md);
-    border-radius: var(--radius-md);
+    background: transparent;
+    padding: 0;
+    border-radius: 0;
     font-family: 'JetBrains Mono', monospace;
     font-size: var(--font-size-sm);
     color: var(--accent-primary);
     margin: var(--spacing-sm) 0;
-    border: 1px solid var(--border-primary);
+    border: 0;
+    overflow-wrap: anywhere;
 }
 
 .formula-note {
@@ -703,10 +747,11 @@
 
 .fund-radar__next {
     margin-top: var(--academy-space-section);
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-xl);
-    padding: var(--academy-space-card);
+    background: transparent;
+    border: 0;
+    border-top: 1px solid var(--border-primary);
+    border-radius: 0;
+    padding: var(--academy-space-card) 0 0;
 }
 
 .fund-radar__next-header h2 {
@@ -728,17 +773,18 @@
 .fund-radar__next-card {
     text-decoration: none;
     color: var(--text-primary);
-    background: var(--bg-card);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-lg);
-    padding: var(--academy-space-card);
+    background: transparent;
+    border: 0;
+    border-left: 3px solid rgba(var(--accent-rgb), 0.22);
+    border-radius: 0;
+    padding: 0.25rem 0 0.25rem 0.9rem;
     transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
 .fund-radar__next-card:hover {
-    transform: translateY(-2px);
+    transform: translateX(2px);
     border-color: rgba(var(--accent-rgb), 0.35);
-    background: rgba(var(--accent-rgb), 0.06);
+    background: transparent;
 }
 
 .fund-radar__next-card strong {

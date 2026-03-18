@@ -1,7 +1,17 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Info, TrendingUp, Wallet, ShieldCheck, Flame } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import './FIRECalculator.css';
+
+interface FIRECalculatorStorage {
+    monthlyExpenses: number | string;
+    currentSavings: number | string;
+    monthlySavings: number | string;
+    annualReturn: number | string;
+    withdrawalRate: number | string;
+}
+
+const FIRE_CALCULATOR_STORAGE_KEY = 'freewallet_fire_calculator';
 
 export function FIRECalculator() {
     // Inputs
@@ -10,6 +20,38 @@ export function FIRECalculator() {
     const [monthlySavings, setMonthlySavings] = useState<number | string>(500);
     const [annualReturn, setAnnualReturn] = useState<number | string>(7);
     const [withdrawalRate, setWithdrawalRate] = useState<number | string>(4); // 4% Rule
+
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(FIRE_CALCULATOR_STORAGE_KEY);
+            if (!raw) return;
+
+            const stored = JSON.parse(raw) as Partial<FIRECalculatorStorage>;
+            if (stored.monthlyExpenses !== undefined) setMonthlyExpenses(stored.monthlyExpenses);
+            if (stored.currentSavings !== undefined) setCurrentSavings(stored.currentSavings);
+            if (stored.monthlySavings !== undefined) setMonthlySavings(stored.monthlySavings);
+            if (stored.annualReturn !== undefined) setAnnualReturn(stored.annualReturn);
+            if (stored.withdrawalRate !== undefined) setWithdrawalRate(stored.withdrawalRate);
+        } catch {
+            // Ignore localStorage failures or malformed saved values.
+        }
+    }, []);
+
+    useEffect(() => {
+        const payload: FIRECalculatorStorage = {
+            monthlyExpenses,
+            currentSavings,
+            monthlySavings,
+            annualReturn,
+            withdrawalRate
+        };
+
+        try {
+            localStorage.setItem(FIRE_CALCULATOR_STORAGE_KEY, JSON.stringify(payload));
+        } catch {
+            // Ignore localStorage failures.
+        }
+    }, [monthlyExpenses, currentSavings, monthlySavings, annualReturn, withdrawalRate]);
 
     // Numeric versions for calculations
     const expensesNum = Number(monthlyExpenses) || 0;

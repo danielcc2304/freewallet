@@ -1,11 +1,40 @@
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Percent, Info, ShieldCheck, Landmark, Receipt, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import './TaxSimulator.css';
 
+interface TaxSimulatorStorage {
+    gain: number | string;
+    holdingYears: number | string;
+}
+
+const TAX_SIMULATOR_STORAGE_KEY = 'freewallet_tax_simulator';
+
 export function TaxSimulator() {
     const [gain, setGain] = useState<number | string>(10000);
     const [holdingYears, setHoldingYears] = useState<number | string>(5);
+
+    useEffect(() => {
+        try {
+            const raw = localStorage.getItem(TAX_SIMULATOR_STORAGE_KEY);
+            if (!raw) return;
+
+            const stored = JSON.parse(raw) as Partial<TaxSimulatorStorage>;
+            if (stored.gain !== undefined) setGain(stored.gain);
+            if (stored.holdingYears !== undefined) setHoldingYears(stored.holdingYears);
+        } catch {
+            // Ignore localStorage failures or malformed saved values.
+        }
+    }, []);
+
+    useEffect(() => {
+        const payload: TaxSimulatorStorage = { gain, holdingYears };
+        try {
+            localStorage.setItem(TAX_SIMULATOR_STORAGE_KEY, JSON.stringify(payload));
+        } catch {
+            // Ignore localStorage failures.
+        }
+    }, [gain, holdingYears]);
 
     // Helper to get numeric value for calculations
     const gainNum = Number(gain) || 0;

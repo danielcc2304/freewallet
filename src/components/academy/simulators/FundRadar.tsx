@@ -352,7 +352,7 @@ export function FundRadar() {
             )}
 
             <section className="fund-radar__edu">
-                <h2>Cómo interpretar una ficha Morningstar (ejemplo real)</h2>
+                <h2>Cómo interpretar una ficha Morningstar</h2>
                 <p className="fund-radar__edu-intro">
                     Usa esta guía rápida con un caso conocido para leer una ficha sin perderte en métricas.
                 </p>

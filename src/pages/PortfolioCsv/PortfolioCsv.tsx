@@ -65,6 +65,14 @@ import {
 import './PortfolioCsv.css';
 
 export function PortfolioCsv() {
+    type RiskMapPoint = Omit<EnrichedEvolutionPoint, 'monthlyReturnPct' | 'twrYtdPct' | 'drawdownPct'> & {
+        monthlyReturnPct: number | null;
+        twrYtdPct: number | null;
+        drawdownPct: number | null;
+        twrYtdPctReset: number | null;
+        drawdownPctReset: number | null;
+    };
+
     const [holdingsRaw, setHoldingsRaw] = useState(() => readStoredValue(STORAGE_KEYS.holdingsRaw, DEFAULT_HOLDINGS_CSV));
     const [evolutionRaw, setEvolutionRaw] = useState(() => readStoredValue(STORAGE_KEYS.evolutionRaw, DEFAULT_EVOLUTION_CSV));
     const [workbookFileLabel, setWorkbookFileLabel] = useState(() => readStoredValue(STORAGE_KEYS.workbookFile, 'Demo precargada'));
@@ -120,7 +128,48 @@ export function PortfolioCsv() {
             return [point.period, needsYear ? formatPeriodLabel(resolvedLabel, true) : formatPeriodLabel(resolvedLabel)];
         }));
     }, [evolutionBase, resolvedPeriodMap]);
+    const riskMapData = useMemo<RiskMapPoint[]>(() => {
+        return evolution.flatMap((row, index) => {
+            const previous = index > 0 ? evolution[index - 1] : null;
+            const currentResolvedPeriod = resolvedPeriodMap.get(row.period) || row.period;
+            const previousResolvedPeriod = previous ? (resolvedPeriodMap.get(previous.period) || previous.period) : null;
+            const currentParts = parsePeriodParts(currentResolvedPeriod);
+            const previousParts = previousResolvedPeriod ? parsePeriodParts(previousResolvedPeriod) : null;
+            const startsNewYear = Boolean(
+                previous
+                && currentParts
+                && previousParts
+                && currentParts.year !== undefined
+                && previousParts.year !== undefined
+                && currentParts.year !== previousParts.year
+            );
 
+            if (!startsNewYear) {
+                return [{
+                    ...row,
+                    twrYtdPctReset: null,
+                    drawdownPctReset: null,
+                }] as RiskMapPoint[];
+            }
+
+            return [
+                {
+                    ...row,
+                    period: `${row.period}__reset`,
+                    monthlyReturnPct: null,
+                    drawdownPct: null,
+                    twrYtdPct: null,
+                    drawdownPctReset: 0,
+                    twrYtdPctReset: 0,
+                },
+                {
+                    ...row,
+                    drawdownPctReset: row.drawdownPct,
+                    twrYtdPctReset: row.twrYtdPct,
+                },
+            ] as RiskMapPoint[];
+        });
+    }, [evolution, resolvedPeriodMap]);
     useEffect(() => {
         try {
             localStorage.setItem(STORAGE_KEYS.holdingsRaw, holdingsRaw);
@@ -355,14 +404,107 @@ export function PortfolioCsv() {
     };
 
     const legendFormatter = (value: string) => (<span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{value}</span>);
+    const getBasePeriodKey = (value: string) => value.replace(/__reset$/, '');
     const formatPeriodTick = (value: string) => {
-        if (isMobile) return mobilePeriodMap.get(value) || value;
-        return resolvedPeriodMap.get(value) || formatPeriodLabel(value);
+        const rawValue = value;
+        if (!rawValue || rawValue.endsWith('__reset')) return '';
+        const baseValue = getBasePeriodKey(rawValue);
+        if (isMobile) return mobilePeriodMap.get(baseValue) || baseValue;
+        return resolvedPeriodMap.get(baseValue) || formatPeriodLabel(baseValue);
     };
-    const mobileChartMargin = isMobile
-        ? { top: 8, right: 2, left: 0, bottom: 34 }
-        : { top: 8, right: 10, left: 0, bottom: 18 };
+    const riskMapChartMargin = isMobile
+        ? { top: 26, right: 2, left: 0, bottom: 34 }
+        : { top: 28, right: 10, left: 0, bottom: 18 };
     const mobilePinnedTooltipPosition = isMobile ? { x: 12, y: 12 } : undefined;
+    const renderRiskMapTick = ({
+        x,
+        y,
+        payload,
+    }: {
+        x?: string | number;
+        y?: string | number;
+        payload?: { value?: string };
+    }) => {
+        const rawValue = payload?.value || '';
+        if (!rawValue || typeof x !== 'number' || typeof y !== 'number') return null;
+
+        if (rawValue.endsWith('__reset')) {
+            const baseValue = getBasePeriodKey(rawValue);
+            const resolved = resolvedPeriodMap.get(baseValue) || baseValue;
+            const parts = parsePeriodParts(resolved);
+            if (!parts?.year) return null;
+
+            return (
+                <g transform={`translate(${x},${y})`}>
+                    <line x1={0} y1={-26} x2={0} y2={-6} stroke="#a5b4fc" strokeWidth={1.5} strokeDasharray="4 3" />
+                    <rect x={-18} y={-44} width={36} height={16} rx={8} fill="rgba(99, 102, 241, 0.22)" />
+                    <text x={0} y={-33} textAnchor="middle" fill="#c7d2fe" fontSize={10} fontWeight={700}>
+                        {parts.year}
+                    </text>
+                </g>
+            );
+        }
+
+        return (
+            <text
+                x={x}
+                y={y + 12}
+                textAnchor="middle"
+                fill="var(--text-secondary)"
+                fontSize={isMobile ? 11 : 12}
+            >
+                {formatPeriodTick(rawValue)}
+            </text>
+        );
+    };
+    const renderRiskLeftAxisTick = ({
+        x,
+        y,
+        payload,
+    }: {
+        x?: string | number;
+        y?: string | number;
+        payload?: { value?: string | number };
+    }) => {
+        if (typeof x !== 'number' || typeof y !== 'number') return null;
+        return (
+            <text
+                x={x}
+                y={y}
+                dy={4}
+                textAnchor="end"
+                fill="url(#portfolioCsvRiskAxisGradient)"
+                fontSize={isMobile ? 11 : 12}
+                fontWeight={600}
+            >
+                {`${payload?.value ?? 0}%`}
+            </text>
+        );
+    };
+    const renderRiskRightAxisTick = ({
+        x,
+        y,
+        payload,
+    }: {
+        x?: string | number;
+        y?: string | number;
+        payload?: { value?: string | number };
+    }) => {
+        if (typeof x !== 'number' || typeof y !== 'number') return null;
+        return (
+            <text
+                x={x}
+                y={y}
+                dy={4}
+                textAnchor="start"
+                fill="#f87171"
+                fontSize={isMobile ? 11 : 12}
+                fontWeight={600}
+            >
+                {`${payload?.value ?? 0}%`}
+            </text>
+        );
+    };
 
     const SeriesTooltip = ({
         active,
@@ -371,23 +513,34 @@ export function PortfolioCsv() {
         valueType,
     }: {
         active?: boolean;
-        payload?: Array<{ name?: string; value?: number | string; color?: string }>;
+        payload?: Array<{ name?: string; value?: number | string; color?: string; payload?: { period?: string } }>;
         label?: string;
         valueType: 'currency' | 'percent';
     }) => {
         if (!active || !payload || payload.length === 0) return null;
+        const rawLabel = typeof payload[0]?.payload?.period === 'string'
+            ? payload[0].payload.period
+            : (label || '');
+        if (rawLabel.endsWith('__reset')) return null;
 
         const formatValue = (raw: number | string | undefined) => {
             const value = Number(raw ?? 0);
             return valueType === 'currency' ? formatCurrency(value) : formatPct(value);
         };
-        const formattedLabel = label ? (resolvedPeriodMap.get(label) || formatPeriodLabel(label)) : '';
+        const baseLabel = rawLabel ? getBasePeriodKey(rawLabel) : '';
+        const formattedLabel = !rawLabel
+            ? ''
+            : (resolvedPeriodMap.get(baseLabel) || formatPeriodLabel(baseLabel));
+        const uniquePayload = payload.filter((entry, index, entries) => {
+            const name = entry.name || '';
+            return entries.findIndex((candidate) => (candidate.name || '') === name) === index;
+        });
 
         return (
             <div className="portfolio-csv-tooltip">
                 <div className="portfolio-csv-tooltip__label">{formattedLabel}</div>
                 <div className="portfolio-csv-tooltip__rows">
-                    {payload.map((entry, index) => (
+                    {uniquePayload.map((entry, index) => (
                         <div key={`${entry.name}-${index}`} className="portfolio-csv-tooltip__row">
                             <span
                                 className="portfolio-csv-tooltip__dot"
@@ -536,32 +689,6 @@ export function PortfolioCsv() {
                         </ResponsiveContainer>
                     </div>
                 </article>
-
-                <article className="portfolio-csv-card">
-                    <h2><TrendingUp size={18} /> Drivers del mes: aportado vs plusvalía</h2>
-                    <p>Desglose mensual entre aportacion y resultado de mercado.</p>
-                    <div className="portfolio-csv-chart">
-                        <ResponsiveContainer width="100%" height={320}>
-                            <ComposedChart data={evolution} margin={mobileChartMargin}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
-                                <XAxis dataKey="period" tickFormatter={formatPeriodTick} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={isMobile ? 22 : 12} />
-                                <YAxis
-                                    tickFormatter={(value) => `${Math.round(value / 1000)}k`}
-                                    tick={{ fill: 'var(--text-secondary)', fontSize: isMobile ? 11 : 12 }}
-                                    axisLine={false}
-                                    tickLine={false}
-                                    tickMargin={6}
-                                    width={isMobile ? 40 : 48}
-                                />
-                                <Tooltip content={<SeriesTooltip valueType="currency" />} />
-                                <Legend formatter={legendFormatter} wrapperStyle={{ color: 'var(--text-secondary)' }} />
-                                <Bar dataKey="monthlyContribution" name="Aportación" fill="#3b82f6" radius={[6, 6, 0, 0]} />
-                                <Bar dataKey="profit" name="Plusvalia" fill="#10b981" radius={[6, 6, 0, 0]} />
-                                <Line type="monotone" dataKey="gainVsInvested" name="Ganancia acumulada" stroke="#f59e0b" strokeWidth={2} dot={false} />
-                            </ComposedChart>
-                        </ResponsiveContainer>
-                    </div>
-                </article>
             </section>
 
             <section className="portfolio-csv-grid">
@@ -571,14 +698,20 @@ export function PortfolioCsv() {
                     <div className="portfolio-csv-chart portfolio-csv-chart--risk-map">
                         <ResponsiveContainer width="100%" height={320}>
                             <ComposedChart
-                                data={evolution}
-                                margin={mobileChartMargin}
+                                data={riskMapData}
+                                margin={riskMapChartMargin}
                             >
+                                <defs>
+                                    <linearGradient id="portfolioCsvRiskAxisGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                                        <stop offset="0%" stopColor="#10b981" />
+                                        <stop offset="100%" stopColor="#8b5cf6" />
+                                    </linearGradient>
+                                </defs>
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                                 <XAxis
                                     dataKey="period"
                                     tickFormatter={formatPeriodTick}
-                                    tick={{ fill: 'var(--text-secondary)', fontSize: isMobile ? 11 : 12 }}
+                                    tick={renderRiskMapTick}
                                     axisLine={false}
                                     tickLine={false}
                                     interval="preserveStartEnd"
@@ -587,7 +720,7 @@ export function PortfolioCsv() {
                                 <YAxis
                                     yAxisId="left"
                                     tickFormatter={(value) => `${value}%`}
-                                    tick={{ fill: 'var(--text-secondary)', fontSize: isMobile ? 11 : 12 }}
+                                    tick={renderRiskLeftAxisTick}
                                     axisLine={false}
                                     tickLine={false}
                                     tickMargin={6}
@@ -597,7 +730,7 @@ export function PortfolioCsv() {
                                     yAxisId="right"
                                     orientation="right"
                                     tickFormatter={(value) => `${value}%`}
-                                    tick={{ fill: 'var(--text-secondary)', fontSize: isMobile ? 11 : 12 }}
+                                    tick={renderRiskRightAxisTick}
                                     axisLine={false}
                                     tickLine={false}
                                     tickMargin={6}
@@ -607,7 +740,9 @@ export function PortfolioCsv() {
                                 <Legend formatter={legendFormatter} wrapperStyle={{ color: 'var(--text-secondary)' }} />
                                 <Bar yAxisId="left" dataKey="monthlyReturnPct" name="% Mensual" fill="#10b981" radius={[6, 6, 0, 0]} barSize={isMobile ? 10 : 18} />
                                 <Line yAxisId="right" type="monotone" dataKey="drawdownPct" name="Drawdown %" stroke="#ef4444" strokeWidth={2.1} dot={false} />
-                                <Line yAxisId="right" type="monotone" dataKey="twrYtdPct" name="TWR YTD %" stroke="#8b5cf6" strokeWidth={2.1} dot={false} />
+                                <Line yAxisId="right" type="monotone" dataKey="drawdownPctReset" name="Drawdown %" stroke="#ef4444" strokeWidth={2.1} dot={false} legendType="none" connectNulls={false} />
+                                <Line yAxisId="right" type="monotone" dataKey="twrYtdPct" name="TWR YTD %" stroke="#8b5cf6" strokeWidth={2.1} dot={false} connectNulls={false} />
+                                <Line yAxisId="right" type="monotone" dataKey="twrYtdPctReset" name="TWR YTD %" stroke="#8b5cf6" strokeWidth={2.1} dot={false} legendType="none" connectNulls={false} />
                             </ComposedChart>
                         </ResponsiveContainer>
                     </div>
@@ -759,5 +894,8 @@ export function PortfolioCsv() {
         </div>
     );
 }
+
+
+
 
 

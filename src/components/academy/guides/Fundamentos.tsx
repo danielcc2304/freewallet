@@ -215,33 +215,27 @@ const MODULES: AcademyModule[] = [
   },
 ];
 
-const CHECKLISTS = [
+const CHECKLIST_LINKS = [
   {
     title: "Antes de invertir",
     to: "/academy/investor-profile-test",
-    items: [
-      "Tengo fondo de emergencia",
-      "Sé mi horizonte temporal",
-      "Conozco mi tolerancia al riesgo",
-    ],
+    description:
+      "Atajo para validar perfil, horizonte y tolerancia al riesgo antes de mover dinero.",
+    cta: "Abrir test",
   },
   {
     title: "Antes de comprar un fondo",
     to: "/academy/fund-radar",
-    items: [
-      "Entiendo categoría y benchmark",
-      "Reviso costes",
-      "Encaja con mi cartera actual",
-    ],
+    description:
+      "Entrada rápida al radar para filtrar fondos y revisar si encajan con tu cartera.",
+    cta: "Abrir radar",
   },
   {
     title: "Antes de analizar una acción",
     to: "/academy/valuation",
-    items: [
-      "Leo márgenes y rentabilidad",
-      "Reviso deuda",
-      "Valoro calidad antes que precio",
-    ],
+    description:
+      "Acceso directo a la guía de valoración para revisar calidad, deuda y precio con criterio.",
+    cta: "Abrir guía",
   },
 ];
 
@@ -465,28 +459,28 @@ export function Fundamentos() {
         <div className="fundamentos__section-head">
           <h2>Checklists visuales</h2>
           <p>
-            Tres entradas cortas para revisar lo esencial antes de mover dinero.
+            Accesos directos a tres módulos clave para revisar lo esencial sin rodeos.
           </p>
         </div>
         <div className="fundamentos__checklist-grid">
-          {CHECKLISTS.map((checklist) => (
-            <article
+          {CHECKLIST_LINKS.map((checklist) => (
+            <Link
               key={checklist.title}
+              to={checklist.to}
               className="fundamentos__checklist-card"
+              onClick={() => {
+                const module = MODULES.find((item) => item.to === checklist.to);
+                if (module) {
+                  markAsDone(module.id);
+                }
+              }}
             >
               <h3>{checklist.title}</h3>
-              <ul>
-                {checklist.items.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-              <Link
-                to={checklist.to}
-                className="fundamentos__button fundamentos__button--secondary"
-              >
-                Abrir módulo relacionado
-              </Link>
-            </article>
+              <p>{checklist.description}</p>
+              <span className="fundamentos__checklist-cta">
+                {checklist.cta}
+              </span>
+            </Link>
           ))}
         </div>
       </section>
@@ -574,3 +568,4 @@ export function Fundamentos() {
     </div>
   );
 }
+

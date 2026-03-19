@@ -444,6 +444,9 @@
     transition: all 0.25s ease;
     display: grid;
     grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas:
+        "icon title meta"
+        ". description description";
     align-items: start;
     gap: 0.85rem;
     border-left: 4px solid var(--accent-primary);
@@ -461,6 +464,7 @@
 
 .fundamentos__card-icon {
     font-size: 1.45rem;
+    grid-area: icon;
 }
 
 .fundamentos__card-title {
@@ -468,20 +472,23 @@
     font-weight: 700;
     color: var(--text-primary);
     margin: 0;
+    grid-area: title;
 }
 
 .fundamentos__card-description {
     color: var(--text-secondary);
     line-height: 1.6;
     margin: 0;
-    flex: 1;
+    grid-area: description;
 }
 
 .fundamentos__card-meta {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
-    align-self: center;
+    grid-area: meta;
+    align-self: start;
+    justify-self: end;
 }
 
 .fundamentos__card-badge {

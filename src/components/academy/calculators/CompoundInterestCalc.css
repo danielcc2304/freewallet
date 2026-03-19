@@ -84,11 +84,12 @@
 /* ===== CONTAINER ===== */
 .compound__container {
     display: grid;
-    grid-template-columns: 380px 1fr;
+    grid-template-columns: minmax(340px, 380px) minmax(0, 1fr);
     gap: 2rem;
     margin-bottom: 2rem;
     width: 100%;
     min-width: 0;
+    align-items: start;
 }
 
 /* ===== INPUTS ===== */
@@ -203,7 +204,7 @@
 .compound__results {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
     width: 100%;
     min-width: 0;
     max-width: 100%;
@@ -612,9 +613,49 @@
     font-size: 0.95rem;
 }
 
+@media (min-width: 1025px) {
+    .compound__container {
+        align-items: stretch;
+    }
+
+    .compound__results {
+        display: contents;
+    }
+
+    .compound__inputs {
+        grid-column: 1;
+        grid-row: 1;
+        height: 100%;
+    }
+
+    .compound__chart {
+        grid-column: 2;
+        grid-row: 1;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .compound__chart .recharts-responsive-container {
+        flex: 1 1 auto;
+        min-height: 320px;
+    }
+
+    .compound__result-cards,
+    .compound__goal-result,
+    .compound__breakdown,
+    .compound__detail {
+        grid-column: 1 / -1;
+    }
+}
+
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
     .compound__container {
+        grid-template-columns: 1fr;
+    }
+
+    .compound__results {
         grid-template-columns: 1fr;
     }
 

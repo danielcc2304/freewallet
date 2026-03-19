@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+﻿import { useEffect, useState, useMemo } from 'react';
 import { Banknote, TrendingUp, Calendar, Target, ChevronDown, ChevronUp } from 'lucide-react';
 import {
     AreaChart,
@@ -7,7 +7,6 @@ import {
     YAxis,
     CartesianGrid,
     Tooltip,
-    Legend,
     ResponsiveContainer
 } from 'recharts';
 import './CompoundInterestCalc.css';
@@ -407,7 +406,7 @@ export function CompoundInterestCalc() {
                                 min="0"
                                 step="1000"
                             />
-                            <span className="unit">€</span>
+                            <span className="unit">â‚¬</span>
                         </div>
                     </div>
 
@@ -424,7 +423,7 @@ export function CompoundInterestCalc() {
                                     min="0"
                                     step="50"
                                 />
-                                <span className="unit">€/mes</span>
+                                <span className="unit">â‚¬/mes</span>
                             </div>
                         </div>
                     )}
@@ -490,7 +489,7 @@ export function CompoundInterestCalc() {
                                     min="1000"
                                     step="10000"
                                 />
-                                <span className="unit">€</span>
+                                <span className="unit">â‚¬</span>
                             </div>
                         </div>
                     )}
@@ -556,7 +555,7 @@ export function CompoundInterestCalc() {
                                                     min="0"
                                                     step={withdrawalType === 'percentage' ? '0.5' : '1000'}
                                                 />
-                                                <span className="unit">{withdrawalType === 'percentage' ? '%' : '€'}</span>
+                                                <span className="unit">{withdrawalType === 'percentage' ? '%' : 'â‚¬'}</span>
                                             </div>
                                             {withdrawalType === 'percentage' && (
                                                 <small className="compound__input-hint">
@@ -599,9 +598,9 @@ export function CompoundInterestCalc() {
                         <div className={`compound__goal-result ${timeToGoalYears <= 0 ? 'compound__goal-result--achieved' : ''}`}>
                             {timeToGoalYears <= 0 ? (
                                 <div className="compound__goal-achieved">
-                                    <div className="compound__goal-badge">🎉</div>
+                                    <div className="compound__goal-badge">?</div>
                                     <div className="compound__goal-content">
-                                        <h3>¡Objetivo Conseguido!</h3>
+                                        <h3>Â¡Objetivo Conseguido!</h3>
                                         <p>Tu patrimonio actual ya supera los {formatCurrency(Number(targetAmount) || 0)}.</p>
                                     </div>
                                 </div>
@@ -621,7 +620,7 @@ export function CompoundInterestCalc() {
 
                     {calculationMode === 'requiredContribution' && requiredMonthlyAmount !== null && (
                         <div className="compound__goal-result">
-                            <div className="compound__goal-icon">💼</div>
+                            <div className="compound__goal-icon">?</div>
                             <div className="compound__goal-content">
                                 <h3>Necesitas aportar mensualmente:</h3>
                                 <div className="compound__goal-years">
@@ -636,54 +635,67 @@ export function CompoundInterestCalc() {
 
                     {/* Chart */}
                     <div className="compound__chart">
-                        <h4>Evolución Temporal</h4>
-                        <ResponsiveContainer width="100%" height={350}>
-                            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
-                                <XAxis
-                                    dataKey="yearLabel"
-                                    stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 11, fill: '#a1a1aa' }}
-                                    axisLine={false}
-                                    tickLine={false}
-                                />
-                                <YAxis
-                                    stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 11, fill: '#a1a1aa' }}
-                                    tickFormatter={(value) =>
-                                        new Intl.NumberFormat('es-ES', {
-                                            notation: 'compact',
-                                            compactDisplay: 'short'
-                                        }).format(value)
-                                    }
-                                    width={50}
-                                    axisLine={false}
-                                    tickLine={false}
-                                />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Legend wrapperStyle={{ paddingTop: '20px' }} />
-                                <Area
-                                    type="monotone"
-                                    dataKey="contributed"
-                                    stackId="1"
-                                    stroke="#3b82f6"
-                                    fill="#3b82f6"
-                                    fillOpacity={0.4}
-                                    strokeWidth={2}
-                                    name="Capital Aportado"
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="interest"
-                                    stackId="1"
-                                    stroke="#10b981"
-                                    fill="#10b981"
-                                    fillOpacity={0.4}
-                                    strokeWidth={2}
-                                    name="Intereses Generados"
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                        <div className="compound__chart-header">
+                            <h4>Evolución Temporal</h4>
+                            <div className="compound__chart-legend" aria-label="Leyenda del gráfico">
+                                <span className="compound__chart-legend-item">
+                                    <span className="compound__chart-legend-dot compound__chart-legend-dot--blue" />
+                                    Capital Aportado
+                                </span>
+                                <span className="compound__chart-legend-item">
+                                    <span className="compound__chart-legend-dot compound__chart-legend-dot--green" />
+                                    Intereses Generados
+                                </span>
+                            </div>
+                        </div>
+                        <div className="compound__chart-canvas">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                                    <XAxis
+                                        dataKey="yearLabel"
+                                        stroke="var(--text-secondary)"
+                                        tick={{ fontSize: 11, fill: '#a1a1aa' }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                    />
+                                    <YAxis
+                                        stroke="var(--text-secondary)"
+                                        tick={{ fontSize: 11, fill: '#a1a1aa' }}
+                                        tickFormatter={(value) =>
+                                            new Intl.NumberFormat('es-ES', {
+                                                notation: 'compact',
+                                                compactDisplay: 'short'
+                                            }).format(value)
+                                        }
+                                        width={50}
+                                        axisLine={false}
+                                        tickLine={false}
+                                    />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="contributed"
+                                        stackId="1"
+                                        stroke="#3b82f6"
+                                        fill="#3b82f6"
+                                        fillOpacity={0.4}
+                                        strokeWidth={2}
+                                        name="Capital Aportado"
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="interest"
+                                        stackId="1"
+                                        stroke="#10b981"
+                                        fill="#10b981"
+                                        fillOpacity={0.4}
+                                        strokeWidth={2}
+                                        name="Intereses Generados"
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
                     </div>
 
                     {/* Breakdown Chart */}
@@ -768,7 +780,7 @@ export function CompoundInterestCalc() {
                                                         <strong>{formatCurrency(row.totalDeposits)}</strong>
                                                     </div>
                                                     <div className="compound__detail-metric">
-                                                        <span>Depósitos este año</span>
+                                                        <span>Dep?sitos este año</span>
                                                         <strong>{formatCurrency(row.yearlyDeposits)}</strong>
                                                     </div>
                                                     <div className="compound__detail-metric">
@@ -793,9 +805,10 @@ export function CompoundInterestCalc() {
             </div>
 
             <div className="compound__disclaimer">
-                ⚠️ Esta calculadora es solo educativa. Los resultados asumen rentabilidad constante, lo cual es irreal.
-                Los mercados fluctúan. Consulta un asesor antes de tomar decisiones de inversión.
+                âš ï¸ Esta calculadora es solo educativa. Los resultados asumen rentabilidad constante, lo cual es irreal.
+                Los mercados fluct?an. Consulta un asesor antes de tomar decisiones de inversión.
             </div>
         </div>
     );
 }
+

@@ -117,7 +117,7 @@
 /* Responsive */
 @media (max-width: 768px) {
     .terms {
-        padding: 1rem;
+        padding: 4.5rem 1rem 1rem;
     }
 
     .terms__back-fab {

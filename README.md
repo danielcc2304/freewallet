@@ -36,7 +36,7 @@ Ademas incluye una pantalla especializada de `Portfolio CSV` para analizar compo
 
 FreeWallet esta pensado para usuarios que quieren:
 
-- Llevar control de su cartera en una interfaz moderna y simple.
+- Llevar control de su cartera en una interfaz clara y simple.
 - Visualizar metricas clave sin depender de hojas de calculo complejas.
 - Aprender fundamentos de inversion dentro de la misma aplicacion.
 - Validar decisiones con simuladores y calculadoras tematicas.
@@ -456,7 +456,7 @@ Si vas a tocar esta base:
 
 ## Resumen rapido
 
-FreeWallet no es solo un tracker de activos: es un espacio unificado de `gestion + aprendizaje`.
+FreeWallet reúne en una sola app la parte de `gestion + aprendizaje`.
 
 La base actual ya cubre:
 
@@ -466,4 +466,4 @@ La base actual ya cubre:
 - Analitica avanzada por CSV.
 - Pipeline de build con SEO + prerender.
 
-Con esto tienes un proyecto listo para evolucionar hacia una plataforma financiera educativa mas robusta.
+La base actual cubre bien el uso local, la parte educativa y el analisis por CSV.

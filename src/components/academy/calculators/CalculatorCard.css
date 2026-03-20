@@ -1,0 +1,8 @@
+.calculator-card {
+    background: var(--calculator-card-bg, var(--bg-secondary));
+    border: 1px solid var(--calculator-card-border, var(--border-color));
+    border-radius: var(--calculator-card-radius, 16px);
+    padding: var(--calculator-card-padding, 2rem);
+    box-sizing: border-box;
+    min-width: 0;
+}

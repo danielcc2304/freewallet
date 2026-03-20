@@ -94,10 +94,8 @@
 
 /* ===== INPUTS ===== */
 .compound__inputs {
-    background: var(--bg-secondary);
-    border-radius: 16px;
-    padding: 2rem;
-    border: 1px solid var(--border-color);
+    --calculator-card-padding: 2rem;
+    --calculator-card-radius: 16px;
     height: fit-content;
     position: sticky;
     top: 1rem;
@@ -441,10 +439,8 @@
 
 /* ===== CHART ===== */
 .compound__chart {
-    background: var(--bg-secondary);
-    border-radius: 16px;
-    padding: 2rem;
-    border: 1px solid var(--border-color);
+    --calculator-card-padding: 2rem;
+    --calculator-card-radius: 16px;
     width: 100%;
     min-width: 0;
     max-width: 100%;
@@ -519,10 +515,8 @@
 
 /* ===== BREAKDOWN ===== */
 .compound__breakdown {
-    background: var(--bg-secondary);
-    border-radius: 12px;
-    padding: 1.5rem;
-    border: 1px solid var(--border-color);
+    --calculator-card-padding: 1.5rem;
+    --calculator-card-radius: 12px;
     overflow: hidden;
     width: 100%;
     min-width: 0;
@@ -579,10 +573,8 @@
 }
 
 .compound__detail {
-    background: var(--bg-secondary);
-    border-radius: 16px;
-    padding: 1.5rem;
-    border: 1px solid var(--border-color);
+    --calculator-card-padding: 1.5rem;
+    --calculator-card-radius: 16px;
     width: 100%;
     min-width: 0;
     overflow: hidden;

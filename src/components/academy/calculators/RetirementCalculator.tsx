@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Calendar, Info, ShieldAlert, BadgeInfo, Wallet2, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { CalculatorCard } from './CalculatorCard';
 import './RetirementCalculator.css';
 
 interface RetirementCalculatorStorage {
@@ -137,9 +138,9 @@ export function RetirementCalculator() {
 
             <div className="retirement__grid">
                 <aside className="retirement__inputs">
-                    <div className="retirement__input-section">
+                    <CalculatorCard className="retirement__input-section">
                         <h3 className="retirement__section-header">Tiempos</h3>
-                        <div className="retirement__input-grid">
+                        <div className="retirement__input-grid retirement__input-grid--stacked">
                             <div className="calc__input-group">
                                 <label>Edad Actual</label>
                                 <div className="calc__input-wrapper">
@@ -165,9 +166,9 @@ export function RetirementCalculator() {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </CalculatorCard>
 
-                    <div className="retirement__input-section">
+                    <CalculatorCard className="retirement__input-section">
                         <h3 className="retirement__section-header">Ahorro y Aportaciones</h3>
                         <div className="calc__input-group">
                             <label>Ahorro Actual</label>
@@ -193,9 +194,9 @@ export function RetirementCalculator() {
                                 <span className="unit">€</span>
                             </div>
                         </div>
-                    </div>
+                    </CalculatorCard>
 
-                    <div className="retirement__input-section">
+                    <CalculatorCard className="retirement__input-section">
                         <h3 className="retirement__section-header">Mercado e Inflación</h3>
                         <div className="retirement__input-grid">
                             <div className="calc__input-group">
@@ -225,35 +226,35 @@ export function RetirementCalculator() {
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </CalculatorCard>
 
-                    <div className="retirement__note">
+                    <CalculatorCard className="retirement__note">
                         <Info size={16} />
                         <p>La inflación reduce tu poder adquisitivo. 100.000€ en el futuro no comprarán lo mismo que hoy.</p>
-                    </div>
+                    </CalculatorCard>
                 </aside>
 
                 <main className="retirement__main">
                     <div className="retirement__metrics">
-                        <div className="retirement__metric-card">
+                        <CalculatorCard className="retirement__metric-card">
                             <Wallet2 className="retirement__metric-icon" />
                             <div className="retirement__metric-info">
                                 <span className="retirement__metric-label">Capital Nominal</span>
                                 <span className="retirement__metric-value">{formatCurrency(finalNominal)}</span>
                                 <p className="retirement__metric-desc">La cifra que verás en tu cuenta</p>
                             </div>
-                        </div>
-                        <div className="retirement__metric-card retirement__metric-card--highlight">
+                        </CalculatorCard>
+                        <CalculatorCard className="retirement__metric-card retirement__metric-card--highlight">
                             <ShieldAlert className="retirement__metric-icon" />
                             <div className="retirement__metric-info">
                                 <span className="retirement__metric-label">Poder Adquisitivo Real</span>
                                 <span className="retirement__metric-value">{formatCurrency(finalReal)}</span>
                                 <p className="retirement__metric-desc">Equivalente a dinero de HOY</p>
                             </div>
-                        </div>
+                        </CalculatorCard>
                     </div>
 
-                    <div className="retirement__chart-box">
+                    <CalculatorCard className="retirement__chart-box">
                         <h3 className="retirement__chart-title">Evolución del Patrimonio</h3>
                         <div className="retirement__chart-legend">
                             <span className="legend-item"><span className="dot nominal"></span> Valor Futuro</span>
@@ -316,9 +317,9 @@ export function RetirementCalculator() {
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
-                    </div>
+                    </CalculatorCard>
 
-                    <div className="retirement__insight">
+                    <CalculatorCard className="retirement__insight">
                         <BadgeInfo className="retirement__insight-icon" />
                         <div className="retirement__insight-content">
                             <h4>Proyección de Retirada</h4>
@@ -327,7 +328,7 @@ export function RetirementCalculator() {
                                 <strong> {formatCurrency(finalReal * 0.04 / 12)}/mes</strong> indefinidamente siguiendo la regla del 4%.
                             </p>
                         </div>
-                    </div>
+                    </CalculatorCard>
                 </main>
             </div>
         </div>

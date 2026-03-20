@@ -179,7 +179,7 @@ export function Settings() {
                     <div className="settings__about">
                         <div className="about-item">
                             <Info size={16} />
-                            <span>FreeWallet v3.6.4</span>
+                            <span>FreeWallet v3.6.5</span>
                         </div>
                         <p className="about-description">
                             Aplicación de gestión de portfolio de inversiones.

@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
-import { Info, AlertTriangle, TrendingDown, Scale, Landmark, HelpCircle, Wallet, CalendarDays, SlidersHorizontal } from 'lucide-react';
+import { Info, AlertTriangle, TrendingDown, Scale, Landmark, HelpCircle, Wallet, CalendarDays, ChevronDown, ChevronUp } from 'lucide-react';
 import './BondCalculator.css';
 
 type CouponFrequency = 'annual' | 'semiannual' | 'quarterly' | 'monthly';
@@ -547,36 +547,36 @@ export function BondCalculator() {
                     </div>
 
                     {!advancedEnabled && (
-                    <div className="calc__input-group">
-                        <label>Vencimiento</label>
-                        <div className="bond-calc__maturity-grid">
-                            <div className="calc__input-wrapper">
-                                <Landmark size={18} />
-                                <input
-                                    type="number"
-                                    value={years}
-                                    onChange={handleInput(setYears)}
-                                    min="0"
-                                    step="1"
-                                    placeholder="4"
-                                />
-                                <span className="unit">años</span>
-                            </div>
-                            <div className="calc__input-wrapper">
-                                <Landmark size={18} />
-                                <input
-                                    type="number"
-                                    value={months}
-                                    onChange={handleInput(setMonths)}
-                                    min="0"
-                                    max="11"
-                                    step="1"
-                                    placeholder="0"
-                                />
-                                <span className="unit">meses</span>
+                        <div className="calc__input-group">
+                            <label>Vencimiento</label>
+                            <div className="bond-calc__maturity-grid">
+                                <div className="calc__input-wrapper">
+                                    <Landmark size={18} />
+                                    <input
+                                        type="number"
+                                        value={years}
+                                        onChange={handleInput(setYears)}
+                                        min="0"
+                                        step="1"
+                                        placeholder="4"
+                                    />
+                                    <span className="unit">a?os</span>
+                                </div>
+                                <div className="calc__input-wrapper">
+                                    <Landmark size={18} />
+                                    <input
+                                        type="number"
+                                        value={months}
+                                        onChange={handleInput(setMonths)}
+                                        min="0"
+                                        max="11"
+                                        step="1"
+                                        placeholder="0"
+                                    />
+                                    <span className="unit">meses</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
                     )}
 
                     <div className="calc__input-group">
@@ -595,102 +595,101 @@ export function BondCalculator() {
                     <div className="bond-calc__advanced">
                         <button
                             type="button"
-                            className={`bond-calc__advanced-toggle ${advancedEnabled ? 'bond-calc__advanced-toggle--active' : ''}`}
+                            className="bond-calc__advanced-toggle"
                             onClick={() => setAdvancedEnabled((current) => !current)}
                         >
-                            <span className="bond-calc__advanced-label">
-                                <SlidersHorizontal size={16} />
-                                Cálculo avanzado
-                            </span>
-                            <span>{advancedEnabled ? 'Activado' : 'Desactivado'}</span>
+                            <span>Opciones avanzadas</span>
+                            {advancedEnabled ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                         </button>
 
                         {advancedEnabled && (
-                            <div className="bond-calc__advanced-grid">
-                                <div className="calc__input-group">
-                                    <label htmlFor="bond-settlement-date">Fecha de liquidacion</label>
-                                    <div className="calc__input-wrapper">
-                                        <CalendarDays size={18} />
-                                        <input
-                                            id="bond-settlement-date"
-                                            type="date"
-                                            value={settlementDate}
-                                            onChange={(event) => setSettlementDate(event.target.value)}
-                                        />
+                            <div className="bond-calc__advanced-content">
+                                <div className="bond-calc__advanced-grid">
+                                    <div className="calc__input-group">
+                                        <label htmlFor="bond-settlement-date">Fecha de liquidacion</label>
+                                        <div className="calc__input-wrapper">
+                                            <CalendarDays size={18} />
+                                            <input
+                                                id="bond-settlement-date"
+                                                type="date"
+                                                value={settlementDate}
+                                                onChange={(event) => setSettlementDate(event.target.value)}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="calc__input-group">
-                                    <label htmlFor="bond-issue-date">Fecha de emision</label>
-                                    <div className="calc__input-wrapper">
-                                        <CalendarDays size={18} />
-                                        <input
-                                            id="bond-issue-date"
-                                            type="date"
-                                            value={issueDate}
-                                            onChange={(event) => setIssueDate(event.target.value)}
-                                        />
+                                    <div className="calc__input-group">
+                                        <label htmlFor="bond-issue-date">Fecha de emision</label>
+                                        <div className="calc__input-wrapper">
+                                            <CalendarDays size={18} />
+                                            <input
+                                                id="bond-issue-date"
+                                                type="date"
+                                                value={issueDate}
+                                                onChange={(event) => setIssueDate(event.target.value)}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="calc__input-group">
-                                    <label htmlFor="bond-maturity-date">Fecha de vencimiento</label>
-                                    <div className="calc__input-wrapper">
-                                        <CalendarDays size={18} />
-                                        <input
-                                            id="bond-maturity-date"
-                                            type="date"
-                                            value={maturityDate}
-                                            onChange={(event) => setMaturityDate(event.target.value)}
-                                        />
+                                    <div className="calc__input-group">
+                                        <label htmlFor="bond-maturity-date">Fecha de vencimiento</label>
+                                        <div className="calc__input-wrapper">
+                                            <CalendarDays size={18} />
+                                            <input
+                                                id="bond-maturity-date"
+                                                type="date"
+                                                value={maturityDate}
+                                                onChange={(event) => setMaturityDate(event.target.value)}
+                                            />
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="calc__input-group">
-                                    <label htmlFor="bond-frequency">Frecuencia de cupón</label>
-                                    <div className="calc__input-wrapper">
-                                        <TrendingDown size={18} />
-                                        <select
-                                            id="bond-frequency"
-                                            value={couponFrequency}
-                                            onChange={(event) => setCouponFrequency(event.target.value as CouponFrequency)}
-                                        >
-                                            <option value="annual">Anual</option>
-                                            <option value="semiannual">Semestral</option>
-                                            <option value="quarterly">Trimestral</option>
-                                            <option value="monthly">Mensual</option>
-                                        </select>
+                                    <div className="calc__input-group">
+                                        <label htmlFor="bond-frequency">Frecuencia de cup?n</label>
+                                        <div className="calc__input-wrapper">
+                                            <TrendingDown size={18} />
+                                            <select
+                                                id="bond-frequency"
+                                                value={couponFrequency}
+                                                onChange={(event) => setCouponFrequency(event.target.value as CouponFrequency)}
+                                            >
+                                                <option value="annual">Anual</option>
+                                                <option value="semiannual">Semestral</option>
+                                                <option value="quarterly">Trimestral</option>
+                                                <option value="monthly">Mensual</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="calc__input-group">
-                                    <label htmlFor="bond-price-type">Tipo de precio</label>
-                                    <div className="calc__input-wrapper">
-                                        <Wallet size={18} />
-                                        <select
-                                            id="bond-price-type"
-                                            value={priceInputType}
-                                            onChange={(event) => setPriceInputType(event.target.value as PriceInputType)}
-                                        >
-                                            <option value="clean">Limpio (sin cópon corrido)</option>
-                                            <option value="dirty">Sucio (con cupón corrido)</option>
-                                        </select>
+                                    <div className="calc__input-group">
+                                        <label htmlFor="bond-price-type">Tipo de precio</label>
+                                        <div className="calc__input-wrapper">
+                                            <Wallet size={18} />
+                                            <select
+                                                id="bond-price-type"
+                                                value={priceInputType}
+                                                onChange={(event) => setPriceInputType(event.target.value as PriceInputType)}
+                                            >
+                                                <option value="clean">Limpio (sin cup?n corrido)</option>
+                                                <option value="dirty">Sucio (con cup?n corrido)</option>
+                                            </select>
+                                        </div>
                                     </div>
-                                </div>
 
-                                <div className="calc__input-group">
-                                    <label htmlFor="bond-day-count">Convencion day count</label>
-                                    <div className="calc__input-wrapper">
-                                        <Landmark size={18} />
-                                        <select
-                                            id="bond-day-count"
-                                            value={dayCountConvention}
-                                            onChange={(event) => setDayCountConvention(event.target.value as DayCountConvention)}
-                                        >
-                                            <option value="actual365">Actual / 365</option>
-                                            <option value="actual360">Actual / 360</option>
-                                            <option value="30e360">30E / 360</option>
-                                        </select>
+                                    <div className="calc__input-group">
+                                        <label htmlFor="bond-day-count">Convenci?n day count</label>
+                                        <div className="calc__input-wrapper">
+                                            <Landmark size={18} />
+                                            <select
+                                                id="bond-day-count"
+                                                value={dayCountConvention}
+                                                onChange={(event) => setDayCountConvention(event.target.value as DayCountConvention)}
+                                            >
+                                                <option value="actual365">Actual / 365</option>
+                                                <option value="actual360">Actual / 360</option>
+                                                <option value="30e360">30E / 360</option>
+                                            </select>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

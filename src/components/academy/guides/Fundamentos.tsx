@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import "./Fundamentos.css";
 
 type AcademyLevel = "Principiante" | "Intermedio" | "Avanzado";
@@ -283,6 +284,7 @@ function loadProgress(): ProgressState {
 
 export function Fundamentos() {
   const [progress, setProgress] = useState<ProgressState>(() => loadProgress());
+  const [levelsCollapsed, setLevelsCollapsed] = useState(false);
 
   const updateProgress = (
     updater: (current: ProgressState) => ProgressState,
@@ -373,13 +375,35 @@ export function Fundamentos() {
 
       <section className="fundamentos__section-block">
         <div className="fundamentos__section-head">
-          <h2>Ruta guiada por nivel</h2>
+          <div className="fundamentos__section-head-row">
+            <h2>Ruta guiada por nivel</h2>
+            <button
+              type="button"
+              className="fundamentos__collapse-toggle"
+              onClick={() => setLevelsCollapsed((current) => !current)}
+              aria-expanded={!levelsCollapsed}
+              aria-label={
+                levelsCollapsed
+                  ? "Expandir ruta guiada por nivel"
+                  : "Comprimir ruta guiada por nivel"
+              }
+              title={levelsCollapsed ? "Expandir" : "Comprimir"}
+            >
+              {levelsCollapsed ? (
+                <ChevronDown size={16} />
+              ) : (
+                <ChevronUp size={16} />
+              )}
+            </button>
+          </div>
           <p>
             Empieza por la base, sube de nivel y usa el progreso para no
             perder el hilo.
           </p>
         </div>
-        <div className="fundamentos__level-grid">
+        <div
+          className={`fundamentos__level-grid ${levelsCollapsed ? "fundamentos__level-grid--collapsed" : ""}`}
+        >
           {levelSections.map(({ level, modules }) => (
             <article key={level} className="fundamentos__level-card">
               <div className="fundamentos__level-head">

@@ -18,6 +18,8 @@ interface ChartDataPoint {
     contributed: number;
     interest: number;
     total: number;
+    withdrawal: number;
+    grossInterest: number;
     yearLabel: string;
 }
 
@@ -26,6 +28,8 @@ interface YearlyDetailRow {
     startingBalance: number;
     yearlyDeposits: number;
     interestEarned: number;
+    grossInterestEarned: number;
+    withdrawalAmount: number;
     endingBalance: number;
     balanceChange: number;
     totalContributed: number;
@@ -139,6 +143,8 @@ export function CompoundInterestCalc() {
         let totalContributed = initial;
         let totalInterest = 0;
         let currentValue = initial;
+        let totalWithdrawals = 0;
+        let totalGrossInterest = 0;
 
         for (let year = 0; year <= periods; year++) {
             if (year > 0) {
@@ -152,6 +158,7 @@ export function CompoundInterestCalc() {
                     const interestEarned = currentValue * monthlyRate;
                     currentValue += interestEarned;
                     totalInterest += interestEarned;
+                    totalGrossInterest += interestEarned;
 
                     // Apply withdrawal if configured (at year end)
                     if (month === 12 && withdrawalT !== 'none') {
@@ -162,6 +169,7 @@ export function CompoundInterestCalc() {
                             withdrawalAmount = withdrawalV;
                         }
                         currentValue -= withdrawalAmount;
+                        totalWithdrawals += withdrawalAmount;
                         totalInterest -= withdrawalAmount; // Adjust interest tracking
                     }
                 }
@@ -172,6 +180,8 @@ export function CompoundInterestCalc() {
                 contributed: totalContributed,
                 interest: totalInterest,
                 total: currentValue,
+                withdrawal: totalWithdrawals,
+                grossInterest: totalGrossInterest,
                 yearLabel: `Año ${year}`
             });
         }
@@ -295,12 +305,16 @@ export function CompoundInterestCalc() {
             const previousPoint = chartData[index];
             const yearlyDeposits = point.contributed - previousPoint.contributed;
             const interestEarned = point.interest - previousPoint.interest;
+            const grossInterestEarned = point.grossInterest - previousPoint.grossInterest;
+            const withdrawalAmount = point.withdrawal - previousPoint.withdrawal;
 
             return {
                 year: point.year,
                 startingBalance: previousPoint.total,
                 yearlyDeposits,
                 interestEarned,
+                grossInterestEarned,
+                withdrawalAmount,
                 endingBalance: point.total,
                 balanceChange: point.total - previousPoint.total,
                 totalContributed: point.contributed,
@@ -551,7 +565,7 @@ export function CompoundInterestCalc() {
                                                     id="withdrawal"
                                                     type="number"
                                                     value={withdrawalValue}
-                                                    onChange={(e) => setWithdrawalValue(Number(e.target.value))}
+                                                    onChange={(e) => setWithdrawalValue(e.target.value === '' ? '' : Number(e.target.value))}
                                                     min="0"
                                                     step={withdrawalType === 'percentage' ? '0.5' : '1000'}
                                                 />
@@ -590,6 +604,21 @@ export function CompoundInterestCalc() {
                                     <div className="compound__result-label">Capital Final</div>
                                     <div className="compound__result-value">{formatCurrency(finalData.total)}</div>
                                 </div>
+                                {withdrawalType !== 'none' && (
+                                    <div className="compound__result-card">
+                                        <div className="compound__result-label">Retirada Anual</div>
+                                        <div className="compound__result-value">
+                                            {withdrawalType === 'percentage'
+                                                ? formatPercent(Number(withdrawalValue) || 0)
+                                                : formatCurrency(Number(withdrawalValue) || 0)}
+                                        </div>
+                                        <div className="compound__result-subtext">
+                                            {withdrawalType === 'percentage'
+                                                ? 'Aplicada como porcentaje del capital al cierre de cada año'
+                                                : 'Aplicada como importe fijo al cierre de cada año'}
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         </>
                     )}
@@ -636,7 +665,7 @@ export function CompoundInterestCalc() {
                     {/* Chart */}
                     <div className="compound__chart">
                         <div className="compound__chart-header">
-                            <h4>Evoluci?n Temporal</h4>
+                            <h4>Evolución Temporal</h4>
                             <div className="compound__chart-legend" aria-label="Leyenda del gr?fico">
                                 <span className="compound__chart-legend-item">
                                     <span className="compound__chart-legend-dot compound__chart-legend-dot--blue" />
@@ -781,12 +810,24 @@ export function CompoundInterestCalc() {
                                                         <span>Depósitos este año</span>
                                                         <strong>{formatCurrency(row.yearlyDeposits)}</strong>
                                                     </div>
+                                                    {withdrawalType !== 'none' && (
+                                                        <div className="compound__detail-metric">
+                                                            <span>Retirada este año</span>
+                                                            <strong>{formatCurrency(row.withdrawalAmount)}</strong>
+                                                        </div>
+                                                    )}
                                                     <div className="compound__detail-metric">
                                                         <span>Intereses recibidos hasta ahora</span>
                                                         <strong className="compound__detail-positive">{formatCurrency(row.totalInterest)}</strong>
                                                     </div>
                                                     <div className="compound__detail-metric">
-                                                        <span>Intereses recibidos este año</span>
+                                                        <span>Intereses generados este año</span>
+                                                        <strong className="compound__detail-positive">
+                                                            {formatCurrency(row.grossInterestEarned)}
+                                                        </strong>
+                                                    </div>
+                                                    <div className="compound__detail-metric">
+                                                        <span>Resultado neto del año</span>
                                                         <strong className="compound__detail-positive">
                                                             {formatCurrency(row.interestEarned)} ({formatPercent(effectiveRate)})
                                                         </strong>

@@ -560,7 +560,7 @@ export function BondCalculator() {
                                         step="1"
                                         placeholder="4"
                                     />
-                                    <span className="unit">a?os</span>
+                                    <span className="unit">años</span>
                                 </div>
                                 <div className="calc__input-wrapper">
                                     <Landmark size={18} />

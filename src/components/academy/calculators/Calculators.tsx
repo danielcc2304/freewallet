@@ -132,7 +132,7 @@ export function Calculators() {
                     <div className="calculators__card-icon calculators__card-icon--teal" style={{ background: 'rgba(99, 102, 241, 0.1)', color: '#6366f1' }}>
                         <Scale size={32} />
                     </div>
-                    <h3 className="calculators__card-title">Calculadora de Bonos (YTM)</h3>
+                    <h3 className="calculators__card-title">Calculadora de Bonos</h3>
                     <p className="calculators__card-description">
                         Calcula la rentabilidad real de un bono basándote en su precio actual de mercado.
                     </p>

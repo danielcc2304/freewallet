@@ -80,22 +80,22 @@ export const academyRouteDefinitions: AcademyRouteDefinition[] = [
 
     { path: 'calculators', label: 'Calculadoras', element: <Calculators />, icon: Calculator, group: 'Herramientas', includeInSidebar: true },
     { path: 'fund-radar', label: 'Radar de fondos', element: <FundRadar />, icon: Award, group: 'Herramientas', includeInSidebar: true },
-    { path: 'valuation', label: 'Valoracion', element: <ValuationGuide />, icon: LineChart, group: 'Herramientas', includeInSidebar: true },
+    { path: 'valuation', label: 'Valoración', element: <ValuationGuide />, icon: LineChart, group: 'Herramientas', includeInSidebar: true },
     { path: 'market-timing-game', label: 'Timing vs DCA', element: <MarketTimingGame />, icon: Gamepad2, group: 'Herramientas', includeInSidebar: true },
 
     { path: 'crisis', label: 'Mercado y crisis', element: <CrisisSimulator />, icon: Activity, group: 'Escenarios', includeInSidebar: true },
-    { path: 'scenarios', label: 'Que hacer si...', element: <Scenarios />, icon: Target, group: 'Escenarios', includeInSidebar: true },
-    { path: 'inflation-predator', label: 'Impacto de la inflacion', element: <InflationPredator />, icon: Flame, group: 'Escenarios', includeInSidebar: true },
+    { path: 'scenarios', label: 'Qué hacer si...', element: <Scenarios />, icon: Target, group: 'Escenarios', includeInSidebar: true },
+    { path: 'inflation-predator', label: 'Impacto de la inflación', element: <InflationPredator />, icon: Flame, group: 'Escenarios', includeInSidebar: true },
 
-    { path: 'resources', label: 'Recursos y guias', element: <InProcess />, icon: FolderOpen, group: 'Recursos', includeInSidebar: true },
+    { path: 'resources', label: 'Recursos y guías', element: <InProcess />, icon: FolderOpen, group: 'Recursos', includeInSidebar: true },
 
-    { path: 'compound-interest', label: 'Interes compuesto', element: <CompoundInterestCalc /> },
+    { path: 'compound-interest', label: 'Interés compuesto', element: <CompoundInterestCalc /> },
     { path: 'fire-calculator', label: 'Calculadora FIRE', element: <FIRECalculator /> },
     { path: 'bond-calculator', label: 'Calculadora de bonos', element: <BondCalculator /> },
-    { path: 'retirement', label: 'Calculadora de jubilacion', element: <RetirementCalculator /> },
+    { path: 'retirement', label: 'Calculadora de jubilación', element: <RetirementCalculator /> },
     { path: 'emergency-fund', label: 'Fondo de emergencia', element: <EmergencyFundCalculator /> },
     { path: 'taxes', label: 'Simulador de impuestos', element: <TaxSimulator /> },
-    { path: 'asset-allocation', label: 'Simulador de asignacion', element: <AssetAllocationSim /> },
+    { path: 'asset-allocation', label: 'Simulador de asignación', element: <AssetAllocationSim /> },
 
     { path: 'assets/equities', label: 'Acciones', element: <AssetEquities /> },
     { path: 'assets/bonds', label: 'Bonos', element: <AssetBonds /> },

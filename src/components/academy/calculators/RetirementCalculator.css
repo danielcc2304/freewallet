@@ -80,19 +80,15 @@
 }
 
 .retirement__input-section {
-    background: var(--bg-secondary);
-    padding: 1.5rem;
-    border-radius: 16px;
-    border: 1px solid var(--border-color);
+    --calculator-card-padding: 1.75rem;
+    --calculator-card-radius: 16px;
 }
 
 .retirement__section-header {
-    font-size: 0.9rem;
-    font-weight: 700;
+    font-size: 1.375rem;
+    font-weight: 600;
     color: var(--text-primary);
-    margin-bottom: 1.25rem;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    margin: 0 0 1.5rem 0;
 }
 
 .retirement__input-row {
@@ -103,25 +99,30 @@
 
 .retirement__input-grid {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
     align-items: end;
 }
 
-.retirement__input-grid .calc__input-group label {
+.retirement__input-grid:not(.retirement__input-grid--stacked) .calc__input-group label {
     display: block;
     min-height: 2.2rem;
     /* ajusta: 2.0–2.6 según tu font-size */
     line-height: 1.1;
 }
 
+.retirement__input-grid--stacked .calc__input-wrapper {
+    min-width: 0;
+}
+
 .retirement__note {
-    background: rgba(59, 130, 246, 0.05);
-    border: 1px solid rgba(59, 130, 246, 0.1);
-    padding: 1rem;
-    border-radius: 12px;
+    --calculator-card-bg: rgba(59, 130, 246, 0.05);
+    --calculator-card-border: rgba(59, 130, 246, 0.1);
+    --calculator-card-padding: 0.95rem 1rem;
+    --calculator-card-radius: 12px;
     display: flex;
     gap: 0.75rem;
+    align-items: flex-start;
 }
 
 .retirement__note p {
@@ -145,10 +146,8 @@
 }
 
 .retirement__metric-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    padding: 1.5rem;
-    border-radius: 20px;
+    --calculator-card-padding: 1.25rem;
+    --calculator-card-radius: 16px;
     display: flex;
     align-items: center;
     gap: 1.25rem;
@@ -160,8 +159,8 @@
 }
 
 .retirement__metric-card--highlight {
-    background: rgba(var(--accent-rgb), 0.02);
-    border-color: rgba(var(--accent-rgb), 0.2);
+    --calculator-card-bg: rgba(var(--accent-rgb), 0.02);
+    --calculator-card-border: rgba(var(--accent-rgb), 0.2);
 }
 
 .retirement__metric-icon {
@@ -199,10 +198,8 @@
 }
 
 .retirement__chart-box {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    padding: 2rem;
-    border-radius: 24px;
+    --calculator-card-padding: 1.75rem;
+    --calculator-card-radius: 16px;
     margin-bottom: 2rem;
 }
 
@@ -255,10 +252,9 @@
 }
 
 .retirement__insight {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    padding: 1.5rem;
-    border-radius: 16px;
+    --calculator-card-bg: var(--bg-tertiary);
+    --calculator-card-padding: 1.25rem;
+    --calculator-card-radius: 16px;
     display: flex;
     gap: 1.25rem;
     align-items: center;
@@ -336,4 +332,8 @@
     .retirement__metrics {
         grid-template-columns: 1fr;
     }
+}
+.retirement__input-grid--stacked {
+    grid-template-columns: 1fr;
+    gap: 0;
 }

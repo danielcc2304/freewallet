@@ -9,6 +9,7 @@ import {
     Tooltip,
     ResponsiveContainer
 } from 'recharts';
+import { CalculatorCard } from './CalculatorCard';
 import './CompoundInterestCalc.css';
 
 type CalculationMode = 'normal' | 'timeToGoal' | 'requiredContribution';
@@ -405,7 +406,7 @@ export function CompoundInterestCalc() {
 
             <div className="compound__container">
                 {/* Inputs Section */}
-                <div className="compound__inputs">
+                <CalculatorCard className="compound__inputs">
                     <h3>Parámetros</h3>
 
                     <div className="calc__input-group">
@@ -582,7 +583,7 @@ export function CompoundInterestCalc() {
                             )}
                         </div>
                     )}
-                </div>
+                </CalculatorCard>
 
                 {/* Results Section */}
                 <div className="compound__results">
@@ -663,7 +664,7 @@ export function CompoundInterestCalc() {
                     )}
 
                     {/* Chart */}
-                    <div className="compound__chart">
+                    <CalculatorCard className="compound__chart">
                         <div className="compound__chart-header">
                             <h4>Evolución Temporal</h4>
                             <div className="compound__chart-legend" aria-label="Leyenda del gr?fico">
@@ -723,10 +724,10 @@ export function CompoundInterestCalc() {
                                 />
                             </AreaChart>
                         </ResponsiveContainer>
-                    </div>
+                    </CalculatorCard>
 
                     {/* Breakdown Chart */}
-                    <div className="compound__breakdown">
+                    <CalculatorCard className="compound__breakdown">
                         <div className="compound__breakdown-item">
                             <div className="compound__breakdown-bar" style={{
                                 width: `${(finalData.contributed / finalData.total) * 100}%`,
@@ -751,8 +752,8 @@ export function CompoundInterestCalc() {
                                 <div className="compound__breakdown-value">{formatCurrency(finalData.interest)}</div>
                             </div>
                         </div>
-                    </div>
-                    <section className="compound__detail">
+                    </CalculatorCard>
+                    <CalculatorCard className="compound__detail">
                         <div className="compound__detail-header">
                             <div>
                                 <h4>Detalle año a año</h4>
@@ -839,7 +840,7 @@ export function CompoundInterestCalc() {
                                 );
                             })}
                         </div>
-                    </section>
+                    </CalculatorCard>
                 </div>
             </div>
 

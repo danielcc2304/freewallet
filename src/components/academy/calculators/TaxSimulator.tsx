@@ -6,13 +6,43 @@ import './TaxSimulator.css';
 interface TaxSimulatorStorage {
     gain: number | string;
     holdingYears: number | string;
+    simulateAnnualTransfers: boolean;
 }
 
 const TAX_SIMULATOR_STORAGE_KEY = 'freewallet_tax_simulator';
+const DEFERRAL_BENCHMARK_PRINCIPAL = 10000;
+const DEFERRAL_BENCHMARK_RATE = 0.07;
+const SAVINGS_TAX_BRACKETS = [
+    { limit: 6000, rate: 0.19 },
+    { limit: 50000, rate: 0.21 },
+    { limit: 200000, rate: 0.23 },
+    { limit: 300000, rate: 0.27 },
+    { limit: Infinity, rate: 0.30 }
+] as const;
+
+function calculateSavingsTaxes(amount: number) {
+    let tax = 0;
+    let remaining = amount;
+    let previousLimit = 0;
+
+    for (const bracket of SAVINGS_TAX_BRACKETS) {
+        const rangeSize = bracket.limit - previousLimit;
+        const taxableInRange = Math.min(remaining, rangeSize);
+
+        if (taxableInRange <= 0) break;
+
+        tax += taxableInRange * bracket.rate;
+        remaining -= taxableInRange;
+        previousLimit = bracket.limit;
+    }
+
+    return tax;
+}
 
 export function TaxSimulator() {
     const [gain, setGain] = useState<number | string>(10000);
     const [holdingYears, setHoldingYears] = useState<number | string>(5);
+    const [simulateAnnualTransfers, setSimulateAnnualTransfers] = useState(true);
 
     useEffect(() => {
         try {
@@ -22,83 +52,57 @@ export function TaxSimulator() {
             const stored = JSON.parse(raw) as Partial<TaxSimulatorStorage>;
             if (stored.gain !== undefined) setGain(stored.gain);
             if (stored.holdingYears !== undefined) setHoldingYears(stored.holdingYears);
+            if (stored.simulateAnnualTransfers !== undefined) setSimulateAnnualTransfers(stored.simulateAnnualTransfers);
         } catch {
             // Ignore localStorage failures or malformed saved values.
         }
     }, []);
 
     useEffect(() => {
-        const payload: TaxSimulatorStorage = { gain, holdingYears };
+        const payload: TaxSimulatorStorage = { gain, holdingYears, simulateAnnualTransfers };
         try {
             localStorage.setItem(TAX_SIMULATOR_STORAGE_KEY, JSON.stringify(payload));
         } catch {
             // Ignore localStorage failures.
         }
-    }, [gain, holdingYears]);
+    }, [gain, holdingYears, simulateAnnualTransfers]);
 
-    // Helper to get numeric value for calculations
     const gainNum = Number(gain) || 0;
     const yearsNum = Number(holdingYears) || 0;
 
-    // Spanish IRPF Brackets (Ahorro) - 2024
-    const calculateTaxes = (amount: number) => {
-        let tax = 0;
-        const brackets = [
-            { limit: 6000, rate: 0.19 },
-            { limit: 50000, rate: 0.21 },
-            { limit: 200000, rate: 0.23 },
-            { limit: 300000, rate: 0.27 },
-            { limit: Infinity, rate: 0.30 }
-        ];
-
-        let remaining = amount;
-        let previousLimit = 0;
-
-        for (const bracket of brackets) {
-            const rangeSize = bracket.limit - previousLimit;
-            const taxableInRange = Math.min(remaining, rangeSize);
-
-            if (taxableInRange <= 0) break;
-
-            tax += taxableInRange * bracket.rate;
-            remaining -= taxableInRange;
-            previousLimit = bracket.limit;
-        }
-
-        return tax;
-    };
-
-    const taxAmount = useMemo(() => calculateTaxes(gainNum), [gainNum]);
+    const taxAmount = useMemo(() => calculateSavingsTaxes(gainNum), [gainNum]);
     const netProfit = gainNum - taxAmount;
     const effectiveRate = gainNum > 0 ? (taxAmount / gainNum) * 100 : 0;
 
-    // Simulation: Fund vs ETF (Tax Deferral Benefit)
-    // Assumes 7% annual growth, and we realize it after X years
     const deferralAnalysis = useMemo(() => {
-        const principal = 10000;
-        const rate = 0.07;
+        const principal = DEFERRAL_BENCHMARK_PRINCIPAL;
+        const rate = DEFERRAL_BENCHMARK_RATE;
 
-        // Scenario A: Fund (Mutual Fund) - No taxes until the end
-        const finalFundPreTax = principal * Math.pow(1 + rate, yearsNum);
-        const fundGain = finalFundPreTax - principal;
-        const fundTax = calculateTaxes(fundGain);
-        const fundNet = finalFundPreTax - fundTax;
+        const finalPreTax = principal * Math.pow(1 + rate, yearsNum);
+        const finalGain = finalPreTax - principal;
+        const exitTax = calculateSavingsTaxes(finalGain);
 
-        // Scenario B: Asset with recurring tax (simulating "leakage" or yearly rebalancing)
-        // We simulate that every year we realize gains and pay taxes on them.
-        let finalETFNet = principal;
+        const fundNet = finalPreTax - exitTax;
+        const etfBuyHoldNet = finalPreTax - exitTax;
+
+        let annualRealisationNet = principal;
         for (let i = 0; i < yearsNum; i++) {
-            const annualGain = finalETFNet * rate;
-            const annualTax = calculateTaxes(annualGain); // Use actual brackets for realism
-            finalETFNet = finalETFNet + annualGain - annualTax;
+            const annualGain = annualRealisationNet * rate;
+            const annualTax = calculateSavingsTaxes(annualGain);
+            annualRealisationNet = annualRealisationNet + annualGain - annualTax;
         }
 
         return {
+            principal,
+            rate,
             fundNet,
-            etfNet: finalETFNet,
-            difference: fundNet - finalETFNet
+            etfBuyHoldNet,
+            annualRealisationNet,
+            annualTaxDragDifference: fundNet - annualRealisationNet,
+            selectedEtfNet: simulateAnnualTransfers ? annualRealisationNet : etfBuyHoldNet,
+            selectedDifference: simulateAnnualTransfers ? fundNet - annualRealisationNet : fundNet - etfBuyHoldNet
         };
-    }, [yearsNum, calculateTaxes]);
+    }, [simulateAnnualTransfers, yearsNum]);
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('es-ES', {
@@ -164,12 +168,23 @@ export function TaxSimulator() {
                                 type="range"
                                 min="1"
                                 max="40"
-                                value={yearsNum}
+                                value={Math.max(1, yearsNum)}
                                 onChange={(e) => setHoldingYears(Number(e.target.value))}
                                 className="custom-slider"
-                                style={{ '--progress': `${((yearsNum - 1) / (40 - 1)) * 100}%` } as any}
+                                style={{ '--progress': `${((Math.max(1, yearsNum) - 1) / (40 - 1)) * 100}%` } as any}
                             />
                         </div>
+                        <label className="tax-sim__scenario-toggle">
+                            <input
+                                type="checkbox"
+                                checked={simulateAnnualTransfers}
+                                onChange={(e) => setSimulateAnnualTransfers(e.target.checked)}
+                            />
+                            <span className="tax-sim__scenario-toggle-copy">
+                                <strong>Simular un traspaso anual</strong>
+                                <small>En el fondo se traspasa sin tributar; en el ETF equivale a vender y recomprar cada año.</small>
+                            </span>
+                        </label>
                         <div className="tax-sim__deferral-info">
                             <Info size={16} />
                             <p>Los fondos de inversión en España no pagan impuestos al traspasarlos.</p>
@@ -255,27 +270,35 @@ export function TaxSimulator() {
                             <h3>Beneficio del Diferimiento Fiscal</h3>
                         </div>
                         <p className="tax-sim__strategy-desc">
-                            En España, los <strong>Fondos de Inversión</strong> permiten el traspaso sin tributar. Esto significa que puedes mover tu dinero de un fondo a otro sin pagar impuestos hasta que finalmente retires el capital.
+                            En España, los <strong>Fondos de Inversión</strong> permiten el traspaso sin tributar. Eso reduce el peaje fiscal cuando haces cambios de asignación antes del reembolso final.
                             <br /><br />
-                            El dato de <strong>"Beneficio de Diferir"</strong> compara invertir 10.000€ a un 7% anual en un Fondo (pago único al final) frente a un activo donde pagaras impuestos cada año.
+                            Aquí comparamos una inversión de <strong>{formatCurrency(deferralAnalysis.principal)}</strong> al <strong>{(deferralAnalysis.rate * 100).toFixed(0)}% anual</strong> durante <strong>{yearsNum} años</strong> con el escenario fiscal {simulateAnnualTransfers ? 'de un traspaso o venta anual' : 'de mantener la posición hasta el final'}.
                         </p>
                         <div className="tax-sim__comparison">
                             <div className="compare-card">
-                                <span>Capital Final Diferido</span>
+                                <span>Fondo Traspasable</span>
                                 <strong>{formatCurrency(deferralAnalysis.fundNet)}</strong>
-                                <p>Pagando impuestos solo al final (Fondo de Inversión)</p>
+                                <p>{simulateAnnualTransfers ? 'Un traspaso al año sin peaje fiscal y tributación solo al reembolso final.' : 'Sin tributar hasta el reembolso final.'}</p>
                             </div>
                             <div className="compare-card">
-                                <span>Capital Final No Diferido</span>
-                                <strong>{formatCurrency(deferralAnalysis.etfNet)}</strong>
-                                <p>Pagando impuestos anualmente (Eficiencia baja)</p>
+                                <span>{simulateAnnualTransfers ? 'ETF con Venta Anual' : 'ETF Acumulación Buy & Hold'}</span>
+                                <strong>{formatCurrency(deferralAnalysis.selectedEtfNet)}</strong>
+                                <p>{simulateAnnualTransfers ? 'Vendiendo y recomprando cada año, con tributación anual de las plusvalías.' : 'Si no vendes hasta el final, el resultado fiscal es prácticamente el mismo.'}</p>
                             </div>
                             <div className="compare-card highlight">
                                 <Landmark size={24} />
-                                <span>Ventaja Fiscal Extra</span>
-                                <strong>+{formatCurrency(deferralAnalysis.difference)}</strong>
-                                <p>Dinero extra gracias al interés compuesto sobre los impuestos no pagados.</p>
+                                <span>{simulateAnnualTransfers ? 'Ventaja del Fondo' : 'Diferencia Fiscal'}</span>
+                                <strong>+{formatCurrency(deferralAnalysis.selectedDifference)}</strong>
+                                <p>{simulateAnnualTransfers ? 'Dinero extra por diferir impuestos pese a hacer un cambio al año.' : 'Sin ventas intermedias, ambos vehículos quedan prácticamente igual.'}</p>
                             </div>
+                        </div>
+                        <div className="tax-sim__comparison-note">
+                            <Info size={16} />
+                            <p>
+                                {simulateAnnualTransfers
+                                    ? 'Con el escenario activo, el fondo conserva el diferimiento fiscal en cada traspaso mientras que el ETF sufre una venta fiscal anual equivalente.'
+                                    : 'Sin ventas intermedias, el Fondo Traspasable y el ETF buy & hold terminan igual porque ambos tributan solo al final.'}
+                            </p>
                         </div>
                     </div>
 

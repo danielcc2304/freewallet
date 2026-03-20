@@ -678,52 +678,54 @@ export function CompoundInterestCalc() {
                                 </span>
                             </div>
                         </div>
-                        <ResponsiveContainer width="100%" height="100%">
-                            <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
-                                <XAxis
-                                    dataKey="yearLabel"
-                                    stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 11, fill: '#a1a1aa' }}
-                                    axisLine={false}
-                                    tickLine={false}
-                                />
-                                <YAxis
-                                    stroke="var(--text-secondary)"
-                                    tick={{ fontSize: 11, fill: '#a1a1aa' }}
-                                    tickFormatter={(value) =>
-                                        new Intl.NumberFormat('es-ES', {
-                                            notation: 'compact',
-                                            compactDisplay: 'short'
-                                        }).format(value)
-                                    }
-                                    width={50}
-                                    axisLine={false}
-                                    tickLine={false}
-                                />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Area
-                                    type="monotone"
-                                    dataKey="contributed"
-                                    stackId="1"
-                                    stroke="#3b82f6"
-                                    fill="#3b82f6"
-                                    fillOpacity={0.4}
-                                    strokeWidth={2}
-                                    name="Capital Aportado"
-                                />
-                                <Area
-                                    type="monotone"
-                                    dataKey="interest"
-                                    stackId="1"
-                                    stroke="#10b981"
-                                    fill="#10b981"
-                                    fillOpacity={0.4}
-                                    strokeWidth={2}
-                                    name="Intereses Generados"
-                                />
-                            </AreaChart>
-                        </ResponsiveContainer>
+                        <div className="compound__chart-canvas">
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
+                                    <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
+                                    <XAxis
+                                        dataKey="yearLabel"
+                                        stroke="var(--text-secondary)"
+                                        tick={{ fontSize: 11, fill: '#a1a1aa' }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                    />
+                                    <YAxis
+                                        stroke="var(--text-secondary)"
+                                        tick={{ fontSize: 11, fill: '#a1a1aa' }}
+                                        tickFormatter={(value) =>
+                                            new Intl.NumberFormat('es-ES', {
+                                                notation: 'compact',
+                                                compactDisplay: 'short'
+                                            }).format(value)
+                                        }
+                                        width={50}
+                                        axisLine={false}
+                                        tickLine={false}
+                                    />
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="contributed"
+                                        stackId="1"
+                                        stroke="#3b82f6"
+                                        fill="#3b82f6"
+                                        fillOpacity={0.4}
+                                        strokeWidth={2}
+                                        name="Capital Aportado"
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="interest"
+                                        stackId="1"
+                                        stroke="#10b981"
+                                        fill="#10b981"
+                                        fillOpacity={0.4}
+                                        strokeWidth={2}
+                                        name="Intereses Generados"
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
                     </CalculatorCard>
 
                     {/* Breakdown Chart */}

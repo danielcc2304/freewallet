@@ -188,6 +188,33 @@
     margin-bottom: var(--academy-space-stack);
 }
 
+.fundamentos__section-head-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+}
+
+.fundamentos__collapse-toggle {
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    flex-shrink: 0;
+}
+
+.fundamentos__collapse-toggle:hover {
+    color: var(--text-primary);
+    border-color: var(--accent-primary);
+}
+
 .fundamentos__level-grid,
 .fundamentos__goal-grid,
 .fundamentos__checklist-grid,
@@ -198,6 +225,10 @@
 
 .fundamentos__level-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.fundamentos__level-grid--collapsed {
+    display: none;
 }
 
 .fundamentos__level-card,

@@ -645,7 +645,7 @@ export function BondCalculator() {
                                     </div>
 
                                     <div className="calc__input-group">
-                                        <label htmlFor="bond-frequency">Frecuencia de cup?n</label>
+                                        <label htmlFor="bond-frequency">Frecuencia de cupón</label>
                                         <div className="calc__input-wrapper">
                                             <TrendingDown size={18} />
                                             <select
@@ -670,14 +670,14 @@ export function BondCalculator() {
                                                 value={priceInputType}
                                                 onChange={(event) => setPriceInputType(event.target.value as PriceInputType)}
                                             >
-                                                <option value="clean">Limpio (sin cup?n corrido)</option>
-                                                <option value="dirty">Sucio (con cup?n corrido)</option>
+                                                <option value="clean">Limpio (sin cupón corrido)</option>
+                                                <option value="dirty">Sucio (con cupón corrido)</option>
                                             </select>
                                         </div>
                                     </div>
 
                                     <div className="calc__input-group">
-                                        <label htmlFor="bond-day-count">Convenci?n day count</label>
+                                        <label htmlFor="bond-day-count">Convención day count</label>
                                         <div className="calc__input-wrapper">
                                             <Landmark size={18} />
                                             <select

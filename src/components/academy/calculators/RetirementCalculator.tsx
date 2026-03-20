@@ -139,7 +139,7 @@ export function RetirementCalculator() {
             <div className="retirement__grid">
                 <aside className="retirement__inputs">
                     <CalculatorCard className="retirement__input-section">
-                        <h3 className="retirement__section-header">Tiempos</h3>
+                        <h3 className="retirement__section-header">Edades</h3>
                         <div className="retirement__input-grid retirement__input-grid--stacked">
                             <div className="calc__input-group">
                                 <label>Edad Actual</label>

@@ -138,7 +138,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         onClick={closeMobileSidebar}
                     >
                         <Settings className="sidebar__link-icon" size={20} />
-                        <span className="sidebar__link-text">Configuracion</span>
+                        <span className="sidebar__link-text">Configuración</span>
                     </NavLink>
                 </nav>
 
@@ -146,7 +146,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     <Link to="/terms" className="sidebar__terms-link" onClick={closeMobileSidebar}>
                         Terminos y condiciones
                     </Link>
-                    <div className="sidebar__version">v3.6.3</div>
+                    <div className="sidebar__version">v3.6.4</div>
                 </div>
             </aside>
 

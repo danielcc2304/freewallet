@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { academySidebarGroups, academySidebarSections } from '../../../app/routes/academyRoutes';
+import { APP_VERSION } from '../../../constants/app';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -127,7 +128,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         onClick={closeMobileSidebar}
                     >
                         <FileSpreadsheet className="sidebar__link-icon" size={20} />
-                        <span className="sidebar__link-text">Portfolio CSV</span>
+                        <span className="sidebar__link-text">Portfolio</span>
                     </NavLink>
 
                     <NavLink
@@ -146,7 +147,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     <Link to="/terms" className="sidebar__terms-link" onClick={closeMobileSidebar}>
                         Terminos y condiciones
                     </Link>
-                    <div className="sidebar__version">v3.6.5</div>
+                    <div className="sidebar__version">v{APP_VERSION}</div>
                 </div>
             </aside>
 

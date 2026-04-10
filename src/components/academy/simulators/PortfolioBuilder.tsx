@@ -73,7 +73,7 @@ const ASSET_CLASSES = [
         color: '#10b981',
         desc: 'Préstamos a gobiernos o empresas. Actúan como el "seguro" de tu cartera, reduciendo la volatilidad y aportando estabilidad.',
         risk: 'Bajo/Medio',
-        return: '2-10% (histórico)',
+        return: '2-6% (histórico)',
         path: '/academy/assets/bonds'
     },
     {

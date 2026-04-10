@@ -295,16 +295,8 @@
     line-height: 1.45;
 }
 
-.risk-mgmt__fx-rules {
-    margin-top: 1rem;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
-    border-radius: 16px;
-    padding: 1rem;
-}
-
-.risk-mgmt__fx-rules h4 {
-    margin: 0 0 0.75rem;
+.risk-mgmt__fx-rules-title {
+    margin: 1rem 0 0.75rem;
 }
 
 .fx-rules-grid {

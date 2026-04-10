@@ -289,6 +289,13 @@
     align-items: flex-start;
 }
 
+.asset-page__callout > svg {
+    width: 20px;
+    height: 20px;
+    flex: 0 0 20px;
+    margin-top: 0.15rem;
+}
+
 .asset-page__callout--info {
     background: rgba(59, 130, 246, 0.06);
     border: 1px solid rgba(59, 130, 246, 0.1);
@@ -1813,6 +1820,12 @@
 }
 
 @media (max-width: 480px) {
+    .asset-page__callout > svg {
+        width: 22px;
+        height: 22px;
+        flex-basis: 22px;
+    }
+
     .asset-page__hero h1 {
         font-size: 1.75rem;
     }

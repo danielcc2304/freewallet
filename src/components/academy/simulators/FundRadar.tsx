@@ -461,7 +461,7 @@ export function FundRadar() {
                         <p>Revisa riesgo de divisa, correlacion y drawdown antes de decidir.</p>
                     </Link>
                     <Link to="/portfolio-csv" className="fund-radar__next-card">
-                        <strong>Portfolio CSV</strong>
+                        <strong>Portfolio</strong>
                         <p>Comprueba si ese fondo reduce o empeora la concentracion de tu cartera real.</p>
                     </Link>
                 </div>

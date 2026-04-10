@@ -247,3 +247,25 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Se elimina la colision entre meses repetidos de distintos bloques anuales al cargar ciertos Excel, especialmente en el grafico "Drivers del mes".
 - Archivos:
   - `src/pages/PortfolioCsv/PortfolioCsv.tsx`
+
+### 2026-04-10 - Academy + App: ajustes de copy, glosario y versionado centralizado
+- Funcionalidad:
+  - Se renombra la entrada principal de `Portfolio CSV` a `Portfolio` en sidebar y CTAs relacionadas para unificar la navegacion.
+  - Se centraliza el nombre y la version de la app en `src/constants/app.ts`, reutilizandolos en sidebar y ajustes.
+  - Se amplian los conocimientos base de Academy con nuevos terminos de derivados y estrategia (`Derivado`, `Opciones`, `Theta`, `Contango`, `Backwardation`, `Long`, `Short`).
+  - Se afinan copies y detalles visuales en contenidos de acciones, gestion del riesgo, valoracion, radar de fondos y constructor de cartera.
+- Resumen:
+  - La version `v3.6.6` consolida textos mas coherentes en la app, reduce duplicidad en el versionado visible y amplia el glosario educativo con conceptos de derivados.
+- Archivos:
+  - `src/components/layout/Sidebar/Sidebar.tsx`
+  - `src/pages/Settings/Settings.tsx`
+  - `src/constants/app.ts`
+  - `src/data/academy/knowledge.ts`
+  - `src/components/academy/assets/AssetEquities.tsx`
+  - `src/components/academy/assets/AssetPage.css`
+  - `src/components/academy/guides/Fundamentos.tsx`
+  - `src/components/academy/guides/RiskManagement.tsx`
+  - `src/components/academy/guides/RiskManagement.css`
+  - `src/components/academy/guides/ValuationGuide.tsx`
+  - `src/components/academy/simulators/FundRadar.tsx`
+  - `src/components/academy/simulators/PortfolioBuilder.tsx`

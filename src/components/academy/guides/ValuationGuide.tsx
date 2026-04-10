@@ -307,7 +307,7 @@ export function ValuationGuide() {
                         <p>Lleva la valoración a escenarios prácticos de compra, espera y caídas de mercado.</p>
                     </Link>
                     <Link to="/portfolio-csv" className="valuation-guide__next-card">
-                        <strong>Portfolio CSV</strong>
+                        <strong>Portfolio</strong>
                         <p>Contrasta tu tesis con el peso real que esa posición ocupa dentro de toda la cartera.</p>
                     </Link>
                 </div>

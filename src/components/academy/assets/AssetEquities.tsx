@@ -246,13 +246,12 @@ export function AssetEquities() {
                     <div className="step-card">
                         <div className="step-card__number">1</div>
                         <h4>ETFs Indexados</h4>
-                        <p>La opción más recomendada para el 95% de inversores. Un solo ETF como el MSCI World te da exposición a +1.500 empresas de 23 países.</p>
-                        <span className="step-card__badge step-card__badge--recommended">Recomendado</span>
+                        <p>Un solo ETF como el MSCI World te da exposición a +1.500 empresas de 23 países.</p>
                     </div>
                     <div className="step-card">
                         <div className="step-card__number">2</div>
                         <h4>Fondos Indexados</h4>
-                        <p>Misma filosofía que ETFs pero con ventaja fiscal en España: puedes traspasar entre fondos sin tributar. Ideal para acumular a largo plazo.</p>
+                        <p>La opción más recomendada para el 95% de inversores. Misma filosofía que ETFs pero con ventaja fiscal en España: puedes traspasar entre fondos sin tributar. Ideal para acumular a largo plazo.</p>
                         <span className="step-card__badge step-card__badge--fiscal">Ventaja Fiscal 🇪🇸</span>
                     </div>
                     <div className="step-card">

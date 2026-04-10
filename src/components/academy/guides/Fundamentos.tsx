@@ -553,7 +553,7 @@ export function Fundamentos() {
             to="/portfolio-csv"
             className="fundamentos__button fundamentos__button--primary"
           >
-            Abrir Portfolio CSV
+            Abrir Portfolio
           </Link>
           <Link
             to="/academy/portfolio"

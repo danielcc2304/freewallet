@@ -260,6 +260,55 @@ export const GLOSSARY: GlossaryTerm[] = [
         definition: "Diferencia real de rentabilidad entre un fondo/ETF y su \u00edndice de referencia. Incluye costes, impuestos, fricciones y, en productos cubiertos, el coste de cobertura.",
         category: "Instrumentos",
         relatedTerms: ["TER", "Hedged", "\u00cdndice de Referencia"]
+    },
+    {
+        id: 'derivado',
+        term: "Derivado",
+        definition: "Instrumento financiero cuyo valor depende del precio de otro activo subyacente, como una acci\u00f3n, un \u00edndice, una divisa o una materia prima. Se usa para cobertura, especulaci\u00f3n o arbitraje.",
+        category: "Derivados",
+        relatedTerms: ["Opciones", "Futuros", "Apalancamiento"]
+    },
+    {
+        id: 'opciones',
+        term: "Opciones",
+        definition: "Contrato derivado que otorga el derecho, pero no la obligaci\u00f3n, de comprar o vender un activo a un precio determinado antes o en una fecha concreta. El comprador paga una prima por ese derecho.",
+        category: "Derivados",
+        relatedTerms: ["Derivado", "Theta", "Long", "Short"]
+    },
+    {
+        id: 'theta',
+        term: "Theta (Tetha)",
+        definition: "M\u00e9trica de las opciones que mide cu\u00e1nto valor pierde una opci\u00f3n por el paso del tiempo, manteniendo constantes el resto de factores. Suele perjudicar al comprador de opciones y beneficiar al vendedor.",
+        category: "Derivados",
+        relatedTerms: ["Opciones", "Prima", "Volatilidad"]
+    },
+    {
+        id: 'contango',
+        term: "Contango",
+        definition: "Situaci\u00f3n en la que los contratos de futuros con vencimientos m\u00e1s lejanos cotizan a un precio superior al del mercado spot o al de los futuros m\u00e1s cercanos. Suele aparecer cuando hay costes de almacenamiento, financiaci\u00f3n o expectativas de precios m\u00e1s altos.",
+        category: "Derivados",
+        relatedTerms: ["Backwardation", "Futuros", "Materias Primas"]
+    },
+    {
+        id: 'backwardation',
+        term: "Backwardation",
+        definition: "Situaci\u00f3n opuesta al contango: los contratos de futuros con vencimientos m\u00e1s lejanos cotizan por debajo del precio spot o de los futuros m\u00e1s cercanos. Puede reflejar escasez inmediata o una fuerte demanda a corto plazo.",
+        category: "Derivados",
+        relatedTerms: ["Contango", "Futuros", "Materias Primas"]
+    },
+    {
+        id: 'long',
+        term: "Long",
+        definition: "Posici\u00f3n alcista en la que compras un activo esperando que su precio suba para venderlo m\u00e1s caro en el futuro. Tambi\u00e9n se usa para describir una cartera con exposici\u00f3n compradora neta.",
+        category: "Estrategia",
+        relatedTerms: ["Short", "Bull Market", "Opciones"]
+    },
+    {
+        id: 'short',
+        term: "Short",
+        definition: "Posici\u00f3n bajista en la que apuestas a que el precio de un activo va a caer. En una venta en corto cl\u00e1sica, tomas prestado el activo, lo vendes y tratas de recomprarlo m\u00e1s barato despu\u00e9s.",
+        category: "Estrategia",
+        relatedTerms: ["Long", "Bear Market", "Apalancamiento"]
     }
 ];
 

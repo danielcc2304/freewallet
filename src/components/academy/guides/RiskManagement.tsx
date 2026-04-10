@@ -217,23 +217,22 @@ export function RiskManagement() {
                     </article>
                 </div>
 
-                <div className="risk-mgmt__fx-rules">
-                    <h4>Regla rápida para decidir</h4>
-                    <div className="fx-rules-grid">
-                        <div className="fx-rule">
-                            <strong>Renta Fija Global</strong>
-                            <p>Prioriza EUR-hedged si tu objetivo es estabilizar cartera.</p>
-                        </div>
-                        <div className="fx-rule">
-                            <strong>Renta Variable Global</strong>
-                            <p>A largo plazo suele ser válido mantener sin cobertura.</p>
-                        </div>
-                        <div className="fx-rule">
-                            <strong>Necesidad de gasto en EUR</strong>
-                            <p>Cuanto más cercano el gasto, más sentido tiene cubrir divisa.</p>
-                        </div>
+                <h4 className="risk-mgmt__fx-rules-title">Regla rápida para decidir</h4>
+                <div className="fx-rules-grid">
+                    <div className="fx-rule">
+                        <strong>Renta Fija Global</strong>
+                        <p>Prioriza EUR-hedged si tu objetivo es estabilizar cartera.</p>
+                    </div>
+                    <div className="fx-rule">
+                        <strong>Renta Variable Global</strong>
+                        <p>A largo plazo suele ser válido mantener sin cobertura.</p>
+                    </div>
+                    <div className="fx-rule">
+                        <strong>Necesidad de gasto en EUR</strong>
+                        <p>Cuanto más cercano el gasto, más sentido tiene cubrir divisa.</p>
                     </div>
                 </div>
+
             </section>
 
             <section className="risk-mgmt__cta">
@@ -263,7 +262,7 @@ export function RiskManagement() {
                         <p>Trabaja respuestas concretas para rebalanceos, pánico y entradas en mercado.</p>
                     </Link>
                     <Link to="/portfolio-csv" className="risk-mgmt__next-card">
-                        <strong>Portfolio CSV</strong>
+                        <strong>Portfolio</strong>
                         <p>Aplica los checks de concentración y buckets sobre tu cartera real.</p>
                     </Link>
                 </div>

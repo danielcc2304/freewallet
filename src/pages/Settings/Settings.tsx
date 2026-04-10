@@ -1,6 +1,7 @@
 import { Sun, Moon, Monitor, Trash2, Database, Info, Power } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../../components/ui';
+import { APP_NAME, APP_VERSION } from '../../constants/app';
 import { useTheme } from '../../context/ThemeContext';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { useState } from 'react';
@@ -179,7 +180,7 @@ export function Settings() {
                     <div className="settings__about">
                         <div className="about-item">
                             <Info size={16} />
-                            <span>FreeWallet v3.6.5</span>
+                            <span>{APP_NAME} v{APP_VERSION}</span>
                         </div>
                         <p className="about-description">
                             Aplicación de gestión de portfolio de inversiones.

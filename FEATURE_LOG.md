@@ -283,3 +283,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - `src/components/academy/guides/Fundamentos.css`
   - `src/pages/PortfolioCsv/PortfolioCsv.tsx`
   - `src/constants/app.ts`
+
+### 2026-04-13 - Dashboard: aviso central con accesos rapidos
+- Funcionalidad:
+  - El aviso del dashboard pasa de un modal tecnico ligado al estado de APIs a un bloque central mas visual y persistente al entrar en la vista.
+  - Se anaden accesos rapidos desde el propio aviso hacia `Academia`, `Configuracion` y `Portfolio CSV`.
+  - Se refuerza el estilo del modal con iconografia ampliada, CTA principal y ajustes responsive.
+  - Se actualiza la version visible de la aplicacion a `v3.6.8`.
+- Resumen:
+  - La version `v3.6.8` mejora la comunicacion de que el dashboard sigue en progreso y da una salida mas clara a las secciones estables de la app.
+- Archivos:
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/pages/Dashboard/Dashboard.css`
+  - `src/constants/app.ts`

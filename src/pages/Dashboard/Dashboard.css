@@ -60,19 +60,82 @@
     line-height: 1.6;
 }
 
+.dashboard__notice--hero {
+    align-items: center;
+    text-align: center;
+    gap: 1.25rem;
+    padding: 0.5rem 0;
+}
+
 .dashboard__notice p {
     margin: 0;
 }
 
-.dashboard__notice-icon {
+.dashboard__notice-title {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.dashboard__notice-description {
+    max-width: 420px;
+    font-size: 1.05rem;
+}
+
+.dashboard__notice-links {
+    display: grid;
+    gap: var(--spacing-sm);
+    width: 100%;
+}
+
+.dashboard__notice-links a {
+    width: 100%;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 40px;
-    height: 40px;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
     border-radius: 12px;
-    background: rgba(245, 158, 11, 0.14);
-    color: #d97706;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.dashboard__notice-links a:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+}
+
+.dashboard__notice-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 120px;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+    margin: 0 auto;
+    align-self: center;
+    animation: dashboardNoticeFloat 2s infinite;
+}
+
+@keyframes dashboardNoticeFloat {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
 }
 
 /* Spinning animation */
@@ -209,6 +272,23 @@
 @media (max-width: 640px) {
     .dashboard__title {
         font-size: var(--font-size-2xl);
+    }
+
+    .dashboard__notice-title {
+        font-size: 1.6rem;
+    }
+
+    .dashboard__notice-description {
+        font-size: 1rem;
+    }
+
+    .dashboard__notice-icon {
+        width: 96px;
+        height: 96px;
+    }
+
+    .dashboard__notice-links a {
+        padding: 0.9rem 1rem;
     }
 
     .welcome-content {

@@ -457,7 +457,7 @@ export function FundRadar() {
                         <p>Comprueba si el fondo mejora una asignacion completa y no solo una posición aislada.</p>
                     </Link>
                     <Link to="/academy/risk" className="fund-radar__next-card">
-                        <strong>Gestion del riesgo</strong>
+                        <strong>Gestión del riesgo</strong>
                         <p>Revisa riesgo de divisa, correlacion y drawdown antes de decidir.</p>
                     </Link>
                     <Link to="/portfolio-csv" className="fund-radar__next-card">

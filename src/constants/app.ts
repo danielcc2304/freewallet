@@ -1,2 +1,2 @@
 export const APP_NAME = 'FreeWallet';
-export const APP_VERSION = '3.6.8';
+export const APP_VERSION = '3.6.9';

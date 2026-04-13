@@ -409,7 +409,7 @@ export function Fundamentos() {
                 <span>{modules.length} módulos</span>
               </div>
               <div className="fundamentos__mini-list">
-                {modules.slice(0, levelsExpanded ? modules.length : 3).map((module) => (
+                {modules.slice(0, levelsExpanded ? modules.length : 2).map((module) => (
                   <div
                     key={module.id}
                     className={`fundamentos__mini-card ${getStatus(module.id) === "done" ? "fundamentos__mini-card--done" : ""}`}

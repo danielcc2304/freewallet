@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import axios from 'axios';
-import { Search, Calendar, DollarSign, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp, Wrench } from 'lucide-react';
-import { Card, CardHeader, CardContent, Input, Button } from '../../components/ui';
+import { Search, Calendar, DollarSign, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp, Wrench, GraduationCap, Settings, FileSpreadsheet } from 'lucide-react';
+import { Card, CardHeader, CardContent, Input, Button, Modal } from '../../components/ui';
 import { searchSymbol, getQuote } from '../../services/apiService';
 import { generateId, isApiEnabled } from '../../services/storageService';
 import { usePortfolio } from '../../context/PortfolioContext';
@@ -65,6 +65,7 @@ export function AddInvestment() {
     const [currentPrice, setCurrentPrice] = useState<number | null>(null);
     const [loadingPrice, setLoadingPrice] = useState(false);
     const [currency, setCurrency] = useState('EUR');
+    const [showInProgressNotice, setShowInProgressNotice] = useState(true);
 
     // Detect if search query looks like an ISIN
     const isISIN = (query: string): boolean => {
@@ -364,7 +365,45 @@ export function AddInvestment() {
         return "Introduce los datos de tu nueva inversión";
     };
 
+    const inProgressNoticeModal = (
+        <Modal
+            isOpen={showInProgressNotice}
+            onClose={() => setShowInProgressNotice(false)}
+            size="md"
+        >
+            <div className="add-investment__notice add-investment__notice--hero">
+                <div className="add-investment__notice-icon">
+                    <Wrench size={44} />
+                </div>
+                <h2 className="add-investment__notice-title">Sección en progreso</h2>
+                <p className="add-investment__notice-description">
+                    Esta vista sigue en desarrollo y puede mostrar comportamientos provisionales.
+                    Mientras terminamos esta parte, puedes utilizar con normalidad las secciones de Academia,
+                    Configuración y Portfolio.
+                </p>
+                <div className="add-investment__notice-links">
+                    <Link to="/academy" onClick={() => setShowInProgressNotice(false)}>
+                        <GraduationCap size={18} />
+                        Academia
+                    </Link>
+                    <Link to="/settings" onClick={() => setShowInProgressNotice(false)}>
+                        <Settings size={18} />
+                        Configuración
+                    </Link>
+                    <Link to="/portfolio-csv" onClick={() => setShowInProgressNotice(false)}>
+                        <FileSpreadsheet size={18} />
+                        Portfolio
+                    </Link>
+                </div>
+                <Button onClick={() => setShowInProgressNotice(false)} size="lg" fullWidth>
+                    Entendido
+                </Button>
+            </div>
+        </Modal>
+    );
+
     return (
+        <>
         <div className="add-investment">
             <div className="add-investment__header">
                 <Button
@@ -616,5 +655,7 @@ export function AddInvestment() {
                 </CardContent>
             </Card>
         </div>
+        {inProgressNoticeModal}
+        </>
     );
 }

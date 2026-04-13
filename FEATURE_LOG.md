@@ -269,3 +269,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - `src/components/academy/guides/ValuationGuide.tsx`
   - `src/components/academy/simulators/FundRadar.tsx`
   - `src/components/academy/simulators/PortfolioBuilder.tsx`
+
+### 2026-04-13 - Academy: Fundamentos por niveles y etiqueta Portfolio
+- Funcionalidad:
+  - La ruta guiada por nivel en `Fundamentos` pasa a mostrar un resumen inicial de 3 modulos por nivel con opcion de expandir o contraer el listado completo.
+  - Se reorganiza la maquetacion de tarjetas por nivel para mejorar lectura y jerarquia visual en desktop y responsive.
+  - Se ajusta el copy de `Portfolio CSV` a `Portfolio` en bloques de Fundamentos y en la cabecera de `PortfolioCsv`.
+  - Se actualiza la version visible de la aplicacion a `v3.6.7`.
+- Resumen:
+  - La version `v3.6.7` mejora la navegacion progresiva dentro de Fundamentos y termina de unificar el naming de Portfolio en la experiencia educativa.
+- Archivos:
+  - `src/components/academy/guides/Fundamentos.tsx`
+  - `src/components/academy/guides/Fundamentos.css`
+  - `src/pages/PortfolioCsv/PortfolioCsv.tsx`
+  - `src/constants/app.ts`

@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Wrench } from 'lucide-react';
+import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Wrench, GraduationCap, Settings, FileSpreadsheet } from 'lucide-react';
 import { PortfolioSummary, Performers, AssetsTable, PortfolioComposition, AssetDetail } from '../../components/dashboard';
 import { PortfolioChart } from '../../components/charts';
 import { Button, Card, CardContent, Modal } from '../../components/ui';
@@ -15,16 +15,12 @@ export function Dashboard() {
     const { assets, loading, updatingPrices, lastPriceUpdate } = state;
     const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M');
     const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-    const [showApiNotice, setShowApiNotice] = useState(false);
+    const [showDashboardNotice, setShowDashboardNotice] = useState(true);
     const navigate = useNavigate();
     const apiEnabled = isApiEnabled();
 
-    useEffect(() => {
-        setShowApiNotice(apiEnabled);
-    }, [apiEnabled]);
-
-    const handleCloseApiNotice = () => {
-        setShowApiNotice(false);
+    const handleCloseDashboardNotice = () => {
+        setShowDashboardNotice(false);
     };
 
     const handleEditAsset = (asset: Asset) => {
@@ -89,22 +85,37 @@ export function Dashboard() {
         });
     }, [assets]);
 
-    const apiNoticeModal = (
+    const dashboardNoticeModal = (
         <Modal
-            isOpen={showApiNotice}
-            onClose={handleCloseApiNotice}
-            title="Dashboard en construccion"
-            size="sm"
+            isOpen={showDashboardNotice}
+            onClose={handleCloseDashboardNotice}
+            size="md"
         >
-            <div className="dashboard__notice">
+            <div className="dashboard__notice dashboard__notice--hero">
                 <div className="dashboard__notice-icon">
-                    <Wrench size={20} />
+                    <Wrench size={44} />
                 </div>
-                <p>
-                    Las peticiones a APIs estan activadas, pero la experiencia del dashboard todavia no esta cerrada.
-                    Puede haber datos incompletos o comportamientos provisionales mientras se termina esta parte.
+                <h2 className="dashboard__notice-title">Dashboard en progreso</h2>
+                <p className="dashboard__notice-description">
+                    Esta vista sigue en desarrollo y puede mostrar datos incompletos o comportamientos provisionales.
+                    Mientras terminamos el dashboard, puedes utilizar con normalidad las secciones de Academia,
+                    Configuracion y Portfolio CSV.
                 </p>
-                <Button onClick={handleCloseApiNotice}>
+                <div className="dashboard__notice-links">
+                    <Link to="/academy" onClick={handleCloseDashboardNotice}>
+                        <GraduationCap size={18} />
+                        Academia
+                    </Link>
+                    <Link to="/settings" onClick={handleCloseDashboardNotice}>
+                        <Settings size={18} />
+                        Configuracion
+                    </Link>
+                    <Link to="/portfolio-csv" onClick={handleCloseDashboardNotice}>
+                        <FileSpreadsheet size={18} />
+                        Portfolio CSV
+                    </Link>
+                </div>
+                <Button onClick={handleCloseDashboardNotice} size="lg" fullWidth>
                     Entendido
                 </Button>
             </div>
@@ -119,7 +130,7 @@ export function Dashboard() {
                     <div className="skeleton skeleton--medium" />
                     <div className="skeleton skeleton--medium" />
                 </div>
-                {apiNoticeModal}
+                {dashboardNoticeModal}
             </>
         );
     }
@@ -155,7 +166,7 @@ export function Dashboard() {
                         </CardContent>
                     </Card>
                 </div>
-                {apiNoticeModal}
+                {dashboardNoticeModal}
             </>
         );
     }
@@ -237,7 +248,7 @@ export function Dashboard() {
                 {selectedAsset && <AssetDetail asset={selectedAsset} />}
             </Modal>
 
-            {apiNoticeModal}
+            {dashboardNoticeModal}
         </div>
     );
 }

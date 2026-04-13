@@ -284,7 +284,7 @@ function loadProgress(): ProgressState {
 
 export function Fundamentos() {
   const [progress, setProgress] = useState<ProgressState>(() => loadProgress());
-  const [levelsCollapsed, setLevelsCollapsed] = useState(false);
+  const [levelsExpanded, setLevelsExpanded] = useState(false);
 
   const updateProgress = (
     updater: (current: ProgressState) => ProgressState,
@@ -380,19 +380,19 @@ export function Fundamentos() {
             <button
               type="button"
               className="fundamentos__collapse-toggle"
-              onClick={() => setLevelsCollapsed((current) => !current)}
-              aria-expanded={!levelsCollapsed}
+              onClick={() => setLevelsExpanded((current) => !current)}
+              aria-expanded={levelsExpanded}
               aria-label={
-                levelsCollapsed
-                  ? "Expandir ruta guiada por nivel"
-                  : "Comprimir ruta guiada por nivel"
+                levelsExpanded
+                  ? "Mostrar menos modulos por nivel"
+                  : "Mostrar todos los modulos por nivel"
               }
-              title={levelsCollapsed ? "Expandir" : "Comprimir"}
+              title={levelsExpanded ? "Mostrar menos" : "Mostrar todos"}
             >
-              {levelsCollapsed ? (
-                <ChevronDown size={16} />
-              ) : (
+              {levelsExpanded ? (
                 <ChevronUp size={16} />
+              ) : (
+                <ChevronDown size={16} />
               )}
             </button>
           </div>
@@ -401,9 +401,7 @@ export function Fundamentos() {
             perder el hilo.
           </p>
         </div>
-        <div
-          className={`fundamentos__level-grid ${levelsCollapsed ? "fundamentos__level-grid--collapsed" : ""}`}
-        >
+        <div className="fundamentos__level-grid">
           {levelSections.map(({ level, modules }) => (
             <article key={level} className="fundamentos__level-card">
               <div className="fundamentos__level-head">
@@ -411,7 +409,7 @@ export function Fundamentos() {
                 <span>{modules.length} módulos</span>
               </div>
               <div className="fundamentos__mini-list">
-                {modules.map((module) => (
+                {modules.slice(0, levelsExpanded ? modules.length : 3).map((module) => (
                   <div
                     key={module.id}
                     className={`fundamentos__mini-card ${getStatus(module.id) === "done" ? "fundamentos__mini-card--done" : ""}`}
@@ -541,7 +539,7 @@ export function Fundamentos() {
       <section className="fundamentos__spotlight">
         <div className="fundamentos__spotlight-copy">
           <span className="fundamentos__spotlight-badge">Academia + CSV</span>
-          <h2>Cómo leer tu cartera real con Portfolio CSV</h2>
+          <h2>Cómo leer tu cartera real con Portfolio</h2>
           <p>
             Si ya tienes una cartera montada, el siguiente paso no siempre es
             otro artículo: muchas veces necesitas aprender a leer tus pesos,
@@ -568,7 +566,7 @@ export function Fundamentos() {
         <h3>Siguiente paso recomendado</h3>
         <p>
           Si vienes totalmente desde cero: glosario, perfil, interés compuesto y
-          estrategia. Si ya tienes cartera: Portfolio CSV, gestión del riesgo y
+          estrategia. Si ya tienes cartera: Portfolio, gestión del riesgo y
           mercado y crisis.
         </p>
         <div className="fundamentos__next-links">

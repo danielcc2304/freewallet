@@ -558,7 +558,7 @@ export function PortfolioCsv() {
     return (
         <div className="portfolio-csv-page">
             <header className="portfolio-csv-hero">
-                <div className="portfolio-csv-hero__badge">Portfolio CSV</div>
+                <div className="portfolio-csv-hero__badge">Portfolio</div>
                 <h1>Análisis de cartera</h1>
                 <p>Sube un Excel con las hojas `Cartera` y `Evolución` para ver concentración, rendimiento, drawdown y tendencia del patrimonio.</p>
             </header>

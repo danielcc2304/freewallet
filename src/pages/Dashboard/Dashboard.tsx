@@ -99,7 +99,7 @@ export function Dashboard() {
                 <p className="dashboard__notice-description">
                     Esta vista sigue en desarrollo y puede mostrar datos incompletos o comportamientos provisionales.
                     Mientras terminamos el dashboard, puedes utilizar con normalidad las secciones de Academia,
-                    Configuracion y Portfolio CSV.
+                    Configuración y Portfolio CSV.
                 </p>
                 <div className="dashboard__notice-links">
                     <Link to="/academy" onClick={handleCloseDashboardNotice}>
@@ -108,7 +108,7 @@ export function Dashboard() {
                     </Link>
                     <Link to="/settings" onClick={handleCloseDashboardNotice}>
                         <Settings size={18} />
-                        Configuracion
+                        Configuración
                     </Link>
                     <Link to="/portfolio-csv" onClick={handleCloseDashboardNotice}>
                         <FileSpreadsheet size={18} />

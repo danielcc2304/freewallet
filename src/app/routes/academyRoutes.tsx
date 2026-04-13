@@ -74,7 +74,7 @@ export const academyRouteDefinitions: AcademyRouteDefinition[] = [
 
     { path: 'investor-profile-test', label: 'Perfil inversor', element: <InvestorProfileTest />, icon: Sparkles, group: 'Construir', includeInSidebar: true },
     { path: 'portfolio', label: 'Estrategia y cartera', element: <PortfolioBuilder />, icon: PieChart, group: 'Construir', includeInSidebar: true },
-    { path: 'risk', label: 'Gestion del riesgo', element: <RiskManagement />, icon: Shield, group: 'Construir', includeInSidebar: true },
+    { path: 'risk', label: 'Gestión del riesgo', element: <RiskManagement />, icon: Shield, group: 'Construir', includeInSidebar: true },
     { path: 'tax', label: 'Fiscalidad', element: <Taxation />, icon: Scale, group: 'Construir', includeInSidebar: true },
     { path: 'strategies', label: 'Estrategias', element: <Strategies />, icon: Target, group: 'Construir', includeInSidebar: true },
 

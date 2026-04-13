@@ -296,3 +296,21 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - `src/pages/Dashboard/Dashboard.tsx`
   - `src/pages/Dashboard/Dashboard.css`
   - `src/constants/app.ts`
+
+### 2026-04-13 - Add Investment + Academy: avisos guiados y copy refinado
+- Funcionalidad:
+  - `AddInvestment` incorpora un modal de seccion en progreso con accesos rapidos a `Academia`, `Configuracion` y `Portfolio`.
+  - Se anade el estilo visual del nuevo aviso en `AddInvestment.css`, alineado con el patron usado en dashboard.
+  - Se reducen a 2 los modulos visibles por nivel en el resumen inicial de `Fundamentos`.
+  - Se corrigen textos y acentos visibles en rutas y CTAs de Academy y dashboard (`Gestión del riesgo`, `Configuración`).
+  - Se actualiza la version visible de la aplicacion a `v3.6.9`.
+- Resumen:
+  - La version `v3.6.9` extiende el patron de avisos guiados a alta de inversiones y pule el copy visible en secciones clave de la app.
+- Archivos:
+  - `src/pages/AddInvestment/AddInvestment.tsx`
+  - `src/pages/AddInvestment/AddInvestment.css`
+  - `src/components/academy/guides/Fundamentos.tsx`
+  - `src/components/academy/simulators/FundRadar.tsx`
+  - `src/app/routes/academyRoutes.tsx`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/constants/app.ts`

@@ -314,3 +314,14 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - `src/app/routes/academyRoutes.tsx`
   - `src/pages/Dashboard/Dashboard.tsx`
   - `src/constants/app.ts`
+
+### 2026-04-20 - Portfolio: ajuste de reset anual y eje TWR
+- Funcionalidad:
+  - Se corrige la condicion de corte para evitar resetear el primer punto de la serie anual en `PortfolioCsv`.
+  - La linea `TWR YTD %` pasa al eje izquierdo para alinear su lectura con las barras de retorno mensual.
+  - Se actualiza la version visible de la aplicacion a `v3.6.10`.
+- Resumen:
+  - La version `v3.6.10` ajusta la continuidad visual del grafico de evolucion y corrige la representacion de la serie TWR anual.
+- Archivos:
+  - `src/pages/PortfolioCsv/PortfolioCsv.tsx`
+  - `src/constants/app.ts`

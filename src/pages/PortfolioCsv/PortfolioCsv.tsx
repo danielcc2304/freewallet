@@ -144,7 +144,7 @@ export function PortfolioCsv() {
                 && currentParts.year !== previousParts.year
             );
 
-            if (!startsNewYear) {
+            if (index > 0 && !startsNewYear) {
                 return [{
                     ...row,
                     twrYtdPctReset: null,
@@ -741,8 +741,8 @@ export function PortfolioCsv() {
                                 <Bar yAxisId="left" dataKey="monthlyReturnPct" name="% Mensual" fill="#10b981" radius={[6, 6, 0, 0]} barSize={isMobile ? 10 : 18} />
                                 <Line yAxisId="right" type="monotone" dataKey="drawdownPct" name="Drawdown %" stroke="#ef4444" strokeWidth={2.1} dot={false} />
                                 <Line yAxisId="right" type="monotone" dataKey="drawdownPctReset" name="Drawdown %" stroke="#ef4444" strokeWidth={2.1} dot={false} legendType="none" connectNulls={false} />
-                                <Line yAxisId="right" type="monotone" dataKey="twrYtdPct" name="TWR YTD %" stroke="#8b5cf6" strokeWidth={2.1} dot={false} connectNulls={false} />
-                                <Line yAxisId="right" type="monotone" dataKey="twrYtdPctReset" name="TWR YTD %" stroke="#8b5cf6" strokeWidth={2.1} dot={false} legendType="none" connectNulls={false} />
+                                <Line yAxisId="left" type="monotone" dataKey="twrYtdPct" name="TWR YTD %" stroke="#8b5cf6" strokeWidth={2.1} dot={false} connectNulls={false} />
+                                <Line yAxisId="left" type="monotone" dataKey="twrYtdPctReset" name="TWR YTD %" stroke="#8b5cf6" strokeWidth={2.1} dot={false} legendType="none" connectNulls={false} />
                             </ComposedChart>
                         </ResponsiveContainer>
                     </div>

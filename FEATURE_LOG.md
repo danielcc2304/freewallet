@@ -325,3 +325,13 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 - Archivos:
   - `src/pages/PortfolioCsv/PortfolioCsv.tsx`
   - `src/constants/app.ts`
+
+### 2026-04-20 - Academy: mejora visual de tarjetas de Fundamentos
+- Funcionalidad:
+  - Se ajusta el fondo y borde de las mini tarjetas de `Fundamentos` para mejorar contraste y visibilidad.
+  - Se actualiza la version visible de la aplicacion a `v3.6.11`.
+- Resumen:
+  - La version `v3.6.11` refina la lectura visual de la ruta guiada de Fundamentos.
+- Archivos:
+  - `src/components/academy/guides/Fundamentos.css`
+  - `src/constants/app.ts`

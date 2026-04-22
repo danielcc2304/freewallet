@@ -335,3 +335,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 - Archivos:
   - `src/components/academy/guides/Fundamentos.css`
   - `src/constants/app.ts`
+
+### 2026-04-22 - Academy: limpieza de copy en Fundamentos y Glosario
+- Funcionalidad:
+  - Se elimina la etiqueta obsoleta `Academia + CSV` del bloque de lectura de cartera real en `Fundamentos`.
+  - Se simplifica el subtitulo del `Diccionario Financiero` retirando la referencia redundante a busqueda y filtros.
+  - Se actualiza la version visible de la aplicacion a `v3.6.12`.
+- Resumen:
+  - La version `v3.6.12` limpia textos de apoyo en Academy para mantener una presentacion mas directa y coherente.
+- Archivos:
+  - `src/components/academy/guides/Fundamentos.tsx`
+  - `src/components/academy/guides/Glossary.tsx`
+  - `src/constants/app.ts`

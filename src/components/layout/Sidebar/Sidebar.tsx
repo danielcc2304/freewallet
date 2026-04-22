@@ -147,7 +147,9 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                     <Link to="/terms" className="sidebar__terms-link" onClick={closeMobileSidebar}>
                         Terminos y condiciones
                     </Link>
-                    <div className="sidebar__version">v{APP_VERSION}</div>
+                    <Link to="/feature-log" className="sidebar__version" onClick={closeMobileSidebar}>
+                        v{APP_VERSION}
+                    </Link>
                 </div>
             </aside>
 

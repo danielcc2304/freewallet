@@ -178,10 +178,10 @@ export function Settings() {
                 />
                 <CardContent>
                     <div className="settings__about">
-                        <div className="about-item">
+                        <Link to="/feature-log" className="about-item about-item--link">
                             <Info size={16} />
                             <span>{APP_NAME} v{APP_VERSION}</span>
-                        </div>
+                        </Link>
                         <p className="about-description">
                             Aplicación de gestión de portfolio de inversiones.
                             Los datos se almacenan localmente en tu navegador.

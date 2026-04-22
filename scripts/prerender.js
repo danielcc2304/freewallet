@@ -13,6 +13,7 @@ const routes = [
     '/',
     '/add',
     '/settings',
+    '/feature-log',
     '/terms',
     '/portfolio-csv',
     '/academy',

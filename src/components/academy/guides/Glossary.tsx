@@ -27,7 +27,6 @@ export function Glossary() {
                 <h1 className="glossary-page__title">Diccionario Financiero</h1>
                 <p className="glossary-page__subtitle">
                     Los conceptos que necesitas dominar para hablar el lenguaje del dinero.
-                    Busca cualquier término o filtra por categoría.
                 </p>
             </header>
 

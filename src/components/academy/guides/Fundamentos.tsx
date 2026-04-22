@@ -538,7 +538,6 @@ export function Fundamentos() {
 
       <section className="fundamentos__spotlight">
         <div className="fundamentos__spotlight-copy">
-          <span className="fundamentos__spotlight-badge">Academia + CSV</span>
           <h2>Cómo leer tu cartera real con Portfolio</h2>
           <p>
             Si ya tienes una cartera montada, el siguiente paso no siempre es

@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
-import { Dashboard, Planning, Transactions, AddInvestment, Settings, TermsAndConditions, NotFound, PortfolioCsv } from './pages';
+import { Dashboard, Planning, Transactions, AddInvestment, Settings, TermsAndConditions, NotFound, PortfolioCsv, FeatureLog } from './pages';
 import { AcademyLayout } from './components/academy/layout/AcademyLayout';
 import { academyRouteDefinitions } from './app/routes/academyRoutes';
 import './index.css';
@@ -16,6 +16,7 @@ function App() {
           <Route path="add" element={<AddInvestment />} />
           <Route path="settings" element={<Settings />} />
           <Route path="portfolio-csv" element={<PortfolioCsv />} />
+          <Route path="feature-log" element={<FeatureLog />} />
 
           {/* Academy section with nested routes */}
           <Route path="academy" element={<AcademyLayout />}>

@@ -127,6 +127,16 @@
     font-weight: 500;
 }
 
+.about-item--link {
+    align-self: flex-start;
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.about-item--link:hover {
+    color: var(--accent-secondary);
+}
+
 .about-description,
 .about-api {
     margin: 0;

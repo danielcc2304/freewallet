@@ -13,6 +13,7 @@ export const ALL_PRERENDER_ROUTES = [
     '/add',
     '/portfolio-csv',
     '/settings',
+    '/feature-log',
     '/terms',
     ...academyPrerenderRoutes,
 ];

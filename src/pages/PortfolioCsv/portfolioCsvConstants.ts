@@ -3,6 +3,7 @@ import type { HoldingBucket, HoldingCategory } from './portfolioCsvTypes';
 export const STORAGE_KEYS = {
     holdingsRaw: 'freewallet_portfolio_csv_holdings_raw',
     evolutionRaw: 'freewallet_portfolio_csv_evolution_raw',
+    comparisonRaw: 'freewallet_portfolio_csv_comparison_raw',
     workbookFile: 'freewallet_portfolio_csv_workbook_file',
     updatedAt: 'freewallet_portfolio_csv_updated_at',
     categoryOverrides: 'freewallet_portfolio_csv_category_overrides',
@@ -56,6 +57,24 @@ Dic,9885,9650,200,35,"0,363","-1,017"
 Ene,10090,9885,200,5,"0,051","0,033"
 Feb,10180,10090,0,90,"0,892","0,925"
 "Mar 2026",10000,10180,0,-180,"-1,768","-0,859"`;
+
+export const DEFAULT_COMPARISON_CSV = `Año,Mes,Periodo,Rentabilidad Cartera (%),Rentabilidad MSCI World (%),Cartera Acum (%),MSCI Acum (%)
+2025,Feb,2025 Feb,0.00%,0.00%,0.00%,0.00%
+2025,Mar,2025 Mar,3.79%,-6.97%,3.79%,-6.97%
+2025,Abr,2025 Abr,4.28%,-4.12%,8.23%,-10.80%
+2025,May,2025 May,2.24%,6.07%,10.65%,-5.39%
+2025,Jun,2025 Jun,1.10%,0.88%,11.87%,-4.56%
+2025,Jul,2025 Jul,1.48%,3.86%,13.52%,-0.87%
+2025,Ago,2025 Ago,0.79%,0.32%,14.42%,-0.55%
+2025,Sep,2025 Sep,5.14%,2.81%,20.31%,2.24%
+2025,Oct,2025 Oct,2.82%,3.83%,23.70%,6.16%
+2025,Nov,2025 Nov,-0.26%,-0.27%,23.38%,5.87%
+2025,Dic,2025 Dic,3.82%,-0.40%,28.08%,5.45%
+2026,Ene,2026 Ene,2.41%,0.92%,31.17%,6.42%
+2026,Feb,2026 Feb,-0.36%,1.49%,30.70%,8.00%
+2026,Mar,2026 Mar,-5.29%,-4.04%,23.79%,3.64%
+2026,Abr,2026 Abr,5.48%,7.65%,30.57%,11.57%
+2026,May,2026 May,0.43%,-0.02%,31.13%,11.54%`;
 
 export const PIE_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7', '#84cc16', '#64748b'];
 

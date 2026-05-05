@@ -24,6 +24,17 @@ export type EvolutionPoint = {
     twrYtdPct: number;
 };
 
+export type BenchmarkComparisonPoint = {
+    year: number;
+    month: string;
+    period: string;
+    portfolioReturnPct: number;
+    benchmarkReturnPct: number;
+    portfolioAccumPct: number;
+    benchmarkAccumPct: number;
+    relativeReturnPct: number;
+};
+
 export type EnrichedEvolutionPoint = EvolutionPoint & {
     investedValue: number;
     gainVsInvested: number;

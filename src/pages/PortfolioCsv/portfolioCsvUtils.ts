@@ -1,5 +1,6 @@
 import { MONTH_KEYS } from './portfolioCsvConstants';
 import type {
+    BenchmarkComparisonPoint,
     EvolutionPoint,
     Holding,
     HoldingBucket,
@@ -150,11 +151,16 @@ export function parseHoldings(raw: string): Holding[] {
 }
 
 export function isMonthLabel(value: string): boolean {
-    return /^(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)\b/i.test(value.trim());
+    return /^(?:20\d{2}\s+)?(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)\b/i.test(value.trim())
+        || /^(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)(?:\s+20\d{2})?\b/i.test(value.trim());
 }
 
 export function parsePeriodParts(value: string): ParsedPeriod | null {
-    const match = value.trim().toLowerCase().match(/^(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)(?:\s+(\d{2,4}))?$/i);
+    const normalized = value.trim().toLowerCase();
+    const yearFirstMatch = normalized.match(/^(20\d{2})\s+(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)$/i);
+    const match = yearFirstMatch
+        ? ['', yearFirstMatch[2], yearFirstMatch[1]]
+        : normalized.match(/^(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)(?:\s+(\d{2,4}))?$/i);
     if (!match) return null;
 
     const monthKey = match[1].toLowerCase();
@@ -247,13 +253,26 @@ export function parseEvolution(raw: string): EvolutionPoint[] {
         if (/^mes$/i.test(rawPeriod)) continue;
         if (!isMonthLabel(rawPeriod)) continue;
 
-        const period = /\d{2,4}$/.test(rawPeriod) || currentYear === undefined
-            ? rawPeriod
-            : `${rawPeriod} ${currentYear}`;
+        const chartPeriod = (row[13] || '').replace(/"/g, '').trim();
+        const chartPeriodParts = parsePeriodParts(chartPeriod);
+        const period = chartPeriodParts
+            ? `${chartPeriodParts.monthKey.charAt(0).toUpperCase()}${chartPeriodParts.monthKey.slice(1)} ${chartPeriodParts.year}`
+            : (/\d{2,4}$/.test(rawPeriod) || currentYear === undefined
+                ? rawPeriod
+                : `${rawPeriod} ${currentYear}`);
 
         let monthlyReturnRaw = row[5] || '';
         let twrRaw = row[6] || '';
-        if (row.length >= 9) {
+        const hasSplitDecimalPercents = row.length >= 9
+            && !/%/.test(row[5] || '')
+            && !/%/.test(row[6] || '')
+            && !/%/.test(row[7] || '')
+            && !/%/.test(row[8] || '')
+            && /^-?\d+$/.test(row[5] || '')
+            && /^\d+$/.test(row[6] || '')
+            && /^-?\d+$/.test(row[7] || '')
+            && /^\d+$/.test(row[8] || '');
+        if (hasSplitDecimalPercents) {
             monthlyReturnRaw = `${row[5] || ''},${row[6] || ''}`;
             twrRaw = `${row[7] || ''},${row[8] || ''}`;
         } else if (row.length === 8) {
@@ -274,6 +293,37 @@ export function parseEvolution(raw: string): EvolutionPoint[] {
     }
 
     return points;
+}
+
+export function parseBenchmarkComparison(raw: string): BenchmarkComparisonPoint[] {
+    const rows = parseCsvRows(raw);
+    if (rows.length <= 1) return [];
+
+    return rows
+        .slice(1)
+        .map((row) => {
+            const year = parseFlexibleNumber(row[0] || '');
+            const month = (row[1] || '').replace(/"/g, '').trim();
+            const periodRaw = (row[2] || '').replace(/"/g, '').trim();
+            const periodParts = parsePeriodParts(periodRaw || `${month} ${year}`);
+            const period = periodParts
+                ? `${periodParts.monthKey.charAt(0).toUpperCase()}${periodParts.monthKey.slice(1)} ${periodParts.year || year}`
+                : periodRaw;
+            const portfolioReturnPct = parsePercentNumber(row[3] || '');
+            const benchmarkReturnPct = parsePercentNumber(row[4] || '');
+
+            return {
+                year,
+                month,
+                period,
+                portfolioReturnPct,
+                benchmarkReturnPct,
+                portfolioAccumPct: parsePercentNumber(row[5] || ''),
+                benchmarkAccumPct: parsePercentNumber(row[6] || ''),
+                relativeReturnPct: portfolioReturnPct - benchmarkReturnPct,
+            };
+        })
+        .filter((row) => row.year > 0 && row.month && row.period);
 }
 
 export function formatCurrency(value: number): string {

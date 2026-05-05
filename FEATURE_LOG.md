@@ -12,6 +12,24 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-05-05 - Portfolio: comparativa contra benchmark
+- Funcionalidad:
+  - Se anade soporte para una hoja opcional `Comparativa` en el Excel de Portfolio.
+  - La plantilla descargable incluye datos de comparativa frente a MSCI World.
+  - Se incorporan metricas de lectura del benchmark: rentabilidad acumulada de cartera, acumulado MSCI World, diferencia acumulada, meses batiendo al benchmark y mejores/peores meses relativos.
+  - Se anade un grafico combinado con evolucion acumulada de cartera, evolucion acumulada del benchmark y alpha mensual.
+  - Se endurece el parseo de periodos y porcentajes para soportar formatos con ano delante y decimales partidos por separador.
+  - Se actualiza la version visible de la aplicacion a `v3.7.0`.
+- Resumen:
+  - La version `v3.7.0` amplia Portfolio con una lectura comparativa frente a benchmark para evaluar si la cartera compensa su riesgo relativo.
+- Archivos:
+  - `src/pages/PortfolioCsv/PortfolioCsv.tsx`
+  - `src/pages/PortfolioCsv/PortfolioCsv.css`
+  - `src/pages/PortfolioCsv/portfolioCsvConstants.ts`
+  - `src/pages/PortfolioCsv/portfolioCsvTypes.ts`
+  - `src/pages/PortfolioCsv/portfolioCsvUtils.ts`
+  - `src/constants/app.ts`
+
 ### 2026-04-22 - App: Feature Log visible desde la version
 - Funcionalidad:
   - Se invierte el orden de `FEATURE_LOG.md` para dejar las updates recientes al principio.

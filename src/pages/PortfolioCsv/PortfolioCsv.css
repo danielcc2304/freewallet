@@ -171,6 +171,10 @@
     margin-bottom: 0.9rem;
 }
 
+.portfolio-csv-card--wide {
+    grid-column: span 2;
+}
+
 .portfolio-csv-card h2 {
     margin: 0 0 0.5rem;
     font-size: var(--font-size-lg);
@@ -197,6 +201,20 @@
 
 .portfolio-csv-chart--risk-map .recharts-default-legend {
     padding-top: 0.35rem !important;
+}
+
+.portfolio-csv-chart--benchmark {
+    height: 330px;
+}
+
+.portfolio-csv-empty-state {
+    border: 1px dashed var(--border-secondary);
+    border-radius: 10px;
+    padding: 1rem;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: 1.55;
 }
 
 .portfolio-csv-pie-legend {
@@ -522,6 +540,10 @@
 
     .portfolio-csv-grid {
         grid-template-columns: 1fr;
+    }
+
+    .portfolio-csv-card--wide {
+        grid-column: auto;
     }
 }
 

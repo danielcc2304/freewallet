@@ -31,6 +31,7 @@ import {
     BUCKET_LABELS,
     CATEGORY_LABELS,
     DEFAULT_BUCKET_TARGETS,
+    DEFAULT_COMPARISON_CSV,
     DEFAULT_EVOLUTION_CSV,
     DEFAULT_HOLDINGS_CSV,
     PIE_COLORS,
@@ -55,6 +56,7 @@ import {
     formatPct,
     formatPeriodLabel,
     normalizeSheetName,
+    parseBenchmarkComparison,
     parseCsvRows,
     parseEvolution,
     parseHoldings,
@@ -75,6 +77,7 @@ export function PortfolioCsv() {
 
     const [holdingsRaw, setHoldingsRaw] = useState(() => readStoredValue(STORAGE_KEYS.holdingsRaw, DEFAULT_HOLDINGS_CSV));
     const [evolutionRaw, setEvolutionRaw] = useState(() => readStoredValue(STORAGE_KEYS.evolutionRaw, DEFAULT_EVOLUTION_CSV));
+    const [comparisonRaw, setComparisonRaw] = useState(() => readStoredValue(STORAGE_KEYS.comparisonRaw, DEFAULT_COMPARISON_CSV));
     const [workbookFileLabel, setWorkbookFileLabel] = useState(() => readStoredValue(STORAGE_KEYS.workbookFile, 'Demo precargada'));
     const [updatedAt, setUpdatedAt] = useState(() => readStoredValue(STORAGE_KEYS.updatedAt, ''));
     const [categoryOverrides, setCategoryOverrides] = useState<Record<string, HoldingCategory>>(() => readStoredMap<HoldingCategory>(STORAGE_KEYS.categoryOverrides));
@@ -86,6 +89,7 @@ export function PortfolioCsv() {
 
     const deferredHoldingsRaw = useDeferredValue(holdingsRaw);
     const deferredEvolutionRaw = useDeferredValue(evolutionRaw);
+    const deferredComparisonRaw = useDeferredValue(comparisonRaw);
 
     const holdings = useMemo<HoldingControl[]>(() => parseHoldings(deferredHoldingsRaw).map((holding) => {
         const categoryOverride = categoryOverrides[holding.asset];
@@ -98,6 +102,7 @@ export function PortfolioCsv() {
         };
     }), [categoryOverrides, deferredHoldingsRaw]);
     const evolutionBase = useMemo(() => parseEvolution(deferredEvolutionRaw), [deferredEvolutionRaw]);
+    const benchmarkComparison = useMemo(() => parseBenchmarkComparison(deferredComparisonRaw), [deferredComparisonRaw]);
 
     const evolution = useMemo<EnrichedEvolutionPoint[]>(() => {
         if (evolutionBase.length === 0) return [];
@@ -174,6 +179,7 @@ export function PortfolioCsv() {
         try {
             localStorage.setItem(STORAGE_KEYS.holdingsRaw, holdingsRaw);
             localStorage.setItem(STORAGE_KEYS.evolutionRaw, evolutionRaw);
+            localStorage.setItem(STORAGE_KEYS.comparisonRaw, comparisonRaw);
             localStorage.setItem(STORAGE_KEYS.workbookFile, workbookFileLabel);
             localStorage.setItem(STORAGE_KEYS.updatedAt, updatedAt);
             localStorage.setItem(STORAGE_KEYS.categoryOverrides, JSON.stringify(categoryOverrides));
@@ -181,7 +187,7 @@ export function PortfolioCsv() {
         } catch {
             // localStorage puede fallar en modo privado o por limites de cuota.
         }
-    }, [bucketTargets, categoryOverrides, holdingsRaw, evolutionRaw, workbookFileLabel, updatedAt]);
+    }, [bucketTargets, categoryOverrides, comparisonRaw, holdingsRaw, evolutionRaw, workbookFileLabel, updatedAt]);
 
     useEffect(() => {
         const onResize = () => setIsMobile(window.innerWidth <= 700);
@@ -267,6 +273,21 @@ export function PortfolioCsv() {
         const annuity = monthlyContribution * ((((1 + rate) ** 12) - 1) / rate);
         return futureValue + annuity;
     }, [latestEvolution, evolution, avgMonthlyReturn]);
+    const latestBenchmarkComparison = benchmarkComparison.length > 0 ? benchmarkComparison[benchmarkComparison.length - 1] : null;
+    const relativeAccumPct = latestBenchmarkComparison
+        ? latestBenchmarkComparison.portfolioAccumPct - latestBenchmarkComparison.benchmarkAccumPct
+        : 0;
+    const bestRelativeMonth = benchmarkComparison.length > 0
+        ? [...benchmarkComparison].sort((a, b) => b.relativeReturnPct - a.relativeReturnPct)[0]
+        : null;
+    const worstRelativeMonth = benchmarkComparison.length > 0
+        ? [...benchmarkComparison].sort((a, b) => a.relativeReturnPct - b.relativeReturnPct)[0]
+        : null;
+    const benchmarkWinRate = useMemo(() => {
+        if (benchmarkComparison.length === 0) return 0;
+        const wins = benchmarkComparison.filter((row) => row.portfolioReturnPct > row.benchmarkReturnPct).length;
+        return (wins / benchmarkComparison.length) * 100;
+    }, [benchmarkComparison]);
 
     const concentrationLevel = topConcentration >= 55 ? 'Alta' : topConcentration >= 40 ? 'Media' : 'Baja';
     const totalTargetWeight = useMemo(
@@ -351,6 +372,7 @@ export function PortfolioCsv() {
 
             const holdingsSheetName = normalizedNames.cartera;
             const evolutionSheetName = normalizedNames.evolucion || normalizedNames.evolution;
+            const comparisonSheetName = normalizedNames.comparativa || normalizedNames.benchmark || normalizedNames.comparison;
 
             if (!holdingsSheetName || !evolutionSheetName) {
                 setError('El Excel debe incluir las hojas "Cartera" y "Evolución".');
@@ -359,6 +381,9 @@ export function PortfolioCsv() {
 
             const holdingsText = XLSX.utils.sheet_to_csv(workbook.Sheets[holdingsSheetName]);
             const evolutionText = XLSX.utils.sheet_to_csv(workbook.Sheets[evolutionSheetName]);
+            const comparisonText = comparisonSheetName
+                ? XLSX.utils.sheet_to_csv(workbook.Sheets[comparisonSheetName])
+                : '';
 
             if (parseHoldings(holdingsText).length === 0) {
                 setError('No pude interpretar la hoja de cartera del Excel. Revisa cabeceras y formato.');
@@ -371,6 +396,7 @@ export function PortfolioCsv() {
 
             setHoldingsRaw(holdingsText);
             setEvolutionRaw(evolutionText);
+            setComparisonRaw(comparisonText);
             setWorkbookFileLabel(file.name);
             setUpdatedAt(new Date().toISOString());
             setError('');
@@ -382,6 +408,7 @@ export function PortfolioCsv() {
     const resetToDemo = () => {
         setHoldingsRaw(DEFAULT_HOLDINGS_CSV);
         setEvolutionRaw(DEFAULT_EVOLUTION_CSV);
+        setComparisonRaw(DEFAULT_COMPARISON_CSV);
         setWorkbookFileLabel('Demo precargada');
         setUpdatedAt(new Date().toISOString());
         setError('');
@@ -391,9 +418,11 @@ export function PortfolioCsv() {
         const workbook = XLSX.utils.book_new();
         const holdingsSheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_HOLDINGS_CSV));
         const evolutionSheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_EVOLUTION_CSV));
+        const comparisonSheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_COMPARISON_CSV));
 
         XLSX.utils.book_append_sheet(workbook, holdingsSheet, 'Cartera');
         XLSX.utils.book_append_sheet(workbook, evolutionSheet, 'Evolución');
+        XLSX.utils.book_append_sheet(workbook, comparisonSheet, 'Comparativa');
         XLSX.writeFile(workbook, 'plantilla-cartera-evolucion.xlsx');
     };
 
@@ -560,13 +589,13 @@ export function PortfolioCsv() {
             <header className="portfolio-csv-hero">
                 <div className="portfolio-csv-hero__badge">Portfolio</div>
                 <h1>Análisis de cartera</h1>
-                <p>Sube un Excel con las hojas `Cartera` y `Evolución` para ver concentración, rendimiento, drawdown y tendencia del patrimonio.</p>
+                <p>Sube un Excel con las hojas `Cartera`, `Evolución` y, si la tienes, `Comparativa` para ver concentración, rendimiento, drawdown y evolución frente al benchmark.</p>
             </header>
 
             <section className="portfolio-csv-upload">
                 <article className="portfolio-csv-upload__card portfolio-csv-upload__card--utility">
                     <h3><FileSpreadsheet size={18} /> Excel único</h3>
-                    <p>Sube un archivo `.xlsx` con hojas `Cartera` y `Evolución`, o descarga una plantilla lista para rellenar.</p>
+                    <p>Sube un archivo `.xlsx` con hojas `Cartera`, `Evolución` y `Comparativa`, o descarga una plantilla lista para rellenar.</p>
                     <div className="portfolio-csv-upload__actions">
                         <button type="button" className="portfolio-csv-btn" onClick={() => workbookInputRef.current?.click()}>
                             <Upload size={16} /> Subir Excel
@@ -688,6 +717,59 @@ export function PortfolioCsv() {
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
+                </article>
+
+                <article className="portfolio-csv-card">
+                    <h2><Layers3 size={18} /> Lectura del benchmark</h2>
+                    <ul className="portfolio-csv-insights">
+                        <li><span>Cartera acumulada</span><strong>{latestBenchmarkComparison ? formatPct(latestBenchmarkComparison.portfolioAccumPct) : 'N/D'}</strong></li>
+                        <li><span>MSCI World acumulado</span><strong>{latestBenchmarkComparison ? formatPct(latestBenchmarkComparison.benchmarkAccumPct) : 'N/D'}</strong></li>
+                        <li><span>Diferencia acumulada</span><strong>{latestBenchmarkComparison ? formatPct(relativeAccumPct) : 'N/D'}</strong></li>
+                        <li><span>Meses batiendo benchmark</span><strong>{benchmarkComparison.length ? formatPct(benchmarkWinRate) : 'N/D'}</strong></li>
+                        <li><span>Mejor mes relativo</span><strong>{bestRelativeMonth ? `${bestRelativeMonth.period} (${formatPct(bestRelativeMonth.relativeReturnPct)})` : 'N/D'}</strong></li>
+                        <li><span>Peor mes relativo</span><strong>{worstRelativeMonth ? `${worstRelativeMonth.period} (${formatPct(worstRelativeMonth.relativeReturnPct)})` : 'N/D'}</strong></li>
+                    </ul>
+                    <div className="portfolio-csv-note">
+                        <p>
+                            Un diferencial positivo sostenido indica que la cartera está compensando su riesgo frente al índice de referencia.
+                        </p>
+                    </div>
+                </article>
+            </section>
+
+            <section className="portfolio-csv-grid">
+                <article className="portfolio-csv-card portfolio-csv-card--wide">
+                    <h2><TrendingUp size={18} /> Comparativa vs MSCI World</h2>
+                    <p>Evolución acumulada de la cartera frente al benchmark y diferencia mensual relativa.</p>
+                    {benchmarkComparison.length > 0 ? (
+                        <div className="portfolio-csv-chart portfolio-csv-chart--benchmark">
+                            <ResponsiveContainer width="100%" height={330}>
+                                <ComposedChart data={benchmarkComparison} margin={{ top: 20, right: isMobile ? 4 : 14, left: 0, bottom: isMobile ? 30 : 12 }}>
+                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
+                                    <XAxis
+                                        dataKey="period"
+                                        tickFormatter={formatPeriodTick}
+                                        tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                                        axisLine={false}
+                                        tickLine={false}
+                                        interval="preserveStartEnd"
+                                        minTickGap={isMobile ? 28 : 14}
+                                    />
+                                    <YAxis yAxisId="left" tickFormatter={(value) => `${value}%`} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
+                                    <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => `${value}%`} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
+                                    <Tooltip content={<SeriesTooltip valueType="percent" />} />
+                                    <Legend formatter={legendFormatter} wrapperStyle={{ color: 'var(--text-secondary)' }} />
+                                    <Bar yAxisId="right" dataKey="relativeReturnPct" name="Alpha mensual" fill="#f59e0b" radius={[6, 6, 0, 0]} barSize={isMobile ? 10 : 16} />
+                                    <Line yAxisId="left" type="monotone" dataKey="portfolioAccumPct" name="Cartera acum." stroke="#10b981" strokeWidth={2.3} dot={false} />
+                                    <Line yAxisId="left" type="monotone" dataKey="benchmarkAccumPct" name="MSCI World acum." stroke="#3b82f6" strokeWidth={2.2} dot={false} />
+                                </ComposedChart>
+                            </ResponsiveContainer>
+                        </div>
+                    ) : (
+                        <div className="portfolio-csv-empty-state">
+                            Añade una hoja `Comparativa` con columnas de rentabilidad mensual y acumulada para activar este análisis.
+                        </div>
+                    )}
                 </article>
             </section>
 

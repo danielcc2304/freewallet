@@ -665,6 +665,10 @@
         height: 276px;
     }
 
+    .portfolio-csv-chart--benchmark {
+        height: 360px;
+    }
+
     .portfolio-csv-chart .recharts-responsive-container {
         margin: 0 !important;
     }

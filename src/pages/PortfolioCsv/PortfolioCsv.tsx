@@ -789,7 +789,7 @@ export function PortfolioCsv() {
                     <p>Evolución acumulada de la cartera frente al benchmark y diferencia mensual relativa.</p>
                     {benchmarkComparison.length > 0 ? (
                         <div className="portfolio-csv-chart portfolio-csv-chart--benchmark">
-                            <ResponsiveContainer width="100%" height={330}>
+                            <ResponsiveContainer width="100%" height={isMobile ? 360 : 330}>
                                 <ComposedChart data={benchmarkComparison} margin={{ top: 20, right: isMobile ? 4 : 14, left: 0, bottom: isMobile ? 30 : 12 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                                     <XAxis

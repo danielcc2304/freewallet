@@ -12,6 +12,20 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-08-14 - Hotfix: edición de asignación objetivo en Portfolio
+- Funcionalidad:
+  - Los inputs de `Asignación objetivo` permiten borrar el valor inicial y escribir uno nuevo sin que el `0` reaparezca durante la edición.
+  - Se mantiene el cálculo numérico de la suma objetivo y de las desviaciones mientras el campo conserva temporalmente una cadena vacía.
+  - Se elimina el bucket redundante `Objetivo` para mostrar únicamente largo plazo, medio plazo y liquidez.
+- Resumen:
+  - La versión `v3.8.1` corrige la edición de pesos objetivo y simplifica la lectura de los buckets del Portfolio.
+- Archivos:
+  - `src/pages/PortfolioCsv/PortfolioCsv.tsx`
+  - `src/pages/PortfolioCsv/portfolioCsvConstants.ts`
+  - `src/pages/PortfolioCsv/portfolioCsvTypes.ts`
+  - `src/constants/app.ts`
+  - `FEATURE_LOG.md`
+
 ### 2026-08-14 - Portfolio + Academy: Excel ampliado y espaciado responsive
 - Funcionalidad:
   - Se homogeneiza el espaciado horizontal de las páginas de Academy tomando como referencia la calculadora de interés compuesto, con especial mejora en `Fundamentos` y en móvil.

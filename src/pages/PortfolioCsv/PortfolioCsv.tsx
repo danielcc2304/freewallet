@@ -65,7 +65,6 @@ import {
     calculateAdvancedPortfolioStats,
     parseAdvancedStats,
     parseBenchmarkComparison,
-    parseCsvRows,
     parseDailyData,
     parseEvolution,
     parseHoldings,
@@ -448,19 +447,12 @@ export function PortfolioCsv() {
     };
 
     const downloadWorkbookTemplate = () => {
-        const workbook = XLSX.utils.book_new();
-        const holdingsSheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_HOLDINGS_CSV));
-        const evolutionSheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_EVOLUTION_CSV));
-        const comparisonSheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_COMPARISON_CSV));
-        const advancedSheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_ADVANCED_STATS_CSV));
-        const dailySheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_DAILY_CSV));
-
-        XLSX.utils.book_append_sheet(workbook, holdingsSheet, 'Cartera');
-        XLSX.utils.book_append_sheet(workbook, evolutionSheet, 'Evolución');
-        XLSX.utils.book_append_sheet(workbook, comparisonSheet, 'Comparativa');
-        XLSX.utils.book_append_sheet(workbook, advancedSheet, 'Estadísticas avanzadas');
-        XLSX.utils.book_append_sheet(workbook, dailySheet, 'Datos diarios');
-        XLSX.writeFile(workbook, 'plantilla-cartera-evolucion.xlsx');
+        const link = document.createElement('a');
+        link.href = `${import.meta.env.BASE_URL}plantilla-portfolio.xlsx`;
+        link.download = 'plantilla-portfolio-formato-completo.xlsx';
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
     };
 
     const tooltipTheme = {

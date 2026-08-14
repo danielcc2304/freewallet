@@ -28,7 +28,6 @@ Ademas incluye una pantalla especializada de `Portfolio CSV` para analizar compo
 - [Despliegue](#despliegue)
 - [Troubleshooting](#troubleshooting)
 - [Seguridad y buenas practicas](#seguridad-y-buenas-practicas)
-- [Roadmap sugerido](#roadmap-sugerido)
 
 ---
 
@@ -336,7 +335,7 @@ Pantalla: `/portfolio-csv`
 ### UX
 
 - Descarga de plantillas CSV.
-- Plantilla Excel con las hojas opcionales para ampliar el analisis.
+- Descarga de la plantilla Excel de referencia, con formatos, formulas, graficos y datos de prueba.
 - Persistencia de ficheros cargados.
 - Modo demo recuperable en un click.
 
@@ -430,30 +429,6 @@ Sugerencias:
 - Rotar tokens que se hayan expuesto por error.
 - Evitar claves hardcodeadas en frontend para produccion real.
 - Si se evoluciona a backend, mover integraciones sensibles al servidor.
-
----
-
-## Roadmap sugerido
-
-- Ranking de carteras por score de afinidad (no solo filtro estricto).
-- Persistir perfil de riesgo/horizonte del usuario y usarlo en toda Academy.
-- Tests unitarios para `storageService` y funciones de calculo.
-- Tests de integracion para flujo Portfolio CSV.
-- Telemetria de errores en API fallbacks/proxies.
-- Internacionalizacion i18n.
-- Hardening de build/prerender para CI.
-
----
-
-## Notas para contribucion interna
-
-Si vas a tocar esta base:
-
-1. Mantener cambios pequenos y enfocados.
-2. No mezclar refactor grande con feature puntual.
-3. Validar al menos `npx tsc -b` antes de merge.
-4. Si cambias rutas, actualiza scripts de SEO/prerender.
-5. Si cambias modelos de cartera, revisar filtros del `PortfolioBuilder`.
 
 ---
 

@@ -28,7 +28,6 @@ Ademas incluye una pantalla especializada de `Portfolio CSV` para analizar compo
 - [Despliegue](#despliegue)
 - [Troubleshooting](#troubleshooting)
 - [Seguridad y buenas practicas](#seguridad-y-buenas-practicas)
-- [Roadmap sugerido](#roadmap-sugerido)
 
 ---
 
@@ -313,6 +312,7 @@ Pantalla: `/portfolio-csv`
 
 - CSV de cartera con columnas de activo/importe/peso.
 - CSV de evolucion mensual con valor total, aportaciones, plusvalias y retornos.
+- Excel `.xlsx` con hojas `Cartera` y `Evolucion`; `Comparativa`, `Estadisticas avanzadas` y `Datos diarios` son opcionales.
 
 ### Que calcula
 
@@ -330,10 +330,12 @@ Pantalla: `/portfolio-csv`
 - Area de valor total vs capital invertido.
 - Drivers mensuales (aportacion vs plusvalia).
 - Mapa de riesgo (retorno, drawdown, TWR YTD).
+- Ratios de riesgo recalculados a partir de las series validas: Sharpe, Sortino, alpha, beta, drawdown, tracking error y volatilidad diaria.
 
 ### UX
 
 - Descarga de plantillas CSV.
+- Descarga de la plantilla Excel de referencia, con formatos, formulas, graficos y datos de prueba.
 - Persistencia de ficheros cargados.
 - Modo demo recuperable en un click.
 
@@ -427,30 +429,6 @@ Sugerencias:
 - Rotar tokens que se hayan expuesto por error.
 - Evitar claves hardcodeadas en frontend para produccion real.
 - Si se evoluciona a backend, mover integraciones sensibles al servidor.
-
----
-
-## Roadmap sugerido
-
-- Ranking de carteras por score de afinidad (no solo filtro estricto).
-- Persistir perfil de riesgo/horizonte del usuario y usarlo en toda Academy.
-- Tests unitarios para `storageService` y funciones de calculo.
-- Tests de integracion para flujo Portfolio CSV.
-- Telemetria de errores en API fallbacks/proxies.
-- Internacionalizacion i18n.
-- Hardening de build/prerender para CI.
-
----
-
-## Notas para contribucion interna
-
-Si vas a tocar esta base:
-
-1. Mantener cambios pequenos y enfocados.
-2. No mezclar refactor grande con feature puntual.
-3. Validar al menos `npx tsc -b` antes de merge.
-4. Si cambias rutas, actualiza scripts de SEO/prerender.
-5. Si cambias modelos de cartera, revisar filtros del `PortfolioBuilder`.
 
 ---
 

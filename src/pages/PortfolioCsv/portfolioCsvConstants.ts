@@ -4,6 +4,8 @@ export const STORAGE_KEYS = {
     holdingsRaw: 'freewallet_portfolio_csv_holdings_raw',
     evolutionRaw: 'freewallet_portfolio_csv_evolution_raw',
     comparisonRaw: 'freewallet_portfolio_csv_comparison_raw',
+    advancedRaw: 'freewallet_portfolio_csv_advanced_raw',
+    dailyRaw: 'freewallet_portfolio_csv_daily_raw',
     workbookFile: 'freewallet_portfolio_csv_workbook_file',
     updatedAt: 'freewallet_portfolio_csv_updated_at',
     categoryOverrides: 'freewallet_portfolio_csv_category_overrides',
@@ -75,6 +77,22 @@ export const DEFAULT_COMPARISON_CSV = `Año,Mes,Periodo,Rentabilidad Cartera (%)
 2026,Mar,2026 Mar,-5.29%,-4.04%,23.79%,3.64%
 2026,Abr,2026 Abr,5.48%,7.65%,30.57%,11.57%
 2026,May,2026 May,0.43%,-0.02%,31.13%,11.54%`;
+
+export const DEFAULT_ADVANCED_STATS_CSV = `ESTADÍSTICAS AVANZADAS · PORTFOLIO
+
+€STR anual (tasa libre de riesgo),,2.5`;
+
+export const DEFAULT_DAILY_CSV = `Fecha,Valor portfolio,Flujo neto,Retorno diario (%),Tipo de dato
+2026-03-02,9800,0,,Diario
+2026-03-03,9825,0,0.26%,Diario
+2026-03-04,9790,0,-0.36%,Diario
+2026-03-05,9870,0,0.82%,Diario
+2026-03-06,9905,0,0.35%,Diario
+2026-03-09,9940,0,0.35%,Diario
+2026-03-10,9910,0,-0.30%,Diario
+2026-03-11,9975,0,0.66%,Diario
+2026-03-12,9990,0,0.15%,Diario
+2026-03-13,10000,0,0.10%,Diario`;
 
 export const PIE_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7', '#84cc16', '#64748b'];
 

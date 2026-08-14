@@ -199,8 +199,9 @@
     margin-bottom: 0.55rem;
 }
 
-.portfolio-csv-chart--risk-map .recharts-default-legend {
-    padding-top: 0.35rem !important;
+.portfolio-csv-chart .recharts-default-legend {
+    margin: 0 !important;
+    padding: 0.45rem 0 !important;
 }
 
 .portfolio-csv-chart--benchmark {

@@ -82,7 +82,17 @@ export const DEFAULT_ADVANCED_STATS_CSV = `ESTADÍSTICAS AVANZADAS · PORTFOLIO
 
 €STR anual (tasa libre de riesgo),,2.5`;
 
-export const DEFAULT_DAILY_CSV = 'Fecha,Valor portfolio,Flujo neto,Retorno diario (%),Tipo de dato';
+export const DEFAULT_DAILY_CSV = `Fecha,Valor portfolio,Flujo neto,Retorno diario (%),Tipo de dato
+2026-03-02,9800,0,,Diario
+2026-03-03,9825,0,0.26%,Diario
+2026-03-04,9790,0,-0.36%,Diario
+2026-03-05,9870,0,0.82%,Diario
+2026-03-06,9905,0,0.35%,Diario
+2026-03-09,9940,0,0.35%,Diario
+2026-03-10,9910,0,-0.30%,Diario
+2026-03-11,9975,0,0.66%,Diario
+2026-03-12,9990,0,0.15%,Diario
+2026-03-13,10000,0,0.10%,Diario`;
 
 export const PIE_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7', '#84cc16', '#64748b'];
 

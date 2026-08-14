@@ -1,11 +1,14 @@
 ﻿import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
     AlertTriangle,
+    Activity,
     CalendarClock,
     Download,
     FileSpreadsheet,
+    Gauge,
     Layers3,
     RefreshCw,
+    ShieldCheck,
     TrendingUp,
     Upload,
 } from 'lucide-react';
@@ -30,8 +33,10 @@ import * as XLSX from 'xlsx';
 import {
     BUCKET_LABELS,
     CATEGORY_LABELS,
+    DEFAULT_ADVANCED_STATS_CSV,
     DEFAULT_BUCKET_TARGETS,
     DEFAULT_COMPARISON_CSV,
+    DEFAULT_DAILY_CSV,
     DEFAULT_EVOLUTION_CSV,
     DEFAULT_HOLDINGS_CSV,
     PIE_COLORS,
@@ -43,6 +48,7 @@ import {
     readStoredValue,
 } from './portfolioCsvStorage';
 import type {
+    AdvancedPortfolioStats,
     EnrichedEvolutionPoint,
     HoldingBucket,
     HoldingCategory,
@@ -56,8 +62,11 @@ import {
     formatPct,
     formatPeriodLabel,
     normalizeSheetName,
+    calculateAdvancedPortfolioStats,
+    parseAdvancedStats,
     parseBenchmarkComparison,
     parseCsvRows,
+    parseDailyData,
     parseEvolution,
     parseHoldings,
     parsePeriodParts,
@@ -78,6 +87,8 @@ export function PortfolioCsv() {
     const [holdingsRaw, setHoldingsRaw] = useState(() => readStoredValue(STORAGE_KEYS.holdingsRaw, DEFAULT_HOLDINGS_CSV));
     const [evolutionRaw, setEvolutionRaw] = useState(() => readStoredValue(STORAGE_KEYS.evolutionRaw, DEFAULT_EVOLUTION_CSV));
     const [comparisonRaw, setComparisonRaw] = useState(() => readStoredValue(STORAGE_KEYS.comparisonRaw, DEFAULT_COMPARISON_CSV));
+    const [advancedRaw, setAdvancedRaw] = useState(() => readStoredValue(STORAGE_KEYS.advancedRaw, DEFAULT_ADVANCED_STATS_CSV));
+    const [dailyRaw, setDailyRaw] = useState(() => readStoredValue(STORAGE_KEYS.dailyRaw, DEFAULT_DAILY_CSV));
     const [workbookFileLabel, setWorkbookFileLabel] = useState(() => readStoredValue(STORAGE_KEYS.workbookFile, 'Demo precargada'));
     const [updatedAt, setUpdatedAt] = useState(() => readStoredValue(STORAGE_KEYS.updatedAt, ''));
     const [categoryOverrides, setCategoryOverrides] = useState<Record<string, HoldingCategory>>(() => readStoredMap<HoldingCategory>(STORAGE_KEYS.categoryOverrides));
@@ -90,6 +101,8 @@ export function PortfolioCsv() {
     const deferredHoldingsRaw = useDeferredValue(holdingsRaw);
     const deferredEvolutionRaw = useDeferredValue(evolutionRaw);
     const deferredComparisonRaw = useDeferredValue(comparisonRaw);
+    const deferredAdvancedRaw = useDeferredValue(advancedRaw);
+    const deferredDailyRaw = useDeferredValue(dailyRaw);
 
     const holdings = useMemo<HoldingControl[]>(() => parseHoldings(deferredHoldingsRaw).map((holding) => {
         const categoryOverride = categoryOverrides[holding.asset];
@@ -103,6 +116,12 @@ export function PortfolioCsv() {
     }), [categoryOverrides, deferredHoldingsRaw]);
     const evolutionBase = useMemo(() => parseEvolution(deferredEvolutionRaw), [deferredEvolutionRaw]);
     const benchmarkComparison = useMemo(() => parseBenchmarkComparison(deferredComparisonRaw), [deferredComparisonRaw]);
+    const advancedSource = useMemo(() => parseAdvancedStats(deferredAdvancedRaw), [deferredAdvancedRaw]);
+    const dailyPoints = useMemo(() => parseDailyData(deferredDailyRaw), [deferredDailyRaw]);
+    const advancedStats = useMemo<AdvancedPortfolioStats>(
+        () => calculateAdvancedPortfolioStats(evolutionBase, benchmarkComparison, dailyPoints, advancedSource.riskFreeAnnualPct),
+        [advancedSource.riskFreeAnnualPct, benchmarkComparison, dailyPoints, evolutionBase],
+    );
 
     const evolution = useMemo<EnrichedEvolutionPoint[]>(() => {
         if (evolutionBase.length === 0) return [];
@@ -180,6 +199,8 @@ export function PortfolioCsv() {
             localStorage.setItem(STORAGE_KEYS.holdingsRaw, holdingsRaw);
             localStorage.setItem(STORAGE_KEYS.evolutionRaw, evolutionRaw);
             localStorage.setItem(STORAGE_KEYS.comparisonRaw, comparisonRaw);
+            localStorage.setItem(STORAGE_KEYS.advancedRaw, advancedRaw);
+            localStorage.setItem(STORAGE_KEYS.dailyRaw, dailyRaw);
             localStorage.setItem(STORAGE_KEYS.workbookFile, workbookFileLabel);
             localStorage.setItem(STORAGE_KEYS.updatedAt, updatedAt);
             localStorage.setItem(STORAGE_KEYS.categoryOverrides, JSON.stringify(categoryOverrides));
@@ -187,7 +208,7 @@ export function PortfolioCsv() {
         } catch {
             // localStorage puede fallar en modo privado o por limites de cuota.
         }
-    }, [bucketTargets, categoryOverrides, comparisonRaw, holdingsRaw, evolutionRaw, workbookFileLabel, updatedAt]);
+    }, [advancedRaw, bucketTargets, categoryOverrides, comparisonRaw, dailyRaw, holdingsRaw, evolutionRaw, workbookFileLabel, updatedAt]);
 
     useEffect(() => {
         const onResize = () => setIsMobile(window.innerWidth <= 700);
@@ -373,6 +394,8 @@ export function PortfolioCsv() {
             const holdingsSheetName = normalizedNames.cartera;
             const evolutionSheetName = normalizedNames.evolucion || normalizedNames.evolution;
             const comparisonSheetName = normalizedNames.comparativa || normalizedNames.benchmark || normalizedNames.comparison;
+            const advancedSheetName = normalizedNames.estadisticasavanzadas || normalizedNames.advancedstats || normalizedNames.advancedstatistics;
+            const dailySheetName = normalizedNames.datosdiarios || normalizedNames.dailydata || normalizedNames.diarios;
 
             if (!holdingsSheetName || !evolutionSheetName) {
                 setError('El Excel debe incluir las hojas "Cartera" y "Evolución".');
@@ -383,6 +406,12 @@ export function PortfolioCsv() {
             const evolutionText = XLSX.utils.sheet_to_csv(workbook.Sheets[evolutionSheetName]);
             const comparisonText = comparisonSheetName
                 ? XLSX.utils.sheet_to_csv(workbook.Sheets[comparisonSheetName])
+                : '';
+            const advancedText = advancedSheetName
+                ? XLSX.utils.sheet_to_csv(workbook.Sheets[advancedSheetName])
+                : '';
+            const dailyText = dailySheetName
+                ? XLSX.utils.sheet_to_csv(workbook.Sheets[dailySheetName])
                 : '';
 
             if (parseHoldings(holdingsText).length === 0) {
@@ -397,6 +426,8 @@ export function PortfolioCsv() {
             setHoldingsRaw(holdingsText);
             setEvolutionRaw(evolutionText);
             setComparisonRaw(comparisonText);
+            setAdvancedRaw(advancedText);
+            setDailyRaw(dailyText);
             setWorkbookFileLabel(file.name);
             setUpdatedAt(new Date().toISOString());
             setError('');
@@ -409,6 +440,8 @@ export function PortfolioCsv() {
         setHoldingsRaw(DEFAULT_HOLDINGS_CSV);
         setEvolutionRaw(DEFAULT_EVOLUTION_CSV);
         setComparisonRaw(DEFAULT_COMPARISON_CSV);
+        setAdvancedRaw(DEFAULT_ADVANCED_STATS_CSV);
+        setDailyRaw(DEFAULT_DAILY_CSV);
         setWorkbookFileLabel('Demo precargada');
         setUpdatedAt(new Date().toISOString());
         setError('');
@@ -419,10 +452,14 @@ export function PortfolioCsv() {
         const holdingsSheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_HOLDINGS_CSV));
         const evolutionSheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_EVOLUTION_CSV));
         const comparisonSheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_COMPARISON_CSV));
+        const advancedSheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_ADVANCED_STATS_CSV));
+        const dailySheet = XLSX.utils.aoa_to_sheet(parseCsvRows(DEFAULT_DAILY_CSV));
 
         XLSX.utils.book_append_sheet(workbook, holdingsSheet, 'Cartera');
         XLSX.utils.book_append_sheet(workbook, evolutionSheet, 'Evolución');
         XLSX.utils.book_append_sheet(workbook, comparisonSheet, 'Comparativa');
+        XLSX.utils.book_append_sheet(workbook, advancedSheet, 'Estadísticas avanzadas');
+        XLSX.utils.book_append_sheet(workbook, dailySheet, 'Datos diarios');
         XLSX.writeFile(workbook, 'plantilla-cartera-evolucion.xlsx');
     };
 
@@ -584,18 +621,27 @@ export function PortfolioCsv() {
         );
     };
 
+    const formatAdvancedRatio = (value: number | null) => value === null ? 'N/D' : value.toLocaleString('es-ES', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+    });
+    const formatAdvancedPct = (value: number | null) => value === null ? 'N/D' : formatPct(value);
+    const formatAdvancedDate = (value: string | undefined) => value
+        ? new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${value}T12:00:00`))
+        : 'N/D';
+
     return (
         <div className="portfolio-csv-page">
             <header className="portfolio-csv-hero">
                 <div className="portfolio-csv-hero__badge">Portfolio</div>
                 <h1>Análisis de cartera</h1>
-                <p>Sube un Excel con las hojas `Cartera`, `Evolución` y, si la tienes, `Comparativa` para ver concentración, rendimiento, drawdown y evolución frente al benchmark.</p>
+                <p>Sube tu Excel y dale un vistazo honesto a tu cartera: cómo está repartida, cuánto ha crecido, qué riesgo estás asumiendo y cómo se comporta frente al mercado. Con el detalle diario, además, podemos hilar un poco más fino.</p>
             </header>
 
             <section className="portfolio-csv-upload">
                 <article className="portfolio-csv-upload__card portfolio-csv-upload__card--utility">
                     <h3><FileSpreadsheet size={18} /> Excel único</h3>
-                    <p>Sube un archivo `.xlsx` con hojas `Cartera`, `Evolución` y `Comparativa`, o descarga una plantilla lista para rellenar.</p>
+                    <p>Sube un `.xlsx` con `Cartera`, `Evolución`, `Comparativa` y, opcionalmente, `Estadísticas avanzadas` y `Datos diarios`, o descarga una plantilla lista para rellenar.</p>
                     <div className="portfolio-csv-upload__actions">
                         <button type="button" className="portfolio-csv-btn" onClick={() => workbookInputRef.current?.click()}>
                             <Upload size={16} /> Subir Excel
@@ -771,6 +817,86 @@ export function PortfolioCsv() {
                         </div>
                     )}
                 </article>
+            </section>
+
+            <section className="portfolio-csv-card portfolio-csv-card--full portfolio-csv-advanced">
+                <div className="portfolio-csv-advanced__header">
+                    <div>
+                        <h2><Activity size={18} /> Estadísticas avanzadas</h2>
+                        <p>Ratios recalculados con la serie mensual y el benchmark para evitar depender de fórmulas dinámicas del Excel.</p>
+                    </div>
+                    <span className="portfolio-csv-advanced__source">
+                        {advancedStats.analyzedMonths} meses analizados
+                    </span>
+                </div>
+                <div className="portfolio-csv-advanced__grid">
+                    <div className="portfolio-csv-advanced__metric">
+                        <span>Ratio Sharpe</span>
+                        <strong>{formatAdvancedRatio(advancedStats.sharpeRatio)}</strong>
+                        <small>Con €STR como referencia de riesgo</small>
+                    </div>
+                    <div className="portfolio-csv-advanced__metric">
+                        <span>Ratio Sortino</span>
+                        <strong>{formatAdvancedRatio(advancedStats.sortinoRatio)}</strong>
+                        <small>Penaliza solo la volatilidad negativa</small>
+                    </div>
+                    <div className="portfolio-csv-advanced__metric">
+                        <span>Alpha anual</span>
+                        <strong>{formatAdvancedPct(advancedStats.annualAlphaPct)}</strong>
+                        <small>Exceso estimado frente al benchmark</small>
+                    </div>
+                    <div className="portfolio-csv-advanced__metric">
+                        <span>Beta vs MSCI World</span>
+                        <strong>{formatAdvancedRatio(advancedStats.beta)}</strong>
+                        <small>Sensibilidad relativa al mercado</small>
+                    </div>
+                    <div className="portfolio-csv-advanced__metric">
+                        <span>Máximo drawdown</span>
+                        <strong>{formatAdvancedPct(advancedStats.maxDrawdownPct)}</strong>
+                        <small>Peor caída desde un máximo</small>
+                    </div>
+                    <div className="portfolio-csv-advanced__metric">
+                        <span>Information ratio</span>
+                        <strong>{formatAdvancedRatio(advancedStats.informationRatio)}</strong>
+                        <small>Alpha relativo por unidad de tracking error</small>
+                    </div>
+                    <div className="portfolio-csv-advanced__metric">
+                        <span>Tracking error anual</span>
+                        <strong>{formatAdvancedPct(advancedStats.trackingErrorAnnualPct)}</strong>
+                        <small>Desviación frente al benchmark</small>
+                    </div>
+                    <div className="portfolio-csv-advanced__metric">
+                        <span>Correlación</span>
+                        <strong>{formatAdvancedRatio(advancedStats.correlation)}</strong>
+                        <small>Movimiento conjunto con el índice</small>
+                    </div>
+                    <div className="portfolio-csv-advanced__metric">
+                        <span>Rentabilidad anualizada</span>
+                        <strong>{formatAdvancedPct(advancedStats.annualizedReturnPct)}</strong>
+                        <small>Compuesta a partir de los meses cargados</small>
+                    </div>
+                    <div className="portfolio-csv-advanced__metric">
+                        <span>Volatilidad anualizada</span>
+                        <strong>{formatAdvancedPct(advancedStats.annualizedVolatilityPct)}</strong>
+                        <small>Volatilidad mensual anualizada</small>
+                    </div>
+                    <div className="portfolio-csv-advanced__metric">
+                        <span>Ratio Treynor</span>
+                        <strong>{formatAdvancedPct(advancedStats.treynorRatioPct)}</strong>
+                        <small>Exceso de retorno por beta</small>
+                    </div>
+                    <div className="portfolio-csv-advanced__metric">
+                        <span>Mejor mes</span>
+                        <strong>{advancedStats.bestMonth ? formatAdvancedPct(advancedStats.bestMonth.returnPct) : 'N/D'}</strong>
+                        <small>{advancedStats.bestMonth?.period || 'Sin datos'}</small>
+                    </div>
+                </div>
+                <div className="portfolio-csv-advanced__daily">
+                    <div><Gauge size={16} /><span>€STR / libre de riesgo</span><strong>{formatAdvancedPct(advancedStats.riskFreeAnnualPct)}</strong></div>
+                    <div><ShieldCheck size={16} /><span>Observaciones diarias</span><strong>{advancedStats.dailyObservations || 'N/D'}</strong></div>
+                    <div><TrendingUp size={16} /><span>Volatilidad diaria anualizada</span><strong>{formatAdvancedPct(advancedStats.dailyVolatilityAnnualPct)}</strong></div>
+                    <div><CalendarClock size={16} /><span>Último dato diario</span><strong>{advancedStats.latestDailyPoint ? `${formatCurrency(advancedStats.latestDailyPoint.totalValue)} · ${formatAdvancedDate(advancedStats.latestDailyPoint.date)}` : 'N/D'}</strong></div>
+                </div>
             </section>
 
             <section className="portfolio-csv-grid">

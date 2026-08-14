@@ -313,6 +313,7 @@ Pantalla: `/portfolio-csv`
 
 - CSV de cartera con columnas de activo/importe/peso.
 - CSV de evolucion mensual con valor total, aportaciones, plusvalias y retornos.
+- Excel `.xlsx` con hojas `Cartera` y `Evolucion`; `Comparativa`, `Estadisticas avanzadas` y `Datos diarios` son opcionales.
 
 ### Que calcula
 
@@ -330,10 +331,12 @@ Pantalla: `/portfolio-csv`
 - Area de valor total vs capital invertido.
 - Drivers mensuales (aportacion vs plusvalia).
 - Mapa de riesgo (retorno, drawdown, TWR YTD).
+- Ratios de riesgo recalculados a partir de las series validas: Sharpe, Sortino, alpha, beta, drawdown, tracking error y volatilidad diaria.
 
 ### UX
 
 - Descarga de plantillas CSV.
+- Plantilla Excel con las hojas opcionales para ampliar el analisis.
 - Persistencia de ficheros cargados.
 - Modo demo recuperable en un click.
 

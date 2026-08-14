@@ -4,6 +4,8 @@ export const STORAGE_KEYS = {
     holdingsRaw: 'freewallet_portfolio_csv_holdings_raw',
     evolutionRaw: 'freewallet_portfolio_csv_evolution_raw',
     comparisonRaw: 'freewallet_portfolio_csv_comparison_raw',
+    advancedRaw: 'freewallet_portfolio_csv_advanced_raw',
+    dailyRaw: 'freewallet_portfolio_csv_daily_raw',
     workbookFile: 'freewallet_portfolio_csv_workbook_file',
     updatedAt: 'freewallet_portfolio_csv_updated_at',
     categoryOverrides: 'freewallet_portfolio_csv_category_overrides',
@@ -75,6 +77,12 @@ export const DEFAULT_COMPARISON_CSV = `Año,Mes,Periodo,Rentabilidad Cartera (%)
 2026,Mar,2026 Mar,-5.29%,-4.04%,23.79%,3.64%
 2026,Abr,2026 Abr,5.48%,7.65%,30.57%,11.57%
 2026,May,2026 May,0.43%,-0.02%,31.13%,11.54%`;
+
+export const DEFAULT_ADVANCED_STATS_CSV = `ESTADÍSTICAS AVANZADAS · PORTFOLIO
+
+€STR anual (tasa libre de riesgo),,2.5`;
+
+export const DEFAULT_DAILY_CSV = 'Fecha,Valor portfolio,Flujo neto,Retorno diario (%),Tipo de dato';
 
 export const PIE_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7', '#84cc16', '#64748b'];
 

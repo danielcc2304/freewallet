@@ -1,7 +1,7 @@
 .portfolio-csv-page {
     max-width: 1200px;
     margin: 0 auto;
-    padding: 0 1.5rem 3.5rem;
+    padding: 0 0 3.5rem;
     animation: fadeIn var(--transition-base) ease-out;
 }
 
@@ -527,9 +527,110 @@
     font-size: var(--font-size-xs);
 }
 
+.portfolio-csv-advanced {
+    margin-bottom: 0.9rem;
+}
+
+.portfolio-csv-advanced__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+}
+
+.portfolio-csv-advanced__header h2 {
+    margin-bottom: 0.35rem;
+}
+
+.portfolio-csv-advanced__header p {
+    margin-bottom: 0;
+}
+
+.portfolio-csv-advanced__source {
+    flex: 0 0 auto;
+    padding: 0.45rem 0.65rem;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 999px;
+    background: rgba(16, 185, 129, 0.08);
+    color: var(--accent-primary);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+}
+
+.portfolio-csv-advanced__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.portfolio-csv-advanced__metric {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.8rem;
+    border: 1px solid var(--border-primary);
+    border-radius: 10px;
+    background: var(--bg-tertiary);
+}
+
+.portfolio-csv-advanced__metric span,
+.portfolio-csv-advanced__metric small {
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    line-height: 1.35;
+}
+
+.portfolio-csv-advanced__metric small {
+    color: var(--text-muted);
+}
+
+.portfolio-csv-advanced__metric strong {
+    color: var(--text-primary);
+    font-size: var(--font-size-lg);
+    line-height: 1.1;
+    overflow-wrap: anywhere;
+}
+
+.portfolio-csv-advanced__daily {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+    margin-top: 0.65rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid var(--border-primary);
+}
+
+.portfolio-csv-advanced__daily > div {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    column-gap: 0.4rem;
+    row-gap: 0.2rem;
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+}
+
+.portfolio-csv-advanced__daily svg {
+    color: var(--accent-primary);
+    grid-row: span 2;
+}
+
+.portfolio-csv-advanced__daily strong {
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    overflow-wrap: anywhere;
+}
+
 @media (max-width: 1180px) {
     .portfolio-csv-kpis {
         grid-template-columns: repeat(3, 1fr);
+    }
+
+    .portfolio-csv-advanced__grid,
+    .portfolio-csv-advanced__daily {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
     }
 }
 
@@ -549,7 +650,7 @@
 
 @media (max-width: 700px) {
     .portfolio-csv-page {
-        padding: 0 0.7rem 2.3rem;
+        padding: 0 0 2.3rem;
     }
 
     .portfolio-csv-hero {
@@ -621,6 +722,19 @@
 
     .portfolio-csv-card {
         padding: 0.85rem 0.7rem;
+    }
+
+    .portfolio-csv-advanced__header {
+        flex-direction: column;
+    }
+
+    .portfolio-csv-advanced__source {
+        align-self: flex-start;
+    }
+
+    .portfolio-csv-advanced__grid,
+    .portfolio-csv-advanced__daily {
+        grid-template-columns: 1fr;
     }
 
     .portfolio-csv-chart--risk-map {

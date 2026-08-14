@@ -6,9 +6,22 @@
 
 /* ===== CONTENT AREA ===== */
 .academy__content {
-    padding: 2rem;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0;
     max-width: 1200px;
     overflow-x: hidden;
+}
+
+/* Keep every Academy route on the same outer rhythm as the compound-interest calculator. */
+.academy__content > * {
+    width: 100%;
+    max-width: 1200px !important;
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    box-sizing: border-box;
 }
 
 /* Academy page headers: unified style inspired by Portfolio CSV */
@@ -42,13 +55,13 @@
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
     .academy__content {
-        padding: 1.5rem 1rem;
+        padding: 0;
     }
 }
 
 @media (max-width: 640px) {
     .academy__content {
-        padding: 1rem 0.5rem;
+        padding: 0;
     }
 
     .academy__content > * > header {

@@ -35,6 +35,34 @@ export type BenchmarkComparisonPoint = {
     relativeReturnPct: number;
 };
 
+export type DailyPortfolioPoint = {
+    date: string;
+    totalValue: number;
+    netFlow: number;
+    dailyReturnPct: number | null;
+    dataType: string;
+};
+
+export type AdvancedPortfolioStats = {
+    riskFreeAnnualPct: number | null;
+    sharpeRatio: number | null;
+    sortinoRatio: number | null;
+    annualAlphaPct: number | null;
+    beta: number | null;
+    maxDrawdownPct: number | null;
+    informationRatio: number | null;
+    trackingErrorAnnualPct: number | null;
+    correlation: number | null;
+    annualizedReturnPct: number | null;
+    annualizedVolatilityPct: number | null;
+    analyzedMonths: number;
+    bestMonth: { period: string; returnPct: number } | null;
+    treynorRatioPct: number | null;
+    dailyObservations: number;
+    dailyVolatilityAnnualPct: number | null;
+    latestDailyPoint: DailyPortfolioPoint | null;
+};
+
 export type EnrichedEvolutionPoint = EvolutionPoint & {
     investedValue: number;
     gainVsInvested: number;

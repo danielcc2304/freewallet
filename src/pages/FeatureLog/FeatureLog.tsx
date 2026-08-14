@@ -1,6 +1,5 @@
-import { ArrowLeft, CalendarDays, FileText, Sparkles } from 'lucide-react';
+import { CalendarDays, FileText, Sparkles } from 'lucide-react';
 import type { CSSProperties } from 'react';
-import { Link } from 'react-router-dom';
 import featureLogMarkdown from '../../../FEATURE_LOG.md?raw';
 import { APP_NAME, APP_VERSION } from '../../constants/app';
 import './FeatureLog.css';
@@ -101,11 +100,6 @@ export function FeatureLog() {
     return (
         <div className="feature-log">
             <header className="feature-log__header">
-                <Link to="/settings" className="feature-log__back-link" aria-label="Volver a configuracion">
-                    <ArrowLeft size={18} />
-                    <span>Volver</span>
-                </Link>
-
                 <div className="feature-log__title-row">
                     <div className="feature-log__title-icon">
                         <Sparkles size={28} />

@@ -18,9 +18,10 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Portfolio interpreta las hojas opcionales `Estadísticas avanzadas` y `Datos diarios` del Excel y recalcula ratios de riesgo, benchmark y volatilidad sin depender de fórmulas dinámicas incompatibles.
   - Se filtran filas incompletas del benchmark y se completa la evolución acumulada cuando el Excel deja celdas calculadas vacías.
   - `Descargar plantilla` entrega el Excel de referencia completo, conservando formatos, fórmulas y gráficos, pero con datos de prueba anonimizados.
-  - La pantalla de novedades elimina el botón de volver y la versión visible de la aplicación pasa a `v3.7.1`.
+  - Se normaliza el padding vertical de las leyendas de los gráficos del portfolio para alinearlo con los controles desplegables entre tarjetas.
+  - La pantalla de novedades elimina el botón de volver y la versión visible de la aplicación pasa a `v3.8.0`.
 - Resumen:
-  - La versión `v3.7.1` mejora la consistencia visual en móvil y aprovecha mejor la información avanzada disponible en las nuevas plantillas de Portfolio.
+  - La versión `v3.8.0` mejora la consistencia visual en móvil y aprovecha mejor la información avanzada disponible en las nuevas plantillas de Portfolio.
 - Archivos:
   - `src/components/academy/layout/AcademyLayout.css`
   - `src/pages/PortfolioCsv/PortfolioCsv.tsx`

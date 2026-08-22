@@ -12,6 +12,19 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-08-22 - Academy: aviso de progreso en Radar de fondos
+- Funcionalidad:
+  - Se incorpora un aviso modal al entrar en el Radar de fondos para comunicar que la sección está en desarrollo.
+  - El aviso permite cerrar la ventana o navegar a Academia, Configuración y Portfolio.
+  - El ranking y las fichas de fondos siguen disponibles al cerrar el aviso.
+- Resumen:
+  - La versión `v3.8.2` comunica el estado de desarrollo del Radar de fondos mientras se prepara su próxima revisión.
+- Archivos:
+  - `src/components/academy/simulators/FundRadar.tsx`
+  - `src/components/academy/simulators/FundRadar.css`
+  - `src/constants/app.ts`
+  - `FEATURE_LOG.md`
+
 ### 2026-08-14 - Portfolio + Academy: Excel ampliado y espaciado responsive
 - Funcionalidad:
   - Se homogeneiza el espaciado horizontal de las páginas de Academy tomando como referencia la calculadora de interés compuesto, con especial mejora en `Fundamentos` y en móvil.

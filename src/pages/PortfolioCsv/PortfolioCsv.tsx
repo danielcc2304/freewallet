@@ -74,6 +74,18 @@ import {
 } from './portfolioCsvUtils';
 import './PortfolioCsv.css';
 
+function readBucketTargets(): Record<string, number> {
+    const stored = readStoredNumberMap(STORAGE_KEYS.bucketTargets, DEFAULT_BUCKET_TARGETS);
+    const { goal: legacyGoal, ...storedTargets } = stored;
+    const migratedLongTerm = Number(storedTargets.longTerm ?? DEFAULT_BUCKET_TARGETS.longTerm) + Number(legacyGoal ?? 0);
+
+    return {
+        ...DEFAULT_BUCKET_TARGETS,
+        ...storedTargets,
+        longTerm: Number.isFinite(migratedLongTerm) ? migratedLongTerm : DEFAULT_BUCKET_TARGETS.longTerm,
+    };
+}
+
 export function PortfolioCsv() {
     type RiskMapPoint = Omit<EnrichedEvolutionPoint, 'monthlyReturnPct' | 'twrYtdPct' | 'drawdownPct'> & {
         monthlyReturnPct: number | null;
@@ -91,7 +103,7 @@ export function PortfolioCsv() {
     const [workbookFileLabel, setWorkbookFileLabel] = useState(() => readStoredValue(STORAGE_KEYS.workbookFile, 'Demo precargada'));
     const [updatedAt, setUpdatedAt] = useState(() => readStoredValue(STORAGE_KEYS.updatedAt, ''));
     const [categoryOverrides, setCategoryOverrides] = useState<Record<string, HoldingCategory>>(() => readStoredMap<HoldingCategory>(STORAGE_KEYS.categoryOverrides));
-    const [bucketTargets, setBucketTargets] = useState<Record<string, number>>(() => readStoredNumberMap(STORAGE_KEYS.bucketTargets, DEFAULT_BUCKET_TARGETS));
+    const [bucketTargets, setBucketTargets] = useState<Record<string, number | string>>(readBucketTargets);
     const [error, setError] = useState('');
     const [isMobile, setIsMobile] = useState(() => (typeof window !== 'undefined' ? window.innerWidth <= 700 : false));
 
@@ -235,13 +247,12 @@ export function PortfolioCsv() {
     }, [holdings]);
 
     const bucketAllocationData = useMemo(() => {
-        const byBucket: Record<HoldingBucket, number> = { longTerm: 0, income: 0, liquidity: 0, goal: 0 };
+        const byBucket: Record<HoldingBucket, number> = { longTerm: 0, income: 0, liquidity: 0 };
         holdings.forEach((row) => { byBucket[row.bucket] += row.weight; });
         return [
             { name: BUCKET_LABELS.longTerm, weight: byBucket.longTerm },
             { name: BUCKET_LABELS.income, weight: byBucket.income },
             { name: BUCKET_LABELS.liquidity, weight: byBucket.liquidity },
-            { name: BUCKET_LABELS.goal, weight: byBucket.goal },
         ];
     }, [holdings]);
 
@@ -377,7 +388,7 @@ export function PortfolioCsv() {
         const parsed = Number(value);
         setBucketTargets((current) => ({
             ...current,
-            [bucket]: Number.isFinite(parsed) ? parsed : 0,
+            [bucket]: value === '' ? '' : Number.isFinite(parsed) ? parsed : '',
         }));
     };
 
@@ -984,7 +995,7 @@ export function PortfolioCsv() {
 
                 <article className="portfolio-csv-card">
                     <h2><Layers3 size={18} /> Buckets por objetivo</h2>
-                    <p>Agrupa las posiciones en largo plazo, medio plazo, liquidez y objetivos concretos.</p>
+                    <p>Agrupa las posiciones por horizonte: largo plazo, medio plazo y liquidez.</p>
                     <div className="portfolio-csv-chart">
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={bucketAllocationData}>

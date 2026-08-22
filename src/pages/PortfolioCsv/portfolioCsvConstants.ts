@@ -24,14 +24,12 @@ export const BUCKET_LABELS: Record<HoldingBucket, string> = {
     longTerm: 'Largo plazo',
     income: 'Medio plazo',
     liquidity: 'Liquidez',
-    goal: 'Objetivo',
 };
 
 export const DEFAULT_BUCKET_TARGETS: Record<HoldingBucket, number> = {
-    longTerm: 55,
+    longTerm: 70,
     income: 20,
     liquidity: 10,
-    goal: 15,
 };
 
 export const DEFAULT_HOLDINGS_CSV = `Activo,Importe (EUR),Peso %

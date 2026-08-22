@@ -1,6 +1,6 @@
 export type HoldingCategory = 'equity' | 'fixedIncome' | 'cash' | 'alternatives' | 'other';
 
-export type HoldingBucket = 'longTerm' | 'income' | 'liquidity' | 'goal';
+export type HoldingBucket = 'longTerm' | 'income' | 'liquidity';
 
 export type Holding = {
     asset: string;

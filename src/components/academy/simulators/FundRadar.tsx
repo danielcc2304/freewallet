@@ -3,11 +3,13 @@ import { Link } from 'react-router-dom';
 import {
     Search, Filter, ExternalLink, Info,
     ArrowLeft, Landmark, BarChart3,
-    ChevronDown, ChevronUp, Star, Trophy
+    ChevronDown, ChevronUp, Star, Trophy,
+    Wrench, GraduationCap, Settings, FileSpreadsheet,
 } from 'lucide-react';
 import { BEST_FUNDS } from '../../../data/academyData';
 import type { Fund } from '../../../types/types';
 import { calculateRawScore, calculatePercentile, normalizeScore } from '../../../services/funds/fundScoring';
+import { Button, Modal } from '../../ui';
 import './FundRadar.css';
 
 interface FundCardProps {
@@ -182,6 +184,7 @@ export function FundRadar() {
     const [search, setSearch] = useState('');
     const [activeCategory, setActiveCategory] = useState('Todas');
     const [allExpanded, setAllExpanded] = useState(false);
+    const [showFundRadarNotice, setShowFundRadarNotice] = useState(true);
 
     const categories = useMemo(() => {
         const cats = new Set(BEST_FUNDS.map(fund => fund.category));
@@ -271,7 +274,44 @@ export function FundRadar() {
         []
     );
 
+    const fundRadarNoticeModal = (
+        <Modal
+            isOpen={showFundRadarNotice}
+            onClose={() => setShowFundRadarNotice(false)}
+            size="md"
+        >
+            <div className="fund-radar__notice fund-radar__notice--hero">
+                <div className="fund-radar__notice-icon">
+                    <Wrench size={44} />
+                </div>
+                <h2 className="fund-radar__notice-title">Radar de fondos en progreso</h2>
+                <p className="fund-radar__notice-description">
+                    Esta sección sigue en desarrollo y va a recibir modificaciones importantes.
+                    El ranking, las métricas y los datos de los fondos pueden cambiar mientras terminamos esta parte.
+                </p>
+                <div className="fund-radar__notice-links">
+                    <Link to="/academy" onClick={() => setShowFundRadarNotice(false)}>
+                        <GraduationCap size={18} />
+                        Academia
+                    </Link>
+                    <Link to="/settings" onClick={() => setShowFundRadarNotice(false)}>
+                        <Settings size={18} />
+                        Configuración
+                    </Link>
+                    <Link to="/portfolio-csv" onClick={() => setShowFundRadarNotice(false)}>
+                        <FileSpreadsheet size={18} />
+                        Portfolio
+                    </Link>
+                </div>
+                <Button onClick={() => setShowFundRadarNotice(false)} size="lg" fullWidth>
+                    Entendido
+                </Button>
+            </div>
+        </Modal>
+    );
+
     return (
+        <>
         <div className="fund-radar">
             <Link to="/academy" className="fund-radar__back">
                 <ArrowLeft size={18} /> Volver a la Academia
@@ -467,6 +507,8 @@ export function FundRadar() {
                 </div>
             </section>
         </div>
+        {fundRadarNoticeModal}
+        </>
     );
 }
 

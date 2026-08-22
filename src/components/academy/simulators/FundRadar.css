@@ -100,6 +100,92 @@
     color: var(--text-primary);
 }
 
+.fund-radar__notice {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+    color: var(--text-secondary);
+    line-height: 1.6;
+}
+
+.fund-radar__notice--hero {
+    align-items: center;
+    text-align: center;
+    gap: 1.25rem;
+    padding: 0.5rem 0;
+}
+
+.fund-radar__notice p {
+    margin: 0;
+}
+
+.fund-radar__notice-title {
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 800;
+    color: var(--text-primary);
+}
+
+.fund-radar__notice-description {
+    max-width: 420px;
+    font-size: 1.05rem;
+}
+
+.fund-radar__notice-links {
+    display: grid;
+    gap: var(--spacing-sm);
+    width: 100%;
+}
+
+.fund-radar__notice-links a {
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    padding: 1rem 1.25rem;
+    border-radius: 12px;
+    background: var(--bg-tertiary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.fund-radar__notice-links a:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent-primary);
+    transform: translateY(-2px);
+}
+
+.fund-radar__notice-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 120px;
+    height: 120px;
+    border-radius: 999px;
+    background: rgba(59, 130, 246, 0.1);
+    border: 1px solid rgba(59, 130, 246, 0.18);
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.12);
+    color: #3b82f6;
+    margin: 0 auto;
+    align-self: center;
+    animation: fundRadarNoticeFloat 2s infinite;
+}
+
+@keyframes fundRadarNoticeFloat {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-8px);
+    }
+}
+
 /* Filters */
 .fund-radar__filters {
     display: flex;
@@ -652,6 +738,23 @@
 
     .edu-metric {
         padding-left: 0.7rem;
+    }
+
+    .fund-radar__notice-title {
+        font-size: 1.6rem;
+    }
+
+    .fund-radar__notice-description {
+        font-size: 1rem;
+    }
+
+    .fund-radar__notice-icon {
+        width: 96px;
+        height: 96px;
+    }
+
+    .fund-radar__notice-links a {
+        padding: 0.9rem 1rem;
     }
 }
 

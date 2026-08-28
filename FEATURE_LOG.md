@@ -12,6 +12,30 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-08-28 - Calculadoras: ficha de fondo por ISIN desde Finect
+- Funcionalidad:
+  - Nueva calculadora en `/academy/fund-information` para consultar una clase concreta pegando su ISIN.
+  - Resolución exacta de la clase antes de extraer la ficha pública de Finect, evitando mezclar divisa o cobertura.
+  - Muestra identidad, costes, riesgo, rentabilidades, composición, posiciones y documentación cuando están disponibles.
+  - El servicio usa una capa de transporte SPA con proxy Vite en local, proxies CORS como fallback y respuesta JSON básica de Finect.
+  - Corrige la extracción del estado embebido de Finect para conservar estadísticas, y muestra rentabilidad a 3 años, YTD y volatilidad a 3 años.
+  - El indicador se presenta como `Riesgo 1-7` con ayuda interactiva de sus bandas de volatilidad anualizada.
+- Resumen:
+  - Se incorpora una primera versión sin backend de la ficha de fondos, con un DTO estable preparado para sustituir el transporte por una API propia en el futuro.
+- Archivos:
+  - `src/services/finect/finectService.ts`
+  - `src/components/academy/calculators/FundInformationCalculator.tsx`
+  - `src/components/academy/calculators/FundInformationCalculator.css`
+  - `src/components/academy/calculators/Calculators.tsx`
+  - `src/app/routes/academyRoutes.tsx`
+  - `vite.config.ts`
+  - `scripts/generate-seo.js`
+  - `scripts/prerender.js`
+  - `scripts/test-finect.ts`
+  - `package.json`
+  - `README.md`
+  - `FEATURE_LOG.md`
+
 ### 2026-08-28 - Calculadora: CAGR, TIN y frecuencia de capitalización
 - Funcionalidad:
   - Se distingue entre rentabilidad anual efectiva (`CAGR`) y tasa nominal anual (`TIN`).

@@ -40,6 +40,7 @@ const routes = [
     '/academy/emergency-fund',
     '/academy/taxes',
     '/academy/asset-allocation',
+    '/academy/fund-information',
     '/academy/assets/equities',
     '/academy/assets/bonds',
     '/academy/assets/cash',

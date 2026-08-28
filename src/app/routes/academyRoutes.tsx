@@ -7,6 +7,7 @@ import {
     CircleAlert,
     Flame,
     FolderOpen,
+    FileSearch,
     Gamepad2,
     LibraryBig,
     LineChart,
@@ -80,6 +81,7 @@ export const academyRouteDefinitions: AcademyRouteDefinition[] = [
     { path: 'strategies', label: 'Estrategias', element: <Strategies />, icon: Target, group: 'Construir', includeInSidebar: true },
 
     { path: 'calculators', label: 'Calculadoras', element: <Calculators />, icon: Calculator, group: 'Herramientas', includeInSidebar: true },
+    { path: 'fund-information', label: 'Ficha de fondos', element: <FundInformationCalculator />, icon: FileSearch, group: 'Herramientas', includeInSidebar: true },
     { path: 'fund-radar', label: 'Radar de fondos', element: <FundRadar />, icon: Award, group: 'Herramientas', includeInSidebar: true },
     { path: 'valuation', label: 'Valoración', element: <ValuationGuide />, icon: LineChart, group: 'Herramientas', includeInSidebar: true },
     { path: 'market-timing-game', label: 'Timing vs DCA', element: <MarketTimingGame />, icon: Gamepad2, group: 'Herramientas', includeInSidebar: true },
@@ -97,7 +99,6 @@ export const academyRouteDefinitions: AcademyRouteDefinition[] = [
     { path: 'emergency-fund', label: 'Fondo de emergencia', element: <EmergencyFundCalculator /> },
     { path: 'taxes', label: 'Simulador de impuestos', element: <TaxSimulator /> },
     { path: 'asset-allocation', label: 'Simulador de asignación', element: <AssetAllocationSim /> },
-    { path: 'fund-information', label: 'Información de fondo', element: <FundInformationCalculator /> },
 
     { path: 'assets/equities', label: 'Acciones', element: <AssetEquities /> },
     { path: 'assets/bonds', label: 'Bonos', element: <AssetBonds /> },

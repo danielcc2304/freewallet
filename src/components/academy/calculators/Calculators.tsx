@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Calculator, TrendingUp, Flame, Calendar, PiggyBank, Receipt, Scale, FileSearch } from 'lucide-react';
+import { Calculator, TrendingUp, Flame, Calendar, PiggyBank, Receipt, Scale } from 'lucide-react';
 import './Calculators.css';
 
 export function Calculators() {
@@ -145,23 +145,6 @@ export function Calculators() {
 
                 </Link>
 
-                {/* Fund information - SPA Finect scraper */}
-                <Link to="/academy/fund-information" className="calculators__card calculators__card--available">
-                    <div className="calculators__card-icon calculators__card-icon--blue">
-                        <FileSearch size={32} />
-                    </div>
-                    <h3 className="calculators__card-title">Ficha de Fondo por ISIN</h3>
-                    <p className="calculators__card-description">
-                        Consulta la información pública más relevante de un fondo pegando su ISIN.
-                    </p>
-                    <ul className="calculators__card-features">
-                        <li>✓ Costes y clase exacta</li>
-                        <li>✓ Riesgo y rentabilidades</li>
-                        <li>✓ Composición y posiciones</li>
-                        <li>✓ Documentación de Finect</li>
-                    </ul>
-
-                </Link>
             </div>
 
             <div className="calculators__footer">
@@ -186,7 +169,7 @@ export function Calculators() {
                             <span className="dot dot--red"></span>
                             <strong>Paso 3: Optimización y Renta Fija</strong>
                         </div>
-                        <p>Usa el <strong>Simulador de Cartera</strong> y el de <strong>Impacto Fiscal</strong> para pulir tu estrategia. Consulta también la <strong>Ficha de Fondo por ISIN</strong> para revisar un producto concreto y, si inviertes en renta fija, utiliza la <strong>Calculadora de Bonos</strong> para conocer su rentabilidad real (YTM).</p>
+                        <p>Usa el <strong>Simulador de Cartera</strong> y el de <strong>Impacto Fiscal</strong> para pulir tu estrategia. Si inviertes en renta fija, utiliza la <strong>Calculadora de Bonos</strong> para conocer su rentabilidad real (YTM).</p>
                     </div>
                 </div>
             </div>

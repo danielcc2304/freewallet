@@ -29,6 +29,7 @@ import { BondCalculator } from '../../components/academy/calculators/BondCalcula
 import { CompoundInterestCalc } from '../../components/academy/calculators/CompoundInterestCalc';
 import { EmergencyFundCalculator } from '../../components/academy/calculators/EmergencyFundCalculator';
 import { FIRECalculator } from '../../components/academy/calculators/FIRECalculator';
+import { FundInformationCalculator } from '../../components/academy/calculators/FundInformationCalculator';
 import { InflationPredator } from '../../components/academy/calculators/InflationPredator';
 import { RetirementCalculator } from '../../components/academy/calculators/RetirementCalculator';
 import { TaxSimulator } from '../../components/academy/calculators/TaxSimulator';
@@ -96,6 +97,7 @@ export const academyRouteDefinitions: AcademyRouteDefinition[] = [
     { path: 'emergency-fund', label: 'Fondo de emergencia', element: <EmergencyFundCalculator /> },
     { path: 'taxes', label: 'Simulador de impuestos', element: <TaxSimulator /> },
     { path: 'asset-allocation', label: 'Simulador de asignación', element: <AssetAllocationSim /> },
+    { path: 'fund-information', label: 'Información de fondo', element: <FundInformationCalculator /> },
 
     { path: 'assets/equities', label: 'Acciones', element: <AssetEquities /> },
     { path: 'assets/bonds', label: 'Bonos', element: <AssetBonds /> },

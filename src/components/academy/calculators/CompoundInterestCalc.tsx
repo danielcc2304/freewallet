@@ -10,19 +10,21 @@ import {
     ResponsiveContainer
 } from 'recharts';
 import { CalculatorCard } from './CalculatorCard';
+import {
+    COMPOUNDING_FREQUENCY_OPTIONS,
+    calculateCompoundInterestProjection,
+    calculateRequiredMonthly,
+    calculateTimeToGoal,
+    getRateConversion,
+    isCompoundingFrequency,
+    isInterestRateType,
+    type CompoundingFrequency,
+    type InterestRateType,
+    type WithdrawalType
+} from './compoundInterestUtils';
 import './CompoundInterestCalc.css';
 
 type CalculationMode = 'normal' | 'timeToGoal' | 'requiredContribution';
-
-interface ChartDataPoint {
-    year: number;
-    contributed: number;
-    interest: number;
-    total: number;
-    withdrawal: number;
-    grossInterest: number;
-    yearLabel: string;
-}
 
 interface YearlyDetailRow {
     year: number;
@@ -44,7 +46,9 @@ interface CompoundInterestCalcStorage {
     annualRate: number | string;
     years: number | string;
     showAdvanced: boolean;
-    withdrawalType: 'none' | 'percentage' | 'fixed';
+    interestRateType: InterestRateType;
+    compoundingFrequency: CompoundingFrequency;
+    withdrawalType: WithdrawalType;
     withdrawalValue: number | string;
     calculationMode: CalculationMode;
     targetAmount: number | string;
@@ -62,7 +66,9 @@ export function CompoundInterestCalc() {
 
     // Advanced options
     const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
-    const [withdrawalType, setWithdrawalType] = useState<'none' | 'percentage' | 'fixed'>('none');
+    const [interestRateType, setInterestRateType] = useState<InterestRateType>('cagr');
+    const [compoundingFrequency, setCompoundingFrequency] = useState<CompoundingFrequency>('monthly');
+    const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>('none');
     const [withdrawalValue, setWithdrawalValue] = useState<number | string>(0);
 
     // Calculation mode
@@ -82,6 +88,12 @@ export function CompoundInterestCalc() {
             if (stored.annualRate !== undefined) setAnnualRate(stored.annualRate);
             if (stored.years !== undefined) setYears(stored.years);
             if (typeof stored.showAdvanced === 'boolean') setShowAdvanced(stored.showAdvanced);
+            if (isInterestRateType(stored.interestRateType)) {
+                setInterestRateType(stored.interestRateType);
+            }
+            if (isCompoundingFrequency(stored.compoundingFrequency)) {
+                setCompoundingFrequency(stored.compoundingFrequency);
+            }
             if (stored.withdrawalType === 'none' || stored.withdrawalType === 'percentage' || stored.withdrawalType === 'fixed') {
                 setWithdrawalType(stored.withdrawalType);
             }
@@ -105,6 +117,8 @@ export function CompoundInterestCalc() {
             annualRate,
             years,
             showAdvanced,
+            interestRateType,
+            compoundingFrequency,
             withdrawalType,
             withdrawalValue,
             calculationMode,
@@ -123,6 +137,8 @@ export function CompoundInterestCalc() {
         annualRate,
         years,
         showAdvanced,
+        interestRateType,
+        compoundingFrequency,
         withdrawalType,
         withdrawalValue,
         calculationMode,
@@ -130,154 +146,62 @@ export function CompoundInterestCalc() {
         expandedYear
     ]);
 
-    const calculateCompoundInterest = (
-        initial: number,
-        monthly: number,
-        rate: number,
-        periods: number,
-        withdrawalT: 'none' | 'percentage' | 'fixed',
-        withdrawalV: number
-    ) => {
-        const monthlyRate = rate / 100 / 12;
-        const data: ChartDataPoint[] = [];
+    const rateConversion = useMemo(() => getRateConversion(
+        (Number(annualRate) || 0) / 100,
+        interestRateType,
+        compoundingFrequency
+    ), [annualRate, interestRateType, compoundingFrequency]);
 
-        let totalContributed = initial;
-        let totalInterest = 0;
-        let currentValue = initial;
-        let totalWithdrawals = 0;
-        let totalGrossInterest = 0;
-
-        for (let year = 0; year <= periods; year++) {
-            if (year > 0) {
-                // Calculate for each month in the year
-                for (let month = 1; month <= 12; month++) {
-                    // Add monthly contribution
-                    currentValue += monthly;
-                    totalContributed += monthly;
-
-                    // Apply interest
-                    const interestEarned = currentValue * monthlyRate;
-                    currentValue += interestEarned;
-                    totalInterest += interestEarned;
-                    totalGrossInterest += interestEarned;
-
-                    // Apply withdrawal if configured (at year end)
-                    if (month === 12 && withdrawalT !== 'none') {
-                        let withdrawalAmount = 0;
-                        if (withdrawalT === 'percentage') {
-                            withdrawalAmount = currentValue * (withdrawalV / 100);
-                        } else if (withdrawalT === 'fixed') {
-                            withdrawalAmount = withdrawalV;
-                        }
-                        currentValue -= withdrawalAmount;
-                        totalWithdrawals += withdrawalAmount;
-                        totalInterest -= withdrawalAmount; // Adjust interest tracking
-                    }
-                }
-            }
-
-            data.push({
-                year,
-                contributed: totalContributed,
-                interest: totalInterest,
-                total: currentValue,
-                withdrawal: totalWithdrawals,
-                grossInterest: totalGrossInterest,
-                yearLabel: `Año ${year}`
-            });
-        }
-
-        return data;
-    };
-
-    const calculateTimeToGoal = (
-        initial: number,
-        monthly: number,
-        rate: number,
-        goal: number
-    ): number => {
-        const monthlyRate = rate / 100 / 12;
-        let currentValue = initial;
-        let months = 0;
-        const maxMonths = 100 * 12; // Safety limit: 100 years
-
-        while (currentValue < goal && months < maxMonths) {
-            currentValue += monthly;
-            currentValue *= (1 + monthlyRate);
-            months++;
-        }
-
-        return months / 12; // Convert to years
-    };
-
-    const calculateRequiredMonthly = (
-        initial: number,
-        rate: number,
-        years: number,
-        goal: number
-    ): number => {
-        const monthlyRate = rate / 100 / 12;
-        const totalMonths = years * 12;
-
-        // Formula: FV = PV(1+r)^n + PMT * [((1+r)^n - 1) / r]
-        // Solving for PMT: PMT = (FV - PV(1+r)^n) / [((1+r)^n - 1) / r]
-
-        const futureValueOfInitial = initial * Math.pow(1 + monthlyRate, totalMonths);
-        const numerator = goal - futureValueOfInitial;
-        const denominator = (Math.pow(1 + monthlyRate, totalMonths) - 1) / monthlyRate;
-
-        return numerator / denominator;
-    };
+    const effectiveAnnualRatePercent = rateConversion.effectiveAnnualRate * 100;
 
     const chartData = useMemo(() => {
         const initial = Number(initialCapital) || 0;
         const monthly = Number(monthlyContribution) || 0;
-        const rate = Number(annualRate) || 0;
         const periods = Number(years) || 0;
         const target = Number(targetAmount) || 0;
         const wValue = Number(withdrawalValue) || 0;
 
         if (calculationMode === 'normal') {
-            return calculateCompoundInterest(
+            return calculateCompoundInterestProjection({
                 initial,
                 monthly,
-                rate,
+                monthlyRate: rateConversion.monthlyRate,
                 periods,
                 withdrawalType,
-                wValue
-            );
+                withdrawalValue: wValue
+            });
         } else if (calculationMode === 'timeToGoal') {
             const yearsToGoal = Math.ceil(calculateTimeToGoal(
                 initial,
                 monthly,
-                rate,
+                rateConversion.monthlyRate,
                 target
             ));
-            return calculateCompoundInterest(
+            return calculateCompoundInterestProjection({
                 initial,
                 monthly,
-                rate,
-                yearsToGoal || 1,
-                'none',
-                0
-            );
+                monthlyRate: rateConversion.monthlyRate,
+                periods: yearsToGoal || 1,
+                withdrawalType: 'none',
+                withdrawalValue: 0
+            });
         } else { // calculationMode === 'requiredContribution'
             const requiredMonthly = calculateRequiredMonthly(
                 initial,
-                rate,
+                rateConversion.monthlyRate,
                 periods,
                 target
             );
-            return calculateCompoundInterest(
+            return calculateCompoundInterestProjection({
                 initial,
-                requiredMonthly,
-                rate,
+                monthly: requiredMonthly,
+                monthlyRate: rateConversion.monthlyRate,
                 periods,
-                'none',
-                0
-            );
+                withdrawalType: 'none',
+                withdrawalValue: 0
+            });
         }
-    }, [initialCapital, monthlyContribution, annualRate, years, withdrawalType, withdrawalValue, calculationMode, targetAmount]);
+    }, [initialCapital, monthlyContribution, years, targetAmount, withdrawalValue, withdrawalType, calculationMode, rateConversion]);
 
     const finalData = chartData[chartData.length - 1];
 
@@ -285,19 +209,17 @@ export function CompoundInterestCalc() {
         if (calculationMode !== 'timeToGoal') return null;
         const initial = Number(initialCapital) || 0;
         const monthly = Number(monthlyContribution) || 0;
-        const rate = Number(annualRate) || 0;
         const target = Number(targetAmount) || 0;
-        return calculateTimeToGoal(initial, monthly, rate, target);
-    }, [calculationMode, initialCapital, monthlyContribution, annualRate, targetAmount]);
+        return calculateTimeToGoal(initial, monthly, rateConversion.monthlyRate, target);
+    }, [calculationMode, initialCapital, monthlyContribution, targetAmount, rateConversion]);
 
     const requiredMonthlyAmount = useMemo(() => {
         if (calculationMode !== 'requiredContribution') return null;
         const initial = Number(initialCapital) || 0;
-        const rate = Number(annualRate) || 0;
         const periods = Number(years) || 0;
         const target = Number(targetAmount) || 0;
-        return calculateRequiredMonthly(initial, rate, periods, target);
-    }, [calculationMode, initialCapital, annualRate, years, targetAmount]);
+        return calculateRequiredMonthly(initial, rateConversion.monthlyRate, periods, target);
+    }, [calculationMode, initialCapital, years, targetAmount, rateConversion]);
 
     const yearlyDetailRows = useMemo<YearlyDetailRow[]>(() => {
         if (chartData.length <= 1) return [];
@@ -444,7 +366,11 @@ export function CompoundInterestCalc() {
                     )}
 
                     <div className="calc__input-group">
-                        <label htmlFor="rate">Rentabilidad Anual</label>
+                        <label htmlFor="rate">
+                            {interestRateType === 'cagr'
+                                ? 'Rentabilidad Anual Esperada (CAGR)'
+                                : 'Tipo de Interés Nominal Anual (TIN)'}
+                        </label>
                         <div className="calc__input-wrapper">
                             <TrendingUp size={18} />
                             <input
@@ -459,7 +385,9 @@ export function CompoundInterestCalc() {
                             <span className="unit">%</span>
                         </div>
                         <small className="compound__input-hint">
-                            Histórico S&P 500: ~10% anual.
+                            {interestRateType === 'cagr'
+                                ? 'La tasa se interpreta como rentabilidad efectiva de un año completo.'
+                                : 'La tasa efectiva resultante depende de la frecuencia de capitalización.'}
                         </small>
                     </div>
 
@@ -513,6 +441,7 @@ export function CompoundInterestCalc() {
                     {calculationMode === 'normal' && (
                         <div className="compound__advanced">
                             <button
+                                type="button"
                                 className="compound__advanced-toggle"
                                 onClick={() => setShowAdvanced(!showAdvanced)}
                             >
@@ -523,6 +452,65 @@ export function CompoundInterestCalc() {
                             {showAdvanced && (
                                 <div className="compound__advanced-content">
                                     <div className="calc__input-group">
+                                        <label>Tipo de rentabilidad</label>
+                                        <div className="compound__radio-group">
+                                            <label className="compound__radio">
+                                                <input
+                                                    type="radio"
+                                                    name="interest-rate-type"
+                                                    checked={interestRateType === 'cagr'}
+                                                    onChange={() => setInterestRateType('cagr')}
+                                                />
+                                                <span>Rentabilidad anual efectiva (CAGR)</span>
+                                            </label>
+                                            <label className="compound__radio">
+                                                <input
+                                                    type="radio"
+                                                    name="interest-rate-type"
+                                                    checked={interestRateType === 'tin'}
+                                                    onChange={() => setInterestRateType('tin')}
+                                                />
+                                                <span>Tasa nominal anual (TIN)</span>
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    {interestRateType === 'tin' && (
+                                        <div className="calc__input-group">
+                                            <label htmlFor="compounding-frequency">Frecuencia de capitalización</label>
+                                            <div className="calc__input-wrapper">
+                                                <Calendar size={18} />
+                                                <select
+                                                    id="compounding-frequency"
+                                                    value={compoundingFrequency}
+                                                    onChange={(e) => {
+                                                        if (isCompoundingFrequency(e.target.value)) {
+                                                            setCompoundingFrequency(e.target.value);
+                                                        }
+                                                    }}
+                                                >
+                                                    {COMPOUNDING_FREQUENCY_OPTIONS.map((option) => (
+                                                        <option key={option.value} value={option.value}>
+                                                            {option.label}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                            <p className="compound__rate-equivalence">
+                                                Rentabilidad anual efectiva equivalente:{' '}
+                                                <strong>{formatPercent(effectiveAnnualRatePercent)}</strong>
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {interestRateType === 'cagr' && (
+                                        <p className="compound__rate-equivalence">
+                                            Rentabilidad efectiva anual:{' '}
+                                            <strong>{formatPercent(effectiveAnnualRatePercent)}</strong>
+                                        </p>
+                                    )}
+
+                                    <div className="calc__input-group">
                                         <label>Retiradas Anuales</label>
                                         <div className="compound__radio-group">
                                             <label className="compound__radio">
@@ -532,7 +520,7 @@ export function CompoundInterestCalc() {
                                                     checked={withdrawalType === 'none'}
                                                     onChange={() => setWithdrawalType('none')}
                                                 />
-                                                Sin retiradas
+                                                <span>Sin retiradas</span>
                                             </label>
                                             <label className="compound__radio">
                                                 <input
@@ -541,7 +529,7 @@ export function CompoundInterestCalc() {
                                                     checked={withdrawalType === 'percentage'}
                                                     onChange={() => setWithdrawalType('percentage')}
                                                 />
-                                                % del capital
+                                                <span>% del capital</span>
                                             </label>
                                             <label className="compound__radio">
                                                 <input
@@ -550,7 +538,7 @@ export function CompoundInterestCalc() {
                                                     checked={withdrawalType === 'fixed'}
                                                     onChange={() => setWithdrawalType('fixed')}
                                                 />
-                                                Cantidad fija
+                                                <span>Cantidad fija</span>
                                             </label>
                                         </div>
                                     </div>
@@ -766,7 +754,6 @@ export function CompoundInterestCalc() {
                         <div className="compound__detail-list">
                             {yearlyDetailRows.map((row) => {
                                 const isOpen = expandedYear === row.year;
-                                const effectiveRate = (row.interestEarned / Math.max(row.startingBalance + row.yearlyDeposits, 1)) * 100;
 
                                 return (
                                     <article key={row.year} className={`compound__detail-item ${isOpen ? 'compound__detail-item--open' : ''}`}>
@@ -832,7 +819,7 @@ export function CompoundInterestCalc() {
                                                     <div className="compound__detail-metric">
                                                         <span>Resultado neto del año</span>
                                                         <strong className="compound__detail-positive">
-                                                            {formatCurrency(row.interestEarned)} ({formatPercent(effectiveRate)})
+                                                            {formatCurrency(row.interestEarned)} ({formatPercent(effectiveAnnualRatePercent)})
                                                         </strong>
                                                     </div>
                                                 </div>

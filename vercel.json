@@ -1,6 +1,14 @@
 {
     "routes": [
         {
+            "src": "/__finect/api/(.*)",
+            "dest": "https://api.finect.com/$1"
+        },
+        {
+            "src": "/__finect/site/(.*)",
+            "dest": "https://www.finect.com/$1"
+        },
+        {
             "handle": "filesystem"
         },
         {

@@ -504,9 +504,9 @@ export function FundInformationCalculator() {
 
     return (
         <div className="fund-info">
-            <Link to="/academy/calculators" className="fund-info__back">
+            <Link to="/academy" className="fund-info__back">
                 <ArrowLeft size={17} />
-                Volver a calculadoras
+                Volver a la Academia
             </Link>
 
             <header className="fund-info__header">
@@ -565,7 +565,7 @@ export function FundInformationCalculator() {
                     <Info size={15} />
                     {isLocalDevelopment
                         ? 'En localhost se usa el proxy de desarrollo de Vite para evitar CORS; no introduzcas datos personales ni de tu cartera.'
-                        : 'La consulta se realiza desde el navegador mediante un proxy público temporal; no introduzcas datos personales ni de tu cartera.'}
+                        : 'La consulta usa una ruta segura del despliegue para evitar CORS y puede recurrir a un proxy público temporal; no introduzcas datos personales ni de tu cartera.'}
                 </p>
             </section>
 

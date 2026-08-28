@@ -164,6 +164,22 @@
     animation: slideDown 0.3s ease;
 }
 
+.compound__rate-equivalence {
+    margin: 0.75rem 0 0;
+    padding: 0.8rem 0.9rem;
+    border: 1px solid rgba(var(--accent-rgb), 0.2);
+    border-radius: 10px;
+    background: rgba(var(--accent-rgb), 0.06);
+    color: var(--text-secondary);
+    font-size: 0.88rem;
+    line-height: 1.45;
+}
+
+.compound__rate-equivalence strong {
+    color: var(--text-primary);
+    font-weight: 700;
+}
+
 @keyframes slideDown {
     from {
         opacity: 0;
@@ -203,6 +219,7 @@
     display: inline-flex;
     align-items: center;
     min-height: 18px;
+    line-height: 1.35;
 }
 
 .compound__radio:hover {

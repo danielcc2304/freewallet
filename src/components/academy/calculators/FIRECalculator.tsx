@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Info, TrendingUp, Wallet, ShieldCheck, Flame, Banknote } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { getRateConversion } from './compoundInterestUtils';
 import './FIRECalculator.css';
 
 type ProjectionMode = 'nominal' | 'real';
@@ -78,9 +79,14 @@ export function FIRECalculator() {
     const leanFireNumber = fireNumber * 0.8;
     const fatFireNumber = fireNumber * 1.5;
 
-    const nominalAnnualFactor = 1 + annualReturnNum / 100;
+    const normalizedAnnualReturn = Math.max(annualReturnNum / 100, -1);
+    const rateConversion = useMemo(
+        () => getRateConversion(normalizedAnnualReturn, 'cagr', 'monthly'),
+        [normalizedAnnualReturn]
+    );
+    const nominalAnnualFactor = 1 + rateConversion.effectiveAnnualRate;
     const inflationAnnualFactor = 1 + inflationRateNum / 100;
-    const nominalMonthlyRate = Math.pow(Math.max(nominalAnnualFactor, 0), 1 / 12) - 1;
+    const nominalMonthlyRate = rateConversion.monthlyRate;
     const shouldAdjustForInflation = includeInflation && inflationRateNum > 0;
     const realAnnualReturn = inflationAnnualFactor > 0
         ? ((nominalAnnualFactor / inflationAnnualFactor) - 1) * 100
@@ -202,7 +208,7 @@ export function FIRECalculator() {
             return `Si quieres vivir con ${formatCurrency(expensesNum)} al mes (${formatCurrency(annualExpenses)} al año) y aplicas una tasa de retirada del ${withdrawalRateNum.toFixed(1)}%, tu objetivo FIRE es ${formatCurrency(displayedFireNumber)}. Partiendo de ${formatCurrency(savingsNum)} y aportando ${formatCurrency(monthlySavingsNum)} al mes con una rentabilidad anual estimada del ${annualReturnNum.toFixed(1)}%, necesitarías ${yearsLabel}.`;
         }
 
-        return `Si quieres vivir con ${formatCurrency(expensesNum)} al mes (${formatCurrency(annualExpenses)} al año) y aplicas una tasa de retirada del ${withdrawalRateNum.toFixed(1)}%, el objetivo mostrado en ${projectionDescriptor} es ${formatCurrency(displayedFireNumber)}. Partiendo de ${formatCurrency(savingsNum)} y aportando ${formatCurrency(monthlySavingsNum)} al mes con una rentabilidad nominal estimada del ${annualReturnNum.toFixed(1)}% y una inflación del ${inflationRateNum.toFixed(1)}%, necesitarías ${yearsLabel}. Como referencia, el mismo escenario serían ${yearsWithoutInflationLabel} sin inflación y ${yearsWithInflationLabel} ajustando inflación.`;
+        return `Si quieres vivir con ${formatCurrency(expensesNum)} al mes (${formatCurrency(annualExpenses)} al año) y aplicas una tasa de retirada del ${withdrawalRateNum.toFixed(1)}%, el objetivo mostrado en ${projectionDescriptor} es ${formatCurrency(displayedFireNumber)}. Partiendo de ${formatCurrency(savingsNum)} y aportando ${formatCurrency(monthlySavingsNum)} al mes con una rentabilidad anual efectiva estimada del ${annualReturnNum.toFixed(1)}% y una inflación del ${inflationRateNum.toFixed(1)}%, necesitarías ${yearsLabel}. Como referencia, el mismo escenario serían ${yearsWithoutInflationLabel} sin inflación y ${yearsWithInflationLabel} ajustando inflación.`;
     }, [
         annualExpenses,
         annualReturnNum,
@@ -323,7 +329,7 @@ export function FIRECalculator() {
 
                     <div className="fire__input-grid">
                         <div className="calc__input-group">
-                            <label>Rentab. Anual</label>
+                            <label>Rentab. Anual (CAGR)</label>
                             <div className="calc__input-wrapper">
                                 <TrendingUp size={18} />
                                 <input

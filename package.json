@@ -9,7 +9,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "verify-funds": "tsx scripts/verify-funds.ts",
-    "test:compound-interest": "tsx scripts/test-compound-interest.ts"
+    "test:compound-interest": "tsx scripts/test-compound-interest.ts",
+    "test:finect": "tsx scripts/test-finect.ts"
   },
   "dependencies": {
     "@vercel/analytics": "^2.0.1",

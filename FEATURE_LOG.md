@@ -12,6 +12,26 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-08-28 - Calculadora: CAGR, TIN y frecuencia de capitalización
+- Funcionalidad:
+  - Se distingue entre rentabilidad anual efectiva (`CAGR`) y tasa nominal anual (`TIN`).
+  - El modo TIN permite elegir capitalización diaria, mensual, trimestral, semestral o anual.
+  - Se muestra la rentabilidad anual efectiva equivalente y se mantiene la simulación mensual para las aportaciones.
+  - Los modos de objetivos, retiradas, gráficos y detalle año a año utilizan la misma conversión de tasas.
+  - La calculadora FIRE reutiliza la conversión CAGR mensual para sus proyecciones y cálculos de tiempo.
+  - Se centra verticalmente el control y el texto de las opciones de retiradas anuales.
+- Resumen:
+  - La versión `v3.8.3` interpreta por defecto la rentabilidad como CAGR y evita que la frecuencia interna convierta una rentabilidad efectiva del 10% en un 10,47%.
+- Archivos:
+  - `src/components/academy/calculators/CompoundInterestCalc.tsx`
+  - `src/components/academy/calculators/CompoundInterestCalc.css`
+  - `src/components/academy/calculators/compoundInterestUtils.ts`
+  - `src/components/academy/calculators/FIRECalculator.tsx`
+  - `src/constants/app.ts`
+  - `scripts/test-compound-interest.ts`
+  - `package.json`
+  - `FEATURE_LOG.md`
+
 ### 2026-08-22 - Academy: aviso de progreso en Radar de fondos
 - Funcionalidad:
   - Se incorpora un aviso modal al entrar en el Radar de fondos para comunicar que la sección está en desarrollo.

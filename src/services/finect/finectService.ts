@@ -8,8 +8,8 @@ import {
 const FINECT_API_BASE_URL = 'https://api.finect.com/v4';
 const FINECT_SITE_BASE_URL = 'https://www.finect.com';
 const FINECT_CACHE_TTL_MS = 6 * 60 * 60 * 1000;
-const FINECT_DEV_API_PROXY = '/__finect/api';
-const FINECT_DEV_SITE_PROXY = '/__finect/site';
+const FINECT_API_PROXY = '/__finect/api';
+const FINECT_SITE_PROXY = '/__finect/site';
 
 /**
  * Finect exposes this client key in its own public frontend bundle. It is not
@@ -244,15 +244,12 @@ function buildFinectUrl(path: string, params: Record<string, string>): string {
     return url.toString();
 }
 
-function buildDevelopmentProxyUrl(targetUrl: string): string | undefined {
-    const runtimeEnv = (import.meta as ImportMeta & { env?: Record<string, unknown> }).env;
-    if (runtimeEnv?.DEV !== true) return undefined;
-
+export function buildFinectProxyUrl(targetUrl: string): string | undefined {
     const target = new URL(targetUrl);
     const proxyPrefix = target.origin === FINECT_API_BASE_URL.replace('/v4', '')
-        ? FINECT_DEV_API_PROXY
+        ? FINECT_API_PROXY
         : target.origin === FINECT_SITE_BASE_URL
-            ? FINECT_DEV_SITE_PROXY
+            ? FINECT_SITE_PROXY
             : undefined;
 
     return proxyPrefix ? `${proxyPrefix}${target.pathname}${target.search}` : undefined;
@@ -280,19 +277,21 @@ async function fetchThroughProxy<T>(
 ): Promise<T> {
     let lastError: unknown;
 
-    const developmentProxyUrl = buildDevelopmentProxyUrl(targetUrl);
-    if (developmentProxyUrl) {
+    const sameOriginProxyUrl = buildFinectProxyUrl(targetUrl);
+    if (sameOriginProxyUrl) {
         try {
-            const response = await fetch(developmentProxyUrl, { signal });
+            // Vite serves these routes during development and Vercel rewrites
+            // them to Finect in production. Both keep the request same-origin.
+            const response = await fetch(sameOriginProxyUrl, { signal });
             if (!response.ok) {
-                throw new Error(`Finect development proxy responded with ${response.status}.`);
+                throw new Error(`Finect same-origin proxy responded with ${response.status}.`);
             }
 
             return parsePayload(await response.text());
         } catch (error) {
             if (isAbortError(error) || signal?.aborted) throw error;
             lastError = error;
-            console.warn('[Finect] Development proxy failed; trying public proxies.', error);
+            console.warn('[Finect] Same-origin proxy failed; trying public proxies.', error);
         }
     }
 

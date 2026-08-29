@@ -304,9 +304,9 @@ El usuario puede guardar una clave propia en localStorage (fallback adicional).
 
 ### Consulta de fondos por ISIN
 
-La calculadora `/academy/fund-information` permite pegar el ISIN de una clase de fondo y consultar su ficha pública de Finect desde el SPA. La consulta normaliza identidad, costes, riesgo, rentabilidades, composición, posiciones y documentación disponible.
+La herramienta `/academy/fund-information` permite pegar el ISIN de una clase de fondo y consultar su ficha pública de Finect desde el SPA. La consulta normaliza identidad, costes, riesgo, rentabilidades, composición, posiciones y documentación disponible.
 
-En desarrollo local, Vite expone dos rutas proxy (`/__finect/api` y `/__finect/site`) para que la ficha funcione sin bloquearse por CORS; esto no añade un backend de aplicación y solo existe durante `npm run dev`. En una SPA desplegada, la integración usa la búsqueda/API pública de Finect y proxies CORS temporales desde el navegador. Por ello está pensada para pruebas o uso interno: un proxy público puede tener límites o dejar de estar disponible y la clave de cliente queda expuesta en el bundle del frontend.
+En desarrollo local, Vite expone dos rutas proxy (`/__finect/api` y `/__finect/site`) para que la ficha funcione sin bloquearse por CORS. En Vercel, las mismas rutas se reescriben server-side hacia Finect, manteniendo la petición same-origin sin añadir un backend de aplicación; si el despliegue no soporta esas reescrituras, se conserva un fallback mediante proxies CORS temporales desde el navegador. Por ello está pensada para pruebas o uso interno: un proxy público puede tener límites o dejar de estar disponible y la clave de cliente queda expuesta en el bundle del frontend.
 
 Se puede sobrescribir la clave pública de cliente con `VITE_FINECT_API_KEY` en `.env.local` si Finect la rota. Cuando exista backend, debe conservarse el contrato de `getFundRelevance(isin)` y sustituirse únicamente el transporte para mover la clave y el scraping al servidor.
 

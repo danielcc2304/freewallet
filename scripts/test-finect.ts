@@ -1,4 +1,5 @@
 import {
+    buildFinectProxyUrl,
     extractFinectInitialState,
     normalizeFinectFundModel,
     normalizeIsin,
@@ -11,6 +12,14 @@ function assert(condition: boolean, message: string): asserts condition {
 function run() {
     assert(normalizeIsin(' ie00byx5nx33 ') === 'IE00BYX5NX33', 'normaliza el ISIN');
     assert(normalizeIsin('US0378331005') === 'US0378331005', 'acepta un ISIN válido de acciones');
+    assert(
+        buildFinectProxyUrl('https://api.finect.com/v4/search?q=IE00BYX5NX33') === '/__finect/api/v4/search?q=IE00BYX5NX33',
+        'usa el proxy same-origin de la API también fuera de desarrollo',
+    );
+    assert(
+        buildFinectProxyUrl('https://www.finect.com/fondos-inversion/IE00BYX5NX33-fondo') === '/__finect/site/fondos-inversion/IE00BYX5NX33-fondo',
+        'usa el proxy same-origin de la ficha HTML',
+    );
 
     try {
         normalizeIsin('IE00BYX5NX32');

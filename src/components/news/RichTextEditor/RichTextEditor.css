@@ -1,0 +1,115 @@
+.rich-text-editor {
+    overflow: hidden;
+    border: 1px solid var(--border-secondary);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+}
+
+.rich-text-editor--disabled {
+    opacity: 0.65;
+}
+
+.rich-text-editor__toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.2rem;
+    flex-wrap: wrap;
+    padding: 0.55rem;
+    border-bottom: 1px solid var(--border-primary);
+    background: var(--bg-tertiary);
+}
+
+.rich-text-editor__format {
+    min-height: 32px;
+    padding: 0.35rem 1.8rem 0.35rem 0.55rem;
+    border: 1px solid var(--border-secondary);
+    border-radius: var(--radius-sm);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font: inherit;
+    font-size: var(--font-size-sm);
+}
+
+.rich-text-editor__button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid transparent;
+    border-radius: var(--radius-sm);
+    background: transparent;
+    color: var(--text-secondary);
+    cursor: pointer;
+}
+
+.rich-text-editor__button:hover {
+    border-color: var(--border-secondary);
+    background: var(--bg-card-hover);
+    color: var(--text-primary);
+}
+
+.rich-text-editor__separator {
+    width: 1px;
+    height: 22px;
+    margin: 0 0.2rem;
+    background: var(--border-secondary);
+}
+
+.rich-text-editor__surface {
+    min-height: 300px;
+    padding: var(--spacing-lg);
+    outline: none;
+    color: var(--text-primary);
+    line-height: 1.75;
+}
+
+.rich-text-editor__surface:empty::before {
+    content: attr(data-placeholder);
+    color: var(--text-muted);
+    pointer-events: none;
+}
+
+.rich-text-editor__surface p,
+.rich-text-editor__surface h2,
+.rich-text-editor__surface h3,
+.rich-text-editor__surface blockquote,
+.rich-text-editor__surface pre,
+.rich-text-editor__surface ul,
+.rich-text-editor__surface ol {
+    margin: 0 0 1rem;
+}
+
+.rich-text-editor__surface h2,
+.rich-text-editor__surface h3 {
+    color: var(--text-primary);
+}
+
+.rich-text-editor__surface blockquote {
+    padding-left: 1rem;
+    border-left: 3px solid var(--accent-primary);
+    color: var(--text-secondary);
+}
+
+.rich-text-editor__surface pre {
+    overflow-x: auto;
+    padding: 0.8rem;
+    border-radius: var(--radius-sm);
+    background: var(--bg-tertiary);
+    font-family: Consolas, Monaco, monospace;
+    font-size: 0.85rem;
+}
+
+.rich-text-editor__surface a {
+    color: var(--accent-primary);
+    text-decoration: underline;
+}
+
+@media (max-width: 640px) {
+    .rich-text-editor__surface {
+        min-height: 240px;
+        padding: var(--spacing-md);
+    }
+}
+

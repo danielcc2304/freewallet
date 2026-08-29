@@ -14,6 +14,8 @@ export const ALL_PRERENDER_ROUTES = [
     '/portfolio-csv',
     '/settings',
     '/feature-log',
+    '/news',
     '/terms',
     ...academyPrerenderRoutes,
 ];
+

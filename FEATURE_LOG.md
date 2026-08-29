@@ -12,6 +12,53 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-08-29 - v3.10.0 - Noticias editoriales privadas
+- Funcionalidad:
+  - Se incorpora la sección pública `/news` con listado y páginas individuales por slug.
+  - Se añade el panel editorial privado `/admin/news` con Supabase Auth, borradores, publicación y borrado.
+  - Se integra un editor WYSIWYG con formato enriquecido, enlaces seguros, sanitización HTML y tamaños de letra.
+  - Se protege la edición con RLS y roles de propietario/editor, incluyendo invitaciones por correo y revocación de acceso.
+  - Se añaden avisos flotantes temporales y redirección al listado después de publicar.
+- Resumen:
+  - La versión `v3.10.0` permite publicar análisis editoriales desde la SPA manteniendo el contenido compartido en Supabase y el acceso de edición restringido.
+- Archivos:
+  - `src/pages/News/News.tsx`
+  - `src/pages/News/News.css`
+  - `src/pages/NewsAdmin/NewsAdmin.tsx`
+  - `src/pages/NewsAdmin/NewsAdmin.css`
+  - `src/components/news/RichTextEditor/RichTextEditor.tsx`
+  - `src/components/news/RichTextEditor/RichTextEditor.css`
+  - `src/components/ui/Input/Input.tsx`
+  - `src/services/newsService.ts`
+  - `src/types/news.ts`
+  - `src/utils/newsContent.ts`
+  - `supabase/news-schema.sql`
+  - `supabase/functions/invite-news-editor/index.ts`
+  - `package.json`
+  - `package-lock.json`
+  - `README.md`
+  - `FEATURE_LOG.md`
+
+### 2026-08-29 - Noticias editoriales con panel privado
+- Funcionalidad:
+  - Se añade una sección pública de Noticias con listado y páginas individuales por slug.
+  - Se incorpora un panel editorial privado con autenticación, borradores, publicación y borrado.
+  - Se añade un editor WYSIWYG ligero para títulos, formato, listas, citas, enlaces y código.
+  - Se integra Supabase mediante REST/Auth y se incluye el esquema SQL con RLS para limitar la edición al administrador.
+- Resumen:
+  - FreeWallet puede publicar análisis editoriales desde la propia SPA sin mantener un backend Node separado.
+- Archivos:
+  - `src/pages/News/News.tsx`
+  - `src/pages/News/News.css`
+  - `src/pages/NewsAdmin/NewsAdmin.tsx`
+  - `src/pages/NewsAdmin/NewsAdmin.css`
+  - `src/components/news/RichTextEditor/RichTextEditor.tsx`
+  - `src/services/newsService.ts`
+  - `src/utils/newsContent.ts`
+  - `supabase/news-schema.sql`
+  - `.env.example`
+  - `README.md`
+
 ### 2026-08-29 - v3.9.2 - Hotfix: limpieza de la consulta de fondos
 - Funcionalidad:
   - Se elimina el enlace de retorno a la Academia de la pantalla de información de fondos.

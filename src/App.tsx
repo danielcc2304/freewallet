@@ -1,6 +1,19 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
-import { Dashboard, Planning, Transactions, AddInvestment, Settings, TermsAndConditions, NotFound, PortfolioCsv, FeatureLog } from './pages';
+import {
+  Dashboard,
+  Planning,
+  Transactions,
+  AddInvestment,
+  Settings,
+  TermsAndConditions,
+  NotFound,
+  PortfolioCsv,
+  FeatureLog,
+  News,
+  NewsArticle,
+  NewsAdmin,
+} from './pages';
 import { AcademyLayout } from './components/academy/layout/AcademyLayout';
 import { academyRouteDefinitions } from './app/routes/academyRoutes';
 import './index.css';
@@ -17,6 +30,11 @@ function App() {
           <Route path="settings" element={<Settings />} />
           <Route path="portfolio-csv" element={<PortfolioCsv />} />
           <Route path="feature-log" element={<FeatureLog />} />
+          <Route path="news">
+            <Route index element={<News />} />
+            <Route path=":slug" element={<NewsArticle />} />
+          </Route>
+          <Route path="admin/news" element={<NewsAdmin />} />
 
           {/* Academy section with nested routes */}
           <Route path="academy" element={<AcademyLayout />}>
@@ -40,3 +58,4 @@ function App() {
 }
 
 export default App;
+

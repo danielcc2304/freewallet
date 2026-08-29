@@ -6,6 +6,7 @@ import {
     GraduationCap,
     LayoutDashboard,
     Menu,
+    Newspaper,
     PlusCircle,
     Settings,
     Wallet,
@@ -35,6 +36,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     const navItems = [
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/add', icon: PlusCircle, label: 'Anadir inversion' },
+        { to: '/news', icon: Newspaper, label: 'Noticias' },
     ];
 
     const handleAcademyToggle = () => {
@@ -159,3 +161,4 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
         </>
     );
 }
+

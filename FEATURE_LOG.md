@@ -12,6 +12,26 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-08-29 - Noticias editoriales con panel privado
+- Funcionalidad:
+  - Se añade una sección pública de Noticias con listado y páginas individuales por slug.
+  - Se incorpora un panel editorial privado con autenticación, borradores, publicación y borrado.
+  - Se añade un editor WYSIWYG ligero para títulos, formato, listas, citas, enlaces y código.
+  - Se integra Supabase mediante REST/Auth y se incluye el esquema SQL con RLS para limitar la edición al administrador.
+- Resumen:
+  - FreeWallet puede publicar análisis editoriales desde la propia SPA sin mantener un backend Node separado.
+- Archivos:
+  - `src/pages/News/News.tsx`
+  - `src/pages/News/News.css`
+  - `src/pages/NewsAdmin/NewsAdmin.tsx`
+  - `src/pages/NewsAdmin/NewsAdmin.css`
+  - `src/components/news/RichTextEditor/RichTextEditor.tsx`
+  - `src/services/newsService.ts`
+  - `src/utils/newsContent.ts`
+  - `supabase/news-schema.sql`
+  - `.env.example`
+  - `README.md`
+
 ### 2026-08-29 - v3.9.2 - Hotfix: limpieza de la consulta de fondos
 - Funcionalidad:
   - Se elimina el enlace de retorno a la Academia de la pantalla de información de fondos.

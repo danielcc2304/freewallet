@@ -252,6 +252,29 @@ Ejecuta ESLint en el proyecto.
 
 Script utilitario para verificar fondos de `BEST_FUNDS` (consistencia de enlace/ISIN/nombre).
 
+## Noticias editoriales
+
+La ruta `/news` muestra los análisis publicados y `/admin/news` ofrece un panel privado para crear borradores y publicar noticias desde un editor WYSIWYG básico.
+
+La feature no necesita un servidor Node separado: el frontend sigue desplegándose en Vercel y usa Supabase como backend gestionado para Auth y PostgreSQL.
+
+### Configuración de Supabase
+
+1. Crea un proyecto en Supabase.
+2. Ejecuta `supabase/news-schema.sql` desde el SQL Editor.
+3. Crea tu cuenta en `Authentication > Users` y copia su UUID.
+4. Inserta ese UUID en `public.news_admins`:
+
+```sql
+insert into public.news_admins (user_id)
+values ('UUID_DE_TU_USUARIO');
+```
+
+5. Copia `.env.example` como `.env.local` y rellena `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` (también se admite `VITE_SUPABASE_ANON_KEY`).
+6. En Supabase desactiva el registro público de usuarios. El panel comprueba además la pertenencia a `news_admins` y las políticas RLS bloquean cualquier escritura no autorizada.
+
+Las noticias se guardan como HTML sanitizado. La portada acepta de momento una URL HTTPS; el bucket `news-images` queda preparado para añadir subida de imágenes más adelante.
+
 ---
 
 ## SEO y prerender

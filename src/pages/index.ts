@@ -7,3 +7,6 @@ export * from './NotFound';
 export * from './TermsAndConditions';
 export * from './PortfolioCsv';
 export * from './FeatureLog';
+export * from './News';
+export * from './NewsAdmin';
+

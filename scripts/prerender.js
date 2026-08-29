@@ -14,6 +14,7 @@ const routes = [
     '/add',
     '/settings',
     '/feature-log',
+    '/news',
     '/terms',
     '/portfolio-csv',
     '/academy',

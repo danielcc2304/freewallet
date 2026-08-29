@@ -1,5 +1,5 @@
 import type { InputHTMLAttributes, ReactNode } from 'react';
-import { forwardRef } from 'react';
+import { forwardRef, useId } from 'react';
 import './Input.css';
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
@@ -10,14 +10,18 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
 }
 
 export const Input = forwardRef<HTMLInputElement, InputProps>(
-    ({ label, error, hint, icon, className = '', ...props }, ref) => {
+    ({ label, error, hint, icon, className = '', id, ...props }, ref) => {
+        const generatedId = useId().replace(/:/g, '');
+        const inputId = id ?? `input-${generatedId}`;
+
         return (
             <div className={`input-wrapper ${error ? 'input-wrapper--error' : ''} ${className}`}>
-                {label && <label className="input__label">{label}</label>}
+                {label && <label className="input__label" htmlFor={inputId}>{label}</label>}
                 <div className="input__container">
                     {icon && <span className="input__icon">{icon}</span>}
                     <input
                         ref={ref}
+                        id={inputId}
                         className={`input ${icon ? 'input--with-icon' : ''}`}
                         {...props}
                     />

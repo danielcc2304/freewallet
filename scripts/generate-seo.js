@@ -12,6 +12,7 @@ const routes = [
     '/portfolio-csv',
     '/settings',
     '/feature-log',
+    '/news',
     '/terms',
     '/academy',
     '/academy/timeline',

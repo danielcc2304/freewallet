@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, CalendarDays, ExternalLink, FileText, Loader2, Newspaper, Settings2 } from 'lucide-react';
-import { Link, useParams } from 'react-router-dom';
-import { Button, Card, CardContent } from '../../components/ui';
+import { ArrowLeft, CalendarDays, CheckCircle2, ExternalLink, FileText, Loader2, Newspaper, Settings2 } from 'lucide-react';
+import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
+import { Card, CardContent } from '../../components/ui';
 import type { NewsPost } from '../../types/news';
 import {
     NewsServiceError,
@@ -21,7 +21,8 @@ function formatNewsDate(value: string | null): string {
         return 'Sin fecha';
     }
 
-    return dateFormatter.format(new Date(value));
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? 'Sin fecha' : dateFormatter.format(date);
 }
 
 function getErrorMessage(error: unknown): string {
@@ -30,6 +31,15 @@ function getErrorMessage(error: unknown): string {
     }
 
     return 'No se han podido cargar las noticias. Inténtalo de nuevo más tarde.';
+}
+
+function getNewsToast(state: unknown): string | null {
+    if (typeof state !== 'object' || state === null || !('newsToast' in state)) {
+        return null;
+    }
+
+    const message = (state as { newsToast?: unknown }).newsToast;
+    return typeof message === 'string' && message ? message : null;
 }
 
 function NewsSetupNotice() {
@@ -75,9 +85,29 @@ function NewsHeader({ showAdminLink = true }: { showAdminLink?: boolean }) {
 }
 
 export function News() {
+    const location = useLocation();
+    const navigate = useNavigate();
     const [posts, setPosts] = useState<NewsPost[]>([]);
     const [loading, setLoading] = useState(isNewsBackendConfigured);
     const [error, setError] = useState<string | null>(null);
+    const [toast, setToast] = useState<string | null>(() => getNewsToast(location.state));
+
+    useEffect(() => {
+        if (!getNewsToast(location.state)) {
+            return;
+        }
+
+        navigate(`${location.pathname}${location.search}${location.hash}`, { replace: true, state: null });
+    }, [location.hash, location.pathname, location.search, location.state, navigate]);
+
+    useEffect(() => {
+        if (!toast) {
+            return undefined;
+        }
+
+        const timeout = window.setTimeout(() => setToast(null), 4200);
+        return () => window.clearTimeout(timeout);
+    }, [toast]);
 
     useEffect(() => {
         if (!isNewsBackendConfigured) {
@@ -110,6 +140,12 @@ export function News() {
 
     return (
         <div className="news-page">
+            {toast && (
+                <div className="news-page__toast" role="status">
+                    <CheckCircle2 size={17} />
+                    <span>{toast}</span>
+                </div>
+            )}
             <NewsHeader />
 
             {!isNewsBackendConfigured && <NewsSetupNotice />}
@@ -137,11 +173,6 @@ export function News() {
                         <Newspaper size={32} />
                         <h2>Aún no hay noticias publicadas</h2>
                         <p>Cuando publiques tu primer análisis aparecerá aquí.</p>
-                        <Link to="/admin/news">
-                            <Button icon={<Settings2 size={16} />} size="sm">
-                                Abrir panel editorial
-                            </Button>
-                        </Link>
                     </CardContent>
                 </Card>
             )}

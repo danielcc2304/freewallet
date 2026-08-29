@@ -18,12 +18,16 @@ const ALLOWED_TAGS = new Set([
     'CODE',
     'PRE',
     'IMG',
+    'SPAN',
 ]);
 
 const ALLOWED_ATTRIBUTES: Record<string, Set<string>> = {
     A: new Set(['href', 'target', 'rel']),
     IMG: new Set(['src', 'alt', 'title']),
+    SPAN: new Set(['style']),
 };
+
+const ALLOWED_FONT_SIZES = new Set(['0.875rem', '1rem', '1.125rem', '1.35rem']);
 
 const SAFE_URL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:']);
 
@@ -33,6 +37,26 @@ function isSafeUrl(value: string): boolean {
         return SAFE_URL_PROTOCOLS.has(url.protocol);
     } catch {
         return false;
+    }
+}
+
+/**
+ * Normalises a link entered from the editor and rejects protocols that can
+ * execute code in the public article view.
+ */
+export function getSafeNewsLinkUrl(value: string): string | null {
+    const trimmedValue = value.trim();
+    if (!trimmedValue) {
+        return null;
+    }
+
+    const candidate = /^[a-z][a-z\d+.-]*:/i.test(trimmedValue) ? trimmedValue : `https://${trimmedValue}`;
+
+    try {
+        const url = new URL(candidate);
+        return SAFE_URL_PROTOCOLS.has(url.protocol) ? url.toString() : null;
+    } catch {
+        return null;
     }
 }
 
@@ -87,6 +111,25 @@ function sanitizeNode(parent: Node): void {
             const src = element.getAttribute('src');
             if (!src || !isSafeUrl(src)) {
                 element.remove();
+                return;
+            }
+        }
+
+        if (tagName === 'SPAN') {
+            const fontSize = element.style.fontSize.trim().toLowerCase();
+            if (ALLOWED_FONT_SIZES.has(fontSize)) {
+                element.setAttribute('style', `font-size: ${fontSize}`);
+            } else {
+                element.removeAttribute('style');
+            }
+
+            if (!element.hasAttribute('style')) {
+                const fragment = document.createDocumentFragment();
+                while (element.firstChild) {
+                    fragment.appendChild(element.firstChild);
+                }
+                element.replaceWith(fragment);
+                sanitizeNode(fragment);
                 return;
             }
         }

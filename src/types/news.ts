@@ -1,4 +1,6 @@
 export type NewsStatus = 'draft' | 'published';
+export type NewsAdminRole = 'owner' | 'editor';
+export type NewsAdminStatus = 'invited' | 'active' | 'revoked';
 
 export interface NewsPost {
     id: string;
@@ -34,5 +36,15 @@ export interface NewsSession {
     refreshToken: string;
     expiresAt: number;
     user: NewsUser;
+}
+
+export interface NewsAdminMember {
+    userId: string;
+    email: string;
+    role: NewsAdminRole;
+    status: NewsAdminStatus;
+    createdAt: string;
+    invitedAt: string | null;
+    acceptedAt: string | null;
 }
 

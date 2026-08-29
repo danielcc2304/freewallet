@@ -1,15 +1,46 @@
-import type { NewsPost, NewsPostInput, NewsSession, NewsUser } from '../types/news';
+import {
+    createClient,
+    type Session,
+    type SupabaseClient,
+    type User,
+} from '@supabase/supabase-js';
+import type {
+    NewsAdminMember,
+    NewsAdminRole,
+    NewsAdminStatus,
+    NewsPost,
+    NewsPostInput,
+    NewsSession,
+    NewsUser,
+} from '../types/news';
 import { sanitizeNewsHtml } from '../utils/newsContent';
 
-const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.replace(/\/$/, '');
-const SUPABASE_KEY =
-    (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined) ??
-    (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined);
-
-const SESSION_STORAGE_KEY = 'freewallet_news_session';
+const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim().replace(/\/$/, '');
+const SUPABASE_KEY = (
+    (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined)
+    ?? (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)
+)?.trim();
+const CONFIG_PLACEHOLDER_PATTERN = /tu-proyecto|sb_publishable_xxx|eyj\.\.\./i;
+const SESSION_STORAGE_KEY = 'freewallet-news-auth';
 const NEWS_COLUMNS = 'id,slug,title,excerpt,content,cover_image_url,status,published_at,created_at,updated_at,author_id';
+const NEWS_ADMIN_COLUMNS = 'user_id,email,role,status,created_at,invited_at,accepted_at';
 
-export const isNewsBackendConfigured = Boolean(SUPABASE_URL && SUPABASE_KEY);
+function isUsableConfigValue(value: string | undefined): value is string {
+    return Boolean(value && !CONFIG_PLACEHOLDER_PATTERN.test(value));
+}
+
+const supabaseClient = isUsableConfigValue(SUPABASE_URL) && isUsableConfigValue(SUPABASE_KEY)
+    ? createClient(SUPABASE_URL, SUPABASE_KEY, {
+        auth: {
+            autoRefreshToken: true,
+            detectSessionInUrl: true,
+            persistSession: true,
+            storageKey: SESSION_STORAGE_KEY,
+        },
+    })
+    : null;
+
+export const isNewsBackendConfigured = supabaseClient !== null;
 
 export class NewsServiceError extends Error {
     status?: number;
@@ -19,16 +50,6 @@ export class NewsServiceError extends Error {
         this.name = 'NewsServiceError';
         this.status = status;
     }
-}
-
-interface SupabaseAuthResponse {
-    access_token: string;
-    refresh_token: string;
-    expires_in: number;
-    user: {
-        id: string;
-        email?: string | null;
-    };
 }
 
 interface NewsPostRow {
@@ -45,50 +66,45 @@ interface NewsPostRow {
     author_id: string | null;
 }
 
-function requireConfiguration(): { url: string; key: string } {
-    if (!SUPABASE_URL || !SUPABASE_KEY) {
+interface NewsAdminRow {
+    user_id: string;
+    email: string;
+    role: NewsAdminRole;
+    status: NewsAdminStatus;
+    created_at: string;
+    invited_at: string | null;
+    accepted_at: string | null;
+}
+
+function requireClient(): SupabaseClient {
+    if (!supabaseClient) {
         throw new NewsServiceError(
-            'La sección de noticias necesita VITE_SUPABASE_URL y VITE_SUPABASE_ANON_KEY (o VITE_SUPABASE_PUBLISHABLE_KEY).',
+            'La sección de noticias necesita VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY (o VITE_SUPABASE_ANON_KEY).',
         );
     }
 
-    return { url: SUPABASE_URL, key: SUPABASE_KEY };
+    return supabaseClient;
 }
 
-function readStoredSession(): NewsSession | null {
-    if (typeof window === 'undefined') {
-        return null;
-    }
-
-    try {
-        const stored = window.localStorage.getItem(SESSION_STORAGE_KEY);
-        return stored ? (JSON.parse(stored) as NewsSession) : null;
-    } catch {
-        return null;
-    }
+function getSupabaseErrorMessage(error: { message?: string } | null, fallback: string): string {
+    return error?.message?.trim() || fallback;
 }
 
-function storeSession(session: NewsSession): void {
-    window.localStorage.setItem(SESSION_STORAGE_KEY, JSON.stringify(session));
-}
-
-function clearStoredSession(): void {
-    window.localStorage.removeItem(SESSION_STORAGE_KEY);
-}
-
-function mapUser(user: SupabaseAuthResponse['user']): NewsUser {
+function mapUser(user: User): NewsUser {
     return {
         id: user.id,
         email: user.email ?? null,
     };
 }
 
-function mapAuthResponse(response: SupabaseAuthResponse): NewsSession {
+function mapSession(session: Session): NewsSession {
+    const expiresAt = session.expires_at ?? Math.floor(Date.now() / 1000) + 3600;
+
     return {
-        accessToken: response.access_token,
-        refreshToken: response.refresh_token,
-        expiresAt: Date.now() + response.expires_in * 1000,
-        user: mapUser(response.user),
+        accessToken: session.access_token,
+        refreshToken: session.refresh_token,
+        expiresAt: expiresAt * 1000,
+        user: mapUser(session.user),
     };
 }
 
@@ -108,180 +124,187 @@ function mapPost(row: NewsPostRow): NewsPost {
     };
 }
 
-function getErrorMessage(payload: unknown, fallback: string): string {
-    if (typeof payload === 'object' && payload !== null) {
-        const errorPayload = payload as { message?: unknown; error_description?: unknown; hint?: unknown };
-        const message = errorPayload.message ?? errorPayload.error_description ?? errorPayload.hint;
-        if (typeof message === 'string' && message.trim()) {
-            return message;
-        }
-    }
-
-    return fallback;
-}
-
-async function parseResponse(response: Response): Promise<unknown> {
-    const text = await response.text();
-    if (!text) {
-        return null;
-    }
-
-    try {
-        return JSON.parse(text) as unknown;
-    } catch {
-        return text;
-    }
-}
-
-async function refreshSession(session: NewsSession): Promise<NewsSession | null> {
-    const { url, key } = requireConfiguration();
-    const response = await fetch(`${url}/auth/v1/token?grant_type=refresh_token`, {
-        method: 'POST',
-        headers: {
-            apikey: key,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ refresh_token: session.refreshToken }),
-    });
-
-    if (!response.ok) {
-        clearStoredSession();
-        return null;
-    }
-
-    const payload = await parseResponse(response) as SupabaseAuthResponse;
-    const nextSession = mapAuthResponse(payload);
-    storeSession(nextSession);
-    return nextSession;
+function mapAdminMember(row: NewsAdminRow): NewsAdminMember {
+    return {
+        userId: row.user_id,
+        email: row.email,
+        role: row.role,
+        status: row.status,
+        createdAt: row.created_at,
+        invitedAt: row.invited_at,
+        acceptedAt: row.accepted_at,
+    };
 }
 
 export async function getNewsSession(): Promise<NewsSession | null> {
-    const session = readStoredSession();
-    if (!session) {
-        return null;
+    const client = requireClient();
+    const { data, error } = await client.auth.getSession();
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo recuperar la sesión editorial.'));
     }
 
-    if (session.expiresAt <= Date.now() + 30_000) {
-        return refreshSession(session);
-    }
-
-    return session;
-}
-
-interface RequestOptions extends RequestInit {
-    requiresAuth?: boolean;
-    allowRefresh?: boolean;
-}
-
-async function request(path: string, options: RequestOptions = {}): Promise<unknown> {
-    const { url, key } = requireConfiguration();
-    const { requiresAuth = false, allowRefresh = true, ...requestInit } = options;
-    let session = await getNewsSession();
-
-    if (requiresAuth && !session) {
-        throw new NewsServiceError('Tu sesión editorial ha caducado. Vuelve a iniciar sesión.');
-    }
-
-    const headers = new Headers(requestInit.headers);
-    headers.set('apikey', key);
-    if (session) {
-        headers.set('Authorization', `Bearer ${session.accessToken}`);
-    }
-    if (requestInit.body && !headers.has('Content-Type')) {
-        headers.set('Content-Type', 'application/json');
-    }
-
-    const response = await fetch(`${url}${path}`, { ...requestInit, headers });
-
-    if (response.status === 401 && allowRefresh && session?.refreshToken) {
-        session = await refreshSession(session);
-        if (session) {
-            return request(path, { ...options, allowRefresh: false });
-        }
-    }
-
-    const payload = await parseResponse(response);
-    if (!response.ok) {
-        throw new NewsServiceError(getErrorMessage(payload, 'No se pudo completar la operación.'), response.status);
-    }
-
-    return payload;
+    return data.session ? mapSession(data.session) : null;
 }
 
 export async function signInNewsAdmin(email: string, password: string): Promise<NewsSession> {
-    const { url, key } = requireConfiguration();
-    const response = await fetch(`${url}/auth/v1/token?grant_type=password`, {
-        method: 'POST',
-        headers: {
-            apikey: key,
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email: email.trim(), password }),
+    const client = requireClient();
+    const { data, error } = await client.auth.signInWithPassword({
+        email: email.trim(),
+        password,
     });
-    const payload = await parseResponse(response);
 
-    if (!response.ok) {
-        throw new NewsServiceError(getErrorMessage(payload, 'Credenciales no válidas.'), response.status);
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'Credenciales no válidas.'));
     }
 
-    const session = mapAuthResponse(payload as SupabaseAuthResponse);
-    storeSession(session);
-    return session;
+    if (!data.session) {
+        throw new NewsServiceError('Supabase no devolvió una sesión de usuario.');
+    }
+
+    return mapSession(data.session);
 }
 
 export async function signOutNewsAdmin(): Promise<void> {
-    const session = readStoredSession();
-    if (session && isNewsBackendConfigured) {
-        const { url, key } = requireConfiguration();
-        await fetch(`${url}/auth/v1/logout`, {
-            method: 'POST',
-            headers: {
-                apikey: key,
-                Authorization: `Bearer ${session.accessToken}`,
-            },
-        }).catch(() => undefined);
+    if (!supabaseClient) {
+        return;
     }
-    clearStoredSession();
+
+    await supabaseClient.auth.signOut().catch(() => undefined);
 }
 
 export async function isCurrentUserNewsAdmin(): Promise<boolean> {
-    const payload = await request('/rest/v1/rpc/is_news_admin', {
-        method: 'POST',
-        body: JSON.stringify({}),
-        requiresAuth: true,
+    const { data, error } = await requireClient().rpc('is_news_admin');
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo comprobar el permiso editorial.'));
+    }
+
+    return data === true;
+}
+
+export async function isCurrentUserNewsOwner(): Promise<boolean> {
+    const { data, error } = await requireClient().rpc('is_news_owner');
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo comprobar el propietario editorial.'));
+    }
+
+    return data === true;
+}
+
+export async function ensureNewsOwnerMembership(): Promise<boolean> {
+    const { data, error } = await requireClient().rpc('ensure_news_owner');
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo activar el propietario editorial.'));
+    }
+
+    return data === true;
+}
+
+export async function hasPendingNewsInvitation(): Promise<boolean> {
+    const { data, error } = await requireClient().rpc('has_pending_news_invitation');
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo comprobar la invitación editorial.'));
+    }
+
+    return data === true;
+}
+
+export async function acceptNewsEditorInvitation(password: string): Promise<void> {
+    const client = requireClient();
+    const { error: passwordError } = await client.auth.updateUser({ password });
+    if (passwordError) {
+        throw new NewsServiceError(getSupabaseErrorMessage(passwordError, 'No se pudo establecer la contraseña.'));
+    }
+
+    const { data, error } = await client.rpc('accept_news_editor_invitation');
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo aceptar la invitación editorial.'));
+    }
+
+    if (data !== true) {
+        throw new NewsServiceError('La invitación editorial ya no está disponible.');
+    }
+}
+
+export async function listNewsAdmins(): Promise<NewsAdminMember[]> {
+    const { data, error } = await requireClient()
+        .from('news_admins')
+        .select(NEWS_ADMIN_COLUMNS)
+        .order('role', { ascending: true })
+        .order('created_at', { ascending: true });
+
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo cargar el equipo editorial.'));
+    }
+
+    return ((data ?? []) as NewsAdminRow[]).map(mapAdminMember);
+}
+
+export async function inviteNewsEditor(email: string): Promise<void> {
+    const normalizedEmail = email.trim().toLowerCase();
+    const { data, error } = await requireClient().functions.invoke('invite-news-editor', {
+        body: { email: normalizedEmail },
     });
-    return payload === true;
+
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo enviar la invitación editorial.'));
+    }
+
+    if (data && typeof data === 'object' && 'error' in data && typeof data.error === 'string') {
+        throw new NewsServiceError(data.error);
+    }
+}
+
+export async function revokeNewsEditor(userId: string): Promise<void> {
+    const { data, error } = await requireClient().rpc('revoke_news_editor', { target_user_id: userId });
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo revocar el acceso editorial.'));
+    }
+
+    if (data !== true) {
+        throw new NewsServiceError('Solo se pueden revocar editores activos o invitados.');
+    }
 }
 
 export async function listPublishedNews(): Promise<NewsPost[]> {
-    const params = new URLSearchParams({
-        select: NEWS_COLUMNS,
-        status: 'eq.published',
-        order: 'published_at.desc',
-    });
-    const payload = await request(`/rest/v1/news_posts?${params.toString()}`);
-    return Array.isArray(payload) ? (payload as NewsPostRow[]).map(mapPost) : [];
+    const { data, error } = await requireClient()
+        .from('news_posts')
+        .select(NEWS_COLUMNS)
+        .eq('status', 'published')
+        .order('published_at', { ascending: false });
+
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudieron cargar las noticias.'));
+    }
+
+    return ((data ?? []) as NewsPostRow[]).map(mapPost);
 }
 
 export async function getPublishedNewsBySlug(slug: string): Promise<NewsPost | null> {
-    const params = new URLSearchParams({
-        select: NEWS_COLUMNS,
-        status: 'eq.published',
-        slug: `eq.${slug}`,
-        limit: '1',
-    });
-    const payload = await request(`/rest/v1/news_posts?${params.toString()}`);
-    const rows = Array.isArray(payload) ? (payload as NewsPostRow[]) : [];
-    return rows[0] ? mapPost(rows[0]) : null;
+    const { data, error } = await requireClient()
+        .from('news_posts')
+        .select(NEWS_COLUMNS)
+        .eq('status', 'published')
+        .eq('slug', slug)
+        .maybeSingle();
+
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo cargar el análisis.'));
+    }
+
+    return data ? mapPost(data as NewsPostRow) : null;
 }
 
 export async function listAdminNews(): Promise<NewsPost[]> {
-    const params = new URLSearchParams({
-        select: NEWS_COLUMNS,
-        order: 'updated_at.desc',
-    });
-    const payload = await request(`/rest/v1/news_posts?${params.toString()}`, { requiresAuth: true });
-    return Array.isArray(payload) ? (payload as NewsPostRow[]).map(mapPost) : [];
+    const { data, error } = await requireClient()
+        .from('news_posts')
+        .select(NEWS_COLUMNS)
+        .order('updated_at', { ascending: false });
+
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudieron cargar las noticias editoriales.'));
+    }
+
+    return ((data ?? []) as NewsPostRow[]).map(mapPost);
 }
 
 export async function saveNewsPost(input: NewsPostInput, existingId?: string): Promise<NewsPost> {
@@ -290,11 +313,12 @@ export async function saveNewsPost(input: NewsPostInput, existingId?: string): P
         throw new NewsServiceError('Tu sesión editorial ha caducado. Vuelve a iniciar sesión.');
     }
 
+    const client = requireClient();
     const content = sanitizeNewsHtml(input.content);
     const publishedAt = input.status === 'published'
         ? input.publishedAt ?? new Date().toISOString()
         : null;
-    const payload = {
+    const basePayload = {
         title: input.title.trim(),
         slug: input.slug.trim(),
         excerpt: input.excerpt.trim(),
@@ -302,29 +326,43 @@ export async function saveNewsPost(input: NewsPostInput, existingId?: string): P
         cover_image_url: input.coverImageUrl.trim() || null,
         status: input.status,
         published_at: publishedAt,
-        ...(existingId ? {} : { author_id: session.user.id }),
     };
 
-    const path = existingId
-        ? `/rest/v1/news_posts?id=eq.${encodeURIComponent(existingId)}`
-        : '/rest/v1/news_posts';
-    const response = await request(path, {
-        method: existingId ? 'PATCH' : 'POST',
-        body: JSON.stringify(payload),
-        headers: { Prefer: 'return=representation' },
-        requiresAuth: true,
-    });
-    const rows = Array.isArray(response) ? (response as NewsPostRow[]) : [];
-    if (!rows[0]) {
-        throw new NewsServiceError('Supabase no devolvió la noticia guardada.');
+    if (existingId) {
+        const { data, error } = await client
+            .from('news_posts')
+            .update(basePayload)
+            .eq('id', existingId)
+            .select(NEWS_COLUMNS)
+            .single();
+
+        if (error) {
+            throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo actualizar la noticia.'));
+        }
+
+        return mapPost(data as NewsPostRow);
     }
-    return mapPost(rows[0]);
+
+    const { data, error } = await client
+        .from('news_posts')
+        .insert({ ...basePayload, author_id: session.user.id })
+        .select(NEWS_COLUMNS)
+        .single();
+
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo guardar la noticia.'));
+    }
+
+    return mapPost(data as NewsPostRow);
 }
 
 export async function deleteNewsPost(id: string): Promise<void> {
-    await request(`/rest/v1/news_posts?id=eq.${encodeURIComponent(id)}`, {
-        method: 'DELETE',
-        requiresAuth: true,
-    });
-}
+    const { error } = await requireClient()
+        .from('news_posts')
+        .delete()
+        .eq('id', id);
 
+    if (error) {
+        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo eliminar la noticia.'));
+    }
+}

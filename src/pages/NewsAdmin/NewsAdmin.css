@@ -37,6 +37,9 @@
 }
 
 .news-admin__eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
     margin: 0 0 var(--spacing-xs);
     color: var(--accent-primary);
     font-size: var(--font-size-sm);
@@ -228,8 +231,7 @@
     font-size: var(--font-size-xs);
 }
 
-.news-admin__textarea,
-.news-admin__status-select {
+.news-admin__textarea {
     width: 100%;
     border: 1px solid var(--border-secondary);
     border-radius: var(--radius-md);
@@ -245,8 +247,7 @@
     outline: none;
 }
 
-.news-admin__textarea:focus,
-.news-admin__status-select:focus {
+.news-admin__textarea:focus {
     border-color: var(--accent-primary);
     box-shadow: 0 0 0 3px rgba(var(--accent-rgb), 0.12);
 }
@@ -260,11 +261,99 @@
     margin-top: var(--spacing-lg);
 }
 
-.news-admin__status-select {
-    width: auto;
-    min-height: 38px;
-    padding: 0.45rem 2rem 0.45rem 0.65rem;
-    font-size: var(--font-size-sm);
+.news-admin__team-card {
+    margin-top: var(--spacing-lg);
+}
+
+.news-admin__team-card .news-admin__section-heading {
+    margin-bottom: var(--spacing-md);
+}
+
+.news-admin__team-card .news-admin__section-heading > div:first-child {
+    min-width: 0;
+}
+
+.news-admin__team-card .news-admin__section-heading p:not(.news-admin__eyebrow) {
+    max-width: 760px;
+}
+
+.news-admin__team-icon {
+    flex-shrink: 0;
+    color: var(--accent-primary);
+}
+
+.news-admin__invite-form {
+    display: flex;
+    align-items: flex-end;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+}
+
+.news-admin__invite-email {
+    flex: 1;
+    min-width: 220px;
+}
+
+.news-admin__members-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-xs);
+}
+
+.news-admin__member-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-md);
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+}
+
+.news-admin__member-details {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    min-width: 0;
+    flex-wrap: wrap;
+}
+
+.news-admin__member-details strong {
+    overflow: hidden;
+    max-width: 100%;
+    color: var(--text-primary);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.news-admin__member-details small {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.news-admin__member-status {
+    padding: 0.15rem 0.45rem;
+    border-radius: var(--radius-full);
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+}
+
+.news-admin__member-status--active {
+    background: var(--color-positive-bg);
+    color: var(--color-positive);
+}
+
+.news-admin__member-status--invited {
+    background: rgba(245, 158, 11, 0.12);
+    color: var(--color-warning);
+}
+
+.news-admin__member-status--revoked {
+    background: var(--bg-secondary);
+    color: var(--text-muted);
 }
 
 .news-admin__feedback {
@@ -276,6 +365,36 @@
     border: 1px solid;
     border-radius: var(--radius-md);
     font-size: var(--font-size-sm);
+}
+
+.news-admin__toast {
+    position: fixed;
+    z-index: 30;
+    top: max(1rem, env(safe-area-inset-top));
+    right: max(1rem, env(safe-area-inset-right));
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    max-width: min(440px, calc(100vw - 2rem));
+    padding: 0.75rem 0.9rem;
+    border: 1px solid;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    animation: news-toast-in 180ms ease-out;
+}
+
+.news-admin__toast--error {
+    border-color: rgba(239, 68, 68, 0.3);
+    background: var(--color-negative-bg);
+    color: var(--color-negative);
+}
+
+.news-admin__toast--success {
+    border-color: rgba(34, 197, 94, 0.3);
+    background: var(--color-positive-bg);
+    color: var(--color-positive);
 }
 
 .news-admin__feedback--error {
@@ -394,8 +513,13 @@
         flex-direction: column;
     }
 
-    .news-admin__status-select {
-        width: 100%;
+    .news-admin__invite-form {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .news-admin__invite-email {
+        min-width: 0;
     }
 
     .news-admin__editor-actions .btn {

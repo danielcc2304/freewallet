@@ -8,22 +8,39 @@ import {
     LockKeyhole,
     LogIn,
     LogOut,
+    Mail,
     Plus,
     RefreshCw,
     Send,
+    ShieldCheck,
     Trash2,
+    UserPlus,
+    Users,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { RichTextEditor } from '../../components/news';
 import { Button, Card, CardContent, Input } from '../../components/ui';
-import type { NewsPost, NewsPostInput, NewsSession, NewsStatus } from '../../types/news';
+import type {
+    NewsAdminMember,
+    NewsPost,
+    NewsPostInput,
+    NewsSession,
+    NewsStatus,
+} from '../../types/news';
 import {
     NewsServiceError,
+    acceptNewsEditorInvitation,
     deleteNewsPost,
+    ensureNewsOwnerMembership,
     getNewsSession,
+    hasPendingNewsInvitation,
+    inviteNewsEditor,
     isCurrentUserNewsAdmin,
+    isCurrentUserNewsOwner,
     isNewsBackendConfigured,
+    listNewsAdmins,
     listAdminNews,
+    revokeNewsEditor,
     saveNewsPost,
     signInNewsAdmin,
     signOutNewsAdmin,
@@ -57,7 +74,8 @@ const dateFormatter = new Intl.DateTimeFormat('es-ES', {
 });
 
 function formatDate(value: string): string {
-    return dateFormatter.format(new Date(value));
+    const date = new Date(value);
+    return Number.isNaN(date.getTime()) ? 'Sin fecha' : dateFormatter.format(date);
 }
 
 function draftFromPost(post: NewsPost): NewsDraft {
@@ -82,18 +100,38 @@ function getErrorMessage(error: unknown): string {
 }
 
 export function NewsAdmin() {
+    const navigate = useNavigate();
     const [session, setSession] = useState<NewsSession | null>(null);
     const [posts, setPosts] = useState<NewsPost[]>([]);
+    const [isOwner, setIsOwner] = useState(false);
+    const [adminMembers, setAdminMembers] = useState<NewsAdminMember[]>([]);
     const [draft, setDraft] = useState<NewsDraft>(EMPTY_DRAFT);
     const [slugEdited, setSlugEdited] = useState(false);
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [inviteEmail, setInviteEmail] = useState('');
+    const [pendingInvitation, setPendingInvitation] = useState(false);
     const [loading, setLoading] = useState(true);
     const [loginLoading, setLoginLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [inviteLoading, setInviteLoading] = useState(false);
+    const [revokingUserId, setRevokingUserId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!notice && !error) {
+            return undefined;
+        }
+
+        const timeout = window.setTimeout(() => {
+            setNotice(null);
+            setError(null);
+        }, error ? 6500 : 4200);
+
+        return () => window.clearTimeout(timeout);
+    }, [error, notice]);
 
     useEffect(() => {
         let active = true;
@@ -111,13 +149,24 @@ export function NewsAdmin() {
                 }
 
                 if (currentSession) {
+                    const ownerBootstrap = await ensureNewsOwnerMembership();
                     const isAdmin = await isCurrentUserNewsAdmin();
                     if (!isAdmin) {
-                        await signOutNewsAdmin();
-                        setError('Esta cuenta no tiene permisos de edición.');
+                        if (await hasPendingNewsInvitation()) {
+                            setSession(currentSession);
+                            setPendingInvitation(true);
+                        } else {
+                            await signOutNewsAdmin();
+                            setError('Esta cuenta no tiene permisos de edición.');
+                        }
                     } else {
+                        const currentUserIsOwner = ownerBootstrap || await isCurrentUserNewsOwner();
                         setSession(currentSession);
+                        setIsOwner(currentUserIsOwner);
                         setPosts(await listAdminNews());
+                        if (currentUserIsOwner) {
+                            setAdminMembers(await listNewsAdmins());
+                        }
                     }
                 }
             } catch (initialError: unknown) {
@@ -145,15 +194,29 @@ export function NewsAdmin() {
 
         try {
             const nextSession = await signInNewsAdmin(email, password);
+            const ownerBootstrap = await ensureNewsOwnerMembership();
             const isAdmin = await isCurrentUserNewsAdmin();
             if (!isAdmin) {
+                if (await hasPendingNewsInvitation()) {
+                    setSession(nextSession);
+                    setPendingInvitation(true);
+                    setPassword('');
+                    return;
+                }
+
                 await signOutNewsAdmin();
                 throw new NewsServiceError('La cuenta ha iniciado sesión, pero no tiene permisos de edición.');
             }
 
+            const currentUserIsOwner = ownerBootstrap || await isCurrentUserNewsOwner();
             setSession(nextSession);
+            setPendingInvitation(false);
+            setIsOwner(currentUserIsOwner);
             setPassword('');
             setPosts(await listAdminNews());
+            if (currentUserIsOwner) {
+                setAdminMembers(await listNewsAdmins());
+            }
             setNotice('Sesión editorial iniciada.');
         } catch (loginError: unknown) {
             setError(getErrorMessage(loginError));
@@ -166,8 +229,67 @@ export function NewsAdmin() {
         await signOutNewsAdmin();
         setSession(null);
         setPosts([]);
+        setIsOwner(false);
+        setAdminMembers([]);
         setDraft(EMPTY_DRAFT);
+        setPendingInvitation(false);
         setNotice('Sesión cerrada.');
+    };
+
+    const handleInvitationAccepted = async () => {
+        setPendingInvitation(false);
+        setError(null);
+        setNotice(null);
+        try {
+            setPosts(await listAdminNews());
+            setNotice('Ya puedes acceder al panel editorial.');
+        } catch (acceptError: unknown) {
+            setError(getErrorMessage(acceptError));
+        }
+    };
+
+    const handleInviteEditor = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        if (!isOwner) {
+            return;
+        }
+
+        setInviteLoading(true);
+        setError(null);
+        setNotice(null);
+        try {
+            await inviteNewsEditor(inviteEmail);
+            setInviteEmail('');
+            setAdminMembers(await listNewsAdmins());
+            setNotice('Invitación enviada. El editor recibirá un correo para aceptar y crear su contraseña.');
+        } catch (inviteError: unknown) {
+            setError(getErrorMessage(inviteError));
+        } finally {
+            setInviteLoading(false);
+        }
+    };
+
+    const handleRevokeEditor = async (member: NewsAdminMember) => {
+        if (!isOwner || member.role !== 'editor' || member.status === 'revoked') {
+            return;
+        }
+
+        if (!window.confirm(`¿Revocar el acceso editorial de ${member.email}?`)) {
+            return;
+        }
+
+        setRevokingUserId(member.userId);
+        setError(null);
+        setNotice(null);
+        try {
+            await revokeNewsEditor(member.userId);
+            setAdminMembers(await listNewsAdmins());
+            setNotice('Acceso editorial revocado.');
+        } catch (revokeError: unknown) {
+            setError(getErrorMessage(revokeError));
+        } finally {
+            setRevokingUserId(null);
+        }
     };
 
     const handleRefresh = async () => {
@@ -236,7 +358,11 @@ export function NewsAdmin() {
             setPosts((currentPosts) => [savedPost, ...currentPosts.filter((post) => post.id !== savedPost.id)]);
             setDraft(draftFromPost(savedPost));
             setSlugEdited(true);
-            setNotice(status === 'published' ? 'Noticia publicada.' : 'Borrador guardado.');
+            if (status === 'published') {
+                navigate('/news', { state: { newsToast: 'Noticia publicada.' } });
+            } else {
+                setNotice('Borrador guardado.');
+            }
         } catch (saveError: unknown) {
             setError(getErrorMessage(saveError));
         } finally {
@@ -278,6 +404,10 @@ export function NewsAdmin() {
         );
     }
 
+    if (pendingInvitation) {
+        return <NewsAdminInviteAcceptance onAccepted={() => void handleInvitationAccepted()} />;
+    }
+
     if (!session) {
         return (
             <div className="news-admin news-admin--login">
@@ -292,12 +422,12 @@ export function NewsAdmin() {
                             Inicia sesión con tu cuenta de administrador para crear y publicar noticias.
                         </p>
 
-                        {error && <Feedback tone="error">{error}</Feedback>}
-                        {notice && <Feedback tone="success">{notice}</Feedback>}
+                        {error && <NewsToast tone="error">{error}</NewsToast>}
+                        {notice && <NewsToast tone="success">{notice}</NewsToast>}
 
                         <form className="news-admin__login-form" onSubmit={handleLogin}>
                             <Input
-                                label="Email"
+                                label="Correo electrónico"
                                 type="email"
                                 autoComplete="email"
                                 value={email}
@@ -347,15 +477,15 @@ export function NewsAdmin() {
                 </div>
             </header>
 
-            {error && <Feedback tone="error">{error}</Feedback>}
-            {notice && <Feedback tone="success">{notice}</Feedback>}
+            {error && <NewsToast tone="error">{error}</NewsToast>}
+            {notice && <NewsToast tone="success">{notice}</NewsToast>}
 
             <div className="news-admin__workspace">
                 <Card className="news-admin__posts-card">
                     <CardContent>
                         <div className="news-admin__section-heading">
                             <div>
-                                <h2>Tus noticias</h2>
+                                <h2>Noticias editoriales</h2>
                                 <p>{posts.length} {posts.length === 1 ? 'entrada' : 'entradas'}</p>
                             </div>
                             <div className="news-admin__list-actions">
@@ -372,7 +502,7 @@ export function NewsAdmin() {
                             {posts.length === 0 && (
                                 <div className="news-admin__empty-list">
                                     <FileText size={26} />
-                                    <p>Aún no has creado ninguna noticia.</p>
+                                    <p>Aún no hay noticias editoriales.</p>
                                     <Button variant="secondary" size="sm" onClick={startNewPost}>
                                         Crear primer borrador
                                     </Button>
@@ -471,24 +601,16 @@ export function NewsAdmin() {
                         </div>
 
                         <div className="news-admin__editor-field">
-                            <label className="news-admin__label">Contenido</label>
+                            <label className="news-admin__label" htmlFor="news-editor">Contenido</label>
                             <RichTextEditor
+                                id="news-editor"
                                 value={draft.content}
                                 onChange={(content) => setDraft((currentDraft) => ({ ...currentDraft, content }))}
                             />
-                            <span className="news-admin__hint">Puedes usar títulos, énfasis, listas, citas, enlaces y bloques de código.</span>
+                            <span className="news-admin__hint">Puedes usar tamaños de letra, títulos, énfasis, listas, citas, enlaces y bloques de código.</span>
                         </div>
 
-                        <div className="news-admin__editor-actions">
-                            <select
-                                className="news-admin__status-select"
-                                value={draft.status}
-                                aria-label="Estado de la noticia"
-                                onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, status: event.target.value as NewsStatus }))}
-                            >
-                                <option value="draft">Guardar como borrador</option>
-                                <option value="published">Publicar directamente</option>
-                            </select>
+                        <div className="news-admin__editor-actions" aria-label="Acciones de publicación">
                             <Button
                                 variant="secondary"
                                 icon={<FileText size={16} />}
@@ -510,15 +632,171 @@ export function NewsAdmin() {
                     </CardContent>
                 </Card>
             </div>
+
+            {isOwner && (
+                <Card className="news-admin__team-card">
+                    <CardContent>
+                        <div className="news-admin__section-heading">
+                            <div>
+                                <p className="news-admin__eyebrow"><ShieldCheck size={15} /> Propietario</p>
+                                <h2>Equipo editorial</h2>
+                                <p>Solo tú puedes invitar o revocar editores. La autorización real también queda protegida por RLS en Supabase.</p>
+                            </div>
+                            <Users className="news-admin__team-icon" size={24} />
+                        </div>
+
+                        <form className="news-admin__invite-form" onSubmit={handleInviteEditor}>
+                            <Input
+                                className="news-admin__invite-email"
+                                label="Correo del nuevo editor"
+                                type="email"
+                                autoComplete="off"
+                                value={inviteEmail}
+                                onChange={(event) => setInviteEmail(event.target.value)}
+                                placeholder="editor@ejemplo.com"
+                                icon={<Mail size={17} />}
+                                required
+                            />
+                            <Button type="submit" icon={<UserPlus size={17} />} loading={inviteLoading}>
+                                Enviar invitación
+                            </Button>
+                        </form>
+
+                        <div className="news-admin__members-list" aria-live="polite">
+                            {adminMembers.map((member) => (
+                                <div className="news-admin__member-row" key={member.userId}>
+                                    <div className="news-admin__member-details">
+                                        <strong>{member.email}</strong>
+                                        <span className={`news-admin__member-status news-admin__member-status--${member.status}`}>
+                                            {getAdminStatusLabel(member)}
+                                        </span>
+                                        <small>{member.status === 'invited' ? 'Invitada' : 'Registrada'} {formatDate(member.invitedAt ?? member.createdAt)}</small>
+                                    </div>
+                                    {member.role === 'editor' && member.status !== 'revoked' && (
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            disabled={revokingUserId === member.userId}
+                                            loading={revokingUserId === member.userId}
+                                            onClick={() => void handleRevokeEditor(member)}
+                                        >
+                                            Revocar
+                                        </Button>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </CardContent>
+                </Card>
+            )}
         </div>
     );
 }
 
-function Feedback({ children, tone }: { children: string; tone: 'error' | 'success' }) {
+function getAdminStatusLabel(member: NewsAdminMember): string {
+    if (member.role === 'owner') {
+        return 'Propietario';
+    }
+
+    if (member.status === 'invited') {
+        return 'Invitación pendiente';
+    }
+
+    if (member.status === 'revoked') {
+        return 'Acceso revocado';
+    }
+
+    return 'Editor activo';
+}
+
+function NewsToast({ children, tone }: { children: string; tone: 'error' | 'success' }) {
     return (
-        <div className={`news-admin__feedback news-admin__feedback--${tone}`} role={tone === 'error' ? 'alert' : 'status'}>
+        <div className={`news-admin__toast news-admin__toast--${tone}`} role={tone === 'error' ? 'alert' : 'status'}>
             {tone === 'error' ? <AlertCircle size={17} /> : <CheckCircle2 size={17} />}
             <span>{children}</span>
+        </div>
+    );
+}
+
+function NewsAdminInviteAcceptance({ onAccepted }: { onAccepted: () => void }) {
+    const [newPassword, setNewPassword] = useState('');
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [acceptanceError, setAcceptanceError] = useState<string | null>(null);
+    const [acceptanceLoading, setAcceptanceLoading] = useState(false);
+
+    useEffect(() => {
+        if (!acceptanceError) return undefined;
+
+        const timeoutId = window.setTimeout(() => setAcceptanceError(null), 6500);
+        return () => window.clearTimeout(timeoutId);
+    }, [acceptanceError]);
+
+    const handleAccept = async (event: FormEvent<HTMLFormElement>) => {
+        event.preventDefault();
+        setAcceptanceError(null);
+
+        if (newPassword.length < 12) {
+            setAcceptanceError('La contraseña debe tener al menos 12 caracteres.');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            setAcceptanceError('Las contraseñas no coinciden.');
+            return;
+        }
+
+        setAcceptanceLoading(true);
+        try {
+            await acceptNewsEditorInvitation(newPassword);
+            setNewPassword('');
+            setConfirmPassword('');
+            onAccepted();
+        } catch (acceptError: unknown) {
+            setAcceptanceError(getErrorMessage(acceptError));
+        } finally {
+            setAcceptanceLoading(false);
+        }
+    };
+
+    return (
+        <div className="news-admin news-admin--login">
+            <Card className="news-admin__login-card" variant="highlight">
+                <CardContent>
+                    <div className="news-admin__login-icon">
+                        <LockKeyhole size={28} />
+                    </div>
+                    <p className="news-admin__eyebrow">Invitación editorial</p>
+                    <h1>Acepta el acceso</h1>
+                    <p className="news-admin__login-copy">
+                        Crea una contraseña segura para activar tu cuenta de editor. Después podrás entrar al panel con tu correo.
+                    </p>
+
+                    {acceptanceError && <NewsToast tone="error">{acceptanceError}</NewsToast>}
+
+                    <form className="news-admin__login-form" onSubmit={handleAccept}>
+                        <Input
+                            label="Nueva contraseña"
+                            type="password"
+                            autoComplete="new-password"
+                            value={newPassword}
+                            onChange={(event) => setNewPassword(event.target.value)}
+                            hint="Usa al menos 12 caracteres."
+                            required
+                        />
+                        <Input
+                            label="Repite la contraseña"
+                            type="password"
+                            autoComplete="new-password"
+                            value={confirmPassword}
+                            onChange={(event) => setConfirmPassword(event.target.value)}
+                            required
+                        />
+                        <Button type="submit" icon={<ShieldCheck size={17} />} loading={acceptanceLoading} fullWidth>
+                            Aceptar invitación
+                        </Button>
+                    </form>
+                </CardContent>
+            </Card>
         </div>
     );
 }
@@ -534,8 +812,9 @@ function NewsAdminSetup() {
                     <p className="news-admin__eyebrow">Configuración necesaria</p>
                     <h1>Conecta el panel editorial</h1>
                     <p className="news-admin__login-copy">
-                        Añade <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_ANON_KEY</code> en tu entorno y ejecuta
-                        el esquema de <code>supabase/news-schema.sql</code>.
+                        Añade <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> (o la clave anon
+                        heredada), ejecuta <code>supabase/news-schema.sql</code> y despliega la función de invitaciones para
+                        añadir editores por correo.
                     </p>
                     <Link className="news-admin__public-link" to="/news">
                         Volver a noticias públicas

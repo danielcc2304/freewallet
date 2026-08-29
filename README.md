@@ -254,24 +254,32 @@ Script utilitario para verificar fondos de `BEST_FUNDS` (consistencia de enlace/
 
 ## Noticias editoriales
 
-La ruta `/news` muestra los análisis publicados y `/admin/news` ofrece un panel privado para crear borradores y publicar noticias desde un editor WYSIWYG básico.
+La ruta `/news` muestra los análisis publicados y `/admin/news` ofrece un panel privado para crear borradores y publicar noticias desde un editor WYSIWYG con formato, enlaces seguros y tamaños de letra.
 
 La feature no necesita un servidor Node separado: el frontend sigue desplegándose en Vercel y usa Supabase como backend gestionado para Auth y PostgreSQL.
 
 ### Configuración de Supabase
 
 1. Crea un proyecto en Supabase.
-2. Ejecuta `supabase/news-schema.sql` desde el SQL Editor.
-3. Crea tu cuenta en `Authentication > Users` y copia su UUID.
-4. Inserta ese UUID en `public.news_admins`:
+2. En `Authentication > Users`, crea la cuenta propietaria con el correo configurado para esta feature (`daniel230401@gmail.com`). Define la contraseña desde Supabase; no se guarda ni se cifra en el frontend. Supabase Auth gestiona el hash y la verificación de credenciales.
+3. Ejecuta `supabase/news-schema.sql` desde el SQL Editor. Al iniciar sesión, la función `ensure_news_owner` registra automáticamente al propietario y activa su membresía.
+4. Copia `.env.example` como `.env.local` y rellena `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` (también se admite `VITE_SUPABASE_ANON_KEY`). No subas `.env.local` al repositorio.
+5. Desactiva el registro público de usuarios en Supabase si solo quieres altas mediante invitación. El propietario es la única cuenta que puede invitar o revocar editores desde `/admin/news`.
 
-```sql
-insert into public.news_admins (user_id)
-values ('UUID_DE_TU_USUARIO');
+### Invitaciones de editores
+
+El botón `Enviar invitación` llama a la Edge Function `invite-news-editor`, que usa `auth.admin.inviteUserByEmail` con la `service_role` únicamente en Supabase. Esa clave nunca debe estar en Vite, `.env.local` ni en el navegador.
+
+Despliega la función y configura la URL pública de retorno:
+
+```bash
+supabase functions deploy invite-news-editor
+supabase secrets set APP_URL=https://tu-dominio.example
 ```
 
-5. Copia `.env.example` como `.env.local` y rellena `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` (también se admite `VITE_SUPABASE_ANON_KEY`).
-6. En Supabase desactiva el registro público de usuarios. El panel comprueba además la pertenencia a `news_admins` y las políticas RLS bloquean cualquier escritura no autorizada.
+La cuenta invitada recibe el email de Supabase, crea su propia contraseña y entonces pasa de `invited` a `active` en `public.news_admins`. Revocar el acceso marca la membresía como `revoked`; las políticas RLS dejan de permitirle leer o modificar borradores aunque conserve su cuenta de Auth.
+
+Configura también el proveedor de correo de Supabase (SMTP propio para producción). En local, `APP_URL` debe coincidir con la URL de Vite que uses, por ejemplo `http://127.0.0.1:5173`.
 
 Las noticias se guardan como HTML sanitizado. La portada acepta de momento una URL HTTPS; el bucket `news-images` queda preparado para añadir subida de imágenes más adelante.
 

@@ -12,6 +12,19 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-08-29 - v3.9.2 - Hotfix: limpieza de la consulta de fondos
+- Funcionalidad:
+  - Se elimina el enlace de retorno a la Academia de la pantalla de información de fondos.
+  - Se simplifica el encabezado retirando el icono decorativo y la etiqueta `Consulta educativa de fondos`.
+  - Se eliminan las ayudas sobre pegar el ISIN con espacios y la nota técnica sobre CORS.
+- Resumen:
+  - La versión `v3.9.2` deja la consulta de fondos más directa y limpia en móvil, manteniendo el campo ISIN y su consulta intactos.
+- Archivos:
+  - `src/components/academy/calculators/FundInformationCalculator.tsx`
+  - `src/components/academy/calculators/FundInformationCalculator.css`
+  - `src/constants/app.ts`
+  - `FEATURE_LOG.md`
+
 ### 2026-08-28 - v3.9.1 - Hotfix: ficha de fondos en producción
 - Funcionalidad:
   - Se añaden rutas same-origin de Vercel para consultar la API y la ficha HTML pública de Finect sin depender de proxys CORS públicos inestables.

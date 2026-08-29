@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import {
-    ArrowLeft,
     BarChart3,
     BookOpenText,
     CheckCircle2,
@@ -16,7 +15,6 @@ import {
     Sparkles,
     TrendingUp,
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { Button, Input } from '../../ui';
 import {
     FinectError,
@@ -30,7 +28,6 @@ import './FundInformationCalculator.css';
 
 const SAMPLE_ISIN = 'IE00BYX5NX33';
 const STATISTIC_PERIODS = ['M12', 'M36', 'M60'] as const;
-const isLocalDevelopment = ((import.meta as ImportMeta & { env?: Record<string, unknown> }).env?.DEV === true);
 
 const riskBands: Record<number, { range: string; explanation: string }> = {
     1: { range: '0–0,5 % anualizada', explanation: 'Volatilidad muy baja.' },
@@ -504,22 +501,11 @@ export function FundInformationCalculator() {
 
     return (
         <div className="fund-info">
-            <Link to="/academy" className="fund-info__back">
-                <ArrowLeft size={17} />
-                Volver a la Academia
-            </Link>
-
             <header className="fund-info__header">
-                <div className="fund-info__header-icon">
-                    <FileSearch size={32} />
-                </div>
-                <div>
-                    <p className="fund-info__eyebrow">Consulta educativa de fondos</p>
-                    <h1>Información de fondo por ISIN</h1>
-                    <p>
-                        Pega el ISIN de una clase de fondo para consultar su ficha pública de Finect y revisar sus datos más relevantes.
-                    </p>
-                </div>
+                <h1>Información de fondo por ISIN</h1>
+                <p>
+                    Pega el ISIN de una clase de fondo para consultar su ficha pública de Finect y revisar sus datos más relevantes.
+                </p>
             </header>
 
             <section className="fund-info__search-card">
@@ -537,7 +523,6 @@ export function FundInformationCalculator() {
                         value={isin}
                         onChange={(event) => setIsin(event.target.value.toUpperCase())}
                         placeholder="Ejemplo: IE00BYX5NX33"
-                        hint="12 caracteres · puedes pegarlo con espacios"
                         maxLength={14}
                         autoComplete="off"
                         autoCapitalize="characters"
@@ -560,13 +545,6 @@ export function FundInformationCalculator() {
                     <span>¿Quieres probarla?</span>
                     <button type="button" onClick={() => setIsin(SAMPLE_ISIN)}>{SAMPLE_ISIN}</button>
                 </div>
-
-                <p className="fund-info__proxy-note">
-                    <Info size={15} />
-                    {isLocalDevelopment
-                        ? 'En localhost se usa el proxy de desarrollo de Vite para evitar CORS; no introduzcas datos personales ni de tu cartera.'
-                        : 'La consulta usa una ruta segura del despliegue para evitar CORS y puede recurrir a un proxy público temporal; no introduzcas datos personales ni de tu cartera.'}
-                </p>
             </section>
 
             {error && !error.includes('ISIN válido') && (

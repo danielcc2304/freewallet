@@ -61,16 +61,9 @@ function NewsSetupNotice() {
 
 function NewsHeader({ showAdminLink = true }: { showAdminLink?: boolean }) {
     return (
-        <header className="news-page__header">
-            <div className="news-page__title-row">
-                <div className="news-page__title-icon">
-                    <Newspaper size={28} />
-                </div>
-                <div>
-                    <p className="news-page__eyebrow">Perspectiva FreeWallet</p>
-                    <h1 className="news-page__title">Noticias</h1>
-                </div>
-            </div>
+        <header className="news-page__hero">
+            <p className="news-page__eyebrow">Perspectiva FreeWallet</p>
+            <h1 className="news-page__title">Noticias</h1>
             <p className="news-page__subtitle">
                 Análisis, contexto macroeconómico y aprendizajes para tomar mejores decisiones de inversión.
             </p>

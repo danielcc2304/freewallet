@@ -90,6 +90,36 @@ function getSupabaseErrorMessage(error: { message?: string } | null, fallback: s
     return error?.message?.trim() || fallback;
 }
 
+async function getFunctionsErrorMessage(error: unknown): Promise<string> {
+    if (typeof error === 'object' && error !== null && 'context' in error) {
+        const context = (error as { context?: unknown }).context;
+        if (typeof Response !== 'undefined' && context instanceof Response) {
+            if (context.status === 404) {
+                return 'La función de invitaciones no está desplegada en Supabase.';
+            }
+
+            try {
+                const responseBody = await context.clone().json() as { error?: unknown };
+                if (typeof responseBody.error === 'string' && responseBody.error.trim()) {
+                    return responseBody.error.trim();
+                }
+            } catch {
+                // Algunas respuestas de Functions no contienen JSON legible.
+            }
+
+            if (context.status >= 500) {
+                return 'La función de invitaciones está desplegada, pero necesita configuración en Supabase.';
+            }
+        }
+    }
+
+    if (error instanceof Error && error.message.trim()) {
+        return error.message.trim();
+    }
+
+    return 'No se pudo enviar la invitación editorial.';
+}
+
 function mapUser(user: User): NewsUser {
     return {
         id: user.id,
@@ -246,7 +276,7 @@ export async function inviteNewsEditor(email: string): Promise<void> {
     });
 
     if (error) {
-        throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo enviar la invitación editorial.'));
+        throw new NewsServiceError(await getFunctionsErrorMessage(error));
     }
 
     if (data && typeof data === 'object' && 'error' in data && typeof data.error === 'string') {

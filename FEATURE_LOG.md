@@ -12,6 +12,23 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-08-30 - v3.10.1 - Refinamiento del panel editorial
+- Funcionalidad:
+  - Se homogeneiza la cabecera pública de Noticias con el patrón visual de Portfolio.
+  - Se añade edición explícita de artículos existentes desde el panel editorial.
+  - Se incorpora una vista previa antes de guardar o publicar una noticia.
+  - Se simplifica la descripción del equipo editorial y se mejora el diagnóstico de errores de invitación.
+- Resumen:
+  - La versión `v3.10.1` pule el flujo editorial para revisar, editar y publicar noticias con mayor claridad.
+- Archivos:
+  - `src/constants/app.ts`
+  - `src/pages/News/News.tsx`
+  - `src/pages/News/News.css`
+  - `src/pages/NewsAdmin/NewsAdmin.tsx`
+  - `src/pages/NewsAdmin/NewsAdmin.css`
+  - `src/services/newsService.ts`
+  - `README.md`
+
 ### 2026-08-29 - v3.10.0 - Noticias editoriales privadas
 - Funcionalidad:
   - Se incorpora la sección pública `/news` con listado y páginas individuales por slug.

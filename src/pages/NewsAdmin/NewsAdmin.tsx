@@ -3,6 +3,7 @@ import {
     AlertCircle,
     CheckCircle2,
     Edit3,
+    Eye,
     FileText,
     Loader2,
     LockKeyhole,
@@ -19,7 +20,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { RichTextEditor } from '../../components/news';
-import { Button, Card, CardContent, Input } from '../../components/ui';
+import { Button, Card, CardContent, Input, Modal } from '../../components/ui';
 import type {
     NewsAdminMember,
     NewsPost,
@@ -45,7 +46,7 @@ import {
     signInNewsAdmin,
     signOutNewsAdmin,
 } from '../../services/newsService';
-import { getNewsTextExcerpt, getSafeNewsImageUrl, slugifyNewsTitle } from '../../utils/newsContent';
+import { getNewsTextExcerpt, getSafeNewsImageUrl, sanitizeNewsHtml, slugifyNewsTitle } from '../../utils/newsContent';
 import './NewsAdmin.css';
 
 interface NewsDraft {
@@ -114,11 +115,13 @@ export function NewsAdmin() {
     const [loading, setLoading] = useState(true);
     const [loginLoading, setLoginLoading] = useState(false);
     const [saving, setSaving] = useState(false);
+    const [savingStatus, setSavingStatus] = useState<NewsStatus | null>(null);
     const [inviteLoading, setInviteLoading] = useState(false);
     const [revokingUserId, setRevokingUserId] = useState<string | null>(null);
     const [deletingId, setDeletingId] = useState<string | null>(null);
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
+    const [previewOpen, setPreviewOpen] = useState(false);
 
     useEffect(() => {
         if (!notice && !error) {
@@ -305,6 +308,7 @@ export function NewsAdmin() {
     const startNewPost = () => {
         setDraft({ ...EMPTY_DRAFT });
         setSlugEdited(false);
+        setPreviewOpen(false);
         setError(null);
         setNotice(null);
     };
@@ -312,6 +316,7 @@ export function NewsAdmin() {
     const editPost = (post: NewsPost) => {
         setDraft(draftFromPost(post));
         setSlugEdited(true);
+        setPreviewOpen(false);
         setError(null);
         setNotice(null);
     };
@@ -350,6 +355,7 @@ export function NewsAdmin() {
         };
 
         setSaving(true);
+        setSavingStatus(status);
         setError(null);
         setNotice(null);
 
@@ -367,6 +373,7 @@ export function NewsAdmin() {
             setError(getErrorMessage(saveError));
         } finally {
             setSaving(false);
+            setSavingStatus(null);
         }
     };
 
@@ -520,16 +527,27 @@ export function NewsAdmin() {
                                         <strong>{post.title}</strong>
                                         <small>Actualizada {formatDate(post.updatedAt)}</small>
                                     </button>
-                                    <button
-                                        type="button"
-                                        className="news-admin__delete-button"
-                                        aria-label={`Eliminar ${post.title}`}
-                                        title="Eliminar noticia"
-                                        disabled={deletingId === post.id}
-                                        onClick={() => void handleDelete(post)}
-                                    >
-                                        {deletingId === post.id ? <Loader2 className="news-admin__spinner" size={16} /> : <Trash2 size={16} />}
-                                    </button>
+                                    <div className="news-admin__post-actions">
+                                        <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            icon={<Edit3 size={15} />}
+                                            aria-label={`Editar ${post.title}`}
+                                            onClick={() => editPost(post)}
+                                        >
+                                            Editar
+                                        </Button>
+                                        <button
+                                            type="button"
+                                            className="news-admin__delete-button"
+                                            aria-label={`Eliminar ${post.title}`}
+                                            title="Eliminar noticia"
+                                            disabled={deletingId === post.id}
+                                            onClick={() => void handleDelete(post)}
+                                        >
+                                            {deletingId === post.id ? <Loader2 className="news-admin__spinner" size={16} /> : <Trash2 size={16} />}
+                                        </button>
+                                    </div>
                                 </div>
                             ))}
                         </div>
@@ -612,9 +630,17 @@ export function NewsAdmin() {
 
                         <div className="news-admin__editor-actions" aria-label="Acciones de publicación">
                             <Button
+                                variant="ghost"
+                                icon={<Eye size={16} />}
+                                disabled={!draft.title.trim() && !getNewsTextExcerpt(draft.content, 1)}
+                                onClick={() => setPreviewOpen(true)}
+                            >
+                                Vista previa
+                            </Button>
+                            <Button
                                 variant="secondary"
                                 icon={<FileText size={16} />}
-                                loading={saving && draft.status === 'draft'}
+                                loading={savingStatus === 'draft'}
                                 disabled={saving}
                                 onClick={() => void handleSave('draft')}
                             >
@@ -622,7 +648,7 @@ export function NewsAdmin() {
                             </Button>
                             <Button
                                 icon={<Send size={16} />}
-                                loading={saving && draft.status === 'published'}
+                                loading={savingStatus === 'published'}
                                 disabled={saving}
                                 onClick={() => void handleSave('published')}
                             >
@@ -640,7 +666,6 @@ export function NewsAdmin() {
                             <div>
                                 <p className="news-admin__eyebrow"><ShieldCheck size={15} /> Propietario</p>
                                 <h2>Equipo editorial</h2>
-                                <p>Solo tú puedes invitar o revocar editores. La autorización real también queda protegida por RLS en Supabase.</p>
                             </div>
                             <Users className="news-admin__team-icon" size={24} />
                         </div>
@@ -689,7 +714,42 @@ export function NewsAdmin() {
                     </CardContent>
                 </Card>
             )}
+
+            <Modal
+                isOpen={previewOpen}
+                onClose={() => setPreviewOpen(false)}
+                title="Vista previa de la noticia"
+                size="lg"
+            >
+                <NewsDraftPreview draft={draft} />
+            </Modal>
         </div>
+    );
+}
+
+function NewsDraftPreview({ draft }: { draft: NewsDraft }) {
+    const coverImageUrl = getSafeNewsImageUrl(draft.coverImageUrl);
+    const title = draft.title.trim() || 'Sin título';
+    const excerpt = draft.excerpt.trim();
+    const content = sanitizeNewsHtml(draft.content);
+
+    return (
+        <article className="news-admin__preview">
+            <div className="news-admin__preview-meta">
+                <span className={`news-admin__status news-admin__status--${draft.status}`}>
+                    {draft.status === 'published' ? 'Publicada' : 'Borrador'}
+                </span>
+                {draft.publishedAt && <time dateTime={draft.publishedAt}>{formatDate(draft.publishedAt)}</time>}
+            </div>
+            <h1>{title}</h1>
+            {excerpt && <p className="news-admin__preview-excerpt">{excerpt}</p>}
+            {coverImageUrl && <img className="news-admin__preview-cover" src={coverImageUrl} alt="" />}
+            {content ? (
+                <div className="news-admin__preview-content" dangerouslySetInnerHTML={{ __html: content }} />
+            ) : (
+                <p className="news-admin__preview-empty">Añade contenido para ver aquí la previsualización del análisis.</p>
+            )}
+        </article>
     );
 }
 

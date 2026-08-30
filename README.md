@@ -274,12 +274,14 @@ Despliega la función y configura la URL pública de retorno:
 
 ```bash
 supabase functions deploy invite-news-editor
-supabase secrets set APP_URL=https://tu-dominio.example
+supabase secrets set APP_URL=https://tu-dominio.example ALLOWED_ORIGINS=https://tu-dominio.example
 ```
 
 La cuenta invitada recibe el email de Supabase, crea su propia contraseña y entonces pasa de `invited` a `active` en `public.news_admins`. Revocar el acceso marca la membresía como `revoked`; las políticas RLS dejan de permitirle leer o modificar borradores aunque conserve su cuenta de Auth.
 
 Configura también el proveedor de correo de Supabase (SMTP propio para producción). En local, `APP_URL` debe coincidir con la URL de Vite que uses, por ejemplo `http://127.0.0.1:5173`.
+
+Si el listado del equipo carga pero `Enviar invitación` falla, comprueba primero que la función esté desplegada y que tenga `APP_URL`; el panel muestra el motivo concreto como aviso flotante. Si el proyecto no inyecta sus claves internas automáticamente, configura `SUPABASE_SERVICE_ROLE_KEY` como secreto de la función, nunca como variable `VITE_*`.
 
 Las noticias se guardan como HTML sanitizado. La portada acepta de momento una URL HTTPS; el bucket `news-images` queda preparado para añadir subida de imágenes más adelante.
 

@@ -11,13 +11,11 @@ import {
     FINNHUB_BASE_URL,
     MAX_FAILURES_BEFORE_SWITCH,
     YAHOO_BASE_URL,
+    YAHOO_CHART_URL,
     YAHOO_SEARCH_URL,
 } from './market/marketConfig';
 import {
-    CORS_PROXIES,
-    fetchFromProxy,
-    getNextProxy,
-    markProxyFailure,
+    fetchFromFastestProxy,
 } from './market/marketProxy';
 import {
     getAlphaVantageFailures,
@@ -32,6 +30,8 @@ import {
     waitForFinnhubRateLimit,
 } from './market/marketState';
 import { isApiEnabled } from './storageService';
+
+const CHART_SYMBOL_CACHE = new Map<string, string[]>();
 
 function looksLikeISIN(q: string): boolean {
     return /^[A-Z]{2}[A-Z0-9]{10}$/.test(q.trim().toUpperCase());
@@ -70,6 +70,48 @@ function addUniqueResult(
         allResults.push(res);
         seenSymbols.add(res.symbol);
     }
+}
+
+function canonicalCompanyName(name: string): string {
+    const legalTerms = new Set(['sa', 'sau', 'sl', 'slu', 'inc', 'corp', 'corporation', 'company', 'co', 'ltd', 'plc', 'ag', 'nv', 'spa', 'l', 's', 'a']);
+    const tokens = name
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, ' ')
+        .split(' ')
+        .filter((token) => token.length > 1 && !legalTerms.has(token));
+    return Array.from(new Set(tokens)).slice(0, 4).join(' ');
+}
+
+function exchangePriority(symbol: string, currency?: string): number {
+    const suffix = symbol.toUpperCase().split('.').pop() || '';
+    const priorities: Record<string, number> = {
+        MC: 100,
+        PA: 90,
+        DE: 80,
+        MI: 75,
+        F: 70,
+        HM: 60,
+        L: 50,
+        NY: 45,
+        NASDAQ: 45,
+    };
+    return (priorities[suffix] || (suffix === symbol.toUpperCase() ? 55 : 20)) + (currency?.toUpperCase() === 'EUR' ? 12 : 0);
+}
+
+function compactSearchResults(results: SearchResult[], score: (result: SearchResult) => number): SearchResult[] {
+    // Yahoo devuelve la misma compañía en varias bolsas. Conserva una única
+    // cotización por entidad, priorizando Europa y EUR.
+    const bestByCompany = new Map<string, SearchResult>();
+    results.forEach((result) => {
+        const key = canonicalCompanyName(result.name) || result.symbol.toUpperCase();
+        const previous = bestByCompany.get(key);
+        const resultScore = score(result) + exchangePriority(result.symbol, result.currency);
+        const previousScore = previous ? score(previous) + exchangePriority(previous.symbol, previous.currency) : -Infinity;
+        if (!previous || resultScore > previousScore) bestByCompany.set(key, result);
+    });
+    return Array.from(bestByCompany.values());
 }
 
 // ===== SEARCH SYMBOLS (with fallback) =====
@@ -144,6 +186,10 @@ export async function searchSymbol(query: string, signal?: AbortSignal): Promise
             incrementYahooFinanceFailures();
         }
     }
+
+    // Para autocompletado, una respuesta útil de Yahoo debe mostrarse ya. Evita
+    // bloquear cada pulsación esperando proveedores con límites más estrictos.
+    if (allResults.length > 0) return allResults;
 
     // 2) Alpha Vantage... (omitir detalles por brevedad, asumiendo mismos cambios)
     // En las siguientes funciones async, pasar el signal a axios.get(..., { signal })
@@ -266,15 +312,13 @@ async function searchSymbolYahoo(query: string, signal?: AbortSignal): Promise<S
 
     const url = `${YAHOO_SEARCH_URL}?q=${encodeURIComponent(q)}&quotesCount=40&newsCount=0`;
 
-    for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
-        const proxy = getNextProxy();
-        try {
-            // Fix 2: Conditional cache busting
-            const forceRefresh = attempt > 0;
-            const data = await fetchFromProxy(proxy, url, signal, forceRefresh);
+    try {
+            const data: any = url.startsWith('/')
+                ? (await axios.get(url, { signal, timeout: 5000 })).data
+                : await fetchFromFastestProxy(url, signal);
             const quotes = data?.quotes || [];
 
-            console.log(`[Yahoo API] Search for "${q}" returned ${quotes.length} results via Proxy ${attempt + 1}`);
+            console.log(`[Yahoo API] Search for "${q}" returned ${quotes.length} results`);
 
             // Mapping
             const mapped: SearchResult[] = quotes.map((item: any) => ({
@@ -314,15 +358,15 @@ async function searchSymbolYahoo(query: string, signal?: AbortSignal): Promise<S
                 return s;
             };
 
-            const sorted = mapped.sort((a, b) => getScore(b) - getScore(a));
+            const sorted = compactSearchResults(mapped, getScore)
+                .sort((a, b) => getScore(b) + exchangePriority(b.symbol, b.currency) - getScore(a) - exchangePriority(a.symbol, a.currency))
+                .slice(0, 8);
 
             SEARCH_CACHE.set(q, { data: sorted, timestamp: Date.now() });
             return sorted;
-        } catch (error) {
-            if (axios.isCancel(error)) throw error;
-            markProxyFailure(proxy.url, error);
-            console.warn(`Yahoo Finance search failed with proxy ${attempt + 1}:`, error);
-        }
+    } catch (error) {
+        if (axios.isCancel(error)) throw error;
+        console.warn('Yahoo Finance search failed:', error);
     }
 
     return [];
@@ -463,8 +507,29 @@ async function getQuoteFinnhub(symbol: string, signal?: AbortSignal): Promise<St
 
 // ===== YAHOO FINANCE GET QUOTE =====
 async function getQuoteYahoo(symbol: string, signal?: AbortSignal): Promise<StockQuote | null> {
-    const results = await getQuotesYahooBatch([symbol], signal);
-    return results.length > 0 ? results[0] : null;
+    const url = `${YAHOO_CHART_URL}/${encodeURIComponent(symbol)}?interval=1d&range=5d`;
+    const data: any = url.startsWith('/')
+        ? (await axios.get(url, { signal, timeout: 5000 })).data
+        : await fetchFromFastestProxy(url, signal);
+    const result = data?.chart?.result?.[0];
+    const meta = result?.meta;
+    if (!meta?.regularMarketPrice) return null;
+    const closes = (result?.indicators?.quote?.[0]?.close || []).filter((value: unknown) => typeof value === 'number');
+    const previousClose = meta.chartPreviousClose || closes.at(-2) || meta.previousClose || meta.regularMarketPrice;
+    const change = meta.regularMarketPrice - previousClose;
+    return {
+        symbol: meta.symbol || symbol,
+        name: meta.longName || meta.shortName || symbol,
+        price: meta.regularMarketPrice,
+        change,
+        changePercent: previousClose ? (change / previousClose) * 100 : 0,
+        previousClose,
+        open: meta.regularMarketPrice,
+        high: meta.regularMarketPrice,
+        low: meta.regularMarketPrice,
+        volume: meta.regularMarketVolume || 0,
+        currency: meta.currency || 'Unknown',
+    };
 }
 
 // ===== YAHOO FINANCE GET QUOTES BATCH =====
@@ -480,15 +545,11 @@ export async function getQuotesYahooBatch(symbols: string[], signal?: AbortSigna
     const fetchChunk = async (chunkSymbols: string[]): Promise<StockQuote[]> => {
         const url = `${YAHOO_BASE_URL}/quote?symbols=${encodeURIComponent(chunkSymbols.join(','))}`;
 
-        for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
-            const proxy = getNextProxy();
-            try {
-                // Fix 2: Conditional cache busting (only on retries)
-                const forceRefresh = attempt > 0;
-                const data = await fetchFromProxy(proxy, url, signal, forceRefresh);
+        try {
+                const data: any = await fetchFromFastestProxy(url, signal);
                 const results = data?.quoteResponse?.result || [];
 
-                console.log(`[Yahoo API] Batch quote for ${chunkSymbols.length} symbols returned ${results.length} results via Proxy ${attempt + 1}`);
+                console.log(`[Yahoo API] Batch quote for ${chunkSymbols.length} symbols returned ${results.length} results`);
 
                 return results.map((result: any) => ({
                     symbol: result.symbol,
@@ -516,11 +577,9 @@ export async function getQuotesYahooBatch(symbols: string[], signal?: AbortSigna
                     fiftyTwoWeekHigh: result.fiftyTwoWeekHigh,
                     fiftyTwoWeekLow: result.fiftyTwoWeekLow,
                 }));
-            } catch (error) {
-                if (axios.isCancel(error)) throw error;
-                markProxyFailure(proxy.url, error);
-                console.warn(`Yahoo Finance batch chunk failed with proxy ${attempt + 1}:`, error);
-            }
+        } catch (error) {
+            if (axios.isCancel(error)) throw error;
+            console.warn('Yahoo Finance batch chunk failed:', error);
         }
         return [];
     };
@@ -578,15 +637,13 @@ export async function getFundamentalData(symbol: string, signal?: AbortSignal): 
         console.warn('Basic quote fetch failed in getFundamentalData', e);
     }
 
-    const v10Url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${symbol}?modules=defaultKeyStatistics,financialData,summaryDetail`;
+    const v10Url = `${import.meta.env.DEV ? '/__market/yahoo1' : 'https://query1.finance.yahoo.com'}/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=defaultKeyStatistics,financialData,summaryDetail`;
 
     // Try v10 for advanced metrics (EBITDA, Margins, etc.)
-    for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
-        const proxy = getNextProxy();
-        try {
-            // Fix 2: Conditional cache busting
-            const forceRefresh = attempt > 0;
-            const data = await fetchFromProxy(proxy, v10Url, signal, forceRefresh);
+    try {
+            const data: any = v10Url.startsWith('/')
+                ? (await axios.get(v10Url, { signal, timeout: 5000 })).data
+                : await fetchFromFastestProxy(v10Url, signal);
             const result = data?.quoteSummary?.result?.[0];
 
             if (result && Object.keys(result).length > 0) {
@@ -616,10 +673,8 @@ export async function getFundamentalData(symbol: string, signal?: AbortSignal): 
                     debtToEquity: financialData.debtToEquity?.raw,
                 };
             }
-        } catch (error) {
-            if (axios.isCancel(error)) throw error;
-            markProxyFailure(proxy.url, error);
-        }
+    } catch (error) {
+        if (axios.isCancel(error)) throw error;
     }
 
     // If v10 failed completely, return whatever we got from v7
@@ -627,6 +682,83 @@ export async function getFundamentalData(symbol: string, signal?: AbortSignal): 
 }
 
 // ===== YAHOO FINANCE GET CHART DATA =====
+async function getChartSymbolCandidates(symbol: string, signal?: AbortSignal): Promise<string[]> {
+    const normalized = symbol.trim().toUpperCase();
+    const cached = CHART_SYMBOL_CACHE.get(normalized);
+    if (cached) return cached;
+
+    const candidates = new Set<string>([normalized]);
+
+    // Some European listings returned by Yahoo (notably the DXE ".XD"
+    // suffix) only expose a quote. Search the same company for a listing
+    // that actually has historical candles before giving up on the chart.
+    try {
+        const queries = new Set([normalized, normalized.split('.')[0]]);
+        let originalName = '';
+        for (const query of queries) {
+            const url = YAHOO_SEARCH_URL + '?q=' + encodeURIComponent(query) + '&quotesCount=40&newsCount=0';
+            const data: any = url.startsWith('/')
+                ? (await axios.get(url, { signal, timeout: 5000 })).data
+                : await fetchFromFastestProxy(url, signal);
+            const quotes = Array.isArray(data?.quotes) ? data.quotes : [];
+            const original = quotes.find((item: any) => String(item?.symbol || '').toUpperCase() === normalized);
+            originalName = originalName || canonicalCompanyName(original?.shortname || original?.longname || '');
+            if (originalName) queries.add(originalName);
+
+            quotes.forEach((item: any) => {
+                const candidate = String(item?.symbol || '').trim().toUpperCase();
+                const candidateName = canonicalCompanyName(item?.shortname || item?.longname || '');
+                if (!candidate || candidate === normalized) return;
+                // Avoid following an unrelated ticker that merely shares a
+                // short symbol (NXTE ETF vs Nueva Expresion Textil, for example).
+                if (!originalName || candidateName === originalName) candidates.add(candidate);
+            });
+        }
+    } catch (error) {
+        if (axios.isCancel(error) || signal?.aborted) throw error;
+    }
+
+    const result = Array.from(candidates);
+    CHART_SYMBOL_CACHE.set(normalized, result);
+    return result;
+}
+
+async function fetchYahooChartPoints(
+    symbol: string,
+    range: string,
+    interval: string,
+    period: TimePeriod,
+    signal?: AbortSignal,
+): Promise<HistoricalDataPoint[]> {
+    const url = YAHOO_CHART_URL + '/' + encodeURIComponent(symbol) + '?range=' + range + '&interval=' + interval;
+    const data: any = url.startsWith('/')
+        ? (await axios.get(url, { signal, timeout: 6000 })).data
+        : await fetchFromFastestProxy(url, signal);
+    const result = data?.chart?.result?.[0];
+
+    if (!result?.timestamp?.length) return [];
+
+    const timestamps = result.timestamp;
+    const quotes = result.indicators?.quote?.[0] || {};
+    const adjClose = result.indicators?.adjclose?.[0]?.adjclose || quotes.close || [];
+
+    return timestamps.map((timestamp: number, i: number) => {
+        const date = new Date(timestamp * 1000);
+        const dateStr = period === '1D'
+            ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            : date.toISOString().split('T')[0];
+
+        return {
+            date: dateStr,
+            open: Number.isFinite(quotes.open?.[i]) ? quotes.open[i] : 0,
+            high: Number.isFinite(quotes.high?.[i]) ? quotes.high[i] : 0,
+            low: Number.isFinite(quotes.low?.[i]) ? quotes.low[i] : 0,
+            close: Number.isFinite(adjClose?.[i]) ? adjClose[i] : (Number.isFinite(quotes.close?.[i]) ? quotes.close[i] : 0),
+            volume: Number.isFinite(quotes.volume?.[i]) ? quotes.volume[i] : 0,
+        };
+    }).filter((point: HistoricalDataPoint) => point.close > 0);
+}
+
 export async function getAssetChartData(
     symbol: string,
     period: TimePeriod = '1M',
@@ -666,42 +798,27 @@ export async function getAssetChartData(
             break;
     }
 
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?range=${range}&interval=${interval}`;
+    try {
+        const candidates = await getChartSymbolCandidates(symbol, signal);
+        let bestPoints: HistoricalDataPoint[] = [];
 
-    for (let attempt = 0; attempt < CORS_PROXIES.length; attempt++) {
-        const proxy = getNextProxy();
-        try {
-            // Fix 2: Conditional cache busting
-            const forceRefresh = attempt > 0;
-            const data = await fetchFromProxy(proxy, url, signal, forceRefresh);
-            const result = data?.chart?.result?.[0];
+        for (const candidate of candidates) {
+            try {
+                const points = await fetchYahooChartPoints(candidate, range, interval, period, signal);
+                if (points.length > bestPoints.length) bestPoints = points;
 
-            if (!result || !result.timestamp) return [];
-
-            const timestamps = result.timestamp;
-            const quotes = result.indicators.quote[0];
-            const adjClose = result.indicators.adjclose?.[0].adjclose || quotes.close;
-
-            return timestamps.map((timestamp: number, i: number) => {
-                const date = new Date(timestamp * 1000);
-                const dateStr = period === '1D'
-                    ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-                    : date.toISOString().split('T')[0];
-
-                return {
-                    date: dateStr,
-                    open: quotes.open[i] || 0,
-                    high: quotes.high[i] || 0,
-                    low: quotes.low[i] || 0,
-                    close: adjClose[i] || quotes.close[i] || 0,
-                    volume: quotes.volume[i] || 0,
-                };
-            }).filter((p: any) => p.close > 0);
-        } catch (error) {
-            if (axios.isCancel(error)) throw error;
-            markProxyFailure(proxy.url, error);
-            console.warn(`Yahoo Finance chart failed with proxy ${attempt + 1}:`, error);
+                // A single quote cannot render an evolution. Keep looking for
+                // another listing (for example B02.F for NXTE.XD).
+                if (points.length >= 2) return points;
+            } catch (error) {
+                if (axios.isCancel(error) || signal?.aborted) throw error;
+            }
         }
+
+        return bestPoints;
+    } catch (error) {
+        if (axios.isCancel(error)) throw error;
+        console.warn('Yahoo Finance chart failed:', error);
     }
 
     return [];

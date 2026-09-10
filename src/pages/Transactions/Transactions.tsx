@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { ArrowRightLeft, Pencil, Search, ShoppingCart, Trash2 } from 'lucide-react';
+import { ArrowRightLeft, MinusCircle, Pencil, Search, ShoppingCart, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, Input, Button } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import type { PortfolioTransaction, PortfolioTransactionType } from '../../types/types';
@@ -8,6 +8,7 @@ import './Transactions.css';
 
 const TYPE_META: Record<PortfolioTransactionType, { label: string; icon: typeof ShoppingCart; className: string }> = {
     buy: { label: 'Compra', icon: ShoppingCart, className: 'transactions__badge--buy' },
+    sell: { label: 'Venta', icon: MinusCircle, className: 'transactions__badge--sell' },
     edit: { label: 'Edicion', icon: Pencil, className: 'transactions__badge--edit' },
     delete: { label: 'Eliminacion', icon: Trash2, className: 'transactions__badge--delete' },
 };
@@ -58,9 +59,10 @@ export function Transactions() {
 
     const summary = useMemo(() => {
         const purchases = state.transactions.filter((transaction) => transaction.type === 'buy').length;
+        const sales = state.transactions.filter((transaction) => transaction.type === 'sell').length;
         const edits = state.transactions.filter((transaction) => transaction.type === 'edit').length;
         const deletions = state.transactions.filter((transaction) => transaction.type === 'delete').length;
-        return { purchases, edits, deletions };
+        return { purchases, sales, edits, deletions };
     }, [state.transactions]);
 
     return (
@@ -69,7 +71,7 @@ export function Transactions() {
                 <div>
                     <h1 className="transactions-page__title">Historial de operaciones</h1>
                     <p className="transactions-page__subtitle">
-                        Registro separado de compras, ediciones y eliminaciones de tu cartera.
+                        Registro separado de compras, ventas, ediciones y eliminaciones de tu cartera.
                     </p>
                 </div>
                 <Link to="/add">
@@ -88,6 +90,12 @@ export function Transactions() {
                     <CardContent className="transactions-page__summary-card">
                         <span className="transactions-page__summary-label">Compras</span>
                         <strong>{summary.purchases}</strong>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="transactions-page__summary-card">
+                        <span className="transactions-page__summary-label">Ventas</span>
+                        <strong>{summary.sales}</strong>
                     </CardContent>
                 </Card>
                 <Card>
@@ -120,6 +128,7 @@ export function Transactions() {
                         {[
                             { value: 'all', label: 'Todas' },
                             { value: 'buy', label: 'Compras' },
+                            { value: 'sell', label: 'Ventas' },
                             { value: 'edit', label: 'Ediciones' },
                             { value: 'delete', label: 'Eliminaciones' },
                         ].map((option) => (

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { ArrowUpDown, Trash2, ChevronUp, ChevronDown, Pencil, PlusCircle } from 'lucide-react';
+import { ArrowUpDown, Trash2, ChevronUp, ChevronDown, Pencil, PlusCircle, MinusCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../ui';
 import type { Asset } from '../../types/types';
 import './AssetsTable.css';
@@ -9,13 +9,14 @@ interface AssetsTableProps {
     onDelete?: (id: string) => void;
     onEdit?: (asset: Asset) => void;
     onAddPurchase?: (asset: Asset) => void;
+    onSell?: (asset: Asset) => void;
     onViewDetails?: (asset: Asset) => void;
 }
 
 type SortKey = 'symbol' | 'value' | 'change' | 'weight';
 type SortDirection = 'asc' | 'desc';
 
-export function AssetsTable({ assets, onDelete, onEdit, onAddPurchase, onViewDetails }: AssetsTableProps) {
+export function AssetsTable({ assets, onDelete, onEdit, onAddPurchase, onSell, onViewDetails }: AssetsTableProps) {
     const [sortKey, setSortKey] = useState<SortKey>('value');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -153,7 +154,7 @@ export function AssetsTable({ assets, onDelete, onEdit, onAddPurchase, onViewDet
                                     <th onClick={() => handleSort('weight')}>
                                         Peso <SortIcon column="weight" />
                                     </th>
-                                    {(onDelete || onEdit || onAddPurchase) && <th>Acciones</th>}
+                                    {(onDelete || onEdit || onAddPurchase || onSell) && <th>Acciones</th>}
                                 </tr>
                             </thead>
                             <tbody>
@@ -165,8 +166,8 @@ export function AssetsTable({ assets, onDelete, onEdit, onAddPurchase, onViewDet
                                     >
                                         <td>
                                             <div className="assets-table__asset">
-                                                <span className="assets-table__symbol">{asset.symbol}</span>
                                                 <span className="assets-table__name">{asset.name}</span>
+                                                <span className="assets-table__symbol">{asset.symbol}</span>
                                             </div>
                                         </td>
                                         <td>{asset.quantity}</td>
@@ -201,23 +202,32 @@ export function AssetsTable({ assets, onDelete, onEdit, onAddPurchase, onViewDet
                                                 <span>{asset.weight.toFixed(1)}%</span>
                                             </div>
                                         </td>
-                                        {(onDelete || onEdit || onAddPurchase) && (
+                                        {(onDelete || onEdit || onAddPurchase || onSell) && (
                                             <td>
                                                 <div className="assets-table__actions">
                                                     {onAddPurchase && (
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            onClick={() => onAddPurchase(asset)}
+                                                            onClick={(event) => { event.stopPropagation(); onAddPurchase(asset); }}
                                                             icon={<PlusCircle size={16} />}
                                                             title="Añadir Compra (DCA)"
+                                                        />
+                                                    )}
+                                                    {onSell && (
+                                                        <Button
+                                                            variant="ghost"
+                                                            size="sm"
+                                                            onClick={(event) => { event.stopPropagation(); onSell(asset); }}
+                                                            icon={<MinusCircle size={16} />}
+                                                            title="Registrar venta"
                                                         />
                                                     )}
                                                     {onEdit && (
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            onClick={() => onEdit(asset)}
+                                                            onClick={(event) => { event.stopPropagation(); onEdit(asset); }}
                                                             icon={<Pencil size={16} />}
                                                         />
                                                     )}
@@ -225,7 +235,7 @@ export function AssetsTable({ assets, onDelete, onEdit, onAddPurchase, onViewDet
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            onClick={() => handleDeleteClick(asset.id)}
+                                                            onClick={(event) => { event.stopPropagation(); handleDeleteClick(asset.id); }}
                                                             icon={<Trash2 size={16} />}
                                                             className="assets-table__delete-btn"
                                                         />

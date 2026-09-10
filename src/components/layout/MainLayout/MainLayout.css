@@ -15,10 +15,17 @@
 }
 
 .layout__content {
-    max-width: var(--content-max-width);
+    width: 100%;
+    max-width: none;
     margin: 0 auto;
     padding: var(--spacing-xl);
     animation: fadeIn var(--transition-base) ease-out;
+}
+
+@media (min-width: 1025px) {
+    .layout__content {
+        padding: var(--spacing-xl) clamp(1.5rem, 2.5vw, 3rem) var(--spacing-2xl);
+    }
 }
 
 /* Responsive */

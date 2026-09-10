@@ -1,12 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Wrench, GraduationCap, Settings, FileSpreadsheet } from 'lucide-react';
-import { PortfolioSummary, Performers, AssetsTable, PortfolioComposition, AssetDetail } from '../../components/dashboard';
+import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio } from 'lucide-react';
+import { PortfolioSummary, Performers, AssetsTable, PortfolioComposition, AssetDetail, PortfolioHealth, PortfolioAnalytics } from '../../components/dashboard';
 import { PortfolioChart } from '../../components/charts';
 import { Button, Card, CardContent, Modal } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { filterHistoryByPeriod, generateMockHistory } from '../../data/mockData';
-import { isApiEnabled } from '../../services/storageService';
+import { filterHistoryByPeriod } from '../../data/mockData';
+import { getHistory, isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, ChartDataPoint, PerformerData, TimePeriod, Asset } from '../../types/types';
 import './Dashboard.css';
 
@@ -14,14 +14,23 @@ export function Dashboard() {
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
     const { assets, loading, updatingPrices, lastPriceUpdate } = state;
     const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M');
-    const [selectedAsset, setSelectedAsset] = useState<Asset | null>(null);
-    const [showDashboardNotice, setShowDashboardNotice] = useState(true);
+    const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+    const [countdownNow, setCountdownNow] = useState(() => Date.now());
     const navigate = useNavigate();
     const apiEnabled = isApiEnabled();
+    const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || null;
 
-    const handleCloseDashboardNotice = () => {
-        setShowDashboardNotice(false);
-    };
+    useEffect(() => {
+        const intervalId = window.setInterval(() => setCountdownNow(Date.now()), 1000);
+        return () => window.clearInterval(intervalId);
+    }, []);
+
+    const nextRefreshSeconds = lastPriceUpdate
+        ? Math.max(0, Math.ceil((lastPriceUpdate.getTime() + 5 * 60 * 1000 - countdownNow) / 1000))
+        : null;
+    const countdownLabel = nextRefreshSeconds === null
+        ? 'preparando actualización'
+        : `próxima en ${String(Math.floor(nextRefreshSeconds / 60)).padStart(2, '0')}:${String(nextRefreshSeconds % 60).padStart(2, '0')}`;
 
     const handleEditAsset = (asset: Asset) => {
         navigate('/add', { state: { editAsset: asset } });
@@ -29,6 +38,10 @@ export function Dashboard() {
 
     const handleAddPurchase = (asset: Asset) => {
         navigate('/add', { state: { dcaAsset: asset } });
+    };
+
+    const handleSell = (asset: Asset) => {
+        navigate('/add', { state: { sellAsset: asset } });
     };
 
     const metrics: PortfolioMetrics = useMemo(() => {
@@ -46,26 +59,50 @@ export function Dashboard() {
             return sum + (currValue - prevValue);
         }, 0);
 
+        const history = getHistory().sort((a, b) => a.date.localeCompare(b.date));
+        const valueAtOrBefore = (timestamp: number) => {
+            const point = [...history].reverse().find((item) => new Date(item.date).getTime() <= timestamp);
+            return point?.value;
+        };
+        const periodChange = (timestamp: number) => {
+            const previousValue = valueAtOrBefore(timestamp);
+            const change = previousValue !== undefined ? currentValue - previousValue : totalGain;
+            return {
+                hasBase: previousValue !== undefined,
+                change,
+                percent: previousValue && previousValue > 0 ? (change / previousValue) * 100 : percentageGain,
+            };
+        };
+        const day = periodChange(Date.now() - 24 * 60 * 60 * 1000);
+        const month = periodChange(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const quarter = periodChange(Date.now() - 90 * 24 * 60 * 60 * 1000);
+        const ytdStart = new Date(new Date().getFullYear(), 0, 1).getTime();
+        const ytd = periodChange(ytdStart);
+
         return {
             totalInvested,
             currentValue,
             totalGain,
             percentageGain,
-            dailyChange,
-            dailyChangePercent: currentValue > 0 ? (dailyChange / (currentValue - dailyChange)) * 100 : 0,
-            monthlyChange: totalGain * 0.3,
-            monthlyChangePercent: percentageGain * 0.3,
-            threeMonthChange: totalGain * 0.6,
-            threeMonthChangePercent: percentageGain * 0.6,
-            ytdChange: totalGain,
-            ytdChangePercent: percentageGain,
+            dailyChange: day.hasBase ? day.change : dailyChange,
+            dailyChangePercent: day.hasBase ? day.percent : (currentValue > 0 ? (dailyChange / (currentValue - dailyChange)) * 100 : 0),
+            monthlyChange: month.change,
+            monthlyChangePercent: month.percent,
+            threeMonthChange: quarter.change,
+            threeMonthChangePercent: quarter.percent,
+            ytdChange: ytd.change,
+            ytdChangePercent: ytd.percent,
         };
-    }, [assets]);
+    }, [assets, lastPriceUpdate]);
 
     const chartData: ChartDataPoint[] = useMemo(() => {
-        const history = generateMockHistory(365);
-        return filterHistoryByPeriod(history, selectedPeriod);
-    }, [selectedPeriod]);
+        const history = getHistory();
+        const filtered = filterHistoryByPeriod(history, selectedPeriod);
+        if (filtered.length > 0) return filtered;
+        const currentValue = assets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0);
+        const invested = assets.reduce((sum, asset) => sum + asset.purchasePrice * asset.quantity, 0);
+        return assets.length ? [{ date: new Date().toISOString(), value: currentValue, invested }] : [];
+    }, [assets, lastPriceUpdate, selectedPeriod]);
 
     const performersData: PerformerData[] = useMemo(() => {
         return assets.map((asset) => {
@@ -85,60 +122,19 @@ export function Dashboard() {
         });
     }, [assets]);
 
-    const dashboardNoticeModal = (
-        <Modal
-            isOpen={showDashboardNotice}
-            onClose={handleCloseDashboardNotice}
-            size="md"
-        >
-            <div className="dashboard__notice dashboard__notice--hero">
-                <div className="dashboard__notice-icon">
-                    <Wrench size={44} />
-                </div>
-                <h2 className="dashboard__notice-title">Dashboard en progreso</h2>
-                <p className="dashboard__notice-description">
-                    Esta vista sigue en desarrollo y puede mostrar datos incompletos o comportamientos provisionales.
-                    Mientras terminamos el dashboard, puedes utilizar con normalidad las secciones de Academia,
-                    Configuración y Portfolio CSV.
-                </p>
-                <div className="dashboard__notice-links">
-                    <Link to="/academy" onClick={handleCloseDashboardNotice}>
-                        <GraduationCap size={18} />
-                        Academia
-                    </Link>
-                    <Link to="/settings" onClick={handleCloseDashboardNotice}>
-                        <Settings size={18} />
-                        Configuración
-                    </Link>
-                    <Link to="/portfolio-csv" onClick={handleCloseDashboardNotice}>
-                        <FileSpreadsheet size={18} />
-                        Portfolio CSV
-                    </Link>
-                </div>
-                <Button onClick={handleCloseDashboardNotice} size="lg" fullWidth>
-                    Entendido
-                </Button>
-            </div>
-        </Modal>
-    );
-
     if (loading) {
         return (
-            <>
-                <div className="dashboard dashboard--loading">
+            <div className="dashboard dashboard--loading">
                     <div className="skeleton skeleton--large" />
                     <div className="skeleton skeleton--medium" />
                     <div className="skeleton skeleton--medium" />
-                </div>
-                {dashboardNoticeModal}
-            </>
+            </div>
         );
     }
 
     if (assets.length === 0) {
         return (
-            <>
-                <div className="dashboard dashboard--empty">
+            <div className="dashboard dashboard--empty">
                     <Card className="dashboard__welcome">
                         <CardContent>
                             <div className="welcome-content">
@@ -165,9 +161,7 @@ export function Dashboard() {
                             </div>
                         </CardContent>
                     </Card>
-                </div>
-                {dashboardNoticeModal}
-            </>
+            </div>
         );
     }
 
@@ -177,13 +171,16 @@ export function Dashboard() {
                 <div>
                     <h1 className="dashboard__title">Dashboard</h1>
                     <p className="dashboard__subtitle">
-                        Vista general de tu portfolio
+                        Seguimiento automático de tu cartera
                         {lastPriceUpdate && (
                             <span className="dashboard__last-update">
                                 · Actualizado: {lastPriceUpdate.toLocaleTimeString()}
                             </span>
                         )}
                     </p>
+                    <span className={`dashboard__live-status ${apiEnabled ? 'dashboard__live-status--active' : ''}`}>
+                        <Radio size={13} /> {apiEnabled ? `Precios automáticos · cada 5 min · ${updatingPrices ? 'actualizando…' : countdownLabel}` : 'Actualización automática desactivada'}
+                    </span>
                 </div>
                 <div className="dashboard__actions">
                     <Button
@@ -213,6 +210,14 @@ export function Dashboard() {
             <PortfolioSummary metrics={metrics} />
 
             <section className="dashboard__section">
+                <PortfolioHealth assets={assets} />
+            </section>
+
+            <section className="dashboard__section">
+                <PortfolioAnalytics assets={assets} />
+            </section>
+
+            <section className="dashboard__section">
                 <PortfolioChart
                     data={chartData}
                     selectedPeriod={selectedPeriod}
@@ -235,20 +240,19 @@ export function Dashboard() {
                     onDelete={deleteAsset}
                     onEdit={handleEditAsset}
                     onAddPurchase={handleAddPurchase}
-                    onViewDetails={(asset) => setSelectedAsset(asset)}
+                    onSell={handleSell}
+                    onViewDetails={(asset) => setSelectedAssetId(asset.id)}
                 />
             </section>
 
             <Modal
                 isOpen={selectedAsset !== null}
-                onClose={() => setSelectedAsset(null)}
+                onClose={() => setSelectedAssetId(null)}
                 title={selectedAsset ? `Detalles de ${selectedAsset.symbol}` : ''}
                 size="lg"
             >
-                {selectedAsset && <AssetDetail asset={selectedAsset} />}
+                {selectedAsset && <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} />}
             </Modal>
-
-            {dashboardNoticeModal}
         </div>
     );
 }

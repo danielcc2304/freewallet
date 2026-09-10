@@ -1,5 +1,5 @@
 .add-investment {
-    max-width: 700px;
+    width: min(100%, 780px);
     margin: 0 auto;
     animation: fadeIn var(--transition-base) ease-out;
 }
@@ -10,13 +10,26 @@
 
 .add-investment__form-card {
     border: 1px solid var(--border-secondary);
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.12);
+}
+
+.add-investment__form-card .card__header {
+    margin-bottom: var(--spacing-lg);
+}
+
+.add-investment__form-card .card__title {
+    font-size: clamp(1.25rem, 2vw, 1.5rem);
+}
+
+.add-investment__form-card .card__subtitle {
+    line-height: 1.5;
 }
 
 /* Form */
 .add-investment__form {
     display: flex;
     flex-direction: column;
-    gap: var(--spacing-lg);
+    gap: 1.35rem;
 }
 
 .form-group {
@@ -37,8 +50,24 @@
 
 .form-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: minmax(0, 1fr) minmax(0, 0.9fr) minmax(0, 1.12fr);
     gap: var(--spacing-md);
+    align-items: end;
+}
+
+.form-row > .form-group,
+.form-row > .input-wrapper {
+    min-width: 0;
+}
+
+.position-availability {
+    margin: -0.45rem 0 -0.8rem;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.position-availability strong {
+    color: var(--text-primary);
 }
 
 /* Search */
@@ -55,7 +84,8 @@
     border: 1px solid var(--border-secondary);
     border-radius: var(--radius-md);
     margin-top: var(--spacing-xs);
-    max-height: 250px;
+    max-height: 320px;
+    padding: 0.4rem;
     overflow-y: auto;
     z-index: 50;
     list-style: none;
@@ -64,15 +94,24 @@
 
 .search-results__item {
     display: grid;
-    grid-template-columns: auto 1fr auto;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
     gap: var(--spacing-md);
-    padding: var(--spacing-sm) var(--spacing-md);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
     cursor: pointer;
     transition: background var(--transition-fast);
 }
 
-.search-results__item:hover {
+.search-results__item:hover,
+.search-results__item--active {
     background: var(--bg-tertiary);
+}
+
+.search-results__identity {
+    display: grid;
+    gap: 0.15rem;
+    min-width: 0;
 }
 
 .search-results__symbol {
@@ -91,6 +130,9 @@
     font-size: var(--font-size-xs);
     color: var(--text-muted);
     text-transform: uppercase;
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    background: var(--bg-card);
 }
 
 .search-loading {
@@ -103,8 +145,15 @@
     border: 1px solid var(--border-secondary);
     border-radius: var(--radius-md);
     margin-top: var(--spacing-xs);
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
     color: var(--text-muted);
+}
+
+.search-loading__spinner {
+    animation: spin 0.8s linear infinite;
 }
 
 /* Selected Asset */
@@ -116,6 +165,22 @@
     background: var(--color-positive-bg);
     border-radius: var(--radius-md);
     margin-top: var(--spacing-sm);
+    border: 1px solid color-mix(in srgb, var(--color-positive) 28%, transparent);
+    color: var(--color-positive);
+}
+
+.selected-asset__content {
+    display: grid;
+    gap: 0.1rem;
+    min-width: 0;
+    border: 1px solid color-mix(in srgb, var(--color-positive) 28%, transparent);
+    color: var(--color-positive);
+}
+
+.selected-asset__content {
+    display: grid;
+    gap: 0.1rem;
+    min-width: 0;
 }
 
 .selected-asset__symbol {
@@ -126,6 +191,9 @@
 .selected-asset__name {
     color: var(--text-secondary);
     font-size: var(--font-size-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 /* No Results Found */
@@ -259,45 +327,6 @@
     }
 }
 
-/* Asset Type Selector */
-.asset-type-selector {
-    display: flex;
-    gap: var(--spacing-xs);
-    background: var(--bg-tertiary);
-    padding: var(--spacing-xs);
-    border-radius: var(--radius-md);
-}
-
-.asset-type-btn {
-    flex: 1;
-    padding: var(--spacing-sm) var(--spacing-md);
-    background: transparent;
-    border: none;
-    border-radius: var(--radius-sm);
-    color: var(--text-muted);
-    font-weight: 500;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-}
-
-.asset-type-btn:hover {
-    color: var(--text-primary);
-}
-
-.asset-type-btn:disabled {
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-.asset-type-btn:disabled:hover {
-    color: var(--text-muted);
-}
-
-.asset-type-btn--active {
-    background: var(--accent-primary);
-    color: white;
-}
-
 /* Current Price Banner */
 .current-price-banner {
     display: flex;
@@ -317,9 +346,62 @@
 }
 
 .current-price-banner__value {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
     font-size: var(--font-size-lg);
     font-weight: 600;
     color: var(--color-positive);
+}
+
+.quote-warning {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0.75rem 0.9rem;
+    border-radius: var(--radius-md);
+    border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
+    background: color-mix(in srgb, var(--color-warning) 9%, transparent);
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+}
+
+.quote-warning svg {
+    flex: 0 0 auto;
+    color: var(--color-warning);
+}
+
+.operation-total {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0.85rem 1rem;
+    margin-top: -0.45rem;
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-primary);
+    font-size: var(--font-size-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.selected-asset__type {
+    margin-left: auto;
+    padding: 0.25rem 0.55rem;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--color-positive) 14%, transparent);
+    color: var(--color-positive);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.operation-total strong {
+    color: var(--text-primary);
+    font-size: var(--font-size-base);
+    white-space: nowrap;
 }
 
 .form-hint {
@@ -396,6 +478,7 @@
 @media (max-width: 768px) {
     .form-row {
         grid-template-columns: 1fr;
+        align-items: stretch;
     }
 
     .form-actions {
@@ -430,5 +513,10 @@
 
     .add-investment__notice-links a {
         padding: 0.9rem 1rem;
+    }
+
+    .operation-total {
+        align-items: flex-start;
+        flex-direction: column;
     }
 }

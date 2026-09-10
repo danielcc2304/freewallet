@@ -17,6 +17,7 @@
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-lg);
     max-height: 90vh;
+    min-width: 0;
     overflow: hidden;
     display: flex;
     flex-direction: column;
@@ -54,12 +55,16 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    min-width: 0;
+    box-sizing: border-box;
     padding: var(--spacing-md) var(--spacing-lg);
     border-bottom: 1px solid var(--border-primary);
 }
 
 .modal__title {
     margin: 0;
+    min-width: 0;
+    overflow-wrap: anywhere;
     font-size: var(--font-size-lg);
     font-weight: 600;
     color: var(--text-primary);
@@ -86,6 +91,18 @@
 .modal__content {
     padding: var(--spacing-lg);
     overflow-y: auto;
+    overflow-x: hidden;
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+    flex: 1 1 auto;
+    box-sizing: border-box;
+}
+
+/* Los paneles con gráficos necesitan un viewport estable. Sin esta altura,
+   ResponsiveContainer puede devolver 0px en el primer cálculo del flex. */
+.modal--lg .modal__content {
+    height: min(780px, calc(90vh - 76px));
 }
 
 /* Confirm Dialog */
@@ -118,6 +135,10 @@
     .modal--md,
     .modal--lg {
         max-width: 100%;
+    }
+
+    .modal--lg .modal__content {
+        height: calc(85vh - 68px);
     }
 
     .confirm-dialog__actions {

@@ -7,6 +7,8 @@ import {
     FileSpreadsheet,
     Gauge,
     Layers3,
+    ListChecks,
+    Target,
     RefreshCw,
     ShieldCheck,
     TrendingUp,
@@ -37,8 +39,11 @@ import {
     DEFAULT_BUCKET_TARGETS,
     DEFAULT_COMPARISON_CSV,
     DEFAULT_DAILY_CSV,
+    DEFAULT_CONTROL_CSV,
     DEFAULT_EVOLUTION_CSV,
     DEFAULT_HOLDINGS_CSV,
+    DEFAULT_MOVEMENTS_CSV,
+    DEFAULT_OBJECTIVES_CSV,
     PIE_COLORS,
     STORAGE_KEYS,
 } from './portfolioCsvConstants';
@@ -68,6 +73,9 @@ import {
     parseDailyData,
     parseEvolution,
     parseHoldings,
+    parseControlRows,
+    parseMovements,
+    parseObjectives,
     parsePeriodParts,
     resolveEvolutionPeriods,
     standardDeviation,
@@ -100,6 +108,9 @@ export function PortfolioCsv() {
     const [comparisonRaw, setComparisonRaw] = useState(() => readStoredValue(STORAGE_KEYS.comparisonRaw, DEFAULT_COMPARISON_CSV));
     const [advancedRaw, setAdvancedRaw] = useState(() => readStoredValue(STORAGE_KEYS.advancedRaw, DEFAULT_ADVANCED_STATS_CSV));
     const [dailyRaw, setDailyRaw] = useState(() => readStoredValue(STORAGE_KEYS.dailyRaw, DEFAULT_DAILY_CSV));
+    const [movementsRaw, setMovementsRaw] = useState(() => readStoredValue(STORAGE_KEYS.movementsRaw, DEFAULT_MOVEMENTS_CSV));
+    const [objectivesRaw, setObjectivesRaw] = useState(() => readStoredValue(STORAGE_KEYS.objectivesRaw, DEFAULT_OBJECTIVES_CSV));
+    const [controlRaw, setControlRaw] = useState(() => readStoredValue(STORAGE_KEYS.controlRaw, DEFAULT_CONTROL_CSV));
     const [workbookFileLabel, setWorkbookFileLabel] = useState(() => readStoredValue(STORAGE_KEYS.workbookFile, 'Demo precargada'));
     const [updatedAt, setUpdatedAt] = useState(() => readStoredValue(STORAGE_KEYS.updatedAt, ''));
     const [categoryOverrides, setCategoryOverrides] = useState<Record<string, HoldingCategory>>(() => readStoredMap<HoldingCategory>(STORAGE_KEYS.categoryOverrides));
@@ -114,6 +125,9 @@ export function PortfolioCsv() {
     const deferredComparisonRaw = useDeferredValue(comparisonRaw);
     const deferredAdvancedRaw = useDeferredValue(advancedRaw);
     const deferredDailyRaw = useDeferredValue(dailyRaw);
+    const deferredMovementsRaw = useDeferredValue(movementsRaw);
+    const deferredObjectivesRaw = useDeferredValue(objectivesRaw);
+    const deferredControlRaw = useDeferredValue(controlRaw);
 
     const holdings = useMemo<HoldingControl[]>(() => parseHoldings(deferredHoldingsRaw).map((holding) => {
         const categoryOverride = categoryOverrides[holding.asset];
@@ -129,6 +143,9 @@ export function PortfolioCsv() {
     const benchmarkComparison = useMemo(() => parseBenchmarkComparison(deferredComparisonRaw), [deferredComparisonRaw]);
     const advancedSource = useMemo(() => parseAdvancedStats(deferredAdvancedRaw), [deferredAdvancedRaw]);
     const dailyPoints = useMemo(() => parseDailyData(deferredDailyRaw), [deferredDailyRaw]);
+    const movements = useMemo(() => parseMovements(deferredMovementsRaw), [deferredMovementsRaw]);
+    const objectives = useMemo(() => parseObjectives(deferredObjectivesRaw), [deferredObjectivesRaw]);
+    const workbookControls = useMemo(() => parseControlRows(deferredControlRaw), [deferredControlRaw]);
     const advancedStats = useMemo<AdvancedPortfolioStats>(
         () => calculateAdvancedPortfolioStats(evolutionBase, benchmarkComparison, dailyPoints, advancedSource.riskFreeAnnualPct),
         [advancedSource.riskFreeAnnualPct, benchmarkComparison, dailyPoints, evolutionBase],
@@ -212,6 +229,9 @@ export function PortfolioCsv() {
             localStorage.setItem(STORAGE_KEYS.comparisonRaw, comparisonRaw);
             localStorage.setItem(STORAGE_KEYS.advancedRaw, advancedRaw);
             localStorage.setItem(STORAGE_KEYS.dailyRaw, dailyRaw);
+            localStorage.setItem(STORAGE_KEYS.movementsRaw, movementsRaw);
+            localStorage.setItem(STORAGE_KEYS.objectivesRaw, objectivesRaw);
+            localStorage.setItem(STORAGE_KEYS.controlRaw, controlRaw);
             localStorage.setItem(STORAGE_KEYS.workbookFile, workbookFileLabel);
             localStorage.setItem(STORAGE_KEYS.updatedAt, updatedAt);
             localStorage.setItem(STORAGE_KEYS.categoryOverrides, JSON.stringify(categoryOverrides));
@@ -219,7 +239,7 @@ export function PortfolioCsv() {
         } catch {
             // localStorage puede fallar en modo privado o por limites de cuota.
         }
-    }, [advancedRaw, bucketTargets, categoryOverrides, comparisonRaw, dailyRaw, holdingsRaw, evolutionRaw, workbookFileLabel, updatedAt]);
+    }, [advancedRaw, bucketTargets, categoryOverrides, comparisonRaw, controlRaw, dailyRaw, holdingsRaw, movementsRaw, objectivesRaw, evolutionRaw, workbookFileLabel, updatedAt]);
 
     useEffect(() => {
         const onResize = () => setIsMobile(window.innerWidth <= 700);
@@ -406,6 +426,9 @@ export function PortfolioCsv() {
             const comparisonSheetName = normalizedNames.comparativa || normalizedNames.benchmark || normalizedNames.comparison;
             const advancedSheetName = normalizedNames.estadisticasavanzadas || normalizedNames.advancedstats || normalizedNames.advancedstatistics;
             const dailySheetName = normalizedNames.datosdiarios || normalizedNames.dailydata || normalizedNames.diarios;
+            const movementsSheetName = normalizedNames.movimientos || normalizedNames.movements;
+            const objectivesSheetName = normalizedNames.objetivos || normalizedNames.objectives || normalizedNames.targets;
+            const controlSheetName = normalizedNames.control || normalizedNames.checks;
 
             if (!holdingsSheetName || !evolutionSheetName) {
                 setError('El Excel debe incluir las hojas "Cartera" y "Evolución".');
@@ -423,6 +446,15 @@ export function PortfolioCsv() {
             const dailyText = dailySheetName
                 ? XLSX.utils.sheet_to_csv(workbook.Sheets[dailySheetName])
                 : '';
+            const movementsText = movementsSheetName
+                ? XLSX.utils.sheet_to_csv(workbook.Sheets[movementsSheetName])
+                : '';
+            const objectivesText = objectivesSheetName
+                ? XLSX.utils.sheet_to_csv(workbook.Sheets[objectivesSheetName])
+                : '';
+            const controlText = controlSheetName
+                ? XLSX.utils.sheet_to_csv(workbook.Sheets[controlSheetName])
+                : '';
 
             if (parseHoldings(holdingsText).length === 0) {
                 setError('No pude interpretar la hoja de cartera del Excel. Revisa cabeceras y formato.');
@@ -438,6 +470,9 @@ export function PortfolioCsv() {
             setComparisonRaw(comparisonText);
             setAdvancedRaw(advancedText);
             setDailyRaw(dailyText);
+            setMovementsRaw(movementsText);
+            setObjectivesRaw(objectivesText);
+            setControlRaw(controlText);
             setWorkbookFileLabel(file.name);
             setUpdatedAt(new Date().toISOString());
             setError('');
@@ -452,6 +487,9 @@ export function PortfolioCsv() {
         setComparisonRaw(DEFAULT_COMPARISON_CSV);
         setAdvancedRaw(DEFAULT_ADVANCED_STATS_CSV);
         setDailyRaw(DEFAULT_DAILY_CSV);
+        setMovementsRaw(DEFAULT_MOVEMENTS_CSV);
+        setObjectivesRaw(DEFAULT_OBJECTIVES_CSV);
+        setControlRaw(DEFAULT_CONTROL_CSV);
         setWorkbookFileLabel('Demo precargada');
         setUpdatedAt(new Date().toISOString());
         setError('');
@@ -632,6 +670,17 @@ export function PortfolioCsv() {
     const formatAdvancedDate = (value: string | undefined) => value
         ? new Intl.DateTimeFormat('es-ES', { day: '2-digit', month: 'short', year: 'numeric' }).format(new Date(`${value}T12:00:00`))
         : 'N/D';
+    const netMovements = movements.reduce((sum, movement) => sum + movement.amount, 0);
+    const totalContributions = movements.filter((movement) => movement.amount > 0).reduce((sum, movement) => sum + movement.amount, 0);
+    const totalWithdrawals = Math.abs(movements.filter((movement) => movement.amount < 0).reduce((sum, movement) => sum + movement.amount, 0));
+    const recentMovements = movements.slice(-5).reverse();
+    const objectiveContribution = objectives.reduce((sum, objective) => sum + objective.contributionAmount, 0);
+    const largestObjectiveGaps = [...objectives]
+        .filter((objective) => objective.targetWeight > objective.currentWeight || objective.contributionAmount > 0)
+        .sort((a, b) => (b.contributionAmount || b.shortfallAmount) - (a.contributionAmount || a.shortfallAmount))
+        .slice(0, 5);
+    const generalControl = workbookControls.find((control) => normalizeSheetName(control.label).includes('estadogeneral'));
+    const warningControls = workbookControls.filter((control) => control.status === 'warn' && control !== generalControl);
 
     return (
         <div className="portfolio-csv-page">
@@ -644,7 +693,7 @@ export function PortfolioCsv() {
             <section className="portfolio-csv-upload">
                 <article className="portfolio-csv-upload__card portfolio-csv-upload__card--utility">
                     <h3><FileSpreadsheet size={18} /> Excel único</h3>
-                    <p>Sube un `.xlsx` con `Cartera`, `Evolución`, `Comparativa` y, opcionalmente, `Estadísticas avanzadas` y `Datos diarios`, o descarga una plantilla lista para rellenar.</p>
+                    <p>Sube el Excel completo con `Cartera`, `Evolución`, `Diario`, `Movimientos`, `Comparativa`, `Objetivos`, `Control` y `Datos diarios`, o descarga la plantilla actualizada.</p>
                     <div className="portfolio-csv-upload__actions">
                         <button type="button" className="portfolio-csv-btn" onClick={() => workbookInputRef.current?.click()}>
                             <Upload size={16} /> Subir Excel
@@ -687,6 +736,89 @@ export function PortfolioCsv() {
                 <article className="portfolio-csv-kpi"><span>Retorno medio mensual</span><strong>{formatPct(avgMonthlyReturn)}</strong></article>
                 <article className="portfolio-csv-kpi"><span>Volatilidad mensual</span><strong>{formatPct(monthlyVolatility)}</strong></article>
             </section>
+
+            {(workbookControls.length > 0 || objectives.length > 0 || movements.length > 0) && (
+                <section className="portfolio-csv-grid portfolio-csv-grid--workbook">
+                    <article className="portfolio-csv-card">
+                        <div className="portfolio-csv-card__heading-row">
+                            <div>
+                                <h2><ListChecks size={18} /> Estado del Excel</h2>
+                                <p>Controles importados de la hoja `Control`.</p>
+                            </div>
+                            <span className={`portfolio-csv-status portfolio-csv-status--${generalControl?.status || 'neutral'}`}>
+                                {generalControl?.value || (warningControls.length ? 'REVISAR' : 'OK')}
+                            </span>
+                        </div>
+                        {workbookControls.length > 0 ? (
+                            <div className="portfolio-csv-workbook-controls">
+                                {workbookControls.filter((control) => control !== generalControl).slice(0, 8).map((control) => (
+                                    <div key={control.label} className="portfolio-csv-workbook-control">
+                                        <span>{control.label}</span>
+                                        <strong className={`portfolio-csv-workbook-control--${control.status}`}>{control.value}</strong>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : <div className="portfolio-csv-empty-state">Este archivo no incluye la hoja `Control`.</div>}
+                    </article>
+
+                    <article className="portfolio-csv-card">
+                        <div className="portfolio-csv-card__heading-row">
+                            <div>
+                                <h2><Target size={18} /> Objetivos del Excel</h2>
+                                <p>Pesos objetivo y reparto sugerido de la próxima aportación.</p>
+                            </div>
+                            <span className="portfolio-csv-status portfolio-csv-status--neutral">
+                                {objectives.length} activos
+                            </span>
+                        </div>
+                        {largestObjectiveGaps.length > 0 ? (
+                            <div className="portfolio-csv-objectives">
+                                {largestObjectiveGaps.map((objective) => (
+                                    <div key={objective.asset} className="portfolio-csv-objective">
+                                        <div>
+                                            <strong>{objective.asset}</strong>
+                                            <small>{formatPct(objective.currentWeight)} → {formatPct(objective.targetWeight)}</small>
+                                        </div>
+                                        <span>{formatCurrency(objective.contributionAmount || objective.shortfallAmount)}</span>
+                                    </div>
+                                ))}
+                                {objectiveContribution > 0 && (
+                                    <div className="portfolio-csv-objectives__total">
+                                        <span>Aportación planificada</span><strong>{formatCurrency(objectiveContribution)}</strong>
+                                    </div>
+                                )}
+                            </div>
+                        ) : <div className="portfolio-csv-empty-state">No hay déficits objetivo ni aportaciones pendientes.</div>}
+                    </article>
+                </section>
+            )}
+
+            {movements.length > 0 && (
+                <section className="portfolio-csv-card portfolio-csv-card--full portfolio-csv-movements">
+                    <div className="portfolio-csv-card__heading-row">
+                        <div>
+                            <h2><RefreshCw size={18} /> Movimientos de capital</h2>
+                            <p>Aportaciones y retiradas leídas directamente de la hoja `Movimientos`.</p>
+                        </div>
+                        <span className="portfolio-csv-status portfolio-csv-status--neutral">{movements.length} registros</span>
+                    </div>
+                    <div className="portfolio-csv-movements__summary">
+                        <div><span>Aportaciones</span><strong>{formatCurrency(totalContributions)}</strong></div>
+                        <div><span>Retiradas</span><strong>{formatCurrency(totalWithdrawals)}</strong></div>
+                        <div><span>Flujo neto</span><strong>{formatCurrency(netMovements)}</strong></div>
+                    </div>
+                    <div className="portfolio-csv-movements__list">
+                        {recentMovements.map((movement, index) => (
+                            <div key={`${movement.date}-${movement.concept}-${index}`}>
+                                <span>{movement.date}<small>{movement.concept || (movement.exactDate ? 'Fecha exacta' : 'Resumen mensual')}</small></span>
+                                <strong className={movement.amount < 0 ? 'portfolio-csv-value--negative' : 'portfolio-csv-value--positive'}>
+                                    {movement.amount > 0 ? '+' : ''}{formatCurrency(movement.amount)}
+                                </strong>
+                            </div>
+                        ))}
+                    </div>
+                </section>
+            )}
 
             <section className="portfolio-csv-grid">
                 <article className="portfolio-csv-card">

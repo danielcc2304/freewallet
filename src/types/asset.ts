@@ -20,4 +20,6 @@ export interface Asset {
     currency?: string;
     holdings?: AssetHolding[];
     isin?: string;
+    lastQuoteAt?: string;
+    quoteSource?: 'Finect' | 'Mercado';
 }

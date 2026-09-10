@@ -32,6 +32,25 @@
     color: var(--text-muted);
 }
 
+.dashboard__live-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.55rem;
+    padding: 0.3rem 0.6rem;
+    border: 1px solid var(--border-secondary);
+    border-radius: 999px;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.dashboard__live-status--active {
+    border-color: rgba(16, 185, 129, 0.35);
+    background: rgba(16, 185, 129, 0.08);
+    color: var(--accent-primary);
+}
+
 .dashboard__actions {
     display: flex;
     gap: var(--spacing-sm);

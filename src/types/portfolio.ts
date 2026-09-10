@@ -21,7 +21,7 @@ export interface PortfolioHistoryPoint {
     invested: number;
 }
 
-export type PortfolioTransactionType = 'buy' | 'edit' | 'delete';
+export type PortfolioTransactionType = 'buy' | 'sell' | 'edit' | 'delete';
 
 export interface PortfolioTransaction {
     id: string;

@@ -645,11 +645,11 @@ async function fetchApiModel(alias: string, signal?: AbortSignal): Promise<unkno
  * The public SPA transport can later be replaced by a backend transport while
  * keeping this function's return type and the calculator UI unchanged.
  */
-export async function getFundRelevance(isinValue: string, signal?: AbortSignal): Promise<FinectFundRelevance> {
+export async function getFundRelevance(isinValue: string, signal?: AbortSignal, forceRefresh = false): Promise<FinectFundRelevance> {
     const isin = normalizeIsin(isinValue);
     const cached = fundCache.get(isin);
 
-    if (cached && Date.now() - cached.timestamp < FINECT_CACHE_TTL_MS) {
+    if (!forceRefresh && cached && Date.now() - cached.timestamp < FINECT_CACHE_TTL_MS) {
         return cached.data;
     }
 

@@ -12,6 +12,30 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-11 - v4.0.0 - Portfolio conectado y seguimiento avanzado
+- Funcionalidad:
+  - Se amplía la importación del Excel para leer movimientos, objetivos, controles y datos diarios, incluyendo una plantilla demo con valores mockeados.
+  - Se incorporan al dashboard el estado de la cartera, analítica de rentabilidad, control de concentración, movimientos y objetivos.
+  - Se mejora el detalle de acciones y fondos con cotizaciones actualizadas, históricos de precio/participación, periodos seleccionables y medición de mejora o drawdown entre dos puntos.
+  - Se robustece la búsqueda de activos, la normalización de cotizaciones a euros y la selección de sugerencias al añadir una inversión.
+- Resumen:
+  - La versión `v4.0.0` convierte el portfolio basado en Excel en un panel de seguimiento más completo y resistente, manteniendo el Excel como fuente de importación y permitiendo avanzar hacia una cartera actualizada automáticamente.
+- Archivos:
+  - `public/plantilla-portfolio.xlsx`
+  - `src/components/dashboard/`
+  - `src/components/charts/PortfolioChart.tsx`
+  - `src/context/PortfolioContext.tsx`
+  - `src/pages/AddInvestment/`
+  - `src/pages/Dashboard/`
+  - `src/pages/PortfolioCsv/`
+  - `src/services/apiService.ts`
+  - `src/services/portfolioQuoteService.ts`
+  - `src/services/market/`
+  - `src/types/`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-08-30 - v3.10.1 - Refinamiento del panel editorial
 - Funcionalidad:
   - Se homogeneiza la cabecera pública de Noticias con el patrón visual de Portfolio.

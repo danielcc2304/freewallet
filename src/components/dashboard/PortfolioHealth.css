@@ -1,0 +1,31 @@
+.portfolio-health__grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.85rem;
+}
+
+.portfolio-health__item {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    align-items: center;
+    gap: 0.35rem 0.55rem;
+    padding: 1rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-primary);
+    background: var(--bg-tertiary);
+}
+
+.portfolio-health__item svg { color: var(--accent-primary); }
+.portfolio-health__item span { color: var(--text-muted); font-size: var(--font-size-xs); }
+.portfolio-health__item strong,
+.portfolio-health__item small { grid-column: 1 / -1; }
+.portfolio-health__item strong { color: var(--text-primary); font-size: 1.05rem; }
+.portfolio-health__item small { color: var(--text-secondary); }
+
+@media (max-width: 900px) {
+    .portfolio-health__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 540px) {
+    .portfolio-health__grid { grid-template-columns: 1fr; }
+}

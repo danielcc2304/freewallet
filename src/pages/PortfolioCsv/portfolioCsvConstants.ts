@@ -6,6 +6,9 @@ export const STORAGE_KEYS = {
     comparisonRaw: 'freewallet_portfolio_csv_comparison_raw',
     advancedRaw: 'freewallet_portfolio_csv_advanced_raw',
     dailyRaw: 'freewallet_portfolio_csv_daily_raw',
+    movementsRaw: 'freewallet_portfolio_csv_movements_raw',
+    objectivesRaw: 'freewallet_portfolio_csv_objectives_raw',
+    controlRaw: 'freewallet_portfolio_csv_control_raw',
     workbookFile: 'freewallet_portfolio_csv_workbook_file',
     updatedAt: 'freewallet_portfolio_csv_updated_at',
     categoryOverrides: 'freewallet_portfolio_csv_category_overrides',
@@ -91,6 +94,10 @@ export const DEFAULT_DAILY_CSV = `Fecha,Valor portfolio,Flujo neto,Retorno diari
 2026-03-11,9975,0,0.66%,Diario
 2026-03-12,9990,0,0.15%,Diario
 2026-03-13,10000,0,0.10%,Diario`;
+
+export const DEFAULT_MOVEMENTS_CSV = '';
+export const DEFAULT_OBJECTIVES_CSV = '';
+export const DEFAULT_CONTROL_CSV = '';
 
 export const PIE_COLORS = ['#10b981', '#3b82f6', '#8b5cf6', '#f59e0b', '#ef4444', '#06b6d4', '#a855f7', '#84cc16', '#64748b'];
 

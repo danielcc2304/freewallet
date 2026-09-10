@@ -73,9 +73,9 @@ export function buildProxyUrl(proxyConfig: ProxyConfig, url: string, forceRefres
     return `${proxyBase}${targetUrl}`;
 }
 
-export async function fetchFromProxy(proxyConfig: ProxyConfig, url: string, signal?: AbortSignal, forceRefresh = false) {
+export async function fetchFromProxy(proxyConfig: ProxyConfig, url: string, signal?: AbortSignal, forceRefresh = false, timeout = 10000) {
     const proxyUrl = buildProxyUrl(proxyConfig, url, forceRefresh);
-    const response = await axios.get(proxyUrl, { timeout: 10000, signal });
+    const response = await axios.get(proxyUrl, { timeout, signal });
 
     if (proxyConfig.type === 'json') {
         const data = response.data;
@@ -95,4 +95,23 @@ export async function fetchFromProxy(proxyConfig: ProxyConfig, url: string, sign
     }
 
     return response.data;
+}
+
+export async function fetchFromFastestProxy(url: string, signal?: AbortSignal): Promise<unknown> {
+    const candidates = CORS_PROXIES.slice(0, 4);
+    try {
+        return await Promise.any(candidates.map(async (proxy, index) => {
+            try {
+                const data = await fetchFromProxy(proxy, url, signal, index > 0, 4500);
+                if (data === undefined || data === null || data === '') throw new Error('Respuesta vacía');
+                return data;
+            } catch (error) {
+                markProxyFailure(proxy.url, error);
+                throw error;
+            }
+        }));
+    } catch (error) {
+        if (signal?.aborted) throw new axios.CanceledError('Solicitud cancelada');
+        throw error;
+    }
 }

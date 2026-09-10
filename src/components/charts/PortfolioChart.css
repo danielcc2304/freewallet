@@ -6,6 +6,22 @@
     padding-top: var(--spacing-md);
 }
 
+.portfolio-chart__empty {
+    min-height: 300px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    color: var(--text-secondary);
+    border: 1px dashed var(--border-primary);
+    border-radius: var(--radius-md);
+}
+
+.portfolio-chart__empty small {
+    color: var(--text-muted);
+}
+
 /* Period Selector */
 .period-selector {
     display: flex;

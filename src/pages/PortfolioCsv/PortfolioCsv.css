@@ -1,8 +1,130 @@
 .portfolio-csv-page {
-    max-width: 1200px;
+    width: 100%;
+    max-width: none;
     margin: 0 auto;
     padding: 0 0 3.5rem;
     animation: fadeIn var(--transition-base) ease-out;
+}
+
+.portfolio-csv-grid--workbook {
+    align-items: stretch;
+}
+
+.portfolio-csv-card__heading-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.portfolio-csv-card__heading-row h2,
+.portfolio-csv-card__heading-row p {
+    margin-top: 0;
+}
+
+.portfolio-csv-status {
+    flex: 0 0 auto;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid var(--border-secondary);
+    border-radius: 999px;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+}
+
+.portfolio-csv-status--ok {
+    border-color: rgba(16, 185, 129, 0.35);
+    background: rgba(16, 185, 129, 0.1);
+    color: #34d399;
+}
+
+.portfolio-csv-status--warn {
+    border-color: rgba(245, 158, 11, 0.4);
+    background: rgba(245, 158, 11, 0.1);
+    color: #fbbf24;
+}
+
+.portfolio-csv-workbook-controls,
+.portfolio-csv-objectives,
+.portfolio-csv-movements__list {
+    display: grid;
+    gap: 0.7rem;
+    margin-top: 1.1rem;
+}
+
+.portfolio-csv-workbook-control,
+.portfolio-csv-objective,
+.portfolio-csv-movements__list > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid var(--border-secondary);
+}
+
+.portfolio-csv-workbook-control span,
+.portfolio-csv-objective small,
+.portfolio-csv-movements__list small {
+    color: var(--text-muted);
+}
+
+.portfolio-csv-workbook-control--ok,
+.portfolio-csv-value--positive {
+    color: #34d399;
+}
+
+.portfolio-csv-workbook-control--warn,
+.portfolio-csv-value--negative {
+    color: #f87171;
+}
+
+.portfolio-csv-objective > div,
+.portfolio-csv-movements__list span {
+    display: grid;
+    gap: 0.2rem;
+}
+
+.portfolio-csv-objectives__total {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 0.25rem;
+}
+
+.portfolio-csv-movements {
+    margin-bottom: 1.25rem;
+}
+
+.portfolio-csv-movements__summary {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.portfolio-csv-movements__summary > div {
+    display: grid;
+    gap: 0.3rem;
+    padding: 0.85rem;
+    border: 1px solid var(--border-secondary);
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.portfolio-csv-movements__summary span {
+    color: var(--text-muted);
+    font-size: 0.78rem;
+}
+
+@media (max-width: 700px) {
+    .portfolio-csv-card__heading-row {
+        align-items: flex-start;
+    }
+
+    .portfolio-csv-movements__summary {
+        grid-template-columns: 1fr;
+    }
 }
 
 .portfolio-csv-hero {
@@ -46,7 +168,7 @@
 
 .portfolio-csv-upload {
     display: grid;
-    grid-template-columns: minmax(0, 720px);
+    grid-template-columns: minmax(0, 1fr);
     gap: 0.9rem;
     margin-bottom: 1rem;
 }

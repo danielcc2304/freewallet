@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import type { PointerEvent as ReactPointerEvent } from 'react';
 import {
     TrendingUp,
     TrendingDown,
@@ -6,7 +7,7 @@ import {
     Info,
     Clock,
     Activity,
-    DollarSign,
+    Coins,
     Percent,
     Layers,
     ArrowUpRight,
@@ -19,14 +20,23 @@ import {
     Tooltip,
     ResponsiveContainer,
     Area,
-    AreaChart
+    AreaChart,
+    ReferenceArea
 } from 'recharts';
 import { getAssetChartData, getFundamentalData } from '../../services/apiService';
+import { getFundRelevance } from '../../services/finect/finectService';
+import type { FinectFundRelevance, FinectMetricPoint } from '../../services/finect/finectService';
 import type { Asset, StockQuote, HistoricalDataPoint, TimePeriod } from '../../types/types';
 import './AssetDetail.css';
 
 interface AssetDetailProps {
     asset: Asset;
+    portfolioValue?: number;
+}
+
+interface ChartSelection {
+    start: number;
+    end: number;
 }
 
 const periods: { label: string; value: TimePeriod }[] = [
@@ -38,10 +48,125 @@ const periods: { label: string; value: TimePeriod }[] = [
     { label: 'Máx', value: 'ALL' },
 ];
 
-export function AssetDetail({ asset }: AssetDetailProps) {
+/**
+ * Finect exposes several performance families in the same response (for
+ * example accumulated and annualized). They are useful as metrics, but they
+ * are not points of the same series and drawing them together produces the
+ * large artificial spikes seen in the detail modal.
+ */
+function periodToMonths(period: string): number | null {
+    const normalized = period.trim().toUpperCase();
+    if (normalized === 'YTD' || normalized === 'M0') return 0;
+
+    const match = normalized.match(/^([DWMY])(\d+(?:[.,]\d+)?)$/);
+    if (!match) return null;
+
+    const amount = Number(match[2].replace(',', '.'));
+    if (!Number.isFinite(amount)) return null;
+    if (match[1] === 'D') return amount / 30;
+    if (match[1] === 'W') return amount / 4.345;
+    if (match[1] === 'Y') return amount * 12;
+    return amount;
+}
+
+function periodLimit(period: TimePeriod): number {
+    switch (period) {
+        case '1D': return 1 / 30;
+        case '7D': return 7 / 30;
+        case '1M': return 1;
+        case '3M': return 3;
+        case 'YTD': return 12;
+        default: return Number.POSITIVE_INFINITY;
+    }
+}
+
+function formatFundPeriod(period: string): string {
+    const normalized = period.trim().toUpperCase();
+    if (normalized === 'YTD' || normalized === 'M0') return 'YTD';
+
+    const months = periodToMonths(normalized);
+    if (months === null) return period;
+    if (normalized.startsWith('D')) return `${normalized.slice(1)}D`;
+    if (normalized.startsWith('W')) return `${normalized.slice(1)}S`;
+    if (months >= 12 && months % 12 === 0) return `${months / 12}A`;
+    return `${months}M`;
+}
+
+function buildFundChartPoints(
+    performance: FinectMetricPoint[],
+    selectedPeriod: TimePeriod,
+    currentPrice: number,
+): HistoricalDataPoint[] {
+    const valid = performance.filter((point) => Number.isFinite(point.value) && point.period.trim().length > 0);
+    const accumulated = valid.filter((point) => {
+        const type = point.type?.toLowerCase().trim();
+        return !type || type.includes('accumul') || type.includes('total');
+    });
+    const maxMonths = periodLimit(selectedPeriod);
+    const inRange = accumulated.filter((point) => {
+        const normalized = point.period.trim().toUpperCase();
+        const months = periodToMonths(normalized);
+        const isYtd = normalized === 'M0' || normalized === 'YTD';
+        if (selectedPeriod === 'YTD') return isYtd || normalized === 'D1' || normalized === 'W1';
+        if (selectedPeriod === 'ALL') return true;
+        return !isYtd && months !== null && months <= maxMonths;
+    });
+    const filtered = inRange.length > 0
+        ? inRange
+        : accumulated.filter((point) => point.period.trim().toUpperCase() === 'D1');
+
+    const unique = new Map<string, FinectMetricPoint>();
+    filtered.forEach((point) => {
+        const key = point.period.trim().toUpperCase();
+        const existing = unique.get(key);
+        if (!existing || (point.date && !existing.date)) unique.set(key, point);
+    });
+
+    // Finect gives accumulated returns, not a daily NAV series. Rebase each
+    // return against today's participation price so the chart has price units.
+    const historical = Array.from(unique.values())
+        .sort((left, right) => {
+            const leftMonths = periodToMonths(left.period);
+            const rightMonths = periodToMonths(right.period);
+            if (leftMonths !== null && rightMonths !== null && leftMonths !== rightMonths) return rightMonths - leftMonths;
+            return (left.date || left.period).localeCompare(right.date || right.period);
+        })
+        .map((point) => {
+            const price = currentPrice / (1 + point.value / 100);
+            return {
+                date: formatFundPeriod(point.period),
+                open: price,
+                high: price,
+                low: price,
+                close: price,
+                volume: 0,
+            };
+        });
+
+    if (Number.isFinite(currentPrice) && currentPrice > 0) {
+        historical.push({
+            date: 'Hoy',
+            open: currentPrice,
+            high: currentPrice,
+            low: currentPrice,
+            close: currentPrice,
+            volume: 0,
+        });
+    }
+
+    return historical;
+}
+
+export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
     const [quote, setQuote] = useState<Partial<StockQuote> | null>(null);
     const [chartData, setChartData] = useState<HistoricalDataPoint[]>([]);
     const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M');
+    const [fundData, setFundData] = useState<FinectFundRelevance | null>(null);
+    const [chartSelection, setChartSelection] = useState<ChartSelection | null>(null);
+    const [isSelecting, setIsSelecting] = useState(false);
+    const chartContainerRef = useRef<HTMLDivElement>(null);
+    const assetIsin = asset.isin || (/^[A-Z]{2}[A-Z0-9]{10}$/i.test(asset.symbol) ? asset.symbol : '');
+    const isFund = asset.type === 'fund' && !!assetIsin;
 
     // Independent loading states (Fix 16)
     const [loadingFundamentals, setLoadingFundamentals] = useState(true);
@@ -53,7 +178,22 @@ export function AssetDetail({ asset }: AssetDetailProps) {
         const controller = new AbortController();
         const fetchFundamentals = async () => {
             setLoadingFundamentals(true);
+            setFundData(null);
+            setQuote(null);
             try {
+                if (isFund) {
+                    const data = await getFundRelevance(assetIsin, controller.signal);
+                    if (!controller.signal.aborted) {
+                        setFundData(data);
+                        setQuote({
+                            price: data.lastQuote?.price,
+                            change: data.lastQuote?.change,
+                            changePercent: data.lastQuote?.percentChange,
+                            beta: data.statistics.beta?.[0]?.value,
+                        });
+                    }
+                    return;
+                }
                 const data = await getFundamentalData(asset.symbol, controller.signal);
                 if (!controller.signal.aborted) {
                     setQuote(data);
@@ -71,7 +211,7 @@ export function AssetDetail({ asset }: AssetDetailProps) {
 
         fetchFundamentals();
         return () => controller.abort();
-    }, [asset.symbol]);
+    }, [asset.symbol, assetIsin, isFund]);
 
     // Effect for Chart (runs on asset or period change)
     useEffect(() => {
@@ -79,6 +219,15 @@ export function AssetDetail({ asset }: AssetDetailProps) {
         const fetchChart = async () => {
             setLoadingChart(true);
             try {
+               if (isFund) {
+                    const points = buildFundChartPoints(
+                        fundData?.performance || [],
+                        selectedPeriod,
+                        fundData?.lastQuote?.price || asset.currentPrice || asset.purchasePrice,
+                    );
+                   if (!controller.signal.aborted) setChartData(points);
+                    return;
+                }
                 const data = await getAssetChartData(asset.symbol, selectedPeriod, controller.signal);
                 if (!controller.signal.aborted) {
                     setChartData(data);
@@ -96,7 +245,12 @@ export function AssetDetail({ asset }: AssetDetailProps) {
 
         fetchChart();
         return () => controller.abort();
-    }, [asset.symbol, selectedPeriod]);
+    }, [asset.symbol, fundData, isFund, selectedPeriod]);
+
+    useEffect(() => {
+        setChartSelection(null);
+        setIsSelecting(false);
+    }, [asset.symbol, isFund, selectedPeriod]);
 
     const formatValue = (value: number | undefined, type: 'currency' | 'percent' | 'number' | 'compact' = 'number') => {
         if (value === undefined || value === null) return 'N/A';
@@ -125,6 +279,11 @@ export function AssetDetail({ asset }: AssetDetailProps) {
 
     const priceChange = (asset.currentPrice || 0) - (asset.previousClose || 0);
     const priceChangePercent = asset.previousClose ? (priceChange / asset.previousClose) * 100 : 0;
+    const investedValue = asset.purchasePrice * asset.quantity;
+    const currentValue = (asset.currentPrice || asset.purchasePrice) * asset.quantity;
+    const positionGain = currentValue - investedValue;
+    const positionReturn = investedValue > 0 ? (positionGain / investedValue) * 100 : 0;
+    const portfolioWeight = portfolioValue > 0 ? (currentValue / portfolioValue) * 100 : 0;
 
     // Type-aware rendering (Fix 17)
     const getRelevance = (category: string) => {
@@ -139,7 +298,7 @@ export function AssetDetail({ asset }: AssetDetailProps) {
         { label: 'P/S Ratio', value: formatValue(quote?.ps), icon: <BarChart3 size={16} />, category: 'Valoración' },
         { label: 'P/B Ratio', value: formatValue(quote?.pb), icon: <Layers size={16} />, category: 'Valoración' },
         { label: 'Div. Yield', value: formatValue(quote?.dividendYield, 'percent'), icon: <Percent size={16} />, category: 'Dividendos' },
-        { label: 'Div. Rate', value: formatValue(quote?.dividendRate, 'currency'), icon: <DollarSign size={16} />, category: 'Dividendos' },
+        { label: 'Div. Rate', value: formatValue(quote?.dividendRate, 'currency'), icon: <Coins size={16} />, category: 'Dividendos' },
         { label: 'EBITDA', value: formatValue(quote?.ebitda, 'compact'), icon: <BarChart3 size={16} />, category: 'Resultados' },
         { label: 'EV/EBITDA', value: formatValue(quote?.evToEbitda), icon: <Activity size={16} />, category: 'Valoración' },
         { label: 'Crecim. Ingresos', value: formatValue(quote?.revenueGrowth, 'percent'), icon: <TrendingUp size={16} />, category: 'Resultados' },
@@ -147,13 +306,96 @@ export function AssetDetail({ asset }: AssetDetailProps) {
         { label: 'ROE', value: formatValue(quote?.roe, 'percent'), icon: <Activity size={16} />, category: 'Rentabilidad' },
         { label: 'Deuda/Capital', value: formatValue(quote?.debtToEquity), icon: <Layers size={16} />, category: 'Salud Financiera' },
         { label: 'Beta', value: formatValue(quote?.beta), icon: <Activity size={16} />, category: 'Riesgo' },
-        { label: 'EPS', value: formatValue(quote?.eps), icon: <DollarSign size={16} />, category: 'Resultados' },
+        { label: 'EPS', value: formatValue(quote?.eps), icon: <Coins size={16} />, category: 'Resultados' },
         { label: 'Max (52 sem)', value: formatValue(quote?.fiftyTwoWeekHigh, 'currency'), icon: <ArrowUpRight size={16} />, category: 'Técnico' },
         { label: 'Min (52 sem)', value: formatValue(quote?.fiftyTwoWeekLow, 'currency'), icon: <ArrowDownRight size={16} />, category: 'Técnico' },
     ].filter(item => getRelevance(item.category));
 
+    const fundMetricItems = [
+        { label: 'Categoría', value: fundData?.category || 'Fondo de inversión', icon: <Layers size={16} />, category: 'Fondo' },
+        { label: 'Gestora', value: fundData?.manager || 'N/D', icon: <Info size={16} />, category: 'Fondo' },
+        { label: 'ISIN', value: assetIsin || 'N/D', icon: <Activity size={16} />, category: 'Identificación' },
+        { label: 'Riesgo SRRI', value: fundData?.srri ? `${fundData.srri} / 7` : 'N/D', icon: <Activity size={16} />, category: 'Riesgo' },
+        { label: 'Gastos corrientes', value: fundData?.fees.ongoing !== undefined ? `${fundData.fees.ongoing.toFixed(2)}%` : 'N/D', icon: <Percent size={16} />, category: 'Costes' },
+        { label: 'TER', value: fundData?.fees.totalExpenseRatio !== undefined ? `${fundData.fees.totalExpenseRatio.toFixed(2)}%` : 'N/D', icon: <Percent size={16} />, category: 'Costes' },
+        { label: 'Inversión mínima', value: formatValue(fundData?.minimumInvestment, 'currency'), icon: <Coins size={16} />, category: 'Operativa' },
+        { label: 'Rating Morningstar', value: fundData?.morningstarRating ? `${fundData.morningstarRating} / 5` : 'N/D', icon: <Activity size={16} />, category: 'Calidad' },
+        { label: 'Patrimonio', value: formatValue(fundData?.totalNetAsset, 'compact'), icon: <BarChart3 size={16} />, category: 'Tamaño' },
+    ];
+
+    const visibleMetricItems = isFund ? fundMetricItems : metricItems.filter((item) => item.value !== 'N/A');
+    const canDrawChart = !loadingChart && chartData.length > 1;
+    const selectedStart = chartSelection ? chartData[chartSelection.start] : undefined;
+    const selectedEnd = chartSelection ? chartData[chartSelection.end] : undefined;
+    const selectedStartValue = selectedStart?.close;
+    const selectedEndValue = selectedEnd?.close;
+    const selectedChange = selectedStartValue !== undefined && selectedEndValue !== undefined && selectedStartValue !== 0
+        ? ((selectedEndValue - selectedStartValue) / Math.abs(selectedStartValue)) * 100
+        : null;
+    const selectionLeft = chartSelection ? Math.min(chartSelection.start, chartSelection.end) : null;
+    const selectionRight = chartSelection ? Math.max(chartSelection.start, chartSelection.end) : null;
+   const formatSelectionValue = (value: number | undefined) => {
+       if (value === undefined) return 'N/D';
+        return new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: asset.currency || 'EUR',
+            maximumFractionDigits: 2,
+        }).format(value);
+    };
+    const getChartIndexAtClientX = (clientX: number): number | null => {
+        const rect = chartContainerRef.current?.getBoundingClientRect();
+        if (!rect || chartData.length < 2) return null;
+
+        // Keep the pointer mapping inside the plot area (the chart reserves
+        // room for the Y axis and the right margin).
+        const plotLeft = Math.min(68, rect.width * 0.15);
+        const plotRight = Math.min(20, rect.width * 0.08);
+        const plotWidth = Math.max(rect.width - plotLeft - plotRight, 1);
+        const relativeX = Math.min(Math.max(clientX - rect.left - plotLeft, 0), plotWidth);
+        return Math.min(chartData.length - 1, Math.max(0, Math.round((relativeX / plotWidth) * (chartData.length - 1))));
+    };
+    const handlePointerStart = (event: ReactPointerEvent<HTMLDivElement>) => {
+        if (!canDrawChart) return;
+        event.preventDefault();
+        const index = getChartIndexAtClientX(event.clientX);
+        if (index === null) return;
+        event.currentTarget.setPointerCapture(event.pointerId);
+        setChartSelection({ start: index, end: index });
+        setIsSelecting(true);
+    };
+    const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+        if (!isSelecting) return;
+        const index = getChartIndexAtClientX(event.clientX);
+        if (index === null) return;
+        event.preventDefault();
+        setChartSelection((current) => current ? { ...current, end: index } : current);
+    };
+    const handlePointerEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
+        if (!isSelecting) return;
+        const index = getChartIndexAtClientX(event.clientX);
+        if (index !== null) {
+            setChartSelection((current) => current ? { ...current, end: index } : current);
+        }
+        if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+            event.currentTarget.releasePointerCapture(event.pointerId);
+        }
+        setIsSelecting(false);
+    };
+    const formatChartTick = (value: string) => {
+        if (isFund || selectedPeriod === '1D' || value.includes(':')) return value;
+        const parsed = new Date(value);
+        return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
+    };
+    const formatChartAxisValue = (value: number) => isFund
+        ? new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: asset.currency || 'EUR',
+            maximumFractionDigits: 2,
+        }).format(value)
+        : new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 }).format(value);
+
     return (
-        <div className="asset-detail">
+        <div className={`asset-detail ${isFund ? 'asset-detail--fund' : ''}`}>
             {/* Header info - Always visible (from props) */}
             <div className="asset-detail__header">
                 <div className="asset-detail__title-group">
@@ -171,12 +413,23 @@ export function AssetDetail({ asset }: AssetDetailProps) {
                 </div>
             </div>
 
+            <div className="asset-detail__position-grid">
+                <div><span>Cantidad</span><strong>{formatValue(asset.quantity)}</strong></div>
+                <div><span>Precio medio</span><strong>{formatValue(asset.purchasePrice, 'currency')}</strong></div>
+                <div><span>Capital invertido</span><strong>{formatValue(investedValue, 'currency')}</strong></div>
+                <div><span>Valor actual</span><strong>{formatValue(currentValue, 'currency')}</strong></div>
+                <div><span>Resultado</span><strong className={positionGain >= 0 ? 'positive' : 'negative'}>{formatValue(positionGain, 'currency')}</strong></div>
+                <div><span>Rentabilidad</span><strong className={positionReturn >= 0 ? 'positive' : 'negative'}>{formatValue(positionReturn, 'percent')}</strong></div>
+                <div><span>Peso en cartera</span><strong>{portfolioWeight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong></div>
+                <div><span>Última actualización</span><strong>{asset.lastQuoteAt ? new Date(asset.lastQuoteAt).toLocaleString('es-ES') : 'Pendiente'}</strong></div>
+            </div>
+
             {/* Chart Section */}
             <div className="asset-detail__chart-section">
                 <div className="asset-detail__chart-header">
                     <div className="asset-detail__chart-title">
                         <TrendingUp size={18} />
-                        Histórico de Precio
+                        {isFund ? 'Precio de participación' : 'Histórico de precio'}
                     </div>
                     <div className="asset-detail__period-selector">
                         {periods.map((p) => (
@@ -191,16 +444,26 @@ export function AssetDetail({ asset }: AssetDetailProps) {
                     </div>
                 </div>
 
-                <div className="asset-detail__chart-container">
-                    {loadingChart && <div className="chart-overlay"><div className="spinner-sm" /></div>}
-                    {!loadingChart && chartData.length === 0 && (
+                <div
+                    ref={chartContainerRef}
+                    className="asset-detail__chart-container"
+                    onPointerDown={handlePointerStart}
+                    onPointerMove={handlePointerMove}
+                    onPointerUp={handlePointerEnd}
+                    onPointerCancel={handlePointerEnd}
+                >
+                    {loadingChart && <div className="chart-overlay"><div className="spinner-sm" /><span>Preparando histórico…</span></div>}
+                    {!loadingChart && chartData.length < 2 && (
                         <div className="chart-overlay error-state">
-                            <p>Datos históricos no disponibles temporalmente.</p>
-                            <small>Problema de conexión con Yahoo Finance</small>
+                            <p>{chartData.length === 1 ? 'Recopilando datos del histórico…' : 'Datos históricos no disponibles temporalmente.'}</p>
+                            <small>{chartData.length === 1 ? 'Necesitamos al menos dos cotizaciones para dibujar la evolución.' : isFund ? 'Finect no ha devuelto una serie histórica' : 'No se ha podido consultar el proveedor de mercado'}</small>
                         </div>
                     )}
-                    <ResponsiveContainer width="100%" height={260}>
-                        <AreaChart data={chartData}>
+                    {canDrawChart && <ResponsiveContainer width="100%" height={240}>
+                        <AreaChart
+                            data={chartData}
+                            margin={{ top: 10, right: 18, left: 12, bottom: 4 }}
+                        >
                             <defs>
                                 <linearGradient id="assetColor" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.3} />
@@ -211,13 +474,19 @@ export function AssetDetail({ asset }: AssetDetailProps) {
                             <XAxis
                                 dataKey="date"
                                 stroke="#71717a"
-                                fontSize={10}
-                                tickLine={false}
-                                axisLine={false}
-                                hide={selectedPeriod === '1D'}
+                                fontSize={11}
+                                tickLine={{ stroke: '#52525b' }}
+                                axisLine={{ stroke: '#52525b' }}
+                                tickFormatter={formatChartTick}
+                                minTickGap={28}
                             />
                             <YAxis
-                                hide
+                                stroke="#71717a"
+                                fontSize={11}
+                                tickLine={{ stroke: '#52525b' }}
+                                axisLine={{ stroke: '#52525b' }}
+                                tickFormatter={formatChartAxisValue}
+                                width={64}
                                 domain={['auto', 'auto']}
                             />
                             <Tooltip
@@ -229,13 +498,23 @@ export function AssetDetail({ asset }: AssetDetailProps) {
                                 }}
                                 itemStyle={{ color: 'var(--accent-primary)' }}
                                 labelStyle={{ marginBottom: '4px', fontWeight: 'bold' }}
-                                formatter={(value: any) => [
-                                    value !== undefined && value !== null
-                                        ? new Intl.NumberFormat('es-ES', { maximumFractionDigits: 3 }).format(value)
-                                        : 'N/A',
-                                    'Precio'
+                               formatter={(value: any) => [
+                                   value !== undefined && value !== null
+                                        ? formatSelectionValue(Number(value))
+                                       : 'N/A',
+                                    isFund ? 'Precio participación' : 'Precio'
                                 ]}
                             />
+                            {selectionLeft !== null && selectionRight !== null && selectionLeft !== selectionRight && (
+                                <ReferenceArea
+                                    x1={chartData[selectionLeft]?.date}
+                                    x2={chartData[selectionRight]?.date}
+                                    fill="var(--accent-primary)"
+                                    fillOpacity={0.12}
+                                    stroke="var(--accent-primary)"
+                                    strokeOpacity={0.45}
+                                />
+                            )}
                             <Area
                                 type="monotone"
                                 dataKey="close"
@@ -246,9 +525,31 @@ export function AssetDetail({ asset }: AssetDetailProps) {
                                 isAnimationActive={false}
                             />
                         </AreaChart>
-                    </ResponsiveContainer>
+                    </ResponsiveContainer>}
                 </div>
-            </div>
+                {canDrawChart && (
+                    <div className={`asset-detail__chart-selection ${selectedChange !== null ? (selectedChange >= 0 ? 'positive' : 'negative') : ''}`}>
+                        {selectedChange !== null && selectedStart && selectedEnd ? (
+                            <>
+                                <strong>{selectedChange >= 0 ? 'Mejora' : 'Drawdown'} {selectedChange >= 0 ? '+' : ''}{selectedChange.toFixed(2)}%</strong>
+                                <span>{selectedStart.date} ({formatSelectionValue(selectedStartValue)}) → {selectedEnd.date} ({formatSelectionValue(selectedEndValue)})</span>
+                                <button type="button" onClick={() => setChartSelection(null)} aria-label="Limpiar selección">Limpiar</button>
+                            </>
+                        ) : (
+                            <span>Arrastra sobre la gráfica para medir la mejora o el drawdown entre dos puntos.</span>
+                        )}
+                    </div>
+                )}
+                <div className="asset-detail__chart-legend">
+                    <span><i className="asset-detail__legend-line" /> {isFund ? 'Precio participación' : 'Precio'}</span>
+                    <span className="asset-detail__chart-axis-hint">Eje vertical: {asset.currency || 'EUR'} · Eje horizontal: {isFund ? 'horizonte' : 'fecha'}</span>
+                </div>
+               {isFund && (
+                   <p className="asset-detail__chart-source">
+                       Histórico estimado con el valor liquidativo actual y las rentabilidades acumuladas publicadas por Finect.
+                   </p>
+               )}
+           </div>
 
             {/* Metrics Grid */}
             <div className="asset-detail__metrics-section">
@@ -263,7 +564,10 @@ export function AssetDetail({ asset }: AssetDetailProps) {
                     </div>
                 ) : (
                     <div className="metrics-grid">
-                        {metricItems.map((item, idx) => (
+                        {visibleMetricItems.length === 0 && (
+                            <div className="metrics-empty">La posición está disponible arriba. Los datos de mercado ampliados no están disponibles temporalmente.</div>
+                        )}
+                        {visibleMetricItems.map((item, idx) => (
                             <div key={idx} className="metric-card">
                                 <div className="metric-card__header">
                                     <span className="metric-card__icon">{item.icon}</span>

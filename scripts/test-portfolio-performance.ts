@@ -33,7 +33,7 @@ const backdatedHistory = buildPortfolioAnalyticsHistory([
     { date: '2026-01-01T18:00:00Z', value: 100, invested: 100 },
     { date: '2026-01-03T18:00:00Z', value: 200, invested: 200 },
 ], [backdatedTrade]);
-assert.equal(backdatedHistory[0].date.slice(0, 10), '2026-01-02', 'The live history starts on the entered operation date');
+assert.ok(backdatedHistory.some((point) => point.date.slice(0, 10) === '2026-01-02'), 'The live history keeps a baseline on the entered operation date');
 assert.equal(performanceSeries([
     { date: '2026-01-01T18:00:00Z', value: 100, invested: 100 },
     { date: '2026-01-03T18:00:00Z', value: 200, invested: 200 },
@@ -129,4 +129,14 @@ assert.equal(performanceSeries([
     { date: '2026-02-12', value: 100, invested: 100 },
     { date: '2026-09-11', value: 140, invested: 100 },
 ], [])[1].dailyReturn, null, 'A long valuation gap must not become a monthly return');
+const existingAsset = { id: 'existing', symbol: 'OLD', name: 'Existing', type: 'stock' as const, purchasePrice: 100, purchaseDate: '2026-01-01', quantity: 1, currentPrice: 100, currency: 'EUR' as const };
+const addedAsset = { id: 'added', symbol: 'NEW', name: 'Added', type: 'fund' as const, purchasePrice: 10, purchaseDate: '2026-01-02', quantity: 1, currentPrice: 15, currency: 'EUR' as const };
+const operationDay = [{ ...trade('buy', 10, '2026-01-02'), assetId: addedAsset.id, assetSymbol: addedAsset.symbol, assetName: addedAsset.name, assetType: addedAsset.type, quantity: 1 }];
+const operationSeries = performanceSeries([
+    { date: '2026-01-01', value: 100, invested: 100 },
+    { date: '2026-01-02T00:00:00.000Z', value: 110, invested: 110 },
+    { date: '2026-01-02T18:00:00Z', value: 115, invested: 110 },
+], operationDay, [existingAsset, addedAsset]);
+assert.equal(operationSeries.at(-2)?.dailyReturn, 0, 'The dated purchase baseline has no return');
+assert.equal(operationSeries.at(-1)?.dailyReturn, 0, 'The first quote after a same-day purchase has no return');
 console.log('Portfolio performance tests passed');

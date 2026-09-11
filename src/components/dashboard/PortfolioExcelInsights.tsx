@@ -211,7 +211,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         : null;
 
     const historyYears = validMonthly.length > 1
-        ? Math.max(1 / 12, (new Date(`${validMonthly.at(-1)!.month}-01T00:00:00Z`).getTime() - new Date(`${validMonthly[0].month}-01T00:00:00Z`).getTime()) / (365.25 * 24 * 60 * 60 * 1000))
+        ? Math.max(1 / 12, ((Number(validMonthly.at(-1)!.month.slice(0, 4)) - Number(validMonthly[0].month.slice(0, 4))) * 12 + Number(validMonthly.at(-1)!.month.slice(5, 7)) - Number(validMonthly[0].month.slice(5, 7))) / 12)
         : null;
     let wealth = 1;
     let peak = 1;

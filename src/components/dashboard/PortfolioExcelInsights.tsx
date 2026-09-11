@@ -35,7 +35,7 @@ import { Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory } from '../../services/storageService';
 import { getAssetChartData } from '../../services/apiService';
-import { performanceSeries } from '../../services/portfolioPerformance';
+import { buildPortfolioAnalyticsHistory, performanceSeries } from '../../services/portfolioPerformance';
 import type { HistoricalDataPoint } from '../../types/types';
 import './PortfolioExcelInsights.css';
 
@@ -59,6 +59,10 @@ const tooltipTheme = {
     },
     labelStyle: { color: 'var(--text-primary)' },
 };
+
+const formatAxisCurrency = (value: number) => value >= 1000
+    ? `${Math.round(value / 1000)}k`
+    : `${Math.round(value)} €`;
 
 const evolutionPeriods: Array<{ value: EvolutionPeriod; label: string }> = [
     { value: '1D', label: '1D' },
@@ -107,11 +111,13 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
     }, [lastPriceUpdate]);
 
     const history = useMemo(() => {
-        const stored = getHistory();
-        return stored.length || !assets.length
-            ? stored
-            : [{ date: new Date(now).toISOString(), value: totalValue, invested: investedValue }];
-    }, [assets.length, investedValue, now, totalValue]);
+        const currentSnapshot = {
+            date: new Date(now).toISOString(),
+            value: totalValue,
+            invested: investedValue,
+        };
+        return buildPortfolioAnalyticsHistory(getHistory(), transactions, currentSnapshot);
+    }, [investedValue, now, totalValue, transactions]);
     const series = useMemo(() => performanceSeries(history, transactions), [history, transactions]);
 
     const monthly = useMemo(() => {
@@ -123,10 +129,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
             observations: number;
             drawdown: number;
         }>();
-        let peak = 100;
-
         series.forEach((point) => {
-            peak = Math.max(peak, point.index);
             const month = point.date.slice(0, 7);
             const current = rows.get(month) || {
                 month,
@@ -138,7 +141,6 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
             };
             current.value = point.value;
             current.invested = point.invested;
-            current.drawdown = Math.min(current.drawdown, point.index / peak * 100 - 100);
             if (point.dailyReturn !== null) {
                 current.factor *= 1 + point.dailyReturn / 100;
                 current.observations += 1;
@@ -146,49 +148,73 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
             rows.set(month, current);
         });
 
-        return [...rows.values()].map((row) => ({
-            ...row,
-            monthlyReturn: (row.factor - 1) * 100,
-        }));
+        let wealth = 1;
+        let peak = 1;
+        return [...rows.values()].map((row) => {
+            const monthlyReturn = (row.factor - 1) * 100;
+            if (row.observations > 0) wealth *= 1 + monthlyReturn / 100;
+            peak = Math.max(peak, wealth);
+            return {
+                ...row,
+                monthlyReturn,
+                drawdown: peak > 0 ? (wealth / peak - 1) * 100 : 0,
+            };
+        });
     }, [series]);
 
-    const returns = series
+    const dailyReturns = series
         .map((point) => point.dailyReturn)
         .filter((value): value is number => value !== null && Number.isFinite(value));
-    const mean = returns.length ? returns.reduce((sum, value) => sum + value, 0) / returns.length : 0;
-    const variance = returns.length > 1
-        ? returns.reduce((sum, value) => sum + (value - mean) ** 2, 0) / (returns.length - 1)
-        : 0;
-    const downside = returns.filter((value) => value < 0);
+    const monthlyReturns = monthly
+        .filter((row) => row.observations > 0)
+        .map((row) => row.monthlyReturn)
+        .filter((value) => Number.isFinite(value));
+    const monthlyMean = monthlyReturns.length
+        ? monthlyReturns.reduce((sum, value) => sum + value, 0) / monthlyReturns.length
+        : null;
+    const monthlyVolatility = monthlyReturns.length > 1
+        ? Math.sqrt(monthlyReturns.reduce((sum, value) => sum + (value - monthlyMean!) ** 2, 0) / (monthlyReturns.length - 1))
+        : null;
+    // The live dashboard has no imported €STR series, so it follows the Excel
+    // fallback of a 0% annual risk-free rate until one is available.
+    const monthlyRiskFreePct = 0;
+    const excessMonthlyReturns = monthlyReturns.map((value) => value - monthlyRiskFreePct);
+    const meanExcess = excessMonthlyReturns.length
+        ? excessMonthlyReturns.reduce((sum, value) => sum + value, 0) / excessMonthlyReturns.length
+        : null;
+    const downside = excessMonthlyReturns.filter((value) => value < 0);
     const downsideDeviation = downside.length
         ? Math.sqrt(downside.reduce((sum, value) => sum + value ** 2, 0) / downside.length)
-        : 0;
-    const volatility = returns.length > 1 ? Math.sqrt(variance) * Math.sqrt(252) : null;
-    const sharpe = variance > 0 ? mean / Math.sqrt(variance) * Math.sqrt(252) : null;
-    const sortino = downsideDeviation > 0 ? mean / downsideDeviation * Math.sqrt(252) : null;
+        : null;
+    const volatility = monthlyVolatility === null ? null : monthlyVolatility * Math.sqrt(12);
+    const sharpe = meanExcess !== null && monthlyVolatility
+        ? meanExcess / monthlyVolatility * Math.sqrt(12)
+        : null;
+    const sortino = meanExcess !== null && downsideDeviation
+        ? meanExcess / downsideDeviation * Math.sqrt(12)
+        : null;
 
-    let peak = 0;
+    let wealth = 1;
+    let peak = 1;
     let maxDrawdown = 0;
-    series.forEach((point) => {
-        peak = Math.max(peak, point.index);
-        if (peak > 0) maxDrawdown = Math.min(maxDrawdown, (point.index / peak - 1) * 100);
+    monthlyReturns.forEach((value) => {
+        wealth *= 1 + value / 100;
+        peak = Math.max(peak, wealth);
+        if (peak > 0) maxDrawdown = Math.min(maxDrawdown, (wealth / peak - 1) * 100);
     });
-    const firstDate = series[0] ? new Date(series[0].date).getTime() : 0;
-    const years = firstDate
-        ? Math.max((now - firstDate) / (365.25 * 24 * 60 * 60 * 1000), 1 / 365.25)
-        : 0;
-    const annualized = years >= 1
-        ? ((Math.pow((series.at(-1)?.index || 100) / 100, 1 / years) - 1) * 100)
+    const annualized = monthlyReturns.length
+        ? ((monthlyReturns.reduce((growth, value) => growth * (1 + value / 100), 1) ** (12 / monthlyReturns.length) - 1) * 100)
         : null;
-    const positiveDays = returns.length ? returns.filter((value) => value > 0).length / returns.length * 100 : null;
+    const positiveDays = dailyReturns.length ? dailyReturns.filter((value) => value > 0).length / dailyReturns.length * 100 : null;
     const currentReturn = investedValue > 0 ? (totalValue / investedValue - 1) * 100 : 0;
-    const bestMonth = monthly.length
-        ? monthly.reduce((best, row) => row.monthlyReturn > best.monthlyReturn ? row : best)
+    const validMonthly = monthly.filter((row) => row.observations > 0);
+    const bestMonth = validMonthly.length
+        ? validMonthly.reduce((best, row) => row.monthlyReturn > best.monthlyReturn ? row : best)
         : null;
-    const worstMonth = monthly.length
-        ? monthly.reduce((worst, row) => row.monthlyReturn < worst.monthlyReturn ? row : worst)
+    const worstMonth = validMonthly.length
+        ? validMonthly.reduce((worst, row) => row.monthlyReturn < worst.monthlyReturn ? row : worst)
         : null;
-    const negativeMonths = monthly.filter((row) => row.monthlyReturn < 0).length;
+    const negativeMonths = validMonthly.filter((row) => row.monthlyReturn < 0).length;
     const stale = assets.filter((asset) => {
         if (!asset.lastQuoteAt) return true;
         return now - new Date(asset.lastQuoteAt).getTime() > QUOTE_WINDOW_MS;
@@ -278,7 +304,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         { label: 'Rentabilidad anualizada', value: percent(annualized), detail: 'Mínimo 1 año', icon: <Gauge size={17} /> },
         { label: 'Volatilidad anualizada', value: percent(volatility), detail: 'Riesgo estimado', icon: <BarChart3 size={17} /> },
         { label: 'Máximo drawdown', value: series.length > 1 ? percent(maxDrawdown) : 'N/D', detail: 'Caída desde máximos', icon: <ArrowDownRight size={17} />, tone: 'is-negative' },
-        { label: 'Días positivos', value: percent(positiveDays), detail: `${returns.length} intervalos válidos`, icon: <ShieldCheck size={17} /> },
+        { label: 'Días positivos', value: percent(positiveDays), detail: `${dailyReturns.length} intervalos válidos`, icon: <ShieldCheck size={17} /> },
         { label: 'Ratio Sharpe', value: sharpe === null ? 'N/D' : sharpe.toFixed(2), detail: 'Retorno / riesgo', icon: <Gauge size={17} /> },
         { label: 'Ratio Sortino', value: sortino === null ? 'N/D' : sortino.toFixed(2), detail: 'Riesgo bajista', icon: <Gauge size={17} /> },
         { label: 'Mejor mes', value: percent(bestMonth?.monthlyReturn), detail: bestMonth?.month || 'Sin histórico', icon: <ArrowUpRight size={17} />, tone: 'is-positive' },
@@ -362,8 +388,8 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
-                                    <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} minTickGap={28} />
-                                    <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => Math.round(value / 1000) + 'k'} width={42} />
+                                    <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
+                                    <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={formatAxisCurrency} width={48} />
                                     <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined, name?: string) => [currency(Number(value || 0)), name === 'value' ? 'Valor actual' : 'Capital invertido']} />
                                     <Legend formatter={(value) => value === 'value' ? 'Valor actual' : 'Capital invertido'} />
                                     <Area type="monotone" dataKey="value" stroke="#10b981" fill="url(#liveValueFill)" strokeWidth={2} />
@@ -381,25 +407,25 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                         <div className="portfolio-excel-insights__panel-heading">
                             <div>
                                 <h3><BarChart3 size={16} /> Comparativa automática</h3>
-                                <p>Tu cartera frente a URTH como proxy del MSCI World, usando datos vivos del mercado.</p>
+                                <p>Tu cartera frente al MSCI World (URTH), usando datos vivos del mercado.</p>
                             </div>
                             <strong>{benchmark.length} puntos</strong>
                         </div>
                         <div className="portfolio-excel-insights__benchmark-kpis">
                             <div><span>Tu cartera</span><strong>{percent(portfolioBenchmarkReturn)}</strong></div>
-                            <div><span>MSCI World proxy</span><strong>{percent(benchmarkReturn)}</strong></div>
+                            <div><span>MSCI World</span><strong>{percent(benchmarkReturn)}</strong></div>
                             <div><span>Diferencia</span><strong className={benchmarkReturn !== null && portfolioBenchmarkReturn - benchmarkReturn >= 0 ? 'is-positive' : 'is-negative'}>{benchmarkReturn === null ? 'N/D' : percent(portfolioBenchmarkReturn - benchmarkReturn)}</strong></div>
                         </div>
                         {benchmarkLine.length > 1 ? (
                             <ResponsiveContainer width="100%" height={230}>
                                 <LineChart data={benchmarkLine} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
-                                    <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} minTickGap={28} />
+                                    <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
                                     <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
-                                    <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined, name?: string) => [percent(Number(value || 0)), name === 'portfolio' ? 'Tu cartera' : 'MSCI World proxy']} />
-                                    <Legend formatter={(value) => value === 'portfolio' ? 'Tu cartera' : 'MSCI World proxy'} />
+                                    <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined, name?: string) => [percent(Number(value || 0)), name === 'portfolio' ? 'Tu cartera' : 'MSCI World']} />
+                                    <Legend />
                                     {hasPortfolioBenchmark && <Line type="monotone" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} connectNulls />}
-                                    <Line type="monotone" dataKey="benchmark" name="MSCI World proxy" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                                    <Line type="monotone" dataKey="benchmark" name="MSCI World" stroke="#3b82f6" strokeWidth={2} dot={false} />
                                 </LineChart>
                             </ResponsiveContainer>
                         ) : (
@@ -440,7 +466,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                         <div className="portfolio-excel-insights__panel-heading">
                             <div>
                                 <h3><AlertTriangle size={16} /> Riesgo y consistencia</h3>
-                                <p>Calculado con los retornos de tus snapshots y operaciones registradas.</p>
+                                <p>Retornos mensuales, desviación muestral y 0% de libre de riesgo hasta disponer de €STR.</p>
                             </div>
                             <strong>{monthly.length} meses</strong>
                         </div>

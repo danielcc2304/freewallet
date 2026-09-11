@@ -7,6 +7,10 @@
 .portfolio-excel-insights__kpis .is-positive, .portfolio-excel-insights__control-row .is-ok { color: var(--color-positive); }
 .portfolio-excel-insights__kpis .is-negative, .portfolio-excel-insights__control-row .is-warn { color: var(--color-negative); }
 .portfolio-excel-insights__kpis .is-warning { color: var(--color-warning); }
+.portfolio-excel-insights__benchmark-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; margin: 1rem 0; }
+.portfolio-excel-insights__benchmark-kpis > div { display: grid; gap: .3rem; padding: .75rem; border: 1px solid var(--border-primary); border-radius: 9px; background: var(--bg-tertiary); }
+.portfolio-excel-insights__benchmark-kpis span { color: var(--text-muted); font-size: .72rem; }
+.portfolio-excel-insights__benchmark-kpis strong { color: var(--text-primary); font-size: .95rem; }
 .portfolio-excel-insights__tabs { display: flex; flex-wrap: wrap; gap: .35rem; margin: 1rem 0; padding: .3rem; border-radius: 10px; background: var(--bg-tertiary); }
 .portfolio-excel-insights__tabs button { display: inline-flex; align-items: center; gap: .35rem; border: 0; border-radius: 7px; padding: .45rem .7rem; background: transparent; color: var(--text-muted); cursor: pointer; font-size: .76rem; }
 .portfolio-excel-insights__tabs button:hover, .portfolio-excel-insights__tabs button.is-active { background: var(--accent-primary); color: white; }
@@ -27,6 +31,12 @@
 .portfolio-excel-insights__control-row strong, .portfolio-excel-insights__objective-row b, .portfolio-excel-insights__movement-row strong { color: var(--text-primary); white-space: nowrap; }
 .portfolio-excel-insights__objective-row span, .portfolio-excel-insights__movement-row span { display: grid; gap: .15rem; min-width: 0; }
 .portfolio-excel-insights__objective-row small, .portfolio-excel-insights__movement-row small { color: var(--text-muted); overflow-wrap: anywhere; }
+.portfolio-excel-insights__leader-row { display: flex; justify-content: space-between; gap: .75rem; padding: .7rem 0; border-top: 1px solid var(--border-primary); }
+.portfolio-excel-insights__leader-row span { display: grid; gap: .15rem; min-width: 0; }
+.portfolio-excel-insights__leader-row strong { color: var(--accent-primary); }
+.portfolio-excel-insights__leader-row small { color: var(--text-muted); overflow-wrap: anywhere; }
+.portfolio-excel-insights__leader-row b { color: var(--text-primary); white-space: nowrap; }
+.portfolio-excel-insights__live-status { display: flex; align-items: center; gap: .5rem; margin-top: .8rem; padding: .7rem; border-radius: 8px; background: rgba(16,185,129,.08); color: var(--color-positive); font-size: .75rem; }
 .portfolio-excel-insights__footnote { margin: .9rem 0 0; color: var(--text-muted); font-size: .7rem; }
 @media (max-width: 1000px) { .portfolio-excel-insights__kpis { grid-template-columns: repeat(3, minmax(0, 1fr)); } .portfolio-excel-insights__controls { grid-template-columns: 1fr 1fr; } .portfolio-excel-insights__stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-@media (max-width: 680px) { .portfolio-excel-insights__kpis, .portfolio-excel-insights__allocation, .portfolio-excel-insights__controls { grid-template-columns: 1fr; } .portfolio-excel-insights__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .portfolio-excel-insights__panel-heading { display: grid; } }
+@media (max-width: 680px) { .portfolio-excel-insights__kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .portfolio-excel-insights__allocation, .portfolio-excel-insights__controls { grid-template-columns: 1fr; } .portfolio-excel-insights__benchmark-kpis { grid-template-columns: 1fr; } .portfolio-excel-insights__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .portfolio-excel-insights__panel-heading { display: grid; } }

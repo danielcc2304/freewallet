@@ -67,6 +67,10 @@
 .performers__symbol {
     font-weight: 600;
     color: var(--text-primary);
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .performers__name {
@@ -89,6 +93,9 @@
 .performers__change {
     font-weight: 600;
     font-size: var(--font-size-sm);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .performers__change--best {
@@ -113,4 +120,19 @@
     text-align: center;
     color: var(--text-muted);
     padding: var(--spacing-lg);
+}
+
+@media (max-width: 540px) {
+    .performers__item {
+        gap: .6rem;
+        padding: .6rem;
+    }
+
+    .performers__data {
+        max-width: 45%;
+    }
+
+    .performers__change {
+        font-size: .78rem;
+    }
 }

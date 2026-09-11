@@ -28,6 +28,13 @@ try {
         ]));
     });
     await page.goto('http://127.0.0.1:5181/', { waitUntil: 'networkidle2' });
+    await page.waitForSelector('.portfolio-excel-insights');
+    const insightTabs = await page.$$eval('.portfolio-excel-insights__tabs button', buttons => buttons.map(button => button.textContent));
+    assert.deepEqual(insightTabs, ['Evolución', 'Benchmark', 'Asignación', 'Riesgo', 'Controles']);
+    await page.click('.portfolio-excel-insights__tabs button:nth-child(2)');
+    await page.waitForSelector('.portfolio-excel-insights__panel .recharts-wrapper');
+    await page.click('.portfolio-excel-insights__tabs button:nth-child(5)');
+    assert.ok((await page.$eval('.portfolio-excel-insights', element => element.textContent || '')).includes('Checks automáticos'));
     await page.click('.assets-table__table tbody tr');
     await page.waitForSelector('.asset-detail');
     await page.waitForFunction(() => document.querySelector('.asset-detail__chart-container .recharts-wrapper'), { timeout: 25000 });

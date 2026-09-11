@@ -12,6 +12,19 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-11 - Dashboard: lectura visual del Excel
+- Funcionalidad:
+  - Se añade una lectura tabulada del Excel en el dashboard con evolución, comparativa contra MSCI World, asignación por categorías y buckets, mapa de riesgo mensual y controles importados.
+  - Se sincronizan objetivos, movimientos, estadísticas avanzadas y fecha de importación en una misma vista compacta.
+  - Se elimina la variación aleatoria del desglose interno de fondos para que la visualización sea reproducible.
+- Resumen:
+  - El dashboard mantiene el seguimiento automático de precios y ahora permite consultar también las series históricas y controles del portfolio sin saltar de sección.
+- Archivos:
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `src/components/dashboard/PortfolioExcelInsights.css`
+  - `src/components/dashboard/PortfolioComposition.tsx`
+  - `src/pages/Dashboard/Dashboard.tsx`
+
 ### 2026-09-11 - v5.0.0 - Dashboard de cartera autónomo y detalle completo de fondos
 - Funcionalidad:
   - Se recuperan las cotizaciones de acciones en producción mediante rutas proxy propias y se protege la búsqueda frente a respuestas tardías.

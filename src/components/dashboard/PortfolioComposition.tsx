@@ -45,8 +45,8 @@ export function PortfolioComposition({ assets }: PortfolioCompositionProps) {
             name: holding.name,
             value: currentValue * (holding.percentage / 100),
             weight: holding.percentage,
-            change: (Math.random() - 0.5) * 10, // Simulated
-            changePercent: (Math.random() - 0.5) * 10, // Simulated
+            change: currentValue * (holding.percentage / 100) * (changePercent / 100),
+            changePercent,
         }));
 
         return {

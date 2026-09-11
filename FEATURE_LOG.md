@@ -12,6 +12,25 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-12 - v5.0.8 - Fórmulas del Excel y rentabilidad por periodo
+- Funcionalidad:
+  - Se replica la metodología de `Estadísticas avanzadas` para meses cerrados, libre de riesgo, Sharpe, Sortino, volatilidad, anualización y drawdown.
+  - Se evita mostrar la ganancia acumulada como `Cambio hoy` cuando no existe un cierre diario verificable y se amplía la retención del histórico a cinco años.
+  - El detalle de cada activo muestra la rentabilidad del horizonte seleccionado y permite medir upside/drawdown con dos dedos en móvil, incluyendo el primer punto de la gráfica.
+- Resumen:
+  - El dashboard queda alineado con las fórmulas comprobadas del workbook y las gráficas de acciones y fondos muestran periodos y variaciones más fiables.
+- Archivos:
+  - `src/components/dashboard/AssetDetail.tsx`
+  - `src/components/dashboard/AssetDetail.css`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/services/portfolioPerformance.ts`
+  - `src/services/storageService.ts`
+  - `scripts/test-portfolio-performance.ts`
+  - `package.json`
+  - `package-lock.json`
+  - `src/constants/app.ts`
+
 ### 2026-09-11 - v5.0.7 - Gráficas de detalle y medición táctil
 - Funcionalidad:
   - Se amplía el área útil de las gráficas de detalle reduciendo el espacio lateral reservado al eje Y.

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory } from '../../services/storageService';
-import { buildPortfolioAnalyticsHistory, performanceSeries } from '../../services/portfolioPerformance';
+import { buildPortfolioAnalyticsHistory, normalizePortfolioTransactions, performanceSeries } from '../../services/portfolioPerformance';
 import './LivePortfolioPlan.css';
 
 const money = (n: number) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
@@ -21,7 +21,8 @@ export function LivePortfolioPlan() {
     });
     const [budget, setBudget] = useState(0);
     const [saveError, setSaveError] = useState(false);
-    const portfolioTransactions = transactions.filter((transaction) => assets.some((asset) => asset.id === transaction.assetId));
+    const activeTransactions = transactions.filter((transaction) => assets.some((asset) => asset.id === transaction.assetId));
+    const portfolioTransactions = normalizePortfolioTransactions(assets, activeTransactions);
     const total = assets.reduce((sum, a) => sum + (a.currentPrice ?? a.purchasePrice) * a.quantity, 0);
     const invested = assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0);
     const targetTotal = assets.reduce((sum, a) => sum + (targets[a.id] || 0), 0);
@@ -37,8 +38,8 @@ export function LivePortfolioPlan() {
         date: new Date().toISOString(),
         value: total,
         invested,
-    });
-    const series = performanceSeries(liveHistory, portfolioTransactions);
+    }, assets);
+    const series = performanceSeries(liveHistory, portfolioTransactions, assets);
     const months = new Map<string, { value: number; invested: number; factor: number; observations: number; drawdown: number }>();
     let peak = 100;
     series.forEach(p => {
@@ -51,15 +52,16 @@ export function LivePortfolioPlan() {
         if (p.dailyReturn !== null) { m.factor *= 1 + p.dailyReturn / 100; m.observations++; }
         months.set(key, m);
     });
-    const buys = portfolioTransactions.filter(t => t.type === 'buy').reduce((s, t) => s + (t.total || 0), 0);
-    const sells = portfolioTransactions.filter(t => t.type === 'sell').reduce((s, t) => s + (t.total || 0), 0);
+    const buys = activeTransactions.filter(t => t.type === 'buy').reduce((s, t) => s + (t.total || 0), 0);
+    const sells = activeTransactions.filter(t => t.type === 'sell').reduce((s, t) => s + (t.total || 0), 0);
     const setTarget = (id: string, value: number) => {
         const next = { ...targets, [id]: Math.min(100, Math.max(0, Number.isFinite(value) ? value : 0)) };
         setTargets(next);
         try { localStorage.setItem(KEY, JSON.stringify(next)); setSaveError(false); } catch { setSaveError(true); }
     };
     const currentResult = rows.reduce((sum, row) => sum + row.value - row.cost, 0);
-    const recentTransactions = [...portfolioTransactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
+    const recentTransactions = [...activeTransactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
+    const ledgerDifference = buys - sells - invested;
 
     return <div className="live-plan-stack">
         <Card className="live-plan">
@@ -71,6 +73,7 @@ export function LivePortfolioPlan() {
                     <div><span>Flujo neto registrado</span><strong>{money(buys - sells)}</strong></div>
                     <div><span>Resultado abierto</span><strong>{money(currentResult)}</strong></div>
                 </div>
+                {Math.abs(ledgerDifference) > 0.01 && <p role="status">El registro de operaciones difiere {money(Math.abs(ledgerDifference))} del coste actual de las posiciones; la propuesta usa el coste reconciliado de los activos vigentes.</p>}
                 <label className="live-plan__budget">Próxima aportación (€)<input type="number" min="0" step="10" value={budget} onChange={e => setBudget(Math.max(0, Number(e.target.value) || 0))} /></label>
                 <p role="status">Objetivos: {pct(targetTotal)} / 100%. {validTargets ? 'Plan listo para distribuir la aportación entre posiciones infraponderadas.' : 'Completa los pesos hasta el 100% para calcular la propuesta.'}</p>
                 {saveError && <p role="alert">No se han podido guardar los objetivos en este navegador.</p>}

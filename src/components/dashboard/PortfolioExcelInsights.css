@@ -18,6 +18,11 @@
 .portfolio-excel-insights__panel, .portfolio-excel-insights__mini-chart, .portfolio-excel-insights__control-column { min-width: 0; padding: 1rem; border: 1px solid var(--border-primary); border-radius: var(--radius-md); background: var(--bg-tertiary); }
 .portfolio-excel-insights__panel-heading { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
 .portfolio-excel-insights__panel-actions { display: grid; justify-items: end; gap: .55rem; }
+.portfolio-excel-insights__period-summary { display: grid; justify-items: end; gap: .1rem; text-align: right; }
+.portfolio-excel-insights__period-summary span, .portfolio-excel-insights__period-summary small { color: var(--text-muted); font-size: .68rem; }
+.portfolio-excel-insights__period-summary strong { color: var(--color-positive); font-size: .9rem; }
+.portfolio-excel-insights__period-summary strong.is-negative { color: var(--color-negative); }
+.portfolio-excel-insights__period-summary strong:empty { display: none; }
 .portfolio-excel-insights__periods { display: flex; gap: .2rem; padding: .2rem; border-radius: 8px; background: var(--bg-secondary); }
 .portfolio-excel-insights__periods button { border: 0; border-radius: 6px; padding: .3rem .5rem; background: transparent; color: var(--text-muted); cursor: pointer; font-size: .7rem; }
 .portfolio-excel-insights__periods button:hover, .portfolio-excel-insights__periods button.is-active { background: var(--accent-primary); color: white; }
@@ -46,4 +51,4 @@
 .portfolio-excel-insights__footnote { margin: .9rem 0 0; color: var(--text-muted); font-size: .7rem; }
 @media (max-width: 1000px) { .portfolio-excel-insights__kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); } .portfolio-excel-insights__controls { grid-template-columns: 1fr 1fr; } .portfolio-excel-insights__stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 680px) { .portfolio-excel-insights__kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .portfolio-excel-insights__allocation, .portfolio-excel-insights__controls { grid-template-columns: 1fr; } .portfolio-excel-insights__benchmark-kpis { grid-template-columns: 1fr; } .portfolio-excel-insights__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .portfolio-excel-insights__panel-heading { display: grid; } }
-@media (max-width: 680px) { .portfolio-excel-insights__panel-actions { justify-items: stretch; } .portfolio-excel-insights__periods { justify-content: space-between; } .portfolio-excel-insights__periods button { flex: 1; } }
+@media (max-width: 680px) { .portfolio-excel-insights__panel-actions { justify-items: stretch; } .portfolio-excel-insights__period-summary { justify-items: start; text-align: left; } .portfolio-excel-insights__periods { justify-content: space-between; } .portfolio-excel-insights__periods button { flex: 1; } }

@@ -3,7 +3,7 @@ import { Activity, BarChart3, Gauge, Loader2, Scale, TrendingUp } from 'lucide-r
 import { Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory } from '../../services/storageService';
-import { buildPortfolioAnalyticsHistory, performanceSeries } from '../../services/portfolioPerformance';
+import { buildPortfolioAnalyticsHistory, normalizePortfolioTransactions, performanceSeries } from '../../services/portfolioPerformance';
 import { getAssetChartData } from '../../services/apiService';
 import type { HistoricalDataPoint } from '../../types/types';
 import './PortfolioBenchmark.css';
@@ -25,16 +25,15 @@ export function PortfolioBenchmark() {
     }, [lastPriceUpdate]);
 
     const stats = useMemo(() => {
-        const activeAssetIds = new Set(assets.map((asset) => asset.id));
-        const portfolioTransactions = transactions.filter((transaction) => activeAssetIds.has(transaction.assetId));
+        const portfolioTransactions = normalizePortfolioTransactions(assets, transactions);
         const currentValue = assets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0);
         const investedValue = assets.reduce((sum, asset) => sum + asset.purchasePrice * asset.quantity, 0);
         const portfolioHistory = buildPortfolioAnalyticsHistory(getHistory(), portfolioTransactions, {
             date: new Date().toISOString(),
             value: currentValue,
             invested: investedValue,
-        });
-        const portfolio = performanceSeries(portfolioHistory, portfolioTransactions);
+        }, assets);
+        const portfolio = performanceSeries(portfolioHistory, portfolioTransactions, assets);
         const benchmarkByDate = new Map(benchmark.map(point => [point.date.slice(0, 10), point.close]));
         const aligned = portfolio.filter(point => benchmarkByDate.has(point.date));
         const pairs = aligned.slice(1).flatMap((point, index) => {

@@ -6,11 +6,13 @@ import { Button, Card, CardContent, Modal } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory, isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, PerformerData, Asset } from '../../types/types';
-import { buildPortfolioAnalyticsHistory, getTransactionEventDay } from '../../services/portfolioPerformance';
+import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, normalizePortfolioTransactions, performanceSeries } from '../../services/portfolioPerformance';
 import './Dashboard.css';
 import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan';
 import { PortfolioExcelInsights } from '../../components/dashboard/PortfolioExcelInsights';
 import { PRICE_REFRESH_INTERVAL_MS } from '../../constants/app';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 export function Dashboard() {
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
@@ -59,38 +61,36 @@ export function Dashboard() {
             const currValue = (a.currentPrice || a.purchasePrice) * a.quantity;
             return sum + (currValue - prevValue);
         }, 0);
-        const activeAssetIds = new Set(assets.map((asset) => asset.id));
-        const portfolioTransactions = state.transactions.filter((transaction) => activeAssetIds.has(transaction.assetId));
+        const portfolioTransactions = normalizePortfolioTransactions(assets, state.transactions);
 
         const history = buildPortfolioAnalyticsHistory(getHistory(), portfolioTransactions, {
             date: new Date(countdownNow).toISOString(),
             value: currentValue,
             invested: totalInvested,
-        });
-        const valueAtOrBefore = (timestamp: number) => {
-            const point = [...history].reverse().find((item) => new Date(item.date).getTime() <= timestamp);
-            return point;
-        };
+        }, assets);
+        const series = performanceSeries(history, portfolioTransactions, assets);
         const periodChange = (timestamp: number) => {
-            const base = valueAtOrBefore(timestamp);
-            const previousValue = base?.value;
-            const baseDay = base?.date.slice(0, 10) || '';
-            const operations = portfolioTransactions.filter(t => {
-                const eventDay = getTransactionEventDay(t);
-                return Boolean(base) && eventDay > baseDay && new Date(`${eventDay}T23:59:59.999Z`).getTime() <= countdownNow;
-            });
-            const flow = operations.reduce((sum, t) => sum + (t.type === 'buy' ? t.total || 0 : t.type === 'sell' ? -(t.total || 0) : 0), 0);
-            const valid = previousValue !== undefined && !operations.some(t => t.type === 'edit' || t.type === 'delete');
-            const change = valid ? currentValue - previousValue - flow : NaN;
+            const maxBaseGap = Math.max(3 * DAY_MS, (countdownNow - timestamp) * 1.5);
+            const period = calculatePeriodPerformance(series, timestamp, countdownNow, maxBaseGap);
             return {
-                hasBase: previousValue !== undefined,
-                change,
-                percent: valid && previousValue > 0 ? (change / previousValue) * 100 : NaN,
+                hasBase: period.hasBase,
+                change: period.change ?? NaN,
+                percent: period.returnPercent ?? NaN,
             };
         };
         const day = periodChange(countdownNow - 24 * 60 * 60 * 1000);
-        const month = periodChange(countdownNow - 30 * 24 * 60 * 60 * 1000);
-        const quarter = periodChange(countdownNow - 90 * 24 * 60 * 60 * 1000);
+        const monthStart = new Date(countdownNow);
+        const monthDay = monthStart.getDate();
+        monthStart.setDate(1);
+        monthStart.setMonth(monthStart.getMonth() - 1);
+        monthStart.setDate(Math.min(monthDay, new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate()));
+        const quarterStart = new Date(countdownNow);
+        const quarterDay = quarterStart.getDate();
+        quarterStart.setDate(1);
+        quarterStart.setMonth(quarterStart.getMonth() - 3);
+        quarterStart.setDate(Math.min(quarterDay, new Date(quarterStart.getFullYear(), quarterStart.getMonth() + 1, 0).getDate()));
+        const month = periodChange(monthStart.getTime());
+        const quarter = periodChange(quarterStart.getTime());
         const ytdStart = new Date(new Date(countdownNow).getFullYear(), 0, 1).getTime();
         const ytd = periodChange(ytdStart);
 

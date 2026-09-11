@@ -64,6 +64,10 @@ const tooltipTheme = {
     labelStyle: { color: 'var(--text-primary)' },
 };
 
+const benchmarkSeriesLabel = (name?: string) => name === 'portfolio' || name === 'Tu cartera'
+    ? 'Tu cartera'
+    : 'MSCI World';
+
 const formatAxisCurrency = (value: number) => value >= 1000
     ? `${Math.round(value / 1000)}k`
     : `${Math.round(value)} €`;
@@ -469,8 +473,8 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
                                     <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
                                     <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
-                                    <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined, name?: string) => [percent(Number(value || 0)), name === 'portfolio' ? 'Tu cartera' : 'MSCI World']} />
-                                    <Legend />
+                                    <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined, name?: string) => [percent(Number(value || 0)), benchmarkSeriesLabel(name)]} />
+                                    <Legend formatter={(value) => benchmarkSeriesLabel(String(value))} />
                                     {hasPortfolioBenchmark && <Line type="monotone" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} connectNulls />}
                                     <Line type="monotone" dataKey="benchmark" name="MSCI World" stroke="#3b82f6" strokeWidth={2} dot={false} />
                                 </LineChart>

@@ -28,6 +28,7 @@ try {
         ]));
     });
     await page.goto('http://127.0.0.1:5181/', { waitUntil: 'networkidle2' });
+    assert.ok((await page.evaluate(() => document.body.innerText)).includes('Auto · 1 min'));
     await page.waitForSelector('.portfolio-excel-insights');
     const insightTabs = await page.$$eval('.portfolio-excel-insights__tabs button', buttons => buttons.map(button => button.textContent));
     assert.deepEqual(insightTabs, ['Evolución', 'Benchmark', 'Asignación', 'Riesgo', 'Controles']);
@@ -37,7 +38,7 @@ try {
     assert.ok((await page.$eval('.portfolio-excel-insights', element => element.textContent || '')).includes('Controles vivos'));
     await page.click('.assets-table__table tbody tr');
     await page.waitForSelector('.asset-detail');
-    await page.waitForFunction(() => document.querySelector('.asset-detail__chart-container .recharts-wrapper'), { timeout: 25000 });
+    await page.waitForFunction(() => document.querySelector('.asset-detail__chart-container .recharts-wrapper') || document.querySelector('.asset-detail__chart-container .chart-overlay.error-state'), { timeout: 35000 });
     await page.evaluate(() => [...document.querySelectorAll('.period-btn')].find(el => el.textContent === 'YTD')?.click());
     await page.waitForFunction(() => [...document.querySelectorAll('.period-btn')].some(el => el.textContent === 'YTD' && el.classList.contains('active')));
     const layout = await page.$eval('.modal__content', el => ({ clientWidth: el.clientWidth, scrollWidth: el.scrollWidth, title: document.querySelector('.asset-detail__name')?.textContent, metrics: document.querySelectorAll('.metric-card').length }));

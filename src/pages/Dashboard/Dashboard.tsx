@@ -11,6 +11,7 @@ import type { PortfolioMetrics, ChartDataPoint, PerformerData, TimePeriod, Asset
 import './Dashboard.css';
 import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan';
 import { PortfolioBenchmark } from '../../components/dashboard/PortfolioBenchmark';
+import { PortfolioExcelInsights } from '../../components/dashboard/PortfolioExcelInsights';
 
 export function Dashboard() {
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
@@ -214,6 +215,7 @@ export function Dashboard() {
             )}
 
             <PortfolioSummary metrics={metrics} />
+            <section className="dashboard__section"><PortfolioExcelInsights /></section>
             <section className="dashboard__section"><LivePortfolioPlan /></section>
 
             <section className="dashboard__section">

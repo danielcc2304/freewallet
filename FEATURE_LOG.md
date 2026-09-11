@@ -12,7 +12,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-09-11 - Dashboard: lectura visual del Excel
+### 2026-09-11 - v5.0.1 - Dashboard: lectura visual del Excel
 - Funcionalidad:
   - Se añade una lectura tabulada del Excel en el dashboard con evolución, comparativa contra MSCI World, asignación por categorías y buckets, mapa de riesgo mensual y controles importados.
   - Se sincronizan objetivos, movimientos, estadísticas avanzadas y fecha de importación en una misma vista compacta.

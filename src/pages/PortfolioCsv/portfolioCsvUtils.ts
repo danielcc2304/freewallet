@@ -8,6 +8,9 @@ import type {
     HoldingBucket,
     HoldingCategory,
     ParsedPeriod,
+    PortfolioControlRow,
+    PortfolioMovement,
+    PortfolioObjective,
 } from './portfolioCsvTypes';
 
 function normalizeHeader(value: string): string {
@@ -150,6 +153,95 @@ export function normalizeSheetName(value: string): string {
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/[^a-z0-9]/gi, '')
         .toLowerCase();
+}
+
+export function parseMovements(raw: string): PortfolioMovement[] {
+    const rows = parseCsvRows(raw);
+    const headerIndex = findHeaderRow(rows, (row) => {
+        const normalized = row.map(normalizeHeader);
+        return normalized.some((value) => value.includes('fecha'))
+            && normalized.some((value) => value.includes('importe'));
+    });
+    if (headerIndex < 0) return [];
+
+    const headers = rows[headerIndex];
+    const dateIndex = findColumnIndex(headers, (value) => value === 'fecha' || value.includes('fechames'), 0);
+    const amountIndex = findColumnIndex(headers, (value) => value.includes('importe'), 1);
+    const conceptIndex = findColumnIndex(headers, (value) => value.includes('concepto'), 2);
+    const exactDateIndex = findColumnIndex(headers, (value) => value.includes('fechaexacta'), 4);
+
+    return rows.slice(headerIndex + 1).map((row) => ({
+        date: (row[dateIndex] || '').trim(),
+        amount: parseFlexibleNumber(row[amountIndex] || ''),
+        concept: (row[conceptIndex] || '').trim(),
+        exactDate: /^(true|verdadero|si|sí|1)$/i.test((row[exactDateIndex] || '').trim()),
+    })).filter((row) => row.date && row.amount !== 0);
+}
+
+export function parseObjectives(raw: string): PortfolioObjective[] {
+    const rows = parseCsvRows(raw);
+    const allocationHeader = findHeaderRow(rows, (row) => {
+        const normalized = row.map(normalizeHeader);
+        return normalized[0] === 'activo' && normalized.includes('actual') && normalized.includes('objetivo');
+    });
+    if (allocationHeader < 0) return [];
+
+    const contributionHeader = rows.findIndex((row, index) => index > allocationHeader
+        && normalizeHeader(row[0] || '') === 'activo'
+        && row.map(normalizeHeader).some((value) => value.includes('falta'))
+        && row.map(normalizeHeader).some((value) => value.includes('aportar')));
+    const contributions = new Map<string, { shortfallAmount: number; contributionAmount: number }>();
+    if (contributionHeader >= 0) {
+        for (const row of rows.slice(contributionHeader + 1)) {
+            const asset = (row[0] || '').trim();
+            if (!asset || normalizeHeader(asset) === 'total') continue;
+            contributions.set(normalizeHeader(asset), {
+                shortfallAmount: parseFlexibleNumber(row[1] || ''),
+                contributionAmount: parseFlexibleNumber(row[2] || ''),
+            });
+        }
+    }
+
+    const end = contributionHeader >= 0 ? contributionHeader : rows.length;
+    const objectives: PortfolioObjective[] = [];
+    for (const row of rows.slice(allocationHeader + 1, end)) {
+        const asset = (row[0] || '').trim();
+        if (normalizeHeader(asset) === 'total') break;
+        const contribution = contributions.get(normalizeHeader(asset));
+        if (!asset) continue;
+        objectives.push({
+            asset,
+            currentWeight: parsePercentNumber(row[1] || ''),
+            targetWeight: parsePercentNumber(row[2] || ''),
+            shortfallAmount: contribution?.shortfallAmount || 0,
+            contributionAmount: contribution?.contributionAmount || 0,
+        });
+    }
+    return objectives;
+}
+
+export function parseControlRows(raw: string): PortfolioControlRow[] {
+    const rows = parseCsvRows(raw);
+    const start = rows.findIndex((row) => normalizeHeader(row[0] || '').includes('controldedatos'));
+    if (start < 0) return [];
+
+    const controls: PortfolioControlRow[] = [];
+    for (const row of rows.slice(start + 1)) {
+        const label = (row[0] || '').trim();
+        const value = (row[2] || row[1] || '').trim();
+        const normalizedLabel = normalizeHeader(label);
+        if (!label || normalizedLabel === 'supuestos') break;
+        if (!value || normalizedLabel.startsWith('avisosautomaticos') || normalizedLabel.startsWith('ladiferencia')) continue;
+        const normalizedValue = normalizeHeader(value);
+        controls.push({
+            label,
+            value,
+            status: normalizedValue === 'ok' || value === '0'
+                ? 'ok'
+                : (normalizedValue.includes('revisar') || parseFlexibleNumber(value) > 0 ? 'warn' : 'neutral'),
+        });
+    }
+    return controls;
 }
 
 export function classifyAsset(asset: string): HoldingCategory {

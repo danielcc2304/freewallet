@@ -81,3 +81,24 @@ export type ParsedPeriod = {
     monthIndex: number;
     year?: number;
 };
+
+export type PortfolioMovement = {
+    date: string;
+    amount: number;
+    concept: string;
+    exactDate: boolean;
+};
+
+export type PortfolioObjective = {
+    asset: string;
+    currentWeight: number;
+    targetWeight: number;
+    shortfallAmount: number;
+    contributionAmount: number;
+};
+
+export type PortfolioControlRow = {
+    label: string;
+    value: string;
+    status: 'ok' | 'warn' | 'neutral';
+};

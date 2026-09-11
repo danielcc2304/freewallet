@@ -14,7 +14,7 @@ export interface AppSettings {
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
-    apiEnabled: false,
+    apiEnabled: true,
 };
 
 // ===== ASSETS CRUD =====
@@ -244,12 +244,26 @@ export function saveHistory(history: PortfolioHistoryPoint[]): void {
 export function addHistoryPoint(point: PortfolioHistoryPoint): void {
     const history = getHistory();
     history.push(point);
-    // Keep only last 365 days of history
-    const maxPoints = 365;
-    if (history.length > maxPoints) {
-        history.splice(0, history.length - maxPoints);
+    const now = Date.now();
+    const recentCutoff = now - 7 * 24 * 60 * 60 * 1000;
+    const oldestCutoff = now - 366 * 24 * 60 * 60 * 1000;
+    const hourly = new Map<string, PortfolioHistoryPoint>();
+    const recent: PortfolioHistoryPoint[] = [];
+
+    for (const item of history) {
+        const timestamp = new Date(item.date).getTime();
+        if (!Number.isFinite(timestamp) || timestamp < oldestCutoff) continue;
+        if (timestamp >= recentCutoff) {
+            recent.push(item);
+        } else {
+            const date = new Date(timestamp);
+            const hourKey = `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}-${date.getUTCHours()}`;
+            hourly.set(hourKey, item);
+        }
     }
-    saveHistory(history);
+
+    // Precisión de 1 min durante 7 días y una muestra horaria hasta un año.
+    saveHistory([...hourly.values(), ...recent]);
 }
 
 // ===== PORTFOLIO HELPERS =====

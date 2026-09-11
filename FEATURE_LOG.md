@@ -12,6 +12,49 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-11 - v5.0.0 - Dashboard de cartera autónomo y detalle completo de fondos
+- Funcionalidad:
+  - Se recuperan las cotizaciones de acciones en producción mediante rutas proxy propias y se protege la búsqueda frente a respuestas tardías.
+  - El detalle de fondos carga el histórico real de la clase localizada por ISIN, amplía la ficha con costes, rentabilidades, estadísticas, composición y política de inversión, y evita desbordamientos laterales.
+  - Se separan la planificación, el resumen mensual y los últimos movimientos en tarjetas independientes.
+  - Se añaden asignación objetivo, propuesta de aportaciones, controles de calidad, Sharpe, Sortino, mejores y peores meses y comparación automática con MSCI World mediante URTH.
+- Resumen:
+  - El dashboard incorpora los principales controles del Excel y los recalcula con las operaciones y cotizaciones guardadas, sin confundir aportaciones o retiradas con rentabilidad.
+- Archivos:
+  - `src/components/dashboard/`
+  - `src/components/ui/Modal/Modal.css`
+  - `src/context/PortfolioContext.tsx`
+  - `src/pages/AddInvestment/AddInvestment.tsx`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/services/apiService.ts`
+  - `src/services/market/marketConfig.ts`
+  - `src/services/portfolioPerformance.ts`
+  - `vercel.json`
+
+### 2026-09-11 - v4.0.0 - Portfolio conectado y seguimiento avanzado
+- Funcionalidad:
+  - Se amplía la importación del Excel para leer movimientos, objetivos, controles y datos diarios, incluyendo una plantilla demo con valores mockeados.
+  - Se incorporan al dashboard el estado de la cartera, analítica de rentabilidad, control de concentración, movimientos y objetivos.
+  - Se mejora el detalle de acciones y fondos con cotizaciones actualizadas, históricos de precio/participación, periodos seleccionables y medición de mejora o drawdown entre dos puntos.
+  - Se robustece la búsqueda de activos, la normalización de cotizaciones a euros y la selección de sugerencias al añadir una inversión.
+- Resumen:
+  - La versión `v4.0.0` convierte el portfolio basado en Excel en un panel de seguimiento más completo y resistente, manteniendo el Excel como fuente de importación y permitiendo avanzar hacia una cartera actualizada automáticamente.
+- Archivos:
+  - `public/plantilla-portfolio.xlsx`
+  - `src/components/dashboard/`
+  - `src/components/charts/PortfolioChart.tsx`
+  - `src/context/PortfolioContext.tsx`
+  - `src/pages/AddInvestment/`
+  - `src/pages/Dashboard/`
+  - `src/pages/PortfolioCsv/`
+  - `src/services/apiService.ts`
+  - `src/services/portfolioQuoteService.ts`
+  - `src/services/market/`
+  - `src/types/`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-08-30 - v3.10.1 - Refinamiento del panel editorial
 - Funcionalidad:
   - Se homogeneiza la cabecera pública de Noticias con el patrón visual de Portfolio.

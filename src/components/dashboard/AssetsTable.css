@@ -69,13 +69,16 @@
 }
 
 .assets-table__symbol {
-    font-weight: 600;
-    color: var(--text-primary);
+    order: 2;
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
 }
 
 .assets-table__name {
-    font-size: var(--font-size-xs);
-    color: var(--text-muted);
+    order: 1;
+    font-weight: 600;
+    color: var(--text-primary);
+    line-height: 1.35;
 }
 
 /* Value */

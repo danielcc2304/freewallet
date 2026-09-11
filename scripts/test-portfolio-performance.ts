@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { performanceSeries } from '../src/services/portfolioPerformance';
+import { buildPortfolioAnalyticsHistory, performanceSeries } from '../src/services/portfolioPerformance';
 import type { PortfolioTransaction } from '../src/types/types';
 const history = [
     { date: '2026-01-01T18:00:00Z', value: 100, invested: 100 },
@@ -16,4 +16,15 @@ assert.equal(series[1].dailyReturn, 0, 'A purchase must not count as profit');
 assert.equal(series[2].dailyReturn, 10, 'Sale proceeds must be restored when calculating return');
 assert.ok(Math.abs(series[2].cumulativeReturn - 10) < 1e-9);
 assert.equal(performanceSeries(history, [])[1].dailyReturn, null, 'Unexplained changes must not create returns');
+
+const backdatedTrade = { ...trade('buy', 100, '2026-01-02'), createdAt: '2026-02-01T12:00:00Z' };
+const backdatedHistory = buildPortfolioAnalyticsHistory([
+    { date: '2026-01-01T18:00:00Z', value: 100, invested: 100 },
+    { date: '2026-01-03T18:00:00Z', value: 200, invested: 200 },
+], [backdatedTrade]);
+assert.equal(backdatedHistory[0].date.slice(0, 10), '2026-01-02', 'The live history starts on the entered operation date');
+assert.equal(performanceSeries([
+    { date: '2026-01-01T18:00:00Z', value: 100, invested: 100 },
+    { date: '2026-01-03T18:00:00Z', value: 200, invested: 200 },
+], [backdatedTrade])[1].dailyReturn, 0, 'Backdated purchases are treated as portfolio flows on their entered date');
 console.log('Portfolio performance tests passed');

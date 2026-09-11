@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory } from '../../services/storageService';
-import { performanceSeries } from '../../services/portfolioPerformance';
+import { buildPortfolioAnalyticsHistory, performanceSeries } from '../../services/portfolioPerformance';
 import './LivePortfolioPlan.css';
 
 const money = (n: number) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
@@ -22,6 +22,7 @@ export function LivePortfolioPlan() {
     const [budget, setBudget] = useState(0);
     const [saveError, setSaveError] = useState(false);
     const total = assets.reduce((sum, a) => sum + (a.currentPrice ?? a.purchasePrice) * a.quantity, 0);
+    const invested = assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0);
     const targetTotal = assets.reduce((sum, a) => sum + (targets[a.id] || 0), 0);
     const validTargets = Math.abs(targetTotal - 100) < .01;
     const rows = assets.map(a => {
@@ -31,7 +32,12 @@ export function LivePortfolioPlan() {
         return { a, value, cost, target, weight: total ? value / total * 100 : 0, gap: (total + budget) * target / 100 - value };
     }).sort((a, b) => b.value - a.value);
     const shortfall = rows.reduce((sum, r) => sum + Math.max(0, r.gap), 0);
-    const series = performanceSeries(getHistory(), transactions);
+    const liveHistory = buildPortfolioAnalyticsHistory(getHistory(), transactions, {
+        date: new Date().toISOString(),
+        value: total,
+        invested,
+    });
+    const series = performanceSeries(liveHistory, transactions);
     const months = new Map<string, { value: number; invested: number; factor: number; observations: number; drawdown: number }>();
     let peak = 100;
     series.forEach(p => {

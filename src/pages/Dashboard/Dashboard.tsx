@@ -33,8 +33,8 @@ export function Dashboard() {
         ? Math.max(0, Math.ceil((lastPriceUpdate.getTime() + PRICE_REFRESH_INTERVAL_MS - countdownNow) / 1000))
         : null;
     const countdownLabel = nextRefreshSeconds === null
-        ? 'preparando actualización'
-        : `próxima en ${String(Math.floor(nextRefreshSeconds / 60)).padStart(2, '0')}:${String(nextRefreshSeconds % 60).padStart(2, '0')}`;
+        ? 'preparando…'
+        : `en ${String(Math.floor(nextRefreshSeconds / 60)).padStart(2, '0')}:${String(nextRefreshSeconds % 60).padStart(2, '0')}`;
 
     const handleEditAsset = (asset: Asset) => {
         navigate('/add', { state: { editAsset: asset } });
@@ -187,7 +187,7 @@ export function Dashboard() {
                         )}
                     </p>
                     <span className={`dashboard__live-status ${apiEnabled ? 'dashboard__live-status--active' : ''}`}>
-                        <Radio size={13} /> {apiEnabled ? `Precios automáticos · cada 1 min · ${updatingPrices ? 'actualizando…' : countdownLabel}` : 'Actualización automática desactivada'}
+                        <Radio size={13} /> {apiEnabled ? `Auto · 1 min · ${updatingPrices ? 'actualizando…' : countdownLabel}` : 'Auto desactivada'}
                     </span>
                 </div>
                 <div className="dashboard__actions">

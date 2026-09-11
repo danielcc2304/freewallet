@@ -44,6 +44,7 @@ type EvolutionPeriod = '1D' | '7D' | '1M' | '3M' | 'YTD' | 'ALL';
 
 const QUOTE_WINDOW_MS = 15 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
+const RISK_FREE_ANNUAL_PCT = 2.75;
 const currency = (value: number) => value.toLocaleString('es-ES', {
     style: 'currency',
     currency: 'EUR',
@@ -185,7 +186,14 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
     const dailyReturns = series
         .map((point) => point.dailyReturn)
         .filter((value): value is number => value !== null && Number.isFinite(value));
-    const validMonthly = monthly.filter((row) => row.observations > 0);
+    const currentMonth = (() => {
+        const date = new Date(now);
+        return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+    })();
+    // Portfolio/Excel only uses closed months for risk ratios. Keep the open
+    // month visible in the table/chart elsewhere, but never let an intramonth
+    // contribution or partial quote change Sharpe, Sortino or annualization.
+    const validMonthly = monthly.filter((row) => row.observations > 0 && row.month < currentMonth);
     const monthlyReturns = validMonthly
         .map((row) => row.monthlyReturn)
         .filter((value) => Number.isFinite(value));
@@ -195,16 +203,14 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
     const monthlyVolatility = monthlyReturns.length > 1
         ? Math.sqrt(monthlyReturns.reduce((sum, value) => sum + (value - monthlyMean!) ** 2, 0) / (monthlyReturns.length - 1))
         : null;
-    // The live dashboard has no imported €STR series, so it follows the Excel
-    // fallback of a 0% annual risk-free rate until one is available.
-    const monthlyRiskFreePct = 0;
+    // Same constant used by Estadísticas avanzadas!C3 in the workbook.
+    const monthlyRiskFreePct = RISK_FREE_ANNUAL_PCT / 12;
     const excessMonthlyReturns = monthlyReturns.map((value) => value - monthlyRiskFreePct);
     const meanExcess = excessMonthlyReturns.length
         ? excessMonthlyReturns.reduce((sum, value) => sum + value, 0) / excessMonthlyReturns.length
         : null;
-    const downside = excessMonthlyReturns.filter((value) => value < 0);
-    const downsideDeviation = downside.length
-        ? Math.sqrt(downside.reduce((sum, value) => sum + value ** 2, 0) / downside.length)
+    const downsideDeviation = excessMonthlyReturns.length > 0
+        ? Math.sqrt(excessMonthlyReturns.reduce((sum, value) => sum + Math.min(value, 0) ** 2, 0) / excessMonthlyReturns.length)
         : null;
     const volatility = monthlyVolatility === null ? null : monthlyVolatility * Math.sqrt(12);
     const sharpe = meanExcess !== null && monthlyVolatility !== null && monthlyVolatility > 0
@@ -214,19 +220,19 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         ? meanExcess / downsideDeviation * Math.sqrt(12)
         : null;
 
-    const historyYears = validMonthly.length > 1
-        ? Math.max(1 / 12, ((Number(validMonthly.at(-1)!.month.slice(0, 4)) - Number(validMonthly[0].month.slice(0, 4))) * 12 + Number(validMonthly.at(-1)!.month.slice(5, 7)) - Number(validMonthly[0].month.slice(5, 7))) / 12)
+    const historyYears = monthlyReturns.length > 0
+        ? monthlyReturns.length / 12
         : null;
     let wealth = 1;
     let peak = 1;
     let maxDrawdown = 0;
-    series.filter((point) => point.dailyReturn !== null).forEach((point) => {
-        wealth = point.index;
+    monthlyReturns.forEach((value) => {
+        wealth *= 1 + value / 100;
         peak = Math.max(peak, wealth);
         if (peak > 0) maxDrawdown = Math.min(maxDrawdown, (wealth / peak - 1) * 100);
     });
-    const annualized = historyYears !== null && historyYears >= 1 && monthlyReturns.length > 0
-        ? ((monthlyReturns.reduce((growth, value) => growth * (1 + value / 100), 1) ** (1 / historyYears) - 1) * 100)
+    const annualized = monthlyReturns.length > 0
+        ? ((monthlyReturns.reduce((growth, value) => growth * (1 + value / 100), 1) ** (12 / monthlyReturns.length) - 1) * 100)
         : null;
     const positiveDays = dailyReturns.length ? dailyReturns.filter((value) => value > 0).length / dailyReturns.length * 100 : null;
     const currentReturn = investedValue > 0 ? (totalValue / investedValue - 1) * 100 : 0;
@@ -341,7 +347,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         { label: 'Valor actual', value: currency(totalValue), detail: `${assets.length} posiciones`, icon: <WalletCards size={17} /> },
         { label: 'Capital invertido', value: currency(investedValue), detail: `${activeTransactions.length} operaciones`, icon: <Coins size={17} /> },
         { label: 'Rentabilidad total', value: percent(currentReturn), detail: currency(totalValue - investedValue), icon: <ArrowUpRight size={17} />, tone: currentReturn >= 0 ? 'is-positive' : 'is-negative' },
-        { label: 'Rentabilidad anualizada', value: percent(annualized), detail: historyYears === null ? 'Sin histórico suficiente' : `${historyYears.toFixed(1)} años analizados`, icon: <Gauge size={17} /> },
+        { label: 'Rentabilidad anualizada', value: percent(annualized), detail: historyYears === null ? 'Sin meses cerrados' : `${monthlyReturns.length} meses cerrados`, icon: <Gauge size={17} /> },
         { label: 'Volatilidad anualizada', value: plainPercent(volatility), detail: 'Riesgo estimado', icon: <BarChart3 size={17} /> },
         { label: 'Máximo drawdown', value: dailyReturns.length > 0 ? plainPercent(maxDrawdown) : 'N/D', detail: 'Caída desde máximos', icon: <ArrowDownRight size={17} />, tone: maxDrawdown < 0 ? 'is-negative' : undefined },
         { label: 'Periodos positivos', value: plainPercent(positiveDays), detail: `${dailyReturns.length} intervalos válidos`, icon: <ShieldCheck size={17} /> },
@@ -517,7 +523,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                         <div className="portfolio-excel-insights__panel-heading">
                             <div>
                                 <h3><AlertTriangle size={16} /> Riesgo y consistencia</h3>
-                                <p>Retornos mensuales, desviación muestral y 0% de libre de riesgo hasta disponer de €STR.</p>
+                                <p>Meses cerrados, desviación mensual y €STR constante del 2,75% anual, igual que el Excel.</p>
                             </div>
                             <strong>{validMonthly.length} meses</strong>
                         </div>

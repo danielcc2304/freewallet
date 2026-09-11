@@ -102,6 +102,29 @@ assert.ok(auditHistoryWithDates.length > 250 && auditMonthlyReturns.length >= 60
 assert.ok(Number.isFinite(auditMean) && Number.isFinite(auditVolatility) && Number.isFinite(auditDownside), 'Risk inputs must be finite');
 assert.ok(Math.abs(auditMean / auditVolatility * Math.sqrt(12)) < 10, 'Sharpe must remain bounded for a diversified five-year path');
 assert.ok(Math.abs(auditMean / auditDownside * Math.sqrt(12)) < 20, 'Sortino must remain bounded for a diversified five-year path');
+
+// Formula parity with Estadísticas avanzadas: C3=2.75% annual risk free,
+// sample STDEV for Sharpe and downside over every closed month (including
+// zeroes), cumulative monthly wealth for drawdown and annualization by n.
+const workbookReturns = [0.038357366292820716, 0.021654364424454453, 0.022706152578331862, 0.011130311038829, 0.014954044878695116, 0.008001548686842552, 0.0519910103823753, 0.02853995146570587, -0.002679620554265849, 0.038535398796568865, 0.024312150648504893, -0.0036578947368420822, -0.05328308602234955, 0.054242631939684705, 0.05219992914036764, 0.0008806693086746975, 0.02295211193588642, 0.016014404617109124];
+const workbookExcess = workbookReturns.map((value) => value - 0.0275 / 12);
+const workbookMeanExcess = workbookExcess.reduce((sum, value) => sum + value, 0) / workbookExcess.length;
+const workbookMean = workbookReturns.reduce((sum, value) => sum + value, 0) / workbookReturns.length;
+const workbookStdev = Math.sqrt(workbookReturns.reduce((sum, value) => sum + (value - workbookMean) ** 2, 0) / (workbookReturns.length - 1));
+const workbookDownside = Math.sqrt(workbookExcess.reduce((sum, value) => sum + Math.min(value, 0) ** 2, 0) / workbookExcess.length);
+const workbookAnnualized = (workbookReturns.reduce((growth, value) => growth * (1 + value), 1) ** (12 / workbookReturns.length) - 1);
+let workbookWealth = 1;
+let workbookPeak = 1;
+let workbookDrawdown = 0;
+workbookReturns.forEach((value) => {
+    workbookWealth *= 1 + value;
+    workbookPeak = Math.max(workbookPeak, workbookWealth);
+    workbookDrawdown = Math.min(workbookDrawdown, workbookWealth / workbookPeak - 1);
+});
+assert.ok(Math.abs(workbookMeanExcess / workbookStdev * Math.sqrt(12) - 2.3028731463480203) < 1e-9, 'Sharpe must match the workbook formula');
+assert.ok(Math.abs(workbookMeanExcess / workbookDownside * Math.sqrt(12) - 4.445384661860771) < 1e-9, 'Sortino must match the workbook formula');
+assert.ok(Math.abs(workbookAnnualized - 0.25283894649859184) < 1e-9, 'Annualized return must match the workbook formula');
+assert.ok(Math.abs(workbookDrawdown - (-0.05674607683926769)) < 1e-9, 'Monthly drawdown must match the workbook formula');
 for (const start of ['2021-01-01', '2025-01-01', '2026-01-01']) {
     const period = calculatePeriodPerformance(auditSeries, new Date(`${start}T00:00:00Z`).getTime(), auditLast.date === start ? Date.parse(`${start}T23:59:59Z`) : Date.parse('2026-01-01T00:00:00Z'));
     if (period.hasBase && period.returnPercent !== null) assert.ok(Number.isFinite(period.returnPercent) && Math.abs(period.returnPercent) < 1000, `Period return should be sensible for ${start}`);
@@ -139,4 +162,7 @@ const operationSeries = performanceSeries([
 ], operationDay, [existingAsset, addedAsset]);
 assert.equal(operationSeries.at(-2)?.dailyReturn, 0, 'The dated purchase baseline has no return');
 assert.equal(operationSeries.at(-1)?.dailyReturn, 0, 'The first quote after a same-day purchase has no return');
+const operationPeriod = calculatePeriodPerformance(operationSeries, Date.parse('2026-01-02T00:00:00Z'), Date.parse('2026-01-02T23:59:59Z'));
+assert.equal(operationPeriod.returnPercent, 0, 'A same-day contribution must have zero period return');
+assert.equal(operationPeriod.change, 0, 'A same-day contribution must not become monetary gain today');
 console.log('Portfolio performance tests passed');

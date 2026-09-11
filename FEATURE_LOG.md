@@ -12,6 +12,22 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-11 - v5.0.3 - Dashboard consolidado y analítica viva
+- Funcionalidad:
+  - Se unifican las métricas de evolución, riesgo, asignación, benchmark y controles en una única analítica avanzada del dashboard.
+  - Se corrige la cobertura de cotizaciones antiguas, se sincroniza la analítica con cada snapshot y se muestra la cartera junto al benchmark cuando hay fechas coincidentes.
+  - El mapa de calor permite abrir el detalle del activo y el desglose de fondos mantiene estados claros cuando no hay posiciones disponibles.
+- Resumen:
+  - El dashboard reduce tarjetas repetidas sin perder las lecturas del portfolio y ofrece una vista más coherente en escritorio y móvil.
+- Archivos:
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `src/components/dashboard/PortfolioExcelInsights.css`
+  - `src/components/dashboard/PortfolioComposition.tsx`
+  - `src/components/charts/Heatmap.tsx`
+  - `src/components/dashboard/PortfolioHealth.tsx`
+  - `src/components/dashboard/PortfolioAnalytics.tsx`
+
 ### 2026-09-11 - v5.0.2 - Refresco persistente y acciones móviles
 - Funcionalidad:
   - Se reduce el ciclo de actualización automática a un minuto y se conserva la última cotización al volver desde segundo plano.

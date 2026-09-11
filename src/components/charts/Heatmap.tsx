@@ -49,9 +49,15 @@ export function Heatmap({ data, showBreakdown = false, onItemClick }: HeatmapPro
 
     // Calculate cell sizes based on weight
     const totalWeight = data.reduce((sum, item) => sum + item.weight, 0);
+    const safeTotalWeight = totalWeight > 0 ? totalWeight : data.length;
+    const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>, item: HeatmapItem) => {
+        if (!onItemClick || (event.key !== 'Enter' && event.key !== ' ')) return;
+        event.preventDefault();
+        onItemClick(item);
+    };
 
     const renderItem = (item: HeatmapItem) => {
-        const widthPercent = (item.weight / totalWeight) * 100;
+        const widthPercent = totalWeight > 0 ? (item.weight / safeTotalWeight) * 100 : 100 / safeTotalWeight;
         const isHovered = hoveredItem === item.id;
         const hasChildren = showBreakdown && item.children && item.children.length > 0;
 
@@ -76,6 +82,9 @@ export function Heatmap({ data, showBreakdown = false, onItemClick }: HeatmapPro
                                 onMouseEnter={() => setHoveredItem(child.id)}
                                 onMouseLeave={() => setHoveredItem(null)}
                                 onClick={() => onItemClick?.(child)}
+                                role={onItemClick ? 'button' : undefined}
+                                tabIndex={onItemClick ? 0 : undefined}
+                                onKeyDown={(event) => handleKeyDown(event, child)}
                             >
                                 <span className="heatmap__item-symbol">{child.symbol}</span>
                                 <span className="heatmap__item-change">{formatChange(child.changePercent)}</span>
@@ -99,6 +108,9 @@ export function Heatmap({ data, showBreakdown = false, onItemClick }: HeatmapPro
                 onMouseEnter={() => setHoveredItem(item.id)}
                 onMouseLeave={() => setHoveredItem(null)}
                 onClick={() => onItemClick?.(item)}
+                role={onItemClick ? 'button' : undefined}
+                tabIndex={onItemClick ? 0 : undefined}
+                onKeyDown={(event) => handleKeyDown(event, item)}
             >
                 <span className="heatmap__item-symbol">{item.symbol}</span>
                 <span className="heatmap__item-name">{item.name}</span>

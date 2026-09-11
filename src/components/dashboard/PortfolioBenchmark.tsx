@@ -17,7 +17,6 @@ export function PortfolioBenchmark() {
     const [loading, setLoading] = useState(true);
     useEffect(() => {
         const controller = new AbortController();
-        setLoading(true);
         getAssetChartData('URTH', 'YTD', controller.signal)
             .then(data => { if (!controller.signal.aborted) setBenchmark(data); })
             .catch(() => { if (!controller.signal.aborted) setBenchmark([]); })

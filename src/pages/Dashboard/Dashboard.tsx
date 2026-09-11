@@ -6,6 +6,7 @@ import { Button, Card, CardContent, Modal } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory, isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, PerformerData, Asset } from '../../types/types';
+import { buildPortfolioAnalyticsHistory, getTransactionEventDay } from '../../services/portfolioPerformance';
 import './Dashboard.css';
 import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan';
 import { PortfolioExcelInsights } from '../../components/dashboard/PortfolioExcelInsights';
@@ -59,7 +60,11 @@ export function Dashboard() {
             return sum + (currValue - prevValue);
         }, 0);
 
-        const history = getHistory().sort((a, b) => a.date.localeCompare(b.date));
+        const history = buildPortfolioAnalyticsHistory(getHistory(), state.transactions, {
+            date: new Date(countdownNow).toISOString(),
+            value: currentValue,
+            invested: totalInvested,
+        });
         const valueAtOrBefore = (timestamp: number) => {
             const point = [...history].reverse().find((item) => new Date(item.date).getTime() <= timestamp);
             return point;
@@ -67,7 +72,11 @@ export function Dashboard() {
         const periodChange = (timestamp: number) => {
             const base = valueAtOrBefore(timestamp);
             const previousValue = base?.value;
-            const operations = state.transactions.filter(t => base && t.createdAt > base.date);
+            const baseDay = base?.date.slice(0, 10) || '';
+            const operations = state.transactions.filter(t => {
+                const eventDay = getTransactionEventDay(t);
+                return Boolean(base) && eventDay > baseDay && new Date(`${eventDay}T23:59:59.999Z`).getTime() <= countdownNow;
+            });
             const flow = operations.reduce((sum, t) => sum + (t.type === 'buy' ? t.total || 0 : t.type === 'sell' ? -(t.total || 0) : 0), 0);
             const valid = previousValue !== undefined && !operations.some(t => t.type === 'edit' || t.type === 'delete');
             const change = valid ? currentValue - previousValue - flow : NaN;
@@ -177,17 +186,6 @@ export function Dashboard() {
                         <Radio size={13} /> {apiEnabled ? `Auto · 1 min · ${updatingPrices ? 'actualizando…' : countdownLabel}` : 'Auto desactivada'}
                     </span>
                 </div>
-                <div className="dashboard__actions">
-                    <Button
-                        variant="secondary"
-                        onClick={refreshPrices}
-                        icon={updatingPrices ? <Loader2 size={16} className="spinning" /> : <RefreshCw size={16} />}
-                        size="sm"
-                        disabled={updatingPrices || !apiEnabled}
-                    >
-                        {!apiEnabled ? 'APIs desactivadas' : updatingPrices ? 'Actualizando...' : 'Actualizar Precios'}
-                    </Button>
-                </div>
             </div>
 
             {updatingPrices && (
@@ -228,9 +226,21 @@ export function Dashboard() {
             >
                 {selectedAsset && <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} />}
             </Modal>
-            <Link className="dashboard__floating-add" to="/add" aria-label="Añadir inversión" title="Añadir inversión">
-                <PlusCircle size={25} strokeWidth={2.4} />
-            </Link>
+            <div className="dashboard__floating-actions" aria-label="Acciones de cartera">
+                <Button
+                    variant="secondary"
+                    onClick={refreshPrices}
+                    icon={updatingPrices ? <Loader2 size={18} className="spinning" /> : <RefreshCw size={18} />}
+                    size="sm"
+                    className="dashboard__floating-refresh"
+                    disabled={updatingPrices || !apiEnabled}
+                    aria-label={!apiEnabled ? 'APIs desactivadas' : updatingPrices ? 'Actualizando precios' : 'Actualizar precios'}
+                    title={!apiEnabled ? 'APIs desactivadas' : updatingPrices ? 'Actualizando precios' : 'Actualizar precios'}
+                />
+                <Link className="dashboard__floating-add" to="/add" aria-label="Añadir inversión" title="Añadir inversión">
+                    <PlusCircle size={25} strokeWidth={2.4} />
+                </Link>
+            </div>
         </div>
     );
 }

@@ -12,6 +12,22 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-11 - v5.0.5 - Benchmark, histórico y acciones flotantes
+- Funcionalidad:
+  - Se corrigen las etiquetas duplicadas del benchmark y se simplifica el nombre visible de MSCI World.
+  - La evolución de la cartera respeta la fecha de operación introducida y alinea Sharpe, Sortino, volatilidad y drawdown con el cálculo mensual del Portfolio.
+  - Se mueve la actualización manual de precios a una acción flotante sobre el botón de añadir inversión.
+- Resumen:
+  - La analítica avanzada refleja mejor el histórico real de la cartera y mantiene las acciones principales accesibles en móvil.
+- Archivos:
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `src/services/portfolioPerformance.ts`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/pages/Dashboard/Dashboard.css`
+  - `src/components/dashboard/LivePortfolioPlan.tsx`
+  - `package.json`
+  - `src/constants/app.ts`
+
 ### 2026-09-11 - v5.0.4 - Versión visible de producción
 - Funcionalidad:
   - Se alinea la versión visible de la aplicación con el paquete y la release publicada.

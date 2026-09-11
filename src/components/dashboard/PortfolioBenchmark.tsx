@@ -3,7 +3,7 @@ import { Activity, BarChart3, Gauge, Loader2, Scale, TrendingUp } from 'lucide-r
 import { Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory } from '../../services/storageService';
-import { performanceSeries } from '../../services/portfolioPerformance';
+import { buildPortfolioAnalyticsHistory, performanceSeries } from '../../services/portfolioPerformance';
 import { getAssetChartData } from '../../services/apiService';
 import type { HistoricalDataPoint } from '../../types/types';
 import './PortfolioBenchmark.css';
@@ -12,7 +12,7 @@ const percent = (value: number | null) => value === null || !Number.isFinite(val
 const number = (value: number | null) => value === null || !Number.isFinite(value) ? 'N/D' : value.toLocaleString('es-ES', { maximumFractionDigits: 2 });
 
 export function PortfolioBenchmark() {
-    const { state: { transactions, lastPriceUpdate } } = usePortfolio();
+    const { state: { assets, transactions, lastPriceUpdate } } = usePortfolio();
     const [benchmark, setBenchmark] = useState<HistoricalDataPoint[]>([]);
     const [loading, setLoading] = useState(true);
     useEffect(() => {
@@ -25,7 +25,14 @@ export function PortfolioBenchmark() {
     }, [lastPriceUpdate]);
 
     const stats = useMemo(() => {
-        const portfolio = performanceSeries(getHistory(), transactions);
+        const currentValue = assets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0);
+        const investedValue = assets.reduce((sum, asset) => sum + asset.purchasePrice * asset.quantity, 0);
+        const portfolioHistory = buildPortfolioAnalyticsHistory(getHistory(), transactions, {
+            date: new Date().toISOString(),
+            value: currentValue,
+            invested: investedValue,
+        });
+        const portfolio = performanceSeries(portfolioHistory, transactions);
         const benchmarkByDate = new Map(benchmark.map(point => [point.date.slice(0, 10), point.close]));
         const aligned = portfolio.filter(point => benchmarkByDate.has(point.date));
         const pairs = aligned.slice(1).flatMap((point, index) => {
@@ -56,11 +63,11 @@ export function PortfolioBenchmark() {
             beta, correlation, trackingError,
             informationRatio: trackingError ? avgActive * 252 * 100 / trackingError : null,
         };
-    }, [benchmark, transactions]);
+    }, [assets, benchmark, transactions]);
 
     const items = [
         { label: 'Tu cartera', value: percent(stats.portfolioReturn), icon: <TrendingUp size={17} /> },
-        { label: 'MSCI World (proxy URTH)', value: percent(stats.benchmarkReturn), icon: <BarChart3 size={17} /> },
+        { label: 'MSCI World', value: percent(stats.benchmarkReturn), icon: <BarChart3 size={17} /> },
         { label: 'Diferencia', value: percent(stats.excess), icon: <Scale size={17} /> },
         { label: 'Beta', value: number(stats.beta), icon: <Gauge size={17} /> },
         { label: 'Correlación', value: number(stats.correlation), icon: <Activity size={17} /> },

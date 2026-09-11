@@ -1,0 +1,16 @@
+.live-plan-stack { display: grid; gap: 1.25rem; min-width: 0; }
+.live-plan { min-width: 0; }
+.live-plan__summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
+.live-plan__summary > div { display: grid; gap: .5rem; padding: 1rem; background: var(--bg-tertiary); border-radius: 12px; }
+.live-plan p, .live-plan__summary span { color: var(--text-secondary); font-size: .85rem; }
+.live-plan__scroll { max-width: 100%; overflow-x: auto; margin: 1rem 0; }
+.live-plan table { width: 100%; border-collapse: collapse; font-size: .85rem; }
+.live-plan caption { text-align: left; font-size: 1rem; font-weight: 600; padding: .75rem 0; }
+.live-plan th, .live-plan td { text-align: right; padding: .85rem; border-bottom: 1px solid var(--border-primary); white-space: nowrap; }
+.live-plan th:first-child { text-align: left; white-space: normal; min-width: 160px; }
+.live-plan small { display: block; color: var(--text-muted); font-weight: normal; margin-top: .25rem; }
+.live-plan input { width: 85px; padding: .5rem; border: 1px solid var(--border-primary); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary); }
+.live-plan__budget { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 1.5rem; }
+.live-plan__budget input { width: 140px; }
+.live-plan .is-positive { color: var(--color-positive); }
+.live-plan .is-negative { color: var(--color-negative); }

@@ -29,3 +29,8 @@
 @media (max-width: 540px) {
     .portfolio-health__grid { grid-template-columns: 1fr; }
 }
+.portfolio-health__checks { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: .65rem; margin-top: 1rem; }
+.portfolio-health__checks > div { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: .5rem; padding: .7rem .8rem; border: 1px solid var(--border-primary); border-radius: 9px; color: var(--text-secondary); font-size: .78rem; }
+.portfolio-health__checks strong { color: var(--text-primary); }
+.portfolio-health__checks .is-ok svg { color: var(--color-positive); }
+.portfolio-health__checks .is-warning svg { color: var(--color-warning); }

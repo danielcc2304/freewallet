@@ -12,6 +12,25 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-11 - Dashboard de cartera autónomo y detalle completo de fondos
+- Funcionalidad:
+  - Se recuperan las cotizaciones de acciones en producción mediante rutas proxy propias y se protege la búsqueda frente a respuestas tardías.
+  - El detalle de fondos carga el histórico real de la clase localizada por ISIN, amplía la ficha con costes, rentabilidades, estadísticas, composición y política de inversión, y evita desbordamientos laterales.
+  - Se separan la planificación, el resumen mensual y los últimos movimientos en tarjetas independientes.
+  - Se añaden asignación objetivo, propuesta de aportaciones, controles de calidad, Sharpe, Sortino, mejores y peores meses y comparación automática con MSCI World mediante URTH.
+- Resumen:
+  - El dashboard incorpora los principales controles del Excel y los recalcula con las operaciones y cotizaciones guardadas, sin confundir aportaciones o retiradas con rentabilidad.
+- Archivos:
+  - `src/components/dashboard/`
+  - `src/components/ui/Modal/Modal.css`
+  - `src/context/PortfolioContext.tsx`
+  - `src/pages/AddInvestment/AddInvestment.tsx`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/services/apiService.ts`
+  - `src/services/market/marketConfig.ts`
+  - `src/services/portfolioPerformance.ts`
+  - `vercel.json`
+
 ### 2026-09-11 - v4.0.0 - Portfolio conectado y seguimiento avanzado
 - Funcionalidad:
   - Se amplía la importación del Excel para leer movimientos, objetivos, controles y datos diarios, incluyendo una plantilla demo con valores mockeados.

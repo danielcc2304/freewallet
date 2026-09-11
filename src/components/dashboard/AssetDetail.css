@@ -40,7 +40,7 @@
 
 .asset-detail__title-group {
     flex: 1 1 0;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .asset-detail__symbol {
@@ -333,7 +333,7 @@
 
 .metrics-grid {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1rem;
 }
 
@@ -351,6 +351,7 @@
     padding: 1rem;
     border-radius: 12px;
     transition: transform 0.2s, border-color 0.2s;
+    min-width: 0;
 }
 
 .metric-card:hover {
@@ -383,7 +384,17 @@
     font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 0.25rem;
+    overflow-wrap: anywhere;
 }
+
+.asset-detail__fund-sections { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; min-width: 0; }
+.asset-detail__fund-sections section { min-width: 0; padding: 1rem; border: 1px solid var(--border-color); border-radius: 12px; background: rgba(255,255,255,.02); }
+.asset-detail__fund-sections h3 { margin: 0 0 .75rem; font-size: .95rem; }
+.asset-detail__fund-sections p { margin: 0; color: var(--text-secondary); line-height: 1.55; overflow-wrap: anywhere; }
+.asset-detail__holding-list { display: grid; gap: .55rem; }
+.asset-detail__holding-list > div { display: flex; justify-content: space-between; gap: .75rem; color: var(--text-secondary); font-size: .8rem; }
+.asset-detail__holding-list span { min-width: 0; overflow-wrap: anywhere; }
+.asset-detail__holding-list strong { color: var(--text-primary); white-space: nowrap; }
 
 .metric-card__category {
     font-size: 0.65rem;
@@ -479,4 +490,6 @@
     .asset-detail__chart-selection button {
         margin-left: 0;
     }
+
+    .asset-detail__fund-sections { grid-template-columns: 1fr; }
 }

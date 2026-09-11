@@ -198,13 +198,13 @@
     min-width: 0;
     width: 100%;
     user-select: none;
-    touch-action: none;
+    touch-action: pan-y;
     cursor: crosshair;
 }
 
 .asset-detail__chart-container .recharts-wrapper,
 .asset-detail__chart-container .recharts-surface {
-    touch-action: none;
+    touch-action: pan-y;
 }
 
 .chart-overlay {
@@ -489,6 +489,15 @@
 
     .asset-detail__chart-selection button {
         margin-left: 0;
+    }
+
+    .asset-detail__chart-section {
+        padding: 0.85rem;
+    }
+
+    .asset-detail__chart-container {
+        width: calc(100% + 0.9rem);
+        margin-left: -0.45rem;
     }
 
     .asset-detail__fund-sections { grid-template-columns: 1fr; }

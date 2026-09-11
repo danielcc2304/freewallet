@@ -138,7 +138,13 @@ export function buildPortfolioAnalyticsHistory(
     const firstOperationDay = operationDays[0];
 
     let relevantHistory = firstOperationDay
-        ? validHistory.filter((point) => point.date.slice(0, 10) >= firstOperationDay)
+        ? [
+            // Retain the last valuation before the first operation as the
+            // return base. Dropping it makes the first purchase appear as the
+            // first point and prevents TWR from separating its cash flow.
+            ...validHistory.filter((point) => point.date.slice(0, 10) < firstOperationDay).slice(-1),
+            ...validHistory.filter((point) => point.date.slice(0, 10) >= firstOperationDay),
+        ]
         : validHistory;
 
     if (currentSnapshot && (!firstOperationDay || currentSnapshot.date.slice(0, 10) >= firstOperationDay)) {
@@ -165,9 +171,11 @@ export function buildPortfolioAnalyticsHistory(
         const baseInvested = normalizedHistory.at(-1)!.invested - flowUntil(lastDay);
 
         if (baseInvested >= -0.01) {
-            const historyDays = new Set(normalizedHistory.map((point) => point.date.slice(0, 10)));
             const operationBaselines = [...new Set(operationDays)]
-                .filter((day) => !historyDays.has(day))
+                // A current snapshot can already occupy the operation day.
+                // Keep a midnight cost baseline as a separate point so the
+                // same-day purchase cannot absorb the whole prior period.
+                .filter((day) => !normalizedHistory.some((point) => point.date === `${day}T00:00:00.000Z`))
                 .map((day) => {
                     const baseline = Math.max(0, baseInvested + flowUntil(day));
                     return { date: `${day}T00:00:00.000Z`, value: baseline, invested: baseline };
@@ -195,12 +203,27 @@ export function buildPortfolioAnalyticsHistory(
 // Backdated trades are applied to the date entered by the user so the series
 // starts when the position was actually incorporated, not when it was saved.
 export function performanceSeries(history: PortfolioHistoryPoint[], transactions: PortfolioTransaction[], assets: Asset[] = []) {
-    const days = new Map<string, PortfolioHistoryPoint>();
     const assetsById = new Map(assets.map((asset) => [asset.id, asset]));
+    const groupedByDay = new Map<string, PortfolioHistoryPoint[]>();
     [...history].filter(p => Number.isFinite(p.value) && p.value >= 0)
-        .sort((a, b) => a.date.localeCompare(b.date)).forEach(p => days.set(p.date.slice(0, 10), p));
+        .sort((a, b) => a.date.localeCompare(b.date))
+        .forEach((point) => {
+            const day = point.date.slice(0, 10);
+            groupedByDay.set(day, [...(groupedByDay.get(day) || []), point]);
+        });
+    const operationDays = new Set(
+        transactions
+            .filter((transaction) => transaction.type === 'buy' || transaction.type === 'sell')
+            .map(getTransactionEventDay),
+    );
+    const points = [...groupedByDay.entries()].flatMap(([day, dayPoints]) => {
+        if (!operationDays.has(day) || dayPoints.length < 2) return [dayPoints.at(-1)!];
+        const baseline = dayPoints.find((point) => point.date.includes('T00:00:00.000Z') && point.value === point.invested);
+        const last = dayPoints.at(-1)!;
+        return baseline && baseline !== last ? [baseline, last] : [last];
+    });
     let index = 100;
-    return [...days.values()].map((point, i, points) => {
+    return points.map((point, i) => {
         const previous = points[i - 1];
         const previousDay = previous?.date.slice(0, 10) || '';
         const pointDay = point.date.slice(0, 10);
@@ -217,7 +240,8 @@ export function performanceSeries(history: PortfolioHistoryPoint[], transactions
             // live value can already include a gain over the entered cost.
             // Use that day's market value as the TWR flow so the first quote
             // is not reported as a one-day portfolio return.
-            if (transaction.type === 'buy' && eventDay === pointDay && asset && transaction.quantity) {
+            const syntheticBaseline = point.date.includes('T00:00:00.000Z') && point.value === point.invested;
+            if (!syntheticBaseline && transaction.type === 'buy' && eventDay === pointDay && asset && transaction.quantity) {
                 return sum + (asset.currentPrice || asset.purchasePrice) * transaction.quantity;
             }
             return sum + transactionFlow(transaction);
@@ -236,8 +260,9 @@ export function performanceSeries(history: PortfolioHistoryPoint[], transactions
         // snapshot. There is no observable holding period for that money, so
         // do not turn it into a fictitious one-day return.
         const materialCapitalFlow = Boolean(previous && !operations.some((transaction) => transaction.type === 'buy' || transaction.type === 'sell') && Math.abs(flow) > Math.max(100, previous.value * 0.5));
+        const sameDayContinuation = Boolean(previous && previousDay === pointDay);
         const dailyReturn = valid
-            ? materialCapitalFlow
+            ? sameDayContinuation || materialCapitalFlow
                 ? 0
                 : (point.value - previous.value - flow) / previous.value * 100
             : null;

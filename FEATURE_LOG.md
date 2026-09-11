@@ -12,6 +12,21 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-11 - v5.0.7 - Gráficas de detalle y medición táctil
+- Funcionalidad:
+  - Se amplía el área útil de las gráficas de detalle reduciendo el espacio lateral reservado al eje Y.
+  - La medición de upside y drawdown en móvil requiere dos dedos y permite ajustar ambos puntos sin interferir con el desplazamiento normal.
+  - Se corrige el etiquetado del benchmark para distinguir claramente la cartera del MSCI World.
+- Resumen:
+  - El detalle de acciones y fondos aprovecha mejor el ancho disponible y ofrece una interacción táctil más precisa.
+- Archivos:
+  - `src/components/dashboard/AssetDetail.tsx`
+  - `src/components/dashboard/AssetDetail.css`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `package.json`
+  - `package-lock.json`
+  - `src/constants/app.ts`
+
 ### 2026-09-11 - v5.0.6 - Auditoría de periodos y flujos de cartera
 - Funcionalidad:
   - Se recalculan los retornos 1D, 7D, 1M, 3M, YTD y Todo con TWR ajustado por compras y ventas fechadas por el usuario.

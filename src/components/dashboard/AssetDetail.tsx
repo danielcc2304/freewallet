@@ -62,6 +62,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
     const [chartSelection, setChartSelection] = useState<ChartSelection | null>(null);
     const [isSelecting, setIsSelecting] = useState(false);
     const chartContainerRef = useRef<HTMLDivElement>(null);
+    const activeTouchPointersRef = useRef(new Map<number, number>());
     const assetIsin = asset.isin || (/^[A-Z]{2}[A-Z0-9]{10}$/i.test(asset.symbol) ? asset.symbol : '');
     const isFund = asset.type === 'fund' && !!assetIsin;
 
@@ -138,6 +139,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
     useEffect(() => {
         setChartSelection(null);
         setIsSelecting(false);
+        activeTouchPointersRef.current.clear();
     }, [asset.symbol, isFund, selectedPeriod]);
 
     const formatValue = (value: number | undefined, type: 'currency' | 'percent' | 'number' | 'compact' = 'number') => {
@@ -257,14 +259,28 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
 
         // Keep the pointer mapping inside the plot area (the chart reserves
         // room for the Y axis and the right margin).
-        const plotLeft = Math.min(68, rect.width * 0.15);
-        const plotRight = Math.min(20, rect.width * 0.08);
+        const plotLeft = isFund ? 52 : 44;
+        const plotRight = 10;
         const plotWidth = Math.max(rect.width - plotLeft - plotRight, 1);
         const relativeX = Math.min(Math.max(clientX - rect.left - plotLeft, 0), plotWidth);
         return Math.min(chartData.length - 1, Math.max(0, Math.round((relativeX / plotWidth) * (chartData.length - 1))));
     };
     const handlePointerStart = (event: ReactPointerEvent<HTMLDivElement>) => {
         if (!canDrawChart) return;
+        if (event.pointerType === 'touch') {
+            activeTouchPointersRef.current.set(event.pointerId, event.clientX);
+            if (activeTouchPointersRef.current.size < 2) return;
+            event.preventDefault();
+            const indices = [...activeTouchPointersRef.current.values()]
+                .map((clientX) => getChartIndexAtClientX(clientX))
+                .filter((index): index is number => index !== null);
+            if (indices.length === 2) {
+                setChartSelection({ start: indices[0], end: indices[1] });
+                setIsSelecting(true);
+            }
+            event.currentTarget.setPointerCapture(event.pointerId);
+            return;
+        }
         event.preventDefault();
         const index = getChartIndexAtClientX(event.clientX);
         if (index === null) return;
@@ -273,6 +289,17 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
         setIsSelecting(true);
     };
     const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+        if (event.pointerType === 'touch') {
+            if (!activeTouchPointersRef.current.has(event.pointerId)) return;
+            activeTouchPointersRef.current.set(event.pointerId, event.clientX);
+            if (activeTouchPointersRef.current.size < 2 || !isSelecting) return;
+            event.preventDefault();
+            const indices = [...activeTouchPointersRef.current.values()]
+                .map((clientX) => getChartIndexAtClientX(clientX))
+                .filter((index): index is number => index !== null);
+            if (indices.length === 2) setChartSelection({ start: indices[0], end: indices[1] });
+            return;
+        }
         if (!isSelecting) return;
         const index = getChartIndexAtClientX(event.clientX);
         if (index === null) return;
@@ -280,6 +307,14 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
         setChartSelection((current) => current ? { ...current, end: index } : current);
     };
     const handlePointerEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
+        if (event.pointerType === 'touch') {
+            activeTouchPointersRef.current.delete(event.pointerId);
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+                event.currentTarget.releasePointerCapture(event.pointerId);
+            }
+            if (activeTouchPointersRef.current.size < 2) setIsSelecting(false);
+            return;
+        }
         if (!isSelecting) return;
         const index = getChartIndexAtClientX(event.clientX);
         if (index !== null) {
@@ -371,7 +406,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                     {canDrawChart && <ResponsiveContainer width="100%" height={240}>
                         <AreaChart
                             data={chartData}
-                            margin={{ top: 10, right: 18, left: 12, bottom: 4 }}
+                    margin={{ top: 10, right: 8, left: 0, bottom: 4 }}
                         >
                             <defs>
                                 <linearGradient id="assetColor" x1="0" y1="0" x2="0" y2="1">
@@ -395,7 +430,8 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                                 tickLine={{ stroke: '#52525b' }}
                                 axisLine={{ stroke: '#52525b' }}
                                 tickFormatter={formatChartAxisValue}
-                                width={64}
+                                width={isFund ? 52 : 44}
+                                tickMargin={0}
                                 domain={['auto', 'auto']}
                             />
                             <Tooltip
@@ -407,7 +443,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                                 }}
                                 itemStyle={{ color: 'var(--accent-primary)' }}
                                 labelStyle={{ marginBottom: '4px', fontWeight: 'bold' }}
-                               formatter={(value: any) => [
+                               formatter={(value: number | string | undefined) => [
                                    value !== undefined && value !== null
                                         ? formatSelectionValue(Number(value))
                                        : 'N/A',
@@ -445,7 +481,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                                 <button type="button" onClick={() => setChartSelection(null)} aria-label="Limpiar selección">Limpiar</button>
                             </>
                         ) : (
-                            <span>Arrastra sobre la gráfica para medir la mejora o el drawdown entre dos puntos.</span>
+                            <span>Ordenador: arrastra. Móvil: coloca dos dedos sobre los puntos para medir la mejora o el drawdown.</span>
                         )}
                     </div>
                 )}

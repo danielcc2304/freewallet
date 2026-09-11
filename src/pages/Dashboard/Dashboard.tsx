@@ -12,6 +12,7 @@ import './Dashboard.css';
 import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan';
 import { PortfolioBenchmark } from '../../components/dashboard/PortfolioBenchmark';
 import { PortfolioExcelInsights } from '../../components/dashboard/PortfolioExcelInsights';
+import { PRICE_REFRESH_INTERVAL_MS } from '../../constants/app';
 
 export function Dashboard() {
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
@@ -29,7 +30,7 @@ export function Dashboard() {
     }, []);
 
     const nextRefreshSeconds = lastPriceUpdate
-        ? Math.max(0, Math.ceil((lastPriceUpdate.getTime() + 5 * 60 * 1000 - countdownNow) / 1000))
+        ? Math.max(0, Math.ceil((lastPriceUpdate.getTime() + PRICE_REFRESH_INTERVAL_MS - countdownNow) / 1000))
         : null;
     const countdownLabel = nextRefreshSeconds === null
         ? 'preparando actualización'
@@ -186,7 +187,7 @@ export function Dashboard() {
                         )}
                     </p>
                     <span className={`dashboard__live-status ${apiEnabled ? 'dashboard__live-status--active' : ''}`}>
-                        <Radio size={13} /> {apiEnabled ? `Precios automáticos · cada 5 min · ${updatingPrices ? 'actualizando…' : countdownLabel}` : 'Actualización automática desactivada'}
+                        <Radio size={13} /> {apiEnabled ? `Precios automáticos · cada 1 min · ${updatingPrices ? 'actualizando…' : countdownLabel}` : 'Actualización automática desactivada'}
                     </span>
                 </div>
                 <div className="dashboard__actions">
@@ -199,11 +200,6 @@ export function Dashboard() {
                     >
                         {!apiEnabled ? 'APIs desactivadas' : updatingPrices ? 'Actualizando...' : 'Actualizar Precios'}
                     </Button>
-                    <Link to="/add">
-                        <Button icon={<PlusCircle size={16} />} size="sm">
-                            Anadir
-                        </Button>
-                    </Link>
                 </div>
             </div>
 
@@ -215,6 +211,16 @@ export function Dashboard() {
             )}
 
             <PortfolioSummary metrics={metrics} />
+            <section className="dashboard__section">
+                <AssetsTable
+                    assets={assets}
+                    onDelete={deleteAsset}
+                    onEdit={handleEditAsset}
+                    onAddPurchase={handleAddPurchase}
+                    onSell={handleSell}
+                    onViewDetails={(asset) => setSelectedAssetId(asset.id)}
+                />
+            </section>
             <section className="dashboard__section"><PortfolioExcelInsights /></section>
             <section className="dashboard__section"><LivePortfolioPlan /></section>
 
@@ -244,17 +250,6 @@ export function Dashboard() {
                 <PortfolioComposition assets={assets} />
             </section>
 
-            <section className="dashboard__section">
-                <AssetsTable
-                    assets={assets}
-                    onDelete={deleteAsset}
-                    onEdit={handleEditAsset}
-                    onAddPurchase={handleAddPurchase}
-                    onSell={handleSell}
-                    onViewDetails={(asset) => setSelectedAssetId(asset.id)}
-                />
-            </section>
-
             <Modal
                 isOpen={selectedAsset !== null}
                 onClose={() => setSelectedAssetId(null)}
@@ -263,6 +258,9 @@ export function Dashboard() {
             >
                 {selectedAsset && <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} />}
             </Modal>
+            <Link className="dashboard__floating-add" to="/add" aria-label="Añadir inversión" title="Añadir inversión">
+                <PlusCircle size={25} strokeWidth={2.4} />
+            </Link>
         </div>
     );
 }

@@ -12,6 +12,25 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-11 - v5.0.6 - Auditoría de periodos y flujos de cartera
+- Funcionalidad:
+  - Se recalculan los retornos 1D, 7D, 1M, 3M, YTD y Todo con TWR ajustado por compras y ventas fechadas por el usuario.
+  - Se evita convertir primeras cotizaciones, saltos largos o aportaciones importadas en rentabilidades y drawdowns falsos.
+  - Se reconcilian importes duplicados conservando las fechas y se añaden pruebas deterministas de una cartera diversificada a cinco años.
+- Resumen:
+  - El dashboard muestra métricas comparables y honestas: cuando no existe una valoración cercana, el periodo queda como N/D en lugar de reutilizar una base antigua.
+- Archivos:
+  - `src/services/portfolioPerformance.ts`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `src/components/dashboard/PortfolioExcelInsights.css`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/components/dashboard/LivePortfolioPlan.tsx`
+  - `src/components/dashboard/PortfolioBenchmark.tsx`
+  - `scripts/test-portfolio-performance.ts`
+  - `package.json`
+  - `package-lock.json`
+  - `src/constants/app.ts`
+
 ### 2026-09-11 - v5.0.5 - Benchmark, histórico y acciones flotantes
 - Funcionalidad:
   - Se corrigen las etiquetas duplicadas del benchmark y se simplifica el nombre visible de MSCI World.

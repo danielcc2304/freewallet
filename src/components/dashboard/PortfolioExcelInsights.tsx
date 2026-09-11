@@ -51,7 +51,7 @@ const currency = (value: number) => value.toLocaleString('es-ES', {
 const percent = (value: number | null | undefined) => value === null || value === undefined || !Number.isFinite(value)
     ? 'N/D'
     : `${value >= 0 ? '+' : ''}${value.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%`;
-const drawdownPercent = (value: number | null | undefined) => value === null || value === undefined || !Number.isFinite(value)
+const plainPercent = (value: number | null | undefined) => value === null || value === undefined || !Number.isFinite(value)
     ? 'N/D'
     : `${value.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%`;
 const tooltipTheme = {
@@ -317,13 +317,13 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         { label: 'Capital invertido', value: currency(investedValue), detail: `${portfolioTransactions.length} operaciones`, icon: <Coins size={17} /> },
         { label: 'Rentabilidad total', value: percent(currentReturn), detail: currency(totalValue - investedValue), icon: <ArrowUpRight size={17} />, tone: currentReturn >= 0 ? 'is-positive' : 'is-negative' },
         { label: 'Rentabilidad anualizada', value: percent(annualized), detail: 'Mínimo 1 año', icon: <Gauge size={17} /> },
-        { label: 'Volatilidad anualizada', value: percent(volatility), detail: 'Riesgo estimado', icon: <BarChart3 size={17} /> },
-        { label: 'Máximo drawdown', value: series.length > 1 ? drawdownPercent(maxDrawdown) : 'N/D', detail: 'Caída desde máximos', icon: <ArrowDownRight size={17} />, tone: 'is-negative' },
-        { label: 'Días positivos', value: percent(positiveDays), detail: `${dailyReturns.length} intervalos válidos`, icon: <ShieldCheck size={17} /> },
+        { label: 'Volatilidad anualizada', value: plainPercent(volatility), detail: 'Riesgo estimado', icon: <BarChart3 size={17} /> },
+        { label: 'Máximo drawdown', value: series.length > 1 ? plainPercent(maxDrawdown) : 'N/D', detail: 'Caída desde máximos', icon: <ArrowDownRight size={17} />, tone: maxDrawdown < 0 ? 'is-negative' : undefined },
+        { label: 'Días positivos', value: plainPercent(positiveDays), detail: `${dailyReturns.length} intervalos válidos`, icon: <ShieldCheck size={17} /> },
         { label: 'Ratio Sharpe', value: sharpe === null ? 'N/D' : sharpe.toFixed(2), detail: 'Retorno / riesgo', icon: <Gauge size={17} /> },
         { label: 'Ratio Sortino', value: sortino === null ? 'N/D' : sortino.toFixed(2), detail: 'Riesgo bajista', icon: <Gauge size={17} /> },
-        { label: 'Mejor mes', value: percent(bestMonth?.monthlyReturn), detail: bestMonth?.month || 'Sin histórico', icon: <ArrowUpRight size={17} />, tone: 'is-positive' },
-        { label: 'Peor mes', value: percent(worstMonth?.monthlyReturn), detail: worstMonth?.month || 'Sin histórico', icon: <ArrowDownRight size={17} />, tone: 'is-negative' },
+        { label: 'Mejor mes', value: percent(bestMonth?.monthlyReturn), detail: bestMonth?.month || 'Sin histórico', icon: <ArrowUpRight size={17} />, tone: bestMonth && bestMonth.monthlyReturn < 0 ? 'is-negative' : 'is-positive' },
+        { label: 'Peor mes', value: plainPercent(worstMonth?.monthlyReturn), detail: worstMonth?.month || 'Sin histórico', icon: <ArrowDownRight size={17} />, tone: worstMonth && worstMonth.monthlyReturn < 0 ? 'is-negative' : undefined },
         { label: 'Meses negativos', value: validMonthly.length ? `${negativeMonths} de ${validMonthly.length}` : 'N/D', detail: 'Periodos cerrados', icon: <AlertTriangle size={17} /> },
         { label: 'Compras registradas', value: currency(buys), detail: 'Flujo de entrada', icon: <WalletCards size={17} /> },
         { label: 'Ventas registradas', value: currency(sells), detail: 'Flujo de salida', icon: <Coins size={17} /> },
@@ -508,7 +508,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                         <div className="portfolio-excel-insights__stats">
                             <span>Sharpe <strong>{sharpe === null ? 'N/D' : sharpe.toFixed(2)}</strong></span>
                             <span>Sortino <strong>{sortino === null ? 'N/D' : sortino.toFixed(2)}</strong></span>
-                            <span>Peor mes <strong>{percent(worstMonth?.monthlyReturn)}</strong></span>
+                            <span>Peor mes <strong>{plainPercent(worstMonth?.monthlyReturn)}</strong></span>
                             <span>Meses negativos <strong>{validMonthly.length ? `${negativeMonths} de ${validMonthly.length}` : 'N/D'}</strong></span>
                             <span>Histórico <strong>{history.length}</strong></span>
                             <span>Stale <strong>{stale}</strong></span>

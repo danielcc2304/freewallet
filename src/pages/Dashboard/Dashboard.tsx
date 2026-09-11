@@ -1,23 +1,19 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio } from 'lucide-react';
-import { PortfolioSummary, Performers, AssetsTable, PortfolioComposition, AssetDetail, PortfolioHealth, PortfolioAnalytics } from '../../components/dashboard';
-import { PortfolioChart } from '../../components/charts';
+import { PortfolioSummary, Performers, AssetsTable, PortfolioComposition, AssetDetail } from '../../components/dashboard';
 import { Button, Card, CardContent, Modal } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { filterHistoryByPeriod } from '../../data/mockData';
 import { getHistory, isApiEnabled } from '../../services/storageService';
-import type { PortfolioMetrics, ChartDataPoint, PerformerData, TimePeriod, Asset } from '../../types/types';
+import type { PortfolioMetrics, PerformerData, Asset } from '../../types/types';
 import './Dashboard.css';
 import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan';
-import { PortfolioBenchmark } from '../../components/dashboard/PortfolioBenchmark';
 import { PortfolioExcelInsights } from '../../components/dashboard/PortfolioExcelInsights';
 import { PRICE_REFRESH_INTERVAL_MS } from '../../constants/app';
 
 export function Dashboard() {
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
     const { assets, loading, updatingPrices, lastPriceUpdate } = state;
-    const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M');
     const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
     const [countdownNow, setCountdownNow] = useState(() => Date.now());
     const navigate = useNavigate();
@@ -81,10 +77,10 @@ export function Dashboard() {
                 percent: valid && previousValue > 0 ? (change / previousValue) * 100 : NaN,
             };
         };
-        const day = periodChange(Date.now() - 24 * 60 * 60 * 1000);
-        const month = periodChange(Date.now() - 30 * 24 * 60 * 60 * 1000);
-        const quarter = periodChange(Date.now() - 90 * 24 * 60 * 60 * 1000);
-        const ytdStart = new Date(new Date().getFullYear(), 0, 1).getTime();
+        const day = periodChange(countdownNow - 24 * 60 * 60 * 1000);
+        const month = periodChange(countdownNow - 30 * 24 * 60 * 60 * 1000);
+        const quarter = periodChange(countdownNow - 90 * 24 * 60 * 60 * 1000);
+        const ytdStart = new Date(new Date(countdownNow).getFullYear(), 0, 1).getTime();
         const ytd = periodChange(ytdStart);
 
         return {
@@ -101,16 +97,7 @@ export function Dashboard() {
             ytdChange: ytd.change,
             ytdChangePercent: ytd.percent,
         };
-    }, [assets, lastPriceUpdate, state.transactions]);
-
-    const chartData: ChartDataPoint[] = useMemo(() => {
-        const history = getHistory();
-        const filtered = filterHistoryByPeriod(history, selectedPeriod);
-        if (filtered.length > 0) return filtered;
-        const currentValue = assets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0);
-        const invested = assets.reduce((sum, asset) => sum + asset.purchasePrice * asset.quantity, 0);
-        return assets.length ? [{ date: new Date().toISOString(), value: currentValue, invested }] : [];
-    }, [assets, lastPriceUpdate, selectedPeriod]);
+    }, [assets, countdownNow, state.transactions]);
 
     const performersData: PerformerData[] = useMemo(() => {
         return assets.map((asset) => {
@@ -221,25 +208,8 @@ export function Dashboard() {
                     onViewDetails={(asset) => setSelectedAssetId(asset.id)}
                 />
             </section>
-            <section className="dashboard__section"><PortfolioExcelInsights /></section>
+            <section className="dashboard__section"><PortfolioExcelInsights now={countdownNow} /></section>
             <section className="dashboard__section"><LivePortfolioPlan /></section>
-
-            <section className="dashboard__section">
-                <PortfolioHealth assets={assets} />
-            </section>
-
-            <section className="dashboard__section">
-                <PortfolioAnalytics assets={assets} />
-            </section>
-            <section className="dashboard__section"><PortfolioBenchmark /></section>
-
-            <section className="dashboard__section">
-                <PortfolioChart
-                    data={chartData}
-                    selectedPeriod={selectedPeriod}
-                    onPeriodChange={setSelectedPeriod}
-                />
-            </section>
 
             <section className="dashboard__section dashboard__performers">
                 <Performers data={performersData} type="best" />
@@ -247,7 +217,7 @@ export function Dashboard() {
             </section>
 
             <section className="dashboard__section">
-                <PortfolioComposition assets={assets} />
+                <PortfolioComposition assets={assets} onAssetClick={(asset) => setSelectedAssetId(asset.id)} />
             </section>
 
             <Modal

@@ -4,7 +4,8 @@ import type { Asset } from '../../types/types';
 import { getHistory } from '../../services/storageService';
 import './PortfolioHealth.css';
 
-export function PortfolioHealth({ assets }: { assets: Asset[] }) {
+export function PortfolioHealth({ assets, now }: { assets: Asset[]; now: number }) {
+    const quoteWindow = 15 * 60 * 1000;
     const totalValue = assets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0);
     const values = assets.map((asset) => ({
         asset,
@@ -12,13 +13,17 @@ export function PortfolioHealth({ assets }: { assets: Asset[] }) {
     })).sort((a, b) => b.value - a.value);
     const largest = values[0];
     const largestWeight = totalValue > 0 && largest ? largest.value / totalValue * 100 : 0;
-    const updated = assets.filter((asset) => !!asset.lastQuoteAt).length;
+    const updated = assets.filter((asset) => {
+        if (!asset.lastQuoteAt) return false;
+        const timestamp = new Date(asset.lastQuoteAt).getTime();
+        return Number.isFinite(timestamp) && now - timestamp <= quoteWindow;
+    }).length;
     const dataCoverage = assets.length ? updated / assets.length * 100 : 0;
     const assetTypes = new Set(assets.map((asset) => asset.type)).size;
     const concentration = largestWeight > 35 ? 'Alta' : largestWeight > 20 ? 'Media' : 'Equilibrada';
     const duplicates = assets.filter((asset, index) => assets.findIndex(other => other.symbol.toUpperCase() === asset.symbol.toUpperCase()) !== index);
     const invalid = assets.filter(asset => asset.quantity <= 0 || asset.purchasePrice <= 0);
-    const stale = assets.filter(asset => !asset.lastQuoteAt || Date.now() - new Date(asset.lastQuoteAt).getTime() > 15 * 60 * 1000);
+    const stale = assets.filter(asset => !asset.lastQuoteAt || now - new Date(asset.lastQuoteAt).getTime() > 15 * 60 * 1000);
     const history = getHistory();
     const controls = [
         { label: 'Posiciones duplicadas', value: duplicates.length, ok: duplicates.length === 0 },

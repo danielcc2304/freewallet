@@ -4,6 +4,20 @@ import type { Asset, PortfolioTransaction } from '../types/types';
 import { getAssets, getTransactions, saveAssets, saveTransactions, addAsset as addAssetToStorage, updateAsset as updateAssetInStorage, deleteAsset as deleteAssetFromStorage, saveHistory, addHistoryPoint, addTransaction as addTransactionToStorage, isApiEnabled, generateId } from '../services/storageService';
 import { getPortfolioAssetQuote } from '../services/portfolioQuoteService';
 import { mockAssets, generateMockHistory } from '../data/mockData';
+import { PRICE_REFRESH_INTERVAL_MS } from '../constants/app';
+
+function getLatestQuoteAt(assets: Asset[]): Date | null {
+    const timestamps = assets
+        .map((asset) => asset.lastQuoteAt ? new Date(asset.lastQuoteAt).getTime() : NaN)
+        .filter((timestamp) => Number.isFinite(timestamp));
+    const latest = timestamps.length ? Math.max(...timestamps) : NaN;
+    return Number.isFinite(latest) ? new Date(latest) : null;
+}
+
+function shouldRefreshAssets(assets: Asset[]): boolean {
+    const latest = getLatestQuoteAt(assets);
+    return !latest || Date.now() - latest.getTime() >= PRICE_REFRESH_INTERVAL_MS;
+}
 
 // State interface
 interface PortfolioState {
@@ -141,7 +155,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             const value = refreshedAssets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0);
             const invested = refreshedAssets.reduce((sum, asset) => sum + asset.purchasePrice * asset.quantity, 0);
             if (updatedCount === assetsToUpdate.length) addHistoryPoint({ date: new Date().toISOString(), value, invested });
-            dispatch({ type: 'SET_LAST_UPDATE', payload: new Date() });
+            const latestQuoteAt = getLatestQuoteAt(refreshedAssets);
+            if (latestQuoteAt) dispatch({ type: 'SET_LAST_UPDATE', payload: latestQuoteAt });
         } finally {
             refreshInFlight.current = false;
             dispatch({ type: 'SET_UPDATING_PRICES', payload: false });
@@ -153,16 +168,19 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         const storedAssets = getAssets();
         dispatch({ type: 'SET_ASSETS', payload: storedAssets });
         dispatch({ type: 'SET_TRANSACTIONS', payload: getTransactions() });
+        const latestQuoteAt = getLatestQuoteAt(storedAssets);
+        if (latestQuoteAt) dispatch({ type: 'SET_LAST_UPDATE', payload: latestQuoteAt });
         dispatch({ type: 'SET_INITIALIZED', payload: true });
-        if (storedAssets.length > 0 && isApiEnabled()) void updatePricesInternal(storedAssets);
+        if (storedAssets.length > 0 && isApiEnabled() && shouldRefreshAssets(storedAssets)) void updatePricesInternal(storedAssets);
     }, [state.initialized, updatePricesInternal]);
 
     useEffect(() => {
         if (!state.initialized || state.assets.length === 0 || !isApiEnabled()) return undefined;
         const refresh = () => {
-            if (document.visibilityState === 'visible') void updatePricesInternal(getAssets());
+            const currentAssets = getAssets();
+            if (document.visibilityState === 'visible' && shouldRefreshAssets(currentAssets)) void updatePricesInternal(currentAssets);
         };
-        const intervalId = window.setInterval(refresh, 5 * 60 * 1000);
+        const intervalId = window.setInterval(refresh, PRICE_REFRESH_INTERVAL_MS);
         document.addEventListener('visibilitychange', refresh);
         return () => {
             window.clearInterval(intervalId);
@@ -268,6 +286,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         saveTransactions(demoTransactions);
         dispatch({ type: 'SET_ASSETS', payload: mockAssets });
         dispatch({ type: 'SET_TRANSACTIONS', payload: demoTransactions.sort((a, b) => (a.date < b.date ? 1 : -1)) });
+        const latestQuoteAt = getLatestQuoteAt(mockAssets);
+        if (latestQuoteAt) dispatch({ type: 'SET_LAST_UPDATE', payload: latestQuoteAt });
     }, []);
 
     const value: PortfolioContextValue = {

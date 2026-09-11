@@ -44,18 +44,6 @@ export function buildPortfolioAnalyticsHistory(
         ? validHistory.filter((point) => point.date.slice(0, 10) >= firstOperationDay)
         : validHistory;
 
-    if (firstOperationDay && !relevantHistory.some((point) => point.date.slice(0, 10) === firstOperationDay)) {
-        const baselineInvested = transactions
-            .filter((transaction) => getTransactionEventDay(transaction) === firstOperationDay)
-            .reduce((sum, transaction) => sum + transactionFlow(transaction), 0);
-        const fallbackBaseline = currentSnapshot?.invested || 0;
-        const baseline = Math.max(0, baselineInvested || fallbackBaseline);
-        relevantHistory = [
-            { date: `${firstOperationDay}T00:00:00.000Z`, value: baseline, invested: baseline },
-            ...relevantHistory,
-        ];
-    }
-
     if (currentSnapshot && (!firstOperationDay || currentSnapshot.date.slice(0, 10) >= firstOperationDay)) {
         relevantHistory = [...relevantHistory, currentSnapshot];
     }
@@ -68,21 +56,28 @@ export function buildPortfolioAnalyticsHistory(
     relevantHistory.forEach((point) => deduplicated.set(point.date.slice(0, 10), point));
     let normalizedHistory = [...deduplicated.values()].sort((left, right) => left.date.localeCompare(right.date));
 
-    // If a purchase was entered with an earlier date than the first live
-    // quote, snapshots before the real purchase omit that capital. Rebuild
-    // the invested baseline and add that cost to the value series so the
-    // contribution is not rendered as a false performance spike.
-    if (operations.length > 0 && normalizedHistory.length > 0) {
-        const firstDay = normalizedHistory[0].date.slice(0, 10);
-        const lastDay = normalizedHistory.at(-1)!.date.slice(0, 10);
-        const flowUntil = (day: string) => operations
-            .filter((operation) => operation.day <= day)
-            .reduce((sum, operation) => sum + operation.flow, 0);
-        const baseInvested = normalizedHistory[0].invested - flowUntil(firstDay);
-        const expectedLastInvested = baseInvested + flowUntil(lastDay);
-        const lastInvested = normalizedHistory.at(-1)!.invested;
+    const flowUntil = (day: string) => operations
+        .filter((operation) => operation.day <= day)
+        .reduce((sum, operation) => sum + operation.flow, 0);
 
-        if (Math.abs(expectedLastInvested - lastInvested) <= 0.01) {
+    // Anchor the expected invested series on the latest live snapshot. This
+    // keeps the current portfolio value authoritative even when the ledger
+    // contains old positions or a snapshot predates a backdated purchase.
+    if (operations.length > 0 && normalizedHistory.length > 0) {
+        const lastDay = normalizedHistory.at(-1)!.date.slice(0, 10);
+        const baseInvested = normalizedHistory.at(-1)!.invested - flowUntil(lastDay);
+
+        if (baseInvested >= -0.01) {
+            const historyDays = new Set(normalizedHistory.map((point) => point.date.slice(0, 10)));
+            const operationBaselines = [...new Set(operationDays)]
+                .filter((day) => !historyDays.has(day))
+                .map((day) => {
+                    const baseline = Math.max(0, baseInvested + flowUntil(day));
+                    return { date: `${day}T00:00:00.000Z`, value: baseline, invested: baseline };
+                });
+            normalizedHistory = [...normalizedHistory, ...operationBaselines]
+                .sort((left, right) => left.date.localeCompare(right.date));
+
             normalizedHistory = normalizedHistory.map((point) => {
                 const expectedInvested = Math.max(0, baseInvested + flowUntil(point.date.slice(0, 10)));
                 const missingCapital = expectedInvested - point.invested;

@@ -9,6 +9,8 @@ import { filterHistoryByPeriod } from '../../data/mockData';
 import { getHistory, isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, ChartDataPoint, PerformerData, TimePeriod, Asset } from '../../types/types';
 import './Dashboard.css';
+import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan';
+import { PortfolioBenchmark } from '../../components/dashboard/PortfolioBenchmark';
 
 export function Dashboard() {
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
@@ -62,15 +64,19 @@ export function Dashboard() {
         const history = getHistory().sort((a, b) => a.date.localeCompare(b.date));
         const valueAtOrBefore = (timestamp: number) => {
             const point = [...history].reverse().find((item) => new Date(item.date).getTime() <= timestamp);
-            return point?.value;
+            return point;
         };
         const periodChange = (timestamp: number) => {
-            const previousValue = valueAtOrBefore(timestamp);
-            const change = previousValue !== undefined ? currentValue - previousValue : totalGain;
+            const base = valueAtOrBefore(timestamp);
+            const previousValue = base?.value;
+            const operations = state.transactions.filter(t => base && t.createdAt > base.date);
+            const flow = operations.reduce((sum, t) => sum + (t.type === 'buy' ? t.total || 0 : t.type === 'sell' ? -(t.total || 0) : 0), 0);
+            const valid = previousValue !== undefined && !operations.some(t => t.type === 'edit' || t.type === 'delete');
+            const change = valid ? currentValue - previousValue - flow : NaN;
             return {
                 hasBase: previousValue !== undefined,
                 change,
-                percent: previousValue && previousValue > 0 ? (change / previousValue) * 100 : percentageGain,
+                percent: valid && previousValue > 0 ? (change / previousValue) * 100 : NaN,
             };
         };
         const day = periodChange(Date.now() - 24 * 60 * 60 * 1000);
@@ -93,7 +99,7 @@ export function Dashboard() {
             ytdChange: ytd.change,
             ytdChangePercent: ytd.percent,
         };
-    }, [assets, lastPriceUpdate]);
+    }, [assets, lastPriceUpdate, state.transactions]);
 
     const chartData: ChartDataPoint[] = useMemo(() => {
         const history = getHistory();
@@ -208,6 +214,7 @@ export function Dashboard() {
             )}
 
             <PortfolioSummary metrics={metrics} />
+            <section className="dashboard__section"><LivePortfolioPlan /></section>
 
             <section className="dashboard__section">
                 <PortfolioHealth assets={assets} />
@@ -216,6 +223,7 @@ export function Dashboard() {
             <section className="dashboard__section">
                 <PortfolioAnalytics assets={assets} />
             </section>
+            <section className="dashboard__section"><PortfolioBenchmark /></section>
 
             <section className="dashboard__section">
                 <PortfolioChart

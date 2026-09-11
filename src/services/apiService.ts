@@ -175,7 +175,7 @@ export async function searchSymbol(query: string, signal?: AbortSignal): Promise
     }
 
     // 1) Yahoo Finance search (mejor cobertura)
-    if (getYahooFinanceFailures() < MAX_FAILURES_BEFORE_SWITCH) {
+    if (!signal?.aborted) {
         try {
             const results = await searchSymbolYahoo(q, signal);
             results.forEach(res => addUniqueResult(allResults, seenSymbols, res));
@@ -197,7 +197,7 @@ export async function searchSymbol(query: string, signal?: AbortSignal): Promise
     // 2) Alpha Vantage (si falta chicha)
     if (allResults.length < 8 && getAlphaVantageFailures() < MAX_FAILURES_BEFORE_SWITCH) {
         try {
-            const results = await searchSymbolAlphaVantage(q);
+            const results = await searchSymbolAlphaVantage(q, signal);
             results.forEach(res => addUniqueResult(allResults, seenSymbols, res));
             resetAlphaVantageFailures();
         } catch (error) {
@@ -209,7 +209,7 @@ export async function searchSymbol(query: string, signal?: AbortSignal): Promise
     // 3) Finnhub (fallback)
     if (allResults.length < 5) {
         try {
-            const results = await searchSymbolFinnhub(q);
+            const results = await searchSymbolFinnhub(q, signal);
             results.forEach(res => addUniqueResult(allResults, seenSymbols, res));
         } catch (error) {
             console.warn('Finnhub search failed:', error);
@@ -386,7 +386,7 @@ export async function getQuote(symbol: string, signal?: AbortSignal): Promise<St
     }
 
     // Try Yahoo Finance first as it's generally more reliable and has better coverage
-    if (getYahooFinanceFailures() < MAX_FAILURES_BEFORE_SWITCH) {
+    if (!signal?.aborted) {
         try {
             const quote = await getQuoteYahoo(symbol, signal);
             if (quote) {
@@ -515,7 +515,7 @@ async function getQuoteYahoo(symbol: string, signal?: AbortSignal): Promise<Stoc
     const meta = result?.meta;
     if (!meta?.regularMarketPrice) return null;
     const closes = (result?.indicators?.quote?.[0]?.close || []).filter((value: unknown) => typeof value === 'number');
-    const previousClose = meta.chartPreviousClose || closes.at(-2) || meta.previousClose || meta.regularMarketPrice;
+    const previousClose = meta.previousClose || closes.at(-2) || meta.chartPreviousClose || meta.regularMarketPrice;
     const change = meta.regularMarketPrice - previousClose;
     return {
         symbol: meta.symbol || symbol,
@@ -770,15 +770,16 @@ export async function getAssetChartData(
 
     let range = '1mo';
     let interval = '1d';
+    const fundIdentifier = looksLikeISIN(symbol);
 
     switch (period) {
         case '1D':
-            range = '1d';
-            interval = '5m';
+            range = fundIdentifier ? '5d' : '1d';
+            interval = fundIdentifier ? '1d' : '5m';
             break;
         case '7D':
             range = '7d';
-            interval = '30m';
+            interval = fundIdentifier ? '1d' : '30m';
             break;
         case '1M':
             range = '1mo';
@@ -809,7 +810,7 @@ export async function getAssetChartData(
 
                 // A single quote cannot render an evolution. Keep looking for
                 // another listing (for example B02.F for NXTE.XD).
-                if (points.length >= 2) return points;
+                if (points.length >= 2) return fundIdentifier && period === '1D' ? points.slice(-2) : points;
             } catch (error) {
                 if (axios.isCancel(error) || signal?.aborted) throw error;
             }

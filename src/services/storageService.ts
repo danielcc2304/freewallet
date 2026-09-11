@@ -246,7 +246,11 @@ export function addHistoryPoint(point: PortfolioHistoryPoint): void {
     history.push(point);
     const now = Date.now();
     const recentCutoff = now - 7 * 24 * 60 * 60 * 1000;
-    const oldestCutoff = now - 366 * 24 * 60 * 60 * 1000;
+    // Keep enough history for the Portfolio workbook's multi-year metrics.
+    // Older observations are compacted hourly below seven days and retained
+    // for five years instead of silently dropping the periods used by CAGR,
+    // Sharpe and drawdown calculations.
+    const oldestCutoff = now - 5 * 365 * 24 * 60 * 60 * 1000;
     const hourly = new Map<string, PortfolioHistoryPoint>();
     const recent: PortfolioHistoryPoint[] = [];
 

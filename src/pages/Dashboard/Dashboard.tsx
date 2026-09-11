@@ -56,8 +56,9 @@ export function Dashboard() {
         const totalGain = currentValue - totalInvested;
         const percentageGain = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
 
-        const dailyChange = assets.reduce((sum, a) => {
-            const prevValue = (a.previousClose || a.purchasePrice) * a.quantity;
+        const dailyQuoteAssets = assets.filter((asset) => Number.isFinite(asset.previousClose) && (asset.previousClose || 0) > 0 && !!asset.lastQuoteAt);
+        const dailyChange = dailyQuoteAssets.reduce((sum, a) => {
+            const prevValue = (a.previousClose || 0) * a.quantity;
             const currValue = (a.currentPrice || a.purchasePrice) * a.quantity;
             return sum + (currValue - prevValue);
         }, 0);
@@ -73,8 +74,8 @@ export function Dashboard() {
             const maxBaseGap = Math.max(3 * DAY_MS, (countdownNow - timestamp) * 1.5);
             const period = calculatePeriodPerformance(series, timestamp, countdownNow, maxBaseGap);
             return {
-                hasBase: period.hasBase,
-                change: period.change ?? NaN,
+                hasBase: period.hasBase && period.returnPercent !== null,
+                change: period.returnPercent === null ? NaN : period.change ?? NaN,
                 percent: period.returnPercent ?? NaN,
             };
         };
@@ -99,8 +100,8 @@ export function Dashboard() {
             currentValue,
             totalGain,
             percentageGain,
-            dailyChange: day.hasBase ? day.change : dailyChange,
-            dailyChangePercent: day.hasBase ? day.percent : (currentValue > 0 ? (dailyChange / (currentValue - dailyChange)) * 100 : 0),
+            dailyChange: day.hasBase ? day.change : dailyQuoteAssets.length > 0 ? dailyChange : NaN,
+            dailyChangePercent: day.hasBase ? day.percent : dailyQuoteAssets.length > 0 && currentValue > 0 ? (dailyChange / (currentValue - dailyChange)) * 100 : NaN,
             monthlyChange: month.change,
             monthlyChangePercent: month.percent,
             threeMonthChange: quarter.change,

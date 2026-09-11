@@ -236,6 +236,11 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
 
     const visibleMetricItems = isFund ? fundMetricItems : metricItems.filter((item) => item.value !== 'N/A');
     const canDrawChart = !loadingChart && chartData.length > 1;
+    const chartPeriodStart = chartData[0];
+    const chartPeriodEnd = chartData.at(-1);
+    const chartPeriodReturn = chartPeriodStart?.close && chartPeriodEnd?.close
+        ? ((chartPeriodEnd.close - chartPeriodStart.close) / chartPeriodStart.close) * 100
+        : null;
     const selectedStart = chartSelection ? chartData[chartSelection.start] : undefined;
     const selectedEnd = chartSelection ? chartData[chartSelection.end] : undefined;
     const selectedStartValue = selectedStart?.close;
@@ -386,6 +391,13 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                             </button>
                         ))}
                     </div>
+                </div>
+                <div className="asset-detail__period-performance" aria-live="polite">
+                    <span>Rentabilidad {selectedPeriod === 'ALL' ? 'histórica' : selectedPeriod}</span>
+                    <strong className={chartPeriodReturn !== null && chartPeriodReturn < 0 ? 'negative' : 'positive'}>
+                        {canDrawChart && chartPeriodReturn !== null ? `${chartPeriodReturn >= 0 ? '+' : ''}${chartPeriodReturn.toFixed(2)}%` : 'N/D'}
+                    </strong>
+                    {canDrawChart && chartPeriodStart && chartPeriodEnd && <small>{chartPeriodStart.date} → {chartPeriodEnd.date}</small>}
                 </div>
 
                 <div

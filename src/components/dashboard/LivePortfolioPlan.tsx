@@ -21,6 +21,7 @@ export function LivePortfolioPlan() {
     });
     const [budget, setBudget] = useState(0);
     const [saveError, setSaveError] = useState(false);
+    const portfolioTransactions = transactions.filter((transaction) => assets.some((asset) => asset.id === transaction.assetId));
     const total = assets.reduce((sum, a) => sum + (a.currentPrice ?? a.purchasePrice) * a.quantity, 0);
     const invested = assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0);
     const targetTotal = assets.reduce((sum, a) => sum + (targets[a.id] || 0), 0);
@@ -32,12 +33,12 @@ export function LivePortfolioPlan() {
         return { a, value, cost, target, weight: total ? value / total * 100 : 0, gap: (total + budget) * target / 100 - value };
     }).sort((a, b) => b.value - a.value);
     const shortfall = rows.reduce((sum, r) => sum + Math.max(0, r.gap), 0);
-    const liveHistory = buildPortfolioAnalyticsHistory(getHistory(), transactions, {
+    const liveHistory = buildPortfolioAnalyticsHistory(getHistory(), portfolioTransactions, {
         date: new Date().toISOString(),
         value: total,
         invested,
     });
-    const series = performanceSeries(liveHistory, transactions);
+    const series = performanceSeries(liveHistory, portfolioTransactions);
     const months = new Map<string, { value: number; invested: number; factor: number; observations: number; drawdown: number }>();
     let peak = 100;
     series.forEach(p => {
@@ -50,15 +51,15 @@ export function LivePortfolioPlan() {
         if (p.dailyReturn !== null) { m.factor *= 1 + p.dailyReturn / 100; m.observations++; }
         months.set(key, m);
     });
-    const buys = transactions.filter(t => t.type === 'buy').reduce((s, t) => s + (t.total || 0), 0);
-    const sells = transactions.filter(t => t.type === 'sell').reduce((s, t) => s + (t.total || 0), 0);
+    const buys = portfolioTransactions.filter(t => t.type === 'buy').reduce((s, t) => s + (t.total || 0), 0);
+    const sells = portfolioTransactions.filter(t => t.type === 'sell').reduce((s, t) => s + (t.total || 0), 0);
     const setTarget = (id: string, value: number) => {
         const next = { ...targets, [id]: Math.min(100, Math.max(0, Number.isFinite(value) ? value : 0)) };
         setTargets(next);
         try { localStorage.setItem(KEY, JSON.stringify(next)); setSaveError(false); } catch { setSaveError(true); }
     };
     const currentResult = rows.reduce((sum, row) => sum + row.value - row.cost, 0);
-    const recentTransactions = [...transactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
+    const recentTransactions = [...portfolioTransactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
 
     return <div className="live-plan-stack">
         <Card className="live-plan">

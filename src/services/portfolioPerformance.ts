@@ -11,6 +11,11 @@ export function getTransactionEventDay(transaction: PortfolioTransaction): strin
     return transaction.createdAt?.slice(0, 10) || '';
 }
 
+function transactionFlow(transaction: PortfolioTransaction): number {
+    const amount = transaction.total || 0;
+    return transaction.type === 'buy' ? amount : transaction.type === 'sell' ? -amount : 0;
+}
+
 /**
  * Builds the history used by live portfolio analytics.
  *
@@ -25,13 +30,14 @@ export function buildPortfolioAnalyticsHistory(
     currentSnapshot?: PortfolioHistoryPoint,
 ): PortfolioHistoryPoint[] {
     const validHistory = [...history]
-        .filter((point) => Number.isFinite(point.value) && point.value >= 0 && Number.isFinite(point.invested) && point.invested >= 0)
+        .filter((point) => Number.isFinite(new Date(point.date).getTime()) && Number.isFinite(point.value) && point.value >= 0 && Number.isFinite(point.invested) && point.invested >= 0)
         .sort((left, right) => left.date.localeCompare(right.date));
-    const operationDays = transactions
+    const operations = transactions
         .filter((transaction) => transaction.type === 'buy' || transaction.type === 'sell')
-        .map(getTransactionEventDay)
-        .filter((day) => /^\d{4}-\d{2}-\d{2}$/.test(day))
-        .sort();
+        .map((transaction) => ({ day: getTransactionEventDay(transaction), flow: transactionFlow(transaction) }))
+        .filter((operation) => /^\d{4}-\d{2}-\d{2}$/.test(operation.day))
+        .sort((left, right) => left.day.localeCompare(right.day));
+    const operationDays = operations.map((operation) => operation.day);
     const firstOperationDay = operationDays[0];
 
     let relevantHistory = firstOperationDay
@@ -41,10 +47,7 @@ export function buildPortfolioAnalyticsHistory(
     if (firstOperationDay && !relevantHistory.some((point) => point.date.slice(0, 10) === firstOperationDay)) {
         const baselineInvested = transactions
             .filter((transaction) => getTransactionEventDay(transaction) === firstOperationDay)
-            .reduce((sum, transaction) => {
-                const amount = transaction.total || 0;
-                return sum + (transaction.type === 'buy' ? amount : transaction.type === 'sell' ? -amount : 0);
-            }, 0);
+            .reduce((sum, transaction) => sum + transactionFlow(transaction), 0);
         const fallbackBaseline = currentSnapshot?.invested || 0;
         const baseline = Math.max(0, baselineInvested || fallbackBaseline);
         relevantHistory = [
@@ -53,13 +56,47 @@ export function buildPortfolioAnalyticsHistory(
         ];
     }
 
+    if (currentSnapshot && (!firstOperationDay || currentSnapshot.date.slice(0, 10) >= firstOperationDay)) {
+        relevantHistory = [...relevantHistory, currentSnapshot];
+    }
+
     if (relevantHistory.length === 0 && currentSnapshot) {
         relevantHistory = [currentSnapshot];
     }
 
     const deduplicated = new Map<string, PortfolioHistoryPoint>();
     relevantHistory.forEach((point) => deduplicated.set(point.date.slice(0, 10), point));
-    return [...deduplicated.values()].sort((left, right) => left.date.localeCompare(right.date));
+    let normalizedHistory = [...deduplicated.values()].sort((left, right) => left.date.localeCompare(right.date));
+
+    // If a purchase was entered with an earlier date than the first live
+    // quote, snapshots before the real purchase omit that capital. Rebuild
+    // the invested baseline and add that cost to the value series so the
+    // contribution is not rendered as a false performance spike.
+    if (operations.length > 0 && normalizedHistory.length > 0) {
+        const firstDay = normalizedHistory[0].date.slice(0, 10);
+        const lastDay = normalizedHistory.at(-1)!.date.slice(0, 10);
+        const flowUntil = (day: string) => operations
+            .filter((operation) => operation.day <= day)
+            .reduce((sum, operation) => sum + operation.flow, 0);
+        const baseInvested = normalizedHistory[0].invested - flowUntil(firstDay);
+        const expectedLastInvested = baseInvested + flowUntil(lastDay);
+        const lastInvested = normalizedHistory.at(-1)!.invested;
+
+        if (Math.abs(expectedLastInvested - lastInvested) <= 0.01) {
+            normalizedHistory = normalizedHistory.map((point) => {
+                const expectedInvested = Math.max(0, baseInvested + flowUntil(point.date.slice(0, 10)));
+                const missingCapital = expectedInvested - point.invested;
+                if (Math.abs(missingCapital) <= 0.01) return point;
+                return {
+                    ...point,
+                    invested: expectedInvested,
+                    value: Math.max(0, point.value + missingCapital),
+                };
+            });
+        }
+    }
+
+    return normalizedHistory;
 }
 
 // Returns are calculated between recorded valuations, never from purchase cost.
@@ -80,11 +117,22 @@ export function performanceSeries(history: PortfolioHistoryPoint[], transactions
                 return eventDay > previousDay && eventDay <= pointDay;
             })
             : [];
-        const flow = operations.reduce((sum, t) => sum + (t.type === 'buy' ? t.total || 0 : t.type === 'sell' ? -(t.total || 0) : 0), 0);
-        const unexplainedCostChange = previous && operations.length === 0 && Math.abs(point.invested - previous.invested) > .01;
-        const valid = !!previous && previous.value > 0 && !unexplainedCostChange && !operations.some(t => t.type === 'edit' || t.type === 'delete');
-        const dailyReturn = valid ? (point.value - previous.value - flow) / previous.value * 100 : null;
+        const declaredFlow = operations.reduce((sum, transaction) => sum + transactionFlow(transaction), 0);
+        const investedDelta = previous ? point.invested - previous.invested : 0;
+        // Prefer the actual invested delta when the transaction ledger does
+        // not explain the snapshot change (e.g. an imported contribution).
+        const flow = Math.abs(investedDelta - declaredFlow) > 0.01 ? investedDelta : declaredFlow;
+        const valid = !!previous && previous.value > 0 && !operations.some(t => t.type === 'edit' || t.type === 'delete');
+        // A large contribution and its first quote can arrive in the same
+        // snapshot. There is no observable holding period for that money, so
+        // do not turn it into a fictitious one-day return.
+        const materialCapitalFlow = Boolean(previous && Math.abs(flow) > Math.max(100, previous.value * 0.5));
+        const dailyReturn = valid
+            ? materialCapitalFlow
+                ? 0
+                : (point.value - previous.value - flow) / previous.value * 100
+            : null;
         if (dailyReturn !== null) index *= 1 + dailyReturn / 100;
-        return { ...point, date: point.date.slice(0, 10), dailyReturn, cumulativeReturn: index - 100, index };
+        return { ...point, date: point.date.slice(0, 10), dailyReturn, netFlow: flow, cumulativeReturn: index - 100, index };
     });
 }

@@ -51,6 +51,9 @@ const currency = (value: number) => value.toLocaleString('es-ES', {
 const percent = (value: number | null | undefined) => value === null || value === undefined || !Number.isFinite(value)
     ? 'N/D'
     : `${value >= 0 ? '+' : ''}${value.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%`;
+const drawdownPercent = (value: number | null | undefined) => value === null || value === undefined || !Number.isFinite(value)
+    ? 'N/D'
+    : `${value.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%`;
 const tooltipTheme = {
     contentStyle: {
         background: 'var(--bg-card)',
@@ -88,6 +91,10 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
     const [tab, setTab] = useState<InsightTab>('evolution');
     const [evolutionPeriod, setEvolutionPeriod] = useState<EvolutionPeriod>('ALL');
     const [benchmark, setBenchmark] = useState<HistoricalDataPoint[]>([]);
+    const portfolioTransactions = useMemo(() => {
+        const activeAssetIds = new Set(assets.map((asset) => asset.id));
+        return transactions.filter((transaction) => activeAssetIds.has(transaction.assetId));
+    }, [assets, transactions]);
 
     const totalValue = useMemo(
         () => assets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0),
@@ -116,9 +123,9 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
             value: totalValue,
             invested: investedValue,
         };
-        return buildPortfolioAnalyticsHistory(getHistory(), transactions, currentSnapshot);
-    }, [investedValue, now, totalValue, transactions]);
-    const series = useMemo(() => performanceSeries(history, transactions), [history, transactions]);
+        return buildPortfolioAnalyticsHistory(getHistory(), portfolioTransactions, currentSnapshot);
+    }, [investedValue, now, portfolioTransactions, totalValue]);
+    const series = useMemo(() => performanceSeries(history, portfolioTransactions), [history, portfolioTransactions]);
 
     const monthly = useMemo(() => {
         const rows = new Map<string, {
@@ -202,7 +209,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         peak = Math.max(peak, wealth);
         if (peak > 0) maxDrawdown = Math.min(maxDrawdown, (wealth / peak - 1) * 100);
     });
-    const annualized = monthlyReturns.length
+    const annualized = monthlyReturns.length >= 12
         ? ((monthlyReturns.reduce((growth, value) => growth * (1 + value / 100), 1) ** (12 / monthlyReturns.length) - 1) * 100)
         : null;
     const positiveDays = dailyReturns.length ? dailyReturns.filter((value) => value > 0).length / dailyReturns.length * 100 : null;
@@ -236,10 +243,10 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         [assets],
     );
     const largestWeight = totalValue > 0 && leaders[0] ? leaders[0].value / totalValue * 100 : 0;
-    const buys = transactions
+    const buys = portfolioTransactions
         .filter((transaction) => transaction.type === 'buy')
         .reduce((sum, transaction) => sum + (transaction.total || 0), 0);
-    const sells = transactions
+    const sells = portfolioTransactions
         .filter((transaction) => transaction.type === 'sell')
         .reduce((sum, transaction) => sum + (transaction.total || 0), 0);
 
@@ -289,6 +296,14 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         if (cutoff === null) return series;
         return series.filter((point) => new Date(point.date).getTime() >= cutoff);
     }, [evolutionPeriod, now, series]);
+    const significantCapitalFlow = evolutionSeries.slice(1)
+        .map((point, index) => ({
+            date: point.date,
+            amount: point.netFlow,
+            baseValue: evolutionSeries[index].value,
+        }))
+        .filter((flow) => Math.abs(flow.amount) > Math.max(100, flow.baseValue * 0.5))
+        .at(-1);
 
     const tabs: Array<{ value: InsightTab; label: string; icon: ReactNode }> = [
         { value: 'evolution', label: 'Evolución', icon: <TrendingUp size={15} /> },
@@ -299,17 +314,17 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
     ];
     const kpis: Array<{ label: string; value: string; detail?: string; icon: ReactNode; tone?: string }> = [
         { label: 'Valor actual', value: currency(totalValue), detail: `${assets.length} posiciones`, icon: <WalletCards size={17} /> },
-        { label: 'Capital invertido', value: currency(investedValue), detail: `${transactions.length} operaciones`, icon: <Coins size={17} /> },
+        { label: 'Capital invertido', value: currency(investedValue), detail: `${portfolioTransactions.length} operaciones`, icon: <Coins size={17} /> },
         { label: 'Rentabilidad total', value: percent(currentReturn), detail: currency(totalValue - investedValue), icon: <ArrowUpRight size={17} />, tone: currentReturn >= 0 ? 'is-positive' : 'is-negative' },
         { label: 'Rentabilidad anualizada', value: percent(annualized), detail: 'Mínimo 1 año', icon: <Gauge size={17} /> },
         { label: 'Volatilidad anualizada', value: percent(volatility), detail: 'Riesgo estimado', icon: <BarChart3 size={17} /> },
-        { label: 'Máximo drawdown', value: series.length > 1 ? percent(maxDrawdown) : 'N/D', detail: 'Caída desde máximos', icon: <ArrowDownRight size={17} />, tone: 'is-negative' },
+        { label: 'Máximo drawdown', value: series.length > 1 ? drawdownPercent(maxDrawdown) : 'N/D', detail: 'Caída desde máximos', icon: <ArrowDownRight size={17} />, tone: 'is-negative' },
         { label: 'Días positivos', value: percent(positiveDays), detail: `${dailyReturns.length} intervalos válidos`, icon: <ShieldCheck size={17} /> },
         { label: 'Ratio Sharpe', value: sharpe === null ? 'N/D' : sharpe.toFixed(2), detail: 'Retorno / riesgo', icon: <Gauge size={17} /> },
         { label: 'Ratio Sortino', value: sortino === null ? 'N/D' : sortino.toFixed(2), detail: 'Riesgo bajista', icon: <Gauge size={17} /> },
         { label: 'Mejor mes', value: percent(bestMonth?.monthlyReturn), detail: bestMonth?.month || 'Sin histórico', icon: <ArrowUpRight size={17} />, tone: 'is-positive' },
         { label: 'Peor mes', value: percent(worstMonth?.monthlyReturn), detail: worstMonth?.month || 'Sin histórico', icon: <ArrowDownRight size={17} />, tone: 'is-negative' },
-        { label: 'Meses negativos', value: monthly.length ? `${negativeMonths} de ${monthly.length}` : 'N/D', detail: 'Periodos cerrados', icon: <AlertTriangle size={17} /> },
+        { label: 'Meses negativos', value: validMonthly.length ? `${negativeMonths} de ${validMonthly.length}` : 'N/D', detail: 'Periodos cerrados', icon: <AlertTriangle size={17} /> },
         { label: 'Compras registradas', value: currency(buys), detail: 'Flujo de entrada', icon: <WalletCards size={17} /> },
         { label: 'Ventas registradas', value: currency(sells), detail: 'Flujo de salida', icon: <Coins size={17} /> },
     ];
@@ -321,7 +336,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         { label: 'Cantidades o precios inválidos', value: invalidPositions, ok: invalidPositions === 0 },
         { label: 'Cotizaciones sin actualizar', value: stale, ok: stale === 0 },
         { label: 'Histórico de la cartera', value: `${history.length} registros`, ok: history.length >= 2 },
-        { label: 'Operaciones registradas', value: transactions.length, ok: transactions.length > 0 },
+        { label: 'Operaciones registradas', value: portfolioTransactions.length, ok: portfolioTransactions.length > 0 },
         { label: 'Divisa normalizada', value: assets.every((asset) => !asset.currency || asset.currency === 'EUR') ? 'EUR' : 'Revisar', ok: assets.every((asset) => !asset.currency || asset.currency === 'EUR') },
     ];
 
@@ -399,6 +414,11 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                         ) : (
                             <div className="portfolio-excel-insights__empty">Necesitamos al menos dos actualizaciones de precios para dibujar la evolución.</div>
                         )}
+                        {significantCapitalFlow && (
+                            <p className="portfolio-excel-insights__chart-note">
+                                El salto del {significantCapitalFlow.date} coincide con una {significantCapitalFlow.amount >= 0 ? 'aportación' : 'retirada'} neta de {currency(Math.abs(significantCapitalFlow.amount))}; se excluye del cálculo de rentabilidad.
+                            </p>
+                        )}
                     </section>
                 )}
 
@@ -468,11 +488,11 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                                 <h3><AlertTriangle size={16} /> Riesgo y consistencia</h3>
                                 <p>Retornos mensuales, desviación muestral y 0% de libre de riesgo hasta disponer de €STR.</p>
                             </div>
-                            <strong>{monthly.length} meses</strong>
+                            <strong>{validMonthly.length} meses</strong>
                         </div>
-                        {monthly.length > 1 ? (
+                        {validMonthly.length > 1 ? (
                             <ResponsiveContainer width="100%" height={270}>
-                                <ComposedChart data={monthly} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
+                                <ComposedChart data={validMonthly} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
                                     <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} minTickGap={28} />
                                     <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
@@ -489,7 +509,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                             <span>Sharpe <strong>{sharpe === null ? 'N/D' : sharpe.toFixed(2)}</strong></span>
                             <span>Sortino <strong>{sortino === null ? 'N/D' : sortino.toFixed(2)}</strong></span>
                             <span>Peor mes <strong>{percent(worstMonth?.monthlyReturn)}</strong></span>
-                            <span>Meses negativos <strong>{monthly.length ? `${negativeMonths} de ${monthly.length}` : 'N/D'}</strong></span>
+                            <span>Meses negativos <strong>{validMonthly.length ? `${negativeMonths} de ${validMonthly.length}` : 'N/D'}</strong></span>
                             <span>Histórico <strong>{history.length}</strong></span>
                             <span>Stale <strong>{stale}</strong></span>
                         </div>
@@ -510,7 +530,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                         </div>
                         <div className="portfolio-excel-insights__control-column">
                             <h3><Target size={16} /> Operaciones recientes</h3>
-                            {transactions.length ? [...transactions]
+                            {portfolioTransactions.length ? [...portfolioTransactions]
                                 .sort((left, right) => right.date.localeCompare(left.date))
                                 .slice(0, 7)
                                 .map((transaction) => (

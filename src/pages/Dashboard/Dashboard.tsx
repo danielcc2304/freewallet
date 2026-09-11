@@ -59,8 +59,10 @@ export function Dashboard() {
             const currValue = (a.currentPrice || a.purchasePrice) * a.quantity;
             return sum + (currValue - prevValue);
         }, 0);
+        const activeAssetIds = new Set(assets.map((asset) => asset.id));
+        const portfolioTransactions = state.transactions.filter((transaction) => activeAssetIds.has(transaction.assetId));
 
-        const history = buildPortfolioAnalyticsHistory(getHistory(), state.transactions, {
+        const history = buildPortfolioAnalyticsHistory(getHistory(), portfolioTransactions, {
             date: new Date(countdownNow).toISOString(),
             value: currentValue,
             invested: totalInvested,
@@ -73,7 +75,7 @@ export function Dashboard() {
             const base = valueAtOrBefore(timestamp);
             const previousValue = base?.value;
             const baseDay = base?.date.slice(0, 10) || '';
-            const operations = state.transactions.filter(t => {
+            const operations = portfolioTransactions.filter(t => {
                 const eventDay = getTransactionEventDay(t);
                 return Boolean(base) && eventDay > baseDay && new Date(`${eventDay}T23:59:59.999Z`).getTime() <= countdownNow;
             });

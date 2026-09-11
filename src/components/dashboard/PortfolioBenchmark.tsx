@@ -25,14 +25,16 @@ export function PortfolioBenchmark() {
     }, [lastPriceUpdate]);
 
     const stats = useMemo(() => {
+        const activeAssetIds = new Set(assets.map((asset) => asset.id));
+        const portfolioTransactions = transactions.filter((transaction) => activeAssetIds.has(transaction.assetId));
         const currentValue = assets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0);
         const investedValue = assets.reduce((sum, asset) => sum + asset.purchasePrice * asset.quantity, 0);
-        const portfolioHistory = buildPortfolioAnalyticsHistory(getHistory(), transactions, {
+        const portfolioHistory = buildPortfolioAnalyticsHistory(getHistory(), portfolioTransactions, {
             date: new Date().toISOString(),
             value: currentValue,
             invested: investedValue,
         });
-        const portfolio = performanceSeries(portfolioHistory, transactions);
+        const portfolio = performanceSeries(portfolioHistory, portfolioTransactions);
         const benchmarkByDate = new Map(benchmark.map(point => [point.date.slice(0, 10), point.close]));
         const aligned = portfolio.filter(point => benchmarkByDate.has(point.date));
         const pairs = aligned.slice(1).flatMap((point, index) => {

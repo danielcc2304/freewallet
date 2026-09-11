@@ -15,7 +15,7 @@ assert.equal(series[0].dailyReturn, null);
 assert.equal(series[1].dailyReturn, 0, 'A purchase must not count as profit');
 assert.equal(series[2].dailyReturn, 10, 'Sale proceeds must be restored when calculating return');
 assert.ok(Math.abs(series[2].cumulativeReturn - 10) < 1e-9);
-assert.equal(performanceSeries(history, [])[1].dailyReturn, null, 'Unexplained changes must not create returns');
+assert.equal(performanceSeries(history, [])[1].dailyReturn, 0, 'Unrecorded invested-capital changes are treated as portfolio flows');
 
 const backdatedTrade = { ...trade('buy', 100, '2026-01-02'), createdAt: '2026-02-01T12:00:00Z' };
 const backdatedHistory = buildPortfolioAnalyticsHistory([
@@ -27,4 +27,8 @@ assert.equal(performanceSeries([
     { date: '2026-01-01T18:00:00Z', value: 100, invested: 100 },
     { date: '2026-01-03T18:00:00Z', value: 200, invested: 200 },
 ], [backdatedTrade])[1].dailyReturn, 0, 'Backdated purchases are treated as portfolio flows on their entered date');
+assert.equal(performanceSeries([
+    { date: '2026-01-01T18:00:00Z', value: 10000, invested: 10000 },
+    { date: '2026-01-02T18:00:00Z', value: 85000, invested: 66000 },
+], [])[1].dailyReturn, 0, 'A material imported contribution is not treated as a one-day return');
 console.log('Portfolio performance tests passed');

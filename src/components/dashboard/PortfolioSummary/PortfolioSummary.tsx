@@ -14,6 +14,7 @@ export function PortfolioSummary({ metrics }: PortfolioSummaryProps) {
     const [activeTab, setActiveTab] = useState<PeriodTab>('daily');
 
     const formatCurrency = (value: number): string => {
+        if (!Number.isFinite(value)) return 'Sin histórico suficiente';
         return new Intl.NumberFormat('es-ES', {
             style: 'currency',
             currency: 'EUR',
@@ -101,7 +102,7 @@ export function PortfolioSummary({ metrics }: PortfolioSummaryProps) {
                 <MetricCard
                     title={`Cambio ${periodChange.label}`}
                     value={formatCurrency(periodChange.value)}
-                    change={periodChange.percent}
+                    change={Number.isFinite(periodChange.percent) ? periodChange.percent : undefined}
                     icon={<BarChart3 size={20} />}
                 />
             </div>

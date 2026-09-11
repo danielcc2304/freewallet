@@ -3,7 +3,8 @@ import { AlertTriangle, ArrowDownRight, ArrowUpRight, BarChart3, Coins, Gauge, L
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Card, CardContent, CardHeader } from '../ui';
 import { getHistory, getTransactions } from '../../services/storageService';
-import type { Asset, PortfolioHistoryPoint } from '../../types/types';
+import type { Asset } from '../../types/types';
+import { performanceSeries } from '../../services/portfolioPerformance';
 import './PortfolioAnalytics.css';
 
 function currency(value: number): string {
@@ -14,45 +15,44 @@ function percent(value: number): string {
     return `${value >= 0 ? '+' : ''}${value.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%`;
 }
 
-function dailySeries(history: PortfolioHistoryPoint[]) {
-    const byDay = new Map<string, PortfolioHistoryPoint>();
-    [...history].sort((a, b) => a.date.localeCompare(b.date)).forEach((point) => {
-        byDay.set(point.date.slice(0, 10), point);
-    });
-    const rows = [...byDay.entries()];
-    const base = rows[0]?.[1].invested || rows[0]?.[1].value || 0;
-    return rows.map(([date, point], index) => {
-        const previous = index > 0 ? rows[index - 1][1].value : point.invested;
-        const dailyReturn = previous > 0 ? ((point.value / previous) - 1) * 100 : 0;
-        const cumulativeReturn = base > 0 ? ((point.value / base) - 1) * 100 : 0;
-        return { date, value: point.value, invested: point.invested, dailyReturn, cumulativeReturn };
-    });
-}
-
 export function PortfolioAnalytics({ assets }: { assets: Asset[] }) {
     const analytics = useMemo(() => {
         const history = getHistory();
-        const series = dailySeries(history);
         const transactions = getTransactions();
+        const series = performanceSeries(history, transactions);
         const currentValue = assets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0);
         const invested = assets.reduce((sum, asset) => sum + asset.purchasePrice * asset.quantity, 0);
         const totalReturn = invested > 0 ? ((currentValue / invested) - 1) * 100 : 0;
-        const returns = series.slice(1).map((point) => point.dailyReturn).filter(Number.isFinite);
+        const returns = series.slice(1).map((point) => point.dailyReturn).filter((value): value is number => value !== null && Number.isFinite(value));
         const mean = returns.length ? returns.reduce((sum, value) => sum + value, 0) / returns.length : 0;
         const variance = returns.length > 1 ? returns.reduce((sum, value) => sum + ((value - mean) ** 2), 0) / (returns.length - 1) : 0;
         const volatility = Math.sqrt(variance) * Math.sqrt(252);
+        const downside = returns.filter(value => value < 0);
+        const downsideDeviation = downside.length ? Math.sqrt(downside.reduce((sum, value) => sum + value ** 2, 0) / downside.length) : 0;
+        const sharpe = variance > 0 ? mean / Math.sqrt(variance) * Math.sqrt(252) : NaN;
+        const sortino = downsideDeviation > 0 ? mean / downsideDeviation * Math.sqrt(252) : NaN;
         let peak = 0;
         let maxDrawdown = 0;
         series.forEach((point) => {
-            peak = Math.max(peak, point.value);
-            if (peak > 0) maxDrawdown = Math.min(maxDrawdown, ((point.value / peak) - 1) * 100);
+            peak = Math.max(peak, point.index);
+            if (peak > 0) maxDrawdown = Math.min(maxDrawdown, ((point.index / peak) - 1) * 100);
         });
         const firstDate = series[0] ? new Date(series[0].date).getTime() : 0;
         const years = firstDate ? Math.max((Date.now() - firstDate) / (365.25 * 24 * 60 * 60 * 1000), 1 / 365.25) : 0;
-        const annualized = years && totalReturn > -100 ? ((Math.pow(1 + totalReturn / 100, 1 / years) - 1) * 100) : 0;
+        const annualized = years >= 1 ? ((Math.pow((series.at(-1)?.index || 100) / 100, 1 / years) - 1) * 100) : NaN;
         const buys = transactions.filter((transaction) => transaction.type === 'buy').reduce((sum, transaction) => sum + (transaction.total || 0), 0);
         const sells = transactions.filter((transaction) => transaction.type === 'sell').reduce((sum, transaction) => sum + (transaction.total || 0), 0);
         const positiveDays = returns.length ? returns.filter((value) => value > 0).length / returns.length * 100 : 0;
+        const monthly = new Map<string, number>();
+        series.forEach(point => {
+            if (point.dailyReturn === null) return;
+            const key = point.date.slice(0, 7);
+            monthly.set(key, (monthly.get(key) || 1) * (1 + point.dailyReturn / 100));
+        });
+        const monthlyReturns = [...monthly.entries()].map(([month, factor]) => ({ month, value: (factor - 1) * 100 }));
+        const bestMonth = monthlyReturns.length ? monthlyReturns.reduce((best, row) => row.value > best.value ? row : best) : null;
+        const worstMonth = monthlyReturns.length ? monthlyReturns.reduce((worst, row) => row.value < worst.value ? row : worst) : null;
+        const negativeMonths = monthlyReturns.filter(row => row.value < 0).length;
         const allocations = Array.from(assets.reduce((map, asset) => {
             const value = (asset.currentPrice || asset.purchasePrice) * asset.quantity;
             map.set(asset.type, (map.get(asset.type) || 0) + value);
@@ -64,7 +64,7 @@ export function PortfolioAnalytics({ assets }: { assets: Asset[] }) {
             value: (asset.currentPrice || asset.purchasePrice) * asset.quantity,
         })).sort((a, b) => b.value - a.value).slice(0, 5);
 
-        return { series, totalReturn, annualized, volatility, maxDrawdown, buys, sells, positiveDays, allocations, leaders, currentValue };
+        return { series, totalReturn, annualized, volatility, maxDrawdown, buys, sells, positiveDays, allocations, leaders, currentValue, sharpe, sortino, bestMonth, worstMonth, negativeMonths, monthCount: monthlyReturns.length };
     }, [assets]);
 
     const staleAssets = assets.filter((asset) => !asset.lastQuoteAt || Date.now() - new Date(asset.lastQuoteAt).getTime() > 15 * 60 * 1000);
@@ -81,17 +81,22 @@ export function PortfolioAnalytics({ assets }: { assets: Asset[] }) {
             <CardContent>
                 <div className="portfolio-analytics__kpis">
                     <div><ArrowUpRight size={17} /><span>Rentabilidad total</span><strong className={analytics.totalReturn >= 0 ? 'is-positive' : 'is-negative'}>{percent(analytics.totalReturn)}</strong></div>
-                    <div><Gauge size={17} /><span>Rentabilidad anualizada</span><strong>{analytics.series.length > 1 ? percent(analytics.annualized) : 'N/D'}</strong></div>
+                    <div><Gauge size={17} /><span>Rentabilidad anualizada (mín. 1 año)</span><strong>{Number.isFinite(analytics.annualized) ? percent(analytics.annualized) : 'N/D'}</strong></div>
                     <div><BarChart3 size={17} /><span>Volatilidad anualizada</span><strong>{analytics.series.length > 1 ? `${analytics.volatility.toFixed(2)}%` : 'N/D'}</strong></div>
                     <div><ArrowDownRight size={17} /><span>Máximo drawdown</span><strong className="is-negative">{analytics.series.length > 1 ? `${analytics.maxDrawdown.toFixed(2)}%` : 'N/D'}</strong></div>
                     <div><ShieldCheck size={17} /><span>Días positivos</span><strong>{analytics.series.length > 1 ? `${analytics.positiveDays.toFixed(0)}%` : 'N/D'}</strong></div>
+                    <div><Gauge size={17} /><span>Ratio Sharpe</span><strong>{Number.isFinite(analytics.sharpe) ? analytics.sharpe.toFixed(2) : 'N/D'}</strong></div>
+                    <div><Gauge size={17} /><span>Ratio Sortino</span><strong>{Number.isFinite(analytics.sortino) ? analytics.sortino.toFixed(2) : 'N/D'}</strong></div>
+                    <div><ArrowUpRight size={17} /><span>Mejor mes</span><strong>{analytics.bestMonth ? percent(analytics.bestMonth.value) : 'N/D'}</strong></div>
+                    <div><ArrowDownRight size={17} /><span>Peor mes</span><strong>{analytics.worstMonth ? percent(analytics.worstMonth.value) : 'N/D'}</strong></div>
+                    <div><BarChart3 size={17} /><span>Meses negativos</span><strong>{analytics.monthCount ? analytics.negativeMonths + ' de ' + analytics.monthCount : 'N/D'}</strong></div>
                     <div><WalletCards size={17} /><span>Compras registradas</span><strong>{currency(analytics.buys)}</strong></div>
                     <div><Coins size={17} /><span>Ventas registradas</span><strong>{currency(analytics.sells)}</strong></div>
                 </div>
 
                 <div className="portfolio-analytics__body">
                     <section className="portfolio-analytics__chart">
-                        <h3>Rentabilidad acumulada</h3>
+                        <h3>Rentabilidad observada ajustada por operaciones</h3>
                         {analytics.series.length > 1 ? (
                             <ResponsiveContainer width="100%" height={230}>
                                 <AreaChart data={analytics.series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -109,7 +114,7 @@ export function PortfolioAnalytics({ assets }: { assets: Asset[] }) {
                         <h3><Layers3 size={16} /> Distribución por tipo</h3>
                         {analytics.allocations.map(([type, value]) => (
                             <div className="portfolio-analytics__allocation-row" key={type}>
-                                <span>{type}</span><div><i style={{ width: `${analytics.currentValue ? value / analytics.currentValue * 100 : 0}%` }} /></div><strong>{analytics.currentValue ? (value / analytics.currentValue * 100).toFixed(1) : '0.0'}%</strong>
+                                <span>{{ stock: 'Acciones', fund: 'Fondos', etf: 'ETF', crypto: 'Cripto' }[type] || type}</span><div><i style={{ width: `${analytics.currentValue ? value / analytics.currentValue * 100 : 0}%` }} /></div><strong>{analytics.currentValue ? (value / analytics.currentValue * 100).toFixed(1) : '0.0'}%</strong>
                             </div>
                         ))}
                         <h3 className="portfolio-analytics__leaders-title">Mayores posiciones</h3>

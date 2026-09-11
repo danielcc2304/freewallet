@@ -47,8 +47,8 @@
 }
 
 .modal--lg {
-    width: 100%;
-    max-width: 720px;
+    width: min(960px, calc(100vw - 2 * var(--spacing-md)));
+    max-width: 960px;
 }
 
 .modal__header {

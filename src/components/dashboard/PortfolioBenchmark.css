@@ -1,0 +1,7 @@
+.portfolio-benchmark__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px, 1fr)); gap: .65rem; }
+.portfolio-benchmark__grid > div { display: grid; gap: .35rem; padding: .8rem; border: 1px solid var(--border-primary); border-radius: var(--radius-md); background: var(--bg-tertiary); min-width: 0; }
+.portfolio-benchmark__grid svg { color: var(--accent-primary); }
+.portfolio-benchmark__grid span, .portfolio-benchmark p, .portfolio-benchmark__loading { color: var(--text-muted); font-size: .75rem; }
+.portfolio-benchmark__grid strong { color: var(--text-primary); overflow-wrap: anywhere; }
+.portfolio-benchmark p { margin: .9rem 0 0; line-height: 1.5; }
+.portfolio-benchmark__loading { display: flex; align-items: center; gap: .5rem; min-height: 80px; justify-content: center; }

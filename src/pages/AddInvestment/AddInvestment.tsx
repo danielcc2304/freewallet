@@ -97,6 +97,8 @@ export function AddInvestment() {
     // Este ref evita que ese cambio vuelva a abrir el desplegable y obligue a
     // seleccionar el activo una segunda vez.
     const selectedSearchSymbolRef = useRef<string | null>(null);
+    const quoteRequestRef = useRef<AbortController | null>(null);
+    useEffect(() => () => quoteRequestRef.current?.abort(), []);
 
     // Detect if search query looks like an ISIN
     const isISIN = (query: string): boolean => {
@@ -177,6 +179,10 @@ export function AddInvestment() {
     }, [searchQuery, isEditMode, editAsset, apiEnabled]);
 
     const handleSearchChange = (value: string) => {
+        quoteRequestRef.current?.abort();
+        setCurrentPrice(null);
+        setLoadingPrice(false);
+        setPriceLookupFailed(false);
         selectedSearchSymbolRef.current = null;
         const localPredictions = getLocalPredictions(value);
         setSearchQuery(value);
@@ -196,6 +202,7 @@ export function AddInvestment() {
     };
 
     const handleSelectResult = async (result: SearchResult) => {
+        quoteRequestRef.current?.abort();
         selectedSearchSymbolRef.current = result.symbol;
         setFormData({
             symbol: result.symbol,
@@ -221,7 +228,8 @@ export function AddInvestment() {
         setCurrentPrice(null);
         setPriceLookupFailed(false);
         const quoteController = new AbortController();
-        const quoteDeadline = window.setTimeout(() => quoteController.abort(), 8000);
+        quoteRequestRef.current = quoteController;
+        const quoteDeadline = window.setTimeout(() => quoteController.abort(), 15000);
         try {
             const fund = isISIN(result.symbol) ? await getFundRelevance(result.symbol, quoteController.signal) : null;
             const rawQuote = fund ? null : await getQuote(result.symbol, quoteController.signal);
@@ -246,11 +254,12 @@ export function AddInvestment() {
                     ? await normalizeQuoteToEuro(fundQuote, quoteController.signal)
                     : null;
             const resolvedPrice = quote?.price;
+            if (quoteRequestRef.current !== quoteController || quoteController.signal.aborted) return;
             if (resolvedPrice && quote.currency === 'EUR') {
                 setCurrentPrice(resolvedPrice);
                 setFormData(prev => ({
                     ...prev,
-                    purchasePrice: resolvedPrice.toFixed(4)
+                    purchasePrice: prev.purchasePrice || resolvedPrice.toFixed(4)
                 }));
                 setCurrency('EUR');
             } else {
@@ -258,10 +267,13 @@ export function AddInvestment() {
             }
         } catch (error) {
             if (!axios.isCancel(error)) console.error('Error fetching price:', error);
-            setPriceLookupFailed(true);
+            if (quoteRequestRef.current === quoteController) setPriceLookupFailed(true);
         } finally {
             window.clearTimeout(quoteDeadline);
-            setLoadingPrice(false);
+            if (quoteRequestRef.current === quoteController) {
+                setLoadingPrice(false);
+                if (quoteController.signal.aborted) setPriceLookupFailed(true);
+            }
         }
     };
 

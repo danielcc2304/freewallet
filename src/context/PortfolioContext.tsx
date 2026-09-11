@@ -111,11 +111,15 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
         refreshInFlight.current = true;
         dispatch({ type: 'SET_UPDATING_PRICES', payload: true });
+        let updatedCount = 0;
         try {
             for (const asset of assetsToUpdate) {
+                const controller = new AbortController();
+                const deadline = window.setTimeout(() => controller.abort(), 15000);
                 try {
-                    const quote = await getPortfolioAssetQuote(asset);
-                    if (quote && quote.price > 0) {
+                    const quote = await getPortfolioAssetQuote(asset, controller.signal);
+                    if (quote && quote.price > 0 && quote.currency === 'EUR') {
+                        updatedCount++;
                         const updates = {
                             currentPrice: quote.price,
                             previousClose: quote.previousClose,
@@ -128,13 +132,15 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                     }
                 } catch (error) {
                     console.warn(`Failed to update price for ${asset.symbol}:`, error);
+                } finally {
+                    window.clearTimeout(deadline);
                 }
             }
 
             const refreshedAssets = getAssets();
             const value = refreshedAssets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0);
             const invested = refreshedAssets.reduce((sum, asset) => sum + asset.purchasePrice * asset.quantity, 0);
-            addHistoryPoint({ date: new Date().toISOString(), value, invested });
+            if (updatedCount === assetsToUpdate.length) addHistoryPoint({ date: new Date().toISOString(), value, invested });
             dispatch({ type: 'SET_LAST_UPDATE', payload: new Date() });
         } finally {
             refreshInFlight.current = false;

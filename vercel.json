@@ -1,6 +1,14 @@
 {
     "routes": [
         {
+            "src": "/__market/yahoo1/(.*)",
+            "dest": "https://query1.finance.yahoo.com/$1"
+        },
+        {
+            "src": "/__market/yahoo2/(.*)",
+            "dest": "https://query2.finance.yahoo.com/$1"
+        },
+        {
             "src": "/__finect/api/(.*)",
             "dest": "https://api.finect.com/$1"
         },

@@ -25,7 +25,7 @@ import {
 } from 'recharts';
 import { getAssetChartData, getFundamentalData } from '../../services/apiService';
 import { getFundRelevance } from '../../services/finect/finectService';
-import type { FinectFundRelevance, FinectMetricPoint } from '../../services/finect/finectService';
+import type { FinectFundRelevance } from '../../services/finect/finectService';
 import type { Asset, StockQuote, HistoricalDataPoint, TimePeriod } from '../../types/types';
 import './AssetDetail.css';
 
@@ -54,109 +54,6 @@ const periods: { label: string; value: TimePeriod }[] = [
  * are not points of the same series and drawing them together produces the
  * large artificial spikes seen in the detail modal.
  */
-function periodToMonths(period: string): number | null {
-    const normalized = period.trim().toUpperCase();
-    if (normalized === 'YTD' || normalized === 'M0') return 0;
-
-    const match = normalized.match(/^([DWMY])(\d+(?:[.,]\d+)?)$/);
-    if (!match) return null;
-
-    const amount = Number(match[2].replace(',', '.'));
-    if (!Number.isFinite(amount)) return null;
-    if (match[1] === 'D') return amount / 30;
-    if (match[1] === 'W') return amount / 4.345;
-    if (match[1] === 'Y') return amount * 12;
-    return amount;
-}
-
-function periodLimit(period: TimePeriod): number {
-    switch (period) {
-        case '1D': return 1 / 30;
-        case '7D': return 7 / 30;
-        case '1M': return 1;
-        case '3M': return 3;
-        case 'YTD': return 12;
-        default: return Number.POSITIVE_INFINITY;
-    }
-}
-
-function formatFundPeriod(period: string): string {
-    const normalized = period.trim().toUpperCase();
-    if (normalized === 'YTD' || normalized === 'M0') return 'YTD';
-
-    const months = periodToMonths(normalized);
-    if (months === null) return period;
-    if (normalized.startsWith('D')) return `${normalized.slice(1)}D`;
-    if (normalized.startsWith('W')) return `${normalized.slice(1)}S`;
-    if (months >= 12 && months % 12 === 0) return `${months / 12}A`;
-    return `${months}M`;
-}
-
-function buildFundChartPoints(
-    performance: FinectMetricPoint[],
-    selectedPeriod: TimePeriod,
-    currentPrice: number,
-): HistoricalDataPoint[] {
-    const valid = performance.filter((point) => Number.isFinite(point.value) && point.period.trim().length > 0);
-    const accumulated = valid.filter((point) => {
-        const type = point.type?.toLowerCase().trim();
-        return !type || type.includes('accumul') || type.includes('total');
-    });
-    const maxMonths = periodLimit(selectedPeriod);
-    const inRange = accumulated.filter((point) => {
-        const normalized = point.period.trim().toUpperCase();
-        const months = periodToMonths(normalized);
-        const isYtd = normalized === 'M0' || normalized === 'YTD';
-        if (selectedPeriod === 'YTD') return isYtd || normalized === 'D1' || normalized === 'W1';
-        if (selectedPeriod === 'ALL') return true;
-        return !isYtd && months !== null && months <= maxMonths;
-    });
-    const filtered = inRange.length > 0
-        ? inRange
-        : accumulated.filter((point) => point.period.trim().toUpperCase() === 'D1');
-
-    const unique = new Map<string, FinectMetricPoint>();
-    filtered.forEach((point) => {
-        const key = point.period.trim().toUpperCase();
-        const existing = unique.get(key);
-        if (!existing || (point.date && !existing.date)) unique.set(key, point);
-    });
-
-    // Finect gives accumulated returns, not a daily NAV series. Rebase each
-    // return against today's participation price so the chart has price units.
-    const historical = Array.from(unique.values())
-        .sort((left, right) => {
-            const leftMonths = periodToMonths(left.period);
-            const rightMonths = periodToMonths(right.period);
-            if (leftMonths !== null && rightMonths !== null && leftMonths !== rightMonths) return rightMonths - leftMonths;
-            return (left.date || left.period).localeCompare(right.date || right.period);
-        })
-        .map((point) => {
-            const price = currentPrice / (1 + point.value / 100);
-            return {
-                date: formatFundPeriod(point.period),
-                open: price,
-                high: price,
-                low: price,
-                close: price,
-                volume: 0,
-            };
-        });
-
-    if (Number.isFinite(currentPrice) && currentPrice > 0) {
-        historical.push({
-            date: 'Hoy',
-            open: currentPrice,
-            high: currentPrice,
-            low: currentPrice,
-            close: currentPrice,
-            volume: 0,
-        });
-    }
-
-    return historical;
-}
-
 export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
     const [quote, setQuote] = useState<Partial<StockQuote> | null>(null);
     const [chartData, setChartData] = useState<HistoricalDataPoint[]>([]);
@@ -219,16 +116,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
         const fetchChart = async () => {
             setLoadingChart(true);
             try {
-               if (isFund) {
-                    const points = buildFundChartPoints(
-                        fundData?.performance || [],
-                        selectedPeriod,
-                        fundData?.lastQuote?.price || asset.currentPrice || asset.purchasePrice,
-                    );
-                   if (!controller.signal.aborted) setChartData(points);
-                    return;
-                }
-                const data = await getAssetChartData(asset.symbol, selectedPeriod, controller.signal);
+                const data = await getAssetChartData(isFund ? assetIsin : asset.symbol, selectedPeriod, controller.signal);
                 if (!controller.signal.aborted) {
                     setChartData(data);
                 }
@@ -245,7 +133,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
 
         fetchChart();
         return () => controller.abort();
-    }, [asset.symbol, fundData, isFund, selectedPeriod]);
+    }, [asset.symbol, assetIsin, isFund, selectedPeriod]);
 
     useEffect(() => {
         setChartSelection(null);
@@ -321,6 +209,27 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
         { label: 'Inversión mínima', value: formatValue(fundData?.minimumInvestment, 'currency'), icon: <Coins size={16} />, category: 'Operativa' },
         { label: 'Rating Morningstar', value: fundData?.morningstarRating ? `${fundData.morningstarRating} / 5` : 'N/D', icon: <Activity size={16} />, category: 'Calidad' },
         { label: 'Patrimonio', value: formatValue(fundData?.totalNetAsset, 'compact'), icon: <BarChart3 size={16} />, category: 'Tamaño' },
+        { label: 'Fecha de lanzamiento', value: fundData?.availableDate || 'N/D', icon: <Clock size={16} />, category: 'Fondo' },
+        { label: 'Gestión indexada', value: fundData?.indexed === undefined ? 'N/D' : fundData.indexed ? 'Sí' : 'No', icon: <Layers size={16} />, category: 'Fondo' },
+        { label: 'Puntuación Finect', value: fundData?.finectScore !== undefined ? formatValue(fundData.finectScore) : 'N/D', icon: <Activity size={16} />, category: 'Calidad' },
+        ...Object.entries(fundData?.fees || {}).filter(([key, value]) => !['ongoing', 'totalExpenseRatio'].includes(key) && value !== undefined).map(([key, value]) => ({
+            label: ({ management: 'Comisión de gestión', entry: 'Comisión de entrada', redemption: 'Comisión de reembolso', custody: 'Comisión de custodia', success: 'Comisión de éxito' } as Record<string, string>)[key] || key,
+            value: Number(value).toFixed(2) + '%',
+            icon: <Percent size={16} />,
+            category: 'Costes',
+        })),
+        ...(fundData?.performance || []).filter(point => Number.isFinite(point.value)).slice(0, 8).map(point => ({
+            label: 'Rentabilidad ' + point.period,
+            value: formatValue(point.value, 'percent'),
+            icon: <TrendingUp size={16} />,
+            category: point.type || 'Rentabilidad',
+        })),
+        ...Object.entries(fundData?.statistics || {}).flatMap(([key, points]) => points.slice(0, 1).map(point => ({
+            label: ({ maxDrawdown: 'Máximo drawdown', standardDeviation: 'Volatilidad', alpha: 'Alpha', beta: 'Beta', sharpeRatio: 'Ratio Sharpe', trackingError: 'Tracking error', correlation: 'Correlación', informationRatio: 'Information ratio', r2: 'R²' } as Record<string, string>)[key] || key,
+            value: formatValue(point.value),
+            icon: <Activity size={16} />,
+            category: point.period,
+        }))),
     ];
 
     const visibleMetricItems = isFund ? fundMetricItems : metricItems.filter((item) => item.value !== 'N/A');
@@ -382,7 +291,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
         setIsSelecting(false);
     };
     const formatChartTick = (value: string) => {
-        if (isFund || selectedPeriod === '1D' || value.includes(':')) return value;
+        if (selectedPeriod === '1D' || value.includes(':')) return value;
         const parsed = new Date(value);
         return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
     };
@@ -546,7 +455,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                 </div>
                {isFund && (
                    <p className="asset-detail__chart-source">
-                       Histórico estimado con el valor liquidativo actual y las rentabilidades acumuladas publicadas por Finect.
+                       Valores liquidativos históricos de la clase encontrada por ISIN. Finect aporta la ficha y la última valoración.
                    </p>
                )}
            </div>
@@ -581,9 +490,18 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                 )}
             </div>
 
+            {isFund && fundData && (
+                <div className="asset-detail__fund-sections">
+                    {(fundData.description || fundData.strategy) && <section><h3>Política de inversión</h3><p>{fundData.strategy || fundData.description}</p></section>}
+                    {!!fundData.benchmarks.length && <section><h3>Índices de referencia</h3><p>{fundData.benchmarks.join(' · ')}</p></section>}
+                    {!!fundData.holdings.length && <section><h3>Principales posiciones</h3><div className="asset-detail__holding-list">{fundData.holdings.slice(0, 10).map(item => <div key={item.name}><span>{item.name}</span><strong>{item.weight.toFixed(2)}%</strong></div>)}</div></section>}
+                    {fundData.breakdowns.map(group => <section key={group.type}><h3>{group.type}</h3><div className="asset-detail__holding-list">{group.items.slice(0, 10).map(item => <div key={item.label}><span>{item.label}</span><strong>{item.value.toFixed(2)}%</strong></div>)}</div></section>)}
+                </div>
+            )}
+
             <div className="asset-detail__footer">
                 <Info size={14} />
-                <p>Las métricas se obtienen de Yahoo Finance y pueden tener un ligero retraso.</p>
+                <p>{isFund ? 'Ficha obtenida de Finect e histórico de mercado de la clase encontrada por ISIN.' : 'Las métricas se obtienen de Yahoo Finance y pueden tener un ligero retraso.'}</p>
             </div>
         </div>
     );

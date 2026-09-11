@@ -9,6 +9,7 @@ import './PortfolioComposition.css';
 
 interface PortfolioCompositionProps {
     assets: Asset[];
+    onAssetClick?: (asset: Asset) => void;
 }
 
 const ISIN_PATTERN = /^[A-Z]{2}[A-Z0-9]{10}$/;
@@ -61,7 +62,7 @@ function normalizeFundHoldings(fund: Awaited<ReturnType<typeof getFundRelevance>
         })) ?? [];
 }
 
-export function PortfolioComposition({ assets }: PortfolioCompositionProps) {
+export function PortfolioComposition({ assets, onAssetClick }: PortfolioCompositionProps) {
     const [showBreakdown, setShowBreakdown] = useState(false);
     const [remoteHoldings, setRemoteHoldings] = useState<Record<string, AssetHolding[]>>({});
     const apiEnabled = isApiEnabled();
@@ -172,6 +173,11 @@ export function PortfolioComposition({ assets }: PortfolioCompositionProps) {
         };
     });
 
+    const handleHeatmapClick = (item: HeatmapItem) => {
+        const asset = assets.find((candidate) => item.id === candidate.id || item.id.startsWith(`${candidate.id}-`));
+        if (asset) onAssetClick?.(asset);
+    };
+
     if (assets.length === 0) {
         return null;
     }
@@ -205,7 +211,7 @@ export function PortfolioComposition({ assets }: PortfolioCompositionProps) {
                 <div className="portfolio-composition__content">
                     <div className="portfolio-composition__heatmap">
                         <h4 className="portfolio-composition__section-title">Mapa de Calor</h4>
-                        <Heatmap data={heatmapData} showBreakdown={showBreakdown} />
+                        <Heatmap data={heatmapData} showBreakdown={showBreakdown} onItemClick={handleHeatmapClick} />
                         {showBreakdown && funds.length > 0 && (
                             <p className="portfolio-composition__breakdown-status" aria-live="polite">
                                 {breakdownLoading

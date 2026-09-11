@@ -2,7 +2,8 @@ import { useMemo } from 'react';
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, BarChart3, Coins, Gauge, Layers3, ShieldCheck, WalletCards } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Card, CardContent, CardHeader } from '../ui';
-import { getHistory, getTransactions } from '../../services/storageService';
+import { usePortfolio } from '../../context/PortfolioContext';
+import { getHistory } from '../../services/storageService';
 import type { Asset } from '../../types/types';
 import { performanceSeries } from '../../services/portfolioPerformance';
 import './PortfolioAnalytics.css';
@@ -15,10 +16,10 @@ function percent(value: number): string {
     return `${value >= 0 ? '+' : ''}${value.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%`;
 }
 
-export function PortfolioAnalytics({ assets }: { assets: Asset[] }) {
+export function PortfolioAnalytics({ assets, now }: { assets: Asset[]; now: number }) {
+    const { state: { transactions } } = usePortfolio();
     const analytics = useMemo(() => {
         const history = getHistory();
-        const transactions = getTransactions();
         const series = performanceSeries(history, transactions);
         const currentValue = assets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0);
         const invested = assets.reduce((sum, asset) => sum + asset.purchasePrice * asset.quantity, 0);
@@ -38,7 +39,7 @@ export function PortfolioAnalytics({ assets }: { assets: Asset[] }) {
             if (peak > 0) maxDrawdown = Math.min(maxDrawdown, ((point.index / peak) - 1) * 100);
         });
         const firstDate = series[0] ? new Date(series[0].date).getTime() : 0;
-        const years = firstDate ? Math.max((Date.now() - firstDate) / (365.25 * 24 * 60 * 60 * 1000), 1 / 365.25) : 0;
+        const years = firstDate ? Math.max((now - firstDate) / (365.25 * 24 * 60 * 60 * 1000), 1 / 365.25) : 0;
         const annualized = years >= 1 ? ((Math.pow((series.at(-1)?.index || 100) / 100, 1 / years) - 1) * 100) : NaN;
         const buys = transactions.filter((transaction) => transaction.type === 'buy').reduce((sum, transaction) => sum + (transaction.total || 0), 0);
         const sells = transactions.filter((transaction) => transaction.type === 'sell').reduce((sum, transaction) => sum + (transaction.total || 0), 0);
@@ -65,9 +66,9 @@ export function PortfolioAnalytics({ assets }: { assets: Asset[] }) {
         })).sort((a, b) => b.value - a.value).slice(0, 5);
 
         return { series, totalReturn, annualized, volatility, maxDrawdown, buys, sells, positiveDays, allocations, leaders, currentValue, sharpe, sortino, bestMonth, worstMonth, negativeMonths, monthCount: monthlyReturns.length };
-    }, [assets]);
+    }, [assets, now, transactions]);
 
-    const staleAssets = assets.filter((asset) => !asset.lastQuoteAt || Date.now() - new Date(asset.lastQuoteAt).getTime() > 15 * 60 * 1000);
+    const staleAssets = assets.filter((asset) => !asset.lastQuoteAt || now - new Date(asset.lastQuoteAt).getTime() > 15 * 60 * 1000);
     const largestWeight = analytics.currentValue > 0 && analytics.leaders[0] ? analytics.leaders[0].value / analytics.currentValue * 100 : 0;
     const alerts = [
         ...(largestWeight > 35 ? [`${analytics.leaders[0]?.symbol} concentra ${largestWeight.toFixed(1)}% de la cartera`] : []),

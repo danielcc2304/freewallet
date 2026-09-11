@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-11 - v5.0.4 - Versión visible de producción
+- Funcionalidad:
+  - Se alinea la versión visible de la aplicación con el paquete y la release publicada.
+- Resumen:
+  - La navegación, ajustes y novedades muestran ahora la versión real desplegada.
+- Archivos:
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-09-11 - v5.0.3 - Dashboard consolidado y analítica viva
 - Funcionalidad:
   - Se unifican las métricas de evolución, riesgo, asignación, benchmark y controles en una única analítica avanzada del dashboard.

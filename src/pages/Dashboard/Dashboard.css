@@ -1,5 +1,6 @@
 .dashboard {
     animation: fadeIn var(--transition-base) ease-out;
+    padding-bottom: 4.5rem;
 }
 
 /* Header */
@@ -54,6 +55,30 @@
 .dashboard__actions {
     display: flex;
     gap: var(--spacing-sm);
+}
+
+.dashboard__floating-add {
+    position: fixed;
+    right: max(1.25rem, env(safe-area-inset-right));
+    bottom: max(1.25rem, env(safe-area-inset-bottom));
+    z-index: 900;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    border: 1px solid rgba(255, 255, 255, .2);
+    border-radius: 999px;
+    background: var(--accent-primary);
+    color: white;
+    box-shadow: 0 12px 30px rgba(16, 185, 129, .35), 0 4px 12px rgba(0, 0, 0, .28);
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.dashboard__floating-add:hover {
+    color: white;
+    transform: translateY(-3px) scale(1.04);
+    box-shadow: 0 16px 34px rgba(16, 185, 129, .45), 0 5px 14px rgba(0, 0, 0, .3);
 }
 
 /* Updating banner */
@@ -316,5 +341,12 @@
 
     .welcome-content__title {
         font-size: var(--font-size-2xl);
+    }
+
+    .dashboard__floating-add {
+        right: max(1rem, env(safe-area-inset-right));
+        bottom: max(1rem, env(safe-area-inset-bottom));
+        width: 3.25rem;
+        height: 3.25rem;
     }
 }

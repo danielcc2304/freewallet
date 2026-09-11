@@ -12,6 +12,18 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-11 - v5.0.2 - Refresco persistente y acciones móviles
+- Funcionalidad:
+  - Se reduce el ciclo de actualización automática a un minuto y se conserva la última cotización al volver desde segundo plano.
+  - Se evita lanzar una actualización duplicada si la cartera aún tiene cotizaciones vigentes.
+  - Se coloca `Mis Activos` junto al resumen y se sustituye el botón superior de añadir por una acción flotante inferior.
+- Resumen:
+  - La aplicación retoma el seguimiento de la cartera sin reiniciar innecesariamente el temporizador al volver al móvil.
+- Archivos:
+  - `src/constants/app.ts`
+  - `src/context/PortfolioContext.tsx`
+  - `src/pages/Dashboard/`
+
 ### 2026-09-11 - v5.0.1 - Dashboard: lectura visual del Excel
 - Funcionalidad:
   - Se añade una lectura tabulada del Excel en el dashboard con evolución, comparativa contra MSCI World, asignación por categorías y buckets, mapa de riesgo mensual y controles importados.

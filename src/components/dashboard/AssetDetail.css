@@ -170,6 +170,24 @@
     max-width: 100%;
 }
 
+.asset-detail__period-performance {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 0.35rem 0.65rem;
+    margin: -0.35rem 0 0.8rem;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+}
+
+.asset-detail__period-performance strong {
+    font-size: 1rem;
+}
+
+.asset-detail__period-performance strong.positive { color: var(--success-color); }
+.asset-detail__period-performance strong.negative { color: var(--danger-color); }
+.asset-detail__period-performance small { color: var(--text-muted); }
+
 .period-btn {
     padding: 0.25rem 0.75rem;
     border: none;

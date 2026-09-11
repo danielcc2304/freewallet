@@ -267,7 +267,7 @@ export function performanceSeries(history: PortfolioHistoryPoint[], transactions
                 : (point.value - previous.value - flow) / previous.value * 100
             : null;
         if (dailyReturn !== null) index *= 1 + dailyReturn / 100;
-        return { ...point, date: point.date.slice(0, 10), dailyReturn, netFlow: flow, cumulativeReturn: index - 100, index };
+        return { ...point, date: point.date.slice(0, 10), timestamp: new Date(point.date).getTime(), dailyReturn, netFlow: flow, cumulativeReturn: index - 100, index };
     });
 }
 
@@ -292,7 +292,8 @@ export function calculatePeriodPerformance(
     endMs = Number.POSITIVE_INFINITY,
     maxBaseGapMs = Number.POSITIVE_INFINITY,
 ): PortfolioPeriodPerformance {
-    const validSeries = series.filter((point) => Number.isFinite(new Date(point.date).getTime()) && new Date(point.date).getTime() <= endMs);
+    const pointTimestamp = (point: (typeof series)[number]) => Number.isFinite(point.timestamp) ? point.timestamp : new Date(point.date).getTime();
+    const validSeries = series.filter((point) => Number.isFinite(pointTimestamp(point)) && pointTimestamp(point) <= endMs);
     if (validSeries.length === 0) {
         return { hasBase: false, baseDate: null, endDate: null, change: null, returnPercent: null, netFlow: 0, observations: 0 };
     }
@@ -300,14 +301,14 @@ export function calculatePeriodPerformance(
     const baseIndex = startMs === Number.NEGATIVE_INFINITY
         ? 0
         : validSeries.reduce((lastIndex, point, index) => {
-            return new Date(point.date).getTime() <= startMs ? index : lastIndex;
+            return pointTimestamp(point) <= startMs ? index : lastIndex;
         }, -1);
     if (baseIndex < 0) {
         return { hasBase: false, baseDate: null, endDate: validSeries.at(-1)!.date, change: null, returnPercent: null, netFlow: 0, observations: 0 };
     }
 
     const base = validSeries[baseIndex];
-    const baseTimestamp = new Date(base.date).getTime();
+    const baseTimestamp = pointTimestamp(base);
     if (Number.isFinite(startMs) && Number.isFinite(maxBaseGapMs) && startMs - baseTimestamp > maxBaseGapMs) {
         return { hasBase: false, baseDate: null, endDate: validSeries.at(-1)!.date, change: null, returnPercent: null, netFlow: 0, observations: 0 };
     }
@@ -321,7 +322,10 @@ export function calculatePeriodPerformance(
         hasBase: true,
         baseDate: base.date,
         endDate: end.date,
-        change: end.value - base.value - netFlow,
+        // Express the monetary change on the starting capital. Subtracting
+        // raw flows from end.value is misleading when a newly added position
+        // is already marked to market on its first quote.
+        change: observedPoints.length > 0 ? base.value * (factor - 1) : null,
         returnPercent: observedPoints.length > 0 ? (factor - 1) * 100 : null,
         netFlow,
         observations: observedPoints.length,

@@ -86,7 +86,11 @@ async function prerender() {
     server.listen(PORT, async () => {
         console.log(`📡 Temporary server running at http://localhost:${PORT}`);
 
-        const browser = await puppeteer.launch({ headless: true });
+        const browser = await puppeteer.launch({
+            headless: true,
+            args: ['--no-sandbox', '--disable-gpu'],
+            timeout: NAV_TIMEOUT_MS,
+        });
 
         for (const route of routes) {
             const page = await browser.newPage();

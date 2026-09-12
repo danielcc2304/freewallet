@@ -252,6 +252,7 @@ export function addHistoryPoint(point: PortfolioHistoryPoint): void {
     // Sharpe and drawdown calculations.
     const oldestCutoff = now - 5 * 365 * 24 * 60 * 60 * 1000;
     const hourly = new Map<string, PortfolioHistoryPoint>();
+    const daily = new Map<string, PortfolioHistoryPoint>();
     const recent: PortfolioHistoryPoint[] = [];
 
     for (const item of history) {
@@ -259,6 +260,10 @@ export function addHistoryPoint(point: PortfolioHistoryPoint): void {
         if (!Number.isFinite(timestamp) || timestamp < oldestCutoff) continue;
         if (timestamp >= recentCutoff) {
             recent.push(item);
+        } else if (timestamp < now - 30 * 86400000) {
+            const dayKey = new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Madrid' }).format(new Date(timestamp));
+            const previous = daily.get(dayKey);
+            if (!previous || Date.parse(previous.date) < timestamp) daily.set(dayKey, item);
         } else {
             const date = new Date(timestamp);
             const hourKey = `${date.getUTCFullYear()}-${date.getUTCMonth()}-${date.getUTCDate()}-${date.getUTCHours()}`;
@@ -266,8 +271,8 @@ export function addHistoryPoint(point: PortfolioHistoryPoint): void {
         }
     }
 
-    // Precisión de 1 min durante 7 días y una muestra horaria hasta un año.
-    saveHistory([...hourly.values(), ...recent]);
+    // Minute data for 7 days, hourly for 30 days and daily for five years.
+    saveHistory([...daily.values(), ...hourly.values(), ...recent].sort((a, b) => Date.parse(a.date) - Date.parse(b.date)));
 }
 
 // ===== PORTFOLIO HELPERS =====

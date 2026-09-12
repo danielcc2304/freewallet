@@ -6,7 +6,7 @@ import { Button, Card, CardContent, Modal } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory, isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, PerformerData, Asset } from '../../types/types';
-import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, normalizePortfolioTransactions, performanceSeries } from '../../services/portfolioPerformance';
+import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, createQuoteSnapshot, normalizePortfolioTransactions, performanceSeries } from '../../services/portfolioPerformance';
 import './Dashboard.css';
 import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan';
 import { PortfolioExcelInsights } from '../../components/dashboard/PortfolioExcelInsights';
@@ -56,22 +56,17 @@ export function Dashboard() {
         const totalGain = currentValue - totalInvested;
         const percentageGain = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
 
-        const dailyQuoteAssets = assets.filter((asset) => Number.isFinite(asset.previousClose) && (asset.previousClose || 0) > 0 && !!asset.lastQuoteAt);
-        const dailyChange = dailyQuoteAssets.reduce((sum, a) => {
-            const prevValue = (a.previousClose || 0) * a.quantity;
-            const currValue = (a.currentPrice || a.purchasePrice) * a.quantity;
-            return sum + (currValue - prevValue);
-        }, 0);
         const portfolioTransactions = normalizePortfolioTransactions(assets, state.transactions);
 
-        const history = buildPortfolioAnalyticsHistory(getHistory(), portfolioTransactions, {
-            date: new Date(countdownNow).toISOString(),
-            value: currentValue,
-            invested: totalInvested,
-        }, assets);
+        const history = buildPortfolioAnalyticsHistory(
+            getHistory(),
+            portfolioTransactions,
+            createQuoteSnapshot(assets, portfolioTransactions, new Date(countdownNow).toISOString()) || undefined,
+            assets,
+        );
         const series = performanceSeries(history, portfolioTransactions, assets);
         const periodChange = (timestamp: number) => {
-            const maxBaseGap = Math.max(3 * DAY_MS, (countdownNow - timestamp) * 1.5);
+            const maxBaseGap = 4 * DAY_MS;
             const period = calculatePeriodPerformance(series, timestamp, countdownNow, maxBaseGap);
             return {
                 hasBase: period.hasBase && period.returnPercent !== null,
@@ -79,7 +74,9 @@ export function Dashboard() {
                 percent: period.returnPercent ?? NaN,
             };
         };
-        const day = periodChange(countdownNow - 24 * 60 * 60 * 1000);
+        const todayStart = new Date(countdownNow);
+        todayStart.setHours(0, 0, 0, 0);
+        const day = periodChange(todayStart.getTime() - 1);
         const monthStart = new Date(countdownNow);
         const monthDay = monthStart.getDate();
         monthStart.setDate(1);
@@ -100,8 +97,8 @@ export function Dashboard() {
             currentValue,
             totalGain,
             percentageGain,
-            dailyChange: day.hasBase ? day.change : dailyQuoteAssets.length > 0 ? dailyChange : NaN,
-            dailyChangePercent: day.hasBase ? day.percent : dailyQuoteAssets.length > 0 && currentValue > 0 ? (dailyChange / (currentValue - dailyChange)) * 100 : NaN,
+            dailyChange: day.change,
+            dailyChangePercent: day.percent,
             monthlyChange: month.change,
             monthlyChangePercent: month.percent,
             threeMonthChange: quarter.change,
@@ -210,7 +207,7 @@ export function Dashboard() {
                 />
             </section>
             <section className="dashboard__section"><PortfolioExcelInsights now={countdownNow} /></section>
-            <section className="dashboard__section"><LivePortfolioPlan /></section>
+            <section className="dashboard__section"><LivePortfolioPlan now={countdownNow} /></section>
 
             <section className="dashboard__section dashboard__performers">
                 <Performers data={performersData} type="best" />

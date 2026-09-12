@@ -5,6 +5,7 @@ import { getAssets, getTransactions, saveAssets, saveTransactions, addAsset as a
 import { getPortfolioAssetQuote } from '../services/portfolioQuoteService';
 import { mockAssets, generateMockHistory } from '../data/mockData';
 import { PRICE_REFRESH_INTERVAL_MS } from '../constants/app';
+import { createQuoteSnapshot, normalizePortfolioTransactions, portfolioLedgerKey } from '../services/portfolioPerformance';
 
 function getLatestQuoteAt(assets: Asset[]): Date | null {
     const timestamps = assets
@@ -126,6 +127,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         refreshInFlight.current = true;
         dispatch({ type: 'SET_UPDATING_PRICES', payload: true });
         let updatedCount = 0;
+        const refreshDate = new Date().toISOString();
+        const initialLedgerKey = portfolioLedgerKey(normalizePortfolioTransactions(assetsToUpdate, getTransactions()), refreshDate);
         try {
             for (const asset of assetsToUpdate) {
                 const controller = new AbortController();
@@ -152,9 +155,10 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             }
 
             const refreshedAssets = getAssets();
-            const value = refreshedAssets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0);
-            const invested = refreshedAssets.reduce((sum, asset) => sum + asset.purchasePrice * asset.quantity, 0);
-            if (updatedCount === assetsToUpdate.length) addHistoryPoint({ date: new Date().toISOString(), value, invested });
+            const snapshot = createQuoteSnapshot(refreshedAssets, getTransactions(), new Date().toISOString());
+            const samePositions = refreshedAssets.length === assetsToUpdate.length && refreshedAssets.every(a =>
+                assetsToUpdate.some(old => old.id === a.id && old.quantity === a.quantity && old.purchasePrice === a.purchasePrice && old.purchaseDate === a.purchaseDate));
+            if (updatedCount === assetsToUpdate.length && samePositions && snapshot && snapshot.ledgerKey === initialLedgerKey) addHistoryPoint(snapshot);
             const latestQuoteAt = getLatestQuoteAt(refreshedAssets);
             if (latestQuoteAt) dispatch({ type: 'SET_LAST_UPDATE', payload: latestQuoteAt });
         } finally {
@@ -308,6 +312,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 }
 
 // Hook to use portfolio context
+// eslint-disable-next-line react-refresh/only-export-components
 export function usePortfolio() {
     const context = useContext(PortfolioContext);
     if (context === undefined) {

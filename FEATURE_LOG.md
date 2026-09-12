@@ -12,6 +12,29 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-12 - v5.0.9 - Histórico verificable y analítica de cartera
+- Funcionalidad:
+  - Se corrigen los saltos espurios del histórico y se preservan únicamente valoraciones respaldadas por cotizaciones y operaciones conocidas.
+  - El dashboard incorpora señales de calidad del histórico, benchmark y lecturas de cartera sin sustituir datos faltantes por valores inventados.
+  - Se endurecen las pruebas de rendimiento, procedencia del histórico y el prerender de producción.
+- Resumen:
+  - Las métricas de rentabilidad y riesgo dejan de amplificar importaciones, ventas o snapshots no verificables y muestran N/D cuando falta una base fiable.
+- Archivos:
+  - `src/services/portfolioPerformance.ts`
+  - `src/context/PortfolioContext.tsx`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/components/dashboard/LivePortfolioPlan.tsx`
+  - `src/components/dashboard/PortfolioBenchmark.tsx`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `src/services/storageService.ts`
+  - `src/types/portfolio.ts`
+  - `scripts/test-portfolio-performance.ts`
+  - `scripts/test-history-provenance-ui.ts`
+  - `scripts/prerender.js`
+  - `package.json`
+  - `package-lock.json`
+  - `src/constants/app.ts`
+
 ### 2026-09-12 - v5.0.8 - Fórmulas del Excel y rentabilidad por periodo
 - Funcionalidad:
   - Se replica la metodología de `Estadísticas avanzadas` para meses cerrados, libre de riesgo, Sharpe, Sortino, volatilidad, anualización y drawdown.

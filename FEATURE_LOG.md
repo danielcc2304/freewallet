@@ -12,6 +12,18 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-13 - v5.0.10 - Histórico de mercado para carteras importadas
+- Funcionalidad:
+  - Se incorpora la reconstrucción del histórico de cartera a partir de velas históricas de cada activo.
+  - Se conserva la escala en euros de la cartera y se amplían las ventanas válidas para datos semanales y cierres mensuales.
+  - Se añaden comprobaciones para validar que la curva de mercado conserva el movimiento histórico esperado.
+- Resumen:
+  - El análisis de evolución puede ofrecer una curva histórica útil incluso cuando la cartera no tiene snapshots diarios suficientes, sin convertir huecos o cambios de posición en rentabilidades ficticias.
+- Archivos:
+  - `src/services/portfolioPerformance.ts`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `scripts/test-portfolio-performance.ts`
+
 ### 2026-09-12 - v5.0.9 - Histórico verificable y analítica de cartera
 - Funcionalidad:
   - Se corrigen los saltos espurios del histórico y se preservan únicamente valoraciones respaldadas por cotizaciones y operaciones conocidas.

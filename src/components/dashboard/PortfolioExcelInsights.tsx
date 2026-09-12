@@ -35,7 +35,7 @@ import { Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory } from '../../services/storageService';
 import { getAssetChartData } from '../../services/apiService';
-import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, createQuoteSnapshot, normalizePortfolioTransactions, performanceSeries, portfolioMonthlyRows, workbookRiskStats, alignedBenchmark } from '../../services/portfolioPerformance';
+import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, createMarketPortfolioHistory, createQuoteSnapshot, normalizePortfolioTransactions, performanceSeries, portfolioMonthlyRows, workbookRiskStats, alignedBenchmark } from '../../services/portfolioPerformance';
 import type { HistoricalDataPoint } from '../../types/types';
 import './PortfolioExcelInsights.css';
 
@@ -104,7 +104,9 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
     const [tab, setTab] = useState<InsightTab>('evolution');
     const [evolutionPeriod, setEvolutionPeriod] = useState<EvolutionPeriod>('ALL');
     const [benchmark, setBenchmark] = useState<HistoricalDataPoint[]>([]);
+    const [assetHistory, setAssetHistory] = useState<Map<string, HistoricalDataPoint[]>>(new Map());
     const portfolioTransactions = useMemo(() => normalizePortfolioTransactions(assets, transactions), [transactions, assets]);
+    const assetSignature = assets.map((asset) => `${asset.id}:${asset.symbol}:${asset.isin || ''}:${asset.purchaseDate}`).sort().join('|');
 
     const totalValue = useMemo(
         () => assets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0),
@@ -127,10 +129,29 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         return () => controller.abort();
     }, [lastPriceUpdate]);
 
+    useEffect(() => {
+        if (!assets.length) {
+            setAssetHistory(new Map());
+            return undefined;
+        }
+        const controller = new AbortController();
+        Promise.all(assets.map(async (asset) => {
+            const symbol = asset.isin || asset.symbol;
+            const points = await getAssetChartData(symbol, 'ALL', controller.signal);
+            return [asset.id, points] as const;
+        })).then((entries) => {
+            if (!controller.signal.aborted) setAssetHistory(new Map(entries));
+        }).catch(() => {
+            if (!controller.signal.aborted) setAssetHistory(new Map());
+        });
+        return () => controller.abort();
+    }, [assetSignature]);
+
     const history = useMemo(() => {
         const currentSnapshot = createQuoteSnapshot(assets, portfolioTransactions, new Date(now).toISOString());
-        return buildPortfolioAnalyticsHistory(getHistory(), portfolioTransactions, currentSnapshot || undefined, assets);
-    }, [assets, now, portfolioTransactions]);
+        const marketHistory = createMarketPortfolioHistory(assets, portfolioTransactions, assetHistory);
+        return buildPortfolioAnalyticsHistory([...getHistory(), ...marketHistory], portfolioTransactions, currentSnapshot || undefined, assets);
+    }, [assetHistory, assets, now, portfolioTransactions]);
     const series = useMemo(() => performanceSeries(history, portfolioTransactions, assets), [assets, history, portfolioTransactions]);
 
     const monthly = useMemo(() => portfolioMonthlyRows(series, now), [series, now]);

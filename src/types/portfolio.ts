@@ -19,6 +19,8 @@ export interface PortfolioHistoryPoint {
     date: string;
     value: number;
     invested: number;
+    source?: 'quotes-v2';
+    ledgerKey?: string;
 }
 
 export type PortfolioTransactionType = 'buy' | 'sell' | 'edit' | 'delete';

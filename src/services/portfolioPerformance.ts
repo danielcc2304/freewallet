@@ -55,6 +55,54 @@ export function createQuoteSnapshot(assets: Asset[], transactions: PortfolioTran
         source: 'quotes-v2', ledgerKey: portfolioLedgerKey(normalizePortfolioTransactions(assets, transactions), date) };
 }
 
+/**
+ * Builds a portfolio curve from each holding's historical candles. Historical
+ * providers return the listing currency, while holdings are stored in EUR; the
+ * latest known EUR quote is therefore used as a conservative scale factor so
+ * the curve remains comparable with the dashboard valuation.
+ */
+export function createMarketPortfolioHistory(
+    assets: Asset[],
+    transactions: PortfolioTransaction[],
+    assetHistory: Map<string, HistoricalDataPoint[]>,
+): PortfolioHistoryPoint[] {
+    if (!assets.length) return [];
+    const ledger = normalizePortfolioTransactions(assets, transactions);
+    const days = new Set<string>();
+    assetHistory.forEach((points) => points.forEach((point) => {
+        const day = accountingDay(point.date);
+        if (day) days.add(day);
+    }));
+
+    return [...days].sort().flatMap((day) => {
+        const active = assets.filter((asset) => accountingDay(asset.purchaseDate) <= day);
+        if (!active.length) return [];
+        let hasMarketData = false;
+        const value = active.reduce((sum, asset) => {
+            const fullHistory = assetHistory.get(asset.id) || [];
+            const points = fullHistory.filter((point) => accountingDay(point.date) <= day);
+            const latest = points.at(-1);
+            const rawLatest = fullHistory.at(-1);
+            if (latest?.close && latest.close > 0) hasMarketData = true;
+            const scale = rawLatest?.close && asset.currentPrice && asset.currentPrice > 0
+                ? asset.currentPrice / rawLatest.close
+                : 1;
+            const price = latest?.close && latest.close > 0 ? latest.close * scale : asset.purchasePrice;
+            return sum + price * asset.quantity;
+        }, 0);
+        if (!hasMarketData || !Number.isFinite(value) || value <= 0) return [];
+        const date = `${day}T18:00:00.000Z`;
+        const invested = active.reduce((sum, asset) => sum + asset.purchasePrice * asset.quantity, 0);
+        return [{
+            date,
+            value,
+            invested,
+            source: 'quotes-v2' as const,
+            ledgerKey: portfolioLedgerKey(ledger, date),
+        }];
+    });
+}
+
 /** Legacy totals have no provenance and may contain demo data. Never rewrite them. */
 export function buildPortfolioAnalyticsHistory(history: PortfolioHistoryPoint[], transactions: PortfolioTransaction[],
     currentSnapshot?: PortfolioHistoryPoint, _assets: Asset[] = []): PortfolioHistoryPoint[] {
@@ -88,7 +136,9 @@ export function performanceSeries(history: PortfolioHistoryPoint[], transactions
         const flow = operations.reduce((sum, t) => sum + transactionFlow(t), 0);
         const gap = previous ? (Date.parse(date) - Date.parse(previous[0])) / DAY_MS : 0;
         const unexplainedCostChange = previous && !operations.length && Math.abs(point.invested - previous[1].invested) > 0.01;
-        const valid = !!previous && previous[1].value > 0 && gap > 0 && gap <= 4 && Number.isFinite(flow) &&
+        // ALL-period market candles are weekly; allow a holiday fortnight but
+        // still reject monthly/unknown gaps that would fabricate a return.
+        const valid = !!previous && previous[1].value > 0 && gap > 0 && gap <= 16 && Number.isFinite(flow) &&
             !unexplainedCostChange && !operations.some(t => !getTransactionEventDay(t) || t.type === 'edit' || t.type === 'delete');
         const intervalReturn = valid ? (point.value - previous[1].value - flow) / previous[1].value * 100 : null;
         if (intervalReturn !== null) index *= 1 + intervalReturn / 100;
@@ -129,8 +179,8 @@ export function portfolioMonthlyRows(series: ReturnType<typeof performanceSeries
         const startDay = `${month}-01`;
         const lastDay = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0)).toISOString().slice(0, 10);
         const closed = month < accountingDay(now).slice(0, 7);
-        const complete = !!base && base.value > 0 && Date.parse(startDay) - Date.parse(base.date) <= 4 * DAY_MS &&
-            (!closed || Date.parse(lastDay) - Date.parse(end.date) <= 3 * DAY_MS) && points.every(p => p.dailyReturn !== null);
+        const complete = !!base && base.value > 0 && Date.parse(startDay) - Date.parse(base.date) <= 8 * DAY_MS &&
+            (!closed || Date.parse(lastDay) - Date.parse(end.date) <= 8 * DAY_MS) && points.every(p => p.dailyReturn !== null);
         const flow = points.reduce((sum, p) => sum + p.netFlow, 0);
         const monthlyReturn = complete ? (end.value - flow - base!.value) / base!.value * 100 : null;
         if (monthlyReturn !== null) wealth *= 1 + monthlyReturn / 100;

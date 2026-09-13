@@ -119,8 +119,9 @@ export function buildPortfolioAnalyticsHistory(history: PortfolioHistoryPoint[],
     return [...timestamps].sort(([a], [b]) => a - b).map(([, point]) => ({ ...point }));
 }
 
-export function performanceSeries(history: PortfolioHistoryPoint[], transactions: PortfolioTransaction[], _assets: Asset[] = []) {
+export function performanceSeries(history: PortfolioHistoryPoint[], transactions: PortfolioTransaction[], _assets: Asset[] = [], options: { maxGapDays?: number } = {}) {
     void _assets;
+    const maxGapDays = options.maxGapDays ?? 16;
     const days = new Map<string, PortfolioHistoryPoint>();
     [...history].sort((a, b) => Date.parse(a.date) - Date.parse(b.date)).forEach(point => {
         if (accountingDay(point.date) && Number.isFinite(point.value) && point.value >= 0) days.set(accountingDay(point.date), point);
@@ -138,7 +139,7 @@ export function performanceSeries(history: PortfolioHistoryPoint[], transactions
         const unexplainedCostChange = previous && !operations.length && Math.abs(point.invested - previous[1].invested) > 0.01;
         // ALL-period market candles are weekly; allow a holiday fortnight but
         // still reject monthly/unknown gaps that would fabricate a return.
-        const valid = !!previous && previous[1].value > 0 && gap > 0 && gap <= 16 && Number.isFinite(flow) &&
+        const valid = !!previous && previous[1].value > 0 && gap > 0 && gap <= maxGapDays && Number.isFinite(flow) &&
             !unexplainedCostChange && !operations.some(t => !getTransactionEventDay(t) || t.type === 'edit' || t.type === 'delete');
         const intervalReturn = valid ? (point.value - previous[1].value - flow) / previous[1].value * 100 : null;
         if (intervalReturn !== null) index *= 1 + intervalReturn / 100;
@@ -155,7 +156,7 @@ export function calculatePeriodPerformance(series: ReturnType<typeof performance
         change: null as number | null, returnPercent: null as number | null, netFlow: 0, observations: 0 };
     const baseIndex = startMs === -Infinity ? 0 : points.reduce((index, p, i) => p.timestamp <= startMs ? i : index, -1);
     const base = points[baseIndex];
-    if (!base || (Number.isFinite(startMs) && startMs - base.timestamp > Math.min(maxBaseGapMs, 4 * DAY_MS))) return empty;
+    if (!base || (Number.isFinite(startMs) && startMs - base.timestamp > maxBaseGapMs)) return empty;
     const selected = points.slice(baseIndex + 1);
     // Never join returns across an unknown interval.
     if (!selected.length || selected.some(p => p.dailyReturn === null)) return empty;

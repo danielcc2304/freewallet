@@ -5,6 +5,8 @@ export interface AssetHolding {
     name: string;
     percentage: number;
     sector?: string;
+    /** Identifiers are optional because some providers only expose a name. */
+    isin?: string;
 }
 
 export interface Asset {

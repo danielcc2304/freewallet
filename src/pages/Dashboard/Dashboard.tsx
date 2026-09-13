@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio } from 'lucide-react';
-import { PortfolioSummary, Performers, AssetsTable, PortfolioComposition, AssetDetail } from '../../components/dashboard';
+import { PortfolioSummary, Performers, AssetsTable, PortfolioComposition, AssetDetail, UnderlyingAssetDetail } from '../../components/dashboard';
 import { Button, Card, CardContent, Modal } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory, isApiEnabled } from '../../services/storageService';
-import type { PortfolioMetrics, PerformerData, Asset } from '../../types/types';
+import type { PortfolioMetrics, PerformerData, Asset, AssetHolding } from '../../types/types';
 import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, createQuoteSnapshot, normalizePortfolioTransactions, performanceSeries } from '../../services/portfolioPerformance';
+import { readWorkbookHistory } from '../../services/portfolioWorkbookHistory';
+import type { ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
 import './Dashboard.css';
 import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan';
 import { PortfolioExcelInsights } from '../../components/dashboard/PortfolioExcelInsights';
@@ -18,9 +20,16 @@ export function Dashboard() {
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
     const { assets, loading, updatingPrices, lastPriceUpdate } = state;
     const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+    const [selectedHolding, setSelectedHolding] = useState<{
+        holding: AssetHolding;
+        parentAsset: Asset;
+        exposure?: ConsolidatedPortfolioExposure;
+    } | null>(null);
     const [countdownNow, setCountdownNow] = useState(() => Date.now());
     const navigate = useNavigate();
     const apiEnabled = isApiEnabled();
+    const workbookHistory = useMemo(() => readWorkbookHistory(), []);
+    const usingWorkbookHistory = workbookHistory.points.length >= 2;
     const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || null;
 
     useEffect(() => {
@@ -58,15 +67,19 @@ export function Dashboard() {
 
         const portfolioTransactions = normalizePortfolioTransactions(assets, state.transactions);
 
-        const history = buildPortfolioAnalyticsHistory(
+        const liveHistory = buildPortfolioAnalyticsHistory(
             getHistory(),
             portfolioTransactions,
             createQuoteSnapshot(assets, portfolioTransactions, new Date(countdownNow).toISOString()) || undefined,
             assets,
         );
-        const series = performanceSeries(history, portfolioTransactions, assets);
-        const periodChange = (timestamp: number) => {
-            const maxBaseGap = 4 * DAY_MS;
+        const liveSeries = performanceSeries(liveHistory, portfolioTransactions, assets);
+        const historicalSeries = usingWorkbookHistory
+            ? performanceSeries(workbookHistory.points, workbookHistory.flowTransactions, assets, {
+                maxGapDays: workbookHistory.source === 'monthly' ? 45 : 16,
+            })
+            : liveSeries;
+        const periodChange = (timestamp: number, series: ReturnType<typeof performanceSeries>, maxBaseGap: number) => {
             const period = calculatePeriodPerformance(series, timestamp, countdownNow, maxBaseGap);
             return {
                 hasBase: period.hasBase && period.returnPercent !== null,
@@ -76,7 +89,6 @@ export function Dashboard() {
         };
         const todayStart = new Date(countdownNow);
         todayStart.setHours(0, 0, 0, 0);
-        const day = periodChange(todayStart.getTime() - 1);
         const monthStart = new Date(countdownNow);
         const monthDay = monthStart.getDate();
         monthStart.setDate(1);
@@ -87,10 +99,12 @@ export function Dashboard() {
         quarterStart.setDate(1);
         quarterStart.setMonth(quarterStart.getMonth() - 3);
         quarterStart.setDate(Math.min(quarterDay, new Date(quarterStart.getFullYear(), quarterStart.getMonth() + 1, 0).getDate()));
-        const month = periodChange(monthStart.getTime());
-        const quarter = periodChange(quarterStart.getTime());
+        const historicalGap = usingWorkbookHistory && workbookHistory.source === 'monthly' ? 45 * DAY_MS : 4 * DAY_MS;
+        const day = periodChange(todayStart.getTime() - 1, liveSeries, 4 * DAY_MS);
+        const month = periodChange(monthStart.getTime(), historicalSeries, historicalGap);
+        const quarter = periodChange(quarterStart.getTime(), historicalSeries, historicalGap);
         const ytdStart = new Date(new Date(countdownNow).getFullYear(), 0, 1).getTime();
-        const ytd = periodChange(ytdStart);
+        const ytd = periodChange(ytdStart, historicalSeries, historicalGap);
 
         return {
             totalInvested,
@@ -106,7 +120,7 @@ export function Dashboard() {
             ytdChange: ytd.change,
             ytdChangePercent: ytd.percent,
         };
-    }, [assets, countdownNow, state.transactions]);
+    }, [assets, countdownNow, state.transactions, usingWorkbookHistory, workbookHistory]);
 
     const performersData: PerformerData[] = useMemo(() => {
         return assets.map((asset) => {
@@ -215,16 +229,37 @@ export function Dashboard() {
             </section>
 
             <section className="dashboard__section">
-                <PortfolioComposition assets={assets} onAssetClick={(asset) => setSelectedAssetId(asset.id)} />
+                <PortfolioComposition
+                    assets={assets}
+                    onAssetClick={(asset) => {
+                        setSelectedHolding(null);
+                        setSelectedAssetId(asset.id);
+                    }}
+                    onHoldingClick={(holding, parentAsset, exposure) => {
+                        setSelectedAssetId(null);
+                        setSelectedHolding({ holding, parentAsset, exposure });
+                    }}
+                />
             </section>
 
             <Modal
-                isOpen={selectedAsset !== null}
-                onClose={() => setSelectedAssetId(null)}
-                title={selectedAsset ? `Detalles de ${selectedAsset.symbol}` : ''}
+                isOpen={selectedAsset !== null || selectedHolding !== null}
+                onClose={() => {
+                    setSelectedAssetId(null);
+                    setSelectedHolding(null);
+                }}
+                title={selectedHolding ? `Detalles de ${selectedHolding.holding.name}` : selectedAsset ? `Detalles de ${selectedAsset.symbol}` : ''}
                 size="lg"
             >
-                {selectedAsset && <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} />}
+                {selectedHolding ? (
+                    <UnderlyingAssetDetail
+                        holding={selectedHolding.holding}
+                        parentAsset={selectedHolding.parentAsset}
+                        exposure={selectedHolding.exposure}
+                    />
+                ) : selectedAsset ? (
+                    <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} />
+                ) : null}
             </Modal>
             <div className="dashboard__floating-actions" aria-label="Acciones de cartera">
                 <Button

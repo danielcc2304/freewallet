@@ -62,6 +62,8 @@ export interface FinectBreakdown {
 export interface FinectHolding {
     name: string;
     weight: number;
+    symbol?: string;
+    isin?: string;
 }
 
 export interface FinectDocument {
@@ -425,11 +427,15 @@ function readBreakdowns(model: JsonRecord): FinectBreakdown[] {
 
 function readHoldings(model: JsonRecord): FinectHolding[] {
     return asArray(getRecord(model, 'portfolio')?.holdings)
-        .map((value) => {
+        .map((value): FinectHolding | null => {
             const holding = asRecord(value);
             const name = getString(holding, 'name');
             const weight = getNumber(holding, 'weight');
-            return name && weight !== undefined ? { name, weight } : null;
+            const symbol = getString(holding, 'symbol')
+                ?? getString(holding, 'ticker')
+                ?? getString(holding, 'code');
+            const isin = normalizeOptionalIsin(holding?.isin);
+            return name && weight !== undefined ? { name, weight, symbol, isin } : null;
         })
         .filter((item): item is FinectHolding => item !== null)
         .sort((left, right) => right.weight - left.weight)

@@ -1,8 +1,9 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory } from '../../services/storageService';
 import { buildPortfolioAnalyticsHistory, createQuoteSnapshot, normalizePortfolioTransactions, performanceSeries, portfolioMonthlyRows } from '../../services/portfolioPerformance';
+import { readWorkbookHistory } from '../../services/portfolioWorkbookHistory';
 import './LivePortfolioPlan.css';
 
 const money = (n: number) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
@@ -12,6 +13,8 @@ const operationName = { buy: 'Compra', sell: 'Venta', edit: 'Corrección', delet
 
 export function LivePortfolioPlan({ now }: { now: number }) {
     const { state: { assets, transactions } } = usePortfolio();
+    const workbookHistory = useMemo(() => readWorkbookHistory(), []);
+    const usingWorkbookHistory = workbookHistory.points.length >= 2;
     const [targets, setTargets] = useState<Record<string, number>>(() => {
         try {
             const data: unknown = JSON.parse(localStorage.getItem(KEY) || '{}');
@@ -39,7 +42,11 @@ export function LivePortfolioPlan({ now }: { now: number }) {
         createQuoteSnapshot(assets, portfolioTransactions, new Date(now).toISOString()) || undefined,
         assets,
     );
-    const series = performanceSeries(liveHistory, portfolioTransactions, assets);
+    const history = usingWorkbookHistory ? workbookHistory.points : liveHistory;
+    const historyTransactions = usingWorkbookHistory ? workbookHistory.flowTransactions : portfolioTransactions;
+    const series = performanceSeries(history, historyTransactions, assets, {
+        maxGapDays: usingWorkbookHistory && workbookHistory.source === 'monthly' ? 45 : 16,
+    });
     const months = portfolioMonthlyRows(series, now);
     const buys = portfolioTransactions.filter(t => t.type === 'buy').reduce((s, t) => s + (t.total || 0), 0);
     const sells = portfolioTransactions.filter(t => t.type === 'sell').reduce((s, t) => s + (t.total || 0), 0);
@@ -83,13 +90,17 @@ export function LivePortfolioPlan({ now }: { now: number }) {
         </Card>
 
         <Card className="live-plan">
-            <CardHeader title="Resumen mensual" subtitle="Valor, capital y rentabilidad ajustada por las operaciones registradas" />
+             <CardHeader title="Resumen mensual" subtitle={usingWorkbookHistory
+                 ? 'Cierres mensuales y DCA importados desde la hoja Evolucion'
+                 : 'Valor, capital y rentabilidad ajustada por las operaciones registradas'} />
             <CardContent>
                 <div className="live-plan__scroll"><table>
                     <thead><tr><th>Mes</th><th>Último valor</th><th>Coste de posiciones</th><th>Rentabilidad observada*</th><th>Drawdown</th><th>Intervalos válidos</th></tr></thead>
                     <tbody>{[...months].reverse().map(m => <tr key={m.month}><th scope="row">{m.month}{!m.closed ? ' · provisional' : ''}</th><td>{money(m.value)}</td><td>{money(m.invested)}</td><td>{m.monthlyReturn !== null ? pct(m.monthlyReturn) : 'N/D'}</td><td>{m.drawdown !== null ? pct(m.drawdown) : 'N/D'}</td><td>{m.observations}</td></tr>)}</tbody>
                 </table></div>
-                <p>*Misma fórmula mensual del Excel: (cierre − flujos − cierre anterior) / cierre anterior, suponiendo flujos al final del mes. N/D cuando falta una base verificable. El mes abierto es provisional.</p>
+                 <p>*Misma fórmula mensual del Excel: (cierre − flujos − cierre anterior) / cierre anterior, suponiendo flujos al final del mes. {usingWorkbookHistory
+                     ? `Se muestran ${workbookHistory.evolutionCount} cierres de Evolucion y sus ${workbookHistory.dcaCount} flujos.`
+                     : 'N/D cuando falta una base verificable. El mes abierto es provisional.'}</p>
             </CardContent>
         </Card>
 

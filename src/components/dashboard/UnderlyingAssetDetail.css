@@ -1,0 +1,105 @@
+.underlying-detail {
+    display: grid;
+    gap: 1rem;
+    min-width: 0;
+}
+
+.underlying-detail__context {
+    display: grid;
+    gap: 0.85rem;
+    padding: 1rem;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    border-radius: 12px;
+    background: rgba(16, 185, 129, 0.07);
+}
+
+.underlying-detail__context-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    color: var(--accent-primary);
+}
+
+.underlying-detail__context-heading strong {
+    display: block;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+.underlying-detail__context-heading p {
+    margin: 0.2rem 0 0;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+}
+
+.underlying-detail__context-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.6rem;
+}
+
+.underlying-detail__context-grid > div {
+    display: grid;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.underlying-detail__context-grid span {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+}
+
+.underlying-detail__context-grid strong {
+    color: var(--text-primary);
+    font-size: 0.82rem;
+    overflow-wrap: anywhere;
+}
+
+.underlying-detail__context-note {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.72rem;
+    line-height: 1.45;
+}
+
+.underlying-detail__loading,
+.underlying-detail__unavailable {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    min-height: 7rem;
+    padding: 1rem;
+    border: 1px dashed var(--border-color);
+    border-radius: 12px;
+    color: var(--text-secondary);
+    text-align: center;
+}
+
+.underlying-detail__unavailable {
+    display: grid;
+    gap: 0.45rem;
+    justify-items: center;
+}
+
+.underlying-detail__unavailable strong {
+    color: var(--text-primary);
+}
+
+.underlying-detail__unavailable p,
+.underlying-detail__unavailable small {
+    margin: 0;
+    color: var(--text-muted);
+    line-height: 1.45;
+}
+
+@media (max-width: 640px) {
+    .underlying-detail__context-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .underlying-detail__context-grid > div:last-child {
+        grid-column: 1 / -1;
+    }
+}

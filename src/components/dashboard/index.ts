@@ -3,5 +3,6 @@ export * from './Performers';
 export * from './AssetsTable';
 export * from './PortfolioComposition';
 export * from './AssetDetail';
+export * from './UnderlyingAssetDetail';
 export * from './PortfolioHealth';
 export * from './PortfolioAnalytics';

@@ -1,7 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio } from 'lucide-react';
-import { PortfolioSummary, Performers, AssetsTable, PortfolioComposition, AssetDetail, UnderlyingAssetDetail } from '../../components/dashboard';
+import { PortfolioSummary } from '../../components/dashboard/PortfolioSummary';
+import { Performers } from '../../components/dashboard/Performers';
+import { AssetsTable } from '../../components/dashboard/AssetsTable';
 import { Button, Card, CardContent, Modal } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory, isApiEnabled } from '../../services/storageService';
@@ -10,11 +13,123 @@ import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, createQuote
 import { readWorkbookHistory } from '../../services/portfolioWorkbookHistory';
 import type { ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
 import './Dashboard.css';
-import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan';
-import { PortfolioExcelInsights } from '../../components/dashboard/PortfolioExcelInsights';
 import { PRICE_REFRESH_INTERVAL_MS } from '../../constants/app';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
+const DASHBOARD_CALCULATION_TICK_MS = 60 * 1000;
+
+// Keep the first Dashboard bundle focused on the summary and positions. The
+// analysis panels and their charting dependencies are loaded asynchronously.
+const PortfolioExcelInsights = lazy(() => import('../../components/dashboard/PortfolioExcelInsights').then(({ PortfolioExcelInsights: component }) => ({ default: component })));
+const LivePortfolioPlan = lazy(() => import('../../components/dashboard/LivePortfolioPlan').then(({ LivePortfolioPlan: component }) => ({ default: component })));
+const PortfolioComposition = lazy(() => import('../../components/dashboard/PortfolioComposition').then(({ PortfolioComposition: component }) => ({ default: component })));
+const AssetDetail = lazy(() => import('../../components/dashboard/AssetDetail').then(({ AssetDetail: component }) => ({ default: component })));
+const UnderlyingAssetDetail = lazy(() => import('../../components/dashboard/UnderlyingAssetDetail').then(({ UnderlyingAssetDetail: component }) => ({ default: component })));
+
+function DashboardSectionFallback({ label, minHeight = 96 }: { label: string; minHeight?: number }) {
+    return (
+        <div className="dashboard__deferred-fallback" style={{ minHeight }} role="status" aria-live="polite">
+            <Loader2 size={17} className="spinning" />
+            <span>{label}</span>
+        </div>
+    );
+}
+
+function DeferredDashboardSection({
+    children,
+    label,
+    minHeight,
+}: {
+    children: ReactNode;
+    label: string;
+    minHeight: number;
+}) {
+    const sectionRef = useRef<HTMLDivElement>(null);
+    const [shouldRender, setShouldRender] = useState(false);
+
+    useEffect(() => {
+        if (shouldRender) return undefined;
+        const section = sectionRef.current;
+        if (!section) return undefined;
+
+        let activated = false;
+        const observer = 'IntersectionObserver' in window
+            ? new IntersectionObserver((entries) => {
+                if (entries.some((entry) => entry.isIntersecting)) activate();
+            }, { rootMargin: '600px 0px' })
+            : null;
+        const activate = () => {
+            if (activated) return;
+            activated = true;
+            observer?.disconnect();
+            setShouldRender(true);
+        };
+
+        observer?.observe(section);
+        // Render during idle time even if the browser has no IntersectionObserver
+        // (or the user never scrolls), while keeping the critical first paint light.
+        const fallbackTimer = window.setTimeout(activate, 1500);
+
+        return () => {
+            observer?.disconnect();
+            window.clearTimeout(fallbackTimer);
+        };
+    }, [shouldRender]);
+
+    return (
+        <div ref={sectionRef} className="dashboard__deferred-section">
+            {shouldRender ? (
+                <Suspense fallback={<DashboardSectionFallback label={label} minHeight={minHeight} />}>
+                    {children}
+                </Suspense>
+            ) : (
+                <DashboardSectionFallback label={label} minHeight={minHeight} />
+            )}
+        </div>
+    );
+}
+
+function DashboardLiveStatus({
+    apiEnabled,
+    updatingPrices,
+    lastPriceUpdate,
+}: {
+    apiEnabled: boolean;
+    updatingPrices: boolean;
+    lastPriceUpdate: Date | null;
+}) {
+    const [now, setNow] = useState(() => Date.now());
+
+    useEffect(() => {
+        const update = () => {
+            if (document.visibilityState === 'visible') setNow(Date.now());
+        };
+        const intervalId = window.setInterval(update, 1000);
+        document.addEventListener('visibilitychange', update);
+        return () => {
+            window.clearInterval(intervalId);
+            document.removeEventListener('visibilitychange', update);
+        };
+    }, []);
+
+    if (!apiEnabled) {
+        return <span className="dashboard__live-status"><Radio size={13} /> Auto desactivada</span>;
+    }
+
+    const nextRefreshSeconds = lastPriceUpdate
+        ? Math.max(0, Math.ceil((lastPriceUpdate.getTime() + PRICE_REFRESH_INTERVAL_MS - now) / 1000))
+        : null;
+    const countdownLabel = nextRefreshSeconds === null
+        ? 'preparando…'
+        : `en ${String(Math.floor(nextRefreshSeconds / 60)).padStart(2, '0')}:${String(nextRefreshSeconds % 60).padStart(2, '0')}`;
+    const refreshIntervalMinutes = Math.max(1, Math.round(PRICE_REFRESH_INTERVAL_MS / 60000));
+
+    return (
+        <span className="dashboard__live-status dashboard__live-status--active">
+            <Radio size={13} /> Auto · {refreshIntervalMinutes} min · {updatingPrices ? 'actualizando…' : countdownLabel}
+        </span>
+    );
+}
 
 export function Dashboard() {
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
@@ -25,36 +140,60 @@ export function Dashboard() {
         parentAsset: Asset;
         exposure?: ConsolidatedPortfolioExposure;
     } | null>(null);
-    const [countdownNow, setCountdownNow] = useState(() => Date.now());
+    // Expensive portfolio calculations do not need a one-second clock. Keep
+    // the live countdown isolated in DashboardLiveStatus below.
+    const [calculationNow, setCalculationNow] = useState(() => Date.now());
     const navigate = useNavigate();
     const apiEnabled = isApiEnabled();
     const workbookHistory = useMemo(() => readWorkbookHistory(), []);
     const usingWorkbookHistory = workbookHistory.points.length >= 2;
+    const portfolioTransactions = useMemo(
+        () => normalizePortfolioTransactions(assets, state.transactions),
+        [assets, state.transactions],
+    );
+    const workbookSeries = useMemo(
+        () => usingWorkbookHistory
+            ? performanceSeries(workbookHistory.points, workbookHistory.flowTransactions, assets, {
+                maxGapDays: workbookHistory.source === 'monthly' ? 45 : 16,
+            })
+            : [],
+        [assets, usingWorkbookHistory, workbookHistory],
+    );
     const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || null;
 
     useEffect(() => {
-        const intervalId = window.setInterval(() => setCountdownNow(Date.now()), 1000);
-        return () => window.clearInterval(intervalId);
+        const update = () => {
+            if (document.visibilityState === 'visible') setCalculationNow(Date.now());
+        };
+        const intervalId = window.setInterval(update, DASHBOARD_CALCULATION_TICK_MS);
+        document.addEventListener('visibilitychange', update);
+        return () => {
+            window.clearInterval(intervalId);
+            document.removeEventListener('visibilitychange', update);
+        };
     }, []);
 
-    const nextRefreshSeconds = lastPriceUpdate
-        ? Math.max(0, Math.ceil((lastPriceUpdate.getTime() + PRICE_REFRESH_INTERVAL_MS - countdownNow) / 1000))
-        : null;
-    const countdownLabel = nextRefreshSeconds === null
-        ? 'preparando…'
-        : `en ${String(Math.floor(nextRefreshSeconds / 60)).padStart(2, '0')}:${String(nextRefreshSeconds % 60).padStart(2, '0')}`;
-
-    const handleEditAsset = (asset: Asset) => {
+    const handleEditAsset = useCallback((asset: Asset) => {
         navigate('/add', { state: { editAsset: asset } });
-    };
+    }, [navigate]);
 
-    const handleAddPurchase = (asset: Asset) => {
+    const handleAddPurchase = useCallback((asset: Asset) => {
         navigate('/add', { state: { dcaAsset: asset } });
-    };
+    }, [navigate]);
 
-    const handleSell = (asset: Asset) => {
+    const handleSell = useCallback((asset: Asset) => {
         navigate('/add', { state: { sellAsset: asset } });
-    };
+    }, [navigate]);
+
+    const handleViewDetails = useCallback((asset: Asset) => {
+        setSelectedHolding(null);
+        setSelectedAssetId(asset.id);
+    }, []);
+
+    const handleViewHolding = useCallback((holding: AssetHolding, parentAsset: Asset, exposure?: ConsolidatedPortfolioExposure) => {
+        setSelectedAssetId(null);
+        setSelectedHolding({ holding, parentAsset, exposure });
+    }, []);
 
     const metrics: PortfolioMetrics = useMemo(() => {
         const totalInvested = assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0);
@@ -65,36 +204,33 @@ export function Dashboard() {
         const totalGain = currentValue - totalInvested;
         const percentageGain = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
 
-        const portfolioTransactions = normalizePortfolioTransactions(assets, state.transactions);
-
-        const liveHistory = buildPortfolioAnalyticsHistory(
-            getHistory(),
+        const liveSeries = usingWorkbookHistory ? [] : performanceSeries(
+            buildPortfolioAnalyticsHistory(
+                getHistory(),
+                portfolioTransactions,
+                createQuoteSnapshot(assets, portfolioTransactions, new Date(calculationNow).toISOString()) || undefined,
+                assets,
+            ),
             portfolioTransactions,
-            createQuoteSnapshot(assets, portfolioTransactions, new Date(countdownNow).toISOString()) || undefined,
             assets,
         );
-        const liveSeries = performanceSeries(liveHistory, portfolioTransactions, assets);
-        const historicalSeries = usingWorkbookHistory
-            ? performanceSeries(workbookHistory.points, workbookHistory.flowTransactions, assets, {
-                maxGapDays: workbookHistory.source === 'monthly' ? 45 : 16,
-            })
-            : liveSeries;
+        const historicalSeries = usingWorkbookHistory ? workbookSeries : liveSeries;
         const periodChange = (timestamp: number, series: ReturnType<typeof performanceSeries>, maxBaseGap: number) => {
-            const period = calculatePeriodPerformance(series, timestamp, countdownNow, maxBaseGap);
+            const period = calculatePeriodPerformance(series, timestamp, calculationNow, maxBaseGap);
             return {
                 hasBase: period.hasBase && period.returnPercent !== null,
                 change: period.returnPercent === null ? NaN : period.change ?? NaN,
                 percent: period.returnPercent ?? NaN,
             };
         };
-        const todayStart = new Date(countdownNow);
+        const todayStart = new Date(calculationNow);
         todayStart.setHours(0, 0, 0, 0);
-        const monthStart = new Date(countdownNow);
+        const monthStart = new Date(calculationNow);
         const monthDay = monthStart.getDate();
         monthStart.setDate(1);
         monthStart.setMonth(monthStart.getMonth() - 1);
         monthStart.setDate(Math.min(monthDay, new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate()));
-        const quarterStart = new Date(countdownNow);
+        const quarterStart = new Date(calculationNow);
         const quarterDay = quarterStart.getDate();
         quarterStart.setDate(1);
         quarterStart.setMonth(quarterStart.getMonth() - 3);
@@ -103,7 +239,7 @@ export function Dashboard() {
         const day = periodChange(todayStart.getTime() - 1, liveSeries, 4 * DAY_MS);
         const month = periodChange(monthStart.getTime(), historicalSeries, historicalGap);
         const quarter = periodChange(quarterStart.getTime(), historicalSeries, historicalGap);
-        const ytdStart = new Date(new Date(countdownNow).getFullYear(), 0, 1).getTime();
+        const ytdStart = new Date(new Date(calculationNow).getFullYear(), 0, 1).getTime();
         const ytd = periodChange(ytdStart, historicalSeries, historicalGap);
 
         return {
@@ -120,7 +256,7 @@ export function Dashboard() {
             ytdChange: ytd.change,
             ytdChangePercent: ytd.percent,
         };
-    }, [assets, countdownNow, state.transactions, usingWorkbookHistory, workbookHistory]);
+    }, [assets, calculationNow, portfolioTransactions, usingWorkbookHistory, workbookHistory, workbookSeries]);
 
     const performersData: PerformerData[] = useMemo(() => {
         return assets.map((asset) => {
@@ -196,9 +332,11 @@ export function Dashboard() {
                             </span>
                         )}
                     </p>
-                    <span className={`dashboard__live-status ${apiEnabled ? 'dashboard__live-status--active' : ''}`}>
-                        <Radio size={13} /> {apiEnabled ? `Auto · 5 min · ${updatingPrices ? 'actualizando…' : countdownLabel}` : 'Auto desactivada'}
-                    </span>
+                    <DashboardLiveStatus
+                        apiEnabled={apiEnabled}
+                        updatingPrices={updatingPrices}
+                        lastPriceUpdate={lastPriceUpdate}
+                    />
                 </div>
             </div>
 
@@ -217,11 +355,19 @@ export function Dashboard() {
                     onEdit={handleEditAsset}
                     onAddPurchase={handleAddPurchase}
                     onSell={handleSell}
-                    onViewDetails={(asset) => setSelectedAssetId(asset.id)}
+                    onViewDetails={handleViewDetails}
                 />
             </section>
-            <section className="dashboard__section"><PortfolioExcelInsights now={countdownNow} /></section>
-            <section className="dashboard__section"><LivePortfolioPlan now={countdownNow} /></section>
+            <section className="dashboard__section">
+                <DeferredDashboardSection label="Preparando análisis avanzado…" minHeight={360}>
+                    <PortfolioExcelInsights now={calculationNow} />
+                </DeferredDashboardSection>
+            </section>
+            <section className="dashboard__section">
+                <DeferredDashboardSection label="Preparando plan de cartera…" minHeight={360}>
+                    <LivePortfolioPlan now={calculationNow} />
+                </DeferredDashboardSection>
+            </section>
 
             <section className="dashboard__section dashboard__performers">
                 <Performers data={performersData} type="best" />
@@ -229,17 +375,13 @@ export function Dashboard() {
             </section>
 
             <section className="dashboard__section">
-                <PortfolioComposition
-                    assets={assets}
-                    onAssetClick={(asset) => {
-                        setSelectedHolding(null);
-                        setSelectedAssetId(asset.id);
-                    }}
-                    onHoldingClick={(holding, parentAsset, exposure) => {
-                        setSelectedAssetId(null);
-                        setSelectedHolding({ holding, parentAsset, exposure });
-                    }}
-                />
+                <DeferredDashboardSection label="Preparando composición del portfolio…" minHeight={360}>
+                    <PortfolioComposition
+                        assets={assets}
+                        onAssetClick={handleViewDetails}
+                        onHoldingClick={handleViewHolding}
+                    />
+                </DeferredDashboardSection>
             </section>
 
             <Modal
@@ -251,15 +393,17 @@ export function Dashboard() {
                 title={selectedHolding ? `Detalles de ${selectedHolding.holding.name}` : selectedAsset ? `Detalles de ${selectedAsset.symbol}` : ''}
                 size="lg"
             >
-                {selectedHolding ? (
-                    <UnderlyingAssetDetail
-                        holding={selectedHolding.holding}
-                        parentAsset={selectedHolding.parentAsset}
-                        exposure={selectedHolding.exposure}
-                    />
-                ) : selectedAsset ? (
-                    <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} />
-                ) : null}
+                <Suspense fallback={<DashboardSectionFallback label="Cargando ficha del activo…" />}>
+                    {selectedHolding ? (
+                        <UnderlyingAssetDetail
+                            holding={selectedHolding.holding}
+                            parentAsset={selectedHolding.parentAsset}
+                            exposure={selectedHolding.exposure}
+                        />
+                    ) : selectedAsset ? (
+                        <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} />
+                    ) : null}
+                </Suspense>
             </Modal>
             <div className="dashboard__floating-actions" aria-label="Acciones de cartera">
                 <Button

@@ -24,39 +24,49 @@ export function LivePortfolioPlan({ now }: { now: number }) {
     });
     const [budget, setBudget] = useState(0);
     const [saveError, setSaveError] = useState(false);
-    const portfolioTransactions = normalizePortfolioTransactions(assets, transactions);
-    const total = assets.reduce((sum, a) => sum + (a.currentPrice ?? a.purchasePrice) * a.quantity, 0);
-    const invested = assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0);
-    const targetTotal = assets.reduce((sum, a) => sum + (targets[a.id] || 0), 0);
+    const portfolioTransactions = useMemo(() => normalizePortfolioTransactions(assets, transactions), [assets, transactions]);
+    const { total, invested, targetTotal } = useMemo(() => ({
+        total: assets.reduce((sum, a) => sum + (a.currentPrice ?? a.purchasePrice) * a.quantity, 0),
+        invested: assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0),
+        targetTotal: assets.reduce((sum, a) => sum + (targets[a.id] || 0), 0),
+    }), [assets, targets]);
     const validTargets = Math.abs(targetTotal - 100) < .01;
-    const rows = assets.map(a => {
+    const rows = useMemo(() => assets.map(a => {
         const value = (a.currentPrice ?? a.purchasePrice) * a.quantity;
         const cost = a.purchasePrice * a.quantity;
         const target = targets[a.id] || 0;
         return { a, value, cost, target, weight: total ? value / total * 100 : 0, gap: (total + budget) * target / 100 - value };
-    }).sort((a, b) => b.value - a.value);
-    const shortfall = rows.reduce((sum, r) => sum + Math.max(0, r.gap), 0);
-    const liveHistory = buildPortfolioAnalyticsHistory(
-        getHistory(),
-        portfolioTransactions,
-        createQuoteSnapshot(assets, portfolioTransactions, new Date(now).toISOString()) || undefined,
-        assets,
-    );
+    }).sort((a, b) => b.value - a.value), [assets, budget, targets, total]);
+    const shortfall = useMemo(() => rows.reduce((sum, r) => sum + Math.max(0, r.gap), 0), [rows]);
+    const liveHistory = useMemo(() => {
+        if (usingWorkbookHistory) return [];
+        return buildPortfolioAnalyticsHistory(
+            getHistory(),
+            portfolioTransactions,
+            createQuoteSnapshot(assets, portfolioTransactions, new Date(now).toISOString()) || undefined,
+            assets,
+        );
+    }, [assets, now, portfolioTransactions, usingWorkbookHistory]);
     const history = usingWorkbookHistory ? workbookHistory.points : liveHistory;
     const historyTransactions = usingWorkbookHistory ? workbookHistory.flowTransactions : portfolioTransactions;
-    const series = performanceSeries(history, historyTransactions, assets, {
+    const series = useMemo(() => performanceSeries(history, historyTransactions, assets, {
         maxGapDays: usingWorkbookHistory && workbookHistory.source === 'monthly' ? 45 : 16,
-    });
-    const months = portfolioMonthlyRows(series, now);
-    const buys = portfolioTransactions.filter(t => t.type === 'buy').reduce((s, t) => s + (t.total || 0), 0);
-    const sells = portfolioTransactions.filter(t => t.type === 'sell').reduce((s, t) => s + (t.total || 0), 0);
+    }), [assets, history, historyTransactions, usingWorkbookHistory, workbookHistory.source]);
+    const months = useMemo(() => portfolioMonthlyRows(series, now), [now, series]);
+    const { buys, sells } = useMemo(() => ({
+        buys: portfolioTransactions.filter(t => t.type === 'buy').reduce((s, t) => s + (t.total || 0), 0),
+        sells: portfolioTransactions.filter(t => t.type === 'sell').reduce((s, t) => s + (t.total || 0), 0),
+    }), [portfolioTransactions]);
     const setTarget = (id: string, value: number) => {
         const next = { ...targets, [id]: Math.min(100, Math.max(0, Number.isFinite(value) ? value : 0)) };
         setTargets(next);
         try { localStorage.setItem(KEY, JSON.stringify(next)); setSaveError(false); } catch { setSaveError(true); }
     };
-    const currentResult = rows.reduce((sum, row) => sum + row.value - row.cost, 0);
-    const recentTransactions = [...portfolioTransactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8);
+    const currentResult = useMemo(() => rows.reduce((sum, row) => sum + row.value - row.cost, 0), [rows]);
+    const recentTransactions = useMemo(
+        () => [...portfolioTransactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8),
+        [portfolioTransactions],
+    );
     const ledgerDifference = buys - sells - invested;
 
     return <div className="live-plan-stack">

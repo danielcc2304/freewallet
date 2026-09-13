@@ -1,7 +1,7 @@
-import { DEFAULT_EVOLUTION_CSV, STORAGE_KEYS } from '../pages/PortfolioCsv/portfolioCsvConstants';
+import { DEFAULT_COMPARISON_CSV, DEFAULT_EVOLUTION_CSV, STORAGE_KEYS } from '../pages/PortfolioCsv/portfolioCsvConstants';
 import { readStoredValue } from '../pages/PortfolioCsv/portfolioCsvStorage';
-import { parseDailyData, parseEvolution, parsePeriodParts, resolveEvolutionPeriods } from '../pages/PortfolioCsv/portfolioCsvUtils';
-import type { DailyPortfolioPoint, EvolutionPoint } from '../pages/PortfolioCsv/portfolioCsvTypes';
+import { parseBenchmarkComparison, parseDailyData, parseEvolution, parsePeriodParts, resolveEvolutionPeriods } from '../pages/PortfolioCsv/portfolioCsvUtils';
+import type { BenchmarkComparisonPoint, DailyPortfolioPoint, EvolutionPoint } from '../pages/PortfolioCsv/portfolioCsvTypes';
 import type { PortfolioHistoryPoint, PortfolioTransaction } from '../types/portfolio';
 
 export type WorkbookHistorySource = 'daily' | 'monthly';
@@ -18,6 +18,12 @@ export interface WorkbookHistoryBundle {
     endDate: string | null;
 }
 
+export interface WorkbookBenchmarkPoint {
+    date: string;
+    portfolioAccumPct: number;
+    benchmarkAccumPct: number;
+}
+
 type NormalizedWorkbookPoint = PortfolioHistoryPoint & { flowDate: string; netFlow: number };
 
 const EMPTY_BUNDLE: WorkbookHistoryBundle = {
@@ -31,6 +37,11 @@ const EMPTY_BUNDLE: WorkbookHistoryBundle = {
     startDate: null,
     endDate: null,
 };
+
+let cachedReadKey = '';
+let cachedReadBundle: WorkbookHistoryBundle | null = null;
+let cachedBenchmarkKey = '';
+let cachedBenchmark: WorkbookBenchmarkPoint[] = [];
 
 function monthEndDate(period: string): string | null {
     const parsed = parsePeriodParts(period);
@@ -164,7 +175,48 @@ export function readWorkbookHistory(): WorkbookHistoryBundle {
     const evolutionRaw = readStoredValue(STORAGE_KEYS.evolutionRaw, '');
     const dailyRaw = readStoredValue(STORAGE_KEYS.dailyRaw, '');
     const workbookFile = readStoredValue(STORAGE_KEYS.workbookFile, '');
+    const readKey = `${workbookFile}\u0000${evolutionRaw}\u0000${dailyRaw}`;
+    if (cachedReadBundle && cachedReadKey === readKey) return cachedReadBundle;
+
     const isDemoEvolution = workbookFile === 'Demo precargada' && evolutionRaw.trim() === DEFAULT_EVOLUTION_CSV.trim();
-    if (isDemoEvolution) return EMPTY_BUNDLE;
-    return buildWorkbookHistory(evolutionRaw, dailyRaw);
+    const bundle = isDemoEvolution ? EMPTY_BUNDLE : buildWorkbookHistory(evolutionRaw, dailyRaw);
+    cachedReadKey = readKey;
+    cachedReadBundle = bundle;
+    return bundle;
+}
+
+function benchmarkDate(point: BenchmarkComparisonPoint): string | null {
+    const parsed = parsePeriodParts(point.period) || parsePeriodParts(`${point.month} ${point.year}`);
+    if (!parsed || parsed.year === undefined) return null;
+    return new Date(Date.UTC(parsed.year, parsed.monthIndex + 1, 0, 18)).toISOString();
+}
+
+export function buildWorkbookBenchmarkHistory(comparisonRaw: string): WorkbookBenchmarkPoint[] {
+    const points = parseBenchmarkComparison(comparisonRaw)
+        .flatMap((point) => {
+            const date = benchmarkDate(point);
+            return date && Number.isFinite(point.portfolioAccumPct) && Number.isFinite(point.benchmarkAccumPct)
+                ? [{ date, portfolioAccumPct: point.portfolioAccumPct, benchmarkAccumPct: point.benchmarkAccumPct }]
+                : [];
+        });
+    return [...new Map(points.map((point) => [Date.parse(point.date), point])).values()]
+        .sort((left, right) => Date.parse(left.date) - Date.parse(right.date));
+}
+
+export function readWorkbookBenchmarkHistory(): WorkbookBenchmarkPoint[] {
+    const comparisonRaw = readStoredValue(STORAGE_KEYS.comparisonRaw, '');
+    const workbookFile = readStoredValue(STORAGE_KEYS.workbookFile, '');
+    const readKey = `${workbookFile}\u0000${comparisonRaw}`;
+    if (cachedBenchmarkKey === readKey) return cachedBenchmark;
+
+    if (workbookFile === 'Demo precargada' && comparisonRaw.trim() === DEFAULT_COMPARISON_CSV.trim()) {
+        cachedBenchmarkKey = readKey;
+        cachedBenchmark = [];
+        return cachedBenchmark;
+    }
+
+    const points = buildWorkbookBenchmarkHistory(comparisonRaw);
+    cachedBenchmarkKey = readKey;
+    cachedBenchmark = points;
+    return cachedBenchmark;
 }

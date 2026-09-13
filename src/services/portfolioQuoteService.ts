@@ -26,12 +26,14 @@ export async function normalizeQuoteToEuro(quote: StockQuote, signal?: AbortSign
     }
 }
 
-export async function getPortfolioAssetQuote(asset: Asset, signal?: AbortSignal): Promise<StockQuote | null> {
+export async function getPortfolioAssetQuote(asset: Asset, signal?: AbortSignal, forceRefresh = false): Promise<StockQuote | null> {
     const isin = (asset.isin || (ISIN_PATTERN.test(asset.symbol) ? asset.symbol : '')).trim().toUpperCase();
 
     if (isin) {
         try {
-            const fund = await getFundRelevance(isin, signal, true);
+            // Automatic refreshes can reuse Finect's six-hour fund cache (NAVs
+            // are generally daily). Manual refreshes can still bypass it.
+            const fund = await getFundRelevance(isin, signal, forceRefresh);
             const price = fund.lastQuote?.price;
             if (price && price > 0) {
                 const change = fund.lastQuote?.change || 0;

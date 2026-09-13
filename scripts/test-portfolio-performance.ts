@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { accountingDay, alignedBenchmark, buildPortfolioAnalyticsHistory, calculatePeriodPerformance, createMarketPortfolioHistory, createQuoteSnapshot,
     normalizePortfolioTransactions, performanceSeries, portfolioLedgerKey, portfolioMonthlyRows, workbookRiskStats } from '../src/services/portfolioPerformance';
-import { buildWorkbookHistory } from '../src/services/portfolioWorkbookHistory';
+import { buildWorkbookBenchmarkHistory, buildWorkbookHistory } from '../src/services/portfolioWorkbookHistory';
 import type { Asset, PortfolioHistoryPoint, PortfolioTransaction } from '../src/types/types';
 
 const near = (actual: number | null, expected: number, name: string) => {
@@ -87,6 +87,13 @@ assert.equal(workbookHistory.points.at(-1)?.invested, 55028, 'Invested capital f
 const workbookSeries = performanceSeries(workbookHistory.points, workbookHistory.flowTransactions, [], { maxGapDays: 45 });
 near(workbookSeries[1].dailyReturn, (55139 - 52428 - 700) / 52428 * 100, 'Monthly Excel return removes the DCA');
 assert.equal(portfolioMonthlyRows(workbookSeries, Date.parse('2026-03-12')).filter((row) => row.complete).length, 3, 'Monthly Excel intervals stay valid across month-end gaps');
+
+const workbookBenchmark = buildWorkbookBenchmarkHistory(`Año,Mes,Periodo,Rentabilidad Cartera (%),Rentabilidad MSCI World (%),Cartera Acum (%),MSCI Acum (%)
+2026,Ene,2026 Ene,2.00%,1.00%,2.00%,1.00%
+2026,Feb,2026 Feb,-1.00%,0.50%,0.98%,1.51%
+2026,Mar,2026 Mar,3.00%,2.00%,4.01%,3.54%`);
+assert.deepEqual(workbookBenchmark.map((point) => point.date.slice(0, 10)), ['2026-01-31', '2026-02-28', '2026-03-31']);
+assert.equal(workbookBenchmark.at(-1)?.benchmarkAccumPct, 3.54, 'Benchmark comparison keeps Excel accumulated values and dates');
 
 // B77:B94; compare the production function to the observed Sheet outputs.
 const workbookReturns = [0.038357366292820716, 0.021654364424454453, 0.022706152578331862, 0.011130311038829, 0.014954044878695116, 0.008001548686842552, 0.0519910103823753, 0.02853995146570587, -0.002679620554265849, 0.038535398796568865, 0.024312150648504893, -0.0036578947368420822, -0.05328308602234955, 0.054242631939684705, 0.05219992914036764, 0.0008806693086746975, 0.02295211193588642, 0.016014404617109124];

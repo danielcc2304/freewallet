@@ -5,11 +5,13 @@ import type { Asset, AssetHolding, CompositionItem, HeatmapItem } from '../../ty
 import { getColorForIndex } from '../../data/mockData';
 import { getFundRelevance } from '../../services/finect/finectService';
 import { isApiEnabled } from '../../services/storageService';
+import { buildConsolidatedPortfolioExposures, type ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
 import './PortfolioComposition.css';
 
 interface PortfolioCompositionProps {
     assets: Asset[];
     onAssetClick?: (asset: Asset) => void;
+    onHoldingClick?: (holding: AssetHolding, parentAsset: Asset, exposure?: ConsolidatedPortfolioExposure) => void;
 }
 
 const ISIN_PATTERN = /^[A-Z]{2}[A-Z0-9]{10}$/;
@@ -35,10 +37,11 @@ function getHoldingSymbol(name: string, index: number): string {
 function normalizeFundHoldings(fund: Awaited<ReturnType<typeof getFundRelevance>>): AssetHolding[] {
     const holdings = fund.holdings
         .filter((holding) => Number.isFinite(holding.weight) && holding.weight > 0)
-        .map((holding, index) => ({
-            symbol: getHoldingSymbol(holding.name, index),
+        .map((holding) => ({
+            symbol: holding.symbol || holding.isin || holding.name,
             name: holding.name,
             percentage: holding.weight,
+            isin: holding.isin,
         }));
 
     if (holdings.length > 0) return holdings;
@@ -62,7 +65,20 @@ function normalizeFundHoldings(fund: Awaited<ReturnType<typeof getFundRelevance>
         })) ?? [];
 }
 
-export function PortfolioComposition({ assets, onAssetClick }: PortfolioCompositionProps) {
+function getExposureSourceLabel(exposure: ConsolidatedPortfolioExposure): string {
+    if (exposure.isResidual && exposure.sources.length === 1) {
+        return 'Parte no desglosada del fondo';
+    }
+
+    const directSources = new Set(exposure.sources.filter((source) => source.isDirect).map((source) => source.parentAssetId));
+    const fundSources = new Set(exposure.sources.filter((source) => !source.isDirect && !source.isResidual).map((source) => source.parentAssetId));
+    const parts: string[] = [];
+    if (directSources.size > 0) parts.push('posición directa');
+    if (fundSources.size > 0) parts.push(`${fundSources.size} fondo${fundSources.size === 1 ? '' : 's'}`);
+    return parts.join(' + ') || 'Exposición identificada';
+}
+
+export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: PortfolioCompositionProps) {
     const [showBreakdown, setShowBreakdown] = useState(false);
     const [remoteHoldings, setRemoteHoldings] = useState<Record<string, AssetHolding[]>>({});
     const apiEnabled = isApiEnabled();
@@ -127,6 +143,20 @@ export function PortfolioComposition({ assets, onAssetClick }: PortfolioComposit
         0
     );
 
+    const holdingsByAsset = useMemo(() => {
+        const result = new Map<string, readonly AssetHolding[]>();
+        assets.forEach((asset) => {
+            const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[asset.id];
+            if (holdings?.length) result.set(asset.id, holdings);
+        });
+        return result;
+    }, [assets, remoteHoldings]);
+
+    const consolidatedExposures = useMemo(
+        () => buildConsolidatedPortfolioExposures(assets, holdingsByAsset),
+        [assets, holdingsByAsset],
+    );
+
     // Generate composition data for donut chart
     const compositionData: CompositionItem[] = assets.map((asset, index) => {
         const value = (asset.currentPrice || asset.purchasePrice) * asset.quantity;
@@ -153,7 +183,7 @@ export function PortfolioComposition({ assets, onAssetClick }: PortfolioComposit
         const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[asset.id];
         const children = holdings?.map((holding, hIndex) => ({
             id: `${asset.id}-${hIndex}`,
-            symbol: holding.symbol,
+            symbol: holding.symbol || holding.name,
             name: holding.name,
             value: currentValue * (holding.percentage / 100),
             weight: holding.percentage,
@@ -173,9 +203,69 @@ export function PortfolioComposition({ assets, onAssetClick }: PortfolioComposit
         };
     });
 
+    const consolidatedCompositionData: CompositionItem[] = useMemo(() => {
+        const rows = consolidatedExposures.length <= 8
+            ? consolidatedExposures
+            : [
+                ...consolidatedExposures.slice(0, 8),
+                {
+                    id: 'consolidated-other',
+                    name: 'Resto de activos',
+                    symbol: 'Resto de activos',
+                    value: consolidatedExposures.slice(8).reduce((sum, row) => sum + row.value, 0),
+                    weight: consolidatedExposures.slice(8).reduce((sum, row) => sum + row.weight, 0),
+                },
+            ];
+
+        return rows.map((row, index) => ({
+            id: row.id,
+            symbol: row.symbol || row.name,
+            name: row.name,
+            value: row.value,
+            percentage: row.weight,
+            color: getColorForIndex(index),
+        }));
+    }, [consolidatedExposures]);
+
     const handleHeatmapClick = (item: HeatmapItem) => {
         const asset = assets.find((candidate) => item.id === candidate.id || item.id.startsWith(`${candidate.id}-`));
-        if (asset) onAssetClick?.(asset);
+        if (!asset) return;
+        if (item.id === asset.id) {
+            onAssetClick?.(asset);
+            return;
+        }
+
+        const holdingIndex = Number(item.id.slice(asset.id.length + 1));
+        const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[asset.id];
+        const holding = Number.isInteger(holdingIndex) && holdingIndex >= 0 ? holdings?.[holdingIndex] : undefined;
+        if (!holding) return;
+
+        const exposure = consolidatedExposures.find((candidate) => candidate.sources.some((source) => (
+            source.parentAssetId === asset.id
+            && source.holding.name === holding.name
+            && source.holding.percentage === holding.percentage
+        )));
+        if (onHoldingClick) {
+            onHoldingClick(holding, asset, exposure);
+        } else {
+            onAssetClick?.(asset);
+        }
+    };
+
+    const handleExposureClick = (exposure: ConsolidatedPortfolioExposure) => {
+        const directSource = exposure.sources.find((source) => source.isDirect);
+        if (directSource) {
+            const directAsset = assets.find((asset) => asset.id === directSource.parentAssetId);
+            if (directAsset) {
+                onAssetClick?.(directAsset);
+                return;
+            }
+        }
+
+        const underlyingSource = exposure.sources.find((source) => !source.isResidual);
+        if (!underlyingSource || !onHoldingClick) return;
+        const parentAsset = assets.find((asset) => asset.id === underlyingSource.parentAssetId);
+        if (parentAsset) onHoldingClick(underlyingSource.holding, parentAsset, exposure);
     };
 
     if (assets.length === 0) {
@@ -217,15 +307,55 @@ export function PortfolioComposition({ assets, onAssetClick }: PortfolioComposit
                                 {breakdownLoading
                                     ? 'Cargando posiciones de los fondos…'
                                     : fundsWithBreakdown.length > 0
-                                        ? `Desglose activo · ${fundsWithBreakdown.length} fondo${fundsWithBreakdown.length === 1 ? '' : 's'} con posiciones`
+                                        ? `Desglose activo · ${fundsWithBreakdown.length} fondo${fundsWithBreakdown.length === 1 ? '' : 's'} · exposiciones repetidas sumadas`
                                         : fundsWithoutIsin.length > 0
                                             ? 'Añade el ISIN de cada fondo para cargar sus posiciones automáticamente.'
                                             : 'No hay posiciones detalladas disponibles para estos fondos.'}
                             </p>
                         )}
+                        {showBreakdown && (
+                            <div className="portfolio-composition__consolidated">
+                                <div className="portfolio-composition__consolidated-header">
+                                    <div>
+                                        <h4>Exposición total consolidada</h4>
+                                        <p>Une las posiciones directas con las que aparecen dentro de los fondos y suma los solapamientos.</p>
+                                    </div>
+                                    <span>{consolidatedExposures.length} activos · 100%</span>
+                                </div>
+                                <div className="portfolio-composition__exposure-list">
+                                    {consolidatedExposures.map((exposure) => {
+                                        const canOpen = !exposure.isResidual && Boolean(onHoldingClick || exposure.hasDirectPosition);
+                                        return (
+                                            <button
+                                                key={exposure.id}
+                                                type="button"
+                                                className="portfolio-composition__exposure-row"
+                                                onClick={() => handleExposureClick(exposure)}
+                                                disabled={!canOpen}
+                                            >
+                                                <span className="portfolio-composition__exposure-name">
+                                                    <strong>{exposure.name}</strong>
+                                                    <small>{exposure.symbol && exposure.symbol !== exposure.name ? `${exposure.symbol} · ` : ''}{getExposureSourceLabel(exposure)}</small>
+                                                </span>
+                                                <span className="portfolio-composition__exposure-value">
+                                                    <strong>{exposure.weight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong>
+                                                    <small>{new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(exposure.value)}</small>
+                                                </span>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                                <p className="portfolio-composition__consolidated-note">
+                                    Si un proveedor solo devuelve las principales posiciones, el porcentaje restante queda como “resto no desglosado” para que la suma cuadre con el valor total de tu cartera.
+                                </p>
+                            </div>
+                        )}
                     </div>
                     <div className="portfolio-composition__donut">
-                        <DonutChart data={compositionData} title="Distribución por Valor" />
+                        <DonutChart
+                            data={showBreakdown ? consolidatedCompositionData : compositionData}
+                            title={showBreakdown ? 'Exposición total' : 'Distribución por Valor'}
+                        />
                     </div>
                 </div>
             </CardContent>

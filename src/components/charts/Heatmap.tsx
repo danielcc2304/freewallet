@@ -2,6 +2,13 @@ import { useState } from 'react';
 import type { HeatmapItem } from '../../types/types';
 import './Heatmap.css';
 
+const ISIN_PATTERN = /^[A-Z]{2}[A-Z0-9]{10}$/;
+
+function getSecondaryIdentifier(symbol: string, name: string): string {
+    const candidate = symbol.trim();
+    return candidate && candidate !== name && !ISIN_PATTERN.test(candidate.toUpperCase()) ? candidate : '';
+}
+
 interface HeatmapProps {
     data: HeatmapItem[];
     showBreakdown?: boolean;
@@ -68,7 +75,7 @@ export function Heatmap({ data, showBreakdown = false, onItemClick }: HeatmapPro
                     className="heatmap__group"
                     style={{ flex: `${widthPercent} 1 0` }}
                 >
-                    <div className="heatmap__group-label">{item.symbol}</div>
+                    <div className="heatmap__group-label">{item.name}</div>
                     <div className="heatmap__group-items">
                         {item.children.map((child) => (
                             <div
@@ -86,7 +93,10 @@ export function Heatmap({ data, showBreakdown = false, onItemClick }: HeatmapPro
                                 tabIndex={onItemClick ? 0 : undefined}
                                 onKeyDown={(event) => handleKeyDown(event, child)}
                             >
-                                <span className="heatmap__item-symbol">{child.symbol}</span>
+                                <span className="heatmap__item-symbol">{child.name}</span>
+                                {getSecondaryIdentifier(child.symbol, child.name) && (
+                                    <span className="heatmap__item-name">{getSecondaryIdentifier(child.symbol, child.name)}</span>
+                                )}
                                 <span className="heatmap__item-change">{formatChange(child.changePercent)}</span>
                             </div>
                         ))}
@@ -112,8 +122,10 @@ export function Heatmap({ data, showBreakdown = false, onItemClick }: HeatmapPro
                 tabIndex={onItemClick ? 0 : undefined}
                 onKeyDown={(event) => handleKeyDown(event, item)}
             >
-                <span className="heatmap__item-symbol">{item.symbol}</span>
-                <span className="heatmap__item-name">{item.name}</span>
+                <span className="heatmap__item-symbol">{item.name}</span>
+                {getSecondaryIdentifier(item.symbol, item.name) && (
+                    <span className="heatmap__item-name">{getSecondaryIdentifier(item.symbol, item.name)}</span>
+                )}
                 <span className="heatmap__item-change">{formatChange(item.changePercent)}</span>
                 <span className="heatmap__item-value">{formatCurrency(item.value)}</span>
             </div>

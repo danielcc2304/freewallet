@@ -22,9 +22,14 @@ import { lazy } from 'react';
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
 
+// Keep the Academy landing page available with the initial app shell so the
+// first visit does not show a route loading state. Deeper guides, calculators
+// and simulators remain split by route below.
+import { Fundamentos } from '../../components/academy/guides/Fundamentos';
+
 // Academy screens are deliberately split by route. The sidebar still has all
-// labels available immediately, but the calculator or guide code is fetched
-// only when the user opens it.
+// labels available immediately, while the heavier calculator or guide code is
+// fetched only when the user opens it.
 const AssetBonds = lazy(() => import('../../components/academy/assets/AssetBonds').then(({ AssetBonds: page }) => ({ default: page })));
 const AssetCash = lazy(() => import('../../components/academy/assets/AssetCash').then(({ AssetCash: page }) => ({ default: page })));
 const AssetCrypto = lazy(() => import('../../components/academy/assets/AssetCrypto').then(({ AssetCrypto: page }) => ({ default: page })));
@@ -39,7 +44,6 @@ const FundInformationCalculator = lazy(() => import('../../components/academy/ca
 const InflationPredator = lazy(() => import('../../components/academy/calculators/InflationPredator').then(({ InflationPredator: page }) => ({ default: page })));
 const RetirementCalculator = lazy(() => import('../../components/academy/calculators/RetirementCalculator').then(({ RetirementCalculator: page }) => ({ default: page })));
 const TaxSimulator = lazy(() => import('../../components/academy/calculators/TaxSimulator').then(({ TaxSimulator: page }) => ({ default: page })));
-const Fundamentos = lazy(() => import('../../components/academy/guides/Fundamentos').then(({ Fundamentos: page }) => ({ default: page })));
 const CommonErrors = lazy(() => import('../../components/academy/guides/CommonErrors').then(({ CommonErrors: page }) => ({ default: page })));
 const Glossary = lazy(() => import('../../components/academy/guides/Glossary').then(({ Glossary: page }) => ({ default: page })));
 const InProcess = lazy(() => import('../../components/academy/guides/InProcess').then(({ InProcess: page }) => ({ default: page })));

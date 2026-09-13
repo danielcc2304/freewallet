@@ -197,7 +197,7 @@ export function Dashboard() {
                         )}
                     </p>
                     <span className={`dashboard__live-status ${apiEnabled ? 'dashboard__live-status--active' : ''}`}>
-                        <Radio size={13} /> {apiEnabled ? `Auto · 1 min · ${updatingPrices ? 'actualizando…' : countdownLabel}` : 'Auto desactivada'}
+                        <Radio size={13} /> {apiEnabled ? `Auto · 5 min · ${updatingPrices ? 'actualizando…' : countdownLabel}` : 'Auto desactivada'}
                     </span>
                 </div>
             </div>

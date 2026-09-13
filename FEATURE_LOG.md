@@ -12,6 +12,20 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-13 - v5.0.12 - Hotfix de benchmark y refresco de precios
+- Funcionalidad:
+  - Se permite seleccionar el periodo de la comparativa automática frente al benchmark URTH.
+  - Se ajusta el refresco automático de precios a 5 minutos y se refleja el intervalo en el dashboard.
+  - Se actualiza la versión visible del sidebar a `v5.0.12`.
+- Resumen:
+  - El dashboard evita consultas de precios excesivamente frecuentes y mantiene alineado el periodo mostrado del benchmark con la evolución seleccionada.
+- Archivos:
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `src/constants/app.ts`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-09-13 - v5.0.11 - Composición consolidada y analítica importada
 - Funcionalidad:
   - Se añade una vista consolidada de la exposición de la cartera, uniendo posiciones directas con las posiciones subyacentes de fondos y ETF.

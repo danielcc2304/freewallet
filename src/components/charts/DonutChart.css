@@ -63,6 +63,11 @@
 }
 
 .donut-legend__name {
+    min-width: 0;
+    max-width: 13rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     color: var(--text-primary);
     font-weight: 600;
 }
@@ -74,4 +79,10 @@
 .donut-legend__item--more {
     color: var(--text-muted);
     font-style: italic;
+}
+
+@media (max-width: 640px) {
+    .donut-legend__name {
+        max-width: 10rem;
+    }
 }

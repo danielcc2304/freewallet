@@ -12,6 +12,51 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-13 - v5.0.11 - Composición consolidada y analítica importada
+- Funcionalidad:
+  - Se añade una vista consolidada de la exposición de la cartera, uniendo posiciones directas con las posiciones subyacentes de fondos y ETF.
+  - Se incorpora el detalle navegable de activos subyacentes y la resolución de sus cotizaciones cuando los datos de mercado están habilitados.
+  - Se integran los históricos importados desde Excel en el dashboard y en el plan mensual, manteniendo sus flujos y tolerancias temporales.
+  - Se actualiza la versión visible del sidebar a `v5.0.11`.
+- Resumen:
+  - La cartera puede mostrar solapamientos entre fondos y posiciones directas, abrir el detalle de una exposición y calcular métricas sobre históricos importados sin confundir datos parciales con rentabilidad observada.
+- Archivos:
+  - `src/components/charts/DonutChart.tsx`
+  - `src/components/charts/DonutChart.css`
+  - `src/components/charts/Heatmap.tsx`
+  - `src/components/charts/Heatmap.css`
+  - `src/components/dashboard/PortfolioComposition.tsx`
+  - `src/components/dashboard/PortfolioComposition.css`
+  - `src/components/dashboard/UnderlyingAssetDetail.tsx`
+  - `src/components/dashboard/UnderlyingAssetDetail.css`
+  - `src/components/dashboard/LivePortfolioPlan.tsx`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `src/components/dashboard/index.ts`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/services/finect/finectService.ts`
+  - `src/services/portfolioComposition.ts`
+  - `src/services/portfolioWorkbookHistory.ts`
+  - `src/services/portfolioPerformance.ts`
+  - `src/types/asset.ts`
+  - `src/constants/app.ts`
+  - `scripts/test-portfolio-composition.ts`
+  - `scripts/test-portfolio-composition-ui.mjs`
+  - `scripts/test-portfolio-performance.ts`
+  - `package.json`
+  - `package-lock.json`
+
+### 2026-09-13 - v5.0.10 - Histórico de mercado para carteras importadas
+- Funcionalidad:
+  - Se incorpora la reconstrucción del histórico de cartera a partir de velas históricas de cada activo.
+  - Se conserva la escala en euros de la cartera y se amplían las ventanas válidas para datos semanales y cierres mensuales.
+  - Se añaden comprobaciones para validar que la curva de mercado conserva el movimiento histórico esperado.
+- Resumen:
+  - El análisis de evolución puede ofrecer una curva histórica útil incluso cuando la cartera no tiene snapshots diarios suficientes, sin convertir huecos o cambios de posición en rentabilidades ficticias.
+- Archivos:
+  - `src/services/portfolioPerformance.ts`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `scripts/test-portfolio-performance.ts`
+
 ### 2026-09-12 - v5.0.9 - Histórico verificable y analítica de cartera
 - Funcionalidad:
   - Se corrigen los saltos espurios del histórico y se preservan únicamente valoraciones respaldadas por cotizaciones y operaciones conocidas.

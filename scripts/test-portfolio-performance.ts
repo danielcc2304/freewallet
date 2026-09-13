@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
-import { accountingDay, alignedBenchmark, buildPortfolioAnalyticsHistory, calculatePeriodPerformance, createQuoteSnapshot,
+import { accountingDay, alignedBenchmark, buildPortfolioAnalyticsHistory, calculatePeriodPerformance, createMarketPortfolioHistory, createQuoteSnapshot,
     normalizePortfolioTransactions, performanceSeries, portfolioLedgerKey, portfolioMonthlyRows, workbookRiskStats } from '../src/services/portfolioPerformance';
+import { buildWorkbookHistory } from '../src/services/portfolioWorkbookHistory';
 import type { Asset, PortfolioHistoryPoint, PortfolioTransaction } from '../src/types/types';
 
 const near = (actual: number | null, expected: number, name: string) => {
@@ -31,6 +32,12 @@ assert.equal(buildPortfolioAnalyticsHistory(raw, [buy, retroactive]).length, 0, 
 assert.equal(buildPortfolioAnalyticsHistory(raw, ledger).length, 1, 'Later sales preserve earlier valuations');
 assert.equal(createQuoteSnapshot([asset], [buy], '2025-02-27T18:00:00Z')?.value, 1500);
 assert.equal(createQuoteSnapshot([{ ...asset, currentPrice: undefined }], [buy], '2025-02-27'), null);
+const marketCurve = createMarketPortfolioHistory([asset], [buy], new Map([['a', [
+    { date: '2025-01-01', open: 100, high: 100, low: 100, close: 100, volume: 1 },
+    { date: '2025-01-08', open: 120, high: 120, low: 120, close: 120, volume: 1 },
+]]]));
+assert.equal(marketCurve.length, 2, 'Market history should provide at least two portfolio points');
+assert.ok(marketCurve[1].value > marketCurve[0].value, 'EUR scaling must preserve historical price movement');
 assert.equal(accountingDay('2026-09-11T22:03:07Z'), '2026-09-12');
 
 const reported = performanceSeries([
@@ -59,6 +66,27 @@ near(monthly[1].monthlyReturn, 14, 'Monthly endpoint formula');
 assert.equal(monthly[0].complete, false, 'Initial partial month is not complete');
 assert.equal(portfolioMonthlyRows(performanceSeries(monthlyInput.slice(0, -10), [buy]), Date.parse('2025-03-12'))[1].complete, false);
 assert.equal(portfolioMonthlyRows(performanceSeries(monthlyInput, [buy]), Date.parse('2025-02-28'))[1].closed, false);
+
+const workbookHistory = buildWorkbookHistory(`2025
+Mes,Valor Total,Capital Inicial,Capital Aportado,Plusvalias,% mens.,TWR YTD
+Feb,52428,51728,700,,,
+Mar,55139,52428,700,2011,3.79%,3.79%
+Abr,57033,55139,700,1194,4.28%,8.22%
+2026
+Mes,Valor Total,Capital Inicial,Capital Aportado,Plusvalias,% mens.,TWR YTD
+Ene,76000,73708,500,1792,2.41%,2.41%
+Feb,76422,76000,700,-278,-0.36%,2.04%`, `Fecha,Valor portfolio,Flujo neto,Retorno diario (%),Tipo de dato
+2026-01-30,76000,0,,Historico mensual`);
+assert.equal(workbookHistory.source, 'monthly', 'A complete Excel evolution takes precedence over sparse daily checkpoints');
+assert.equal(workbookHistory.points.length, 5, 'Excel evolution rows become dated portfolio observations');
+assert.deepEqual(workbookHistory.points.map((point) => point.date.slice(0, 10)), [
+    '2025-02-28', '2025-03-31', '2025-04-30', '2026-01-31', '2026-02-28',
+]);
+assert.deepEqual(workbookHistory.flowTransactions.map((transaction) => transaction.total), [700, 700, 700, 500, 700], 'Every DCA is preserved as a dated flow');
+assert.equal(workbookHistory.points.at(-1)?.invested, 55028, 'Invested capital follows cumulative Excel contributions');
+const workbookSeries = performanceSeries(workbookHistory.points, workbookHistory.flowTransactions, [], { maxGapDays: 45 });
+near(workbookSeries[1].dailyReturn, (55139 - 52428 - 700) / 52428 * 100, 'Monthly Excel return removes the DCA');
+assert.equal(portfolioMonthlyRows(workbookSeries, Date.parse('2026-03-12')).filter((row) => row.complete).length, 3, 'Monthly Excel intervals stay valid across month-end gaps');
 
 // B77:B94; compare the production function to the observed Sheet outputs.
 const workbookReturns = [0.038357366292820716, 0.021654364424454453, 0.022706152578331862, 0.011130311038829, 0.014954044878695116, 0.008001548686842552, 0.0519910103823753, 0.02853995146570587, -0.002679620554265849, 0.038535398796568865, 0.024312150648504893, -0.0036578947368420822, -0.05328308602234955, 0.054242631939684705, 0.05219992914036764, 0.0008806693086746975, 0.02295211193588642, 0.016014404617109124];

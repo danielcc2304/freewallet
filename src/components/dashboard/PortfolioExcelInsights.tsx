@@ -35,7 +35,8 @@ import { Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory } from '../../services/storageService';
 import { getAssetChartData } from '../../services/apiService';
-import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, createQuoteSnapshot, normalizePortfolioTransactions, performanceSeries, portfolioMonthlyRows, workbookRiskStats, alignedBenchmark } from '../../services/portfolioPerformance';
+import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, createMarketPortfolioHistory, createQuoteSnapshot, normalizePortfolioTransactions, performanceSeries, portfolioMonthlyRows, workbookRiskStats, alignedBenchmark } from '../../services/portfolioPerformance';
+import { readWorkbookHistory } from '../../services/portfolioWorkbookHistory';
 import type { HistoricalDataPoint } from '../../types/types';
 import './PortfolioExcelInsights.css';
 
@@ -73,6 +74,21 @@ const formatAxisCurrency = (value: number) => value >= 1000
     ? `${Math.round(value / 1000)}k`
     : `${Math.round(value)} €`;
 
+const formatHistoryDate = (value: string | null | undefined) => {
+    if (!value) return 'sin histórico';
+    const date = new Date(value);
+    return Number.isFinite(date.getTime())
+        ? new Intl.DateTimeFormat('es-ES', { month: 'short', year: 'numeric', timeZone: 'Europe/Madrid' }).format(date).replace('.', '')
+        : 'sin histórico';
+};
+
+const formatChartDate = (value: string | number) => {
+    const date = new Date(value);
+    return Number.isFinite(date.getTime())
+        ? new Intl.DateTimeFormat('es-ES', { month: 'short', year: 'numeric', timeZone: 'Europe/Madrid' }).format(date).replace('.', '')
+        : String(value);
+};
+
 const evolutionPeriods: Array<{ value: EvolutionPeriod; label: string }> = [
     { value: '1D', label: '1D' },
     { value: '7D', label: '7D' },
@@ -104,7 +120,11 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
     const [tab, setTab] = useState<InsightTab>('evolution');
     const [evolutionPeriod, setEvolutionPeriod] = useState<EvolutionPeriod>('ALL');
     const [benchmark, setBenchmark] = useState<HistoricalDataPoint[]>([]);
+    const [assetHistory, setAssetHistory] = useState<Map<string, HistoricalDataPoint[]>>(new Map());
     const portfolioTransactions = useMemo(() => normalizePortfolioTransactions(assets, transactions), [transactions, assets]);
+    const workbookHistory = useMemo(() => readWorkbookHistory(), []);
+    const usingWorkbookHistory = workbookHistory.points.length >= 2;
+    const assetSignature = assets.map((asset) => `${asset.id}:${asset.symbol}:${asset.isin || ''}:${asset.purchaseDate}`).sort().join('|');
 
     const totalValue = useMemo(
         () => assets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0),
@@ -127,11 +147,35 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         return () => controller.abort();
     }, [lastPriceUpdate]);
 
-    const history = useMemo(() => {
+    useEffect(() => {
+        if (!assets.length) {
+            return undefined;
+        }
+        const controller = new AbortController();
+        Promise.all(assets.map(async (asset) => {
+            const symbol = asset.isin || asset.symbol;
+            const points = await getAssetChartData(symbol, 'ALL', controller.signal);
+            return [asset.id, points] as const;
+        })).then((entries) => {
+            if (!controller.signal.aborted) setAssetHistory(new Map(entries));
+        }).catch(() => {
+            if (!controller.signal.aborted) setAssetHistory(new Map());
+        });
+        return () => controller.abort();
+    }, [assetSignature, assets]);
+
+    const liveHistory = useMemo(() => {
         const currentSnapshot = createQuoteSnapshot(assets, portfolioTransactions, new Date(now).toISOString());
-        return buildPortfolioAnalyticsHistory(getHistory(), portfolioTransactions, currentSnapshot || undefined, assets);
-    }, [assets, now, portfolioTransactions]);
-    const series = useMemo(() => performanceSeries(history, portfolioTransactions, assets), [assets, history, portfolioTransactions]);
+        const marketHistory = createMarketPortfolioHistory(assets, portfolioTransactions, assetHistory);
+        return buildPortfolioAnalyticsHistory([...getHistory(), ...marketHistory], portfolioTransactions, currentSnapshot || undefined, assets);
+    }, [assetHistory, assets, now, portfolioTransactions]);
+    const history = usingWorkbookHistory ? workbookHistory.points : liveHistory;
+    const analyticsTransactions = usingWorkbookHistory ? workbookHistory.flowTransactions : portfolioTransactions;
+    const historyMaxGapDays = usingWorkbookHistory && workbookHistory.source === 'monthly' ? 45 : 16;
+    const series = useMemo(
+        () => performanceSeries(history, analyticsTransactions, assets, { maxGapDays: historyMaxGapDays }),
+        [analyticsTransactions, assets, history, historyMaxGapDays],
+    );
 
     const monthly = useMemo(() => portfolioMonthlyRows(series, now), [series, now]);
     const dailyReturns = series.map(p => p.dailyReturn).filter((r): r is number => r !== null);
@@ -215,9 +259,13 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
     }, [evolutionPeriod, now, series]);
     const selectedPeriodPerformance = useMemo(() => {
         const cutoff = getPeriodCutoff(evolutionPeriod, now);
-        const maxBaseGap = cutoff === null ? Number.POSITIVE_INFINITY : Math.max(3 * DAY_MS, (now - cutoff) * 1.5);
+        const maxBaseGap = cutoff === null
+            ? Number.POSITIVE_INFINITY
+            : usingWorkbookHistory && workbookHistory.source === 'monthly'
+                ? Math.max(45 * DAY_MS, (now - cutoff) * 1.5)
+                : Math.max(3 * DAY_MS, (now - cutoff) * 1.5);
         return calculatePeriodPerformance(series, cutoff ?? Number.NEGATIVE_INFINITY, now, maxBaseGap);
-    }, [evolutionPeriod, now, series]);
+    }, [evolutionPeriod, now, series, usingWorkbookHistory, workbookHistory.source]);
     const significantCapitalFlow = evolutionSeries.slice(1)
         .map((point, index) => ({
             date: point.date,
@@ -258,19 +306,29 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         { label: 'Posiciones duplicadas', value: duplicateSymbols, ok: duplicateSymbols === 0 },
         { label: 'Cantidades o precios inválidos', value: invalidPositions, ok: invalidPositions === 0 },
         { label: 'Cotizaciones sin actualizar', value: stale, ok: stale === 0 },
-        { label: 'Histórico de la cartera', value: `${history.length} registros`, ok: history.length >= 2 },
+        { label: 'Histórico utilizado', value: usingWorkbookHistory
+            ? `${workbookHistory.evolutionCount} cierres · ${workbookHistory.dcaCount} flujos Excel`
+            : `${history.length} registros verificados`, ok: history.length >= 2 },
+        { label: 'Snapshots en vivo', value: `${getHistory().length}`, ok: getHistory().length >= 2 },
         { label: 'Operaciones registradas', value: transactions.length, ok: transactions.length > 0 },
         { label: 'Divisa normalizada', value: assets.every((asset) => !asset.currency || asset.currency === 'EUR') ? 'EUR' : 'Revisar', ok: assets.every((asset) => !asset.currency || asset.currency === 'EUR') },
     ];
 
     return (
         <Card className="portfolio-excel-insights">
-            <CardHeader title="Análisis avanzado" subtitle="Posiciones actuales y rentabilidad calculada con valoraciones verificadas" />
+            <CardHeader title="Análisis avanzado" subtitle={usingWorkbookHistory
+                ? 'Posiciones actuales y evolución mensual importada de tu Excel'
+                : 'Posiciones actuales y rentabilidad calculada con valoraciones verificadas'} />
             <CardContent>
                 <p className="portfolio-excel-insights__chart-note" role="status">
-                    {history.length ? 'Seguimiento verificable desde ' + series[0]?.date + '. ' : 'Pendiente de una actualización completa de cotizaciones. '}
-                    El histórico antiguo se conserva, pero no se usa para calcular retornos porque no identifica las posiciones ni el origen de cada valoración.
-                    Las fechas y precios de compra no permiten conocer el valor de la cartera en los meses intermedios.
+                    {usingWorkbookHistory
+                        ? `Histórico importado del Excel: ${workbookHistory.evolutionCount} cierres mensuales (${formatHistoryDate(workbookHistory.startDate)} a ${formatHistoryDate(workbookHistory.endDate)}). `
+                            + `Las ${workbookHistory.dcaCount} aportaciones y retiradas se aplican en su fecha de cierre de la hoja Evolucion. `
+                            + `El resumen superior sigue mostrando tus ${assets.length} posiciones y su valoración actual.`
+                        : history.length
+                            ? `Seguimiento verificable desde ${formatHistoryDate(series[0]?.date)}. `
+                                + 'El histórico antiguo se conserva, pero no se usa para calcular retornos porque no identifica las posiciones ni el origen de cada valoración.'
+                            : 'Pendiente de una actualización completa de cotizaciones.'}
                 </p>
                 <div className="portfolio-excel-insights__kpis">
                     {kpis.map((kpi) => (
@@ -303,15 +361,17 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                         <div className="portfolio-excel-insights__panel-heading">
                             <div>
                                 <h3><CalendarClock size={16} /> Evolución registrada de la cartera</h3>
-                                <p>Valoraciones completas guardadas con tus cotizaciones y operaciones.</p>
+                                <p>{usingWorkbookHistory
+                                    ? 'Cierres mensuales importados de la hoja Evolucion, con cada DCA aplicado en su fecha.'
+                                    : 'Valoraciones completas guardadas con tus cotizaciones y operaciones.'}</p>
                             </div>
                             <div className="portfolio-excel-insights__panel-actions">
                                 <div className="portfolio-excel-insights__period-summary">
                                     <span>Rentabilidad del periodo</span>
                                     <strong className={selectedPeriodPerformance.returnPercent !== null && selectedPeriodPerformance.returnPercent < 0 ? 'is-negative' : ''}>{percent(selectedPeriodPerformance.returnPercent)}</strong>
-                                    <small>{selectedPeriodPerformance.observations} intervalos · base {selectedPeriodPerformance.baseDate || 'sin histórico'}</small>
+                                    <small>{selectedPeriodPerformance.observations} intervalos · base {formatHistoryDate(selectedPeriodPerformance.baseDate)}</small>
                                 </div>
-                                <strong>{evolutionSeries.length} registros</strong>
+                                <strong>{evolutionSeries.length} observaciones</strong>
                                 <div className="portfolio-excel-insights__periods" role="group" aria-label="Periodo de evolución">
                                     {evolutionPeriods.map((period) => (
                                         <button
@@ -336,7 +396,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
-                                    <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
+                                    <XAxis dataKey="date" tickFormatter={formatChartDate} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
                                     <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={formatAxisCurrency} width={48} />
                                     <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined, name?: string) => [currency(Number(value || 0)), name === 'value' ? 'Valor actual' : 'Capital invertido']} />
                                     <Legend formatter={(value) => value === 'value' ? 'Valor actual' : 'Capital invertido'} />
@@ -349,7 +409,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                         )}
                         {significantCapitalFlow && (
                             <p className="portfolio-excel-insights__chart-note">
-                                El salto del {significantCapitalFlow.date} coincide con una {significantCapitalFlow.amount >= 0 ? 'aportación' : 'retirada'} neta de {currency(Math.abs(significantCapitalFlow.amount))}; se excluye del cálculo de rentabilidad.
+                                El cierre de {formatHistoryDate(significantCapitalFlow.date)} incluye una {significantCapitalFlow.amount >= 0 ? 'aportación' : 'retirada'} neta de {currency(Math.abs(significantCapitalFlow.amount))}; se excluye del cálculo de rentabilidad.
                             </p>
                         )}
                     </section>
@@ -443,7 +503,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                             <span>Sortino <strong>{sortino === null ? 'N/D' : sortino.toFixed(2)}</strong></span>
                             <span>Peor mes <strong>{plainPercent(worstMonth?.monthlyReturn)}</strong></span>
                             <span>Meses negativos <strong>{validMonthly.length ? `${negativeMonths} de ${validMonthly.length}` : 'N/D'}</strong></span>
-                            <span>Histórico <strong>{history.length}</strong></span>
+                            <span>Observaciones <strong>{history.length}</strong></span>
                             <span>Stale <strong>{stale}</strong></span>
                         </div>
                     </section>

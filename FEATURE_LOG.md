@@ -12,6 +12,19 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-13 - v5.0.14 - Hotfix de carga inicial de Academy
+- Funcionalidad:
+  - Se carga `Fundamentos` dentro del shell inicial de Academy para evitar el estado de carga en la primera visita.
+  - Se mantienen bajo demanda las guías, calculadoras y simuladores más pesados.
+  - Se actualiza la versión visible del sidebar a `v5.0.14`.
+- Resumen:
+  - La entrada de Academy queda disponible inmediatamente y el resto de rutas conserva la división por carga diferida.
+- Archivos:
+  - `src/app/routes/academyRoutes.tsx`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-09-13 - v5.0.13 - Hotfix de rendimiento del dashboard y analítica importada
 - Funcionalidad:
   - Se difieren las secciones pesadas del dashboard y se aíslan los cálculos del contador de refresco para reducir trabajo durante la carga inicial.

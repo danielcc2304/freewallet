@@ -1,4 +1,4 @@
-import type { SearchResult, StockQuote } from '../../types/types';
+import type { HistoricalDataPoint, SearchResult, StockQuote } from '../../types/types';
 
 export interface CacheEntry<T> {
     data: T;
@@ -7,9 +7,10 @@ export interface CacheEntry<T> {
 
 export const QUOTE_CACHE = new Map<string, CacheEntry<StockQuote>>();
 export const SEARCH_CACHE = new Map<string, CacheEntry<SearchResult[]>>();
+export const CHART_CACHE = new Map<string, CacheEntry<HistoricalDataPoint[]>>();
 
 export const TTL = {
-    // El dashboard refresca cada minuto; deja margen para que el siguiente
+    // El dashboard refresca cada cinco minutos; deja margen para que el siguiente
     // ciclo no reciba la cotización del ciclo anterior.
     QUOTE: 45 * 1000,
     SEARCH: 10 * 60 * 1000,

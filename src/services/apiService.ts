@@ -3,6 +3,7 @@ import type { StockQuote, SearchResult, HistoricalDataPoint, AssetType, TimePeri
 import {
     QUOTE_CACHE,
     SEARCH_CACHE,
+    CHART_CACHE,
     TTL,
 } from './market/marketCache';
 import {
@@ -768,6 +769,12 @@ export async function getAssetChartData(
         return [];
     }
 
+    const cacheKey = `${symbol.trim().toUpperCase()}::${period}`;
+    const cached = CHART_CACHE.get(cacheKey);
+    if (cached && Date.now() - cached.timestamp < TTL.CHART) {
+        return cached.data;
+    }
+
     let range = '1mo';
     let interval = '1d';
     const fundIdentifier = looksLikeISIN(symbol);
@@ -810,12 +817,19 @@ export async function getAssetChartData(
 
                 // A single quote cannot render an evolution. Keep looking for
                 // another listing (for example B02.F for NXTE.XD).
-                if (points.length >= 2) return fundIdentifier && period === '1D' ? points.slice(-2) : points;
+                if (points.length >= 2) {
+                    const result = fundIdentifier && period === '1D' ? points.slice(-2) : points;
+                    CHART_CACHE.set(cacheKey, { data: result, timestamp: Date.now() });
+                    return result;
+                }
             } catch (error) {
                 if (axios.isCancel(error) || signal?.aborted) throw error;
             }
         }
 
+        if (bestPoints.length > 0) {
+            CHART_CACHE.set(cacheKey, { data: bestPoints, timestamp: Date.now() });
+        }
         return bestPoints;
     } catch (error) {
         if (axios.isCancel(error)) throw error;

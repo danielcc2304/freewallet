@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { memo, useState, useMemo } from 'react';
 import { ArrowUpDown, Trash2, ChevronUp, ChevronDown, Pencil, PlusCircle, MinusCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../ui';
 import type { Asset } from '../../types/types';
@@ -16,7 +16,18 @@ interface AssetsTableProps {
 type SortKey = 'symbol' | 'value' | 'change' | 'weight';
 type SortDirection = 'asc' | 'desc';
 
-export function AssetsTable({ assets, onDelete, onEdit, onAddPurchase, onSell, onViewDetails }: AssetsTableProps) {
+function SortIcon({ column, sortKey, sortDirection }: { column: SortKey; sortKey: SortKey; sortDirection: SortDirection }) {
+    if (sortKey !== column) {
+        return <ArrowUpDown size={14} className="sort-icon" />;
+    }
+    return sortDirection === 'asc' ? (
+        <ChevronUp size={14} className="sort-icon sort-icon--active" />
+    ) : (
+        <ChevronDown size={14} className="sort-icon sort-icon--active" />
+    );
+}
+
+export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit, onAddPurchase, onSell, onViewDetails }: AssetsTableProps) {
     const [sortKey, setSortKey] = useState<SortKey>('value');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -103,17 +114,6 @@ export function AssetsTable({ assets, onDelete, onEdit, onAddPurchase, onSell, o
         return `${sign}${value.toFixed(2)}%`;
     };
 
-    const SortIcon = ({ column }: { column: SortKey }) => {
-        if (sortKey !== column) {
-            return <ArrowUpDown size={14} className="sort-icon" />;
-        }
-        return sortDirection === 'asc' ? (
-            <ChevronUp size={14} className="sort-icon sort-icon--active" />
-        ) : (
-            <ChevronDown size={14} className="sort-icon sort-icon--active" />
-        );
-    };
-
     if (assets.length === 0) {
         return (
             <Card className="assets-table">
@@ -140,19 +140,19 @@ export function AssetsTable({ assets, onDelete, onEdit, onAddPurchase, onSell, o
                             <thead>
                                 <tr>
                                     <th onClick={() => handleSort('symbol')}>
-                                        Activo <SortIcon column="symbol" />
+                                        Activo <SortIcon column="symbol" sortKey={sortKey} sortDirection={sortDirection} />
                                     </th>
                                     <th>Cantidad</th>
                                     <th>Precio Compra</th>
                                     <th>Precio Actual</th>
                                     <th onClick={() => handleSort('value')}>
-                                        Valor <SortIcon column="value" />
+                                        Valor <SortIcon column="value" sortKey={sortKey} sortDirection={sortDirection} />
                                     </th>
                                     <th onClick={() => handleSort('change')}>
-                                        Ganancia <SortIcon column="change" />
+                                        Ganancia <SortIcon column="change" sortKey={sortKey} sortDirection={sortDirection} />
                                     </th>
                                     <th onClick={() => handleSort('weight')}>
-                                        Peso <SortIcon column="weight" />
+                                        Peso <SortIcon column="weight" sortKey={sortKey} sortDirection={sortDirection} />
                                     </th>
                                     {(onDelete || onEdit || onAddPurchase || onSell) && <th>Acciones</th>}
                                 </tr>
@@ -266,4 +266,4 @@ export function AssetsTable({ assets, onDelete, onEdit, onAddPurchase, onSell, o
             />
         </>
     );
-}
+});

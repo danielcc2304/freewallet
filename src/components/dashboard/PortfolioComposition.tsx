@@ -138,9 +138,9 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
         };
     }, [apiEnabled, fundsWithRemoteLookup, remoteHoldings, showBreakdown]);
 
-    const totalValue = assets.reduce(
-        (sum, a) => sum + (a.currentPrice || a.purchasePrice) * a.quantity,
-        0
+    const totalValue = useMemo(
+        () => assets.reduce((sum, a) => sum + (a.currentPrice || a.purchasePrice) * a.quantity, 0),
+        [assets],
     );
 
     const holdingsByAsset = useMemo(() => {
@@ -158,7 +158,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
     );
 
     // Generate composition data for donut chart
-    const compositionData: CompositionItem[] = assets.map((asset, index) => {
+    const compositionData: CompositionItem[] = useMemo(() => assets.map((asset, index) => {
         const value = (asset.currentPrice || asset.purchasePrice) * asset.quantity;
         return {
             id: asset.id,
@@ -168,10 +168,10 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
             percentage: totalValue > 0 ? (value / totalValue) * 100 : 0,
             color: getColorForIndex(index),
         };
-    });
+    }), [assets, totalValue]);
 
     // Generate heatmap data
-    const heatmapData: HeatmapItem[] = assets.map((asset) => {
+    const heatmapData: HeatmapItem[] = useMemo(() => assets.map((asset) => {
         const currentValue = (asset.currentPrice || asset.purchasePrice) * asset.quantity;
         const investedValue = asset.purchasePrice * asset.quantity;
         const changePercent = investedValue > 0
@@ -201,7 +201,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
             changePercent,
             children,
         };
-    });
+    }), [assets, remoteHoldings, totalValue]);
 
     const consolidatedCompositionData: CompositionItem[] = useMemo(() => {
         const rows = consolidatedExposures.length <= 8
@@ -268,15 +268,18 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
         if (parentAsset) onHoldingClick(underlyingSource.holding, parentAsset, exposure);
     };
 
+    const fundsWithBreakdown = useMemo(() => funds.filter((asset) => {
+        const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[asset.id];
+        return Boolean(holdings?.length);
+    }), [funds, remoteHoldings]);
+    const fundsWithoutIsin = useMemo(
+        () => funds.filter((asset) => !asset.holdings?.length && !getFundIsin(asset)),
+        [funds],
+    );
+
     if (assets.length === 0) {
         return null;
     }
-
-    const fundsWithBreakdown = funds.filter((asset) => {
-        const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[asset.id];
-        return Boolean(holdings?.length);
-    });
-    const fundsWithoutIsin = funds.filter((asset) => !asset.holdings?.length && !getFundIsin(asset));
 
     return (
         <Card className="portfolio-composition">

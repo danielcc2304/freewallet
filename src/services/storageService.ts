@@ -51,6 +51,17 @@ export function updateAsset(id: string, updates: Partial<Asset>): void {
     }
 }
 
+export function updateAssets(updates: Array<{ id: string; updates: Partial<Asset> }>): void {
+    if (updates.length === 0) return;
+    const assets = getAssets();
+    const updatesById = new Map(updates.map(({ id, updates: assetUpdates }) => [id, assetUpdates]));
+    const nextAssets = assets.map((asset) => {
+        const assetUpdates = updatesById.get(asset.id);
+        return assetUpdates ? { ...asset, ...assetUpdates } : asset;
+    });
+    saveAssets(nextAssets);
+}
+
 export function deleteAsset(id: string): void {
     const assets = getAssets();
     const filtered = assets.filter(a => a.id !== id);

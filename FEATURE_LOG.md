@@ -12,6 +12,36 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-13 - v5.0.13 - Hotfix de rendimiento del dashboard y analítica importada
+- Funcionalidad:
+  - Se difieren las secciones pesadas del dashboard y se aíslan los cálculos del contador de refresco para reducir trabajo durante la carga inicial.
+  - Se añaden cachés para históricos importados y se incorpora la lectura del histórico de benchmark desde la comparativa de Excel.
+  - Se ajustan los servicios de precios, almacenamiento y normalización de cartera para mantener datos consistentes con menor coste de actualización.
+  - Se actualiza la versión visible del sidebar a `v5.0.13`.
+- Resumen:
+  - El dashboard carga antes su contenido crítico y conserva la analítica de cartera, histórico y benchmark importados con menos recomputaciones y consultas redundantes.
+- Archivos:
+  - `scripts/test-portfolio-composition-ui.mjs`
+  - `scripts/test-portfolio-performance.ts`
+  - `src/App.tsx`
+  - `src/app/routes/academyRoutes.tsx`
+  - `src/components/dashboard/AssetsTable.tsx`
+  - `src/components/dashboard/LivePortfolioPlan.tsx`
+  - `src/components/dashboard/Performers.tsx`
+  - `src/components/dashboard/PortfolioComposition.tsx`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `src/context/PortfolioContext.tsx`
+  - `src/index.css`
+  - `src/pages/Dashboard/Dashboard.css`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/services/apiService.ts`
+  - `src/services/market/marketCache.ts`
+  - `src/services/portfolioQuoteService.ts`
+  - `src/services/portfolioWorkbookHistory.ts`
+  - `src/services/storageService.ts`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-09-13 - v5.0.12 - Hotfix de benchmark y refresco de precios
 - Funcionalidad:
   - Se permite seleccionar el periodo de la comparativa automática frente al benchmark URTH.

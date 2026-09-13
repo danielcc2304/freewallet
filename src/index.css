@@ -128,6 +128,15 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.app-route-loading {
+  display: grid;
+  min-height: 100vh;
+  place-items: center;
+  padding: var(--spacing-xl);
+  color: var(--text-secondary);
+  font-size: var(--font-size-sm);
+}
+
 #root {
   min-height: 100vh;
 }

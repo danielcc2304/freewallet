@@ -137,7 +137,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
 
     useEffect(() => {
         const controller = new AbortController();
-        getAssetChartData('URTH', 'YTD', controller.signal)
+        getAssetChartData('URTH', evolutionPeriod, controller.signal)
             .then((data) => {
                 if (!controller.signal.aborted) setBenchmark(data);
             })
@@ -145,7 +145,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                 if (!controller.signal.aborted) setBenchmark([]);
             });
         return () => controller.abort();
-    }, [lastPriceUpdate]);
+    }, [evolutionPeriod, lastPriceUpdate]);
 
     useEffect(() => {
         if (!assets.length) {
@@ -246,7 +246,12 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
             .sort((left, right) => right.actual - left.actual);
     }, [assets, totalValue]);
 
-    const benchmarkLine = useMemo(() => alignedBenchmark(series, benchmark), [series, benchmark]);
+    const benchmarkSeries = useMemo(() => {
+        const cutoff = getPeriodCutoff(evolutionPeriod, now);
+        if (cutoff === null) return series;
+        return series.filter((point) => new Date(point.date).getTime() >= cutoff);
+    }, [evolutionPeriod, now, series]);
+    const benchmarkLine = useMemo(() => alignedBenchmark(benchmarkSeries, benchmark), [benchmark, benchmarkSeries]);
     const benchmarkReturn = benchmarkLine.at(-1)?.benchmark ?? null;
     const portfolioBenchmarkReturn = benchmarkLine.at(-1)?.portfolio ?? null;
     const hasPortfolioBenchmark = benchmarkLine.length > 1;
@@ -422,7 +427,21 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                                 <h3><BarChart3 size={16} /> Comparativa automática</h3>
                                 <p>Tu cartera frente al MSCI World (URTH), usando datos vivos del mercado.</p>
                             </div>
-                            <strong>{benchmark.length} puntos</strong>
+                            <div className="portfolio-excel-insights__panel-actions">
+                                <strong>{benchmarkLine.length} puntos coincidentes</strong>
+                                <div className="portfolio-excel-insights__periods" role="group" aria-label="Periodo de benchmark">
+                                    {evolutionPeriods.map((period) => (
+                                        <button
+                                            key={period.value}
+                                            type="button"
+                                            className={evolutionPeriod === period.value ? 'is-active' : ''}
+                                            onClick={() => setEvolutionPeriod(period.value)}
+                                        >
+                                            {period.label}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
                         </div>
                         <div className="portfolio-excel-insights__benchmark-kpis">
                             <div><span>Tu cartera</span><strong>{percent(portfolioBenchmarkReturn)}</strong></div>

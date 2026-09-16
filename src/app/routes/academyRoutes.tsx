@@ -11,6 +11,7 @@ import {
     Gamepad2,
     LibraryBig,
     LineChart,
+    PanelsTopLeft,
     PieChart,
     Scale,
     Shield,
@@ -115,6 +116,18 @@ export const academySidebarSections = academyRouteDefinitions.filter(
     (route): route is AcademyRouteDefinition & { icon: LucideIcon; group: AcademySidebarGroup } =>
         Boolean(route.includeInSidebar && route.icon && route.group),
 );
+
+export const toolSidebarSections = [
+    ...academySidebarSections
+        .filter((route) => route.group === 'Herramientas')
+        .map(({ path, label, icon, end }) => ({
+            to: `/academy/${path}`,
+            label,
+            icon,
+            end,
+        })),
+    { to: '/market-heatmap', label: 'Heatmap de mercados', icon: PanelsTopLeft, end: true },
+];
 
 export const academyPrerenderRoutes = academyRouteDefinitions.map(({ path }) =>
     (path ? `/academy/${path}` : '/academy'),

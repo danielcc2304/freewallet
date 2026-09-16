@@ -12,6 +12,7 @@ const DIST_DIR = path.join(__dirname, '../dist');
 const routes = [
     '/',
     '/add',
+    '/market-heatmap',
     '/settings',
     '/feature-log',
     '/news',

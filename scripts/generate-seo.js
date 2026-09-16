@@ -9,6 +9,7 @@ const __dirname = path.dirname(__filename);
 const routes = [
     '/',
     '/add',
+    '/market-heatmap',
     '/portfolio-csv',
     '/settings',
     '/feature-log',

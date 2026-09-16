@@ -11,6 +11,7 @@ export const ACADEMY_ROUTES = academyRouteDefinitions.map(({ path, label }) => (
 export const ALL_PRERENDER_ROUTES = [
     '/',
     '/add',
+    '/market-heatmap',
     '/portfolio-csv',
     '/settings',
     '/feature-log',

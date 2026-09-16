@@ -11,7 +11,9 @@ const pct = (n: number) => n.toLocaleString('es-ES', { maximumFractionDigits: 2 
 const KEY = 'freewallet_live_targets';
 const operationName = { buy: 'Compra', sell: 'Venta', edit: 'Corrección', delete: 'Eliminación' } as const;
 
-export function LivePortfolioPlan({ now }: { now: number }) {
+type LivePortfolioPlanSection = 'all' | 'plan' | 'monthly' | 'recent';
+
+export function LivePortfolioPlan({ now, section = 'all' }: { now: number; section?: LivePortfolioPlanSection }) {
     const { state: { assets, transactions } } = usePortfolio();
     const workbookHistory = useMemo(() => readWorkbookHistory(), []);
     const usingWorkbookHistory = workbookHistory.points.length >= 2;
@@ -69,8 +71,12 @@ export function LivePortfolioPlan({ now }: { now: number }) {
     );
     const ledgerDifference = buys - sells - invested;
 
+    const showPlan = section === 'all' || section === 'plan';
+    const showMonthly = section === 'all' || section === 'monthly';
+    const showRecent = section === 'all' || section === 'recent';
+
     return <div className="live-plan-stack">
-        <Card className="live-plan">
+        {showPlan && <Card className="live-plan">
             <CardHeader title="Plan y control de cartera" subtitle="Objetivos, desviaciones y reparto de la próxima aportación con precios actuales" />
             <CardContent>
                 <div className="live-plan__summary">
@@ -97,9 +103,9 @@ export function LivePortfolioPlan({ now }: { now: number }) {
                 </table></div>
                 <p>La propuesta usa aportaciones sin ventas ni comisiones. Las cantidades cambian al registrar operaciones y los pesos con cada cotización.</p>
             </CardContent>
-        </Card>
+        </Card>}
 
-        <Card className="live-plan">
+        {showMonthly && <Card className="live-plan">
              <CardHeader title="Resumen mensual" subtitle={usingWorkbookHistory
                  ? 'Cierres mensuales y DCA importados desde la hoja Evolucion'
                  : 'Valor, capital y rentabilidad ajustada por las operaciones registradas'} />
@@ -112,9 +118,9 @@ export function LivePortfolioPlan({ now }: { now: number }) {
                      ? `Se muestran ${workbookHistory.evolutionCount} cierres de Evolucion y sus ${workbookHistory.dcaCount} flujos.`
                      : 'N/D cuando falta una base verificable. El mes abierto es provisional.'}</p>
             </CardContent>
-        </Card>
+        </Card>}
 
-        <Card className="live-plan">
+        {showRecent && <Card className="live-plan">
             <CardHeader title="Últimos movimientos" subtitle="Compras, ventas y correcciones que explican los cambios de la cartera" />
             <CardContent>
                 {recentTransactions.length ? <div className="live-plan__scroll"><table>
@@ -122,6 +128,6 @@ export function LivePortfolioPlan({ now }: { now: number }) {
                     <tbody>{recentTransactions.map(t => <tr key={t.id}><td>{t.date.slice(0, 10)}</td><td>{operationName[t.type]}</td><th scope="row">{t.assetName}<small>{t.assetSymbol}</small></th><td>{t.quantity?.toLocaleString('es-ES') || '—'}</td><td>{t.price ? money(t.price) : '—'}</td><td>{money(t.total || 0)}</td></tr>)}</tbody>
                 </table></div> : <p>No hay operaciones registradas todavía.</p>}
             </CardContent>
-        </Card>
+        </Card>}
     </div>;
 }

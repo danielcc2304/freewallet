@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
 import { AcademyLayout } from './components/academy/layout/AcademyLayout';
 import { academyRouteDefinitions } from './app/routes/academyRoutes';
+import { MarketHeatmap } from './components/academy/tools/MarketHeatmap';
 import {
   Dashboard,
   Planning,
@@ -30,6 +31,7 @@ function App() {
           <Route path="settings" element={<Settings />} />
           <Route path="portfolio-csv" element={<PortfolioCsv />} />
           <Route path="feature-log" element={<FeatureLog />} />
+          <Route path="market-heatmap" element={<MarketHeatmap />} />
           <Route path="news">
             <Route index element={<News />} />
             <Route path=":slug" element={<NewsArticle />} />
@@ -46,6 +48,9 @@ function App() {
                 element={element}
               />
             ))}
+
+            {/* Keep the previous URL working after moving the heatmap to the main sidebar. */}
+            <Route path="market-heatmap" element={<Navigate to="/market-heatmap" replace />} />
 
             {/* Academy 404 */}
             <Route path="*" element={<NotFound />} />

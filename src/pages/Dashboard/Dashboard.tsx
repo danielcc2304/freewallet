@@ -306,9 +306,6 @@ export function Dashboard() {
             <section className="dashboard__section">
                 <PortfolioExcelInsights now={calculationNow} />
             </section>
-            <section className="dashboard__section">
-                <LivePortfolioPlan now={calculationNow} />
-            </section>
 
             <section className="dashboard__section dashboard__performers">
                 <Performers data={performersData} type="best" />
@@ -321,6 +318,16 @@ export function Dashboard() {
                     onAssetClick={handleViewDetails}
                     onHoldingClick={handleViewHolding}
                 />
+            </section>
+
+            <section className="dashboard__section">
+                <LivePortfolioPlan now={calculationNow} section="monthly" />
+            </section>
+            <section className="dashboard__section">
+                <LivePortfolioPlan now={calculationNow} section="recent" />
+            </section>
+            <section className="dashboard__section">
+                <LivePortfolioPlan now={calculationNow} section="plan" />
             </section>
 
             <Modal

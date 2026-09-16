@@ -623,7 +623,36 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - `src/constants/app.ts`
   - `src/data/academy/knowledge.ts`
   - `src/components/academy/assets/AssetEquities.tsx`
-  - `src/components/academy/assets/AssetPage.css`
+- `src/components/academy/assets/AssetPage.css`
+
+### 2026-09-16 - v5.1.0 - Hotfix de rendimiento y lectura móvil de cartera
+- Funcionalidad:
+  - Se elimina la carga diferida de rutas para que la navegación y el renderizado sean inmediatos.
+  - Se muestra el cambio de ganancia o pérdida del último día anterior cuando no hay histórico diario disponible.
+  - Se reorganiza `Mis Activos` en móvil para mostrar primero la información esencial y dejar el detalle y las acciones bajo controles de tarjeta.
+  - Se amplían los precios de compra y venta hasta seis decimales para activos de valor unitario pequeño.
+  - Se separan las exposiciones de fondos marcadas como `Resto no desglosado` en su propia sección y se corrige el recorte responsive del donut y su leyenda.
+- Resumen:
+  - El dashboard carga de forma más fluida, conserva una referencia diaria útil y ofrece una lectura compacta y completa de la cartera según la necesidad del usuario.
+- Archivos:
+  - `src/App.tsx`
+  - `src/app/routes/academyRoutes.tsx`
+  - `src/components/charts/DonutChart.tsx`
+  - `src/components/charts/DonutChart.css`
+  - `src/components/dashboard/AssetDetail.tsx`
+  - `src/components/dashboard/AssetsTable.tsx`
+  - `src/components/dashboard/AssetsTable.css`
+  - `src/components/dashboard/PortfolioComposition.tsx`
+  - `src/components/dashboard/PortfolioComposition.css`
+  - `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`
+  - `src/pages/AddInvestment/AddInvestment.tsx`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/pages/Dashboard/Dashboard.css`
+  - `src/pages/Transactions/Transactions.tsx`
+  - `src/services/portfolioPerformance.ts`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
   - `src/components/academy/guides/Fundamentos.tsx`
   - `src/components/academy/guides/RiskManagement.tsx`
   - `src/components/academy/guides/RiskManagement.css`

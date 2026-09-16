@@ -1,5 +1,5 @@
 import { memo, useState, useMemo } from 'react';
-import { ArrowUpDown, Trash2, ChevronUp, ChevronDown, Pencil, PlusCircle, MinusCircle } from 'lucide-react';
+import { ArrowUpDown, Trash2, ChevronUp, ChevronDown, Eye, EyeOff, Pencil, PencilOff, PlusCircle, MinusCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../ui';
 import type { Asset } from '../../types/types';
 import './AssetsTable.css';
@@ -31,6 +31,9 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
     const [sortKey, setSortKey] = useState<SortKey>('value');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+    const [showMobileDetails, setShowMobileDetails] = useState(false);
+    const [showMobileActions, setShowMobileActions] = useState(false);
+    const hasActionHandlers = Boolean(onDelete || onEdit || onAddPurchase || onSell);
 
     const totalValue = assets.reduce(
         (sum, a) => sum + (a.currentPrice || a.purchasePrice) * a.quantity,
@@ -106,6 +109,16 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
             style: 'currency',
             currency: 'EUR',
             minimumFractionDigits: 2,
+            maximumFractionDigits: 2,
+        }).format(value);
+    };
+
+    const formatPrice = (value: number): string => {
+        return new Intl.NumberFormat('es-ES', {
+            style: 'currency',
+            currency: 'EUR',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 6,
         }).format(value);
     };
 
@@ -133,28 +146,54 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                 <CardHeader
                     title="Mis Activos"
                     subtitle={`${assets.length} activos · Valor total: ${formatCurrency(totalValue)}`}
+                    action={
+                        <div className="assets-table__mobile-toolbar" aria-label="Opciones de Mis Activos">
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setShowMobileDetails((current) => !current)}
+                                icon={showMobileDetails ? <EyeOff size={16} /> : <Eye size={16} />}
+                                aria-pressed={showMobileDetails}
+                                title={showMobileDetails ? 'Ocultar información adicional' : 'Ver toda la información'}
+                            >
+                                {showMobileDetails ? 'Ocultar' : 'Ver todo'}
+                            </Button>
+                            {hasActionHandlers && (
+                                <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setShowMobileActions((current) => !current)}
+                                    icon={showMobileActions ? <PencilOff size={16} /> : <Pencil size={16} />}
+                                    aria-pressed={showMobileActions}
+                                    title={showMobileActions ? 'Ocultar acciones' : 'Editar y gestionar activos'}
+                                >
+                                    {showMobileActions ? 'Cerrar' : 'Editar'}
+                                </Button>
+                            )}
+                        </div>
+                    }
                 />
                 <CardContent>
                     <div className="assets-table__wrapper">
-                        <table className="assets-table__table">
+                        <table className={`assets-table__table ${showMobileDetails ? 'assets-table__table--show-details' : ''} ${showMobileActions ? 'assets-table__table--show-actions' : ''}`}>
                             <thead>
                                 <tr>
-                                    <th onClick={() => handleSort('symbol')}>
+                                    <th className="assets-table__column--asset" onClick={() => handleSort('symbol')}>
                                         Activo <SortIcon column="symbol" sortKey={sortKey} sortDirection={sortDirection} />
                                     </th>
-                                    <th>Cantidad</th>
-                                    <th>Precio Compra</th>
-                                    <th>Precio Actual</th>
-                                    <th onClick={() => handleSort('value')}>
+                                    <th className="assets-table__optional">Cantidad</th>
+                                    <th className="assets-table__optional">Precio Compra</th>
+                                    <th className="assets-table__column--price">Precio Actual</th>
+                                    <th className="assets-table__column--value" onClick={() => handleSort('value')}>
                                         Valor <SortIcon column="value" sortKey={sortKey} sortDirection={sortDirection} />
                                     </th>
-                                    <th onClick={() => handleSort('change')}>
+                                    <th className="assets-table__column--gain" onClick={() => handleSort('change')}>
                                         Ganancia <SortIcon column="change" sortKey={sortKey} sortDirection={sortDirection} />
                                     </th>
-                                    <th onClick={() => handleSort('weight')}>
+                                    <th className="assets-table__optional" onClick={() => handleSort('weight')}>
                                         Peso <SortIcon column="weight" sortKey={sortKey} sortDirection={sortDirection} />
                                     </th>
-                                    {(onDelete || onEdit || onAddPurchase || onSell) && <th>Acciones</th>}
+                                    {hasActionHandlers && <th className="assets-table__actions-header">Acciones</th>}
                                 </tr>
                             </thead>
                             <tbody>
@@ -164,19 +203,24 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                         onClick={() => onViewDetails?.(asset)}
                                         className="clickable-row"
                                     >
-                                        <td>
+                                        <td className="assets-table__column--asset">
                                             <div className="assets-table__asset">
                                                 <span className="assets-table__name">{asset.name}</span>
-                                                <span className="assets-table__symbol">{asset.symbol}</span>
+                                                <div className="assets-table__identifiers">
+                                                    <span className="assets-table__symbol">{asset.symbol}</span>
+                                                    {asset.isin && asset.isin !== asset.symbol && (
+                                                        <span className="assets-table__isin">ISIN {asset.isin}</span>
+                                                    )}
+                                                </div>
                                             </div>
                                         </td>
-                                        <td>{asset.quantity}</td>
-                                        <td>{formatCurrency(asset.purchasePrice)}</td>
-                                        <td>{formatCurrency(asset.currentPrice || asset.purchasePrice)}</td>
-                                        <td className="assets-table__value">
+                                        <td className="assets-table__optional">{asset.quantity}</td>
+                                        <td className="assets-table__optional">{formatPrice(asset.purchasePrice)}</td>
+                                        <td className="assets-table__column--price">{formatPrice(asset.currentPrice || asset.purchasePrice)}</td>
+                                        <td className="assets-table__column--value assets-table__value">
                                             {formatCurrency(asset.currentValue)}
                                         </td>
-                                        <td>
+                                        <td className="assets-table__column--gain">
                                             <div className="assets-table__gain">
                                                 <span
                                                     className={`assets-table__change ${asset.changePercent >= 0
@@ -191,7 +235,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                                 </span>
                                             </div>
                                         </td>
-                                        <td>
+                                        <td className="assets-table__optional">
                                             <div className="assets-table__weight">
                                                 <div className="assets-table__weight-bar">
                                                     <div
@@ -202,15 +246,32 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                                 <span>{asset.weight.toFixed(1)}%</span>
                                             </div>
                                         </td>
-                                        {(onDelete || onEdit || onAddPurchase || onSell) && (
-                                            <td>
-                                                <div className="assets-table__actions">
+                                        <td className="assets-table__mobile-details-cell">
+                                            <div className="assets-table__mobile-details">
+                                                <div>
+                                                    <span>Cantidad</span>
+                                                    <strong>{asset.quantity}</strong>
+                                                </div>
+                                                <div>
+                                                    <span>Precio compra</span>
+                                                    <strong>{formatPrice(asset.purchasePrice)}</strong>
+                                                </div>
+                                                <div>
+                                                    <span>Peso</span>
+                                                    <strong>{asset.weight.toFixed(1)}%</strong>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        {hasActionHandlers && (
+                                            <td className="assets-table__actions-cell">
+                                                <div id={`asset-actions-${asset.id}`} className="assets-table__actions">
                                                     {onAddPurchase && (
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
                                                             onClick={(event) => { event.stopPropagation(); onAddPurchase(asset); }}
                                                             icon={<PlusCircle size={16} />}
+                                                            aria-label={`Añadir compra de ${asset.symbol}`}
                                                             title="Añadir Compra (DCA)"
                                                         />
                                                     )}
@@ -220,6 +281,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                                             size="sm"
                                                             onClick={(event) => { event.stopPropagation(); onSell(asset); }}
                                                             icon={<MinusCircle size={16} />}
+                                                            aria-label={`Registrar venta de ${asset.symbol}`}
                                                             title="Registrar venta"
                                                         />
                                                     )}
@@ -229,6 +291,8 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                                             size="sm"
                                                             onClick={(event) => { event.stopPropagation(); onEdit(asset); }}
                                                             icon={<Pencil size={16} />}
+                                                            aria-label={`Editar ${asset.symbol}`}
+                                                            title="Editar activo"
                                                         />
                                                     )}
                                                     {onDelete && (
@@ -238,6 +302,8 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                                             onClick={(event) => { event.stopPropagation(); handleDeleteClick(asset.id); }}
                                                             icon={<Trash2 size={16} />}
                                                             className="assets-table__delete-btn"
+                                                            aria-label={`Eliminar ${asset.symbol}`}
+                                                            title="Eliminar activo"
                                                         />
                                                     )}
                                                 </div>

@@ -52,20 +52,6 @@
     color: var(--accent-primary);
 }
 
-.dashboard__deferred-fallback {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: .55rem;
-    min-height: 5rem;
-    padding: 1rem;
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-lg);
-    background: var(--bg-card);
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-}
-
 .dashboard__floating-actions {
     position: fixed;
     right: max(1.25rem, env(safe-area-inset-right));

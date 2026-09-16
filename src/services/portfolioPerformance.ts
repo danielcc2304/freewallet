@@ -56,6 +56,33 @@ export function createQuoteSnapshot(assets: Asset[], transactions: PortfolioTran
 }
 
 /**
+ * Uses each holding's latest quote against its previous market close. This is
+ * the reliable fallback when there is not yet a complete portfolio history for
+ * the current day (for example after importing monthly workbook data).
+ */
+export function calculatePreviousClosePerformance(assets: Asset[]) {
+    const values = assets.map((asset) => {
+        const currentPrice = Number.isFinite(asset.currentPrice) && asset.currentPrice! > 0
+            ? asset.currentPrice!
+            : asset.purchasePrice;
+        const previousPrice = Number.isFinite(asset.previousClose) && asset.previousClose! > 0
+            ? asset.previousClose!
+            : asset.purchasePrice;
+        return {
+            current: currentPrice * asset.quantity,
+            previous: previousPrice * asset.quantity,
+        };
+    });
+    const currentValue = values.reduce((sum, value) => sum + value.current, 0);
+    const previousValue = values.reduce((sum, value) => sum + value.previous, 0);
+    if (!assets.length || !Number.isFinite(currentValue) || !Number.isFinite(previousValue) || previousValue <= 0) {
+        return { change: null as number | null, returnPercent: null as number | null };
+    }
+    const change = currentValue - previousValue;
+    return { change, returnPercent: change / previousValue * 100 };
+}
+
+/**
  * Builds a portfolio curve from each holding's historical candles. Historical
  * providers return the listing currency, while holdings are stored in EUR; the
  * latest known EUR quote is therefore used as a conservative scale factor so

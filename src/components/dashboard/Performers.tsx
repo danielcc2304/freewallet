@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../ui';
 import type { PerformerData } from '../../types/types';
@@ -9,7 +10,7 @@ interface PerformersProps {
     limit?: number;
 }
 
-export function Performers({ data, type, limit = 5 }: PerformersProps) {
+export const Performers = memo(function Performers({ data, type, limit = 5 }: PerformersProps) {
     const title = type === 'best' ? 'Mejores de la Cartera' : 'Peores de la Cartera';
     const Icon = type === 'best' ? TrendingUp : TrendingDown;
 
@@ -74,4 +75,4 @@ export function Performers({ data, type, limit = 5 }: PerformersProps) {
             </CardContent>
         </Card>
     );
-}
+});

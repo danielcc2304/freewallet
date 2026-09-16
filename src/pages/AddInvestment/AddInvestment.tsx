@@ -259,7 +259,7 @@ export function AddInvestment() {
                 setCurrentPrice(resolvedPrice);
                 setFormData(prev => ({
                     ...prev,
-                    purchasePrice: prev.purchasePrice || resolvedPrice.toFixed(4)
+                    purchasePrice: prev.purchasePrice || resolvedPrice.toFixed(6)
                 }));
                 setCurrency('EUR');
             } else {
@@ -549,7 +549,7 @@ export function AddInvestment() {
                                     </div>
                                     <div>
                                         <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Precio Medio</span>
-                                        <p style={{ fontWeight: '600', fontSize: '1.125rem' }}>{dcaAsset.purchasePrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })}</p>
+                                        <p style={{ fontWeight: '600', fontSize: '1.125rem' }}>{dcaAsset.purchasePrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 6 })}</p>
                                     </div>
                                 </div>
                             </div>
@@ -656,7 +656,7 @@ export function AddInvestment() {
                             <div className="current-price-banner">
                                 <div className="current-price-banner__label">Cotización de referencia</div>
                                 <div className="current-price-banner__value">
-                                    {loadingPrice ? <><Loader2 size={16} className="search-loading__spinner" /> Consultando…</> : `${currentPrice?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 4 })} ${currency}`}
+                                    {loadingPrice ? <><Loader2 size={16} className="search-loading__spinner" /> Consultando…</> : `${currentPrice?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 6 })} ${currency}`}
                                 </div>
                             </div>
                         )}
@@ -676,9 +676,9 @@ export function AddInvestment() {
                                 <Input
                                     label={isSellMode ? 'Precio de venta (€)' : 'Precio de compra (€)'}
                                     type="number"
-                                    step={formData.type === 'fund' ? '0.0001' : '0.01'}
+                                    step="0.000001"
                                     min="0"
-                                    placeholder="0.00"
+                                    placeholder="0.000000"
                                     value={formData.purchasePrice}
                                     onChange={(e) => handleInputChange('purchasePrice', e.target.value)}
                                     icon={<Coins size={18} />}

@@ -78,6 +78,13 @@ function getExposureSourceLabel(exposure: ConsolidatedPortfolioExposure): string
     return parts.join(' + ') || 'Exposición identificada';
 }
 
+function getExposureDisplayName(exposure: ConsolidatedPortfolioExposure): string {
+    if (!exposure.isResidual) return exposure.name;
+
+    const parentNames = Array.from(new Set(exposure.sources.map((source) => source.parentAssetName)));
+    return parentNames.join(' · ') || exposure.name;
+}
+
 export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: PortfolioCompositionProps) {
     const [showBreakdown, setShowBreakdown] = useState(false);
     const [remoteHoldings, setRemoteHoldings] = useState<Record<string, AssetHolding[]>>({});
@@ -138,9 +145,9 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
         };
     }, [apiEnabled, fundsWithRemoteLookup, remoteHoldings, showBreakdown]);
 
-    const totalValue = assets.reduce(
-        (sum, a) => sum + (a.currentPrice || a.purchasePrice) * a.quantity,
-        0
+    const totalValue = useMemo(
+        () => assets.reduce((sum, a) => sum + (a.currentPrice || a.purchasePrice) * a.quantity, 0),
+        [assets],
     );
 
     const holdingsByAsset = useMemo(() => {
@@ -156,9 +163,17 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
         () => buildConsolidatedPortfolioExposures(assets, holdingsByAsset),
         [assets, holdingsByAsset],
     );
+    const identifiedExposures = useMemo(
+        () => consolidatedExposures.filter((exposure) => !exposure.isResidual),
+        [consolidatedExposures],
+    );
+    const residualExposures = useMemo(
+        () => consolidatedExposures.filter((exposure) => exposure.isResidual),
+        [consolidatedExposures],
+    );
 
     // Generate composition data for donut chart
-    const compositionData: CompositionItem[] = assets.map((asset, index) => {
+    const compositionData: CompositionItem[] = useMemo(() => assets.map((asset, index) => {
         const value = (asset.currentPrice || asset.purchasePrice) * asset.quantity;
         return {
             id: asset.id,
@@ -168,10 +183,10 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
             percentage: totalValue > 0 ? (value / totalValue) * 100 : 0,
             color: getColorForIndex(index),
         };
-    });
+    }), [assets, totalValue]);
 
     // Generate heatmap data
-    const heatmapData: HeatmapItem[] = assets.map((asset) => {
+    const heatmapData: HeatmapItem[] = useMemo(() => assets.map((asset) => {
         const currentValue = (asset.currentPrice || asset.purchasePrice) * asset.quantity;
         const investedValue = asset.purchasePrice * asset.quantity;
         const changePercent = investedValue > 0
@@ -201,23 +216,25 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
             changePercent,
             children,
         };
-    });
+    }), [assets, remoteHoldings, totalValue]);
 
     const consolidatedCompositionData: CompositionItem[] = useMemo(() => {
-        const rows = consolidatedExposures.length <= 8
-            ? consolidatedExposures
+        const identified = consolidatedExposures.filter((exposure) => !exposure.isResidual);
+        const residual = consolidatedExposures.filter((exposure) => exposure.isResidual);
+        const rows = identified.length <= 8
+            ? identified
             : [
-                ...consolidatedExposures.slice(0, 8),
+                ...identified.slice(0, 8),
                 {
                     id: 'consolidated-other',
                     name: 'Resto de activos',
                     symbol: 'Resto de activos',
-                    value: consolidatedExposures.slice(8).reduce((sum, row) => sum + row.value, 0),
-                    weight: consolidatedExposures.slice(8).reduce((sum, row) => sum + row.weight, 0),
+                    value: identified.slice(8).reduce((sum, row) => sum + row.value, 0),
+                    weight: identified.slice(8).reduce((sum, row) => sum + row.weight, 0),
                 },
             ];
 
-        return rows.map((row, index) => ({
+        return [...rows, ...residual].map((row, index) => ({
             id: row.id,
             symbol: row.symbol || row.name,
             name: row.name,
@@ -268,15 +285,40 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
         if (parentAsset) onHoldingClick(underlyingSource.holding, parentAsset, exposure);
     };
 
+    const fundsWithBreakdown = useMemo(() => funds.filter((asset) => {
+        const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[asset.id];
+        return Boolean(holdings?.length);
+    }), [funds, remoteHoldings]);
+    const fundsWithoutIsin = useMemo(
+        () => funds.filter((asset) => !asset.holdings?.length && !getFundIsin(asset)),
+        [funds],
+    );
+
+    const renderExposureRow = (exposure: ConsolidatedPortfolioExposure) => {
+        const canOpen = !exposure.isResidual && Boolean(onHoldingClick || exposure.hasDirectPosition);
+        return (
+            <button
+                key={exposure.id}
+                type="button"
+                className={`portfolio-composition__exposure-row ${exposure.isResidual ? 'portfolio-composition__exposure-row--residual' : ''}`}
+                onClick={() => handleExposureClick(exposure)}
+                disabled={!canOpen}
+            >
+                <span className="portfolio-composition__exposure-name">
+                    <strong>{getExposureDisplayName(exposure)}</strong>
+                    <small>{exposure.isResidual ? 'Resto no desglosado' : `${exposure.symbol && exposure.symbol !== exposure.name ? `${exposure.symbol} · ` : ''}${getExposureSourceLabel(exposure)}`}</small>
+                </span>
+                <span className="portfolio-composition__exposure-value">
+                    <strong>{exposure.weight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong>
+                    <small>{new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(exposure.value)}</small>
+                </span>
+            </button>
+        );
+    };
+
     if (assets.length === 0) {
         return null;
     }
-
-    const fundsWithBreakdown = funds.filter((asset) => {
-        const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[asset.id];
-        return Boolean(holdings?.length);
-    });
-    const fundsWithoutIsin = funds.filter((asset) => !asset.holdings?.length && !getFundIsin(asset));
 
     return (
         <Card className="portfolio-composition">
@@ -320,30 +362,34 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
                                         <h4>Exposición total consolidada</h4>
                                         <p>Une las posiciones directas con las que aparecen dentro de los fondos y suma los solapamientos.</p>
                                     </div>
-                                    <span>{consolidatedExposures.length} activos · 100%</span>
+                                    <span>{consolidatedExposures.length} exposiciones · 100%</span>
                                 </div>
-                                <div className="portfolio-composition__exposure-list">
-                                    {consolidatedExposures.map((exposure) => {
-                                        const canOpen = !exposure.isResidual && Boolean(onHoldingClick || exposure.hasDirectPosition);
-                                        return (
-                                            <button
-                                                key={exposure.id}
-                                                type="button"
-                                                className="portfolio-composition__exposure-row"
-                                                onClick={() => handleExposureClick(exposure)}
-                                                disabled={!canOpen}
-                                            >
-                                                <span className="portfolio-composition__exposure-name">
-                                                    <strong>{exposure.name}</strong>
-                                                    <small>{exposure.symbol && exposure.symbol !== exposure.name ? `${exposure.symbol} · ` : ''}{getExposureSourceLabel(exposure)}</small>
-                                                </span>
-                                                <span className="portfolio-composition__exposure-value">
-                                                    <strong>{exposure.weight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong>
-                                                    <small>{new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(exposure.value)}</small>
-                                                </span>
-                                            </button>
-                                        );
-                                    })}
+                                <div className="portfolio-composition__exposure-sections">
+                                    {identifiedExposures.length > 0 && (
+                                        <section className="portfolio-composition__exposure-group">
+                                            <div className="portfolio-composition__exposure-group-header">
+                                                <h5>Exposición identificada</h5>
+                                                <span>{identifiedExposures.length} posiciones</span>
+                                            </div>
+                                            <div className="portfolio-composition__exposure-list">
+                                                {identifiedExposures.map(renderExposureRow)}
+                                            </div>
+                                        </section>
+                                    )}
+                                    {residualExposures.length > 0 && (
+                                        <section className="portfolio-composition__exposure-group portfolio-composition__exposure-group--residual">
+                                            <div className="portfolio-composition__exposure-group-header">
+                                                <div>
+                                                    <h5>No desglosados</h5>
+                                                    <p>Parte de los fondos sin posiciones detalladas.</p>
+                                                </div>
+                                                <span>{residualExposures.reduce((sum, exposure) => sum + exposure.weight, 0).toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</span>
+                                            </div>
+                                            <div className="portfolio-composition__exposure-list">
+                                                {residualExposures.map(renderExposureRow)}
+                                            </div>
+                                        </section>
+                                    )}
                                 </div>
                                 <p className="portfolio-composition__consolidated-note">
                                     Si un proveedor solo devuelve las principales posiciones, el porcentaje restante queda como “resto no desglosado” para que la suma cuadre con el valor total de tu cartera.

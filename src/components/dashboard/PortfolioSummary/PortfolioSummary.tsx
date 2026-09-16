@@ -46,7 +46,7 @@ export function PortfolioSummary({ metrics }: PortfolioSummaryProps) {
                 return {
                     value: metrics.dailyChange,
                     percent: metrics.dailyChangePercent,
-                    label: 'hoy'
+                    label: 'último día'
                 };
         }
     };

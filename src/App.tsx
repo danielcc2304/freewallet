@@ -1,5 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { MainLayout } from './components/layout/MainLayout';
+import { AcademyLayout } from './components/academy/layout/AcademyLayout';
+import { academyRouteDefinitions } from './app/routes/academyRoutes';
 import {
   Dashboard,
   Planning,
@@ -14,8 +16,6 @@ import {
   NewsArticle,
   NewsAdmin,
 } from './pages';
-import { AcademyLayout } from './components/academy/layout/AcademyLayout';
-import { academyRouteDefinitions } from './app/routes/academyRoutes';
 import './index.css';
 
 function App() {
@@ -39,7 +39,12 @@ function App() {
           {/* Academy section with nested routes */}
           <Route path="academy" element={<AcademyLayout />}>
             {academyRouteDefinitions.map(({ path, element, end }) => (
-              <Route key={path || 'academy-index'} index={end} path={end ? undefined : path} element={element} />
+              <Route
+                key={path || 'academy-index'}
+                index={end}
+                path={end ? undefined : path}
+                element={element}
+              />
             ))}
 
             {/* Academy 404 */}

@@ -12,15 +12,22 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-09-13 - v5.0.14 - Hotfix de carga inicial de Academy
+### 2026-09-16 - v5.3.0 - Apariencia Liquid Glass y preferencias por defecto
 - Funcionalidad:
-  - Se carga `Fundamentos` dentro del shell inicial de Academy para evitar el estado de carga en la primera visita.
-  - Se mantienen bajo demanda las guías, calculadoras y simuladores más pesados.
-  - Se actualiza la versión visible del sidebar a `v5.0.14`.
+  - Se incorpora el estilo de interfaz Liquid Glass como opción configurable para toda la aplicación.
+  - Se establecen Liquid Glass y el tema Sistema como preferencias iniciales cuando no existe una selección guardada.
+  - Se simplifica el título de la configuración de apariencia eliminando el icono decorativo de brillo.
+  - Se mantiene el historial de mejoras ordenado de la versión más reciente a la más antigua.
 - Resumen:
-  - La entrada de Academy queda disponible inmediatamente y el resto de rutas conserva la división por carga diferida.
+  - FreeWallet arranca con una apariencia más integrada con el sistema y permite cambiar el material visual desde Configuración sin perder las preferencias existentes.
 - Archivos:
-  - `src/app/routes/academyRoutes.tsx`
+  - `src/App.tsx`
+  - `src/main.tsx`
+  - `src/context/AppearanceContext.tsx`
+  - `src/context/ThemeContext.tsx`
+  - `src/styles/liquidGlass.css`
+  - `src/pages/Settings/Settings.tsx`
+  - `src/pages/Settings/Settings.css`
   - `src/constants/app.ts`
   - `package.json`
   - `package-lock.json`
@@ -81,6 +88,19 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - `src/pages/Dashboard/Dashboard.css`
   - `src/pages/Transactions/Transactions.tsx`
   - `src/services/portfolioPerformance.ts`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
+### 2026-09-13 - v5.0.14 - Hotfix de carga inicial de Academy
+- Funcionalidad:
+  - Se carga `Fundamentos` dentro del shell inicial de Academy para evitar el estado de carga en la primera visita.
+  - Se mantienen bajo demanda las guías, calculadoras y simuladores más pesados.
+  - Se actualiza la versión visible del sidebar a `v5.0.14`.
+- Resumen:
+  - La entrada de Academy queda disponible inmediatamente y el resto de rutas conserva la división por carga diferida.
+- Archivos:
+  - `src/app/routes/academyRoutes.tsx`
   - `src/constants/app.ts`
   - `package.json`
   - `package-lock.json`

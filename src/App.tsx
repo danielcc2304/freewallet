@@ -18,6 +18,7 @@ import {
   NewsAdmin,
 } from './pages';
 import './index.css';
+import './styles/liquidGlass.css';
 
 function App() {
   return (

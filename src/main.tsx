@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/react'
 import App from './App.tsx'
 import { ThemeProvider } from './context/ThemeContext'
+import { AppearanceProvider } from './context/AppearanceContext'
 import { PortfolioProvider } from './context/PortfolioContext'
 
 const CHUNK_RELOAD_KEY = 'freewallet_chunk_reload_once'
@@ -45,11 +46,13 @@ window.addEventListener('unhandledrejection', (event) => {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider>
-      <PortfolioProvider>
-        <App />
-        <Analytics />
-        <SpeedInsights />
-      </PortfolioProvider>
+      <AppearanceProvider>
+        <PortfolioProvider>
+          <App />
+          <Analytics />
+          <SpeedInsights />
+        </PortfolioProvider>
+      </AppearanceProvider>
     </ThemeProvider>
   </StrictMode>,
 )

@@ -142,14 +142,15 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
         activeTouchPointersRef.current.clear();
     }, [asset.symbol, isFund, selectedPeriod]);
 
-    const formatValue = (value: number | undefined, type: 'currency' | 'percent' | 'number' | 'compact' = 'number') => {
+    const formatValue = (value: number | undefined, type: 'currency' | 'price' | 'percent' | 'number' | 'compact' = 'number') => {
         if (value === undefined || value === null) return 'N/A';
 
-        if (type === 'currency') {
+        if (type === 'currency' || type === 'price') {
             return new Intl.NumberFormat('es-ES', {
                 style: 'currency',
                 currency: asset.currency || 'EUR',
-                minimumFractionDigits: 2
+                minimumFractionDigits: 2,
+                maximumFractionDigits: type === 'price' ? 6 : 2,
             }).format(value);
         }
 
@@ -255,7 +256,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
         return new Intl.NumberFormat('es-ES', {
             style: 'currency',
             currency: asset.currency || 'EUR',
-            maximumFractionDigits: 2,
+            maximumFractionDigits: 6,
         }).format(value);
     };
     const getChartIndexAtClientX = (clientX: number): number | null => {
@@ -339,9 +340,9 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
         ? new Intl.NumberFormat('es-ES', {
             style: 'currency',
             currency: asset.currency || 'EUR',
-            maximumFractionDigits: 2,
+            maximumFractionDigits: 6,
         }).format(value)
-        : new Intl.NumberFormat('es-ES', { maximumFractionDigits: 2 }).format(value);
+        : new Intl.NumberFormat('es-ES', { maximumFractionDigits: 6 }).format(value);
 
     return (
         <div className={`asset-detail ${isFund ? 'asset-detail--fund' : ''}`}>
@@ -353,18 +354,18 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                 </div>
                 <div className="asset-detail__price-group">
                     <div className="asset-detail__price">
-                        {formatValue(asset.currentPrice || asset.purchasePrice, 'currency')}
+                        {formatValue(asset.currentPrice || asset.purchasePrice, 'price')}
                     </div>
                     <div className={`asset-detail__change ${priceChange >= 0 ? 'positive' : 'negative'}`}>
                         {priceChange >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                        {formatValue(priceChange, 'number')} ({formatValue(priceChangePercent, 'percent')})
+                        {formatValue(priceChange, 'price')} ({formatValue(priceChangePercent, 'percent')})
                     </div>
                 </div>
             </div>
 
             <div className="asset-detail__position-grid">
                 <div><span>Cantidad</span><strong>{formatValue(asset.quantity)}</strong></div>
-                <div><span>Precio medio</span><strong>{formatValue(asset.purchasePrice, 'currency')}</strong></div>
+                <div><span>Precio medio</span><strong>{formatValue(asset.purchasePrice, 'price')}</strong></div>
                 <div><span>Capital invertido</span><strong>{formatValue(investedValue, 'currency')}</strong></div>
                 <div><span>Valor actual</span><strong>{formatValue(currentValue, 'currency')}</strong></div>
                 <div><span>Resultado</span><strong className={positionGain >= 0 ? 'positive' : 'negative'}>{formatValue(positionGain, 'currency')}</strong></div>

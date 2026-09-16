@@ -29,7 +29,18 @@ const LIQUID_GLASS_POINTER_TARGETS = [
     '.appearance-option',
     '.settings__toggle',
     '.period-btn',
+    '.period-selector',
+    '.period-selector__btn',
     '.filter-chip',
+    '.portfolio-csv-btn',
+    '.compound__mode-btn',
+    '.crisis__tab',
+    '.spread-sim__mode-btn',
+    '.portfolio-builder__filter-chip',
+    '.portfolio-builder__filters-reset',
+    '.market-heatmap__floating-refresh',
+    '.terms__back-fab',
+    '.not-found__button',
 ].join(',');
 
 function readStoredAppearance(): AppearanceMode {

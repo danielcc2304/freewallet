@@ -14,6 +14,7 @@ import {
     YAHOO_BASE_URL,
     YAHOO_CHART_URL,
     YAHOO_SEARCH_URL,
+    YAHOO_SPARK_URL,
 } from './market/marketConfig';
 import {
     fetchFromFastestProxy,
@@ -598,6 +599,69 @@ export async function getQuotesYahooBatch(symbols: string[], signal?: AbortSigna
     }
 
     return allQuotes;
+}
+
+// ===== YAHOO FINANCE MULTI-SYMBOL SPARK =====
+// Unlike the quote endpoint, spark does not require a Yahoo crumb and can
+// return many daily series in one request. It is used by broad market views.
+export async function getQuotesYahooSpark(symbols: string[], signal?: AbortSignal): Promise<StockQuote[]> {
+    const uniqueSymbols = Array.from(new Set(symbols.filter(Boolean)));
+    if (uniqueSymbols.length === 0 || !isApiEnabled()) return [];
+
+    // Yahoo rejects spark requests with more than 20 symbols.
+    const chunkSize = 20;
+    const chunks: string[][] = [];
+    for (let index = 0; index < uniqueSymbols.length; index += chunkSize) {
+        chunks.push(uniqueSymbols.slice(index, index + chunkSize));
+    }
+
+    const chunkResults: StockQuote[][] = Array.from({ length: chunks.length }, () => []);
+    let nextChunk = 0;
+    const worker = async () => {
+        while (nextChunk < chunks.length) {
+            const chunkIndex = nextChunk;
+            nextChunk += 1;
+            const chunk = chunks[chunkIndex];
+            const url = `${YAHOO_SPARK_URL}?symbols=${encodeURIComponent(chunk.join(','))}&range=5d&interval=1d`;
+            try {
+                const response = await axios.get(url, { signal, timeout: 15000 });
+                const payload = response.data as Record<string, {
+                    symbol?: string;
+                    close?: Array<number | null>;
+                }>;
+
+                chunkResults[chunkIndex] = Object.entries(payload || {}).flatMap(([requestedSymbol, item]) => {
+                    const closes = (item?.close || []).filter((value): value is number => Number.isFinite(value));
+                    if (closes.length === 0) return [];
+                    const price = closes.at(-1) as number;
+                    const previousClose = closes.at(-2) ?? price;
+                    const change = price - previousClose;
+
+                    return [{
+                        symbol: item.symbol || requestedSymbol,
+                        name: item.symbol || requestedSymbol,
+                        price,
+                        change,
+                        changePercent: previousClose ? (change / previousClose) * 100 : 0,
+                        previousClose,
+                        open: price,
+                        high: price,
+                        low: price,
+                        volume: 0,
+                        currency: 'Unknown',
+                    } satisfies StockQuote];
+                });
+            } catch (error) {
+                if (axios.isCancel(error)) throw error;
+                console.warn('Yahoo Finance spark chunk failed:', error);
+                chunkResults[chunkIndex] = [];
+            }
+        }
+    };
+
+    await Promise.all(Array.from({ length: Math.min(4, chunks.length) }, () => worker()));
+
+    return chunkResults.flat();
 }
 
 // ===== YAHOO FINANCE GET FUNDAMENTALS =====

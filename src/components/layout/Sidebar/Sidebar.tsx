@@ -7,13 +7,14 @@ import {
     LayoutDashboard,
     Menu,
     Newspaper,
+    PanelsTopLeft,
     PlusCircle,
     Settings,
     Wallet,
     X,
 } from 'lucide-react';
 import { Link, NavLink, useLocation } from 'react-router-dom';
-import { academySidebarGroups, academySidebarSections } from '../../../app/routes/academyRoutes';
+import { academySidebarGroups, academySidebarSections, toolSidebarSections } from '../../../app/routes/academyRoutes';
 import { APP_VERSION } from '../../../constants/app';
 import './Sidebar.css';
 
@@ -25,7 +26,10 @@ interface SidebarProps {
 export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     const location = useLocation();
     const isAcademyRoute = location.pathname.startsWith('/academy');
+    const isToolRoute = toolSidebarSections.some((item) => item.to === location.pathname);
     const [academyExpanded, setAcademyExpanded] = useState(isAcademyRoute);
+    const [toolsExpanded, setToolsExpanded] = useState(isToolRoute);
+    const toolsAreExpanded = toolsExpanded || isToolRoute;
 
     useEffect(() => {
         if (isAcademyRoute) {
@@ -82,6 +86,41 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                         </NavLink>
                     ))}
 
+                    <div className={`sidebar__group ${isToolRoute ? 'sidebar__group--active' : ''}`}>
+                        <button
+                            className={`sidebar__link sidebar__group-toggle ${isToolRoute ? 'sidebar__link--active' : ''}`}
+                            onClick={() => setToolsExpanded(!toolsAreExpanded)}
+                        >
+                            <PanelsTopLeft className="sidebar__link-icon" size={20} />
+                            <span className="sidebar__link-text">Herramientas</span>
+                            <ChevronDown
+                                className={`sidebar__chevron ${toolsAreExpanded ? 'sidebar__chevron--open' : ''}`}
+                                size={16}
+                            />
+                        </button>
+
+                        <div className={`sidebar__sub-nav ${toolsAreExpanded ? 'sidebar__sub-nav--open' : ''}`}>
+                            <div className="sidebar__sub-nav-inner">
+                                <div className="sidebar__sub-group">
+                                    {toolSidebarSections.map(({ to, label, icon: Icon, end }) => (
+                                        <NavLink
+                                            key={to}
+                                            to={to}
+                                            end={end}
+                                            className={({ isActive }) =>
+                                                `sidebar__sub-link ${isActive ? 'sidebar__sub-link--active' : ''}`
+                                            }
+                                            onClick={closeMobileSidebar}
+                                        >
+                                            <Icon className="sidebar__sub-icon" size={16} />
+                                            <span className="sidebar__sub-text">{label}</span>
+                                        </NavLink>
+                                    ))}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
                     <div className={`sidebar__group ${isAcademyRoute ? 'sidebar__group--active' : ''}`}>
                         <button
                             className={`sidebar__link sidebar__group-toggle ${isAcademyRoute ? 'sidebar__link--active' : ''}`}
@@ -97,7 +136,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
                         <div className={`sidebar__sub-nav ${academyExpanded ? 'sidebar__sub-nav--open' : ''}`}>
                             <div className="sidebar__sub-nav-inner">
-                                {academySidebarGroups.map((group) => (
+                                {academySidebarGroups.filter((group) => group !== 'Herramientas').map((group) => (
                                     <div key={group} className="sidebar__sub-group">
                                         <div className="sidebar__sub-group-title">{group}</div>
                                         {academySidebarSections

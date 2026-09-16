@@ -25,6 +25,66 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - `package.json`
   - `package-lock.json`
 
+### 2026-09-16 - v5.2.0 - Heatmap de mercados y reorganización del dashboard
+- Funcionalidad:
+  - Se incorpora la herramienta `Heatmap de mercados` con vistas para S&P 500, MSCI World y MSCI Emerging Markets.
+  - Se cargan las composiciones oficiales de los índices mediante endpoints proxy y se completan sus cotizaciones diarias con Yahoo Finance Spark.
+  - Se añade la navegación de `Herramientas`, la ruta pública del heatmap y su inclusión en SEO y prerender.
+  - Se reorganizan las secciones del dashboard para mostrar por separado el resumen mensual, los últimos movimientos y el plan de cartera.
+  - Se establece el tema oscuro como valor inicial y se actualiza la versión visible de la aplicación a `v5.2.0`.
+- Resumen:
+  - FreeWallet incorpora una lectura visual de la sesión de mercado y una navegación más clara para las herramientas, manteniendo el dashboard dividido en bloques más manejables.
+- Archivos:
+  - `src/components/academy/tools/MarketHeatmap.tsx`
+  - `src/components/academy/tools/MarketHeatmap.css`
+  - `src/data/marketHeatmapIndices.ts`
+  - `src/services/marketHeatmapService.ts`
+  - `src/services/apiService.ts`
+  - `src/services/market/marketConfig.ts`
+  - `src/components/layout/Sidebar/Sidebar.tsx`
+  - `src/app/routes/academyRoutes.tsx`
+  - `src/constants/routes.ts`
+  - `src/App.tsx`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/components/dashboard/LivePortfolioPlan.tsx`
+  - `src/context/ThemeContext.tsx`
+  - `scripts/generate-seo.js`
+  - `scripts/prerender.js`
+  - `vercel.json`
+  - `vite.config.ts`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
+### 2026-09-16 - v5.1.0 - Hotfix de rendimiento y lectura móvil de cartera
+- Funcionalidad:
+  - Se elimina la carga diferida de rutas para que la navegación y el renderizado sean inmediatos.
+  - Se muestra el cambio de ganancia o pérdida del último día anterior cuando no hay histórico diario disponible.
+  - Se reorganiza `Mis Activos` en móvil para mostrar primero la información esencial y dejar el detalle y las acciones bajo controles de tarjeta.
+  - Se amplían los precios de compra y venta hasta seis decimales para activos de valor unitario pequeño.
+  - Se separan las exposiciones de fondos marcadas como `Resto no desglosado` en su propia sección y se corrige el recorte responsive del donut y su leyenda.
+- Resumen:
+  - El dashboard carga de forma más fluida, conserva una referencia diaria útil y ofrece una lectura compacta y completa de la cartera según la necesidad del usuario.
+- Archivos:
+  - `src/App.tsx`
+  - `src/app/routes/academyRoutes.tsx`
+  - `src/components/charts/DonutChart.tsx`
+  - `src/components/charts/DonutChart.css`
+  - `src/components/dashboard/AssetDetail.tsx`
+  - `src/components/dashboard/AssetsTable.tsx`
+  - `src/components/dashboard/AssetsTable.css`
+  - `src/components/dashboard/PortfolioComposition.tsx`
+  - `src/components/dashboard/PortfolioComposition.css`
+  - `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`
+  - `src/pages/AddInvestment/AddInvestment.tsx`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/pages/Dashboard/Dashboard.css`
+  - `src/pages/Transactions/Transactions.tsx`
+  - `src/services/portfolioPerformance.ts`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-09-13 - v5.0.13 - Hotfix de rendimiento del dashboard y analítica importada
 - Funcionalidad:
   - Se difieren las secciones pesadas del dashboard y se aíslan los cálculos del contador de refresco para reducir trabajo durante la carga inicial.
@@ -622,37 +682,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - `src/pages/Settings/Settings.tsx`
   - `src/constants/app.ts`
   - `src/data/academy/knowledge.ts`
-  - `src/components/academy/assets/AssetEquities.tsx`
-- `src/components/academy/assets/AssetPage.css`
-
-### 2026-09-16 - v5.1.0 - Hotfix de rendimiento y lectura móvil de cartera
-- Funcionalidad:
-  - Se elimina la carga diferida de rutas para que la navegación y el renderizado sean inmediatos.
-  - Se muestra el cambio de ganancia o pérdida del último día anterior cuando no hay histórico diario disponible.
-  - Se reorganiza `Mis Activos` en móvil para mostrar primero la información esencial y dejar el detalle y las acciones bajo controles de tarjeta.
-  - Se amplían los precios de compra y venta hasta seis decimales para activos de valor unitario pequeño.
-  - Se separan las exposiciones de fondos marcadas como `Resto no desglosado` en su propia sección y se corrige el recorte responsive del donut y su leyenda.
-- Resumen:
-  - El dashboard carga de forma más fluida, conserva una referencia diaria útil y ofrece una lectura compacta y completa de la cartera según la necesidad del usuario.
-- Archivos:
-  - `src/App.tsx`
-  - `src/app/routes/academyRoutes.tsx`
-  - `src/components/charts/DonutChart.tsx`
-  - `src/components/charts/DonutChart.css`
-  - `src/components/dashboard/AssetDetail.tsx`
-  - `src/components/dashboard/AssetsTable.tsx`
-  - `src/components/dashboard/AssetsTable.css`
-  - `src/components/dashboard/PortfolioComposition.tsx`
-  - `src/components/dashboard/PortfolioComposition.css`
-  - `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`
-  - `src/pages/AddInvestment/AddInvestment.tsx`
-  - `src/pages/Dashboard/Dashboard.tsx`
-  - `src/pages/Dashboard/Dashboard.css`
-  - `src/pages/Transactions/Transactions.tsx`
-  - `src/services/portfolioPerformance.ts`
-  - `src/constants/app.ts`
-  - `package.json`
-  - `package-lock.json`
+  - `src/components/academy/assets/AssetPage.css`
   - `src/components/academy/guides/Fundamentos.tsx`
   - `src/components/academy/guides/RiskManagement.tsx`
   - `src/components/academy/guides/RiskManagement.css`

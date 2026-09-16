@@ -17,6 +17,22 @@
             "dest": "https://www.finect.com/$1"
         },
         {
+            "src": "/__holdings/spy",
+            "dest": "https://www.ssga.com/us/en/intermediary/library-content/products/fund-data/etfs/us/holdings-daily-us-en-spy.xlsx"
+        },
+        {
+            "src": "/__holdings/sp500-sectors",
+            "dest": "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies"
+        },
+        {
+            "src": "/__holdings/urth",
+            "dest": "https://www.ishares.com/us/products/239696/ishares-msci-world-etf/latest-holdings.csv"
+        },
+        {
+            "src": "/__holdings/eem",
+            "dest": "https://www.ishares.com/us/products/239637/ishares-msci-emerging-markets-etf/latest-holdings.csv"
+        },
+        {
             "handle": "filesystem"
         },
         {

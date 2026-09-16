@@ -12,6 +12,21 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-16 - v5.3.1 - Pulido de Liquid Glass y navegación auxiliar
+- Funcionalidad:
+  - Se amplía el efecto Liquid Glass a controles, selectores, filtros, resultados flotantes y superficies de módulos que no usan el componente de tarjeta común.
+  - Se añaden objetivos de interacción para que el resaltado dinámico acompañe también a estos controles.
+  - Se corrige la posición del botón flotante de volver en Términos y condiciones para que no herede el desplazamiento del sidebar.
+- Resumen:
+  - La apariencia Liquid Glass mantiene un lenguaje visual más consistente en toda la aplicación y la navegación auxiliar queda correctamente alineada.
+- Archivos:
+  - `src/context/AppearanceContext.tsx`
+  - `src/styles/liquidGlass.css`
+  - `src/pages/TermsAndConditions/TermsAndConditions.css`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-09-16 - v5.3.0 - Apariencia Liquid Glass y preferencias por defecto
 - Funcionalidad:
   - Se incorpora el estilo de interfaz Liquid Glass como opción configurable para toda la aplicación.

@@ -23,6 +23,16 @@ function formatCurrency(value?: number): string {
     });
 }
 
+function formatPrice(value?: number): string {
+    if (value === undefined) return '-';
+    return value.toLocaleString('es-ES', {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 6,
+    });
+}
+
 function formatDate(date: string): string {
     return new Date(date).toLocaleDateString('es-ES', {
         day: '2-digit',
@@ -189,7 +199,7 @@ export function Transactions() {
                                             </div>
                                             <div>
                                                 <span>Precio</span>
-                                                <strong>{formatCurrency(transaction.price)}</strong>
+                                                <strong>{formatPrice(transaction.price)}</strong>
                                             </div>
                                             <div>
                                                 <span>Total</span>

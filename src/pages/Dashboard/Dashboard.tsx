@@ -1,15 +1,19 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import type { ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio } from 'lucide-react';
 import { PortfolioSummary } from '../../components/dashboard/PortfolioSummary';
 import { Performers } from '../../components/dashboard/Performers';
 import { AssetsTable } from '../../components/dashboard/AssetsTable';
+import { PortfolioExcelInsights } from '../../components/dashboard/PortfolioExcelInsights';
+import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan';
+import { PortfolioComposition } from '../../components/dashboard/PortfolioComposition';
+import { AssetDetail } from '../../components/dashboard/AssetDetail';
+import { UnderlyingAssetDetail } from '../../components/dashboard/UnderlyingAssetDetail';
 import { Button, Card, CardContent, Modal } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory, isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, PerformerData, Asset, AssetHolding } from '../../types/types';
-import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, createQuoteSnapshot, normalizePortfolioTransactions, performanceSeries } from '../../services/portfolioPerformance';
+import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, calculatePreviousClosePerformance, createQuoteSnapshot, normalizePortfolioTransactions, performanceSeries } from '../../services/portfolioPerformance';
 import { readWorkbookHistory } from '../../services/portfolioWorkbookHistory';
 import type { ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
 import './Dashboard.css';
@@ -17,77 +21,6 @@ import { PRICE_REFRESH_INTERVAL_MS } from '../../constants/app';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DASHBOARD_CALCULATION_TICK_MS = 60 * 1000;
-
-// Keep the first Dashboard bundle focused on the summary and positions. The
-// analysis panels and their charting dependencies are loaded asynchronously.
-const PortfolioExcelInsights = lazy(() => import('../../components/dashboard/PortfolioExcelInsights').then(({ PortfolioExcelInsights: component }) => ({ default: component })));
-const LivePortfolioPlan = lazy(() => import('../../components/dashboard/LivePortfolioPlan').then(({ LivePortfolioPlan: component }) => ({ default: component })));
-const PortfolioComposition = lazy(() => import('../../components/dashboard/PortfolioComposition').then(({ PortfolioComposition: component }) => ({ default: component })));
-const AssetDetail = lazy(() => import('../../components/dashboard/AssetDetail').then(({ AssetDetail: component }) => ({ default: component })));
-const UnderlyingAssetDetail = lazy(() => import('../../components/dashboard/UnderlyingAssetDetail').then(({ UnderlyingAssetDetail: component }) => ({ default: component })));
-
-function DashboardSectionFallback({ label, minHeight = 96 }: { label: string; minHeight?: number }) {
-    return (
-        <div className="dashboard__deferred-fallback" style={{ minHeight }} role="status" aria-live="polite">
-            <Loader2 size={17} className="spinning" />
-            <span>{label}</span>
-        </div>
-    );
-}
-
-function DeferredDashboardSection({
-    children,
-    label,
-    minHeight,
-}: {
-    children: ReactNode;
-    label: string;
-    minHeight: number;
-}) {
-    const sectionRef = useRef<HTMLDivElement>(null);
-    const [shouldRender, setShouldRender] = useState(false);
-
-    useEffect(() => {
-        if (shouldRender) return undefined;
-        const section = sectionRef.current;
-        if (!section) return undefined;
-
-        let activated = false;
-        const observer = 'IntersectionObserver' in window
-            ? new IntersectionObserver((entries) => {
-                if (entries.some((entry) => entry.isIntersecting)) activate();
-            }, { rootMargin: '600px 0px' })
-            : null;
-        const activate = () => {
-            if (activated) return;
-            activated = true;
-            observer?.disconnect();
-            setShouldRender(true);
-        };
-
-        observer?.observe(section);
-        // Render during idle time even if the browser has no IntersectionObserver
-        // (or the user never scrolls), while keeping the critical first paint light.
-        const fallbackTimer = window.setTimeout(activate, 1500);
-
-        return () => {
-            observer?.disconnect();
-            window.clearTimeout(fallbackTimer);
-        };
-    }, [shouldRender]);
-
-    return (
-        <div ref={sectionRef} className="dashboard__deferred-section">
-            {shouldRender ? (
-                <Suspense fallback={<DashboardSectionFallback label={label} minHeight={minHeight} />}>
-                    {children}
-                </Suspense>
-            ) : (
-                <DashboardSectionFallback label={label} minHeight={minHeight} />
-            )}
-        </div>
-    );
-}
 
 function DashboardLiveStatus({
     apiEnabled,
@@ -236,7 +169,19 @@ export function Dashboard() {
         quarterStart.setMonth(quarterStart.getMonth() - 3);
         quarterStart.setDate(Math.min(quarterDay, new Date(quarterStart.getFullYear(), quarterStart.getMonth() + 1, 0).getDate()));
         const historicalGap = usingWorkbookHistory && workbookHistory.source === 'monthly' ? 45 * DAY_MS : 4 * DAY_MS;
-        const day = periodChange(todayStart.getTime() - 1, liveSeries, 4 * DAY_MS);
+        const historicalDay = periodChange(
+            todayStart.getTime() - 1,
+            liveSeries.length > 0 ? liveSeries : historicalSeries,
+            4 * DAY_MS,
+        );
+        const previousClose = calculatePreviousClosePerformance(assets);
+        const day = historicalDay.hasBase
+            ? historicalDay
+            : {
+                hasBase: previousClose.change !== null,
+                change: previousClose.change ?? NaN,
+                percent: previousClose.returnPercent ?? NaN,
+            };
         const month = periodChange(monthStart.getTime(), historicalSeries, historicalGap);
         const quarter = periodChange(quarterStart.getTime(), historicalSeries, historicalGap);
         const ytdStart = new Date(new Date(calculationNow).getFullYear(), 0, 1).getTime();
@@ -359,14 +304,10 @@ export function Dashboard() {
                 />
             </section>
             <section className="dashboard__section">
-                <DeferredDashboardSection label="Preparando análisis avanzado…" minHeight={360}>
-                    <PortfolioExcelInsights now={calculationNow} />
-                </DeferredDashboardSection>
+                <PortfolioExcelInsights now={calculationNow} />
             </section>
             <section className="dashboard__section">
-                <DeferredDashboardSection label="Preparando plan de cartera…" minHeight={360}>
-                    <LivePortfolioPlan now={calculationNow} />
-                </DeferredDashboardSection>
+                <LivePortfolioPlan now={calculationNow} />
             </section>
 
             <section className="dashboard__section dashboard__performers">
@@ -375,13 +316,11 @@ export function Dashboard() {
             </section>
 
             <section className="dashboard__section">
-                <DeferredDashboardSection label="Preparando composición del portfolio…" minHeight={360}>
-                    <PortfolioComposition
-                        assets={assets}
-                        onAssetClick={handleViewDetails}
-                        onHoldingClick={handleViewHolding}
-                    />
-                </DeferredDashboardSection>
+                <PortfolioComposition
+                    assets={assets}
+                    onAssetClick={handleViewDetails}
+                    onHoldingClick={handleViewHolding}
+                />
             </section>
 
             <Modal
@@ -393,17 +332,15 @@ export function Dashboard() {
                 title={selectedHolding ? `Detalles de ${selectedHolding.holding.name}` : selectedAsset ? `Detalles de ${selectedAsset.symbol}` : ''}
                 size="lg"
             >
-                <Suspense fallback={<DashboardSectionFallback label="Cargando ficha del activo…" />}>
-                    {selectedHolding ? (
-                        <UnderlyingAssetDetail
-                            holding={selectedHolding.holding}
-                            parentAsset={selectedHolding.parentAsset}
-                            exposure={selectedHolding.exposure}
-                        />
-                    ) : selectedAsset ? (
-                        <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} />
-                    ) : null}
-                </Suspense>
+                {selectedHolding ? (
+                    <UnderlyingAssetDetail
+                        holding={selectedHolding.holding}
+                        parentAsset={selectedHolding.parentAsset}
+                        exposure={selectedHolding.exposure}
+                    />
+                ) : selectedAsset ? (
+                    <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} />
+                ) : null}
             </Modal>
             <div className="dashboard__floating-actions" aria-label="Acciones de cartera">
                 <Button

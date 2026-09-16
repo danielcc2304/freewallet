@@ -1,0 +1,535 @@
+/*
+ * Optional Liquid Glass appearance.
+ * The strong optical material belongs to navigation and controls; content uses
+ * a quieter standard material so hierarchy and financial data stay legible.
+ */
+:root[data-appearance='liquid-glass'] {
+    --glass-blur: 30px;
+    --glass-content-blur: 12px;
+    --glass-saturate: 155%;
+    --glass-regular: rgba(26, 39, 57, .58);
+    --glass-regular-strong: rgba(15, 26, 41, .72);
+    --glass-clear: rgba(255, 255, 255, .095);
+    --glass-content: rgba(11, 20, 33, .78);
+    --glass-edge-bright: rgba(255, 255, 255, .42);
+    --glass-edge-soft: rgba(255, 255, 255, .13);
+    --glass-specular: rgba(255, 255, 255, .22);
+    --glass-pointer-x: 28%;
+    --glass-pointer-y: 12%;
+
+    --bg-primary: #07101b;
+    --bg-secondary: rgba(12, 22, 36, .76);
+    --bg-tertiary: rgba(143, 165, 191, .11);
+    --bg-card: var(--glass-content);
+    --bg-card-hover: rgba(29, 46, 68, .82);
+
+    --text-secondary: #b8c3cf;
+    --text-muted: #8392a2;
+
+    --border-primary: rgba(255, 255, 255, .105);
+    --border-secondary: rgba(255, 255, 255, .2);
+    --border-accent: rgba(110, 231, 183, .42);
+    --border-color: var(--border-primary);
+
+    --shadow-sm: 0 8px 26px rgba(0, 0, 0, .16), inset 0 1px 0 rgba(255, 255, 255, .08);
+    --shadow-md: 0 16px 42px rgba(0, 0, 0, .24), inset 0 1px 0 rgba(255, 255, 255, .12);
+    --shadow-lg: 0 28px 80px rgba(0, 0, 0, .34), inset 0 1px 0 rgba(255, 255, 255, .16);
+    --shadow-glow: 0 0 34px rgba(16, 185, 129, .16);
+
+    --radius-sm: 10px;
+    --radius-md: 15px;
+    --radius-lg: 22px;
+    --radius-xl: 30px;
+}
+
+:root[data-theme='light'][data-appearance='liquid-glass'] {
+    --glass-regular: rgba(247, 251, 255, .58);
+    --glass-regular-strong: rgba(247, 251, 255, .76);
+    --glass-clear: rgba(255, 255, 255, .38);
+    --glass-content: rgba(248, 252, 255, .82);
+    --glass-edge-bright: rgba(255, 255, 255, .92);
+    --glass-edge-soft: rgba(48, 76, 98, .13);
+    --glass-specular: rgba(255, 255, 255, .78);
+
+    --bg-primary: #e9f1f7;
+    --bg-secondary: rgba(247, 251, 255, .76);
+    --bg-tertiary: rgba(255, 255, 255, .4);
+    --bg-card: var(--glass-content);
+    --bg-card-hover: rgba(255, 255, 255, .92);
+
+    --text-primary: #10202d;
+    --text-secondary: #4c6271;
+    --text-muted: #708592;
+
+    --border-primary: rgba(42, 72, 94, .12);
+    --border-secondary: rgba(42, 72, 94, .22);
+    --border-accent: rgba(5, 150, 105, .34);
+
+    --shadow-sm: 0 8px 26px rgba(54, 83, 105, .09), inset 0 1px 0 rgba(255, 255, 255, .72);
+    --shadow-md: 0 16px 42px rgba(54, 83, 105, .14), inset 0 1px 0 rgba(255, 255, 255, .82);
+    --shadow-lg: 0 28px 80px rgba(54, 83, 105, .18), inset 0 1px 0 rgba(255, 255, 255, .88);
+}
+
+html[data-appearance='liquid-glass'] body {
+    background:
+        radial-gradient(850px circle at -5% -5%, rgba(16, 185, 129, .2), transparent 54%),
+        radial-gradient(780px circle at 102% 4%, rgba(59, 130, 246, .22), transparent 52%),
+        radial-gradient(1000px circle at 56% 108%, rgba(124, 58, 237, .14), transparent 58%),
+        linear-gradient(145deg, #07101b 0%, #091321 46%, #090f1b 100%);
+    background-attachment: fixed;
+}
+
+html[data-theme='light'][data-appearance='liquid-glass'] body {
+    background:
+        radial-gradient(850px circle at -5% -5%, rgba(16, 185, 129, .16), transparent 54%),
+        radial-gradient(780px circle at 102% 4%, rgba(59, 130, 246, .14), transparent 52%),
+        radial-gradient(1000px circle at 56% 108%, rgba(124, 58, 237, .09), transparent 58%),
+        linear-gradient(145deg, #edf4f8 0%, #e7f0f6 48%, #f0f4fa 100%);
+}
+
+html[data-appearance='liquid-glass'] .layout,
+html[data-appearance='liquid-glass'] .layout__main {
+    background: transparent;
+}
+
+/* Content layer: quiet material, intentionally less glassy than controls. */
+html[data-appearance='liquid-glass'] .card {
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .035), transparent 34%),
+        var(--glass-content);
+    border-color: var(--border-primary);
+    box-shadow: 0 1px 0 rgba(255, 255, 255, .035), 0 12px 36px rgba(0, 0, 0, .13);
+    backdrop-filter: blur(var(--glass-content-blur)) saturate(120%);
+    -webkit-backdrop-filter: blur(var(--glass-content-blur)) saturate(120%);
+}
+
+html[data-appearance='liquid-glass'] .card::after {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border: 1px solid rgba(255, 255, 255, .045);
+    border-radius: inherit;
+    content: '';
+    pointer-events: none;
+}
+
+html[data-appearance='liquid-glass'] .card > * {
+    position: relative;
+    z-index: 1;
+}
+
+html[data-appearance='liquid-glass'] .card--clickable:hover {
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .07), transparent 36%),
+        var(--bg-card-hover);
+    border-color: var(--border-secondary);
+    box-shadow: var(--shadow-md);
+}
+
+/* Navigation layer: a floating regular glass pane. */
+html[data-appearance='liquid-glass'] .sidebar {
+    top: 12px;
+    left: 12px;
+    width: calc(var(--sidebar-width) - 24px);
+    height: calc(100dvh - 24px);
+    max-height: calc(100dvh - 24px);
+    overflow: hidden;
+    border: 1px solid var(--glass-edge-soft);
+    border-radius: 28px;
+    background:
+        radial-gradient(320px circle at var(--glass-pointer-x) var(--glass-pointer-y), var(--glass-specular), transparent 68%),
+        linear-gradient(145deg, rgba(255, 255, 255, .11), transparent 34%),
+        var(--glass-regular-strong);
+    box-shadow:
+        0 24px 70px rgba(0, 0, 0, .28),
+        inset 0 1px 0 var(--glass-edge-bright),
+        inset 1px 0 0 rgba(255, 255, 255, .08),
+        inset -1px 0 0 rgba(0, 0, 0, .12);
+    backdrop-filter: blur(34px) saturate(165%) contrast(1.04);
+    -webkit-backdrop-filter: blur(34px) saturate(165%) contrast(1.04);
+}
+
+html[data-appearance='liquid-glass'] .sidebar::after {
+    position: absolute;
+    inset: 1px;
+    z-index: -1;
+    border-radius: 27px;
+    content: '';
+    pointer-events: none;
+    background: linear-gradient(155deg, rgba(255, 255, 255, .12), transparent 24%, transparent 74%, rgba(59, 130, 246, .08));
+}
+
+html[data-appearance='liquid-glass'] .sidebar__header,
+html[data-appearance='liquid-glass'] .sidebar__footer {
+    border-color: rgba(255, 255, 255, .08);
+}
+
+html[data-appearance='liquid-glass'] .sidebar__link {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid transparent;
+}
+
+html[data-appearance='liquid-glass'] .sidebar__link:hover {
+    border-color: rgba(255, 255, 255, .1);
+    background: rgba(255, 255, 255, .075);
+    color: var(--text-primary);
+    transform: translateX(2px);
+}
+
+html[data-appearance='liquid-glass'] .sidebar__link--active {
+    border-color: rgba(110, 231, 183, .24);
+    background: linear-gradient(100deg, rgba(16, 185, 129, .2), rgba(59, 130, 246, .08));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .12), 0 8px 20px rgba(0, 0, 0, .1);
+}
+
+html[data-appearance='liquid-glass'] .sidebar__link--active::after {
+    position: absolute;
+    top: 22%;
+    bottom: 22%;
+    left: 3px;
+    width: 3px;
+    border-radius: 999px;
+    content: '';
+    background: var(--accent-primary);
+    box-shadow: 0 0 12px rgba(16, 185, 129, .58);
+}
+
+html[data-appearance='liquid-glass'] .sidebar__sub-link:hover,
+html[data-appearance='liquid-glass'] .sidebar__toggle:hover {
+    background: rgba(255, 255, 255, .09);
+}
+
+html[data-appearance='liquid-glass'] .sidebar__sub-link--active {
+    background: rgba(16, 185, 129, .13);
+}
+
+/* Shared glass containers for segmented navigation and compact controls. */
+html[data-appearance='liquid-glass'] :is(
+    .portfolio-summary__tabs,
+    .portfolio-excel-insights__tabs,
+    .portfolio-excel-insights__periods,
+    .market-heatmap__tabs,
+    .market-heatmap__display-options,
+    .asset-detail__period-selector,
+    .settings__toggle
+) {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--glass-edge-soft);
+    background:
+        radial-gradient(180px circle at var(--glass-pointer-x) var(--glass-pointer-y), rgba(255, 255, 255, .2), transparent 72%),
+        linear-gradient(150deg, rgba(255, 255, 255, .09), transparent 45%),
+        var(--glass-regular);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, .16), inset 0 1px 0 var(--glass-edge-bright);
+    backdrop-filter: blur(22px) saturate(155%) contrast(1.03);
+    -webkit-backdrop-filter: blur(22px) saturate(155%) contrast(1.03);
+}
+
+/* Pointer-responsive specular highlight for interactive glass. */
+html[data-appearance='liquid-glass'] :is(
+    .btn,
+    .sidebar__link,
+    .sidebar__toggle:not(.sidebar__toggle--fixed),
+    .dashboard__floating-add,
+    .dashboard__floating-refresh,
+    .portfolio-summary__tab,
+    .portfolio-excel-insights__tabs button,
+    .portfolio-excel-insights__periods button,
+    .market-heatmap__tab,
+    .market-heatmap__display-option,
+    .theme-option,
+    .appearance-option,
+    .period-btn,
+    .filter-chip
+) {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+}
+
+html[data-appearance='liquid-glass'] :is(
+    .btn,
+    .sidebar__link,
+    .sidebar__toggle,
+    .dashboard__floating-add,
+    .dashboard__floating-refresh,
+    .portfolio-summary__tab,
+    .portfolio-excel-insights__tabs button,
+    .portfolio-excel-insights__periods button,
+    .market-heatmap__tab,
+    .market-heatmap__display-option,
+    .theme-option,
+    .appearance-option,
+    .period-btn,
+    .filter-chip
+)::before {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    content: '';
+    pointer-events: none;
+    background: radial-gradient(120px circle at var(--glass-pointer-x) var(--glass-pointer-y), rgba(255, 255, 255, .28), transparent 68%);
+    opacity: 0;
+    transition: opacity 180ms ease;
+}
+
+html[data-appearance='liquid-glass'] :is(
+    .btn,
+    .sidebar__link,
+    .sidebar__toggle,
+    .dashboard__floating-add,
+    .dashboard__floating-refresh,
+    .portfolio-summary__tab,
+    .portfolio-excel-insights__tabs button,
+    .portfolio-excel-insights__periods button,
+    .market-heatmap__tab,
+    .market-heatmap__display-option,
+    .theme-option,
+    .appearance-option,
+    .period-btn,
+    .filter-chip
+):hover::before {
+    opacity: 1;
+}
+
+html[data-appearance='liquid-glass'] :is(
+    .btn,
+    .sidebar__toggle,
+    .dashboard__floating-add,
+    .dashboard__floating-refresh,
+    .portfolio-summary__tab,
+    .portfolio-excel-insights__tabs button,
+    .portfolio-excel-insights__periods button,
+    .market-heatmap__tab,
+    .market-heatmap__display-option,
+    .theme-option,
+    .appearance-option,
+    .period-btn,
+    .filter-chip
+):active {
+    transform: scale(.975);
+    transition-duration: 80ms;
+}
+
+html[data-appearance='liquid-glass'] .sidebar__toggle--fixed {
+    position: fixed !important;
+    top: var(--spacing-md);
+    left: var(--spacing-md);
+    flex: 0 0 auto;
+    margin: 0;
+    width: 46px;
+    height: 46px;
+    border-radius: var(--radius-full);
+}
+
+html[data-appearance='liquid-glass'] :is(
+    .sidebar__toggle,
+    .dashboard__floating-refresh,
+    .btn--secondary,
+    .btn--ghost
+) {
+    border: 1px solid var(--glass-edge-soft);
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .1), transparent 52%),
+        var(--glass-clear);
+    color: var(--text-primary);
+    box-shadow: 0 9px 24px rgba(0, 0, 0, .15), inset 0 1px 0 var(--glass-edge-bright);
+    backdrop-filter: blur(18px) saturate(150%);
+    -webkit-backdrop-filter: blur(18px) saturate(150%);
+}
+
+html[data-appearance='liquid-glass'] :is(
+    .sidebar__toggle,
+    .dashboard__floating-refresh,
+    .btn--secondary,
+    .btn--ghost
+):hover:not(:disabled) {
+    border-color: var(--border-secondary);
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .16), transparent 54%),
+        rgba(255, 255, 255, .13);
+}
+
+html[data-appearance='liquid-glass'] .btn--primary,
+html[data-appearance='liquid-glass'] .dashboard__floating-add {
+    border: 1px solid rgba(255, 255, 255, .3);
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .2), transparent 46%),
+        linear-gradient(135deg, rgba(16, 185, 129, .9), rgba(37, 99, 235, .76));
+    color: #fff;
+    box-shadow: 0 15px 34px rgba(16, 185, 129, .24), inset 0 1px 0 rgba(255, 255, 255, .44);
+    backdrop-filter: blur(16px) saturate(155%);
+    -webkit-backdrop-filter: blur(16px) saturate(155%);
+}
+
+html[data-appearance='liquid-glass'] .btn--primary:hover:not(:disabled),
+html[data-appearance='liquid-glass'] .dashboard__floating-add:hover {
+    box-shadow: 0 20px 42px rgba(16, 185, 129, .32), inset 0 1px 0 rgba(255, 255, 255, .54);
+}
+
+html[data-appearance='liquid-glass'] :is(
+    .portfolio-summary__tab--active,
+    .portfolio-excel-insights__tabs button.is-active,
+    .portfolio-excel-insights__periods button.is-active,
+    .market-heatmap__tab--active,
+    .market-heatmap__display-option--active,
+    .period-btn.active,
+    .filter-chip.active
+) {
+    border-color: rgba(110, 231, 183, .28);
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .2), transparent 50%),
+        color-mix(in srgb, var(--accent-primary) 68%, rgba(9, 24, 34, .32));
+    color: #fff;
+    box-shadow: 0 7px 18px rgba(16, 185, 129, .2), inset 0 1px 0 rgba(255, 255, 255, .3);
+}
+
+/* Form controls use a denser regular material for reliable contrast. */
+html[data-appearance='liquid-glass'] input,
+html[data-appearance='liquid-glass'] select,
+html[data-appearance='liquid-glass'] textarea,
+html[data-appearance='liquid-glass'] .settings__input,
+html[data-appearance='liquid-glass'] .live-plan input {
+    border-color: var(--glass-edge-soft);
+    background: rgba(255, 255, 255, .065);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), inset 0 -1px 0 rgba(0, 0, 0, .08);
+    backdrop-filter: blur(14px) saturate(135%);
+    -webkit-backdrop-filter: blur(14px) saturate(135%);
+}
+
+html[data-appearance='liquid-glass'] input:focus,
+html[data-appearance='liquid-glass'] select:focus,
+html[data-appearance='liquid-glass'] textarea:focus,
+html[data-appearance='liquid-glass'] .settings__input:focus {
+    border-color: rgba(110, 231, 183, .58);
+    background: rgba(255, 255, 255, .095);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, .16), inset 0 1px 0 rgba(255, 255, 255, .13);
+}
+
+/* Presentation layer: regular glass for dialogs, with a stronger dimming field. */
+html[data-appearance='liquid-glass'] .modal-backdrop {
+    background: rgba(2, 8, 18, .48);
+    backdrop-filter: blur(18px) saturate(125%);
+    -webkit-backdrop-filter: blur(18px) saturate(125%);
+}
+
+html[data-appearance='liquid-glass'] .modal {
+    border-color: var(--glass-edge-soft);
+    border-radius: var(--radius-xl);
+    background:
+        radial-gradient(380px circle at var(--glass-pointer-x) var(--glass-pointer-y), rgba(255, 255, 255, .13), transparent 72%),
+        linear-gradient(145deg, rgba(255, 255, 255, .11), transparent 36%),
+        var(--glass-regular-strong);
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(36px) saturate(160%) contrast(1.04);
+    -webkit-backdrop-filter: blur(36px) saturate(160%) contrast(1.04);
+}
+
+html[data-appearance='liquid-glass'] .modal__header {
+    border-color: rgba(255, 255, 255, .08);
+}
+
+html[data-appearance='liquid-glass'] .modal__close:hover {
+    background: rgba(255, 255, 255, .1);
+}
+
+/* Settings options remain interactive controls rather than content cards. */
+html[data-appearance='liquid-glass'] .theme-option,
+html[data-appearance='liquid-glass'] .appearance-option {
+    border: 1px solid var(--glass-edge-soft);
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .08), transparent 54%),
+        rgba(255, 255, 255, .055);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+}
+
+html[data-appearance='liquid-glass'] .theme-option:hover,
+html[data-appearance='liquid-glass'] .appearance-option:hover {
+    border-color: var(--border-secondary);
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .13), transparent 56%),
+        rgba(255, 255, 255, .09);
+}
+
+html[data-appearance='liquid-glass'] .theme-option--active,
+html[data-appearance='liquid-glass'] .appearance-option--active {
+    border-color: rgba(110, 231, 183, .58);
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .14), transparent 52%),
+        linear-gradient(135deg, rgba(16, 185, 129, .16), rgba(59, 130, 246, .1));
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .16), inset 0 1px 0 rgba(255, 255, 255, .2);
+}
+
+/* Large content workspaces use the quiet material, not control glass. */
+html[data-appearance='liquid-glass'] .market-heatmap__header,
+html[data-appearance='liquid-glass'] .market-heatmap__workspace {
+    border-color: var(--border-primary);
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .04), transparent 36%),
+        var(--glass-content);
+    box-shadow: 0 12px 38px rgba(0, 0, 0, .14), inset 0 1px 0 rgba(255, 255, 255, .055);
+    backdrop-filter: blur(var(--glass-content-blur)) saturate(120%);
+    -webkit-backdrop-filter: blur(var(--glass-content-blur)) saturate(120%);
+}
+
+html[data-appearance='liquid-glass'] .dashboard__updating-banner {
+    border-color: rgba(96, 165, 250, .3);
+    background: linear-gradient(135deg, rgba(59, 130, 246, .15), rgba(139, 92, 246, .09));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .11);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+}
+
+@media (max-width: 1024px) {
+    html[data-appearance='liquid-glass'] .sidebar {
+        top: 10px;
+        left: 10px;
+        width: min(280px, calc(100vw - 20px));
+        height: calc(100dvh - 20px);
+        max-height: calc(100dvh - 20px);
+        transform: translateX(calc(-100% - 16px));
+    }
+
+    html[data-appearance='liquid-glass'] .sidebar--open {
+        transform: translateX(0);
+    }
+
+    html[data-appearance='liquid-glass'] .layout__main {
+        flex: 1 1 100%;
+        width: 100%;
+        margin-left: 0;
+    }
+
+    html[data-appearance='liquid-glass'] .sidebar-overlay {
+        background: rgba(1, 6, 14, .46);
+        backdrop-filter: blur(10px) saturate(120%);
+        -webkit-backdrop-filter: blur(10px) saturate(120%);
+    }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    html[data-appearance='liquid-glass'] .card,
+    html[data-appearance='liquid-glass'] .sidebar,
+    html[data-appearance='liquid-glass'] .modal,
+    html[data-appearance='liquid-glass'] input,
+    html[data-appearance='liquid-glass'] select,
+    html[data-appearance='liquid-glass'] textarea {
+        background: var(--bg-secondary);
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    html[data-appearance='liquid-glass'] *,
+    html[data-appearance='liquid-glass'] *::before,
+    html[data-appearance='liquid-glass'] *::after {
+        scroll-behavior: auto !important;
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+    }
+}

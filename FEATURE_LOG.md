@@ -12,6 +12,22 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-17 - v5.3.4 - Pulido del Heatmap y animaciones de interacción
+- Funcionalidad:
+  - Se mueve el resumen por sectores del Heatmap debajo del mapa para mantener primero la lectura visual principal.
+  - Se convierte el resumen sectorial en una superficie integrada con el diseño de la herramienta.
+  - Se amplía Liquid Glass a más módulos y controles, incluyendo una animación de confirmación de selección reutilizable y compatible con movimiento reducido.
+- Resumen:
+  - El Heatmap presenta una jerarquía más clara y las selecciones de la interfaz tienen una respuesta visual consistente en toda la aplicación.
+- Archivos:
+  - `src/components/academy/tools/MarketHeatmap.tsx`
+  - `src/components/academy/tools/MarketHeatmap.css`
+  - `src/context/AppearanceContext.tsx`
+  - `src/styles/liquidGlass.css`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-09-17 - v5.3.3 - Correcciones de rendimiento, benchmark y responsive
 - Funcionalidad:
   - Se corrigen los cálculos de rendimiento de cartera y benchmark para usar el cierre previo disponible, alinear datos intradía y rebajar correctamente los acumulados de YTD.

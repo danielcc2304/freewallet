@@ -53,6 +53,38 @@ const LIQUID_GLASS_POINTER_TARGETS = [
     '.fundamentos__next-link',
 ].join(',');
 
+// Keep the selection animation at the interaction layer so every segmented
+// control can opt in through its existing active class without duplicating a
+// hook or animation state in each module.
+const LIQUID_GLASS_SELECTION_TARGETS = [
+    '.portfolio-summary__tab',
+    '.portfolio-excel-insights__tabs button',
+    '.portfolio-excel-insights__periods button',
+    '.market-heatmap__tab',
+    '.market-heatmap__display-option',
+    '.period-selector__btn',
+    '.compound__mode-btn',
+    '.crisis__tab',
+    '.spread-sim__mode-btn',
+    '.spread-sim__preset',
+    '.spread-sim__stress-btn',
+    '.portfolio-builder__filter-chip',
+    '.crisis__scenario',
+    '.category-chip',
+    '.expand-all-btn',
+    '.theme-option',
+    '.appearance-option',
+    '.settings__toggle',
+    '.breakdown-toggle__label',
+    '.fire__projection-btn',
+    '.transactions-page__chip',
+    '.rich-text-editor__button',
+    '.period-btn',
+    '.filter-chip',
+].join(',');
+
+const LIQUID_GLASS_SELECTION_CLASS = 'liquid-glass-selection--pulse';
+
 function readStoredAppearance(): AppearanceMode {
     if (typeof window === 'undefined') return 'liquid-glass';
 
@@ -113,6 +145,45 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
             window.cancelAnimationFrame(animationFrame);
         };
     }, [appearance]);
+
+    // Keep the interaction available in both visual modes. The standard mode
+    // keeps its own palette while still benefiting from the same fluid change
+    // of selection; Liquid Glass additionally supplies the specular sheen.
+    useEffect(() => {
+        let selectionFrame = 0;
+        const selectionTimers = new WeakMap<HTMLElement, number>();
+        const handleSelectionClick = (event: MouseEvent) => {
+            const source = event.target;
+            if (!(source instanceof Element)) return;
+
+            const control = source.closest<HTMLElement>(LIQUID_GLASS_SELECTION_TARGETS);
+            if (!control) return;
+
+            window.cancelAnimationFrame(selectionFrame);
+            selectionFrame = window.requestAnimationFrame(() => {
+                const previousTimer = selectionTimers.get(control);
+                if (previousTimer !== undefined) window.clearTimeout(previousTimer);
+
+                // Force a layout boundary before adding the class so repeated
+                // clicks on the same control always replay the animation.
+                control.classList.remove(LIQUID_GLASS_SELECTION_CLASS);
+                void control.offsetWidth;
+                control.classList.add(LIQUID_GLASS_SELECTION_CLASS);
+
+                const timer = window.setTimeout(() => {
+                    control.classList.remove(LIQUID_GLASS_SELECTION_CLASS);
+                    selectionTimers.delete(control);
+                }, 760);
+                selectionTimers.set(control, timer);
+            });
+        };
+
+        document.addEventListener('click', handleSelectionClick);
+        return () => {
+            document.removeEventListener('click', handleSelectionClick);
+            window.cancelAnimationFrame(selectionFrame);
+        };
+    }, []);
 
     const setAppearance = useCallback((nextAppearance: AppearanceMode) => {
         setAppearanceState(nextAppearance);

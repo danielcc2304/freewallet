@@ -210,9 +210,10 @@
 }
 
 .market-heatmap__sector-summary {
-    margin: 1rem 0;
-    padding: 0.9rem 0;
-    border-block: 1px solid var(--border-primary);
+    margin: 1.25rem 0 0;
+    padding: 1rem clamp(0.75rem, 1.8vw, 1.25rem);
+    border: 1px solid var(--border-primary);
+    border-radius: 14px;
 }
 
 .market-heatmap__sector-summary-header {

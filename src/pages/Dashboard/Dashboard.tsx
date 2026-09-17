@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio } from 'lucide-react';
+import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio, Wrench, GraduationCap, Settings, FileSpreadsheet } from 'lucide-react';
 import { PortfolioSummary } from '../../components/dashboard/PortfolioSummary';
 import { Performers } from '../../components/dashboard/Performers';
 import { AssetsTable } from '../../components/dashboard/AssetsTable';
@@ -21,6 +21,17 @@ import { PRICE_REFRESH_INTERVAL_MS } from '../../constants/app';
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const DASHBOARD_CALCULATION_TICK_MS = 60 * 1000;
+const DASHBOARD_NOTICE_STORAGE_KEY = 'freewallet-dashboard-notice-dismissed';
+
+function hasDismissedDashboardNotice(): boolean {
+    if (typeof window === 'undefined') return false;
+
+    try {
+        return window.localStorage.getItem(DASHBOARD_NOTICE_STORAGE_KEY) === '1';
+    } catch {
+        return false;
+    }
+}
 
 function DashboardLiveStatus({
     apiEnabled,
@@ -73,6 +84,7 @@ export function Dashboard() {
         parentAsset: Asset;
         exposure?: ConsolidatedPortfolioExposure;
     } | null>(null);
+    const [showDashboardNotice, setShowDashboardNotice] = useState(() => !hasDismissedDashboardNotice());
     // Expensive portfolio calculations do not need a one-second clock. Keep
     // the live countdown isolated in DashboardLiveStatus below.
     const [calculationNow, setCalculationNow] = useState(() => Date.now());
@@ -102,6 +114,52 @@ export function Dashboard() {
         [assets, currentSnapshot, usingWorkbookHistory, workbookHistory],
     );
     const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || null;
+
+    const handleCloseDashboardNotice = () => {
+        setShowDashboardNotice(false);
+        try {
+            window.localStorage.setItem(DASHBOARD_NOTICE_STORAGE_KEY, '1');
+        } catch {
+            // Ignore storage failures; the notice remains dismissed for this mount.
+        }
+    };
+
+    const dashboardNoticeModal = (
+        <Modal
+            isOpen={showDashboardNotice}
+            onClose={handleCloseDashboardNotice}
+            size="md"
+        >
+            <div className="dashboard__notice dashboard__notice--hero">
+                <div className="dashboard__notice-icon">
+                    <Wrench size={44} />
+                </div>
+                <h2 className="dashboard__notice-title">Dashboard en desarrollo</h2>
+                <p className="dashboard__notice-description">
+                    Esta vista incorpora por ahora solo la funcionalidad básica. Los datos de los activos que introduzcas y las
+                    gráficas pueden ser inexactos, incompletos o provisionales. Utiliza esta información como referencia y
+                    comprueba los datos antes de tomar decisiones de inversión.
+                </p>
+                <div className="dashboard__notice-links">
+                    <Link to="/academy" onClick={handleCloseDashboardNotice}>
+                        <GraduationCap size={18} />
+                        Academia
+                    </Link>
+                    <Link to="/settings" onClick={handleCloseDashboardNotice}>
+                        <Settings size={18} />
+                        Configuración
+                    </Link>
+                    <Link to="/portfolio-csv" onClick={handleCloseDashboardNotice}>
+                        <FileSpreadsheet size={18} />
+                        Portfolio
+                    </Link>
+                </div>
+                <Button onClick={handleCloseDashboardNotice} size="lg" fullWidth>
+                    Entendido
+                </Button>
+            </div>
+        </Modal>
+    );
 
     useEffect(() => {
         const update = () => {
@@ -215,17 +273,21 @@ export function Dashboard() {
 
     if (loading) {
         return (
-            <div className="dashboard dashboard--loading">
+            <>
+                <div className="dashboard dashboard--loading">
                     <div className="skeleton skeleton--large" />
                     <div className="skeleton skeleton--medium" />
                     <div className="skeleton skeleton--medium" />
-            </div>
+                </div>
+                {dashboardNoticeModal}
+            </>
         );
     }
 
     if (assets.length === 0) {
         return (
-            <div className="dashboard dashboard--empty">
+            <>
+                <div className="dashboard dashboard--empty">
                     <Card className="dashboard__welcome">
                         <CardContent>
                             <div className="welcome-content">
@@ -252,7 +314,9 @@ export function Dashboard() {
                             </div>
                         </CardContent>
                     </Card>
-            </div>
+                </div>
+                {dashboardNoticeModal}
+            </>
         );
     }
 
@@ -341,6 +405,7 @@ export function Dashboard() {
                     <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} />
                 ) : null}
             </Modal>
+            {dashboardNoticeModal}
             <div className="dashboard__floating-actions" aria-label="Acciones de cartera">
                 <Button
                     variant="secondary"

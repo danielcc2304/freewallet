@@ -8,7 +8,6 @@ import {
     Menu,
     Newspaper,
     PanelsTopLeft,
-    PlusCircle,
     Settings,
     Wallet,
     X,
@@ -39,7 +38,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
 
     const navItems = [
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-        { to: '/add', icon: PlusCircle, label: 'Anadir inversion' },
         { to: '/news', icon: Newspaper, label: 'Noticias' },
     ];
 

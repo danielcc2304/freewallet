@@ -12,6 +12,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-17 - v5.3.7 - Aviso informativo del Dashboard
+- Funcionalidad:
+  - Se incorpora un aviso modal persistente para informar de que el Dashboard sigue en desarrollo.
+  - Se añaden accesos directos a Academia, Configuración y Portfolio desde el aviso.
+- Resumen:
+  - El Dashboard comunica sus limitaciones actuales y orienta al usuario hacia las vistas más completas de la aplicación.
+- Archivos:
+  - `src/pages/Dashboard/Dashboard.tsx`
+
 ### 2026-09-17 - v5.3.6 - Cabeceras compartidas y pulido responsive de Academy
 - Funcionalidad:
   - Se incorpora una cabecera de página compartida para las secciones de Academy y se unifica su navegación auxiliar.

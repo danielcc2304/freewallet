@@ -43,6 +43,10 @@ export interface SearchResult {
 
 export interface HistoricalDataPoint {
     date: string;
+    /** Source timestamp in milliseconds. The display date may be time-only for 1D charts. */
+    timestamp?: number;
+    /** Close immediately before the requested Yahoo range, when provided. */
+    previousClose?: number;
     open: number;
     high: number;
     low: number;

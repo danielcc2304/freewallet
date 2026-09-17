@@ -295,15 +295,15 @@
 }
 
 .fundamentos__mini-card--done .fundamentos__mini-icon {
-    color: #10b981;
+    color: var(--accent-primary);
 }
 
 .fundamentos__mini-card--done .fundamentos__mini-link strong {
-    color: #d1fae5;
+    color: var(--text-primary);
 }
 
 .fundamentos__mini-card--done .fundamentos__mini-link p {
-    color: rgba(209, 250, 229, 0.82);
+    color: var(--text-secondary);
 }
 
 .fundamentos__mini-link {
@@ -361,13 +361,21 @@
 .fundamentos__mini-action.fundamentos__mini-action--pending {
     background: rgba(59, 130, 246, 0.1);
     border-color: rgba(59, 130, 246, 0.28);
-    color: #60a5fa;
+    color: var(--accent-secondary);
 }
 
 .fundamentos__mini-action.fundamentos__mini-action--done {
     background: rgba(16, 185, 129, 0.18);
     border-color: rgba(16, 185, 129, 0.42);
-    color: #6ee7b7;
+    color: var(--text-primary);
+}
+
+[data-theme="light"] .fundamentos__mini-action.fundamentos__mini-action--pending {
+    color: #1d4ed8;
+}
+
+[data-theme="light"] .fundamentos__mini-action.fundamentos__mini-action--done {
+    color: #047857;
 }
 
 

@@ -47,6 +47,14 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
             const gain = currentValue - investedValue;
             const changePercent = investedValue > 0 ? (gain / investedValue) * 100 : 0;
             const weight = totalValue > 0 ? (currentValue / totalValue) * 100 : 0;
+            const hasCurrentPrice = Number.isFinite(asset.currentPrice) && asset.currentPrice! > 0;
+            const hasPreviousClose = Number.isFinite(asset.previousClose) && asset.previousClose! > 0;
+            const todayChange = hasCurrentPrice && hasPreviousClose
+                ? (asset.currentPrice! - asset.previousClose!) * asset.quantity
+                : NaN;
+            const todayChangePercent = hasCurrentPrice && hasPreviousClose
+                ? (asset.currentPrice! - asset.previousClose!) / asset.previousClose! * 100
+                : NaN;
 
             return {
                 ...asset,
@@ -55,6 +63,8 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                 gain,
                 changePercent,
                 weight,
+                todayChange,
+                todayChangePercent,
             };
         });
     }, [assets, totalValue]);
@@ -105,6 +115,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
         : null;
 
     const formatCurrency = (value: number): string => {
+        if (!Number.isFinite(value)) return 'N/D';
         return new Intl.NumberFormat('es-ES', {
             style: 'currency',
             currency: 'EUR',
@@ -114,6 +125,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
     };
 
     const formatPrice = (value: number): string => {
+        if (!Number.isFinite(value)) return 'N/D';
         return new Intl.NumberFormat('es-ES', {
             style: 'currency',
             currency: 'EUR',
@@ -123,6 +135,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
     };
 
     const formatPercent = (value: number): string => {
+        if (!Number.isFinite(value)) return 'N/D';
         const sign = value > 0 ? '+' : '';
         return `${sign}${value.toFixed(2)}%`;
     };
@@ -183,7 +196,10 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                     </th>
                                     <th className="assets-table__optional">Cantidad</th>
                                     <th className="assets-table__optional">Precio Compra</th>
-                                    <th className="assets-table__column--price">Precio Actual</th>
+                                    <th className="assets-table__column--price">
+                                        <span className="assets-table__current-price-label">Precio Actual</span>
+                                        <span className="assets-table__today-label">Variación hoy</span>
+                                    </th>
                                     <th className="assets-table__column--value" onClick={() => handleSort('value')}>
                                         Valor <SortIcon column="value" sortKey={sortKey} sortDirection={sortDirection} />
                                     </th>
@@ -216,7 +232,18 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                         </td>
                                         <td className="assets-table__optional">{asset.quantity}</td>
                                         <td className="assets-table__optional">{formatPrice(asset.purchasePrice)}</td>
-                                        <td className="assets-table__column--price">{formatPrice(asset.currentPrice || asset.purchasePrice)}</td>
+                                        <td className="assets-table__column--price">
+                                            <span className="assets-table__current-price">{formatPrice(asset.currentPrice || asset.purchasePrice)}</span>
+                                            <span className={`assets-table__today ${Number.isFinite(asset.todayChangePercent) && asset.todayChangePercent < 0
+                                                ? 'assets-table__change--negative'
+                                                : Number.isFinite(asset.todayChangePercent) && asset.todayChangePercent > 0
+                                                    ? 'assets-table__change--positive'
+                                                    : ''
+                                                }`}>
+                                                <strong>{formatPercent(asset.todayChangePercent)}</strong>
+                                                <small>{formatCurrency(asset.todayChange)}</small>
+                                            </span>
+                                        </td>
                                         <td className="assets-table__column--value assets-table__value">
                                             {formatCurrency(asset.currentValue)}
                                         </td>

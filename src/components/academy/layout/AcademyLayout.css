@@ -1,7 +1,12 @@
 .academy {
+    --academy-surface-gap: 1.25rem;
     min-height: calc(100vh - var(--header-height, 70px));
     background: var(--bg-primary);
     overflow-x: hidden;
+}
+
+.academy--liquid-glass {
+    --academy-surface-gap: clamp(.75rem, 1.5vw, 1.25rem);
 }
 
 /* ===== CONTENT AREA ===== */

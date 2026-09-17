@@ -13,7 +13,7 @@ import { Button, Card, CardContent, Modal } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory, isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, PerformerData, Asset, AssetHolding } from '../../types/types';
-import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, calculatePreviousClosePerformance, createQuoteSnapshot, normalizePortfolioTransactions, performanceSeries } from '../../services/portfolioPerformance';
+import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, calculatePreviousClosePerformance, createQuoteSnapshot, getPeriodCutoff, normalizePortfolioTransactions, performanceSeries } from '../../services/portfolioPerformance';
 import { readWorkbookHistory } from '../../services/portfolioWorkbookHistory';
 import type { ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
 import './Dashboard.css';
@@ -84,13 +84,22 @@ export function Dashboard() {
         () => normalizePortfolioTransactions(assets, state.transactions),
         [assets, state.transactions],
     );
+    const currentSnapshot = useMemo(
+        () => createQuoteSnapshot(assets, portfolioTransactions, new Date(calculationNow).toISOString()),
+        [assets, calculationNow, portfolioTransactions],
+    );
     const workbookSeries = useMemo(
         () => usingWorkbookHistory
-            ? performanceSeries(workbookHistory.points, workbookHistory.flowTransactions, assets, {
+            ? performanceSeries(
+                [...workbookHistory.points, ...(currentSnapshot ? [currentSnapshot] : [])],
+                workbookHistory.flowTransactions,
+                assets,
+                {
                 maxGapDays: workbookHistory.source === 'monthly' ? 45 : 16,
-            })
+                },
+            )
             : [],
-        [assets, usingWorkbookHistory, workbookHistory],
+        [assets, currentSnapshot, usingWorkbookHistory, workbookHistory],
     );
     const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || null;
 
@@ -137,40 +146,24 @@ export function Dashboard() {
         const totalGain = currentValue - totalInvested;
         const percentageGain = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
 
-        const liveSeries = usingWorkbookHistory ? [] : performanceSeries(
-            buildPortfolioAnalyticsHistory(
-                getHistory(),
-                portfolioTransactions,
-                createQuoteSnapshot(assets, portfolioTransactions, new Date(calculationNow).toISOString()) || undefined,
-                assets,
-            ),
+        const liveSeries = performanceSeries(
+            buildPortfolioAnalyticsHistory(getHistory(), portfolioTransactions, currentSnapshot || undefined, assets),
             portfolioTransactions,
             assets,
         );
         const historicalSeries = usingWorkbookHistory ? workbookSeries : liveSeries;
-        const periodChange = (timestamp: number, series: ReturnType<typeof performanceSeries>, maxBaseGap: number) => {
-            const period = calculatePeriodPerformance(series, timestamp, calculationNow, maxBaseGap);
+        const periodChange = (periodName: '1D' | '1M' | '3M' | 'YTD', source: ReturnType<typeof performanceSeries>, maxBaseGap: number) => {
+            const cutoff = getPeriodCutoff(periodName, calculationNow);
+            const period = calculatePeriodPerformance(source, cutoff ?? Number.NEGATIVE_INFINITY, calculationNow, maxBaseGap);
             return {
                 hasBase: period.hasBase && period.returnPercent !== null,
                 change: period.returnPercent === null ? NaN : period.change ?? NaN,
                 percent: period.returnPercent ?? NaN,
             };
         };
-        const todayStart = new Date(calculationNow);
-        todayStart.setHours(0, 0, 0, 0);
-        const monthStart = new Date(calculationNow);
-        const monthDay = monthStart.getDate();
-        monthStart.setDate(1);
-        monthStart.setMonth(monthStart.getMonth() - 1);
-        monthStart.setDate(Math.min(monthDay, new Date(monthStart.getFullYear(), monthStart.getMonth() + 1, 0).getDate()));
-        const quarterStart = new Date(calculationNow);
-        const quarterDay = quarterStart.getDate();
-        quarterStart.setDate(1);
-        quarterStart.setMonth(quarterStart.getMonth() - 3);
-        quarterStart.setDate(Math.min(quarterDay, new Date(quarterStart.getFullYear(), quarterStart.getMonth() + 1, 0).getDate()));
         const historicalGap = usingWorkbookHistory && workbookHistory.source === 'monthly' ? 45 * DAY_MS : 4 * DAY_MS;
         const historicalDay = periodChange(
-            todayStart.getTime() - 1,
+            '1D',
             liveSeries.length > 0 ? liveSeries : historicalSeries,
             4 * DAY_MS,
         );
@@ -182,10 +175,9 @@ export function Dashboard() {
                 change: previousClose.change ?? NaN,
                 percent: previousClose.returnPercent ?? NaN,
             };
-        const month = periodChange(monthStart.getTime(), historicalSeries, historicalGap);
-        const quarter = periodChange(quarterStart.getTime(), historicalSeries, historicalGap);
-        const ytdStart = new Date(new Date(calculationNow).getFullYear(), 0, 1).getTime();
-        const ytd = periodChange(ytdStart, historicalSeries, historicalGap);
+        const month = periodChange('1M', historicalSeries, historicalGap);
+        const quarter = periodChange('3M', historicalSeries, historicalGap);
+        const ytd = periodChange('YTD', historicalSeries, historicalGap);
 
         return {
             totalInvested,
@@ -201,7 +193,7 @@ export function Dashboard() {
             ytdChange: ytd.change,
             ytdChangePercent: ytd.percent,
         };
-    }, [assets, calculationNow, portfolioTransactions, usingWorkbookHistory, workbookHistory, workbookSeries]);
+    }, [assets, calculationNow, currentSnapshot, portfolioTransactions, usingWorkbookHistory, workbookHistory, workbookSeries]);
 
     const performersData: PerformerData[] = useMemo(() => {
         return assets.map((asset) => {

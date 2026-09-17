@@ -1,3 +1,3 @@
 export const APP_NAME = 'FreeWallet';
-export const APP_VERSION = '5.3.3';
+export const APP_VERSION = '5.3.4';
 export const PRICE_REFRESH_INTERVAL_MS = 5 * 60 * 1000;

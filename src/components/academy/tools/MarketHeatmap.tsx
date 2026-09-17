@@ -514,27 +514,6 @@ export function MarketHeatmap() {
                     </div>
                 </div>
 
-                {sectorSummary.length > 0 && (
-                    <section className="market-heatmap__sector-summary" aria-label="Resumen por sectores">
-                        <div className="market-heatmap__sector-summary-header">
-                            <div>
-                                <span className="market-heatmap__toolbar-label">Sectores</span>
-                                <p>El mapa agrupa las compañías por sector y las ordena por peso.</p>
-                            </div>
-                            <span>{sectorSummary.length} grupos</span>
-                        </div>
-                        <div className="market-heatmap__sector-list">
-                            {sectorSummary.map((sector) => (
-                                <div className="market-heatmap__sector-item" key={sector.sector}>
-                                    <strong>{sector.sector}</strong>
-                                    <span>{sector.weight.toLocaleString('es-ES', { maximumFractionDigits: 1 })}%</span>
-                                    <small>{sector.count.toLocaleString('es-ES')} valores · <b className={sector.changePercent < 0 ? 'is-negative' : 'is-positive'}>{formatPercent(sector.changePercent)}</b></small>
-                                </div>
-                            ))}
-                        </div>
-                    </section>
-                )}
-
                 <div
                     ref={canvasRef}
                     className="market-heatmap__canvas"
@@ -605,6 +584,27 @@ export function MarketHeatmap() {
                         Completando {currentQuotes.missingCount.toLocaleString('es-ES')} cotizaciones con la fuente alternativa…
                     </p>
                 ) : null}
+
+                {sectorSummary.length > 0 && (
+                    <section className="market-heatmap__sector-summary" aria-label="Resumen por sectores">
+                        <div className="market-heatmap__sector-summary-header">
+                            <div>
+                                <span className="market-heatmap__toolbar-label">Sectores</span>
+                                <p>El mapa agrupa las compañías por sector y las ordena por peso.</p>
+                            </div>
+                            <span>{sectorSummary.length} grupos</span>
+                        </div>
+                        <div className="market-heatmap__sector-list">
+                            {sectorSummary.map((sector) => (
+                                <div className="market-heatmap__sector-item" key={sector.sector}>
+                                    <strong>{sector.sector}</strong>
+                                    <span>{sector.weight.toLocaleString('es-ES', { maximumFractionDigits: 1 })}%</span>
+                                    <small>{sector.count.toLocaleString('es-ES')} valores · <b className={sector.changePercent < 0 ? 'is-negative' : 'is-positive'}>{formatPercent(sector.changePercent)}</b></small>
+                                </div>
+                            ))}
+                        </div>
+                    </section>
+                )}
 
                 {(selectedCompany || strongest || weakest) && (
                     <div className="market-heatmap__details" aria-live="polite">

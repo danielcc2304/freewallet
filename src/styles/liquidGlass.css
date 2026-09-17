@@ -465,10 +465,10 @@ html[data-appearance='liquid-glass'] :is(
     box-shadow: 0 7px 18px rgba(16, 185, 129, .2), inset 0 1px 0 rgba(255, 255, 255, .3);
 }
 
-/* Segmented controls get a single, shared liquid-settle transition. The
-   active surface gently swells and catches one passing specular wave when the
-   selection changes, while the content of the surrounding card stays still. */
-html[data-appearance='liquid-glass'] :is(
+/* The active class is the source of truth for controlled selectors. Keeping
+   the settle animation attached to it makes a selection change animate even
+   when it comes from keyboard input or a component re-render. */
+:is(
     .portfolio-summary__tab--active,
     .portfolio-excel-insights__tabs button.is-active,
     .portfolio-excel-insights__periods button.is-active,
@@ -481,6 +481,13 @@ html[data-appearance='liquid-glass'] :is(
     .spread-sim__preset.is-active,
     .spread-sim__stress-btn.is-active,
     .portfolio-builder__filter-chip--active,
+    .crisis__scenario--selected,
+    .category-chip.active,
+    .expand-all-btn.active,
+    .theme-option--active,
+    .appearance-option--active,
+    .settings__toggle--active,
+    .breakdown-toggle__label[aria-pressed='true'],
     .fire__projection-btn--active,
     .transactions-page__chip--active,
     .rich-text-editor__button--active,
@@ -495,7 +502,7 @@ html[data-appearance='liquid-glass'] :is(
     will-change: transform, filter;
 }
 
-html[data-appearance='liquid-glass'] :is(
+:is(
     .portfolio-summary__tab--active,
     .portfolio-excel-insights__tabs button.is-active,
     .portfolio-excel-insights__periods button.is-active,
@@ -508,6 +515,13 @@ html[data-appearance='liquid-glass'] :is(
     .spread-sim__preset.is-active,
     .spread-sim__stress-btn.is-active,
     .portfolio-builder__filter-chip--active,
+    .crisis__scenario--selected,
+    .category-chip.active,
+    .expand-all-btn.active,
+    .theme-option--active,
+    .appearance-option--active,
+    .settings__toggle--active,
+    .breakdown-toggle__label[aria-pressed='true'],
     .fire__projection-btn--active,
     .transactions-page__chip--active,
     .rich-text-editor__button--active,
@@ -526,7 +540,7 @@ html[data-appearance='liquid-glass'] :is(
     animation: liquidGlassSheen 680ms cubic-bezier(.2, .75, .25, 1) both;
 }
 
-html[data-appearance='liquid-glass'] :is(
+:is(
     .portfolio-summary__tab--active,
     .portfolio-excel-insights__tabs button.is-active,
     .portfolio-excel-insights__periods button.is-active,
@@ -539,12 +553,49 @@ html[data-appearance='liquid-glass'] :is(
     .spread-sim__preset.is-active,
     .spread-sim__stress-btn.is-active,
     .portfolio-builder__filter-chip--active,
+    .crisis__scenario--selected,
+    .category-chip.active,
+    .expand-all-btn.active,
+    .theme-option--active,
+    .appearance-option--active,
+    .settings__toggle--active,
+    .breakdown-toggle__label[aria-pressed='true'],
     .fire__projection-btn--active,
     .transactions-page__chip--active,
     .rich-text-editor__button--active,
     .period-btn.active,
     .filter-chip.active
 ) > * {
+    position: relative;
+    z-index: 1;
+}
+
+/* Segmented controls get a single, shared liquid-settle transition. The
+   interaction layer adds this class after a click so the animation always
+   replays, including when a control is clicked twice in a row. */
+.liquid-glass-selection--pulse {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    animation: liquidGlassSelection 520ms cubic-bezier(.22, .8, .24, 1) both;
+    transform-origin: center;
+    will-change: transform, filter;
+}
+
+.liquid-glass-selection--pulse::after {
+    position: absolute;
+    inset: -75% -35%;
+    z-index: 0;
+    content: '';
+    pointer-events: none;
+    background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, .48) 50%, transparent 60%);
+    filter: blur(3px);
+    opacity: 0;
+    transform: translateX(-125%) skewX(-16deg);
+    animation: liquidGlassSheen 680ms cubic-bezier(.2, .75, .25, 1) both;
+}
+
+.liquid-glass-selection--pulse > * {
     position: relative;
     z-index: 1;
 }
@@ -583,6 +634,30 @@ html[data-appearance='liquid-glass'] :is(
     100% {
         opacity: 0;
         transform: translateX(125%) skewX(-16deg);
+    }
+}
+
+/* Reduced-motion fallback: preserve the acknowledgement of the selection
+   without the travelling scale and sheen movement. */
+@keyframes liquidGlassSelectionReduced {
+    0% {
+        filter: brightness(1.08) saturate(1.08);
+    }
+
+    100% {
+        filter: none;
+    }
+}
+
+@keyframes liquidGlassSheenReduced {
+    0% {
+        opacity: .24;
+        transform: none;
+    }
+
+    100% {
+        opacity: 0;
+        transform: none;
     }
 }
 
@@ -1522,5 +1597,78 @@ html[data-theme='light'] .fundamentos.fundamentos--liquid-glass .fundamentos__mi
         transition-duration: 0.01ms !important;
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    /* Keep a visible acknowledgement for the explicitly selected control,
+       while avoiding spatial movement for users who request less motion. */
+    .liquid-glass-selection--pulse {
+        animation: liquidGlassSelectionReduced 180ms ease-out both !important;
+    }
+
+    .liquid-glass-selection--pulse::after {
+        animation: liquidGlassSheenReduced 180ms ease-out both !important;
+    }
+
+    /* The active class is also animated directly so controlled components
+       acknowledge keyboard and programmatic selection changes. Override the
+       global reduced-motion reset with a non-spatial visual acknowledgement. */
+    html[data-appearance='liquid-glass'] :is(
+        .portfolio-summary__tab--active,
+        .portfolio-excel-insights__tabs button.is-active,
+        .portfolio-excel-insights__periods button.is-active,
+        .market-heatmap__tab--active,
+        .market-heatmap__display-option--active,
+        .period-selector__btn--active,
+        .compound__mode-btn--active,
+        .crisis__tab--active,
+        .spread-sim__mode-btn.is-active,
+        .spread-sim__preset.is-active,
+        .spread-sim__stress-btn.is-active,
+        .portfolio-builder__filter-chip--active,
+        .crisis__scenario--selected,
+        .category-chip.active,
+        .expand-all-btn.active,
+        .theme-option--active,
+        .appearance-option--active,
+        .settings__toggle--active,
+        .breakdown-toggle__label[aria-pressed='true'],
+        .fire__projection-btn--active,
+        .transactions-page__chip--active,
+        .rich-text-editor__button--active,
+        .period-btn.active,
+        .filter-chip.active
+    ) {
+        animation: liquidGlassSelectionReduced 180ms ease-out both !important;
+    }
+
+    html[data-appearance='liquid-glass'] :is(
+        .portfolio-summary__tab--active,
+        .portfolio-excel-insights__tabs button.is-active,
+        .portfolio-excel-insights__periods button.is-active,
+        .market-heatmap__tab--active,
+        .market-heatmap__display-option--active,
+        .period-selector__btn--active,
+        .compound__mode-btn--active,
+        .crisis__tab--active,
+        .spread-sim__mode-btn.is-active,
+        .spread-sim__preset.is-active,
+        .spread-sim__stress-btn.is-active,
+        .portfolio-builder__filter-chip--active,
+        .crisis__scenario--selected,
+        .category-chip.active,
+        .expand-all-btn.active,
+        .theme-option--active,
+        .appearance-option--active,
+        .settings__toggle--active,
+        .breakdown-toggle__label[aria-pressed='true'],
+        .fire__projection-btn--active,
+        .transactions-page__chip--active,
+        .rich-text-editor__button--active,
+        .period-btn.active,
+        .filter-chip.active
+    )::after {
+        animation: liquidGlassSheenReduced 180ms ease-out both !important;
     }
 }

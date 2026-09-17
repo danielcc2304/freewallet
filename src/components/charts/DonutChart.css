@@ -50,20 +50,25 @@
 /* Legend */
 .donut-legend {
     list-style: none;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: var(--spacing-sm) var(--spacing-md);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--spacing-xs);
     margin: var(--spacing-md) 0 0;
     padding: 0;
 }
 
 .donut-legend__item {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     align-items: center;
-    gap: var(--spacing-xs);
-    font-size: var(--font-size-sm);
+    column-gap: var(--spacing-xs);
+    row-gap: 2px;
     min-width: 0;
+    padding: .45rem .55rem;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    background: var(--bg-tertiary);
+    font-size: var(--font-size-sm);
 }
 
 .donut-legend__dot {
@@ -74,7 +79,6 @@
 
 .donut-legend__name {
     min-width: 0;
-    max-width: 13rem;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -83,12 +87,15 @@
 }
 
 .donut-legend__percent {
+    justify-self: end;
     color: var(--text-secondary);
+    font-weight: 700;
 }
 
-.donut-legend__item--more {
+.donut-legend__value {
+    grid-column: 2 / -1;
     color: var(--text-muted);
-    font-style: italic;
+    font-size: var(--font-size-xs);
 }
 
 @media (max-width: 640px) {
@@ -96,7 +103,7 @@
         height: 210px;
     }
 
-    .donut-legend__name {
-        max-width: 10rem;
+    .donut-legend {
+        grid-template-columns: 1fr;
     }
 }

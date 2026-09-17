@@ -35,7 +35,7 @@ import { Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory, isApiEnabled } from '../../services/storageService';
 import { getAssetChartData } from '../../services/apiService';
-import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, createMarketPortfolioHistory, createQuoteSnapshot, normalizePortfolioTransactions, performanceSeries, portfolioMonthlyRows, workbookRiskStats, alignedBenchmark } from '../../services/portfolioPerformance';
+import { alignedBenchmark, buildPortfolioAnalyticsHistory, calculateBenchmarkPeriodPerformance, calculatePeriodPerformance, createMarketPortfolioHistory, createQuoteSnapshot, getPeriodCutoff, normalizeAccumulatedBenchmark, normalizePortfolioTransactions, performanceSeries, portfolioMonthlyRows, workbookRiskStats } from '../../services/portfolioPerformance';
 import { readWorkbookBenchmarkHistory, readWorkbookHistory } from '../../services/portfolioWorkbookHistory';
 import type { HistoricalDataPoint } from '../../types/types';
 import './PortfolioExcelInsights.css';
@@ -98,23 +98,6 @@ const evolutionPeriods: Array<{ value: EvolutionPeriod; label: string }> = [
     { value: 'ALL', label: 'Todo' },
 ];
 
-function getPeriodCutoff(period: EvolutionPeriod, nowMs: number): number | null {
-    if (period === 'ALL') return null;
-    const now = new Date(nowMs);
-    if (period === 'YTD') return new Date(now.getFullYear(), 0, 1).getTime();
-    if (period === '1D') return nowMs - 24 * 60 * 60 * 1000;
-    if (period === '7D') return nowMs - 7 * 24 * 60 * 60 * 1000;
-    const months = period === '3M' ? 3 : 1;
-    // Date#setMonth overflows 31st-day dates (31 March minus one month
-    // becomes 3 March). Clamp to the last valid day of the target month.
-    const day = now.getDate();
-    now.setDate(1);
-    now.setMonth(now.getMonth() - months);
-    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-    now.setDate(Math.min(day, lastDay));
-    return now.getTime();
-}
-
 export function PortfolioExcelInsights({ now }: { now: number }) {
     const { state: { assets, transactions, lastPriceUpdate } } = usePortfolio();
     const [tab, setTab] = useState<InsightTab>('evolution');
@@ -128,6 +111,10 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
     const workbookHistory = useMemo(() => readWorkbookHistory(), []);
     const workbookBenchmarkHistory = useMemo(() => readWorkbookBenchmarkHistory(), []);
     const usingWorkbookHistory = workbookHistory.points.length >= 2;
+    const currentSnapshot = useMemo(
+        () => createQuoteSnapshot(assets, portfolioTransactions, new Date(now).toISOString()),
+        [assets, now, portfolioTransactions],
+    );
     const chartAssetSignature = useMemo(
         () => JSON.stringify(assets
             .map((asset) => ({ id: asset.id, symbol: asset.symbol, isin: asset.isin }))
@@ -166,12 +153,15 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
     }, [assets.length, chartAssets, usingWorkbookHistory]);
 
     const liveHistory = useMemo(() => {
-        if (usingWorkbookHistory) return [];
-        const currentSnapshot = createQuoteSnapshot(assets, portfolioTransactions, new Date(now).toISOString());
         const marketHistory = createMarketPortfolioHistory(assets, portfolioTransactions, assetHistory);
         return buildPortfolioAnalyticsHistory([...getHistory(), ...marketHistory], portfolioTransactions, currentSnapshot || undefined, assets);
-    }, [assetHistory, assets, now, portfolioTransactions, usingWorkbookHistory]);
-    const history = usingWorkbookHistory ? workbookHistory.points : liveHistory;
+    }, [assetHistory, assets, currentSnapshot, portfolioTransactions]);
+    const history = useMemo(
+        () => usingWorkbookHistory
+            ? [...workbookHistory.points, ...(currentSnapshot ? [currentSnapshot] : [])]
+            : liveHistory,
+        [currentSnapshot, liveHistory, usingWorkbookHistory, workbookHistory.points],
+    );
     const analyticsTransactions = usingWorkbookHistory ? workbookHistory.flowTransactions : portfolioTransactions;
     const historyMaxGapDays = usingWorkbookHistory && workbookHistory.source === 'monthly' ? 45 : 16;
     const series = useMemo(
@@ -272,25 +262,16 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
     const periodSeries = useMemo(() => {
         const cutoff = getPeriodCutoff(evolutionPeriod, now);
         if (cutoff === null) return series;
-        return series.filter((point) => new Date(point.date).getTime() >= cutoff);
+        const base = series.filter((point) => point.timestamp <= cutoff).at(-1);
+        const visible = series.filter((point) => point.timestamp > cutoff);
+        return base ? [base, ...visible] : series.filter((point) => point.timestamp >= cutoff);
     }, [evolutionPeriod, now, series]);
     const workbookBenchmarkLine = useMemo(() => {
-        const cutoff = getPeriodCutoff(evolutionPeriod, now);
-        const selected = cutoff === null
-            ? workbookBenchmarkHistory
-            : workbookBenchmarkHistory.filter((point) => Date.parse(point.date) >= cutoff);
-        if (selected.length < 2) return [];
-
-        const base = selected[0];
-        const basePortfolio = 1 + base.portfolioAccumPct / 100;
-        const baseBenchmark = 1 + base.benchmarkAccumPct / 100;
-        if (basePortfolio <= 0 || baseBenchmark <= 0) return [];
-
-        return selected.map((point) => ({
-            date: point.date.slice(0, 10),
-            portfolio: ((1 + point.portfolioAccumPct / 100) / basePortfolio - 1) * 100,
-            benchmark: ((1 + point.benchmarkAccumPct / 100) / baseBenchmark - 1) * 100,
-        }));
+        return normalizeAccumulatedBenchmark(
+            workbookBenchmarkHistory,
+            getPeriodCutoff(evolutionPeriod, now),
+            now,
+        );
     }, [evolutionPeriod, now, workbookBenchmarkHistory]);
     const hasWorkbookBenchmark = workbookBenchmarkLine.length > 1;
     const benchmark = useMemo(
@@ -303,6 +284,23 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         [benchmark, hasWorkbookBenchmark, periodSeries, workbookBenchmarkLine],
     );
     const benchmarkUsesWorkbook = hasWorkbookBenchmark;
+
+    const automaticBenchmarkPerformance = useMemo(() => {
+        if (hasWorkbookBenchmark || benchmark.length === 0) return null;
+        const cutoff = getPeriodCutoff(evolutionPeriod, now);
+        const maxBaseGap = cutoff === null
+            ? Number.POSITIVE_INFINITY
+            : usingWorkbookHistory && workbookHistory.source === 'monthly'
+                ? Math.max(45 * DAY_MS, (now - cutoff) * 1.5)
+                : Math.max(3 * DAY_MS, (now - cutoff) * 1.5);
+        return calculateBenchmarkPeriodPerformance(
+            series,
+            benchmark,
+            cutoff ?? Number.NEGATIVE_INFINITY,
+            now,
+            maxBaseGap,
+        );
+    }, [benchmark, evolutionPeriod, hasWorkbookBenchmark, now, series, usingWorkbookHistory, workbookHistory.source]);
 
     useEffect(() => {
         if (tab !== 'benchmark' || hasWorkbookBenchmark || !isApiEnabled()) return undefined;
@@ -319,8 +317,12 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
             });
         return () => controller.abort();
     }, [evolutionPeriod, hasWorkbookBenchmark, lastPriceUpdate, tab]);
-    const benchmarkReturn = benchmarkLine.at(-1)?.benchmark ?? null;
-    const portfolioBenchmarkReturn = benchmarkLine.at(-1)?.portfolio ?? null;
+    const benchmarkReturn = hasWorkbookBenchmark
+        ? benchmarkLine.at(-1)?.benchmark ?? null
+        : automaticBenchmarkPerformance?.benchmarkReturn ?? benchmarkLine.at(-1)?.benchmark ?? null;
+    const portfolioBenchmarkReturn = hasWorkbookBenchmark
+        ? benchmarkLine.at(-1)?.portfolio ?? null
+        : automaticBenchmarkPerformance?.portfolioReturn ?? benchmarkLine.at(-1)?.portfolio ?? null;
     const hasPortfolioBenchmark = benchmarkLine.length > 1;
     const benchmarkDifference = benchmarkReturn !== null && portfolioBenchmarkReturn !== null ? portfolioBenchmarkReturn - benchmarkReturn : null;
 

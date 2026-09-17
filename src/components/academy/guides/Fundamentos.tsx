@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import { useAppearance } from "../../../context/AppearanceContext";
 import "./Fundamentos.css";
 
 type AcademyLevel = "Principiante" | "Intermedio" | "Avanzado";
@@ -283,6 +284,7 @@ function loadProgress(): ProgressState {
 }
 
 export function Fundamentos() {
+  const { isLiquidGlass } = useAppearance();
   const [progress, setProgress] = useState<ProgressState>(() => loadProgress());
   const [levelsExpanded, setLevelsExpanded] = useState(false);
 
@@ -348,7 +350,7 @@ export function Fundamentos() {
   };
 
   return (
-    <div className="fundamentos">
+    <div className={`fundamentos${isLiquidGlass ? " fundamentos--liquid-glass" : ""}`}>
       <header className="fundamentos__header">
         <div className="fundamentos__eyebrow">Academia</div>
         <h1 className="fundamentos__title">Tu mapa para aprender a invertir</h1>
@@ -431,6 +433,7 @@ export function Fundamentos() {
                       <button
                         type="button"
                         className={`fundamentos__mini-action fundamentos__mini-action--status ${getStatus(module.id) === "done" ? "fundamentos__mini-action--done" : "fundamentos__mini-action--pending"}`}
+                        aria-pressed={getStatus(module.id) === "done"}
                         onClick={() => toggleDone(module.id)}
                       >
                         {getStatus(module.id) === "done"

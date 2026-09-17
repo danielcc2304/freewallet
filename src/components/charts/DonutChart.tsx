@@ -47,8 +47,8 @@ function DonutLegend({ data }: { data: CompositionItem[] }) {
     const sortedItems = getLegendItems(data);
 
     return (
-        <ul className="donut-legend">
-            {sortedItems.slice(0, 6).map((item, index) => {
+        <ul className="donut-legend" aria-label="Distribución de activos">
+            {sortedItems.map((item, index) => {
                 const name = item.name || item.symbol;
                 if (!name) return null;
 
@@ -64,14 +64,12 @@ function DonutLegend({ data }: { data: CompositionItem[] }) {
                         <span className="donut-legend__percent">
                             {item.percentage.toFixed(1)}%
                         </span>
+                        <span className="donut-legend__value">
+                            {formatCurrency(item.value)}
+                        </span>
                     </li>
                 );
             })}
-            {sortedItems.length > 6 && (
-                <li className="donut-legend__item donut-legend__item--more">
-                    +{sortedItems.length - 6} más
-                </li>
-            )}
         </ul>
     );
 }

@@ -24,6 +24,7 @@ import {
     type FinectMetricPoint,
     type FinectStatisticKey,
 } from '../../../services/finect/finectService';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './FundInformationCalculator.css';
 
 const SAMPLE_ISIN = 'IE00BYX5NX33';
@@ -501,12 +502,12 @@ export function FundInformationCalculator() {
 
     return (
         <div className="fund-info">
-            <header className="fund-info__header">
+            <AcademyPageHeader className="fund-info__header" section="Herramientas">
                 <h1>Información de fondo por ISIN</h1>
                 <p>
                     Pega el ISIN de una clase de fondo para consultar su ficha pública de Finect y revisar sus datos más relevantes.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             <section className="fund-info__search-card">
                 <div className="fund-info__search-title">

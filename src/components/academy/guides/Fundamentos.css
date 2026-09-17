@@ -16,20 +16,6 @@
     padding: 1rem 0 0;
 }
 
-.fundamentos__eyebrow {
-    display: inline-flex;
-    padding: 0.35rem 0.7rem;
-    border-radius: 999px;
-    border: 1px solid var(--border-color);
-    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
-    color: var(--accent-primary);
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    margin-bottom: 0.9rem;
-}
-
 .fundamentos__title {
     font-size: clamp(2rem, 4vw, 3rem);
     font-weight: 800;

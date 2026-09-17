@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Shield, TrendingUp, AlertTriangle, Target, Calculator, Info, Coins, Wallet } from 'lucide-react';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './AssetAllocationSim.css';
 
 export function AssetAllocationSim() {
@@ -71,7 +72,7 @@ export function AssetAllocationSim() {
 
     return (
         <div className="alloc-sim">
-            <header className="alloc-sim__header">
+            <AcademyPageHeader className="alloc-sim__header" section="Construir">
                 <div className="alloc-sim__title-group">
                     <div className="alloc-sim__icon-container">
                         <Calculator className="alloc-sim__title-icon" />
@@ -81,7 +82,7 @@ export function AssetAllocationSim() {
                         <p className="alloc-sim__subtitle">Diseña tu asset allocation y entiende el perfil de riesgo.</p>
                     </div>
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             <div className="alloc-sim__content">
                 <div className="alloc-sim__top-section">

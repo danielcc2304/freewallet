@@ -10,6 +10,7 @@ import {
     ResponsiveContainer
 } from 'recharts';
 import { CalculatorCard } from './CalculatorCard';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import {
     COMPOUNDING_FREQUENCY_OPTIONS,
     calculateCompoundInterestProjection,
@@ -289,7 +290,7 @@ export function CompoundInterestCalc() {
 
     return (
         <div className="compound">
-            <header className="compound__header">
+            <AcademyPageHeader className="compound__header" section="Herramientas">
                 <div className="compound__title-group">
                     <TrendingUp className="compound__title-icon" size={32} />
                     <div className="compound__title-content">
@@ -299,7 +300,7 @@ export function CompoundInterestCalc() {
                         </p>
                     </div>
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             {/* Calculation Mode Selector */}
             <div className="compound__mode-selector">

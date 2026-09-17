@@ -4,6 +4,7 @@ import {
     TrendingUp, PieChart, CheckCircle2, ChevronRight
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './InvestorProfileTest.css';
 
 interface Question {
@@ -127,10 +128,10 @@ export function InvestorProfileTest() {
 
     return (
         <div className="investor-profile">
-            <header className="investor-profile__header">
+            <AcademyPageHeader className="investor-profile__header" section="Construir">
                 <h1>Test de Perfil de Inversor</h1>
                 <p>Descubre qué tipo de inversor eres y qué estrategia se adapta mejor a tu psicología y objetivos.</p>
-            </header>
+            </AcademyPageHeader>
 
             <div className="quiz-card">
                 {step === 'start' && (

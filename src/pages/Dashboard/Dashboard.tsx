@@ -9,7 +9,7 @@ import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan'
 import { PortfolioComposition } from '../../components/dashboard/PortfolioComposition';
 import { AssetDetail } from '../../components/dashboard/AssetDetail';
 import { UnderlyingAssetDetail } from '../../components/dashboard/UnderlyingAssetDetail';
-import { Button, Card, CardContent, Modal } from '../../components/ui';
+import { Button, Card, CardContent, Modal, PageHeader } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory, isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, PerformerData, Asset, AssetHolding } from '../../types/types';
@@ -258,8 +258,8 @@ export function Dashboard() {
 
     return (
         <div className="dashboard">
-            <div className="dashboard__header">
-                <div>
+            <PageHeader className="dashboard__header" eyebrow="Cartera">
+                <div className="dashboard__header-content">
                     <h1 className="dashboard__title">Dashboard</h1>
                     <p className="dashboard__subtitle">
                         Seguimiento automático de tu cartera
@@ -275,7 +275,7 @@ export function Dashboard() {
                         lastPriceUpdate={lastPriceUpdate}
                     />
                 </div>
-            </div>
+            </PageHeader>
 
             {updatingPrices && (
                 <div className="dashboard__updating-banner">

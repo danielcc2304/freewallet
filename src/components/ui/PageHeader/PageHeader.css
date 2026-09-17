@@ -1,0 +1,91 @@
+.page-header {
+    --page-header-inline-padding: 2rem;
+    position: relative;
+    isolation: isolate;
+    margin-bottom: 1.4rem;
+    padding: 3.75rem var(--page-header-inline-padding) 2rem;
+    overflow: hidden;
+    border: 1px solid var(--border-primary);
+    border-radius: 18px;
+    background:
+        radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.14), transparent 45%),
+        radial-gradient(circle at 90% 20%, rgba(59, 130, 246, 0.14), transparent 42%),
+        var(--bg-secondary);
+    box-shadow: var(--shadow-sm);
+    text-align: left;
+}
+
+.page-header::after {
+    position: absolute;
+    inset: 1px;
+    z-index: -1;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: inherit;
+    content: '';
+    pointer-events: none;
+}
+
+.page-header__eyebrow {
+    position: absolute;
+    top: 1.15rem;
+    left: var(--page-header-inline-padding);
+    display: inline-flex;
+    align-items: center;
+    min-height: 1.65rem;
+    padding: 0.3rem 0.7rem;
+    border: 1px solid rgba(var(--accent-rgb), 0.24);
+    border-radius: 999px;
+    background: rgba(var(--accent-rgb), 0.1);
+    color: var(--accent-primary);
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1;
+    text-transform: uppercase;
+}
+
+.page-header h1 {
+    max-width: 820px;
+    margin: 0 0 0.65rem;
+    color: var(--text-primary);
+    font-size: clamp(1.6rem, 2.3vw, 2.35rem);
+    font-weight: 800;
+    line-height: 1.2;
+}
+
+.page-header p {
+    max-width: 820px;
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.7;
+}
+
+@media (max-width: 640px) {
+    .page-header {
+        --page-header-inline-padding: 1.25rem;
+        margin-bottom: 0.75rem;
+        padding: 3.15rem 1.25rem 1.25rem;
+        border-radius: 14px;
+    }
+
+    .page-header__eyebrow {
+        top: 1rem;
+    }
+
+    .page-header h1 {
+        margin-bottom: 0.45rem;
+        font-size: 1.35rem;
+        line-height: 1.22;
+    }
+
+    .page-header p {
+        font-size: 0.9rem;
+        line-height: 1.55;
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    .page-header::after {
+        border-color: var(--border-secondary);
+    }
+}

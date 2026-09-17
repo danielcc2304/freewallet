@@ -1,7 +1,15 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, type CSSProperties } from 'react';
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend } from 'recharts';
 import { Shield, TrendingUp, AlertTriangle, Target, Calculator, Info, Coins, Wallet } from 'lucide-react';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './AssetAllocationSim.css';
+
+const ASSET_STATS = {
+    stocks: { return: 0.08, risk: 0.15, label: 'Renta Variable' },
+    bonds: { return: 0.03, risk: 0.05, label: 'Renta Fija' },
+    crypto: { return: 0.20, risk: 0.80, label: 'Criptoactivos' },
+    cash: { return: 0.01, risk: 0.00, label: 'Efectivo' }
+} as const;
 
 export function AssetAllocationSim() {
     // Assets allocation (%)
@@ -19,15 +27,6 @@ export function AssetAllocationSim() {
     // Derived values
     const total = stocksNum + bondsNum + cryptoNum + cashNum;
     const isOver100 = total > 100;
-
-    // Simplified stats for assets
-    // [Expected Return, Volatility/Risk]
-    const ASSET_STATS = {
-        stocks: { return: 0.08, risk: 0.15, label: 'Renta Variable' },
-        bonds: { return: 0.03, risk: 0.05, label: 'Renta Fija' },
-        crypto: { return: 0.20, risk: 0.80, label: 'Criptoactivos' },
-        cash: { return: 0.01, risk: 0.00, label: 'Efectivo' }
-    };
 
     const portfolioStats = useMemo(() => {
         const s = stocksNum / 100;
@@ -71,7 +70,7 @@ export function AssetAllocationSim() {
 
     return (
         <div className="alloc-sim">
-            <header className="alloc-sim__header">
+            <AcademyPageHeader className="alloc-sim__header" section="Construir">
                 <div className="alloc-sim__title-group">
                     <div className="alloc-sim__icon-container">
                         <Calculator className="alloc-sim__title-icon" />
@@ -81,7 +80,7 @@ export function AssetAllocationSim() {
                         <p className="alloc-sim__subtitle">Diseña tu asset allocation y entiende el perfil de riesgo.</p>
                     </div>
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             <div className="alloc-sim__content">
                 <div className="alloc-sim__top-section">
@@ -117,7 +116,7 @@ export function AssetAllocationSim() {
                                     ))}
                                 </Pie>
                                 <Tooltip
-                                    formatter={(value: any) => `${value}%`}
+                                    formatter={(value: unknown) => `${value}%`}
                                     contentStyle={{
                                         backgroundColor: 'var(--bg-card)',
                                         border: '1px solid var(--border-primary)',
@@ -195,7 +194,7 @@ export function AssetAllocationSim() {
                                 value={stocksNum}
                                 onChange={(e) => setStocks(Number(e.target.value))}
                                 className="custom-slider"
-                                style={{ '--progress': `${stocksNum}%` } as any}
+                                style={{ '--progress': `${stocksNum}%` } as CSSProperties}
                             />
                         </div>
 
@@ -219,7 +218,7 @@ export function AssetAllocationSim() {
                                 value={bondsNum}
                                 onChange={(e) => setBonds(Number(e.target.value))}
                                 className="custom-slider"
-                                style={{ '--progress': `${bondsNum}%` } as any}
+                                style={{ '--progress': `${bondsNum}%` } as CSSProperties}
                             />
                         </div>
 
@@ -243,7 +242,7 @@ export function AssetAllocationSim() {
                                 value={cryptoNum}
                                 onChange={(e) => setCrypto(Number(e.target.value))}
                                 className="custom-slider"
-                                style={{ '--progress': `${cryptoNum}%` } as any}
+                                style={{ '--progress': `${cryptoNum}%` } as CSSProperties}
                             />
                         </div>
 
@@ -267,7 +266,7 @@ export function AssetAllocationSim() {
                                 value={cashNum}
                                 onChange={(e) => setCash(Number(e.target.value))}
                                 className="custom-slider"
-                                style={{ '--progress': `${cashNum}%` } as any}
+                                style={{ '--progress': `${cashNum}%` } as CSSProperties}
                             />
                         </div>
                     </div>

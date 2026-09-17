@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useAppearance } from "../../../context/AppearanceContext";
+import { AcademyPageHeader } from "../layout/AcademyPageHeader";
 import "./Fundamentos.css";
 
 type AcademyLevel = "Principiante" | "Intermedio" | "Avanzado";
@@ -351,14 +352,13 @@ export function Fundamentos() {
 
   return (
     <div className={`fundamentos${isLiquidGlass ? " fundamentos--liquid-glass" : ""}`}>
-      <header className="fundamentos__header">
-        <div className="fundamentos__eyebrow">Academia</div>
+      <AcademyPageHeader className="fundamentos__header" section="Aprender">
         <h1 className="fundamentos__title">Tu mapa para aprender a invertir</h1>
         <p className="fundamentos__description">
           Aprende desde 0 sobre el mundo de la inversión en una ruta guiada para
           perfiles de todo tipo.
         </p>
-      </header>
+      </AcademyPageHeader>
 
       <section className="fundamentos__summary">
         <article className="fundamentos__summary-card">

@@ -98,14 +98,15 @@ async function verifyOne(fund: Fund): Promise<Result> {
             titleFound: undefined, // simplify for now
             problems
         };
-    } catch (e: any) {
+    } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : String(e);
         return {
             id: fund.id,
             ok: false,
             status: 0,
             isinExpected: fund.isin,
             nameExpected: fund.name,
-            problems: [`Error: ${e?.message ?? String(e)}`]
+            problems: [`Error: ${message}`]
         };
     }
 }
@@ -122,7 +123,7 @@ async function main() {
     }
 
     // Limpiar posibles comentarios o referencias de chatgpt en el array extraído si existen
-    let arrayStr = match[1].replace(/\/\/ :contentReference.*/g, "");
+    const arrayStr = match[1].replace(/\/\/ :contentReference.*/g, "");
 
     const BEST_FUNDS: Fund[] = Function(`"use strict"; return (${arrayStr});`)();
 

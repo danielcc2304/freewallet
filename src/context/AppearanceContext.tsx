@@ -42,7 +42,6 @@ const LIQUID_GLASS_POINTER_TARGETS = [
     '.market-heatmap__floating-refresh',
     '.terms__back-fab',
     '.not-found__button',
-    '.fundamentos__eyebrow',
     '.fundamentos__collapse-toggle',
     '.fundamentos__mini-card',
     '.fundamentos__mini-action',
@@ -212,6 +211,7 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- Context modules intentionally export the provider and its hook.
 export function useAppearance() {
     const context = useContext(AppearanceContext);
     if (context === undefined) {

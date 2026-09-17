@@ -1,16 +1,17 @@
 import { Link } from 'react-router-dom';
 import { Calculator, TrendingUp, Flame, Calendar, PiggyBank, Receipt, Scale } from 'lucide-react';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './Calculators.css';
 
 export function Calculators() {
     return (
         <div className="calculators">
-            <header className="calculators__header">
+            <AcademyPageHeader className="calculators__header" section="Herramientas">
                 <h1 className="calculators__title">Calculadoras Financieras</h1>
                 <p className="calculators__description">
                     Herramientas interactivas para planificar tu futuro financiero.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             <div className="calculators__disclaimer">
                 ⚠️ <strong>Importante:</strong> Estas calculadoras asumen rentabilidades constantes, lo cual no refleja

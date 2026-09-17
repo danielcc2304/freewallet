@@ -4,8 +4,10 @@
  * a quieter standard material so hierarchy and financial data stay legible.
  */
 :root[data-appearance='liquid-glass'] {
-    --glass-blur: 30px;
-    --glass-content-blur: 12px;
+    --glass-blur: 26px;
+    --glass-content-blur: 10px;
+    --glass-control-blur: 16px;
+    --glass-overlay-blur: 24px;
     --glass-saturate: 155%;
     --glass-regular: rgba(26, 39, 57, .58);
     --glass-regular-strong: rgba(15, 26, 41, .72);
@@ -166,8 +168,8 @@ html[data-appearance='liquid-glass'] .sidebar {
         inset 0 1px 0 var(--glass-edge-bright),
         inset 1px 0 0 rgba(255, 255, 255, .08),
         inset -1px 0 0 rgba(0, 0, 0, .12);
-    backdrop-filter: blur(34px) saturate(165%) contrast(1.04);
-    -webkit-backdrop-filter: blur(34px) saturate(165%) contrast(1.04);
+    backdrop-filter: blur(var(--glass-blur)) saturate(155%) contrast(1.03);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(155%) contrast(1.03);
 }
 
 html[data-appearance='liquid-glass'] .sidebar::after {
@@ -243,8 +245,8 @@ html[data-appearance='liquid-glass'] :is(
         linear-gradient(150deg, rgba(255, 255, 255, .09), transparent 45%),
         var(--glass-regular);
     box-shadow: 0 10px 28px rgba(0, 0, 0, .16), inset 0 1px 0 var(--glass-edge-bright);
-    backdrop-filter: blur(22px) saturate(155%) contrast(1.03);
-    -webkit-backdrop-filter: blur(22px) saturate(155%) contrast(1.03);
+    backdrop-filter: blur(var(--glass-control-blur)) saturate(150%) contrast(1.02);
+    -webkit-backdrop-filter: blur(var(--glass-control-blur)) saturate(150%) contrast(1.02);
 }
 
 /* Pointer-responsive specular highlight for interactive glass. */
@@ -359,8 +361,8 @@ html[data-appearance='liquid-glass'] :is(
         var(--glass-clear);
     color: var(--text-primary);
     box-shadow: 0 9px 24px rgba(0, 0, 0, .15), inset 0 1px 0 var(--glass-edge-bright);
-    backdrop-filter: blur(18px) saturate(150%);
-    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    backdrop-filter: blur(var(--glass-control-blur)) saturate(145%);
+    -webkit-backdrop-filter: blur(var(--glass-control-blur)) saturate(145%);
 }
 
 html[data-appearance='liquid-glass'] :is(
@@ -384,8 +386,8 @@ html[data-appearance='liquid-glass'] .breakdown-toggle__label {
         linear-gradient(145deg, rgba(255, 255, 255, .12), transparent 54%),
         var(--glass-clear);
     box-shadow: 0 8px 20px rgba(0, 0, 0, .12), inset 0 1px 0 var(--glass-edge-bright);
-    backdrop-filter: blur(18px) saturate(150%);
-    -webkit-backdrop-filter: blur(18px) saturate(150%);
+    backdrop-filter: blur(var(--glass-control-blur)) saturate(145%);
+    -webkit-backdrop-filter: blur(var(--glass-control-blur)) saturate(145%);
 }
 
 html[data-appearance='liquid-glass'] .breakdown-toggle__label:hover {
@@ -429,8 +431,8 @@ html[data-appearance='liquid-glass'] .dashboard__floating-add {
         linear-gradient(135deg, rgba(16, 185, 129, .9), rgba(37, 99, 235, .76));
     color: #fff;
     box-shadow: 0 15px 34px rgba(16, 185, 129, .24), inset 0 1px 0 rgba(255, 255, 255, .44);
-    backdrop-filter: blur(16px) saturate(155%);
-    -webkit-backdrop-filter: blur(16px) saturate(155%);
+    backdrop-filter: blur(var(--glass-control-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-control-blur)) saturate(150%);
 }
 
 html[data-appearance='liquid-glass'] .btn--primary:hover:not(:disabled),
@@ -499,7 +501,6 @@ html[data-appearance='liquid-glass'] :is(
     overflow: hidden;
     animation: liquidGlassSelection 520ms cubic-bezier(.22, .8, .24, 1) both;
     transform-origin: center;
-    will-change: transform, filter;
 }
 
 :is(
@@ -534,7 +535,6 @@ html[data-appearance='liquid-glass'] :is(
     content: '';
     pointer-events: none;
     background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, .48) 50%, transparent 60%);
-    filter: blur(3px);
     opacity: 0;
     transform: translateX(-125%) skewX(-16deg);
     animation: liquidGlassSheen 680ms cubic-bezier(.2, .75, .25, 1) both;
@@ -579,7 +579,6 @@ html[data-appearance='liquid-glass'] :is(
     overflow: hidden;
     animation: liquidGlassSelection 520ms cubic-bezier(.22, .8, .24, 1) both;
     transform-origin: center;
-    will-change: transform, filter;
 }
 
 .liquid-glass-selection--pulse::after {
@@ -589,7 +588,6 @@ html[data-appearance='liquid-glass'] :is(
     content: '';
     pointer-events: none;
     background: linear-gradient(105deg, transparent 40%, rgba(255, 255, 255, .48) 50%, transparent 60%);
-    filter: blur(3px);
     opacity: 0;
     transform: translateX(-125%) skewX(-16deg);
     animation: liquidGlassSheen 680ms cubic-bezier(.2, .75, .25, 1) both;
@@ -602,12 +600,12 @@ html[data-appearance='liquid-glass'] :is(
 
 @keyframes liquidGlassSelection {
     0% {
-        filter: blur(.55px) saturate(1.25);
+        opacity: .9;
         transform: scale(.965, .94);
     }
 
     38% {
-        filter: blur(0) saturate(1.12);
+        opacity: 1;
         transform: scale(1.025, .985);
     }
 
@@ -616,7 +614,7 @@ html[data-appearance='liquid-glass'] :is(
     }
 
     100% {
-        filter: none;
+        opacity: 1;
         transform: scale(1);
     }
 }
@@ -670,8 +668,8 @@ html[data-appearance='liquid-glass'] .live-plan input {
     border-color: var(--glass-edge-soft);
     background: rgba(255, 255, 255, .065);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08), inset 0 -1px 0 rgba(0, 0, 0, .08);
-    backdrop-filter: blur(14px) saturate(135%);
-    -webkit-backdrop-filter: blur(14px) saturate(135%);
+    backdrop-filter: blur(12px) saturate(132%);
+    -webkit-backdrop-filter: blur(12px) saturate(132%);
 }
 
 html[data-appearance='liquid-glass'] input:focus,
@@ -686,8 +684,8 @@ html[data-appearance='liquid-glass'] .settings__input:focus {
 /* Presentation layer: regular glass for dialogs, with a stronger dimming field. */
 html[data-appearance='liquid-glass'] .modal-backdrop {
     background: rgba(2, 8, 18, .48);
-    backdrop-filter: blur(18px) saturate(125%);
-    -webkit-backdrop-filter: blur(18px) saturate(125%);
+    backdrop-filter: blur(10px) saturate(120%);
+    -webkit-backdrop-filter: blur(10px) saturate(120%);
 }
 
 html[data-appearance='liquid-glass'] .modal {
@@ -698,8 +696,8 @@ html[data-appearance='liquid-glass'] .modal {
         linear-gradient(145deg, rgba(255, 255, 255, .11), transparent 36%),
         var(--glass-regular-strong);
     box-shadow: var(--shadow-lg);
-    backdrop-filter: blur(36px) saturate(160%) contrast(1.04);
-    -webkit-backdrop-filter: blur(36px) saturate(160%) contrast(1.04);
+    backdrop-filter: blur(var(--glass-overlay-blur)) saturate(150%) contrast(1.03);
+    -webkit-backdrop-filter: blur(var(--glass-overlay-blur)) saturate(150%) contrast(1.03);
 }
 
 html[data-appearance='liquid-glass'] .modal__header {
@@ -723,8 +721,8 @@ html[data-appearance='liquid-glass'] :is(
         linear-gradient(145deg, rgba(255, 255, 255, .075), transparent 46%),
         rgba(255, 255, 255, .045);
     box-shadow: 0 10px 24px rgba(0, 0, 0, .1), inset 0 1px 0 rgba(255, 255, 255, .075);
-    backdrop-filter: blur(16px) saturate(135%);
-    -webkit-backdrop-filter: blur(16px) saturate(135%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 html[data-appearance='liquid-glass'] .asset-detail__header,
@@ -791,8 +789,8 @@ html[data-appearance='liquid-glass'] .appearance-option {
         linear-gradient(145deg, rgba(255, 255, 255, .08), transparent 54%),
         rgba(255, 255, 255, .055);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .1);
-    backdrop-filter: blur(16px) saturate(140%);
-    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(var(--glass-control-blur)) saturate(138%);
+    -webkit-backdrop-filter: blur(var(--glass-control-blur)) saturate(138%);
 }
 
 html[data-appearance='liquid-glass'] .theme-option:hover,
@@ -885,14 +883,33 @@ html[data-appearance='liquid-glass'] :is(
     -webkit-backdrop-filter: blur(var(--glass-content-blur)) saturate(120%);
 }
 
+/* Inner dashboard panels already sit inside a blurred Card or workspace.
+   A second backdrop filter adds cost without adding believable depth, so the
+   inner layer relies on tint, edge light and spacing instead. */
+html[data-appearance='liquid-glass'] :is(
+    .portfolio-composition__consolidated,
+    .live-plan__summary > div,
+    .portfolio-analytics__kpis > div,
+    .portfolio-excel-insights__kpis > div,
+    .portfolio-excel-insights__benchmark-kpis > div,
+    .donut-legend__item,
+    .portfolio-excel-insights__panel,
+    .asset-detail__fund-sections section,
+    .market-heatmap__sector-summary,
+    .settings__toggle-card
+) {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
 html[data-appearance='liquid-glass'] .donut-legend__item {
     border-color: var(--border-primary);
     background:
         linear-gradient(145deg, rgba(255, 255, 255, .055), transparent 48%),
         var(--glass-clear);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .07);
-    backdrop-filter: blur(12px) saturate(125%);
-    -webkit-backdrop-filter: blur(12px) saturate(125%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 html[data-appearance='liquid-glass'] :is(
@@ -923,8 +940,8 @@ html[data-appearance='liquid-glass'] :is(
         linear-gradient(150deg, rgba(255, 255, 255, .08), transparent 45%),
         var(--glass-regular);
     box-shadow: 0 9px 24px rgba(0, 0, 0, .13), inset 0 1px 0 var(--glass-edge-bright);
-    backdrop-filter: blur(20px) saturate(150%);
-    -webkit-backdrop-filter: blur(20px) saturate(150%);
+    backdrop-filter: blur(var(--glass-control-blur)) saturate(145%);
+    -webkit-backdrop-filter: blur(var(--glass-control-blur)) saturate(145%);
 }
 
 html[data-appearance='liquid-glass'] .glossary-controls {
@@ -935,8 +952,8 @@ html[data-appearance='liquid-glass'] .glossary-controls {
         linear-gradient(145deg, rgba(255, 255, 255, .08), transparent 42%),
         var(--glass-regular-strong);
     box-shadow: 0 14px 36px rgba(0, 0, 0, .16), inset 0 1px 0 var(--glass-edge-bright);
-    backdrop-filter: blur(24px) saturate(155%);
-    -webkit-backdrop-filter: blur(24px) saturate(155%);
+    backdrop-filter: blur(var(--glass-overlay-blur)) saturate(148%);
+    -webkit-backdrop-filter: blur(var(--glass-overlay-blur)) saturate(148%);
 }
 
 html[data-appearance='liquid-glass'] :is(
@@ -959,8 +976,8 @@ html[data-appearance='liquid-glass'] :is(
         linear-gradient(145deg, rgba(255, 255, 255, .09), transparent 54%),
         var(--glass-clear);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .11);
-    backdrop-filter: blur(16px) saturate(145%);
-    -webkit-backdrop-filter: blur(16px) saturate(145%);
+    backdrop-filter: blur(var(--glass-control-blur)) saturate(142%);
+    -webkit-backdrop-filter: blur(var(--glass-control-blur)) saturate(142%);
 }
 
 html[data-appearance='liquid-glass'] :is(
@@ -1046,8 +1063,8 @@ html[data-appearance='liquid-glass'] :is(
         linear-gradient(145deg, rgba(255, 255, 255, .11), transparent 38%),
         var(--glass-regular-strong);
     box-shadow: var(--shadow-lg);
-    backdrop-filter: blur(28px) saturate(160%);
-    -webkit-backdrop-filter: blur(28px) saturate(160%);
+    backdrop-filter: blur(var(--glass-overlay-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-overlay-blur)) saturate(150%);
 }
 
 html[data-appearance='liquid-glass'] .search-results__item:hover,
@@ -1163,8 +1180,8 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
         0 22px 54px rgba(0, 0, 0, .18),
         inset 0 1px 0 var(--glass-edge-bright),
         inset 0 -1px 0 rgba(0, 0, 0, .08);
-    backdrop-filter: blur(28px) saturate(150%);
-    -webkit-backdrop-filter: blur(28px) saturate(150%);
+    backdrop-filter: blur(var(--glass-overlay-blur)) saturate(145%);
+    -webkit-backdrop-filter: blur(var(--glass-overlay-blur)) saturate(145%);
     text-align: left;
 }
 
@@ -1186,8 +1203,8 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
         linear-gradient(145deg, rgba(255, 255, 255, .16), transparent 54%),
         var(--glass-clear);
     box-shadow: inset 0 1px 0 var(--glass-edge-bright), 0 8px 20px rgba(0, 0, 0, .1);
-    backdrop-filter: blur(16px) saturate(145%);
-    -webkit-backdrop-filter: blur(16px) saturate(145%);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 .fundamentos.fundamentos--liquid-glass .fundamentos__summary {
@@ -1203,8 +1220,8 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
         linear-gradient(145deg, rgba(255, 255, 255, .085), transparent 48%),
         var(--glass-clear);
     box-shadow: 0 10px 26px rgba(0, 0, 0, .1), inset 0 1px 0 var(--glass-edge-bright);
-    backdrop-filter: blur(18px) saturate(140%);
-    -webkit-backdrop-filter: blur(18px) saturate(140%);
+    backdrop-filter: blur(var(--glass-content-blur)) saturate(128%);
+    -webkit-backdrop-filter: blur(var(--glass-content-blur)) saturate(128%);
 }
 
 .fundamentos.fundamentos--liquid-glass .fundamentos__summary-card span {
@@ -1234,8 +1251,8 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
         var(--glass-clear);
     color: var(--text-primary);
     box-shadow: 0 8px 20px rgba(0, 0, 0, .1), inset 0 1px 0 var(--glass-edge-bright);
-    backdrop-filter: blur(16px) saturate(145%);
-    -webkit-backdrop-filter: blur(16px) saturate(145%);
+    backdrop-filter: blur(var(--glass-control-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--glass-control-blur)) saturate(140%);
 }
 
 .fundamentos.fundamentos--liquid-glass .fundamentos__level-head {
@@ -1246,8 +1263,8 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
         linear-gradient(145deg, rgba(255, 255, 255, .075), transparent 52%),
         var(--glass-clear);
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, .11);
-    backdrop-filter: blur(14px) saturate(135%);
-    -webkit-backdrop-filter: blur(14px) saturate(135%);
+    backdrop-filter: blur(var(--glass-content-blur)) saturate(126%);
+    -webkit-backdrop-filter: blur(var(--glass-content-blur)) saturate(126%);
 }
 
 .fundamentos.fundamentos--liquid-glass .fundamentos__level-head h3,
@@ -1277,8 +1294,8 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
         linear-gradient(145deg, rgba(255, 255, 255, .085), transparent 52%),
         var(--glass-clear);
     box-shadow: 0 10px 24px rgba(0, 0, 0, .1), inset 0 1px 0 rgba(255, 255, 255, .1);
-    backdrop-filter: blur(16px) saturate(140%);
-    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    backdrop-filter: blur(var(--glass-content-blur)) saturate(128%);
+    -webkit-backdrop-filter: blur(var(--glass-content-blur)) saturate(128%);
 }
 
 .fundamentos.fundamentos--liquid-glass :is(
@@ -1384,8 +1401,8 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
         var(--glass-clear);
     color: var(--text-primary);
     box-shadow: inset 0 1px 0 var(--glass-edge-bright);
-    backdrop-filter: blur(14px) saturate(140%);
-    -webkit-backdrop-filter: blur(14px) saturate(140%);
+    backdrop-filter: blur(12px) saturate(134%);
+    -webkit-backdrop-filter: blur(12px) saturate(134%);
 }
 
 .fundamentos.fundamentos--liquid-glass .fundamentos__mini-action--pending {
@@ -1421,8 +1438,8 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
     border: 1px solid var(--glass-edge-soft);
     border-radius: 16px;
     box-shadow: 0 10px 24px rgba(0, 0, 0, .12), inset 0 1px 0 var(--glass-edge-bright);
-    backdrop-filter: blur(16px) saturate(145%);
-    -webkit-backdrop-filter: blur(16px) saturate(145%);
+    backdrop-filter: blur(var(--glass-control-blur)) saturate(140%);
+    -webkit-backdrop-filter: blur(var(--glass-control-blur)) saturate(140%);
 }
 
 .fundamentos.fundamentos--liquid-glass .fundamentos__button--primary {
@@ -1509,6 +1526,25 @@ html[data-theme='light'] .fundamentos.fundamentos--liquid-glass .fundamentos__mi
    as a grey strip at the edge of each panel. Keep depth with an inner rim so
    reusable cards and Academy surfaces remain continuous with the canvas. */
 @media (max-width: 640px) {
+    /* Fixed multi-layer backgrounds are expensive to recomposite while a
+       touch scroll is in progress. Keep the same glass palette, but let the
+       canvas move with the document on narrow screens. */
+    html[data-appearance='liquid-glass'] body,
+    html[data-appearance='liquid-glass'] .layout__content {
+        background-attachment: scroll !important;
+    }
+
+    /* The fund sheet is a long, content-heavy view. Use a light inner rim for
+       its panels on mobile so several large projected shadows do not become
+       separate scrolling paint regions. */
+    html[data-appearance='liquid-glass'] .fund-info :is(
+        .fund-info__search-card,
+        .fund-info__section,
+        .fund-info__empty-state
+    ) {
+        box-shadow: inset 0 1px 0 var(--glass-edge-bright), inset 0 -1px 0 rgba(0, 0, 0, .06);
+    }
+
     html[data-appearance='liquid-glass'] :is(
         .card,
         .academy__content > * > header
@@ -1578,7 +1614,62 @@ html[data-theme='light'] .fundamentos.fundamentos--liquid-glass .fundamentos__mi
     }
 }
 
+/* Touch devices get the same material hierarchy without stacking live
+   backdrop filters across a scrolling document. Navigation and dialogs keep
+   one restrained optical layer; content glass is rendered with tint, border
+   and specular highlights, which is substantially cheaper to composite. */
+@media (max-width: 640px), (hover: none) and (pointer: coarse) {
+    html[data-appearance='liquid-glass'] body,
+    html[data-appearance='liquid-glass'] .layout__content {
+        background-attachment: scroll !important;
+    }
+
+    html[data-appearance='liquid-glass'] .layout__content *,
+    html[data-appearance='liquid-glass'] .terms * {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    .fundamentos.fundamentos--liquid-glass::before {
+        filter: none;
+    }
+
+    html[data-appearance='liquid-glass'] .sidebar {
+        backdrop-filter: blur(18px) saturate(140%) !important;
+        -webkit-backdrop-filter: blur(18px) saturate(140%) !important;
+    }
+
+    html[data-appearance='liquid-glass'] .sidebar-overlay {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+    }
+
+    html[data-appearance='liquid-glass'] .modal-backdrop {
+        backdrop-filter: blur(4px) saturate(112%) !important;
+        -webkit-backdrop-filter: blur(4px) saturate(112%) !important;
+    }
+
+    html[data-appearance='liquid-glass'] .modal {
+        backdrop-filter: blur(18px) saturate(138%) !important;
+        -webkit-backdrop-filter: blur(18px) saturate(138%) !important;
+    }
+}
+
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    :root[data-appearance='liquid-glass'] {
+        --glass-content: rgba(11, 20, 33, .96);
+        --glass-regular: rgba(26, 39, 57, .96);
+        --glass-regular-strong: rgba(15, 26, 41, .98);
+        --glass-clear: rgba(29, 46, 68, .94);
+    }
+
+    :root[data-theme='light'][data-appearance='liquid-glass'] {
+        --glass-content: rgba(248, 252, 255, .97);
+        --glass-regular: rgba(247, 251, 255, .96);
+        --glass-regular-strong: rgba(247, 251, 255, .98);
+        --glass-clear: rgba(255, 255, 255, .92);
+    }
+
     html[data-appearance='liquid-glass'] .card,
     html[data-appearance='liquid-glass'] .sidebar,
     html[data-appearance='liquid-glass'] .modal,
@@ -1586,6 +1677,29 @@ html[data-theme='light'] .fundamentos.fundamentos--liquid-glass .fundamentos__mi
     html[data-appearance='liquid-glass'] select,
     html[data-appearance='liquid-glass'] textarea {
         background: var(--bg-secondary);
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    :root[data-appearance='liquid-glass'] {
+        --glass-content: rgba(11, 20, 33, .97);
+        --glass-regular: rgba(26, 39, 57, .96);
+        --glass-regular-strong: rgba(15, 26, 41, .98);
+        --glass-clear: rgba(29, 46, 68, .94);
+    }
+
+    :root[data-theme='light'][data-appearance='liquid-glass'] {
+        --glass-content: rgba(248, 252, 255, .98);
+        --glass-regular: rgba(247, 251, 255, .97);
+        --glass-regular-strong: rgba(247, 251, 255, .99);
+        --glass-clear: rgba(255, 255, 255, .94);
+    }
+
+    html[data-appearance='liquid-glass'] *,
+    html[data-appearance='liquid-glass'] *::before,
+    html[data-appearance='liquid-glass'] *::after {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
     }
 }
 

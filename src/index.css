@@ -71,10 +71,11 @@
   --transition-slow: 400ms ease;
 
   /* Layout */
-  --sidebar-width: 260px;
+  --sidebar-width: 288px;
   --sidebar-collapsed: 72px;
   --header-height: 64px;
-  --content-max-width: 1400px;
+  /* Page shells use the full content canvas, like Dashboard and Portfolio. */
+  --content-max-width: 100%;
 }
 
 /* Light Theme Overrides */

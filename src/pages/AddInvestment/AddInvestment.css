@@ -1,5 +1,6 @@
 .add-investment {
-    width: min(100%, 780px);
+    width: 100%;
+    max-width: var(--content-max-width, 100%);
     margin: 0 auto;
     animation: fadeIn var(--transition-base) ease-out;
 }

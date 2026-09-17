@@ -19,13 +19,14 @@ import {
     EyeOff,
     Briefcase,
     TrendingDown,
-    Calendar
+    Calendar,
+    type LucideIcon
 } from 'lucide-react';
 import { SCENARIOS } from '../../../data/academyData';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './Scenarios.css';
 
-const IconMap: Record<string, any> = {
+const IconMap: Record<string, LucideIcon> = {
     Shield,
     TrendingUp,
     XCircle,

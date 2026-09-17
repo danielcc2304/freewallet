@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Percent, Info, ShieldCheck, Landmark, Receipt, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
@@ -21,6 +21,22 @@ const SAVINGS_TAX_BRACKETS = [
     { limit: Infinity, rate: 0.30 }
 ] as const;
 
+function readStoredTaxSimulator(): Partial<TaxSimulatorStorage> {
+    if (typeof window === 'undefined') return {};
+
+    try {
+        const raw = window.localStorage.getItem(TAX_SIMULATOR_STORAGE_KEY);
+        if (!raw) return {};
+
+        const stored = JSON.parse(raw) as unknown;
+        return stored && typeof stored === 'object'
+            ? stored as Partial<TaxSimulatorStorage>
+            : {};
+    } catch {
+        return {};
+    }
+}
+
 function calculateSavingsTaxes(amount: number) {
     let tax = 0;
     let remaining = amount;
@@ -41,23 +57,12 @@ function calculateSavingsTaxes(amount: number) {
 }
 
 export function TaxSimulator() {
-    const [gain, setGain] = useState<number | string>(10000);
-    const [holdingYears, setHoldingYears] = useState<number | string>(5);
-    const [simulateAnnualTransfers, setSimulateAnnualTransfers] = useState(true);
-
-    useEffect(() => {
-        try {
-            const raw = localStorage.getItem(TAX_SIMULATOR_STORAGE_KEY);
-            if (!raw) return;
-
-            const stored = JSON.parse(raw) as Partial<TaxSimulatorStorage>;
-            if (stored.gain !== undefined) setGain(stored.gain);
-            if (stored.holdingYears !== undefined) setHoldingYears(stored.holdingYears);
-            if (stored.simulateAnnualTransfers !== undefined) setSimulateAnnualTransfers(stored.simulateAnnualTransfers);
-        } catch {
-            // Ignore localStorage failures or malformed saved values.
-        }
-    }, []);
+    const stored = useMemo(() => readStoredTaxSimulator(), []);
+    const [gain, setGain] = useState<number | string>(stored.gain ?? 10000);
+    const [holdingYears, setHoldingYears] = useState<number | string>(stored.holdingYears ?? 5);
+    const [simulateAnnualTransfers, setSimulateAnnualTransfers] = useState(
+        typeof stored.simulateAnnualTransfers === 'boolean' ? stored.simulateAnnualTransfers : true
+    );
 
     useEffect(() => {
         const payload: TaxSimulatorStorage = { gain, holdingYears, simulateAnnualTransfers };
@@ -172,7 +177,7 @@ export function TaxSimulator() {
                                 value={Math.max(1, yearsNum)}
                                 onChange={(e) => setHoldingYears(Number(e.target.value))}
                                 className="custom-slider"
-                                style={{ '--progress': `${((Math.max(1, yearsNum) - 1) / (40 - 1)) * 100}%` } as any}
+                                style={{ '--progress': `${((Math.max(1, yearsNum) - 1) / (40 - 1)) * 100}%` } as CSSProperties}
                             />
                         </div>
                         <label className="tax-sim__scenario-toggle">
@@ -254,7 +259,7 @@ export function TaxSimulator() {
                                         color: 'var(--text-primary)'
                                     }}
                                     itemStyle={{ color: 'var(--text-primary)' }}
-                                    formatter={(val: any) => formatCurrency(Number(val))}
+                                    formatter={(val: unknown) => formatCurrency(Number(val))}
                                 />
                                 <Bar dataKey="value" radius={[0, 4, 4, 0]}>
                                     {chartData.map((entry, index) => (

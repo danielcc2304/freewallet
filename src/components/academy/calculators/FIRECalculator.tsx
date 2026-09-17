@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Info, TrendingUp, Wallet, ShieldCheck, Flame, Banknote } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getRateConversion } from './compoundInterestUtils';
@@ -20,34 +20,112 @@ interface FIRECalculatorStorage {
 
 const FIRE_CALCULATOR_STORAGE_KEY = 'freewallet_fire_calculator';
 
-export function FIRECalculator() {
-    const [monthlyExpenses, setMonthlyExpenses] = useState<number | string>(2000);
-    const [currentSavings, setCurrentSavings] = useState<number | string>(10000);
-    const [monthlySavings, setMonthlySavings] = useState<number | string>(500);
-    const [annualReturn, setAnnualReturn] = useState<number | string>(7);
-    const [inflationRate, setInflationRate] = useState<number | string>(2.5);
-    const [withdrawalRate, setWithdrawalRate] = useState<number | string>(4);
-    const [includeInflation, setIncludeInflation] = useState(false);
-    const [projectionMode, setProjectionMode] = useState<ProjectionMode>('real');
+function readStoredFIRECalculator(): Partial<FIRECalculatorStorage> {
+    if (typeof window === 'undefined') return {};
 
-    useEffect(() => {
-        try {
-            const raw = localStorage.getItem(FIRE_CALCULATOR_STORAGE_KEY);
-            if (!raw) return;
+    try {
+        const raw = window.localStorage.getItem(FIRE_CALCULATOR_STORAGE_KEY);
+        if (!raw) return {};
 
-            const stored = JSON.parse(raw) as Partial<FIRECalculatorStorage>;
-            if (stored.monthlyExpenses !== undefined) setMonthlyExpenses(stored.monthlyExpenses);
-            if (stored.currentSavings !== undefined) setCurrentSavings(stored.currentSavings);
-            if (stored.monthlySavings !== undefined) setMonthlySavings(stored.monthlySavings);
-            if (stored.annualReturn !== undefined) setAnnualReturn(stored.annualReturn);
-            if (stored.inflationRate !== undefined) setInflationRate(stored.inflationRate);
-            if (stored.withdrawalRate !== undefined) setWithdrawalRate(stored.withdrawalRate);
-            if (stored.includeInflation !== undefined) setIncludeInflation(stored.includeInflation);
-            if (stored.projectionMode !== undefined) setProjectionMode(stored.projectionMode);
-        } catch {
-            // Ignore localStorage failures or malformed saved values.
+        const stored = JSON.parse(raw) as unknown;
+        return stored && typeof stored === 'object'
+            ? stored as Partial<FIRECalculatorStorage>
+            : {};
+    } catch {
+        return {};
+    }
+}
+
+function formatFIRECurrency(value: number) {
+    return new Intl.NumberFormat('es-ES', {
+        style: 'currency',
+        currency: 'EUR',
+        maximumFractionDigits: 0
+    }).format(value);
+}
+
+function calculateYearsToFire({
+    fireNumber,
+    savings,
+    monthlySavings,
+    inflationAnnualFactor,
+    nominalMonthlyRate,
+    adjustForInflation
+}: {
+    fireNumber: number;
+    savings: number;
+    monthlySavings: number;
+    inflationAnnualFactor: number;
+    nominalMonthlyRate: number;
+    adjustForInflation: boolean;
+}) {
+    if (fireNumber <= 0) return 0;
+
+    let nominalBalance = savings;
+    for (let month = 0; month <= 1200; month++) {
+        const elapsedYears = month / 12;
+        const inflationFactorForElapsedTime = adjustForInflation
+            ? Math.pow(inflationAnnualFactor, elapsedYears)
+            : 1;
+        const nominalTarget = fireNumber * inflationFactorForElapsedTime;
+        if (nominalBalance >= nominalTarget) {
+            return elapsedYears;
         }
-    }, []);
+
+        nominalBalance = (nominalBalance + monthlySavings) * (1 + nominalMonthlyRate);
+    }
+
+    return Infinity;
+}
+
+interface FIRETooltipProps {
+    active?: boolean;
+    payload?: ReadonlyArray<{ value?: number | string }>;
+    label?: number | string;
+    shouldAdjustForInflation: boolean;
+    projectionMode: ProjectionMode;
+}
+
+function FIRETooltip({
+    active,
+    payload,
+    label,
+    shouldAdjustForInflation,
+    projectionMode
+}: FIRETooltipProps) {
+    if (!active || !payload?.length) return null;
+
+    const valueLabel = shouldAdjustForInflation && projectionMode === 'real'
+        ? 'en euros de hoy'
+        : 'ajustado por inflación';
+
+    return (
+        <div className="fire-tooltip">
+            <p className="fire-tooltip__label">Año {label}</p>
+            <p className="fire-tooltip__value balance">
+                Patrimonio {valueLabel}: {formatFIRECurrency(Number(payload[0]?.value ?? 0))}
+            </p>
+            <p className="fire-tooltip__value target">
+                Objetivo FIRE {valueLabel}: {formatFIRECurrency(Number(payload[1]?.value ?? 0))}
+            </p>
+        </div>
+    );
+}
+
+export function FIRECalculator() {
+    const stored = useMemo(() => readStoredFIRECalculator(), []);
+    const [monthlyExpenses, setMonthlyExpenses] = useState<number | string>(stored.monthlyExpenses ?? 2000);
+    const [currentSavings, setCurrentSavings] = useState<number | string>(stored.currentSavings ?? 10000);
+    const [monthlySavings, setMonthlySavings] = useState<number | string>(stored.monthlySavings ?? 500);
+    const [annualReturn, setAnnualReturn] = useState<number | string>(stored.annualReturn ?? 7);
+    const [inflationRate, setInflationRate] = useState<number | string>(stored.inflationRate ?? 2.5);
+    const [withdrawalRate, setWithdrawalRate] = useState<number | string>(stored.withdrawalRate ?? 4);
+    const [includeInflation, setIncludeInflation] = useState(
+        typeof stored.includeInflation === 'boolean' ? stored.includeInflation : false
+    );
+    const [projectionMode, setProjectionMode] = useState<ProjectionMode>(
+        stored.projectionMode === 'nominal' ? 'nominal' : 'real'
+    );
 
     useEffect(() => {
         const payload: FIRECalculatorStorage = {
@@ -97,35 +175,27 @@ export function FIRECalculator() {
         ? (projectionMode === 'real' ? 'euros de hoy' : 'euros ajustados por inflación')
         : 'euros actuales sin ajuste por inflación';
 
-    const calculateYearsToFire = (adjustForInflation: boolean) => {
-        if (fireNumber <= 0) return 0;
-
-        let nominalBalance = savingsNum;
-        for (let month = 0; month <= 1200; month++) {
-            const elapsedYears = month / 12;
-            const inflationFactorForElapsedTime = adjustForInflation
-                ? Math.pow(inflationAnnualFactor, elapsedYears)
-                : 1;
-            const nominalTarget = fireNumber * inflationFactorForElapsedTime;
-            const meetsTarget = nominalBalance >= nominalTarget;
-
-            if (meetsTarget) {
-                return elapsedYears;
-            }
-
-            nominalBalance = (nominalBalance + monthlySavingsNum) * (1 + nominalMonthlyRate);
-        }
-
-        return Infinity;
-    };
-
     const yearsToFIREWithoutInflation = useMemo(
-        () => calculateYearsToFire(false),
+        () => calculateYearsToFire({
+            fireNumber,
+            savings: savingsNum,
+            monthlySavings: monthlySavingsNum,
+            inflationAnnualFactor,
+            nominalMonthlyRate,
+            adjustForInflation: false
+        }),
         [fireNumber, inflationAnnualFactor, monthlySavingsNum, nominalMonthlyRate, savingsNum]
     );
 
     const yearsToFIREWithInflation = useMemo(
-        () => calculateYearsToFire(true),
+        () => calculateYearsToFire({
+            fireNumber,
+            savings: savingsNum,
+            monthlySavings: monthlySavingsNum,
+            inflationAnnualFactor,
+            nominalMonthlyRate,
+            adjustForInflation: true
+        }),
         [fireNumber, inflationAnnualFactor, monthlySavingsNum, nominalMonthlyRate, savingsNum]
     );
 
@@ -192,24 +262,16 @@ export function FIRECalculator() {
         shouldAdjustForInflation
     ]);
 
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('es-ES', {
-            style: 'currency',
-            currency: 'EUR',
-            maximumFractionDigits: 0
-        }).format(value);
-    };
-
     const simulationSummary = useMemo(() => {
         const yearsLabel = yearsToFIRE < 100 ? `${yearsToFIRE.toFixed(1)} años` : 'más de 100 años';
         const yearsWithoutInflationLabel = yearsToFIREWithoutInflation < 100 ? `${yearsToFIREWithoutInflation.toFixed(1)} años` : 'más de 100 años';
         const yearsWithInflationLabel = yearsToFIREWithInflation < 100 ? `${yearsToFIREWithInflation.toFixed(1)} años` : 'más de 100 años';
 
         if (!shouldAdjustForInflation) {
-            return `Si quieres vivir con ${formatCurrency(expensesNum)} al mes (${formatCurrency(annualExpenses)} al año) y aplicas una tasa de retirada del ${withdrawalRateNum.toFixed(1)}%, tu objetivo FIRE es ${formatCurrency(displayedFireNumber)}. Partiendo de ${formatCurrency(savingsNum)} y aportando ${formatCurrency(monthlySavingsNum)} al mes con una rentabilidad anual estimada del ${annualReturnNum.toFixed(1)}%, necesitarías ${yearsLabel}.`;
+            return `Si quieres vivir con ${formatFIRECurrency(expensesNum)} al mes (${formatFIRECurrency(annualExpenses)} al año) y aplicas una tasa de retirada del ${withdrawalRateNum.toFixed(1)}%, tu objetivo FIRE es ${formatFIRECurrency(displayedFireNumber)}. Partiendo de ${formatFIRECurrency(savingsNum)} y aportando ${formatFIRECurrency(monthlySavingsNum)} al mes con una rentabilidad anual estimada del ${annualReturnNum.toFixed(1)}%, necesitarías ${yearsLabel}.`;
         }
 
-        return `Si quieres vivir con ${formatCurrency(expensesNum)} al mes (${formatCurrency(annualExpenses)} al año) y aplicas una tasa de retirada del ${withdrawalRateNum.toFixed(1)}%, el objetivo mostrado en ${projectionDescriptor} es ${formatCurrency(displayedFireNumber)}. Partiendo de ${formatCurrency(savingsNum)} y aportando ${formatCurrency(monthlySavingsNum)} al mes con una rentabilidad anual efectiva estimada del ${annualReturnNum.toFixed(1)}% y una inflación del ${inflationRateNum.toFixed(1)}%, necesitarías ${yearsLabel}. Como referencia, el mismo escenario serían ${yearsWithoutInflationLabel} sin inflación y ${yearsWithInflationLabel} ajustando inflación.`;
+        return `Si quieres vivir con ${formatFIRECurrency(expensesNum)} al mes (${formatFIRECurrency(annualExpenses)} al año) y aplicas una tasa de retirada del ${withdrawalRateNum.toFixed(1)}%, el objetivo mostrado en ${projectionDescriptor} es ${formatFIRECurrency(displayedFireNumber)}. Partiendo de ${formatFIRECurrency(savingsNum)} y aportando ${formatFIRECurrency(monthlySavingsNum)} al mes con una rentabilidad anual efectiva estimada del ${annualReturnNum.toFixed(1)}% y una inflación del ${inflationRateNum.toFixed(1)}%, necesitarías ${yearsLabel}. Como referencia, el mismo escenario serían ${yearsWithoutInflationLabel} sin inflación y ${yearsWithInflationLabel} ajustando inflación.`;
     }, [
         annualExpenses,
         annualReturnNum,
@@ -225,23 +287,6 @@ export function FIRECalculator() {
         yearsToFIREWithInflation,
         yearsToFIREWithoutInflation
     ]);
-
-    const CustomTooltip = ({ active, payload, label }: any) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="fire-tooltip">
-                    <p className="fire-tooltip__label">Año {label}</p>
-                    <p className="fire-tooltip__value balance">
-                        Patrimonio {shouldAdjustForInflation && projectionMode === 'real' ? 'en euros de hoy' : 'ajustado por inflación'}: {formatCurrency(payload[0].value)}
-                    </p>
-                    <p className="fire-tooltip__value target">
-                        Objetivo FIRE {shouldAdjustForInflation && projectionMode === 'real' ? 'en euros de hoy' : 'ajustado por inflación'}: {formatCurrency(payload[1].value)}
-                    </p>
-                </div>
-            );
-        }
-        return null;
-    };
 
     return (
         <div className="fire">
@@ -288,7 +333,7 @@ export function FIRECalculator() {
                             value={expensesNum}
                             onChange={(e) => setMonthlyExpenses(Number(e.target.value))}
                             className="custom-slider"
-                            style={{ '--progress': `${((expensesNum - 500) / (10000 - 500)) * 100}%` } as any}
+                            style={{ '--progress': `${((expensesNum - 500) / (10000 - 500)) * 100}%` } as CSSProperties}
                         />
                     </div>
 
@@ -311,7 +356,7 @@ export function FIRECalculator() {
                             value={monthlySavingsNum}
                             onChange={(e) => setMonthlySavings(Number(e.target.value))}
                             className="custom-slider"
-                            style={{ '--progress': `${(monthlySavingsNum / 10000) * 100}%` } as any}
+                            style={{ '--progress': `${(monthlySavingsNum / 10000) * 100}%` } as CSSProperties}
                         />
                     </div>
 
@@ -424,17 +469,17 @@ export function FIRECalculator() {
                     <div className="fire__metrics">
                         <div className="fire__metric-card fire__metric-card--lean">
                             <span className="fire__metric-label">Lean FIRE (80%)</span>
-                            <span className="fire__metric-value">{formatCurrency(displayedLeanFireNumber)}</span>
+                            <span className="fire__metric-value">{formatFIRECurrency(displayedLeanFireNumber)}</span>
                             <p className="fire__metric-desc">{metricDescriptor}</p>
                         </div>
                         <div className="fire__metric-card fire__metric-card--main">
                             <span className="fire__metric-label">Tu Número FIRE</span>
-                            <span className="fire__metric-value">{formatCurrency(displayedFireNumber)}</span>
+                            <span className="fire__metric-value">{formatFIRECurrency(displayedFireNumber)}</span>
                             <p className="fire__metric-desc">{metricDescriptor}</p>
                         </div>
                         <div className="fire__metric-card fire__metric-card--fat">
                             <span className="fire__metric-label">Fat FIRE (150%)</span>
-                            <span className="fire__metric-value">{formatCurrency(displayedFatFireNumber)}</span>
+                            <span className="fire__metric-value">{formatFIRECurrency(displayedFatFireNumber)}</span>
                             <p className="fire__metric-desc">{metricDescriptor}</p>
                         </div>
                     </div>
@@ -474,7 +519,7 @@ export function FIRECalculator() {
                                         axisLine={false}
                                         tickLine={false}
                                     />
-                                    <Tooltip content={<CustomTooltip />} />
+                                    <Tooltip content={<FIRETooltip shouldAdjustForInflation={shouldAdjustForInflation} projectionMode={projectionMode} />} />
                                     <Area
                                         type="monotone"
                                         dataKey="balance"

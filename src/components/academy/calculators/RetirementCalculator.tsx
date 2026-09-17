@@ -16,31 +16,57 @@ interface RetirementCalculatorStorage {
 
 const RETIREMENT_CALCULATOR_STORAGE_KEY = 'freewallet_retirement_calculator';
 
+function readStoredRetirementCalculator(): Partial<RetirementCalculatorStorage> {
+    if (typeof window === 'undefined') return {};
+
+    try {
+        const raw = window.localStorage.getItem(RETIREMENT_CALCULATOR_STORAGE_KEY);
+        if (!raw) return {};
+
+        const stored = JSON.parse(raw) as unknown;
+        return stored && typeof stored === 'object'
+            ? stored as Partial<RetirementCalculatorStorage>
+            : {};
+    } catch {
+        return {};
+    }
+}
+
+function formatRetirementCurrency(value: number) {
+    return new Intl.NumberFormat('es-ES', {
+        style: 'currency',
+        currency: 'EUR',
+        maximumFractionDigits: 0
+    }).format(value);
+}
+
+interface RetirementTooltipProps {
+    active?: boolean;
+    payload?: ReadonlyArray<{ value?: number | string }>;
+    label?: number | string;
+}
+
+function RetirementTooltip({ active, payload, label }: RetirementTooltipProps) {
+    if (!active || !payload?.length) return null;
+
+    return (
+        <div className="retirement-tooltip">
+            <p className="retirement-tooltip__label">Edad: {label} años</p>
+            <p className="retirement-tooltip__value nominal">Valor Futuro: {formatRetirementCurrency(Number(payload[0]?.value ?? 0))}</p>
+            <p className="retirement-tooltip__value real">Poder de Compra Hoy: {formatRetirementCurrency(Number(payload[1]?.value ?? 0))}</p>
+        </div>
+    );
+}
+
 export function RetirementCalculator() {
     // Inputs
-    const [currentAge, setCurrentAge] = useState<number | string>(30);
-    const [retirementAge, setRetirementAge] = useState<number | string>(67);
-    const [currentSavings, setCurrentSavings] = useState<number | string>(5000);
-    const [monthlyContribution, setMonthlyContribution] = useState<number | string>(300);
-    const [annualReturn, setAnnualReturn] = useState<number | string>(7);
-    const [inflationRate, setInflationRate] = useState<number | string>(2.5);
-
-    useEffect(() => {
-        try {
-            const raw = localStorage.getItem(RETIREMENT_CALCULATOR_STORAGE_KEY);
-            if (!raw) return;
-
-            const stored = JSON.parse(raw) as Partial<RetirementCalculatorStorage>;
-            if (stored.currentAge !== undefined) setCurrentAge(stored.currentAge);
-            if (stored.retirementAge !== undefined) setRetirementAge(stored.retirementAge);
-            if (stored.currentSavings !== undefined) setCurrentSavings(stored.currentSavings);
-            if (stored.monthlyContribution !== undefined) setMonthlyContribution(stored.monthlyContribution);
-            if (stored.annualReturn !== undefined) setAnnualReturn(stored.annualReturn);
-            if (stored.inflationRate !== undefined) setInflationRate(stored.inflationRate);
-        } catch {
-            // Ignore localStorage failures or malformed saved values.
-        }
-    }, []);
+    const stored = useMemo(() => readStoredRetirementCalculator(), []);
+    const [currentAge, setCurrentAge] = useState<number | string>(stored.currentAge ?? 30);
+    const [retirementAge, setRetirementAge] = useState<number | string>(stored.retirementAge ?? 67);
+    const [currentSavings, setCurrentSavings] = useState<number | string>(stored.currentSavings ?? 5000);
+    const [monthlyContribution, setMonthlyContribution] = useState<number | string>(stored.monthlyContribution ?? 300);
+    const [annualReturn, setAnnualReturn] = useState<number | string>(stored.annualReturn ?? 7);
+    const [inflationRate, setInflationRate] = useState<number | string>(stored.inflationRate ?? 2.5);
 
     useEffect(() => {
         const payload: RetirementCalculatorStorage = {
@@ -93,31 +119,10 @@ export function RetirementCalculator() {
             }
         }
         return data;
-    }, [ageNum, retAgeNum, savingsNum, contributionNum, returnNum, inflationNum, yearsToRetire]);
+    }, [ageNum, savingsNum, contributionNum, returnNum, inflationNum, yearsToRetire]);
 
     const finalNominal = projectionData[projectionData.length - 1]?.nominal || 0;
     const finalReal = projectionData[projectionData.length - 1]?.real || 0;
-
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('es-ES', {
-            style: 'currency',
-            currency: 'EUR',
-            maximumFractionDigits: 0
-        }).format(value);
-    };
-
-    const CustomTooltip = ({ active, payload, label }: any) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="retirement-tooltip">
-                    <p className="retirement-tooltip__label">Edad: {label} años</p>
-                    <p className="retirement-tooltip__value nominal">Valor Futuro: {formatCurrency(payload[0].value)}</p>
-                    <p className="retirement-tooltip__value real">Poder de Compra Hoy: {formatCurrency(payload[1].value)}</p>
-                </div>
-            );
-        }
-        return null;
-    };
 
     return (
         <div className="retirement">
@@ -133,7 +138,7 @@ export function RetirementCalculator() {
                 </div>
                 <div className="retirement__summary-badge">
                     <span className="retirement__summary-label">Objetivo en {yearsToRetire} años</span>
-                    <span className="retirement__summary-value">{formatCurrency(finalNominal)}</span>
+                    <span className="retirement__summary-value">{formatRetirementCurrency(finalNominal)}</span>
                 </div>
             </AcademyPageHeader>
 
@@ -241,7 +246,7 @@ export function RetirementCalculator() {
                             <Wallet2 className="retirement__metric-icon" />
                             <div className="retirement__metric-info">
                                 <span className="retirement__metric-label">Capital Nominal</span>
-                                <span className="retirement__metric-value">{formatCurrency(finalNominal)}</span>
+                                <span className="retirement__metric-value">{formatRetirementCurrency(finalNominal)}</span>
                                 <p className="retirement__metric-desc">La cifra que verás en tu cuenta</p>
                             </div>
                         </CalculatorCard>
@@ -249,7 +254,7 @@ export function RetirementCalculator() {
                             <ShieldAlert className="retirement__metric-icon" />
                             <div className="retirement__metric-info">
                                 <span className="retirement__metric-label">Poder Adquisitivo Real</span>
-                                <span className="retirement__metric-value">{formatCurrency(finalReal)}</span>
+                                <span className="retirement__metric-value">{formatRetirementCurrency(finalReal)}</span>
                                 <p className="retirement__metric-desc">Equivalente a dinero de HOY</p>
                             </div>
                         </CalculatorCard>
@@ -295,7 +300,7 @@ export function RetirementCalculator() {
                                         axisLine={false}
                                         tickLine={false}
                                     />
-                                    <Tooltip content={<CustomTooltip />} />
+                                    <Tooltip content={<RetirementTooltip />} />
                                     <Area
                                         type="monotone"
                                         dataKey="nominal"
@@ -325,8 +330,8 @@ export function RetirementCalculator() {
                         <div className="retirement__insight-content">
                             <h4>Proyección de Retirada</h4>
                             <p>
-                                Con un capital de <strong>{formatCurrency(finalReal)}</strong> (ajustado), podrías retirar aproximadamente
-                                <strong> {formatCurrency(finalReal * 0.04 / 12)}/mes</strong> indefinidamente siguiendo la regla del 4%.
+                                Con un capital de <strong>{formatRetirementCurrency(finalReal)}</strong> (ajustado), podrías retirar aproximadamente
+                                <strong> {formatRetirementCurrency(finalReal * 0.04 / 12)}/mes</strong> indefinidamente siguiendo la regla del 4%.
                             </p>
                         </div>
                     </CalculatorCard>

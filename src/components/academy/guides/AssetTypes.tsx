@@ -1,9 +1,9 @@
-import { TrendingUp, ShieldCheck, Building2, Coins, Wallet, Landmark, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, ShieldCheck, Building2, Coins, Wallet, Landmark, Info, AlertTriangle, CheckCircle2, type LucideIcon } from 'lucide-react';
 import { ASSET_CLASSES_DETAIL } from '../../../data/academyData';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './AssetTypes.css';
 
-const IconMap: Record<string, any> = {
+const IconMap: Record<string, LucideIcon> = {
     acciones: TrendingUp,
     bonos: ShieldCheck,
     reits: Building2,

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import {
     Ghost, TrendingDown,
     ArrowLeft, Info, Lightbulb, TrendingUp,
@@ -16,25 +16,28 @@ interface InflationPredatorStorage {
 
 const INFLATION_PREDATOR_STORAGE_KEY = 'freewallet_inflation_predator';
 
+function readStoredInflationPredator(): Partial<InflationPredatorStorage> {
+    if (typeof window === 'undefined') return {};
+
+    try {
+        const raw = window.localStorage.getItem(INFLATION_PREDATOR_STORAGE_KEY);
+        if (!raw) return {};
+
+        const stored = JSON.parse(raw) as unknown;
+        return stored && typeof stored === 'object'
+            ? stored as Partial<InflationPredatorStorage>
+            : {};
+    } catch {
+        return {};
+    }
+}
+
 export function InflationPredator() {
     const navigate = useNavigate();
-    const [amount, setAmount] = useState<number>(10000);
-    const [years, setYears] = useState<number>(10);
-    const [inflation, setInflation] = useState<number>(3);
-
-    useEffect(() => {
-        try {
-            const raw = localStorage.getItem(INFLATION_PREDATOR_STORAGE_KEY);
-            if (!raw) return;
-
-            const stored = JSON.parse(raw) as Partial<InflationPredatorStorage>;
-            if (typeof stored.amount === 'number') setAmount(stored.amount);
-            if (typeof stored.years === 'number') setYears(stored.years);
-            if (typeof stored.inflation === 'number') setInflation(stored.inflation);
-        } catch {
-            // Ignore localStorage failures or malformed saved values.
-        }
-    }, []);
+    const stored = useMemo(() => readStoredInflationPredator(), []);
+    const [amount, setAmount] = useState<number>(stored.amount ?? 10000);
+    const [years, setYears] = useState<number>(stored.years ?? 10);
+    const [inflation, setInflation] = useState<number>(stored.inflation ?? 3);
 
     useEffect(() => {
         const payload: InflationPredatorStorage = { amount, years, inflation };
@@ -94,7 +97,7 @@ export function InflationPredator() {
                             value={amount}
                             onChange={(e) => setAmount(Number(e.target.value))}
                             className="custom-slider"
-                            style={{ '--progress': `${(amount / 100000) * 100}%` } as any}
+                            style={{ '--progress': `${(amount / 100000) * 100}%` } as CSSProperties}
                         />
                     </div>
 
@@ -121,7 +124,7 @@ export function InflationPredator() {
                             value={years}
                             onChange={(e) => setYears(Number(e.target.value))}
                             className="custom-slider"
-                            style={{ '--progress': `${((years - 1) / (40 - 1)) * 100}%` } as any}
+                            style={{ '--progress': `${((years - 1) / (40 - 1)) * 100}%` } as CSSProperties}
                         />
                     </div>
 
@@ -148,7 +151,7 @@ export function InflationPredator() {
                             value={inflation}
                             onChange={(e) => setInflation(Number(e.target.value))}
                             className="custom-slider"
-                            style={{ '--progress': `${((inflation - 0.5) / (15 - 0.5)) * 100}%` } as any}
+                            style={{ '--progress': `${((inflation - 0.5) / (15 - 0.5)) * 100}%` } as CSSProperties}
                         />
                     </div>
 

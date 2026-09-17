@@ -117,8 +117,10 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (appearance !== 'liquid-glass') return;
         if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+        if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
         let animationFrame = 0;
+        let pendingPointer: { source: Element; clientX: number; clientY: number } | null = null;
         const updateHighlight = (element: HTMLElement, clientX: number, clientY: number) => {
             const bounds = element.getBoundingClientRect();
             element.style.setProperty('--glass-pointer-x', `${clientX - bounds.left}px`);
@@ -126,16 +128,25 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
         };
 
         const handlePointerMove = (event: PointerEvent) => {
+            if (event.pointerType === 'touch') return;
+
             const source = event.target;
             if (!(source instanceof Element)) return;
 
-            window.cancelAnimationFrame(animationFrame);
-            animationFrame = window.requestAnimationFrame(() => {
-                const control = source.closest<HTMLElement>(LIQUID_GLASS_POINTER_TARGETS);
-                const sidebar = source.closest<HTMLElement>('.sidebar');
+            pendingPointer = { source, clientX: event.clientX, clientY: event.clientY };
+            if (animationFrame) return;
 
-                if (control) updateHighlight(control, event.clientX, event.clientY);
-                if (sidebar && sidebar !== control) updateHighlight(sidebar, event.clientX, event.clientY);
+            animationFrame = window.requestAnimationFrame(() => {
+                animationFrame = 0;
+                const pointer = pendingPointer;
+                pendingPointer = null;
+                if (!pointer) return;
+
+                const control = pointer.source.closest<HTMLElement>(LIQUID_GLASS_POINTER_TARGETS);
+                const sidebar = pointer.source.closest<HTMLElement>('.sidebar');
+
+                if (control) updateHighlight(control, pointer.clientX, pointer.clientY);
+                if (sidebar && sidebar !== control) updateHighlight(sidebar, pointer.clientX, pointer.clientY);
             });
         };
 

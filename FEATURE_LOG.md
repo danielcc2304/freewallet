@@ -12,6 +12,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-17 - v5.3.5 - Corrección de versionado de hotfixes
+- Funcionalidad:
+  - Se actualiza la versión visible de FreeWallet a `v5.3.5` en Sidebar, Configuración y Feature Log mediante la constante compartida.
+  - Se sincroniza la versión del paquete y su lockfile con la versión publicada en `hotfixes`.
+- Resumen:
+  - La rama `hotfixes` queda identificada correctamente como `v5.3.5` sin alterar las mejoras funcionales ya integradas.
+- Archivos:
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-09-17 - v5.3.4 - Pulido del Heatmap y animaciones de interacción
 - Funcionalidad:
   - Se mueve el resumen por sectores del Heatmap debajo del mapa para mantener primero la lectura visual principal.

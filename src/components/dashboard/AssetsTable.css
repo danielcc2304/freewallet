@@ -21,6 +21,11 @@
     white-space: nowrap;
 }
 
+.assets-table__today-label,
+.assets-table__today {
+    display: none;
+}
+
 /* Header */
 .assets-table__table th {
     text-align: left;
@@ -231,6 +236,43 @@
     .assets-table__table th {
         white-space: normal;
         line-height: 1.2;
+    }
+
+    .assets-table__current-price-label,
+    .assets-table__current-price {
+        display: none;
+    }
+
+    .assets-table__today-label {
+        display: inline;
+    }
+
+    .assets-table__today {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 2px;
+        line-height: 1.2;
+    }
+
+    .assets-table__today strong {
+        font-size: var(--font-size-xs);
+        font-weight: 700;
+    }
+
+    .assets-table__today small {
+        color: var(--text-muted);
+        font-size: .64rem;
+    }
+
+    .assets-table__table--show-details .assets-table__current-price-label,
+    .assets-table__table--show-details .assets-table__current-price {
+        display: inline;
+    }
+
+    .assets-table__table--show-details .assets-table__today-label,
+    .assets-table__table--show-details .assets-table__today {
+        display: none;
     }
 
     .assets-table__table td {

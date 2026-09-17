@@ -12,6 +12,39 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-17 - v5.3.3 - Correcciones de rendimiento, benchmark y responsive
+- Funcionalidad:
+  - Se corrigen los cálculos de rendimiento de cartera y benchmark para usar el cierre previo disponible, alinear datos intradía y rebajar correctamente los acumulados de YTD.
+  - Se incorpora el cálculo automático del benchmark teniendo en cuenta los flujos de cartera y se actualizan sus pruebas de regresión.
+  - Se ajusta la lectura responsive de activos, composición, donut y pantallas de Academy para evitar recortes y mejorar el uso en móvil.
+  - Se amplía Liquid Glass a más superficies, filtros, controles, resultados flotantes y navegación auxiliar.
+- Resumen:
+  - Las métricas de evolución y comparativa quedan más consistentes en periodos cortos y con datos importados, mientras la interfaz se adapta mejor a pantallas pequeñas.
+- Archivos:
+  - `scripts/test-portfolio-performance.ts`
+  - `src/services/portfolioPerformance.ts`
+  - `src/services/apiService.ts`
+  - `src/types/api.ts`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`
+  - `src/components/dashboard/AssetsTable.tsx`
+  - `src/components/dashboard/AssetsTable.css`
+  - `src/components/dashboard/PortfolioComposition.css`
+  - `src/components/charts/DonutChart.tsx`
+  - `src/components/charts/DonutChart.css`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/components/academy/guides/Fundamentos.tsx`
+  - `src/components/academy/guides/Fundamentos.css`
+  - `src/components/academy/layout/AcademyLayout.tsx`
+  - `src/components/academy/layout/AcademyLayout.css`
+  - `src/components/layout/MainLayout/MainLayout.tsx`
+  - `src/components/layout/MainLayout/MainLayout.css`
+  - `src/context/AppearanceContext.tsx`
+  - `src/styles/liquidGlass.css`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-09-17 - v5.3.2 - Detalle de activos en móvil y navegación simplificada
 - Funcionalidad:
   - Se convierte el detalle de un activo en un modal flotante centrado en móvil, evitando el espaciado superior propio del panel anclado al borde inferior.

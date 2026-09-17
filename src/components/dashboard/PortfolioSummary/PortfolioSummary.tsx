@@ -28,7 +28,7 @@ export function PortfolioSummary({ metrics }: PortfolioSummaryProps) {
                 return {
                     value: metrics.monthlyChange,
                     percent: metrics.monthlyChangePercent,
-                    label: 'este mes'
+                    label: 'último mes'
                 };
             case '3month':
                 return {

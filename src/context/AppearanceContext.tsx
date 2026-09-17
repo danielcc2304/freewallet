@@ -13,6 +13,7 @@ const AppearanceContext = createContext<AppearanceContextValue | undefined>(unde
 const APPEARANCE_STORAGE_KEY = 'freewallet_appearance_mode';
 const LIQUID_GLASS_POINTER_TARGETS = [
     '.btn',
+    '.card--clickable',
     '.sidebar__link',
     '.sidebar__toggle',
     '.dashboard__floating-add',
@@ -41,6 +42,15 @@ const LIQUID_GLASS_POINTER_TARGETS = [
     '.market-heatmap__floating-refresh',
     '.terms__back-fab',
     '.not-found__button',
+    '.fundamentos__eyebrow',
+    '.fundamentos__collapse-toggle',
+    '.fundamentos__mini-card',
+    '.fundamentos__mini-action',
+    '.fundamentos__goal-link',
+    '.fundamentos__checklist-card',
+    '.fundamentos__card',
+    '.fundamentos__button',
+    '.fundamentos__next-link',
 ].join(',');
 
 function readStoredAppearance(): AppearanceMode {

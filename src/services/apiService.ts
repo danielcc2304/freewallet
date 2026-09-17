@@ -806,6 +806,7 @@ async function fetchYahooChartPoints(
     const timestamps = result.timestamp;
     const quotes = result.indicators?.quote?.[0] || {};
     const adjClose = result.indicators?.adjclose?.[0]?.adjclose || quotes.close || [];
+    const previousClose = Number.isFinite(result.meta?.chartPreviousClose) ? result.meta.chartPreviousClose : undefined;
 
     return timestamps.map((timestamp: number, i: number) => {
         const date = new Date(timestamp * 1000);
@@ -815,6 +816,8 @@ async function fetchYahooChartPoints(
 
         return {
             date: dateStr,
+            timestamp: timestamp * 1000,
+            previousClose: i === 0 ? previousClose : undefined,
             open: Number.isFinite(quotes.open?.[i]) ? quotes.open[i] : 0,
             high: Number.isFinite(quotes.high?.[i]) ? quotes.high[i] : 0,
             low: Number.isFinite(quotes.low?.[i]) ? quotes.low[i] : 0,

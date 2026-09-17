@@ -128,15 +128,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.app-route-loading {
-  display: grid;
-  min-height: 100vh;
-  place-items: center;
-  padding: var(--spacing-xl);
-  color: var(--text-secondary);
-  font-size: var(--font-size-sm);
-}
-
 #root {
   min-height: 100vh;
 }
@@ -323,7 +314,11 @@ a:hover {
 }
 
 .glass-hover {
-  transition: all var(--transition-base);
+  transition:
+    background-color var(--transition-base),
+    border-color var(--transition-base),
+    box-shadow var(--transition-base),
+    transform var(--transition-base);
 }
 
 .glass-hover:hover {
@@ -343,7 +338,11 @@ textarea {
   border-radius: var(--radius-md);
   color: var(--text-primary);
   padding: var(--spacing-sm) var(--spacing-md);
-  transition: all var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    color var(--transition-fast);
   width: 100%;
 }
 
@@ -365,7 +364,13 @@ button {
   cursor: pointer;
   border: none;
   outline: none;
-  transition: all var(--transition-fast);
+  transition:
+    background-color var(--transition-fast),
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast),
+    color var(--transition-fast),
+    opacity var(--transition-fast),
+    transform var(--transition-fast);
 }
 
 button:disabled {

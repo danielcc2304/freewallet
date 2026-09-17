@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
-import { accountingDay, alignedBenchmark, buildPortfolioAnalyticsHistory, calculatePeriodPerformance, createMarketPortfolioHistory, createQuoteSnapshot,
-    normalizePortfolioTransactions, performanceSeries, portfolioLedgerKey, portfolioMonthlyRows, workbookRiskStats } from '../src/services/portfolioPerformance';
+import { accountingDay, alignedBenchmark, buildPortfolioAnalyticsHistory, calculateBenchmarkPeriodPerformance, calculatePeriodPerformance, calculatePreviousClosePerformance, createMarketPortfolioHistory, createQuoteSnapshot,
+    normalizeAccumulatedBenchmark, normalizePortfolioTransactions, performanceSeries, portfolioLedgerKey, portfolioMonthlyRows, workbookRiskStats } from '../src/services/portfolioPerformance';
 import { buildWorkbookBenchmarkHistory, buildWorkbookHistory } from '../src/services/portfolioWorkbookHistory';
 import type { Asset, PortfolioHistoryPoint, PortfolioTransaction } from '../src/types/types';
 
@@ -32,6 +32,9 @@ assert.equal(buildPortfolioAnalyticsHistory(raw, [buy, retroactive]).length, 0, 
 assert.equal(buildPortfolioAnalyticsHistory(raw, ledger).length, 1, 'Later sales preserve earlier valuations');
 assert.equal(createQuoteSnapshot([asset], [buy], '2025-02-27T18:00:00Z')?.value, 1500);
 assert.equal(createQuoteSnapshot([{ ...asset, currentPrice: undefined }], [buy], '2025-02-27'), null);
+const previousClosePerformance = calculatePreviousClosePerformance([{ ...asset, previousClose: 140 }]);
+near(previousClosePerformance.change, 100, 'Previous close fallback uses observed P&L');
+near(previousClosePerformance.returnPercent, 100 / 1400 * 100, 'Previous close fallback uses previous portfolio value');
 const marketCurve = createMarketPortfolioHistory([asset], [buy], new Map([['a', [
     { date: '2025-01-01', open: 100, high: 100, low: 100, close: 100, volume: 1 },
     { date: '2025-01-08', open: 120, high: 120, low: 120, close: 120, volume: 1 },
@@ -94,6 +97,41 @@ const workbookBenchmark = buildWorkbookBenchmarkHistory(`Año,Mes,Periodo,Rentab
 2026,Mar,2026 Mar,3.00%,2.00%,4.01%,3.54%`);
 assert.deepEqual(workbookBenchmark.map((point) => point.date.slice(0, 10)), ['2026-01-31', '2026-02-28', '2026-03-31']);
 assert.equal(workbookBenchmark.at(-1)?.benchmarkAccumPct, 3.54, 'Benchmark comparison keeps Excel accumulated values and dates');
+const ytdWithoutDecember = normalizeAccumulatedBenchmark(workbookBenchmark, Date.parse('2026-01-01T00:00:00Z'));
+near(ytdWithoutDecember[0]?.portfolio, 2, 'YTD keeps January when there is no December baseline');
+near(ytdWithoutDecember.at(-1)?.portfolio, 4.01, 'YTD without baseline keeps the accumulated endpoint');
+const ytdWithDecember = normalizeAccumulatedBenchmark([
+    { date: '2025-12-31T18:00:00Z', portfolioAccumPct: 28.08, benchmarkAccumPct: 5.45 },
+    { date: '2026-01-31T18:00:00Z', portfolioAccumPct: 31.17, benchmarkAccumPct: 6.42 },
+    { date: '2026-02-28T18:00:00Z', portfolioAccumPct: 30.70, benchmarkAccumPct: 8.00 },
+    { date: '2026-03-31T18:00:00Z', portfolioAccumPct: 23.79, benchmarkAccumPct: 3.64 },
+], Date.parse('2026-01-01T00:00:00Z'));
+near(ytdWithDecember[1]?.portfolio, ((1.3117 / 1.2808) - 1) * 100, 'YTD rebases January against the previous December');
+near(ytdWithDecember.at(-1)?.benchmark, ((1.0364 / 1.0545) - 1) * 100, 'YTD benchmark rebases against the previous December');
+
+const automaticBenchmark = calculateBenchmarkPeriodPerformance(
+    reported,
+    [
+        { date: '2026-09-10', timestamp: Date.parse('2026-09-10T18:00:00Z'), previousClose: 98, open: 100, high: 100, low: 100, close: 100, volume: 0 },
+        { date: '10:00', timestamp: Date.parse('2026-09-11T10:00:00Z'), open: 102, high: 102, low: 102, close: 102, volume: 0 },
+    ],
+    Date.parse('2026-09-10T23:00:00Z'),
+    Date.parse('2026-09-11T20:00:00Z'),
+);
+near(automaticBenchmark.portfolioReturn, -4.88 / 85144.06 * 100, 'Automatic benchmark uses the flow-aware portfolio return');
+near(automaticBenchmark.benchmarkReturn, (102 / 98 - 1) * 100, 'Automatic benchmark uses the provider previous close for intraday data');
+const alignedIntraday = alignedBenchmark(reported, [
+    { date: '18:00', timestamp: Date.parse('2026-09-10T18:00:00Z'), open: 100, high: 100, low: 100, close: 100, volume: 0 },
+    { date: '10:00', timestamp: Date.parse('2026-09-11T10:00:00Z'), open: 102, high: 102, low: 102, close: 102, volume: 0 },
+]);
+assert.equal(alignedIntraday.length, 2, 'Intraday benchmark points align by accounting day, not display label');
+near(alignedIntraday.at(-1)?.benchmark ?? null, 2, 'Aligned intraday benchmark return');
+const alignedWithPrecedingClose = alignedBenchmark(reported, [
+    { date: '10:00', timestamp: Date.parse('2026-09-11T10:00:00Z'), previousClose: 98, open: 100, high: 100, low: 100, close: 102, volume: 0 },
+    { date: '10:05', timestamp: Date.parse('2026-09-11T10:05:00Z'), open: 102, high: 102, low: 102, close: 102, volume: 0 },
+]);
+assert.equal(alignedWithPrecedingClose.length, 2, 'The benchmark preceding close fills a missing intraday baseline');
+near(alignedWithPrecedingClose.at(-1)?.benchmark ?? null, (102 / 98 - 1) * 100, 'Aligned benchmark includes the preceding close');
 
 // B77:B94; compare the production function to the observed Sheet outputs.
 const workbookReturns = [0.038357366292820716, 0.021654364424454453, 0.022706152578331862, 0.011130311038829, 0.014954044878695116, 0.008001548686842552, 0.0519910103823753, 0.02853995146570587, -0.002679620554265849, 0.038535398796568865, 0.024312150648504893, -0.0036578947368420822, -0.05328308602234955, 0.054242631939684705, 0.05219992914036764, 0.0008806693086746975, 0.02295211193588642, 0.016014404617109124];

@@ -32,6 +32,30 @@ export default defineConfig({
         secure: true,
         rewrite: (path) => path.replace(/^\/__market\/yahoo2/, ''),
       },
+      '/__holdings/spy': {
+        target: 'https://www.ssga.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: () => '/us/en/intermediary/library-content/products/fund-data/etfs/us/holdings-daily-us-en-spy.xlsx',
+      },
+      '/__holdings/sp500-sectors': {
+        target: 'https://en.wikipedia.org',
+        changeOrigin: true,
+        secure: true,
+        rewrite: () => '/wiki/List_of_S%26P_500_companies',
+      },
+      '/__holdings/urth': {
+        target: 'https://www.ishares.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: () => '/us/products/239696/ishares-msci-world-etf/latest-holdings.csv',
+      },
+      '/__holdings/eem': {
+        target: 'https://www.ishares.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: () => '/us/products/239637/ishares-msci-emerging-markets-etf/latest-holdings.csv',
+      },
     },
   },
 })

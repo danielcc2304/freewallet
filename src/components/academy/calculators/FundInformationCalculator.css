@@ -735,6 +735,31 @@
         white-space: normal;
     }
 
+    /* Keep the historical metrics as a real table for accessibility, but fit
+       all four columns to the viewport so this section does not create a
+       nested horizontal touch scroller. */
+    .fund-info__table-wrapper {
+        overflow-x: clip;
+    }
+
+    .fund-info__stats-table {
+        min-width: 0;
+        table-layout: fixed;
+        font-size: var(--font-size-xs);
+    }
+
+    .fund-info__stats-table th,
+    .fund-info__stats-table td {
+        padding: 0.65rem 0.25rem;
+        white-space: normal;
+        overflow-wrap: anywhere;
+    }
+
+    .fund-info__stats-table th:first-child,
+    .fund-info__stats-table td:first-child {
+        width: 32%;
+    }
+
     .fund-info__risk-tooltip {
         right: 0;
         left: auto;

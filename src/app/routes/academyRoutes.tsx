@@ -11,6 +11,7 @@ import {
     Gamepad2,
     LibraryBig,
     LineChart,
+    PanelsTopLeft,
     PieChart,
     Scale,
     Shield,
@@ -18,47 +19,38 @@ import {
     Target,
     TrendingUp,
 } from 'lucide-react';
-import { lazy } from 'react';
 import type { ReactNode } from 'react';
 import { Navigate } from 'react-router-dom';
-
-// Keep the Academy landing page available with the initial app shell so the
-// first visit does not show a route loading state. Deeper guides, calculators
-// and simulators remain split by route below.
+import { AssetBonds } from '../../components/academy/assets/AssetBonds';
+import { AssetCash } from '../../components/academy/assets/AssetCash';
+import { AssetCrypto } from '../../components/academy/assets/AssetCrypto';
+import { AssetEquities } from '../../components/academy/assets/AssetEquities';
+import { AssetREITs } from '../../components/academy/assets/AssetREITs';
+import { Calculators } from '../../components/academy/calculators/Calculators';
+import { BondCalculator } from '../../components/academy/calculators/BondCalculator';
+import { CompoundInterestCalc } from '../../components/academy/calculators/CompoundInterestCalc';
+import { EmergencyFundCalculator } from '../../components/academy/calculators/EmergencyFundCalculator';
+import { FIRECalculator } from '../../components/academy/calculators/FIRECalculator';
+import { FundInformationCalculator } from '../../components/academy/calculators/FundInformationCalculator';
+import { InflationPredator } from '../../components/academy/calculators/InflationPredator';
+import { RetirementCalculator } from '../../components/academy/calculators/RetirementCalculator';
+import { TaxSimulator } from '../../components/academy/calculators/TaxSimulator';
 import { Fundamentos } from '../../components/academy/guides/Fundamentos';
-
-// Academy screens are deliberately split by route. The sidebar still has all
-// labels available immediately, while the heavier calculator or guide code is
-// fetched only when the user opens it.
-const AssetBonds = lazy(() => import('../../components/academy/assets/AssetBonds').then(({ AssetBonds: page }) => ({ default: page })));
-const AssetCash = lazy(() => import('../../components/academy/assets/AssetCash').then(({ AssetCash: page }) => ({ default: page })));
-const AssetCrypto = lazy(() => import('../../components/academy/assets/AssetCrypto').then(({ AssetCrypto: page }) => ({ default: page })));
-const AssetEquities = lazy(() => import('../../components/academy/assets/AssetEquities').then(({ AssetEquities: page }) => ({ default: page })));
-const AssetREITs = lazy(() => import('../../components/academy/assets/AssetREITs').then(({ AssetREITs: page }) => ({ default: page })));
-const Calculators = lazy(() => import('../../components/academy/calculators/Calculators').then(({ Calculators: page }) => ({ default: page })));
-const BondCalculator = lazy(() => import('../../components/academy/calculators/BondCalculator').then(({ BondCalculator: page }) => ({ default: page })));
-const CompoundInterestCalc = lazy(() => import('../../components/academy/calculators/CompoundInterestCalc').then(({ CompoundInterestCalc: page }) => ({ default: page })));
-const EmergencyFundCalculator = lazy(() => import('../../components/academy/calculators/EmergencyFundCalculator').then(({ EmergencyFundCalculator: page }) => ({ default: page })));
-const FIRECalculator = lazy(() => import('../../components/academy/calculators/FIRECalculator').then(({ FIRECalculator: page }) => ({ default: page })));
-const FundInformationCalculator = lazy(() => import('../../components/academy/calculators/FundInformationCalculator').then(({ FundInformationCalculator: page }) => ({ default: page })));
-const InflationPredator = lazy(() => import('../../components/academy/calculators/InflationPredator').then(({ InflationPredator: page }) => ({ default: page })));
-const RetirementCalculator = lazy(() => import('../../components/academy/calculators/RetirementCalculator').then(({ RetirementCalculator: page }) => ({ default: page })));
-const TaxSimulator = lazy(() => import('../../components/academy/calculators/TaxSimulator').then(({ TaxSimulator: page }) => ({ default: page })));
-const CommonErrors = lazy(() => import('../../components/academy/guides/CommonErrors').then(({ CommonErrors: page }) => ({ default: page })));
-const Glossary = lazy(() => import('../../components/academy/guides/Glossary').then(({ Glossary: page }) => ({ default: page })));
-const InProcess = lazy(() => import('../../components/academy/guides/InProcess').then(({ InProcess: page }) => ({ default: page })));
-const InvestorTimeline = lazy(() => import('../../components/academy/guides/InvestorTimeline').then(({ InvestorTimeline: page }) => ({ default: page })));
-const RiskManagement = lazy(() => import('../../components/academy/guides/RiskManagement').then(({ RiskManagement: page }) => ({ default: page })));
-const Scenarios = lazy(() => import('../../components/academy/guides/Scenarios').then(({ Scenarios: page }) => ({ default: page })));
-const Strategies = lazy(() => import('../../components/academy/guides/Strategies').then(({ Strategies: page }) => ({ default: page })));
-const Taxation = lazy(() => import('../../components/academy/guides/Taxation').then(({ Taxation: page }) => ({ default: page })));
-const ValuationGuide = lazy(() => import('../../components/academy/guides/ValuationGuide').then(({ ValuationGuide: page }) => ({ default: page })));
-const AssetAllocationSim = lazy(() => import('../../components/academy/simulators/AssetAllocationSim').then(({ AssetAllocationSim: page }) => ({ default: page })));
-const CrisisSimulator = lazy(() => import('../../components/academy/simulators/CrisisSimulator').then(({ CrisisSimulator: page }) => ({ default: page })));
-const FundRadar = lazy(() => import('../../components/academy/simulators/FundRadar').then(({ FundRadar: page }) => ({ default: page })));
-const InvestorProfileTest = lazy(() => import('../../components/academy/simulators/InvestorProfileTest').then(({ InvestorProfileTest: page }) => ({ default: page })));
-const MarketTimingGame = lazy(() => import('../../components/academy/simulators/MarketTimingGame').then(({ MarketTimingGame: page }) => ({ default: page })));
-const PortfolioBuilder = lazy(() => import('../../components/academy/simulators/PortfolioBuilder').then(({ PortfolioBuilder: page }) => ({ default: page })));
+import { CommonErrors } from '../../components/academy/guides/CommonErrors';
+import { Glossary } from '../../components/academy/guides/Glossary';
+import { InProcess } from '../../components/academy/guides/InProcess';
+import { InvestorTimeline } from '../../components/academy/guides/InvestorTimeline';
+import { RiskManagement } from '../../components/academy/guides/RiskManagement';
+import { Scenarios } from '../../components/academy/guides/Scenarios';
+import { Strategies } from '../../components/academy/guides/Strategies';
+import { Taxation } from '../../components/academy/guides/Taxation';
+import { ValuationGuide } from '../../components/academy/guides/ValuationGuide';
+import { AssetAllocationSim } from '../../components/academy/simulators/AssetAllocationSim';
+import { CrisisSimulator } from '../../components/academy/simulators/CrisisSimulator';
+import { FundRadar } from '../../components/academy/simulators/FundRadar';
+import { InvestorProfileTest } from '../../components/academy/simulators/InvestorProfileTest';
+import { MarketTimingGame } from '../../components/academy/simulators/MarketTimingGame';
+import { PortfolioBuilder } from '../../components/academy/simulators/PortfolioBuilder';
 
 export type AcademySidebarGroup =
     | 'Aprender'
@@ -124,6 +116,18 @@ export const academySidebarSections = academyRouteDefinitions.filter(
     (route): route is AcademyRouteDefinition & { icon: LucideIcon; group: AcademySidebarGroup } =>
         Boolean(route.includeInSidebar && route.icon && route.group),
 );
+
+export const toolSidebarSections = [
+    ...academySidebarSections
+        .filter((route) => route.group === 'Herramientas')
+        .map(({ path, label, icon, end }) => ({
+            to: `/academy/${path}`,
+            label,
+            icon,
+            end,
+        })),
+    { to: '/market-heatmap', label: 'Heatmap de mercados', icon: PanelsTopLeft, end: true },
+];
 
 export const academyPrerenderRoutes = academyRouteDefinitions.map(({ path }) =>
     (path ? `/academy/${path}` : '/academy'),

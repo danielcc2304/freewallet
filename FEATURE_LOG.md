@@ -12,6 +12,167 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-17 - v5.3.4 - Pulido del Heatmap y animaciones de interacción
+- Funcionalidad:
+  - Se mueve el resumen por sectores del Heatmap debajo del mapa para mantener primero la lectura visual principal.
+  - Se convierte el resumen sectorial en una superficie integrada con el diseño de la herramienta.
+  - Se amplía Liquid Glass a más módulos y controles, incluyendo una animación de confirmación de selección reutilizable y compatible con movimiento reducido.
+- Resumen:
+  - El Heatmap presenta una jerarquía más clara y las selecciones de la interfaz tienen una respuesta visual consistente en toda la aplicación.
+- Archivos:
+  - `src/components/academy/tools/MarketHeatmap.tsx`
+  - `src/components/academy/tools/MarketHeatmap.css`
+  - `src/context/AppearanceContext.tsx`
+  - `src/styles/liquidGlass.css`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
+### 2026-09-17 - v5.3.3 - Correcciones de rendimiento, benchmark y responsive
+- Funcionalidad:
+  - Se corrigen los cálculos de rendimiento de cartera y benchmark para usar el cierre previo disponible, alinear datos intradía y rebajar correctamente los acumulados de YTD.
+  - Se incorpora el cálculo automático del benchmark teniendo en cuenta los flujos de cartera y se actualizan sus pruebas de regresión.
+  - Se ajusta la lectura responsive de activos, composición, donut y pantallas de Academy para evitar recortes y mejorar el uso en móvil.
+  - Se amplía Liquid Glass a más superficies, filtros, controles, resultados flotantes y navegación auxiliar.
+- Resumen:
+  - Las métricas de evolución y comparativa quedan más consistentes en periodos cortos y con datos importados, mientras la interfaz se adapta mejor a pantallas pequeñas.
+- Archivos:
+  - `scripts/test-portfolio-performance.ts`
+  - `src/services/portfolioPerformance.ts`
+  - `src/services/apiService.ts`
+  - `src/types/api.ts`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`
+  - `src/components/dashboard/AssetsTable.tsx`
+  - `src/components/dashboard/AssetsTable.css`
+  - `src/components/dashboard/PortfolioComposition.css`
+  - `src/components/charts/DonutChart.tsx`
+  - `src/components/charts/DonutChart.css`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/components/academy/guides/Fundamentos.tsx`
+  - `src/components/academy/guides/Fundamentos.css`
+  - `src/components/academy/layout/AcademyLayout.tsx`
+  - `src/components/academy/layout/AcademyLayout.css`
+  - `src/components/layout/MainLayout/MainLayout.tsx`
+  - `src/components/layout/MainLayout/MainLayout.css`
+  - `src/context/AppearanceContext.tsx`
+  - `src/styles/liquidGlass.css`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
+### 2026-09-17 - v5.3.2 - Detalle de activos en móvil y navegación simplificada
+- Funcionalidad:
+  - Se convierte el detalle de un activo en un modal flotante centrado en móvil, evitando el espaciado superior propio del panel anclado al borde inferior.
+  - Se adapta el interior del detalle al material Liquid Glass en métricas, gráfico, selector de periodos y paneles de información.
+  - Se eliminan variables de color no disponibles en el detalle y se usan los tokens semánticos compartidos.
+  - Se retira `Añadir inversión` del sidebar, manteniendo sus accesos contextuales dentro de la aplicación.
+- Resumen:
+  - El detalle de activos ofrece una lectura más equilibrada en pantallas pequeñas y una integración visual más coherente con Liquid Glass, mientras que el sidebar queda centrado en las secciones principales.
+- Archivos:
+  - `src/components/ui/Modal/Modal.css`
+  - `src/components/dashboard/AssetDetail.css`
+  - `src/styles/liquidGlass.css`
+  - `src/components/layout/Sidebar/Sidebar.tsx`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
+### 2026-09-16 - v5.3.1 - Pulido de Liquid Glass y navegación auxiliar
+- Funcionalidad:
+  - Se amplía el efecto Liquid Glass a controles, selectores, filtros, resultados flotantes y superficies de módulos que no usan el componente de tarjeta común.
+  - Se añaden objetivos de interacción para que el resaltado dinámico acompañe también a estos controles.
+  - Se corrige la posición del botón flotante de volver en Términos y condiciones para que no herede el desplazamiento del sidebar.
+- Resumen:
+  - La apariencia Liquid Glass mantiene un lenguaje visual más consistente en toda la aplicación y la navegación auxiliar queda correctamente alineada.
+- Archivos:
+  - `src/context/AppearanceContext.tsx`
+  - `src/styles/liquidGlass.css`
+  - `src/pages/TermsAndConditions/TermsAndConditions.css`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
+### 2026-09-16 - v5.3.0 - Apariencia Liquid Glass y preferencias por defecto
+- Funcionalidad:
+  - Se incorpora el estilo de interfaz Liquid Glass como opción configurable para toda la aplicación.
+  - Se establecen Liquid Glass y el tema Sistema como preferencias iniciales cuando no existe una selección guardada.
+  - Se simplifica el título de la configuración de apariencia eliminando el icono decorativo de brillo.
+  - Se mantiene el historial de mejoras ordenado de la versión más reciente a la más antigua.
+- Resumen:
+  - FreeWallet arranca con una apariencia más integrada con el sistema y permite cambiar el material visual desde Configuración sin perder las preferencias existentes.
+- Archivos:
+  - `src/App.tsx`
+  - `src/main.tsx`
+  - `src/context/AppearanceContext.tsx`
+  - `src/context/ThemeContext.tsx`
+  - `src/styles/liquidGlass.css`
+  - `src/pages/Settings/Settings.tsx`
+  - `src/pages/Settings/Settings.css`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
+### 2026-09-16 - v5.2.0 - Heatmap de mercados y reorganización del dashboard
+- Funcionalidad:
+  - Se incorpora la herramienta `Heatmap de mercados` con vistas para S&P 500, MSCI World y MSCI Emerging Markets.
+  - Se cargan las composiciones oficiales de los índices mediante endpoints proxy y se completan sus cotizaciones diarias con Yahoo Finance Spark.
+  - Se añade la navegación de `Herramientas`, la ruta pública del heatmap y su inclusión en SEO y prerender.
+  - Se reorganizan las secciones del dashboard para mostrar por separado el resumen mensual, los últimos movimientos y el plan de cartera.
+  - Se establece el tema oscuro como valor inicial y se actualiza la versión visible de la aplicación a `v5.2.0`.
+- Resumen:
+  - FreeWallet incorpora una lectura visual de la sesión de mercado y una navegación más clara para las herramientas, manteniendo el dashboard dividido en bloques más manejables.
+- Archivos:
+  - `src/components/academy/tools/MarketHeatmap.tsx`
+  - `src/components/academy/tools/MarketHeatmap.css`
+  - `src/data/marketHeatmapIndices.ts`
+  - `src/services/marketHeatmapService.ts`
+  - `src/services/apiService.ts`
+  - `src/services/market/marketConfig.ts`
+  - `src/components/layout/Sidebar/Sidebar.tsx`
+  - `src/app/routes/academyRoutes.tsx`
+  - `src/constants/routes.ts`
+  - `src/App.tsx`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/components/dashboard/LivePortfolioPlan.tsx`
+  - `src/context/ThemeContext.tsx`
+  - `scripts/generate-seo.js`
+  - `scripts/prerender.js`
+  - `vercel.json`
+  - `vite.config.ts`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
+### 2026-09-16 - v5.1.0 - Hotfix de rendimiento y lectura móvil de cartera
+- Funcionalidad:
+  - Se elimina la carga diferida de rutas para que la navegación y el renderizado sean inmediatos.
+  - Se muestra el cambio de ganancia o pérdida del último día anterior cuando no hay histórico diario disponible.
+  - Se reorganiza `Mis Activos` en móvil para mostrar primero la información esencial y dejar el detalle y las acciones bajo controles de tarjeta.
+  - Se amplían los precios de compra y venta hasta seis decimales para activos de valor unitario pequeño.
+  - Se separan las exposiciones de fondos marcadas como `Resto no desglosado` en su propia sección y se corrige el recorte responsive del donut y su leyenda.
+- Resumen:
+  - El dashboard carga de forma más fluida, conserva una referencia diaria útil y ofrece una lectura compacta y completa de la cartera según la necesidad del usuario.
+- Archivos:
+  - `src/App.tsx`
+  - `src/app/routes/academyRoutes.tsx`
+  - `src/components/charts/DonutChart.tsx`
+  - `src/components/charts/DonutChart.css`
+  - `src/components/dashboard/AssetDetail.tsx`
+  - `src/components/dashboard/AssetsTable.tsx`
+  - `src/components/dashboard/AssetsTable.css`
+  - `src/components/dashboard/PortfolioComposition.tsx`
+  - `src/components/dashboard/PortfolioComposition.css`
+  - `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`
+  - `src/pages/AddInvestment/AddInvestment.tsx`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/pages/Dashboard/Dashboard.css`
+  - `src/pages/Transactions/Transactions.tsx`
+  - `src/services/portfolioPerformance.ts`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-09-13 - v5.0.14 - Hotfix de carga inicial de Academy
 - Funcionalidad:
   - Se carga `Fundamentos` dentro del shell inicial de Academy para evitar el estado de carga en la primera visita.
@@ -622,7 +783,6 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - `src/pages/Settings/Settings.tsx`
   - `src/constants/app.ts`
   - `src/data/academy/knowledge.ts`
-  - `src/components/academy/assets/AssetEquities.tsx`
   - `src/components/academy/assets/AssetPage.css`
   - `src/components/academy/guides/Fundamentos.tsx`
   - `src/components/academy/guides/RiskManagement.tsx`

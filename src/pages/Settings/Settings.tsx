@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../../components/ui';
 import { APP_NAME, APP_VERSION } from '../../constants/app';
 import { useTheme } from '../../context/ThemeContext';
+import { useAppearance } from '../../context/AppearanceContext';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { useState } from 'react';
 import { clearAllData, isApiEnabled, updateSettings } from '../../services/storageService';
@@ -13,6 +14,7 @@ type ThemeMode = 'light' | 'dark' | 'system';
 
 export function Settings() {
     const { themeMode, setThemeMode } = useTheme();
+    const { appearance, setAppearance } = useAppearance();
     const { state, loadDemoData } = usePortfolio();
     const [showClearConfirm, setShowClearConfirm] = useState(false);
     const [showDemoConfirm, setShowDemoConfirm] = useState(false);
@@ -75,6 +77,56 @@ export function Settings() {
                             ? 'El tema cambiará automáticamente según la configuración de tu dispositivo'
                             : `Tema ${themeMode === 'dark' ? 'oscuro' : 'claro'} seleccionado`}
                     </p>
+
+                    <div className="settings__appearance">
+                        <div className="settings__appearance-copy">
+                            <div className="settings__appearance-title">
+                                <span>Estilo de interfaz</span>
+                            </div>
+                            <p className="settings__hint">
+                                Añade un material óptico adaptable a navegación y controles sin cambiar el modo de color.
+                            </p>
+                        </div>
+                        <div className="settings__appearance-options" role="group" aria-label="Estilo de interfaz">
+                            <button
+                                type="button"
+                                className={`appearance-option ${appearance === 'standard' ? 'appearance-option--active' : ''}`}
+                                onClick={() => setAppearance('standard')}
+                                aria-pressed={appearance === 'standard'}
+                            >
+                                <span className="appearance-option__visual appearance-option__visual--standard" aria-hidden="true">
+                                    <span />
+                                    <span />
+                                </span>
+                                <span className="appearance-option__copy">
+                                    <strong>Estándar</strong>
+                                    <small>Superficies sólidas y directas</small>
+                                </span>
+                                {appearance === 'standard' && <span className="appearance-option__check">✓</span>}
+                            </button>
+                            <button
+                                type="button"
+                                className={`appearance-option ${appearance === 'liquid-glass' ? 'appearance-option--active' : ''}`}
+                                onClick={() => setAppearance('liquid-glass')}
+                                aria-pressed={appearance === 'liquid-glass'}
+                            >
+                                <span className="appearance-option__visual appearance-option__visual--glass" aria-hidden="true">
+                                    <span />
+                                    <span />
+                                </span>
+                                <span className="appearance-option__copy">
+                                    <strong>Liquid Glass</strong>
+                                    <small>Controles flotantes, profundidad y refracción</small>
+                                </span>
+                                {appearance === 'liquid-glass' && <span className="appearance-option__check">✓</span>}
+                            </button>
+                        </div>
+                        <p className="settings__hint">
+                            {appearance === 'liquid-glass'
+                                ? 'Liquid Glass activado en toda la aplicación.'
+                                : 'Apariencia estándar seleccionada.'}
+                        </p>
+                    </div>
                 </CardContent>
             </Card>
 

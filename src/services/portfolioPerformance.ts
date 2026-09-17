@@ -1,7 +1,28 @@
-import type { Asset, HistoricalDataPoint, PortfolioHistoryPoint, PortfolioTransaction } from '../types/types';
+import type { Asset, HistoricalDataPoint, PortfolioHistoryPoint, PortfolioTransaction, TimePeriod } from '../types/types';
 
 const DAY_MS = 86400000;
 export const WORKBOOK_RISK_FREE_ANNUAL_PCT = 2.75;
+
+/**
+ * Keep every dashboard period on the same calendar/time basis. The one and
+ * seven day ranges are rolling windows; month ranges are rolling calendar
+ * months with end-of-month clamping, and YTD starts at local 1 January.
+ */
+export function getPeriodCutoff(period: TimePeriod, nowMs: number): number | null {
+    if (period === 'ALL') return null;
+    const now = new Date(nowMs);
+    if (period === 'YTD') return new Date(now.getFullYear(), 0, 1).getTime();
+    if (period === '1D') return nowMs - DAY_MS;
+    if (period === '7D') return nowMs - 7 * DAY_MS;
+
+    const months = period === '3M' ? 3 : 1;
+    const day = now.getDate();
+    now.setDate(1);
+    now.setMonth(now.getMonth() - months);
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    now.setDate(Math.min(day, lastDay));
+    return now.getTime();
+}
 
 /** Accounting days follow the workbook's Europe/Madrid calendar. */
 export function accountingDay(date: string | number): string {
@@ -53,6 +74,33 @@ export function createQuoteSnapshot(assets: Asset[], transactions: PortfolioTran
     return { date, value: assets.reduce((sum, a) => sum + a.currentPrice! * a.quantity, 0),
         invested: assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0),
         source: 'quotes-v2', ledgerKey: portfolioLedgerKey(normalizePortfolioTransactions(assets, transactions), date) };
+}
+
+/**
+ * Uses each holding's latest quote against its previous market close. This is
+ * the reliable fallback when there is not yet a complete portfolio history for
+ * the current day (for example after importing monthly workbook data).
+ */
+export function calculatePreviousClosePerformance(assets: Asset[]) {
+    const values = assets.map((asset) => {
+        const currentPrice = Number.isFinite(asset.currentPrice) && asset.currentPrice! > 0
+            ? asset.currentPrice!
+            : asset.purchasePrice;
+        const previousPrice = Number.isFinite(asset.previousClose) && asset.previousClose! > 0
+            ? asset.previousClose!
+            : asset.purchasePrice;
+        return {
+            current: currentPrice * asset.quantity,
+            previous: previousPrice * asset.quantity,
+        };
+    });
+    const currentValue = values.reduce((sum, value) => sum + value.current, 0);
+    const previousValue = values.reduce((sum, value) => sum + value.previous, 0);
+    if (!assets.length || !Number.isFinite(currentValue) || !Number.isFinite(previousValue) || previousValue <= 0) {
+        return { change: null as number | null, returnPercent: null as number | null };
+    }
+    const change = currentValue - previousValue;
+    return { change, returnPercent: change / previousValue * 100 };
 }
 
 /**
@@ -167,6 +215,103 @@ export function calculatePeriodPerformance(series: ReturnType<typeof performance
         netFlow: flow, observations: selected.length };
 }
 
+export interface BenchmarkPeriodPerformance {
+    portfolioReturn: number | null;
+    benchmarkReturn: number | null;
+}
+
+export interface AccumulatedBenchmarkPoint {
+    date: string;
+    portfolioAccumPct: number;
+    benchmarkAccumPct: number;
+}
+
+function historicalPointTimestamp(point: HistoricalDataPoint): number {
+    if (Number.isFinite(point.timestamp)) return point.timestamp!;
+    const parsed = Date.parse(point.date);
+    return Number.isFinite(parsed) ? parsed : NaN;
+}
+
+/**
+ * Calculates the two KPI returns independently. Portfolio performance must
+ * use its flow-aware series, while the benchmark uses the closest available
+ * market close at/before the period start (or its first observation when the
+ * provider does not return a preceding close, as is common for YTD).
+ */
+export function calculateBenchmarkPeriodPerformance(
+    series: ReturnType<typeof performanceSeries>,
+    benchmark: HistoricalDataPoint[],
+    startMs: number,
+    endMs = Infinity,
+    maxBaseGapMs = 4 * DAY_MS,
+): BenchmarkPeriodPerformance {
+    const portfolio = calculatePeriodPerformance(series, startMs, endMs, maxBaseGapMs);
+    const market = benchmark
+        .map((point) => ({ point, timestamp: historicalPointTimestamp(point) }))
+        .filter(({ point, timestamp }) => point.close > 0 && Number.isFinite(timestamp) && timestamp <= endMs)
+        .sort((left, right) => left.timestamp - right.timestamp);
+
+    if (!market.length || (market.length < 2 && (!Number.isFinite(market[0].point.previousClose) || market[0].point.previousClose! <= 0))) {
+        return { portfolioReturn: portfolio.returnPercent, benchmarkReturn: null };
+    }
+
+    const base = startMs === -Infinity
+        ? market[0]
+        : market.filter(({ timestamp }) => timestamp <= startMs).at(-1) || market[0];
+    const end = market.at(-1)!;
+    const baseClose = base === market[0] && startMs !== -Infinity && Number.isFinite(base.point.previousClose) && base.point.previousClose! > 0
+        ? base.point.previousClose!
+        : base.point.close;
+    const benchmarkReturn = baseClose > 0
+        ? (end.point.close / baseClose - 1) * 100
+        : null;
+
+    return { portfolioReturn: portfolio.returnPercent, benchmarkReturn };
+}
+
+/**
+ * Re-bases imported accumulated benchmark values at the requested period.
+ * When the workbook has no row before the cutoff, zero is the only honest
+ * baseline: using January's accumulated value as the baseline would erase
+ * the whole first month from YTD.
+ */
+export function normalizeAccumulatedBenchmark(
+    points: AccumulatedBenchmarkPoint[],
+    cutoff: number | null,
+    endMs = Infinity,
+) {
+    const available = points
+        .filter((point) => {
+            const timestamp = Date.parse(point.date);
+            return Number.isFinite(timestamp)
+                && timestamp <= endMs
+                && Number.isFinite(point.portfolioAccumPct)
+                && Number.isFinite(point.benchmarkAccumPct);
+        })
+        .sort((left, right) => Date.parse(left.date) - Date.parse(right.date));
+    if (available.length < 2) return [];
+
+    const base = cutoff === null
+        ? available[0]
+        : available.filter((point) => Date.parse(point.date) <= cutoff).at(-1);
+    const selected = cutoff === null
+        ? available
+        : base
+            ? [base, ...available.filter((point) => Date.parse(point.date) > cutoff)]
+            : available;
+    if (selected.length < 2) return [];
+
+    const basePortfolio = base ? 1 + base.portfolioAccumPct / 100 : 1;
+    const baseBenchmark = base ? 1 + base.benchmarkAccumPct / 100 : 1;
+    if (basePortfolio <= 0 || baseBenchmark <= 0) return [];
+
+    return selected.map((point) => ({
+        date: point.date.slice(0, 10),
+        portfolio: ((1 + point.portfolioAccumPct / 100) / basePortfolio - 1) * 100,
+        benchmark: ((1 + point.benchmarkAccumPct / 100) / baseBenchmark - 1) * 100,
+    }));
+}
+
 /** Evolucion!F: (month-end value - net flows - previous close) / previous close.
  * The workbook assumes flows at period end; this is an approximation when trades occur within the month.
  */
@@ -209,9 +354,43 @@ export function workbookRiskStats(returns: number[], riskFreeAnnualPct = WORKBOO
 }
 
 export function alignedBenchmark(series: ReturnType<typeof performanceSeries>, benchmark: HistoricalDataPoint[]) {
-    const market = new Map(benchmark.filter(p => p.close > 0).map(p => [p.date.slice(0, 10), p.close]));
-    const common = series.filter(p => market.has(p.date));
-    if (common.length < 2 || common[0].segment !== common.at(-1)!.segment) return [];
-    return common.map(p => ({ date: p.date, portfolio: (p.index / common[0].index - 1) * 100,
-        benchmark: (market.get(p.date)! / market.get(common[0].date)! - 1) * 100 }));
+    const market = benchmark
+        .map((point) => ({
+            point,
+            timestamp: historicalPointTimestamp(point),
+            day: Number.isFinite(point.timestamp) ? accountingDay(point.timestamp!) : accountingDay(point.date),
+        }))
+        .filter(({ point, timestamp, day }) => point.close > 0 && Number.isFinite(timestamp) && !!day)
+        .sort((left, right) => left.timestamp - right.timestamp);
+
+    const findMarketPoint = (portfolioTimestamp: number, portfolioDay: string) => {
+        const sameDay = market.filter((candidate) => candidate.day === portfolioDay).at(-1);
+        if (sameDay) return sameDay;
+        const preceding = market.filter((candidate) => candidate.timestamp <= portfolioTimestamp).at(-1);
+        if (preceding) return preceding;
+
+        // Yahoo's chart range usually exposes the close immediately before
+        // the first candle. Use it as a synthetic baseline so 1D/YTD can
+        // still draw a two-point comparison when the range starts after the
+        // portfolio's baseline observation.
+        const first = market[0];
+        return Number.isFinite(first?.point.previousClose) && first.point.previousClose! > 0
+            ? { ...first, timestamp: portfolioTimestamp, day: portfolioDay, point: { ...first.point, close: first.point.previousClose! } }
+            : undefined;
+    };
+
+    const common = series.flatMap((portfolioPoint) => {
+        const portfolioTimestamp = portfolioPoint.timestamp;
+        const portfolioDay = accountingDay(portfolioTimestamp);
+        const marketPoint = findMarketPoint(portfolioTimestamp, portfolioDay);
+        return marketPoint ? [{ portfolioPoint, marketPoint }] : [];
+    });
+    if (common.length < 2 || common[0].portfolioPoint.segment !== common.at(-1)!.portfolioPoint.segment) return [];
+
+    const first = common[0];
+    return common.map(({ portfolioPoint, marketPoint }) => ({
+        date: portfolioPoint.date,
+        portfolio: (portfolioPoint.index / first.portfolioPoint.index - 1) * 100,
+        benchmark: (marketPoint.point.close / first.marketPoint.point.close - 1) * 100,
+    }));
 }

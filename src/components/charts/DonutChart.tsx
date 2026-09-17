@@ -1,4 +1,4 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip, Legend, type LegendPayload, type LegendProps } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import type { CompositionItem } from '../../types/types';
 import './DonutChart.css';
 
@@ -9,10 +9,6 @@ type DonutTooltipEntry = {
 type DonutTooltipProps = {
     active?: boolean;
     payload?: DonutTooltipEntry[];
-};
-
-type DonutLegendProps = LegendProps & {
-    payload?: readonly LegendPayload[];
 };
 
 interface DonutChartProps {
@@ -41,40 +37,39 @@ function CustomTooltip({ active, payload }: DonutTooltipProps) {
     );
 }
 
-function renderLegend({ payload = [] }: DonutLegendProps) {
-    const sortedPayload = [...payload].sort((left, right) => {
-        const leftValue = Number((left.payload as Partial<CompositionItem> | undefined)?.value ?? 0);
-        const rightValue = Number((right.payload as Partial<CompositionItem> | undefined)?.value ?? 0);
-        return rightValue - leftValue;
+function getLegendItems(data: CompositionItem[]) {
+    return [...data].sort((left, right) => {
+        return right.value - left.value;
     });
+}
+
+function DonutLegend({ data }: { data: CompositionItem[] }) {
+    const sortedItems = getLegendItems(data);
 
     return (
-        <ul className="donut-legend">
-            {sortedPayload.slice(0, 6).map((entry, index) => {
-                const item = entry.payload as Partial<CompositionItem> | undefined;
-                const name = item?.name || item?.symbol;
+        <ul className="donut-legend" aria-label="Distribución de activos">
+            {sortedItems.map((item, index) => {
+                const name = item.name || item.symbol;
                 if (!name) return null;
 
                 return (
                     <li key={`legend-${index}`} className="donut-legend__item">
                         <span
                             className="donut-legend__dot"
-                            style={{ backgroundColor: entry.color || 'currentColor' }}
+                            style={{ backgroundColor: item.color || 'currentColor' }}
                         />
                         <span className="donut-legend__name" title={name}>
                             {name}
                         </span>
                         <span className="donut-legend__percent">
-                            {Number(item?.percentage ?? 0).toFixed(1)}%
+                            {item.percentage.toFixed(1)}%
+                        </span>
+                        <span className="donut-legend__value">
+                            {formatCurrency(item.value)}
                         </span>
                     </li>
                 );
             })}
-            {sortedPayload.length > 6 && (
-                <li className="donut-legend__item donut-legend__item--more">
-                    +{sortedPayload.length - 6} más
-                </li>
-            )}
         </ul>
     );
 }
@@ -84,30 +79,32 @@ export function DonutChart({ data, title }: DonutChartProps) {
     return (
         <div className="donut-chart">
             {title && <h4 className="donut-chart__title">{title}</h4>}
-            <ResponsiveContainer width="100%" height={280}>
-                <PieChart>
-                    <Pie
-                        data={data as unknown as Record<string, unknown>[]}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={100}
-                        paddingAngle={2}
-                        dataKey="value"
-                        animationBegin={0}
-                        animationDuration={500}
-                    >
-                        {data.map((entry, index) => (
-                            <Cell key={`cell-${index}`} fill={entry.color} />
-                        ))}
-                    </Pie>
-                    <Tooltip
-                        content={<CustomTooltip />}
-                        contentStyle={{ backgroundColor: 'transparent', border: 'none' }}
-                    />
-                    <Legend content={renderLegend} />
-                </PieChart>
-            </ResponsiveContainer>
+            <div className="donut-chart__plot">
+                <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                        <Pie
+                            data={data as unknown as Record<string, unknown>[]}
+                            cx="50%"
+                            cy="50%"
+                            innerRadius={60}
+                            outerRadius={100}
+                            paddingAngle={2}
+                            dataKey="value"
+                            animationBegin={0}
+                            animationDuration={500}
+                        >
+                            {data.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                        </Pie>
+                        <Tooltip
+                            content={<CustomTooltip />}
+                            contentStyle={{ backgroundColor: 'transparent', border: 'none' }}
+                        />
+                    </PieChart>
+                </ResponsiveContainer>
+            </div>
+            <DonutLegend data={data} />
         </div>
     );
 }

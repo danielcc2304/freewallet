@@ -931,7 +931,6 @@ html[data-appearance='liquid-glass'] :is(
 html[data-appearance='liquid-glass'] :is(
     .period-selector,
     .spread-sim__mode,
-    .glossary-filters,
     .portfolio-builder__filter-options
 ) {
     border: 1px solid var(--glass-edge-soft);
@@ -1104,21 +1103,7 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
     isolation: isolate;
 }
 
-.fundamentos.fundamentos--liquid-glass::before {
-    position: absolute;
-    inset: 4rem 1rem 5rem;
-    z-index: -1;
-    content: '';
-    pointer-events: none;
-    background:
-        radial-gradient(420px circle at 6% 4%, rgba(16, 185, 129, .1), transparent 72%),
-        radial-gradient(520px circle at 96% 42%, rgba(59, 130, 246, .1), transparent 74%),
-        radial-gradient(460px circle at 40% 96%, rgba(124, 58, 237, .07), transparent 74%);
-    filter: blur(8px);
-}
-
 .fundamentos.fundamentos--liquid-glass :is(
-    .fundamentos__header,
     .fundamentos__summary-card,
     .fundamentos__section-block,
     .fundamentos__spotlight,
@@ -1139,7 +1124,6 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
 }
 
 .fundamentos.fundamentos--liquid-glass :is(
-    .fundamentos__header,
     .fundamentos__summary-card,
     .fundamentos__section-block,
     .fundamentos__spotlight,
@@ -1156,7 +1140,6 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
 }
 
 .fundamentos.fundamentos--liquid-glass :is(
-    .fundamentos__header,
     .fundamentos__summary-card,
     .fundamentos__section-block,
     .fundamentos__spotlight,
@@ -1167,24 +1150,6 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
     z-index: 1;
 }
 
-.fundamentos.fundamentos--liquid-glass .fundamentos__header {
-    margin-bottom: 0;
-    padding: 2.2rem 2.25rem;
-    border-radius: 28px;
-    background:
-        radial-gradient(520px circle at 0% 0%, rgba(16, 185, 129, .16), transparent 68%),
-        radial-gradient(460px circle at 100% 16%, rgba(59, 130, 246, .14), transparent 70%),
-        linear-gradient(145deg, rgba(255, 255, 255, .1), transparent 46%),
-        var(--glass-regular-strong);
-    box-shadow:
-        0 22px 54px rgba(0, 0, 0, .18),
-        inset 0 1px 0 var(--glass-edge-bright),
-        inset 0 -1px 0 rgba(0, 0, 0, .08);
-    backdrop-filter: blur(var(--glass-overlay-blur)) saturate(145%);
-    -webkit-backdrop-filter: blur(var(--glass-overlay-blur)) saturate(145%);
-    text-align: left;
-}
-
 .fundamentos.fundamentos--liquid-glass .fundamentos__title {
     max-width: 760px;
     letter-spacing: -.035em;
@@ -1192,19 +1157,6 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
 
 .fundamentos.fundamentos--liquid-glass .fundamentos__description {
     max-width: 720px;
-}
-
-.fundamentos.fundamentos--liquid-glass .fundamentos__eyebrow {
-    position: relative;
-    isolation: isolate;
-    overflow: hidden;
-    border-color: var(--glass-edge-soft);
-    background:
-        linear-gradient(145deg, rgba(255, 255, 255, .16), transparent 54%),
-        var(--glass-clear);
-    box-shadow: inset 0 1px 0 var(--glass-edge-bright), 0 8px 20px rgba(0, 0, 0, .1);
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
 }
 
 .fundamentos.fundamentos--liquid-glass .fundamentos__summary {
@@ -1308,8 +1260,7 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
 .fundamentos.fundamentos--liquid-glass :is(
     .fundamentos__collapse-toggle,
     .fundamentos__mini-action,
-    .fundamentos__button,
-    .fundamentos__eyebrow
+    .fundamentos__button
 )::before {
     position: absolute;
     inset: 0;
@@ -1329,8 +1280,7 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
     .fundamentos__next-link,
     .fundamentos__collapse-toggle,
     .fundamentos__mini-action,
-    .fundamentos__button,
-    .fundamentos__eyebrow
+    .fundamentos__button
 ):hover::before {
     opacity: 1;
 }
@@ -1343,8 +1293,7 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
     .fundamentos__next-link,
     .fundamentos__collapse-toggle,
     .fundamentos__mini-action,
-    .fundamentos__button,
-    .fundamentos__eyebrow
+    .fundamentos__button
 ) > * {
     position: relative;
     z-index: 1;
@@ -1464,7 +1413,6 @@ html[data-theme='light'][data-appearance='liquid-glass'] .layout__content {
     outline-offset: 3px;
 }
 
-html[data-theme='light'] .fundamentos.fundamentos--liquid-glass .fundamentos__eyebrow,
 html[data-theme='light'] .fundamentos.fundamentos--liquid-glass :is(
     .fundamentos__checklist-cta,
     .fundamentos__card-badge,
@@ -1482,11 +1430,6 @@ html[data-theme='light'] .fundamentos.fundamentos--liquid-glass .fundamentos__mi
         gap: var(--academy-surface-gap, .75rem);
         padding-right: .75rem;
         padding-left: .75rem;
-    }
-
-    .fundamentos.fundamentos--liquid-glass .fundamentos__header {
-        padding: 1.45rem 1.2rem 1.55rem;
-        border-radius: 22px;
     }
 
     .fundamentos.fundamentos--liquid-glass :is(
@@ -1552,12 +1495,50 @@ html[data-theme='light'] .fundamentos.fundamentos--liquid-glass .fundamentos__mi
         box-shadow: inset 0 1px 0 var(--glass-edge-bright), inset 0 -1px 0 rgba(0, 0, 0, .06);
     }
 
+    /* Academy pages contain several custom card implementations. On mobile,
+       projected shadows from each one overlap the route background and read
+       as grey separator bands; a shared inner rim keeps depth without those
+       extra paint layers. */
+    html[data-appearance='liquid-glass'] .academy__content :is(
+        [class$='-card'],
+        [class*='-card '],
+        [class$='__card'],
+        [class*='__card '],
+        .asset-page__hero,
+        .asset-page__section,
+        .calculators__footer,
+        .calculators__recommendation,
+        .glossary-controls,
+        .metric-explainer,
+        .portfolio-builder__filters,
+        .fund-radar__filters
+    ) {
+        box-shadow: inset 0 1px 0 var(--glass-edge-bright), inset 0 -1px 0 rgba(0, 0, 0, .055);
+    }
+
+    html[data-appearance='liquid-glass'] .glossary-filters {
+        border: 0;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    html[data-appearance='liquid-glass'] .academy__content :is(
+        [class$='-card'],
+        [class*='-card '],
+        [class$='__card'],
+        [class*='__card ']
+    ):hover {
+        transform: none;
+        box-shadow: inset 0 1px 0 var(--glass-edge-bright), inset 0 -1px 0 rgba(0, 0, 0, .055);
+    }
+
     html[data-appearance='liquid-glass'] .card--clickable:hover {
         box-shadow: inset 0 1px 0 var(--glass-edge-bright), inset 0 -1px 0 rgba(0, 0, 0, .06);
     }
 
     .fundamentos.fundamentos--liquid-glass :is(
-        .fundamentos__header,
         .fundamentos__summary-card,
         .fundamentos__section-block,
         .fundamentos__spotlight,
@@ -1628,10 +1609,6 @@ html[data-theme='light'] .fundamentos.fundamentos--liquid-glass .fundamentos__mi
     html[data-appearance='liquid-glass'] .terms * {
         backdrop-filter: none !important;
         -webkit-backdrop-filter: none !important;
-    }
-
-    .fundamentos.fundamentos--liquid-glass::before {
-        filter: none;
     }
 
     html[data-appearance='liquid-glass'] .sidebar {

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { Info, AlertTriangle, TrendingDown, Scale, Landmark, HelpCircle, Wallet, CalendarDays, ChevronDown, ChevronUp } from 'lucide-react';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './BondCalculator.css';
 
 type CouponFrequency = 'annual' | 'semiannual' | 'quarterly' | 'monthly';
@@ -501,12 +502,12 @@ export function BondCalculator() {
 
     return (
         <div className="bond-calc">
-            <header className="bond-calc__header">
+            <AcademyPageHeader className="bond-calc__header" section="Herramientas">
                 <h1 className="bond-calc__title">Calculadora de Bonos (TIR)</h1>
                 <p className="bond-calc__subtitle">
                     Calcula la rentabilidad real de un bono (Yield to Maturity) a partir de su precio actual de mercado.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             <div className="bond-calc__grid">
                 <div className="bond-calc__inputs">

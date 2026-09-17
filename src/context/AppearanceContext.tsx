@@ -42,7 +42,6 @@ const LIQUID_GLASS_POINTER_TARGETS = [
     '.market-heatmap__floating-refresh',
     '.terms__back-fab',
     '.not-found__button',
-    '.fundamentos__eyebrow',
     '.fundamentos__collapse-toggle',
     '.fundamentos__mini-card',
     '.fundamentos__mini-action',

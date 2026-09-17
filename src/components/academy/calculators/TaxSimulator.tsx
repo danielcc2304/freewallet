@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Percent, Info, ShieldCheck, Landmark, Receipt, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './TaxSimulator.css';
 
 interface TaxSimulatorStorage {
@@ -120,7 +121,7 @@ export function TaxSimulator() {
 
     return (
         <div className="tax-sim">
-            <header className="tax-sim__header">
+            <AcademyPageHeader className="tax-sim__header" section="Herramientas">
                 <div className="tax-sim__title-group">
                     <div className="tax-sim__icon-container">
                         <Receipt className="tax-sim__title-icon" />
@@ -130,7 +131,7 @@ export function TaxSimulator() {
                         <p className="tax-sim__subtitle">¿Cuánto se lleva Hacienda de tus beneficios? (IRPF España)</p>
                     </div>
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             <div className="tax-sim__grid">
                 <aside className="tax-sim__inputs">

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Info, TrendingUp, Wallet, ShieldCheck, Flame, Banknote } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getRateConversion } from './compoundInterestUtils';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './FIRECalculator.css';
 
 type ProjectionMode = 'nominal' | 'real';
@@ -244,7 +245,7 @@ export function FIRECalculator() {
 
     return (
         <div className="fire">
-            <header className="fire__header">
+            <AcademyPageHeader className="fire__header" section="Herramientas">
                 <div className="fire__title-group">
                     <Flame className="fire__title-icon" />
                     <div>
@@ -262,7 +263,7 @@ export function FIRECalculator() {
                         </div>
                     )}
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             <div className="fire__grid">
                 <section className="fire__inputs">

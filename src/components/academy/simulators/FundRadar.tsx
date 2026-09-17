@@ -10,6 +10,7 @@ import { BEST_FUNDS } from '../../../data/academyData';
 import type { Fund } from '../../../types/types';
 import { calculateRawScore, calculatePercentile, normalizeScore } from '../../../services/funds/fundScoring';
 import { Button, Modal } from '../../ui';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './FundRadar.css';
 
 interface FundCardProps {
@@ -317,7 +318,7 @@ export function FundRadar() {
                 <ArrowLeft size={18} /> Volver a la Academia
             </Link>
 
-            <header className="fund-radar__header">
+            <AcademyPageHeader className="fund-radar__header" section="Herramientas">
 
                 <h1>Ranking de Fondos por Categorías</h1>
                 <div className="fund-radar__last-update">
@@ -332,7 +333,7 @@ export function FundRadar() {
                     <Star size={14} />
                     <span>Esta puntuación es un <strong>análisis cuantitativo</strong> basado en datos históricos. No constituye una recomendación de compra.</span>
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             <div className="fund-radar__filters">
                 <div className="fund-radar__search-row">

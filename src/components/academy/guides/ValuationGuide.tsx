@@ -4,6 +4,7 @@ import {
     Calculator, AlertCircle, CheckCircle2, DollarSign, Activity,
     Zap, Search
 } from 'lucide-react';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './ValuationGuide.css';
 
 interface MetricProps {
@@ -38,7 +39,7 @@ export function ValuationGuide() {
                 <ArrowLeft size={18} /> Volver a Acciones
             </Link>
 
-            <header className="valuation-guide__hero">
+            <AcademyPageHeader className="valuation-guide__hero" section="Herramientas">
                 <div className="valuation-guide__hero-icon">
                     <BarChart3 size={48} />
                 </div>
@@ -46,7 +47,7 @@ export function ValuationGuide() {
                 <p>
                     Aprende a diferenciar un gran negocio de una trampa de valor mediante el análisis de sus fundamentales, rentabilidad y salud financiera.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             {/* 1. Rentabilidad del negocio */}
             <section className="valuation-guide__section">

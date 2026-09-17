@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { PiggyBank, ShieldCheck, AlertCircle, TrendingUp, HelpCircle, Home, Utensils, Zap, Plus, Users } from 'lucide-react';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './EmergencyFundCalculator.css';
 
 interface EmergencyFundCalculatorStorage {
@@ -97,7 +98,7 @@ export function EmergencyFundCalculator() {
 
     return (
         <div className="emergency">
-            <header className="emergency__header">
+            <AcademyPageHeader className="emergency__header" section="Herramientas">
                 <div className="emergency__title-group">
                     <div className="emergency__icon-container">
                         <PiggyBank className="emergency__title-icon" />
@@ -107,7 +108,7 @@ export function EmergencyFundCalculator() {
                         <p className="emergency__subtitle">El colchón que te permite dormir tranquilo.</p>
                     </div>
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             <div className="emergency__grid">
                 <section className="emergency__inputs">

@@ -5,6 +5,7 @@ import {
     Banknote, Calendar, Percent
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './InflationPredator.css';
 
 interface InflationPredatorStorage {
@@ -61,13 +62,13 @@ export function InflationPredator() {
                 <ArrowLeft size={18} /> Volver a Fundamentos
             </button>
 
-            <header className="inflation-predator__hero">
+            <AcademyPageHeader className="inflation-predator__hero" section="Escenarios">
                 <h1>El Depredador Silencioso</h1>
                 <p>
                     La inflación no te quita billetes de la cartera, pero les quita su poder.
                     Mira cómo desaparece el valor de tu dinero si decides NO invertirlo.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             <div className="inflation-predator__grid">
                 <aside className="inflation-predator__controls">

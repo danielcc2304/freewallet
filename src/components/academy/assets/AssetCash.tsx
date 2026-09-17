@@ -3,6 +3,7 @@ import {
     Wallet, ArrowLeft, Globe, CheckCircle2, AlertTriangle,
     Lightbulb, BarChart3, Clock, Shield, Activity
 } from 'lucide-react';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './AssetPage.css';
 
 const CASH_INSTRUMENTS = [
@@ -51,7 +52,7 @@ export function AssetCash() {
                 <ArrowLeft size={18} /> Volver a Carteras
             </Link>
 
-            <header className="asset-page__hero" style={{ '--hero-color': '#64748b' } as React.CSSProperties}>
+            <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#64748b' } as React.CSSProperties}>
                 <div className="asset-page__hero-icon">
                     <Wallet size={48} />
                 </div>
@@ -74,7 +75,7 @@ export function AssetCash() {
                         <span className="hero-stat__label">Disponibilidad</span>
                     </div>
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             <section className="asset-page__section">
                 <h2><Globe size={22} /> ¿Por qué tener Liquidez?</h2>

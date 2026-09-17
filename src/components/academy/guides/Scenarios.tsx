@@ -22,6 +22,7 @@ import {
     Calendar
 } from 'lucide-react';
 import { SCENARIOS } from '../../../data/academyData';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './Scenarios.css';
 
 const IconMap: Record<string, any> = {
@@ -51,13 +52,13 @@ const IconMap: Record<string, any> = {
 export function Scenarios() {
     return (
         <div className="scenarios">
-            <header className="scenarios__header">
+            <AcademyPageHeader className="scenarios__header" section="Escenarios">
                 <h1 className="scenarios__title">¿Qué hacer cuando...?</h1>
                 <p className="scenarios__subtitle">
                     Guía rápida de actuación para los escenarios más comunes del inversor.
                     Mantén la cabeza fría cuando todos los demás la pierden.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             <div className="scenarios__grid">
                 {SCENARIOS.map((scenario) => (

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Calendar, Info, ShieldAlert, BadgeInfo, Wallet2, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CalculatorCard } from './CalculatorCard';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './RetirementCalculator.css';
 
 interface RetirementCalculatorStorage {
@@ -120,7 +121,7 @@ export function RetirementCalculator() {
 
     return (
         <div className="retirement">
-            <header className="retirement__header">
+            <AcademyPageHeader className="retirement__header" section="Herramientas">
                 <div className="retirement__title-group">
                     <div className="retirement__icon-container">
                         <Calendar className="retirement__title-icon" />
@@ -134,7 +135,7 @@ export function RetirementCalculator() {
                     <span className="retirement__summary-label">Objetivo en {yearsToRetire} años</span>
                     <span className="retirement__summary-value">{formatCurrency(finalNominal)}</span>
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             <div className="retirement__grid">
                 <aside className="retirement__inputs">

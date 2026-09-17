@@ -9,6 +9,7 @@ import {
     CartesianGrid, ResponsiveContainer
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './MarketTimingGame.css';
 
 interface DataPoint {
@@ -109,10 +110,10 @@ export function MarketTimingGame() {
                 <ArrowLeft size={18} /> Volver a Fundamentos
             </button>
 
-            <header className="market-timing-game__header">
+            <AcademyPageHeader className="market-timing-game__header" section="Herramientas">
                 <h1>Reto: Market Timing vs DCA</h1>
                 <p>¿Crees que puedes ganarle al mercado? Intenta comprar barato y vender caro en este simulador de 20 segundos.</p>
-            </header>
+            </AcademyPageHeader>
 
             <div className="market-timing-game__stats">
                 <div className="game-stat">

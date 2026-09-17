@@ -121,14 +121,16 @@
 /* Responsive */
 @media (max-width: 640px) {
     .modal-backdrop {
-        align-items: flex-end;
-        padding: 0;
+        /* Keep dialogs floating on mobile so long content does not create a
+           bottom-sheet-sized empty area above the actual panel. */
+        align-items: center;
+        padding: 0.75rem;
     }
 
     .modal {
-        max-height: 85vh;
-        border-bottom-left-radius: 0;
-        border-bottom-right-radius: 0;
+        width: 100%;
+        max-height: calc(100dvh - 1.5rem);
+        border-radius: var(--radius-lg);
     }
 
     .modal--sm,
@@ -138,7 +140,8 @@
     }
 
     .modal--lg .modal__content {
-        height: calc(85vh - 68px);
+        height: calc(100dvh - 6rem);
+        max-height: calc(100dvh - 6rem);
     }
 
     .confirm-dialog__actions {

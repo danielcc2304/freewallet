@@ -12,6 +12,23 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-17 - v5.3.2 - Detalle de activos en móvil y navegación simplificada
+- Funcionalidad:
+  - Se convierte el detalle de un activo en un modal flotante centrado en móvil, evitando el espaciado superior propio del panel anclado al borde inferior.
+  - Se adapta el interior del detalle al material Liquid Glass en métricas, gráfico, selector de periodos y paneles de información.
+  - Se eliminan variables de color no disponibles en el detalle y se usan los tokens semánticos compartidos.
+  - Se retira `Añadir inversión` del sidebar, manteniendo sus accesos contextuales dentro de la aplicación.
+- Resumen:
+  - El detalle de activos ofrece una lectura más equilibrada en pantallas pequeñas y una integración visual más coherente con Liquid Glass, mientras que el sidebar queda centrado en las secciones principales.
+- Archivos:
+  - `src/components/ui/Modal/Modal.css`
+  - `src/components/dashboard/AssetDetail.css`
+  - `src/styles/liquidGlass.css`
+  - `src/components/layout/Sidebar/Sidebar.tsx`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-09-16 - v5.3.1 - Pulido de Liquid Glass y navegación auxiliar
 - Funcionalidad:
   - Se amplía el efecto Liquid Glass a controles, selectores, filtros, resultados flotantes y superficies de módulos que no usan el componente de tarjeta común.

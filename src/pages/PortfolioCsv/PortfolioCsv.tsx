@@ -82,6 +82,67 @@ import {
 } from './portfolioCsvUtils';
 import './PortfolioCsv.css';
 
+const getBasePeriodKey = (value: string) => value.replace(/__reset$/, '');
+
+interface SeriesTooltipProps {
+    active?: boolean;
+    payload?: ReadonlyArray<{
+        name?: string;
+        value?: number | string;
+        color?: string;
+        payload?: { period?: string };
+    }>;
+    label?: string | number;
+    valueType: 'currency' | 'percent';
+    resolvedPeriodMap: ReadonlyMap<string, string>;
+}
+
+function SeriesTooltip({
+    active,
+    payload,
+    label,
+    valueType,
+    resolvedPeriodMap,
+}: SeriesTooltipProps) {
+    if (!active || !payload?.length) return null;
+
+    const rawLabel = typeof payload[0]?.payload?.period === 'string'
+        ? payload[0].payload.period
+        : String(label ?? '');
+    if (rawLabel.endsWith('__reset')) return null;
+
+    const formatValue = (raw: number | string | undefined) => {
+        const value = Number(raw ?? 0);
+        return valueType === 'currency' ? formatCurrency(value) : formatPct(value);
+    };
+    const baseLabel = rawLabel ? getBasePeriodKey(rawLabel) : '';
+    const formattedLabel = !rawLabel
+        ? ''
+        : (resolvedPeriodMap.get(baseLabel) || formatPeriodLabel(baseLabel));
+    const uniquePayload = payload.filter((entry, index, entries) => {
+        const name = entry.name || '';
+        return entries.findIndex((candidate) => (candidate.name || '') === name) === index;
+    });
+
+    return (
+        <div className="portfolio-csv-tooltip">
+            <div className="portfolio-csv-tooltip__label">{formattedLabel}</div>
+            <div className="portfolio-csv-tooltip__rows">
+                {uniquePayload.map((entry, index) => (
+                    <div key={`${entry.name}-${index}`} className="portfolio-csv-tooltip__row">
+                        <span
+                            className="portfolio-csv-tooltip__dot"
+                            style={{ backgroundColor: entry.color || 'var(--text-muted)' }}
+                        />
+                        <span className="portfolio-csv-tooltip__name">{entry.name || 'Serie'}</span>
+                        <strong className="portfolio-csv-tooltip__value">{formatValue(entry.value)}</strong>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
 function readBucketTargets(): Record<string, number> {
     const stored = readStoredNumberMap(STORAGE_KEYS.bucketTargets, DEFAULT_BUCKET_TARGETS);
     const { goal: legacyGoal, ...storedTargets } = stored;
@@ -511,7 +572,6 @@ export function PortfolioCsv() {
     };
 
     const legendFormatter = (value: string) => (<span style={{ color: 'var(--text-secondary)', fontSize: '12px' }}>{value}</span>);
-    const getBasePeriodKey = (value: string) => value.replace(/__reset$/, '');
     const formatPeriodTick = (value: string) => {
         const rawValue = value;
         if (!rawValue || rawValue.endsWith('__reset')) return '';
@@ -610,55 +670,6 @@ export function PortfolioCsv() {
             >
                 {`${payload?.value ?? 0}%`}
             </text>
-        );
-    };
-
-    const SeriesTooltip = ({
-        active,
-        payload,
-        label,
-        valueType,
-    }: {
-        active?: boolean;
-        payload?: Array<{ name?: string; value?: number | string; color?: string; payload?: { period?: string } }>;
-        label?: string;
-        valueType: 'currency' | 'percent';
-    }) => {
-        if (!active || !payload || payload.length === 0) return null;
-        const rawLabel = typeof payload[0]?.payload?.period === 'string'
-            ? payload[0].payload.period
-            : (label || '');
-        if (rawLabel.endsWith('__reset')) return null;
-
-        const formatValue = (raw: number | string | undefined) => {
-            const value = Number(raw ?? 0);
-            return valueType === 'currency' ? formatCurrency(value) : formatPct(value);
-        };
-        const baseLabel = rawLabel ? getBasePeriodKey(rawLabel) : '';
-        const formattedLabel = !rawLabel
-            ? ''
-            : (resolvedPeriodMap.get(baseLabel) || formatPeriodLabel(baseLabel));
-        const uniquePayload = payload.filter((entry, index, entries) => {
-            const name = entry.name || '';
-            return entries.findIndex((candidate) => (candidate.name || '') === name) === index;
-        });
-
-        return (
-            <div className="portfolio-csv-tooltip">
-                <div className="portfolio-csv-tooltip__label">{formattedLabel}</div>
-                <div className="portfolio-csv-tooltip__rows">
-                    {uniquePayload.map((entry, index) => (
-                        <div key={`${entry.name}-${index}`} className="portfolio-csv-tooltip__row">
-                            <span
-                                className="portfolio-csv-tooltip__dot"
-                                style={{ backgroundColor: entry.color || 'var(--text-muted)' }}
-                            />
-                            <span className="portfolio-csv-tooltip__name">{entry.name || 'Serie'}</span>
-                            <strong className="portfolio-csv-tooltip__value">{formatValue(entry.value)}</strong>
-                        </div>
-                    ))}
-                </div>
-            </div>
         );
     };
 
@@ -892,7 +903,7 @@ export function PortfolioCsv() {
                                 <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.06)" />
                                 <XAxis dataKey="period" tickFormatter={formatPeriodTick} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={isMobile ? 22 : 12} />
                                 <YAxis tickFormatter={(value) => `${Math.round(value / 1000)}k`} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
-                                <Tooltip content={<SeriesTooltip valueType="currency" />} position={mobilePinnedTooltipPosition} />
+                                <Tooltip content={<SeriesTooltip valueType="currency" resolvedPeriodMap={resolvedPeriodMap} />} position={mobilePinnedTooltipPosition} />
                                 <Area type="monotone" dataKey="totalValue" name="Valor total" stroke="#10b981" fill="url(#portfolioCsvTotal)" strokeWidth={2.3} />
                                 <Area type="monotone" dataKey="investedValue" name="Capital invertido" stroke="#3b82f6" fill="url(#portfolioCsvInvested)" strokeWidth={2.1} />
                             </AreaChart>
@@ -938,7 +949,7 @@ export function PortfolioCsv() {
                                     />
                                     <YAxis yAxisId="left" tickFormatter={(value) => `${value}%`} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
                                     <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => `${value}%`} tick={{ fill: 'var(--text-secondary)', fontSize: 12 }} axisLine={false} tickLine={false} />
-                                    <Tooltip content={<SeriesTooltip valueType="percent" />} />
+                                    <Tooltip content={<SeriesTooltip valueType="percent" resolvedPeriodMap={resolvedPeriodMap} />} />
                                     <Legend formatter={legendFormatter} wrapperStyle={{ color: 'var(--text-secondary)' }} />
                                     <Bar yAxisId="right" dataKey="relativeReturnPct" name="Alpha mensual" fill="#f59e0b" radius={[6, 6, 0, 0]} barSize={isMobile ? 10 : 16} />
                                     <Line yAxisId="left" type="monotone" dataKey="portfolioAccumPct" name="Cartera acum." stroke="#10b981" strokeWidth={2.3} dot={false} />
@@ -1079,7 +1090,7 @@ export function PortfolioCsv() {
                                     tickMargin={6}
                                     width={isMobile ? 36 : 44}
                                 />
-                                <Tooltip content={<SeriesTooltip valueType="percent" />} />
+                                <Tooltip content={<SeriesTooltip valueType="percent" resolvedPeriodMap={resolvedPeriodMap} />} />
                                 <Legend formatter={legendFormatter} wrapperStyle={{ color: 'var(--text-secondary)' }} />
                                 <Bar yAxisId="left" dataKey="monthlyReturnPct" name="% Mensual" fill="#10b981" radius={[6, 6, 0, 0]} barSize={isMobile ? 10 : 18} />
                                 <Line yAxisId="right" type="monotone" dataKey="drawdownPct" name="Drawdown %" stroke="#ef4444" strokeWidth={2.1} dot={false} />

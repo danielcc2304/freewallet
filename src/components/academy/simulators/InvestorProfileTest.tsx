@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
     Target, ArrowRight, RotateCcw, Shield, Scale,
-    TrendingUp, PieChart, CheckCircle2, ChevronRight
+    TrendingUp, PieChart, CheckCircle2, ChevronRight, type LucideIcon
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
@@ -98,7 +98,7 @@ export function InvestorProfileTest() {
         }
     };
 
-    const getProfile = (): { type: ProfileType; icon: any; desc: string; auth: string } => {
+    const getProfile = (): { type: ProfileType; icon: LucideIcon; desc: string; auth: string } => {
         if (score <= 9) {
             return {
                 type: 'Conservador',

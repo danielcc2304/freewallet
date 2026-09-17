@@ -1763,3 +1763,129 @@ html[data-theme='light'] .fundamentos.fundamentos--liquid-glass .fundamentos__mi
         animation: liquidGlassSheenReduced 180ms ease-out both !important;
     }
 }
+
+/*
+ * Academy content uses many legacy card implementations instead of the
+ * shared Card component. Keep those surfaces on the same material as the
+ * Dashboard welcome card: one quiet diagonal wash and one internal rim.
+ * Projected shadows on every nested Academy card compound into grey bands
+ * between rows, especially in the light Liquid Glass palette.
+ */
+html[data-appearance='liquid-glass'] .academy__content :is(
+    .academy-page-header,
+    .calculators__card,
+    .calculators__recommendation,
+    .calculator-card,
+    .glossary-card,
+    .fund-card,
+    .quiz-card,
+    .asset-card,
+    [class$='-card'],
+    [class*='-card '],
+    [class$='__card'],
+    [class*='__card '],
+    .asset-page__hero,
+    .asset-page__section,
+    .calculators__footer,
+    .calculators__recommendation,
+    .glossary-controls,
+    .metric-explainer,
+    .portfolio-builder__filters,
+    .fund-radar__filters,
+    .interact-card
+) {
+    border-color: var(--border-primary);
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .035), transparent 34%),
+        var(--glass-content);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
+    backdrop-filter: blur(var(--glass-content-blur)) saturate(120%);
+    -webkit-backdrop-filter: blur(var(--glass-content-blur)) saturate(120%);
+}
+
+/* The shared Dashboard welcome card has a visible color wash inside its
+   surface. Keep that same optical cue on every Academy section hero while
+   leaving the cards below it quiet enough to avoid separator bands. */
+html[data-appearance='liquid-glass'] .academy__content > * > .academy-page-header {
+    border-color: var(--border-primary);
+    background:
+        radial-gradient(520px circle at 5% 0%, rgba(16, 185, 129, .18), transparent 68%),
+        radial-gradient(620px circle at 100% 4%, rgba(59, 130, 246, .16), transparent 70%),
+        linear-gradient(145deg, rgba(255, 255, 255, .095), transparent 48%),
+        var(--glass-content);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+
+html[data-theme='light'][data-appearance='liquid-glass'] .academy__content > * > .academy-page-header {
+    background:
+        radial-gradient(520px circle at 5% 0%, rgba(16, 185, 129, .22), transparent 68%),
+        radial-gradient(620px circle at 100% 4%, rgba(59, 130, 246, .2), transparent 70%),
+        linear-gradient(145deg, rgba(255, 255, 255, .16), transparent 48%),
+        var(--glass-content);
+}
+
+html[data-appearance='liquid-glass'] .academy__content :is(
+    .academy-page-header,
+    .calculators__card,
+    .calculators__recommendation,
+    .calculator-card,
+    .glossary-card,
+    .fund-card,
+    .quiz-card,
+    .asset-card,
+    [class$='-card'],
+    [class*='-card '],
+    [class$='__card'],
+    [class*='__card '],
+    .asset-page__hero,
+    .asset-page__section,
+    .calculators__footer,
+    .calculators__recommendation,
+    .glossary-controls,
+    .metric-explainer,
+    .portfolio-builder__filters,
+    .fund-radar__filters,
+    .interact-card
+):hover {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
+}
+
+/* Fundamentals has a more specific Liquid Glass block above, so repeat the
+   shared material with enough specificity to cover its nested cards too. */
+html[data-appearance='liquid-glass'] .fundamentos.fundamentos--liquid-glass :is(
+    .fundamentos__summary-card,
+    .fundamentos__section-block,
+    .fundamentos__spotlight,
+    .fundamentos__next,
+    .interact-card,
+    .fundamentos__level-head,
+    .fundamentos__mini-card,
+    .fundamentos__goal-link,
+    .fundamentos__checklist-card,
+    .fundamentos__card,
+    .fundamentos__next-link
+) {
+    border-color: var(--border-primary);
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .035), transparent 34%),
+        var(--glass-content);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
+    backdrop-filter: blur(var(--glass-content-blur)) saturate(120%);
+    -webkit-backdrop-filter: blur(var(--glass-content-blur)) saturate(120%);
+}
+
+html[data-appearance='liquid-glass'] .fundamentos.fundamentos--liquid-glass :is(
+    .fundamentos__summary-card,
+    .fundamentos__section-block,
+    .fundamentos__spotlight,
+    .fundamentos__next,
+    .interact-card,
+    .fundamentos__level-head,
+    .fundamentos__mini-card,
+    .fundamentos__goal-link,
+    .fundamentos__checklist-card,
+    .fundamentos__card,
+    .fundamentos__next-link
+):hover {
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .035);
+}

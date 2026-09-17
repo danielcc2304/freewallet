@@ -438,6 +438,79 @@ html[data-appearance='liquid-glass'] .modal__close:hover {
     background: rgba(255, 255, 255, .1);
 }
 
+/* Asset detail is a dense workspace inside the dialog. Give its sections a
+   quiet inner glass layer so the outer panel remains visually distinct. */
+html[data-appearance='liquid-glass'] :is(
+    .asset-detail__position-grid > div,
+    .asset-detail__chart-section,
+    .asset-detail__chart-selection,
+    .asset-detail .metric-card
+) {
+    border-color: var(--glass-edge-soft);
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .075), transparent 46%),
+        rgba(255, 255, 255, .045);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, .1), inset 0 1px 0 rgba(255, 255, 255, .075);
+    backdrop-filter: blur(16px) saturate(135%);
+    -webkit-backdrop-filter: blur(16px) saturate(135%);
+}
+
+html[data-appearance='liquid-glass'] .asset-detail__header,
+html[data-appearance='liquid-glass'] .asset-detail__footer {
+    border-color: rgba(255, 255, 255, .1);
+}
+
+html[data-appearance='liquid-glass'] .asset-detail__chart-selection {
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .09), transparent 50%),
+        rgba(255, 255, 255, .06);
+}
+
+html[data-appearance='liquid-glass'] .asset-detail__chart-selection button {
+    border-color: var(--glass-edge-soft);
+    background: rgba(255, 255, 255, .06);
+}
+
+html[data-appearance='liquid-glass'] .asset-detail .metric-card:hover {
+    border-color: rgba(110, 231, 183, .5);
+    background:
+        linear-gradient(145deg, rgba(255, 255, 255, .11), transparent 48%),
+        rgba(255, 255, 255, .065);
+}
+
+@media (max-width: 640px) {
+    /* The shared mobile modal uses a centered floating panel. Keep the
+       Liquid Glass material explicit here because the base modal owns the
+       responsive geometry and this layer owns only its appearance. */
+    html[data-appearance='liquid-glass'] .modal-backdrop {
+        align-items: center;
+        padding: max(.75rem, env(safe-area-inset-top)) max(.75rem, env(safe-area-inset-right)) max(.75rem, env(safe-area-inset-bottom)) max(.75rem, env(safe-area-inset-left));
+    }
+
+    html[data-appearance='liquid-glass'] .modal {
+        width: 100%;
+        max-height: calc(100dvh - 1.5rem);
+        border-radius: var(--radius-xl);
+    }
+
+    html[data-appearance='liquid-glass'] .modal__header {
+        padding: .75rem 1rem;
+    }
+
+    html[data-appearance='liquid-glass'] .modal__content {
+        padding: .85rem;
+    }
+
+    html[data-appearance='liquid-glass'] .modal--lg .modal__content {
+        height: calc(100dvh - 6rem);
+        max-height: calc(100dvh - 6rem);
+    }
+
+    html[data-appearance='liquid-glass'] .asset-detail {
+        gap: 1rem;
+    }
+}
+
 /* Settings options remain interactive controls rather than content cards. */
 html[data-appearance='liquid-glass'] .theme-option,
 html[data-appearance='liquid-glass'] .appearance-option {

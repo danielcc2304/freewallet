@@ -87,11 +87,11 @@
 }
 
 .asset-detail__change.positive {
-    color: var(--success-color);
+    color: var(--color-positive);
 }
 
 .asset-detail__change.negative {
-    color: var(--danger-color);
+    color: var(--color-negative);
 }
 
 .asset-detail__position-grid {
@@ -125,8 +125,8 @@
     min-width: 0;
 }
 
-.asset-detail .positive { color: var(--success-color); }
-.asset-detail .negative { color: var(--danger-color); }
+.asset-detail .positive { color: var(--color-positive); }
+.asset-detail .negative { color: var(--color-negative); }
 
 /* Chart Section */
 .asset-detail__chart-section {
@@ -164,7 +164,7 @@
     display: flex;
     flex-wrap: wrap;
     gap: 0.25rem;
-    background: var(--bg-main);
+    background: var(--bg-tertiary);
     padding: 0.25rem;
     border-radius: 8px;
     max-width: 100%;
@@ -184,8 +184,8 @@
     font-size: 1rem;
 }
 
-.asset-detail__period-performance strong.positive { color: var(--success-color); }
-.asset-detail__period-performance strong.negative { color: var(--danger-color); }
+.asset-detail__period-performance strong.positive { color: var(--color-positive); }
+.asset-detail__period-performance strong.negative { color: var(--color-negative); }
 .asset-detail__period-performance small { color: var(--text-muted); }
 
 .period-btn {
@@ -302,7 +302,7 @@
 }
 
 .asset-detail__chart-selection.positive strong {
-    color: var(--success-color);
+    color: var(--color-positive);
 }
 
 .asset-detail__chart-selection.negative {
@@ -310,7 +310,7 @@
 }
 
 .asset-detail__chart-selection.negative strong {
-    color: var(--danger-color);
+    color: var(--color-negative);
 }
 
 .asset-detail__chart-selection button {

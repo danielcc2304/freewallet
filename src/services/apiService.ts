@@ -35,6 +35,46 @@ import { isApiEnabled } from './storageService';
 
 const CHART_SYMBOL_CACHE = new Map<string, string[]>();
 
+type JsonRecord = Record<string, unknown>;
+
+function asJsonRecord(value: unknown): JsonRecord {
+    return value && typeof value === 'object' ? value as JsonRecord : {};
+}
+
+function asJsonRecords(value: unknown): JsonRecord[] {
+    return Array.isArray(value)
+        ? value.filter((item): item is JsonRecord => Boolean(item) && typeof item === 'object')
+        : [];
+}
+
+function readString(value: unknown, fallback = ''): string {
+    return typeof value === 'string' ? value : fallback;
+}
+
+function readFiniteNumber(value: unknown): number | undefined {
+    return typeof value === 'number' && Number.isFinite(value) ? value : undefined;
+}
+
+function readNumber(value: unknown, fallback = 0): number {
+    return readFiniteNumber(value) ?? fallback;
+}
+
+function readNumberAt(value: unknown, index: number, fallback = 0): number {
+    return Array.isArray(value) ? readNumber(value[index], fallback) : fallback;
+}
+
+function readRawMetric(value: unknown): number | undefined {
+    return readFiniteNumber(asJsonRecord(value).raw);
+}
+
+function firstRawMetric(...values: unknown[]): number | undefined {
+    for (const value of values) {
+        const metric = readRawMetric(value);
+        if (metric !== undefined) return metric;
+    }
+    return undefined;
+}
+
 function looksLikeISIN(q: string): boolean {
     return /^[A-Z]{2}[A-Z0-9]{10}$/.test(q.trim().toUpperCase());
 }
@@ -240,7 +280,9 @@ export async function searchSymbol(query: string, signal?: AbortSignal): Promise
                         currency: quote.currency || 'Unknown',
                     });
                 }
-            } catch { }
+            } catch {
+                // Ignore unavailable forced Yahoo candidates.
+            }
         }
     }
 
@@ -315,20 +357,21 @@ async function searchSymbolYahoo(query: string, signal?: AbortSignal): Promise<S
     const url = `${YAHOO_SEARCH_URL}?q=${encodeURIComponent(q)}&quotesCount=40&newsCount=0`;
 
     try {
-            const data: any = url.startsWith('/')
+            const rawData: unknown = url.startsWith('/')
                 ? (await axios.get(url, { signal, timeout: 5000 })).data
                 : await fetchFromFastestProxy(url, signal);
-            const quotes = data?.quotes || [];
+            const data = asJsonRecord(rawData);
+            const quotes = asJsonRecords(data.quotes);
 
             console.log(`[Yahoo API] Search for "${q}" returned ${quotes.length} results`);
 
             // Mapping
-            const mapped: SearchResult[] = quotes.map((item: any) => ({
-                symbol: item.symbol,
-                name: item.shortname || item.longname || item.symbol,
-                type: mapYahooType(item.quoteType),
-                region: item.region || 'Global',
-                currency: item.currency || 'Unknown',
+            const mapped: SearchResult[] = quotes.map((item) => ({
+                symbol: readString(item.symbol),
+                name: readString(item.shortname) || readString(item.longname) || readString(item.symbol),
+                type: mapYahooType(readString(item.quoteType)),
+                region: readString(item.region, 'Global'),
+                currency: readString(item.currency, 'Unknown'),
             }));
 
             // Score and Sort
@@ -510,27 +553,37 @@ async function getQuoteFinnhub(symbol: string, signal?: AbortSignal): Promise<St
 // ===== YAHOO FINANCE GET QUOTE =====
 async function getQuoteYahoo(symbol: string, signal?: AbortSignal): Promise<StockQuote | null> {
     const url = `${YAHOO_CHART_URL}/${encodeURIComponent(symbol)}?interval=1d&range=5d`;
-    const data: any = url.startsWith('/')
+    const rawData: unknown = url.startsWith('/')
         ? (await axios.get(url, { signal, timeout: 5000 })).data
         : await fetchFromFastestProxy(url, signal);
-    const result = data?.chart?.result?.[0];
-    const meta = result?.meta;
-    if (!meta?.regularMarketPrice) return null;
-    const closes = (result?.indicators?.quote?.[0]?.close || []).filter((value: unknown) => typeof value === 'number');
-    const previousClose = meta.previousClose || closes.at(-2) || meta.chartPreviousClose || meta.regularMarketPrice;
-    const change = meta.regularMarketPrice - previousClose;
+    const data = asJsonRecord(rawData);
+    const chart = asJsonRecord(data.chart);
+    const result = asJsonRecords(chart.result)[0] ?? {};
+    const meta = asJsonRecord(result.meta);
+    const indicators = asJsonRecord(result.indicators);
+    const quote = asJsonRecords(indicators.quote)[0] ?? {};
+    const regularMarketPrice = readFiniteNumber(meta.regularMarketPrice);
+    if (regularMarketPrice === undefined) return null;
+    const closes = Array.isArray(quote.close)
+        ? quote.close.filter((value): value is number => typeof value === 'number' && Number.isFinite(value))
+        : [];
+    const previousClose = readFiniteNumber(meta.previousClose)
+        ?? closes.at(-2)
+        ?? readFiniteNumber(meta.chartPreviousClose)
+        ?? regularMarketPrice;
+    const change = regularMarketPrice - previousClose;
     return {
-        symbol: meta.symbol || symbol,
-        name: meta.longName || meta.shortName || symbol,
-        price: meta.regularMarketPrice,
+        symbol: readString(meta.symbol, symbol),
+        name: readString(meta.longName) || readString(meta.shortName) || symbol,
+        price: regularMarketPrice,
         change,
         changePercent: previousClose ? (change / previousClose) * 100 : 0,
         previousClose,
-        open: meta.regularMarketPrice,
-        high: meta.regularMarketPrice,
-        low: meta.regularMarketPrice,
-        volume: meta.regularMarketVolume || 0,
-        currency: meta.currency || 'Unknown',
+        open: regularMarketPrice,
+        high: regularMarketPrice,
+        low: regularMarketPrice,
+        volume: readNumber(meta.regularMarketVolume),
+        currency: readString(meta.currency, 'Unknown'),
     };
 }
 
@@ -548,37 +601,42 @@ export async function getQuotesYahooBatch(symbols: string[], signal?: AbortSigna
         const url = `${YAHOO_BASE_URL}/quote?symbols=${encodeURIComponent(chunkSymbols.join(','))}`;
 
         try {
-                const data: any = await fetchFromFastestProxy(url, signal);
-                const results = data?.quoteResponse?.result || [];
+                const data = asJsonRecord(await fetchFromFastestProxy(url, signal));
+                const quoteResponse = asJsonRecord(data.quoteResponse);
+                const results = asJsonRecords(quoteResponse.result);
 
                 console.log(`[Yahoo API] Batch quote for ${chunkSymbols.length} symbols returned ${results.length} results`);
 
-                return results.map((result: any) => ({
-                    symbol: result.symbol,
-                    name: result.longName || result.shortName || result.symbol,
-                    price: result.regularMarketPrice || 0,
-                    change: result.regularMarketChange || 0,
-                    changePercent: result.regularMarketChangePercent || 0,
-                    previousClose: result.regularMarketPreviousClose || 0,
-                    open: result.regularMarketOpen || 0,
-                    high: result.regularMarketDayHigh || 0,
-                    low: result.regularMarketDayLow || 0,
-                    volume: result.regularMarketVolume || 0,
-                    marketCap: result.marketCap,
+                return results.map((result) => {
+                    const dividendYield = readFiniteNumber(result.trailingAnnualDividendYield);
+
+                    return {
+                    symbol: readString(result.symbol),
+                    name: readString(result.longName) || readString(result.shortName) || readString(result.symbol),
+                    price: readNumber(result.regularMarketPrice),
+                    change: readNumber(result.regularMarketChange),
+                    changePercent: readNumber(result.regularMarketChangePercent),
+                    previousClose: readNumber(result.regularMarketPreviousClose),
+                    open: readNumber(result.regularMarketOpen),
+                    high: readNumber(result.regularMarketDayHigh),
+                    low: readNumber(result.regularMarketDayLow),
+                    volume: readNumber(result.regularMarketVolume),
+                    marketCap: readFiniteNumber(result.marketCap),
                     // Fix 1: No fake defaults
-                    currency: result.currency || result.financialCurrency || 'Unknown',
+                    currency: readString(result.currency) || readString(result.financialCurrency) || 'Unknown',
                     // Fundamentals from Yahoo
-                    pe: result.trailingPE,
-                    forwardPe: result.forwardPE,
-                    ps: result.priceToSales,
-                    pb: result.priceToBook,
-                    dividendYield: result.trailingAnnualDividendYield ? result.trailingAnnualDividendYield * 100 : undefined,
-                    dividendRate: result.trailingAnnualDividendRate,
-                    eps: result.trailingEps,
-                    beta: result.beta,
-                    fiftyTwoWeekHigh: result.fiftyTwoWeekHigh,
-                    fiftyTwoWeekLow: result.fiftyTwoWeekLow,
-                }));
+                    pe: readFiniteNumber(result.trailingPE),
+                    forwardPe: readFiniteNumber(result.forwardPE),
+                    ps: readFiniteNumber(result.priceToSales),
+                    pb: readFiniteNumber(result.priceToBook),
+                    dividendYield: dividendYield !== undefined ? dividendYield * 100 : undefined,
+                    dividendRate: readFiniteNumber(result.trailingAnnualDividendRate),
+                    eps: readFiniteNumber(result.trailingEps),
+                    beta: readFiniteNumber(result.beta),
+                    fiftyTwoWeekHigh: readFiniteNumber(result.fiftyTwoWeekHigh),
+                    fiftyTwoWeekLow: readFiniteNumber(result.fiftyTwoWeekLow),
+                    };
+                });
         } catch (error) {
             if (axios.isCancel(error)) throw error;
             console.warn('Yahoo Finance batch chunk failed:', error);
@@ -706,36 +764,42 @@ export async function getFundamentalData(symbol: string, signal?: AbortSignal): 
 
     // Try v10 for advanced metrics (EBITDA, Margins, etc.)
     try {
-            const data: any = v10Url.startsWith('/')
+            const rawData: unknown = v10Url.startsWith('/')
                 ? (await axios.get(v10Url, { signal, timeout: 5000 })).data
                 : await fetchFromFastestProxy(v10Url, signal);
-            const result = data?.quoteSummary?.result?.[0];
+            const data = asJsonRecord(rawData);
+            const quoteSummary = asJsonRecord(data.quoteSummary);
+            const result = asJsonRecords(quoteSummary.result)[0];
 
             if (result && Object.keys(result).length > 0) {
-                const stats = result.defaultKeyStatistics || {};
-                const financialData = result.financialData || {};
-                const summaryDetail = result.summaryDetail || {};
+                const stats = asJsonRecord(result.defaultKeyStatistics);
+                const financialData = asJsonRecord(result.financialData);
+                const summaryDetail = asJsonRecord(result.summaryDetail);
+                const dividendYield = readRawMetric(summaryDetail.dividendYield);
+                const revenueGrowth = readRawMetric(financialData.revenueGrowth);
+                const profitMargin = readRawMetric(financialData.profitMargins);
+                const roe = readRawMetric(financialData.returnOnEquity);
 
                 // Merge advanced metrics
                 return {
                     ...baseMetrics,
                     // Prefer v10 values if available, otherwise keep v7 or undefined
-                    pe: stats.trailingPE?.raw || summaryDetail.trailingPE?.raw || baseMetrics.pe,
-                    forwardPe: stats.forwardPE?.raw || summaryDetail.forwardPE?.raw || baseMetrics.forwardPe,
-                    ps: stats.priceToSalesTrailing12Months?.raw || summaryDetail.priceToSalesTrailing12Months?.raw || baseMetrics.ps,
-                    pb: stats.priceToBook?.raw || summaryDetail.priceToBook?.raw || baseMetrics.pb,
-                    dividendYield: summaryDetail.dividendYield?.raw ? summaryDetail.dividendYield.raw * 100 : baseMetrics.dividendYield,
-                    dividendRate: summaryDetail.dividendRate?.raw || baseMetrics.dividendRate,
-                    eps: stats.trailingEps?.raw || baseMetrics.eps,
-                    beta: stats.beta?.raw || baseMetrics.beta,
+                    pe: firstRawMetric(stats.trailingPE, summaryDetail.trailingPE) ?? baseMetrics.pe,
+                    forwardPe: firstRawMetric(stats.forwardPE, summaryDetail.forwardPE) ?? baseMetrics.forwardPe,
+                    ps: firstRawMetric(stats.priceToSalesTrailing12Months, summaryDetail.priceToSalesTrailing12Months) ?? baseMetrics.ps,
+                    pb: firstRawMetric(stats.priceToBook, summaryDetail.priceToBook) ?? baseMetrics.pb,
+                    dividendYield: dividendYield !== undefined ? dividendYield * 100 : baseMetrics.dividendYield,
+                    dividendRate: readRawMetric(summaryDetail.dividendRate) ?? baseMetrics.dividendRate,
+                    eps: readRawMetric(stats.trailingEps) ?? baseMetrics.eps,
+                    beta: readRawMetric(stats.beta) ?? baseMetrics.beta,
 
                     // Advanced metrics ONLY in v10
-                    ebitda: financialData.ebitda?.raw,
-                    evToEbitda: stats.enterpriseToEbitda?.raw,
-                    revenueGrowth: financialData.revenueGrowth?.raw ? financialData.revenueGrowth.raw * 100 : undefined,
-                    profitMargin: financialData.profitMargins?.raw ? financialData.profitMargins.raw * 100 : undefined,
-                    roe: financialData.returnOnEquity?.raw ? financialData.returnOnEquity.raw * 100 : undefined,
-                    debtToEquity: financialData.debtToEquity?.raw,
+                    ebitda: readRawMetric(financialData.ebitda),
+                    evToEbitda: readRawMetric(stats.enterpriseToEbitda),
+                    revenueGrowth: revenueGrowth !== undefined ? revenueGrowth * 100 : undefined,
+                    profitMargin: profitMargin !== undefined ? profitMargin * 100 : undefined,
+                    roe: roe !== undefined ? roe * 100 : undefined,
+                    debtToEquity: readRawMetric(financialData.debtToEquity),
                 };
             }
     } catch (error) {
@@ -762,17 +826,18 @@ async function getChartSymbolCandidates(symbol: string, signal?: AbortSignal): P
         let originalName = '';
         for (const query of queries) {
             const url = YAHOO_SEARCH_URL + '?q=' + encodeURIComponent(query) + '&quotesCount=40&newsCount=0';
-            const data: any = url.startsWith('/')
+            const rawData: unknown = url.startsWith('/')
                 ? (await axios.get(url, { signal, timeout: 5000 })).data
                 : await fetchFromFastestProxy(url, signal);
-            const quotes = Array.isArray(data?.quotes) ? data.quotes : [];
-            const original = quotes.find((item: any) => String(item?.symbol || '').toUpperCase() === normalized);
-            originalName = originalName || canonicalCompanyName(original?.shortname || original?.longname || '');
+            const data = asJsonRecord(rawData);
+            const quotes = asJsonRecords(data.quotes);
+            const original = quotes.find((item) => readString(item.symbol).toUpperCase() === normalized);
+            originalName = originalName || canonicalCompanyName(readString(original?.shortname) || readString(original?.longname));
             if (originalName) queries.add(originalName);
 
-            quotes.forEach((item: any) => {
-                const candidate = String(item?.symbol || '').trim().toUpperCase();
-                const candidateName = canonicalCompanyName(item?.shortname || item?.longname || '');
+            quotes.forEach((item) => {
+                const candidate = readString(item.symbol).trim().toUpperCase();
+                const candidateName = canonicalCompanyName(readString(item.shortname) || readString(item.longname));
                 if (!candidate || candidate === normalized) return;
                 // Avoid following an unrelated ticker that merely shares a
                 // short symbol (NXTE ETF vs Nueva Expresion Textil, for example).
@@ -796,19 +861,24 @@ async function fetchYahooChartPoints(
     signal?: AbortSignal,
 ): Promise<HistoricalDataPoint[]> {
     const url = YAHOO_CHART_URL + '/' + encodeURIComponent(symbol) + '?range=' + range + '&interval=' + interval;
-    const data: any = url.startsWith('/')
+    const rawData: unknown = url.startsWith('/')
         ? (await axios.get(url, { signal, timeout: 6000 })).data
         : await fetchFromFastestProxy(url, signal);
-    const result = data?.chart?.result?.[0];
+    const data = asJsonRecord(rawData);
+    const chart = asJsonRecord(data.chart);
+    const result = asJsonRecords(chart.result)[0] ?? {};
 
-    if (!result?.timestamp?.length) return [];
+    if (!Array.isArray(result.timestamp) || result.timestamp.length === 0) return [];
 
     const timestamps = result.timestamp;
-    const quotes = result.indicators?.quote?.[0] || {};
-    const adjClose = result.indicators?.adjclose?.[0]?.adjclose || quotes.close || [];
-    const previousClose = Number.isFinite(result.meta?.chartPreviousClose) ? result.meta.chartPreviousClose : undefined;
+    const indicators = asJsonRecord(result.indicators);
+    const quotes = asJsonRecords(indicators.quote)[0] ?? {};
+    const adjCloseRecord = asJsonRecords(indicators.adjclose)[0] ?? {};
+    const adjClose = Array.isArray(adjCloseRecord.adjclose) ? adjCloseRecord.adjclose : quotes.close;
+    const previousClose = readFiniteNumber(asJsonRecord(result.meta).chartPreviousClose);
 
-    return timestamps.map((timestamp: number, i: number) => {
+    return timestamps.map((timestampValue, i) => {
+        const timestamp = readNumber(timestampValue);
         const date = new Date(timestamp * 1000);
         const dateStr = period === '1D'
             ? date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -818,13 +888,13 @@ async function fetchYahooChartPoints(
             date: dateStr,
             timestamp: timestamp * 1000,
             previousClose: i === 0 ? previousClose : undefined,
-            open: Number.isFinite(quotes.open?.[i]) ? quotes.open[i] : 0,
-            high: Number.isFinite(quotes.high?.[i]) ? quotes.high[i] : 0,
-            low: Number.isFinite(quotes.low?.[i]) ? quotes.low[i] : 0,
-            close: Number.isFinite(adjClose?.[i]) ? adjClose[i] : (Number.isFinite(quotes.close?.[i]) ? quotes.close[i] : 0),
-            volume: Number.isFinite(quotes.volume?.[i]) ? quotes.volume[i] : 0,
+            open: readNumberAt(quotes.open, i),
+            high: readNumberAt(quotes.high, i),
+            low: readNumberAt(quotes.low, i),
+            close: readNumberAt(adjClose, i, readNumberAt(quotes.close, i)),
+            volume: readNumberAt(quotes.volume, i),
         };
-    }).filter((point: HistoricalDataPoint) => point.close > 0);
+    }).filter((point) => point.close > 0);
 }
 
 export async function getAssetChartData(

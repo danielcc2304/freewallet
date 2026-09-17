@@ -12,6 +12,36 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-17 - v5.3.6 - Cabeceras compartidas y pulido responsive de Academy
+- Funcionalidad:
+  - Se incorpora una cabecera de página compartida para las secciones de Academy y se unifica su navegación auxiliar.
+  - Se ajustan guías, calculadoras, simuladores y herramientas para usar la nueva cabecera y mejorar la adaptación a móvil.
+  - Se revisan las superficies Liquid Glass y los estilos de interacción para mantener una presentación consistente en todo el recorrido de Academy.
+- Resumen:
+  - Academy gana una estructura visual más uniforme y compacta, con cabeceras reutilizables y mejor comportamiento responsive.
+- Archivos:
+  - `src/components/academy/layout/AcademyPageHeader.tsx`
+  - `src/components/academy/layout/AcademyPageHeader.css`
+  - `src/components/academy/layout/AcademyLayout.tsx`
+  - `src/components/academy/layout/AcademyLayout.css`
+  - `src/components/academy/assets/*`
+  - `src/components/academy/calculators/*`
+  - `src/components/academy/guides/*`
+  - `src/components/academy/simulators/*`
+  - `src/components/academy/tools/MarketHeatmap.tsx`
+  - `src/components/academy/tools/MarketHeatmap.css`
+  - `src/components/ui/PageHeader/*`
+  - `src/components/ui/index.ts`
+  - `src/components/layout/MainLayout/MainLayout.tsx`
+  - `src/components/layout/MainLayout/MainLayout.css`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/pages/Dashboard/Dashboard.css`
+  - `src/context/AppearanceContext.tsx`
+  - `src/styles/liquidGlass.css`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-09-17 - v5.3.5 - Corrección de versionado de hotfixes
 - Funcionalidad:
   - Se actualiza la versión visible de FreeWallet a `v5.3.5` en Sidebar, Configuración y Feature Log mediante la constante compartida.

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { Info, AlertTriangle, TrendingDown, Scale, Landmark, HelpCircle, Wallet, CalendarDays, ChevronDown, ChevronUp } from 'lucide-react';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './BondCalculator.css';
 
 type CouponFrequency = 'annual' | 'semiannual' | 'quarterly' | 'monthly';
@@ -47,6 +48,22 @@ interface BondCalculatorStorage {
 }
 
 const BOND_CALCULATOR_STORAGE_KEY = 'freewallet_bond_calculator';
+
+function readStoredBondCalculator(): Partial<BondCalculatorStorage> {
+    if (typeof window === 'undefined') return {};
+
+    try {
+        const raw = window.localStorage.getItem(BOND_CALCULATOR_STORAGE_KEY);
+        if (!raw) return {};
+
+        const stored = JSON.parse(raw) as unknown;
+        return stored && typeof stored === 'object'
+            ? stored as Partial<BondCalculatorStorage>
+            : {};
+    } catch {
+        return {};
+    }
+}
 
 function getTodayIso() {
     const today = new Date();
@@ -372,41 +389,30 @@ export function BondCalculator() {
         return toIsoDate(addMonthsUtc(maturity, -120));
     })();
 
-    const [price, setPrice] = useState<number | string>(83.7);
-    const [coupon, setCoupon] = useState<number | string>(8.875);
-    const [years, setYears] = useState<number | string>(4);
-    const [months, setMonths] = useState<number | string>(0);
-    const [face, setFace] = useState<number | string>(100);
-    const [advancedEnabled, setAdvancedEnabled] = useState(false);
-    const [settlementDate, setSettlementDate] = useState(defaultSettlementDate);
-    const [issueDate, setIssueDate] = useState(defaultIssueDate);
-    const [maturityDate, setMaturityDate] = useState(defaultMaturityDate);
-    const [couponFrequency, setCouponFrequency] = useState<CouponFrequency>('annual');
-    const [priceInputType, setPriceInputType] = useState<PriceInputType>('clean');
-    const [dayCountConvention, setDayCountConvention] = useState<DayCountConvention>('actual365');
+    const stored = useMemo(() => readStoredBondCalculator(), []);
+    const initialCouponFrequency: CouponFrequency = stored.couponFrequency === 'semiannual'
+        || stored.couponFrequency === 'quarterly'
+        || stored.couponFrequency === 'monthly'
+        ? stored.couponFrequency
+        : 'annual';
+    const initialPriceInputType: PriceInputType = stored.priceInputType === 'dirty' ? 'dirty' : 'clean';
+    const initialDayCountConvention: DayCountConvention = stored.dayCountConvention === 'actual360'
+        || stored.dayCountConvention === '30e360'
+        ? stored.dayCountConvention
+        : 'actual365';
 
-    useEffect(() => {
-        try {
-            const raw = localStorage.getItem(BOND_CALCULATOR_STORAGE_KEY);
-            if (!raw) return;
-
-            const stored = JSON.parse(raw) as Partial<BondCalculatorStorage>;
-            if (stored.price !== undefined) setPrice(stored.price);
-            if (stored.coupon !== undefined) setCoupon(stored.coupon);
-            if (stored.years !== undefined) setYears(stored.years);
-            if (stored.months !== undefined) setMonths(stored.months);
-            if (stored.face !== undefined) setFace(stored.face);
-            if (typeof stored.advancedEnabled === 'boolean') setAdvancedEnabled(stored.advancedEnabled);
-            if (stored.settlementDate) setSettlementDate(stored.settlementDate);
-            if (stored.issueDate) setIssueDate(stored.issueDate);
-            if (stored.maturityDate) setMaturityDate(stored.maturityDate);
-            if (stored.couponFrequency) setCouponFrequency(stored.couponFrequency);
-            if (stored.priceInputType) setPriceInputType(stored.priceInputType);
-            if (stored.dayCountConvention) setDayCountConvention(stored.dayCountConvention);
-        } catch {
-            // Ignore localStorage failures or malformed saved values.
-        }
-    }, []);
+    const [price, setPrice] = useState<number | string>(stored.price ?? 83.7);
+    const [coupon, setCoupon] = useState<number | string>(stored.coupon ?? 8.875);
+    const [years, setYears] = useState<number | string>(stored.years ?? 4);
+    const [months, setMonths] = useState<number | string>(stored.months ?? 0);
+    const [face, setFace] = useState<number | string>(stored.face ?? 100);
+    const [advancedEnabled, setAdvancedEnabled] = useState(stored.advancedEnabled ?? false);
+    const [settlementDate, setSettlementDate] = useState(stored.settlementDate || defaultSettlementDate);
+    const [issueDate, setIssueDate] = useState(stored.issueDate || defaultIssueDate);
+    const [maturityDate, setMaturityDate] = useState(stored.maturityDate || defaultMaturityDate);
+    const [couponFrequency, setCouponFrequency] = useState<CouponFrequency>(initialCouponFrequency);
+    const [priceInputType, setPriceInputType] = useState<PriceInputType>(initialPriceInputType);
+    const [dayCountConvention, setDayCountConvention] = useState<DayCountConvention>(initialDayCountConvention);
 
     useEffect(() => {
         const payload: BondCalculatorStorage = {
@@ -501,12 +507,12 @@ export function BondCalculator() {
 
     return (
         <div className="bond-calc">
-            <header className="bond-calc__header">
+            <AcademyPageHeader className="bond-calc__header" section="Herramientas">
                 <h1 className="bond-calc__title">Calculadora de Bonos (TIR)</h1>
                 <p className="bond-calc__subtitle">
                     Calcula la rentabilidad real de un bono (Yield to Maturity) a partir de su precio actual de mercado.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             <div className="bond-calc__grid">
                 <div className="bond-calc__inputs">

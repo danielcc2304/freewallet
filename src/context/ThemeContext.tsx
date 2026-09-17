@@ -93,6 +93,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     );
 }
 
+// eslint-disable-next-line react-refresh/only-export-components -- Context modules intentionally export the provider and its hook.
 export function useTheme() {
     const context = useContext(ThemeContext);
     if (context === undefined) {

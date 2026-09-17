@@ -3,6 +3,7 @@ import { TrendingDown, TrendingUp, DollarSign, AlertTriangle } from 'lucide-reac
 import { Link } from 'react-router-dom';
 import { CRISIS_DATA } from '../../../data/academyData';
 import type { CrisisData } from '../../../types/types';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './CrisisSimulator.css';
 
 type ScenarioType = 'panic' | 'hold' | 'dca';
@@ -45,12 +46,12 @@ export function CrisisSimulator() {
 
     return (
         <div className="crisis">
-            <header className="crisis__header">
+            <AcademyPageHeader className="crisis__header" section="Escenarios">
                 <h1 className="crisis__title">Simulador de crisis históricas</h1>
                 <p className="crisis__description">
                     Aprende de las caídas pasadas. Observa qué habría pasado con tu dinero en las peores crisis del mercado.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             <div className="crisis__warning">
                 <AlertTriangle size={20} />

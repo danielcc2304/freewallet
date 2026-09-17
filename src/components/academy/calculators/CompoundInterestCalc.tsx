@@ -1,5 +1,6 @@
 ﻿import { useEffect, useState, useMemo } from 'react';
 import { Banknote, TrendingUp, Calendar, Target, ChevronDown, ChevronUp } from 'lucide-react';
+import type { CSSProperties } from 'react';
 import {
     AreaChart,
     Area,
@@ -10,6 +11,7 @@ import {
     ResponsiveContainer
 } from 'recharts';
 import { CalculatorCard } from './CalculatorCard';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import {
     COMPOUNDING_FREQUENCY_OPTIONS,
     calculateCompoundInterestProjection,
@@ -19,6 +21,7 @@ import {
     isCompoundingFrequency,
     isInterestRateType,
     type CompoundingFrequency,
+    type CompoundProjectionPoint,
     type InterestRateType,
     type WithdrawalType
 } from './compoundInterestUtils';
@@ -57,58 +60,103 @@ interface CompoundInterestCalcStorage {
 
 const COMPOUND_INTEREST_STORAGE_KEY = 'freewallet_compound_interest_calc';
 
+function readStoredCompoundInterest(): Partial<CompoundInterestCalcStorage> {
+    if (typeof window === 'undefined') return {};
+
+    try {
+        const raw = window.localStorage.getItem(COMPOUND_INTEREST_STORAGE_KEY);
+        if (!raw) return {};
+
+        const stored = JSON.parse(raw) as unknown;
+        return stored && typeof stored === 'object'
+            ? stored as Partial<CompoundInterestCalcStorage>
+            : {};
+    } catch {
+        return {};
+    }
+}
+
+function formatCompoundCurrency(value: number) {
+    return new Intl.NumberFormat('es-ES', {
+        style: 'currency',
+        currency: 'EUR',
+        maximumFractionDigits: 0
+    }).format(value);
+}
+
+function formatCurrency(value: number) {
+    return formatCompoundCurrency(value);
+}
+
+function formatPercent(value: number) {
+    return `${value.toFixed(2)}%`;
+}
+
+interface CompoundTooltipProps {
+    active?: boolean;
+    payload?: ReadonlyArray<{ payload?: CompoundProjectionPoint }>;
+}
+
+function CompoundTooltip({ active, payload }: CompoundTooltipProps) {
+    const data = payload?.[0]?.payload;
+    if (!active || !data) return null;
+
+    return (
+        <div style={{
+            backgroundColor: 'var(--bg-secondary)',
+            border: '1px solid var(--border-color)',
+            borderRadius: '8px',
+            padding: '12px',
+            boxShadow: 'var(--shadow-md)'
+        }}>
+            <p style={{ margin: '0 0 8px 0', fontWeight: 600, color: 'var(--text-primary)' }}>
+                {data.yearLabel}
+            </p>
+            <p style={{ margin: '4px 0', color: '#3b82f6', fontSize: '0.9rem' }}>
+                Capital Aportado: {formatCompoundCurrency(data.contributed)}
+            </p>
+            <p style={{ margin: '4px 0', color: '#10b981', fontSize: '0.9rem' }}>
+                Intereses: {formatCompoundCurrency(data.interest)}
+            </p>
+            <p style={{ margin: '8px 0 0 0', fontWeight: 700, color: '#5280c7', fontSize: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
+                Total: {formatCompoundCurrency(data.total)}
+            </p>
+        </div>
+    );
+}
+
 export function CompoundInterestCalc() {
+    const stored = useMemo(() => readStoredCompoundInterest(), []);
+    const initialInterestRateType = isInterestRateType(stored.interestRateType)
+        ? stored.interestRateType
+        : 'cagr';
+    const initialCompoundingFrequency = isCompoundingFrequency(stored.compoundingFrequency)
+        ? stored.compoundingFrequency
+        : 'monthly';
+    const initialWithdrawalType: WithdrawalType = stored.withdrawalType === 'percentage' || stored.withdrawalType === 'fixed'
+        ? stored.withdrawalType
+        : 'none';
+    const initialCalculationMode: CalculationMode = stored.calculationMode === 'timeToGoal' || stored.calculationMode === 'requiredContribution'
+        ? stored.calculationMode
+        : 'normal';
+
     // Basic inputs
-    const [initialCapital, setInitialCapital] = useState<number | string>(10000);
-    const [monthlyContribution, setMonthlyContribution] = useState<number | string>(500);
-    const [annualRate, setAnnualRate] = useState<number | string>(7);
-    const [years, setYears] = useState<number | string>(20);
+    const [initialCapital, setInitialCapital] = useState<number | string>(stored.initialCapital ?? 10000);
+    const [monthlyContribution, setMonthlyContribution] = useState<number | string>(stored.monthlyContribution ?? 500);
+    const [annualRate, setAnnualRate] = useState<number | string>(stored.annualRate ?? 7);
+    const [years, setYears] = useState<number | string>(stored.years ?? 20);
 
     // Advanced options
-    const [showAdvanced, setShowAdvanced] = useState<boolean>(false);
-    const [interestRateType, setInterestRateType] = useState<InterestRateType>('cagr');
-    const [compoundingFrequency, setCompoundingFrequency] = useState<CompoundingFrequency>('monthly');
-    const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>('none');
-    const [withdrawalValue, setWithdrawalValue] = useState<number | string>(0);
+    const [showAdvanced, setShowAdvanced] = useState<boolean>(stored.showAdvanced ?? false);
+    const [interestRateType, setInterestRateType] = useState<InterestRateType>(initialInterestRateType);
+    const [compoundingFrequency, setCompoundingFrequency] = useState<CompoundingFrequency>(initialCompoundingFrequency);
+    const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>(initialWithdrawalType);
+    const [withdrawalValue, setWithdrawalValue] = useState<number | string>(stored.withdrawalValue ?? 0);
 
     // Calculation mode
-    const [calculationMode, setCalculationMode] = useState<CalculationMode>('normal');
-    const [targetAmount, setTargetAmount] = useState<number | string>(500000);
-    const [expandedYear, setExpandedYear] = useState<number | null>(1);
-
-    useEffect(() => {
-        try {
-            const raw = localStorage.getItem(COMPOUND_INTEREST_STORAGE_KEY);
-            if (!raw) return;
-
-            const stored = JSON.parse(raw) as Partial<CompoundInterestCalcStorage>;
-
-            if (stored.initialCapital !== undefined) setInitialCapital(stored.initialCapital);
-            if (stored.monthlyContribution !== undefined) setMonthlyContribution(stored.monthlyContribution);
-            if (stored.annualRate !== undefined) setAnnualRate(stored.annualRate);
-            if (stored.years !== undefined) setYears(stored.years);
-            if (typeof stored.showAdvanced === 'boolean') setShowAdvanced(stored.showAdvanced);
-            if (isInterestRateType(stored.interestRateType)) {
-                setInterestRateType(stored.interestRateType);
-            }
-            if (isCompoundingFrequency(stored.compoundingFrequency)) {
-                setCompoundingFrequency(stored.compoundingFrequency);
-            }
-            if (stored.withdrawalType === 'none' || stored.withdrawalType === 'percentage' || stored.withdrawalType === 'fixed') {
-                setWithdrawalType(stored.withdrawalType);
-            }
-            if (stored.withdrawalValue !== undefined) setWithdrawalValue(stored.withdrawalValue);
-            if (stored.calculationMode === 'normal' || stored.calculationMode === 'timeToGoal' || stored.calculationMode === 'requiredContribution') {
-                setCalculationMode(stored.calculationMode);
-            }
-            if (stored.targetAmount !== undefined) setTargetAmount(stored.targetAmount);
-            if (typeof stored.expandedYear === 'number' || stored.expandedYear === null) {
-                setExpandedYear(stored.expandedYear);
-            }
-        } catch {
-            // Ignore localStorage failures or malformed saved values.
-        }
-    }, []);
+    const [calculationMode, setCalculationMode] = useState<CalculationMode>(initialCalculationMode);
+    const [targetAmount, setTargetAmount] = useState<number | string>(stored.targetAmount ?? 500000);
+    const [expandedYear, setExpandedYear] = useState<number | null>(stored.expandedYear ?? 1);
 
     useEffect(() => {
         const payload: CompoundInterestCalcStorage = {
@@ -247,49 +295,9 @@ export function CompoundInterestCalc() {
         });
     }, [chartData, initialCapital]);
 
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('es-ES', {
-            style: 'currency',
-            currency: 'EUR',
-            maximumFractionDigits: 0
-        }).format(value);
-    };
-
-    const formatPercent = (value: number) => `${value.toFixed(2)}%`;
-
-    // Custom Tooltip Component
-    const CustomTooltip = ({ active, payload }: any) => {
-        if (active && payload && payload.length) {
-            const data = payload[0].payload;
-            return (
-                <div style={{
-                    backgroundColor: 'var(--bg-secondary)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '8px',
-                    padding: '12px',
-                    boxShadow: 'var(--shadow-md)'
-                }}>
-                    <p style={{ margin: '0 0 8px 0', fontWeight: 600, color: 'var(--text-primary)' }}>
-                        {data.yearLabel}
-                    </p>
-                    <p style={{ margin: '4px 0', color: '#3b82f6', fontSize: '0.9rem' }}>
-                        Capital Aportado: {formatCurrency(data.contributed)}
-                    </p>
-                    <p style={{ margin: '4px 0', color: '#10b981', fontSize: '0.9rem' }}>
-                        Intereses: {formatCurrency(data.interest)}
-                    </p>
-                    <p style={{ margin: '8px 0 0 0', fontWeight: 700, color: '#5280c7', fontSize: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
-                        Total: {formatCurrency(data.total)}
-                    </p>
-                </div>
-            );
-        }
-        return null;
-    };
-
     return (
         <div className="compound">
-            <header className="compound__header">
+            <AcademyPageHeader className="compound__header" section="Herramientas">
                 <div className="compound__title-group">
                     <TrendingUp className="compound__title-icon" size={32} />
                     <div className="compound__title-content">
@@ -299,7 +307,7 @@ export function CompoundInterestCalc() {
                         </p>
                     </div>
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             {/* Calculation Mode Selector */}
             <div className="compound__mode-selector">
@@ -414,7 +422,7 @@ export function CompoundInterestCalc() {
                                 min="1"
                                 max="50"
                                 className="custom-slider"
-                                style={{ '--progress': `${((Number(years) - 1) / (50 - 1)) * 100}%` } as any}
+                                 style={{ '--progress': `${((Number(years) - 1) / (50 - 1)) * 100}%` } as CSSProperties}
                             />
                         </div>
                     )}
@@ -690,7 +698,7 @@ export function CompoundInterestCalc() {
                                         axisLine={false}
                                         tickLine={false}
                                     />
-                                    <Tooltip content={<CustomTooltip />} />
+                                    <Tooltip content={<CompoundTooltip />} />
                                     <Area
                                         type="monotone"
                                         dataKey="contributed"

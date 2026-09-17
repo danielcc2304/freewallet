@@ -1,6 +1,7 @@
 import { ArrowLeft, ExternalLink, PlayCircle } from 'lucide-react';
 import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './InProcess.css';
 
 export function InProcess() {
@@ -60,7 +61,7 @@ export function InProcess() {
 
     return (
         <div className="resources-page">
-            <header className="resources-page__header">
+            <AcademyPageHeader className="resources-page__header" section="Recursos">
                 <h1 className="resources-page__title">Recursos y Guías</h1>
                 <p className="resources-page__description">
                     Selección de vídeos de conocimientos básicos referenciados en la página de La Pizarra de Andrés.
@@ -69,7 +70,7 @@ export function InProcess() {
                     Ver página fuente
                     <ExternalLink size={16} />
                 </a>
-            </header>
+            </AcademyPageHeader>
 
             <div className="resources-page__grid">
                 {videos.map((video) => {

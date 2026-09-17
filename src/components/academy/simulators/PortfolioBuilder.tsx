@@ -15,6 +15,7 @@ import {
     TrendingDown
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './PortfolioBuilder.css';
 
 type CategoryId = 'classic' | 'strategic' | 'objective';
@@ -290,13 +291,13 @@ export function PortfolioBuilder() {
 
     return (
         <div className="portfolio-builder">
-            <header className="portfolio-builder__header">
+            <AcademyPageHeader className="portfolio-builder__header" section="Construir">
                 <h1 className="portfolio-builder__title">Construir tu Cartera</h1>
                 <p className="portfolio-builder__subtitle">
                     La <strong>Asset Allocation</strong> (asignación de activos) es responsable del 90% de la variabilidad
                     de los retornos de tu cartera. Aprende a diseñar la tuya.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             <section className="portfolio-builder__intro">
                 <h2 className="portfolio-builder__section-title">1. Los Ladrillos: Tipos de Activos</h2>

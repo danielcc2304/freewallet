@@ -9,6 +9,7 @@ import {
     CartesianGrid, ResponsiveContainer
 } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './MarketTimingGame.css';
 
 interface DataPoint {
@@ -24,6 +25,7 @@ export function MarketTimingGame() {
     const [cash, setCash] = useState(10000);
     const [shares, setShares] = useState(0);
     const [dcaShares, setDcaShares] = useState(0);
+    const [currentPrice, setCurrentPrice] = useState(100);
     const [timer, setTimer] = useState(0);
 
     const gameLoopRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
@@ -43,6 +45,7 @@ export function MarketTimingGame() {
         setCash(STARTING_CASH);
         setShares(0);
         setDcaShares(0);
+        setCurrentPrice(100);
         setTimer(0);
         setIsFinished(false);
         setIsPlaying(true);
@@ -67,6 +70,7 @@ export function MarketTimingGame() {
                 lastPriceRef.current = newPrice;
 
                 setData(prev => [...prev, { time: tickRef.current, price: newPrice }]);
+                setCurrentPrice(newPrice);
                 setTimer(tickRef.current);
 
                 // Automatic DCA calculation ($100 per tick)
@@ -100,8 +104,8 @@ export function MarketTimingGame() {
         setShares(0);
     };
 
-    const currentPortfolioValue = cash + (shares * lastPriceRef.current);
-    const dcaPortfolioValue = dcaShares * lastPriceRef.current;
+    const currentPortfolioValue = cash + (shares * currentPrice);
+    const dcaPortfolioValue = dcaShares * currentPrice;
 
     return (
         <div className="market-timing-game">
@@ -109,10 +113,10 @@ export function MarketTimingGame() {
                 <ArrowLeft size={18} /> Volver a Fundamentos
             </button>
 
-            <header className="market-timing-game__header">
+            <AcademyPageHeader className="market-timing-game__header" section="Herramientas">
                 <h1>Reto: Market Timing vs DCA</h1>
                 <p>¿Crees que puedes ganarle al mercado? Intenta comprar barato y vender caro en este simulador de 20 segundos.</p>
-            </header>
+            </AcademyPageHeader>
 
             <div className="market-timing-game__stats">
                 <div className="game-stat">

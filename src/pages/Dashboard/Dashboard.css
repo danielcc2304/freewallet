@@ -5,12 +5,11 @@
 
 /* Header */
 .dashboard__header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
     margin-bottom: var(--spacing-xl);
-    flex-wrap: wrap;
-    gap: var(--spacing-md);
+}
+
+.dashboard__header-content {
+    min-width: 0;
 }
 
 .dashboard__title {
@@ -313,10 +312,6 @@
 @media (max-width: 768px) {
     .dashboard__performers {
         grid-template-columns: 1fr;
-    }
-
-    .dashboard__header {
-        flex-direction: column;
     }
 
 }

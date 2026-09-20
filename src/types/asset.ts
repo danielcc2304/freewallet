@@ -23,5 +23,7 @@ export interface Asset {
     holdings?: AssetHolding[];
     isin?: string;
     lastQuoteAt?: string;
+    lastCheckedAt?: string;
+    quotedAt?: string;
     quoteSource?: 'Finect' | 'Mercado';
 }

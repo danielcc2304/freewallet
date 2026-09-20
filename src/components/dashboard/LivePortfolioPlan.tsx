@@ -1,9 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { getHistory } from '../../services/storageService';
-import { buildPortfolioAnalyticsHistory, createQuoteSnapshot, normalizePortfolioTransactions, performanceSeries, portfolioMonthlyRows } from '../../services/portfolioPerformance';
-import { readWorkbookHistory } from '../../services/portfolioWorkbookHistory';
+import type { DashboardAnalytics } from './useDashboardAnalytics';
 import './LivePortfolioPlan.css';
 
 const money = (n: number) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
@@ -13,10 +11,9 @@ const operationName = { buy: 'Compra', sell: 'Venta', edit: 'Corrección', delet
 
 type LivePortfolioPlanSection = 'all' | 'plan' | 'monthly' | 'recent';
 
-export function LivePortfolioPlan({ now, section = 'all' }: { now: number; section?: LivePortfolioPlanSection }) {
-    const { state: { assets, transactions } } = usePortfolio();
-    const workbookHistory = useMemo(() => readWorkbookHistory(), []);
-    const usingWorkbookHistory = workbookHistory.points.length >= 2;
+export function LivePortfolioPlan({ analytics, section = 'all' }: { analytics: DashboardAnalytics; section?: LivePortfolioPlanSection }) {
+    const { state: { assets } } = usePortfolio();
+    const { workbookHistory, usingWorkbookHistory, portfolioTransactions, monthly: months } = analytics;
     const [targets, setTargets] = useState<Record<string, number>>(() => {
         try {
             const data: unknown = JSON.parse(localStorage.getItem(KEY) || '{}');
@@ -24,9 +21,9 @@ export function LivePortfolioPlan({ now, section = 'all' }: { now: number; secti
                 ? Object.fromEntries(Object.entries(data).filter(([, v]) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 100)) : {};
         } catch { return {}; }
     });
-    const [budget, setBudget] = useState(0);
+    const [budgetInput, setBudgetInput] = useState('');
+    const budget = Math.max(0, Number(budgetInput) || 0);
     const [saveError, setSaveError] = useState(false);
-    const portfolioTransactions = useMemo(() => normalizePortfolioTransactions(assets, transactions), [assets, transactions]);
     const { total, invested, targetTotal } = useMemo(() => ({
         total: assets.reduce((sum, a) => sum + (a.currentPrice ?? a.purchasePrice) * a.quantity, 0),
         invested: assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0),
@@ -40,27 +37,14 @@ export function LivePortfolioPlan({ now, section = 'all' }: { now: number; secti
         return { a, value, cost, target, weight: total ? value / total * 100 : 0, gap: (total + budget) * target / 100 - value };
     }).sort((a, b) => b.value - a.value), [assets, budget, targets, total]);
     const shortfall = useMemo(() => rows.reduce((sum, r) => sum + Math.max(0, r.gap), 0), [rows]);
-    const liveHistory = useMemo(() => {
-        if (usingWorkbookHistory) return [];
-        return buildPortfolioAnalyticsHistory(
-            getHistory(),
-            portfolioTransactions,
-            createQuoteSnapshot(assets, portfolioTransactions, new Date(now).toISOString()) || undefined,
-            assets,
-        );
-    }, [assets, now, portfolioTransactions, usingWorkbookHistory]);
-    const history = usingWorkbookHistory ? workbookHistory.points : liveHistory;
-    const historyTransactions = usingWorkbookHistory ? workbookHistory.flowTransactions : portfolioTransactions;
-    const series = useMemo(() => performanceSeries(history, historyTransactions, assets, {
-        maxGapDays: usingWorkbookHistory && workbookHistory.source === 'monthly' ? 45 : 16,
-    }), [assets, history, historyTransactions, usingWorkbookHistory, workbookHistory.source]);
-    const months = useMemo(() => portfolioMonthlyRows(series, now), [now, series]);
     const { buys, sells } = useMemo(() => ({
         buys: portfolioTransactions.filter(t => t.type === 'buy').reduce((s, t) => s + (t.total || 0), 0),
         sells: portfolioTransactions.filter(t => t.type === 'sell').reduce((s, t) => s + (t.total || 0), 0),
     }), [portfolioTransactions]);
-    const setTarget = (id: string, value: number) => {
-        const next = { ...targets, [id]: Math.min(100, Math.max(0, Number.isFinite(value) ? value : 0)) };
+    const setTarget = (id: string, raw: string) => {
+        const next = { ...targets };
+        if (raw === '') delete next[id];
+        else next[id] = Math.min(100, Math.max(0, Number(raw) || 0));
         setTargets(next);
         try { localStorage.setItem(KEY, JSON.stringify(next)); setSaveError(false); } catch { setSaveError(true); }
     };
@@ -86,7 +70,7 @@ export function LivePortfolioPlan({ now, section = 'all' }: { now: number; secti
                     <div><span>Resultado abierto</span><strong>{money(currentResult)}</strong></div>
                 </div>
                 {Math.abs(ledgerDifference) > 0.01 && <p role="status">El flujo neto y el coste de las posiciones difieren en {money(Math.abs(ledgerDifference))}. Las ventas con ganancias o pérdidas pueden explicar esa diferencia; no se modifican los importes registrados.</p>}
-                <label className="live-plan__budget">Próxima aportación (€)<input type="number" min="0" step="10" value={budget} onChange={e => setBudget(Math.max(0, Number(e.target.value) || 0))} /></label>
+                <label className="live-plan__budget">Próxima aportación (€)<input type="number" min="0" step="10" value={budgetInput} onChange={e => setBudgetInput(e.target.value)} /></label>
                 <p role="status">Objetivos: {pct(targetTotal)} / 100%. {validTargets ? 'Plan listo para distribuir la aportación entre posiciones infraponderadas.' : 'Completa los pesos hasta el 100% para calcular la propuesta.'}</p>
                 {saveError && <p role="alert">No se han podido guardar los objetivos en este navegador.</p>}
                 <div className="live-plan__scroll"><table>
@@ -96,7 +80,7 @@ export function LivePortfolioPlan({ now, section = 'all' }: { now: number; secti
                         <th scope="row">{r.a.name}<small>{r.a.symbol}{!r.a.lastQuoteAt ? ' · Sin cotización verificada' : ''}</small></th>
                         <td>{r.a.quantity.toLocaleString('es-ES', { maximumFractionDigits: 6 })}</td><td>{money(r.cost)}</td><td>{money(r.value)}</td>
                         <td className={r.value >= r.cost ? 'is-positive' : 'is-negative'}>{money(r.value - r.cost)}</td><td>{r.cost ? pct((r.value / r.cost - 1) * 100) : '—'}</td><td>{pct(r.weight)}</td>
-                        <td><input aria-label={'Peso objetivo de ' + r.a.name} type="number" min="0" max="100" step="0.1" value={targets[r.a.id] ?? ''} onChange={e => setTarget(r.a.id, Number(e.target.value))} /></td>
+                        <td><input aria-label={'Peso objetivo de ' + r.a.name} type="number" min="0" max="100" step="0.1" value={targets[r.a.id] ?? ''} onChange={e => setTarget(r.a.id, e.target.value)} /></td>
                         <td>{targets[r.a.id] !== undefined ? (r.weight - r.target).toFixed(2) : '—'}</td>
                         <td>{validTargets ? money(shortfall ? budget * Math.max(0, r.gap) / shortfall : 0) : '—'}</td>
                     </tr>)}</tbody>
@@ -111,7 +95,7 @@ export function LivePortfolioPlan({ now, section = 'all' }: { now: number; secti
                  : 'Valor, capital y rentabilidad ajustada por las operaciones registradas'} />
             <CardContent>
                 <div className="live-plan__scroll"><table>
-                    <thead><tr><th>Mes</th><th>Último valor</th><th>Coste de posiciones</th><th>Rentabilidad observada*</th><th>Drawdown</th><th>Intervalos válidos</th></tr></thead>
+                    <thead><tr><th>Mes</th><th>Último valor</th><th>{usingWorkbookHistory ? 'Capital de referencia' : 'Coste de posiciones'}</th><th>Rentabilidad observada*</th><th>Drawdown</th><th>Intervalos válidos</th></tr></thead>
                     <tbody>{[...months].reverse().map(m => <tr key={m.month}><th scope="row">{m.month}{!m.closed ? ' · provisional' : ''}</th><td>{money(m.value)}</td><td>{money(m.invested)}</td><td>{m.monthlyReturn !== null ? pct(m.monthlyReturn) : 'N/D'}</td><td>{m.drawdown !== null ? pct(m.drawdown) : 'N/D'}</td><td>{m.observations}</td></tr>)}</tbody>
                 </table></div>
                  <p>*Misma fórmula mensual del Excel: (cierre − flujos − cierre anterior) / cierre anterior, suponiendo flujos al final del mes. {usingWorkbookHistory

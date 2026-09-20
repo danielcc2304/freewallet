@@ -1,6 +1,7 @@
 import type { Asset, Portfolio, PortfolioGoal, PortfolioHistoryPoint, PortfolioTransaction, WatchlistItem } from '../types/types';
 
 const STORAGE_KEYS = {
+    PORTFOLIO: 'freewallet_portfolio_v1',
     ASSETS: 'freewallet_assets',
     HISTORY: 'freewallet_history',
     TRANSACTIONS: 'freewallet_transactions',
@@ -17,23 +18,39 @@ const DEFAULT_SETTINGS: AppSettings = {
     apiEnabled: true,
 };
 
+/** One atomic localStorage record for positions and their ledger. Legacy keys remain readable. */
+export function savePortfolioState(assets: Asset[], transactions: PortfolioTransaction[]): void {
+    try {
+        localStorage.setItem(STORAGE_KEYS.PORTFOLIO, JSON.stringify({ version: 1, assets, transactions }));
+    } catch {
+        throw new Error('No se han podido guardar los cambios. Comprueba el espacio y los permisos del navegador y vuelve a intentarlo.');
+    }
+}
+
+function readPortfolioState(): { assets: Asset[]; transactions: PortfolioTransaction[] } | null {
+    const raw = localStorage.getItem(STORAGE_KEYS.PORTFOLIO);
+    if (!raw) return null;
+    const state = JSON.parse(raw);
+    if (state.version !== 1 || !Array.isArray(state.assets) || !Array.isArray(state.transactions)) {
+        throw new Error('El archivo local de cartera no es válido.');
+    }
+    return state;
+}
+
 // ===== ASSETS CRUD =====
 export function getAssets(): Asset[] {
     try {
+        const saved = readPortfolioState();
+        if (saved) return saved.assets;
         const data = localStorage.getItem(STORAGE_KEYS.ASSETS);
         return data ? JSON.parse(data) : [];
     } catch {
-        console.error('Error reading assets from localStorage');
-        return [];
+        throw new Error('No se puede leer la cartera guardada. No se han sobrescrito los datos.');
     }
 }
 
 export function saveAssets(assets: Asset[]): void {
-    try {
-        localStorage.setItem(STORAGE_KEYS.ASSETS, JSON.stringify(assets));
-    } catch (error) {
-        console.error('Error saving assets to localStorage:', error);
-    }
+    savePortfolioState(assets, getTransactions());
 }
 
 export function addAsset(asset: Asset): void {
@@ -125,6 +142,8 @@ function buildBootstrapTransactions(assets: Asset[]): PortfolioTransaction[] {
 // ===== TRANSACTIONS =====
 export function getTransactions(): PortfolioTransaction[] {
     try {
+        const saved = readPortfolioState();
+        if (saved) return saved.transactions;
         const data = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
         if (data) {
             return JSON.parse(data) as PortfolioTransaction[];
@@ -136,20 +155,14 @@ export function getTransactions(): PortfolioTransaction[] {
         }
 
         const bootstrapTransactions = buildBootstrapTransactions(assets);
-        saveTransactions(bootstrapTransactions);
         return bootstrapTransactions;
     } catch {
-        console.error('Error reading transactions from localStorage');
-        return [];
+        throw new Error('No se pueden leer las operaciones guardadas. No se han sobrescrito los datos.');
     }
 }
 
 export function saveTransactions(transactions: PortfolioTransaction[]): void {
-    try {
-        localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
-    } catch (error) {
-        console.error('Error saving transactions to localStorage:', error);
-    }
+    savePortfolioState(getAssets(), transactions);
 }
 
 export function addTransaction(transaction: PortfolioTransaction): void {
@@ -248,7 +261,7 @@ export function saveHistory(history: PortfolioHistoryPoint[]): void {
     try {
         localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
     } catch (error) {
-        console.error('Error saving history to localStorage:', error);
+        throw new Error('No se ha podido guardar el histórico de la cartera.', { cause: error });
     }
 }
 
@@ -330,6 +343,7 @@ export function generateId(): string {
 }
 
 export function clearAllData(): void {
+    localStorage.removeItem(STORAGE_KEYS.PORTFOLIO);
     localStorage.removeItem(STORAGE_KEYS.ASSETS);
     localStorage.removeItem(STORAGE_KEYS.HISTORY);
     localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);

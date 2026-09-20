@@ -418,14 +418,14 @@ async function searchSymbolYahoo(query: string, signal?: AbortSignal): Promise<S
 }
 
 // ===== GET QUOTE (with fallback) =====
-export async function getQuote(symbol: string, signal?: AbortSignal): Promise<StockQuote | null> {
+export async function getQuote(symbol: string, signal?: AbortSignal, forceRefresh = false): Promise<StockQuote | null> {
     if (!isApiEnabled()) {
         return null;
     }
 
     // Check cache first
     const cached = QUOTE_CACHE.get(symbol);
-    if (cached && Date.now() - cached.timestamp < TTL.QUOTE) {
+    if (!forceRefresh && cached && Date.now() - cached.timestamp < TTL.QUOTE) {
         console.log(`[Cache Hit] Quote for ${symbol}`);
         return cached.data;
     }
@@ -573,6 +573,7 @@ async function getQuoteYahoo(symbol: string, signal?: AbortSignal): Promise<Stoc
         ?? regularMarketPrice;
     const change = regularMarketPrice - previousClose;
     return {
+        quotedAt: readFiniteNumber(meta.regularMarketTime) ? new Date(readNumber(meta.regularMarketTime) * 1000).toISOString() : undefined,
         symbol: readString(meta.symbol, symbol),
         name: readString(meta.longName) || readString(meta.shortName) || symbol,
         price: regularMarketPrice,
@@ -611,6 +612,7 @@ export async function getQuotesYahooBatch(symbols: string[], signal?: AbortSigna
                     const dividendYield = readFiniteNumber(result.trailingAnnualDividendYield);
 
                     return {
+                    quotedAt: readFiniteNumber(result.regularMarketTime) ? new Date(readNumber(result.regularMarketTime) * 1000).toISOString() : undefined,
                     symbol: readString(result.symbol),
                     name: readString(result.longName) || readString(result.shortName) || readString(result.symbol),
                     price: readNumber(result.regularMarketPrice),
@@ -887,6 +889,7 @@ async function fetchYahooChartPoints(
         return {
             date: dateStr,
             timestamp: timestamp * 1000,
+            currency: readString(asJsonRecord(result.meta).currency, 'Unknown'),
             previousClose: i === 0 ? previousClose : undefined,
             open: readNumberAt(quotes.open, i),
             high: readNumberAt(quotes.high, i),

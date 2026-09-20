@@ -82,6 +82,9 @@ export function createQuoteSnapshot(assets: Asset[], transactions: PortfolioTran
  * the current day (for example after importing monthly workbook data).
  */
 export function calculatePreviousClosePerformance(assets: Asset[]) {
+    if (!assets.length || assets.some(a => !Number.isFinite(a.currentPrice) || a.currentPrice! <= 0 || !Number.isFinite(a.previousClose) || a.previousClose! <= 0)) {
+        return { change: null as number | null, returnPercent: null as number | null };
+    }
     const values = assets.map((asset) => {
         const currentPrice = Number.isFinite(asset.currentPrice) && asset.currentPrice! > 0
             ? asset.currentPrice!
@@ -104,65 +107,63 @@ export function calculatePreviousClosePerformance(assets: Asset[]) {
 }
 
 /**
- * Builds a portfolio curve from each holding's historical candles. Historical
- * providers return the listing currency, while holdings are stored in EUR; the
- * latest known EUR quote is therefore used as a conservative scale factor so
- * the curve remains comparable with the dashboard valuation.
+ * Estimated end-of-day valuations from dated trades and EUR market candles.
+ * Missing prices, corrections and unknown currencies cannot produce a complete valuation.
  */
 export function createMarketPortfolioHistory(
     assets: Asset[],
     transactions: PortfolioTransaction[],
     assetHistory: Map<string, HistoricalDataPoint[]>,
 ): PortfolioHistoryPoint[] {
-    if (!assets.length) return [];
     const ledger = normalizePortfolioTransactions(assets, transactions);
-    const days = new Set<string>();
-    assetHistory.forEach((points) => points.forEach((point) => {
-        const day = accountingDay(point.date);
-        if (day) days.add(day);
+    if (ledger.some(t => !getTransactionEventDay(t))) return [];
+    const ids = new Set([...assets.map(a => a.id), ...ledger.map(t => t.assetId)]);
+    const positions = [...ids].map(id => ({
+        operations: ledger.filter(t => t.assetId === id).sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt)),
+        quotes: (assetHistory.get(id) || []).map(p => ({ ...p, day: accountingDay(p.date) })).filter(p => p.day).sort((a, b) => a.day.localeCompare(b.day)),
+        operationIndex: 0, quoteIndex: -1, quantity: 0, cost: 0, invalid: false,
     }));
-
-    return [...days].sort().flatMap((day) => {
-        const active = assets.filter((asset) => accountingDay(asset.purchaseDate) <= day);
-        if (!active.length) return [];
-        let hasMarketData = false;
-        const value = active.reduce((sum, asset) => {
-            const fullHistory = assetHistory.get(asset.id) || [];
-            const points = fullHistory.filter((point) => accountingDay(point.date) <= day);
-            const latest = points.at(-1);
-            const rawLatest = fullHistory.at(-1);
-            if (latest?.close && latest.close > 0) hasMarketData = true;
-            const scale = rawLatest?.close && asset.currentPrice && asset.currentPrice > 0
-                ? asset.currentPrice / rawLatest.close
-                : 1;
-            const price = latest?.close && latest.close > 0 ? latest.close * scale : asset.purchasePrice;
-            return sum + price * asset.quantity;
-        }, 0);
-        if (!hasMarketData || !Number.isFinite(value) || value <= 0) return [];
-        const date = `${day}T18:00:00.000Z`;
-        const invested = active.reduce((sum, asset) => sum + asset.purchasePrice * asset.quantity, 0);
-        return [{
-            date,
-            value,
-            invested,
-            source: 'quotes-v2' as const,
-            ledgerKey: portfolioLedgerKey(ledger, date),
-        }];
+    const firstTrade = ledger.map(getTransactionEventDay).sort()[0];
+    const days = [...new Set(positions.flatMap(p => p.quotes.map(q => q.day)))].filter(day => day >= firstTrade).sort();
+    return days.flatMap(day => {
+        let value = 0, invested = 0, complete = true;
+        for (const position of positions) {
+            while (position.operationIndex < position.operations.length && getTransactionEventDay(position.operations[position.operationIndex]) <= day) {
+                const op = position.operations[position.operationIndex++];
+                if (!['buy', 'sell'].includes(op.type) || !Number.isFinite(op.quantity) || op.quantity! <= 0 || !Number.isFinite(op.total)) { position.invalid = true; continue; }
+                if (op.type === 'buy') { position.quantity += op.quantity!; position.cost += op.total!; }
+                else if (op.quantity! > position.quantity + 1e-8 || position.quantity <= 0) position.invalid = true;
+                else {
+                    position.cost *= Math.max(0, position.quantity - op.quantity!) / position.quantity;
+                    position.quantity = Math.max(0, position.quantity - op.quantity!);
+                }
+            }
+            while (position.quoteIndex + 1 < position.quotes.length && position.quotes[position.quoteIndex + 1].day <= day) position.quoteIndex++;
+            if (position.invalid) { complete = false; continue; }
+            if (position.quantity <= 1e-8) continue;
+            const quote = position.quotes[position.quoteIndex];
+            if (!quote || quote.close <= 0 || quote.currency !== 'EUR' || Date.parse(day) - Date.parse(quote.day) > 8 * DAY_MS) { complete = false; continue; }
+            value += quote.close * position.quantity;
+            invested += position.cost;
+        }
+        if (!complete || !Number.isFinite(value) || !Number.isFinite(invested)) return [];
+        const date = day + 'T18:00:00.000Z';
+        return [{ date, value, invested, source: 'market-estimate' as const, ledgerKey: portfolioLedgerKey(ledger, date) }];
     });
 }
 
 /** Legacy totals have no provenance and may contain demo data. Never rewrite them. */
 export function buildPortfolioAnalyticsHistory(history: PortfolioHistoryPoint[], transactions: PortfolioTransaction[],
-    currentSnapshot?: PortfolioHistoryPoint, _assets: Asset[] = []): PortfolioHistoryPoint[] {
+    currentSnapshot?: PortfolioHistoryPoint, _assets: Asset[] = [], includeEstimates = false): PortfolioHistoryPoint[] {
     void _assets;
     const points = currentSnapshot?.source === 'quotes-v2' ? [...history, currentSnapshot] : history;
     const timestamps = new Map<number, PortfolioHistoryPoint>();
     for (const point of points) {
         const timestamp = Date.parse(point.date);
-        if (point.source !== 'quotes-v2' || point.ledgerKey !== portfolioLedgerKey(transactions, point.date) ||
+        if ((point.source !== 'quotes-v2' && !(includeEstimates && point.source === 'market-estimate')) || point.ledgerKey !== portfolioLedgerKey(transactions, point.date) ||
             !Number.isFinite(timestamp) || !Number.isFinite(point.value) || point.value < 0 ||
             !Number.isFinite(point.invested) || point.invested < 0) continue;
-        timestamps.set(timestamp, point);
+        if (point.source === 'quotes-v2' || !timestamps.has(timestamp)) timestamps.set(timestamp, point);
     }
     return [...timestamps].sort(([a], [b]) => a - b).map(([, point]) => ({ ...point }));
 }
@@ -189,7 +190,8 @@ export function performanceSeries(history: PortfolioHistoryPoint[], transactions
         // still reject monthly/unknown gaps that would fabricate a return.
         const valid = !!previous && previous[1].value > 0 && gap > 0 && gap <= maxGapDays && Number.isFinite(flow) &&
             !unexplainedCostChange && !operations.some(t => !getTransactionEventDay(t) || t.type === 'edit' || t.type === 'delete');
-        const intervalReturn = valid ? (point.value - previous[1].value - flow) / previous[1].value * 100 : null;
+        const rawReturn = valid ? (point.value - previous[1].value - flow) / previous[1].value * 100 : null;
+        const intervalReturn = rawReturn !== null && Math.abs(rawReturn) < 1e-10 ? 0 : rawReturn;
         if (intervalReturn !== null) index *= 1 + intervalReturn / 100;
         else if (i > 0) { segment++; index = 100; }
         return { ...point, date, timestamp: Date.parse(point.date), dailyReturn: intervalReturn,
@@ -245,28 +247,12 @@ export function calculateBenchmarkPeriodPerformance(
     endMs = Infinity,
     maxBaseGapMs = 4 * DAY_MS,
 ): BenchmarkPeriodPerformance {
-    const portfolio = calculatePeriodPerformance(series, startMs, endMs, maxBaseGapMs);
-    const market = benchmark
-        .map((point) => ({ point, timestamp: historicalPointTimestamp(point) }))
-        .filter(({ point, timestamp }) => point.close > 0 && Number.isFinite(timestamp) && timestamp <= endMs)
-        .sort((left, right) => left.timestamp - right.timestamp);
-
-    if (!market.length || (market.length < 2 && (!Number.isFinite(market[0].point.previousClose) || market[0].point.previousClose! <= 0))) {
-        return { portfolioReturn: portfolio.returnPercent, benchmarkReturn: null };
-    }
-
-    const base = startMs === -Infinity
-        ? market[0]
-        : market.filter(({ timestamp }) => timestamp <= startMs).at(-1) || market[0];
-    const end = market.at(-1)!;
-    const baseClose = base === market[0] && startMs !== -Infinity && Number.isFinite(base.point.previousClose) && base.point.previousClose! > 0
-        ? base.point.previousClose!
-        : base.point.close;
-    const benchmarkReturn = baseClose > 0
-        ? (end.point.close / baseClose - 1) * 100
-        : null;
-
-    return { portfolioReturn: portfolio.returnPercent, benchmarkReturn };
+    const period = calculatePeriodPerformance(series, startMs, endMs, maxBaseGapMs);
+    if (!period.hasBase) return { portfolioReturn: null, benchmarkReturn: null };
+    const selected = series.filter(p => p.timestamp <= endMs && p.date >= period.baseDate!);
+    const line = alignedBenchmark(selected, benchmark.filter(p => historicalPointTimestamp(p) <= endMs));
+    const last = line.at(-1);
+    return { portfolioReturn: last?.portfolio ?? null, benchmarkReturn: last?.benchmark ?? null };
 }
 
 /**
@@ -365,16 +351,17 @@ export function alignedBenchmark(series: ReturnType<typeof performanceSeries>, b
 
     const findMarketPoint = (portfolioTimestamp: number, portfolioDay: string) => {
         const sameDay = market.filter((candidate) => candidate.day === portfolioDay).at(-1);
-        if (sameDay) return sameDay;
+        if (sameDay && sameDay.timestamp <= portfolioTimestamp) return sameDay;
         const preceding = market.filter((candidate) => candidate.timestamp <= portfolioTimestamp).at(-1);
-        if (preceding) return preceding;
+        if (preceding && portfolioTimestamp - preceding.timestamp <= 4 * DAY_MS) return preceding;
+        if (preceding) return undefined;
 
         // Yahoo's chart range usually exposes the close immediately before
         // the first candle. Use it as a synthetic baseline so 1D/YTD can
         // still draw a two-point comparison when the range starts after the
         // portfolio's baseline observation.
         const first = market[0];
-        return Number.isFinite(first?.point.previousClose) && first.point.previousClose! > 0
+        return first && first.timestamp - portfolioTimestamp <= 4 * DAY_MS && Number.isFinite(first.point.previousClose) && first.point.previousClose! > 0
             ? { ...first, timestamp: portfolioTimestamp, day: portfolioDay, point: { ...first.point, close: first.point.previousClose! } }
             : undefined;
     };
@@ -385,7 +372,7 @@ export function alignedBenchmark(series: ReturnType<typeof performanceSeries>, b
         const marketPoint = findMarketPoint(portfolioTimestamp, portfolioDay);
         return marketPoint ? [{ portfolioPoint, marketPoint }] : [];
     });
-    if (common.length < 2 || common[0].portfolioPoint.segment !== common.at(-1)!.portfolioPoint.segment) return [];
+    if (common.length !== series.length || common.length < 2 || common[0].portfolioPoint.segment !== common.at(-1)!.portfolioPoint.segment) return [];
 
     const first = common[0];
     return common.map(({ portfolioPoint, marketPoint }) => ({

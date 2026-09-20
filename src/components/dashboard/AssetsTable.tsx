@@ -222,6 +222,9 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                         <td className="assets-table__column--asset">
                                             <div className="assets-table__asset">
                                                 <span className="assets-table__name">{asset.name}</span>
+                                                <small>{asset.quotedAt && Number.isFinite(Date.parse(asset.quotedAt))
+                                                    ? 'Valoración: ' + new Date(asset.quotedAt).toLocaleDateString('es-ES')
+                                                    : 'Fecha de valoración no disponible'}</small>
                                                 <div className="assets-table__identifiers">
                                                     <span className="assets-table__symbol">{asset.symbol}</span>
                                                     {asset.isin && asset.isin !== asset.symbol && (

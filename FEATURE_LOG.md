@@ -12,6 +12,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-21 - v5.3.8 - Consolidación del estado estable de dev
+- Funcionalidad:
+  - Se prepara la publicación del estado validado de `dev` bajo la versión `v5.3.8`.
+- Resumen:
+  - Se consolida la versión estable de FreeWallet para su promoción a producción.
+- Archivos:
+  - `package.json`
+  - `package-lock.json`
+  - `src/constants/app.ts`
+  - `FEATURE_LOG.md`
+
 ### 2026-09-17 - v5.3.7 - Aviso informativo del Dashboard
 - Funcionalidad:
   - Se incorpora un aviso modal persistente para informar de que el Dashboard sigue en desarrollo.

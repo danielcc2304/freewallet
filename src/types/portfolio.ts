@@ -19,7 +19,7 @@ export interface PortfolioHistoryPoint {
     date: string;
     value: number;
     invested: number;
-    source?: 'quotes-v2';
+    source?: 'quotes-v2' | 'market-estimate';
     ledgerKey?: string;
 }
 

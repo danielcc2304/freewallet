@@ -12,16 +12,26 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-09-21 - v5.3.8 - Consolidación del estado estable de dev
+### 2026-09-21 - v5.3.8 - Integridad del Dashboard y continuidad de cartera
 - Funcionalidad:
-  - Se prepara la publicación del estado validado de `dev` bajo la versión `v5.3.8`.
+  - Se reconcilian el histórico, las compras, las ventas completas y las aportaciones para evitar duplicidades y valoraciones inconsistentes.
+  - Se continúa el histórico importado desde Excel con las operaciones posteriores y se distinguen las estimaciones de mercado de los datos verificados.
+  - Se alinean rendimiento, benchmark, fechas, divisas y cierres anteriores, evitando indicadores cuando no existe una base válida.
+  - Se unifica el guardado local de posiciones y operaciones con escritura atómica y errores visibles, sin sobrescribir la cartera ante un fallo.
+  - Se actualizan las tablas, tarjetas, insights y el plan del Dashboard para consumir el mismo modelo analítico, junto con pruebas específicas de integridad.
 - Resumen:
-  - Se consolida la versión estable de FreeWallet para su promoción a producción.
+  - El Dashboard ofrece métricas de cartera más coherentes y trazables, conserva correctamente las operaciones y deja claro cuándo un dato procede de una estimación.
 - Archivos:
-  - `package.json`
-  - `package-lock.json`
-  - `src/constants/app.ts`
-  - `FEATURE_LOG.md`
+  - `src/components/dashboard/useDashboardAnalytics.ts`
+  - `src/services/dashboardHistory.ts`
+  - `src/services/portfolioPerformance.ts`
+  - `src/services/portfolioQuoteService.ts`
+  - `src/services/storageService.ts`
+  - `src/context/PortfolioContext.tsx`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/components/dashboard/LivePortfolioPlan.tsx`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `scripts/test-dashboard-integrity.ts`
 
 ### 2026-09-17 - v5.3.7 - Aviso informativo del Dashboard
 - Funcionalidad:

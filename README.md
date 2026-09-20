@@ -54,6 +54,12 @@ La filosofia es unir `operativa` + `educacion` en una sola experiencia.
 - Carga de datos demo para pruebas.
 - Persistencia local via `localStorage`.
 
+El Dashboard continúa los cierres importados del Excel con las operaciones posteriores a su último día, sin duplicar sus aportaciones. Las reconstrucciones desde operaciones y precios históricos se identifican como estimaciones y requieren precios en euros para todas las posiciones de la fecha, incluidas las vendidas. La variación diaria queda sin dato cuando falta el cierre anterior; el benchmark utiliza las mismas fechas y base para sus indicadores y gráfica.
+
+Las posiciones y operaciones se guardan juntas en `freewallet_portfolio_v1`, con lectura compatible de las claves anteriores y sincronización entre pestañas. Los errores de guardado se muestran en la interfaz. `lastCheckedAt` identifica la consulta y `quotedAt` la fecha del proveedor, cuando está disponible.
+
+Pruebas de integridad del Dashboard: `npx tsx scripts/test-dashboard-integrity.ts`.
+
 ### 2) Actualizacion de precios
 
 - Servicio de cotizaciones con estrategia de fallback:

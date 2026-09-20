@@ -36,11 +36,11 @@ const previousClosePerformance = calculatePreviousClosePerformance([{ ...asset, 
 near(previousClosePerformance.change, 100, 'Previous close fallback uses observed P&L');
 near(previousClosePerformance.returnPercent, 100 / 1400 * 100, 'Previous close fallback uses previous portfolio value');
 const marketCurve = createMarketPortfolioHistory([asset], [buy], new Map([['a', [
-    { date: '2025-01-01', open: 100, high: 100, low: 100, close: 100, volume: 1 },
-    { date: '2025-01-08', open: 120, high: 120, low: 120, close: 120, volume: 1 },
+    { date: '2025-01-01', open: 100, high: 100, low: 100, close: 100, volume: 1, currency: 'EUR' },
+    { date: '2025-01-08', open: 120, high: 120, low: 120, close: 120, volume: 1, currency: 'EUR' },
 ]]]));
 assert.equal(marketCurve.length, 2, 'Market history should provide at least two portfolio points');
-assert.ok(marketCurve[1].value > marketCurve[0].value, 'EUR scaling must preserve historical price movement');
+assert.equal(marketCurve[1].value, 1200, 'EUR history uses the dated price, without scaling by the latest quote');
 assert.equal(accountingDay('2026-09-11T22:03:07Z'), '2026-09-12');
 
 const reported = performanceSeries([
@@ -119,7 +119,7 @@ const automaticBenchmark = calculateBenchmarkPeriodPerformance(
     Date.parse('2026-09-11T20:00:00Z'),
 );
 near(automaticBenchmark.portfolioReturn, -4.88 / 85144.06 * 100, 'Automatic benchmark uses the flow-aware portfolio return');
-near(automaticBenchmark.benchmarkReturn, (102 / 98 - 1) * 100, 'Automatic benchmark uses the provider previous close for intraday data');
+near(automaticBenchmark.benchmarkReturn, 2, 'Benchmark KPI uses the same actual baseline as the chart');
 const alignedIntraday = alignedBenchmark(reported, [
     { date: '18:00', timestamp: Date.parse('2026-09-10T18:00:00Z'), open: 100, high: 100, low: 100, close: 100, volume: 0 },
     { date: '10:00', timestamp: Date.parse('2026-09-11T10:00:00Z'), open: 102, high: 102, low: 102, close: 102, volume: 0 },

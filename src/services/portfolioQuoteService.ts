@@ -11,11 +11,15 @@ export async function normalizeQuoteToEuro(quote: StockQuote, signal?: AbortSign
     try {
         const fxQuote = await getQuote(`${sourceCurrency}EUR=X`, signal);
         if (!fxQuote?.price) return quote;
+        const price = quote.price * fxQuote.price;
+        const previousClose = fxQuote.previousClose > 0 ? quote.previousClose * fxQuote.previousClose : NaN;
+        const change = price - previousClose;
         return {
             ...quote,
-            price: quote.price * fxQuote.price,
-            change: quote.change * fxQuote.price,
-            previousClose: quote.previousClose * fxQuote.price,
+            price,
+            change,
+            changePercent: previousClose > 0 ? change / previousClose * 100 : NaN,
+            previousClose,
             open: quote.open * fxQuote.price,
             high: quote.high * fxQuote.price,
             low: quote.low * fxQuote.price,
@@ -37,9 +41,10 @@ export async function getPortfolioAssetQuote(asset: Asset, signal?: AbortSignal,
             const price = fund.lastQuote?.price;
             if (price && price > 0) {
                 const change = fund.lastQuote?.change || 0;
-                const previousClose = change ? price - change : price;
+                const previousClose = fund.lastQuote?.change !== undefined ? price - change : NaN;
                 const fundQuote: StockQuote = {
                     symbol: isin,
+                    quotedAt: fund.lastQuote?.datetime,
                     name: fund.className || fund.name,
                     price,
                     change,
@@ -58,6 +63,6 @@ export async function getPortfolioAssetQuote(asset: Asset, signal?: AbortSignal,
         }
     }
 
-    const quote = await getQuote(asset.symbol, signal);
+    const quote = await getQuote(asset.symbol, signal, forceRefresh);
     return quote ? normalizeQuoteToEuro(quote, signal) : null;
 }

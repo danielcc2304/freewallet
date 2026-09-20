@@ -11,10 +11,11 @@ import { AssetDetail } from '../../components/dashboard/AssetDetail';
 import { UnderlyingAssetDetail } from '../../components/dashboard/UnderlyingAssetDetail';
 import { Button, Card, CardContent, Modal, PageHeader } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { getHistory, isApiEnabled } from '../../services/storageService';
+import { isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, PerformerData, Asset, AssetHolding } from '../../types/types';
-import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, calculatePreviousClosePerformance, createQuoteSnapshot, getPeriodCutoff, normalizePortfolioTransactions, performanceSeries } from '../../services/portfolioPerformance';
-import { readWorkbookHistory } from '../../services/portfolioWorkbookHistory';
+import { calculatePeriodPerformance, calculatePreviousClosePerformance, getPeriodCutoff } from '../../services/portfolioPerformance';
+import { useDashboardAnalytics } from '../../components/dashboard/useDashboardAnalytics';
+import type { performanceSeries } from '../../services/portfolioPerformance';
 import type { ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
 import './Dashboard.css';
 import { PRICE_REFRESH_INTERVAL_MS } from '../../constants/app';
@@ -77,7 +78,7 @@ function DashboardLiveStatus({
 
 export function Dashboard() {
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
-    const { assets, loading, updatingPrices, lastPriceUpdate } = state;
+    const { assets, loading, updatingPrices, lastPriceUpdate, quoteFailures } = state;
     const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
     const [selectedHolding, setSelectedHolding] = useState<{
         holding: AssetHolding;
@@ -90,29 +91,8 @@ export function Dashboard() {
     const [calculationNow, setCalculationNow] = useState(() => Date.now());
     const navigate = useNavigate();
     const apiEnabled = isApiEnabled();
-    const workbookHistory = useMemo(() => readWorkbookHistory(), []);
-    const usingWorkbookHistory = workbookHistory.points.length >= 2;
-    const portfolioTransactions = useMemo(
-        () => normalizePortfolioTransactions(assets, state.transactions),
-        [assets, state.transactions],
-    );
-    const currentSnapshot = useMemo(
-        () => createQuoteSnapshot(assets, portfolioTransactions, new Date(calculationNow).toISOString()),
-        [assets, calculationNow, portfolioTransactions],
-    );
-    const workbookSeries = useMemo(
-        () => usingWorkbookHistory
-            ? performanceSeries(
-                [...workbookHistory.points, ...(currentSnapshot ? [currentSnapshot] : [])],
-                workbookHistory.flowTransactions,
-                assets,
-                {
-                maxGapDays: workbookHistory.source === 'monthly' ? 45 : 16,
-                },
-            )
-            : [],
-        [assets, currentSnapshot, usingWorkbookHistory, workbookHistory],
-    );
+    const analytics = useDashboardAnalytics(calculationNow);
+    const { usingWorkbookHistory, workbookHistory, series: historicalSeries, liveSeries } = analytics;
     const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || null;
 
     const handleCloseDashboardNotice = () => {
@@ -204,12 +184,6 @@ export function Dashboard() {
         const totalGain = currentValue - totalInvested;
         const percentageGain = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
 
-        const liveSeries = performanceSeries(
-            buildPortfolioAnalyticsHistory(getHistory(), portfolioTransactions, currentSnapshot || undefined, assets),
-            portfolioTransactions,
-            assets,
-        );
-        const historicalSeries = usingWorkbookHistory ? workbookSeries : liveSeries;
         const periodChange = (periodName: '1D' | '1M' | '3M' | 'YTD', source: ReturnType<typeof performanceSeries>, maxBaseGap: number) => {
             const cutoff = getPeriodCutoff(periodName, calculationNow);
             const period = calculatePeriodPerformance(source, cutoff ?? Number.NEGATIVE_INFINITY, calculationNow, maxBaseGap);
@@ -251,7 +225,7 @@ export function Dashboard() {
             ytdChange: ytd.change,
             ytdChangePercent: ytd.percent,
         };
-    }, [assets, calculationNow, currentSnapshot, portfolioTransactions, usingWorkbookHistory, workbookHistory, workbookSeries]);
+    }, [assets, calculationNow, historicalSeries, liveSeries, usingWorkbookHistory, workbookHistory]);
 
     const performersData: PerformerData[] = useMemo(() => {
         return assets.map((asset) => {
@@ -329,7 +303,7 @@ export function Dashboard() {
                         Seguimiento automático de tu cartera
                         {lastPriceUpdate && (
                             <span className="dashboard__last-update">
-                                · Actualizado: {lastPriceUpdate.toLocaleTimeString()}
+                                · Consultado: {lastPriceUpdate.toLocaleTimeString()}
                             </span>
                         )}
                     </p>
@@ -360,7 +334,8 @@ export function Dashboard() {
                 />
             </section>
             <section className="dashboard__section">
-                <PortfolioExcelInsights now={calculationNow} />
+                <p role="status">{assets.filter(a => Number.isFinite(Date.parse(a.lastCheckedAt || a.lastQuoteAt || '')) && calculationNow - Date.parse(a.lastCheckedAt || a.lastQuoteAt!) <= 15 * 60 * 1000).length} de {assets.length} posiciones consultadas recientemente{quoteFailures ? ` · ${quoteFailures} pendientes; se reintentará automáticamente` : ''}. La fecha de valoración depende de cada mercado.</p>
+                <PortfolioExcelInsights now={calculationNow} analytics={analytics} />
             </section>
 
             <section className="dashboard__section dashboard__performers">
@@ -377,13 +352,13 @@ export function Dashboard() {
             </section>
 
             <section className="dashboard__section">
-                <LivePortfolioPlan now={calculationNow} section="monthly" />
+                <LivePortfolioPlan analytics={analytics} section="monthly" />
             </section>
             <section className="dashboard__section">
-                <LivePortfolioPlan now={calculationNow} section="recent" />
+                <LivePortfolioPlan analytics={analytics} section="recent" />
             </section>
             <section className="dashboard__section">
-                <LivePortfolioPlan now={calculationNow} section="plan" />
+                <LivePortfolioPlan analytics={analytics} section="plan" />
             </section>
 
             <Modal

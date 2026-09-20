@@ -33,12 +33,14 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { getHistory, isApiEnabled } from '../../services/storageService';
+import { isApiEnabled } from '../../services/storageService';
 import { getAssetChartData } from '../../services/apiService';
-import { alignedBenchmark, buildPortfolioAnalyticsHistory, calculateBenchmarkPeriodPerformance, calculatePeriodPerformance, createMarketPortfolioHistory, createQuoteSnapshot, getPeriodCutoff, normalizeAccumulatedBenchmark, normalizePortfolioTransactions, performanceSeries, portfolioMonthlyRows, workbookRiskStats } from '../../services/portfolioPerformance';
-import { readWorkbookBenchmarkHistory, readWorkbookHistory } from '../../services/portfolioWorkbookHistory';
+import { alignedBenchmark, calculatePeriodPerformance, getPeriodCutoff, normalizeAccumulatedBenchmark, workbookRiskStats } from '../../services/portfolioPerformance';
+import { readWorkbookBenchmarkHistory } from '../../services/portfolioWorkbookHistory';
 import type { HistoricalDataPoint } from '../../types/types';
 import './PortfolioExcelInsights.css';
+import type { DashboardAnalytics } from './useDashboardAnalytics';
+import { latestContinuousMonths } from '../../services/dashboardHistory';
 
 type InsightTab = 'evolution' | 'benchmark' | 'allocation' | 'risk' | 'controls';
 type EvolutionPeriod = '1D' | '7D' | '1M' | '3M' | 'YTD' | 'ALL';
@@ -98,7 +100,7 @@ const evolutionPeriods: Array<{ value: EvolutionPeriod; label: string }> = [
     { value: 'ALL', label: 'Todo' },
 ];
 
-export function PortfolioExcelInsights({ now }: { now: number }) {
+export function PortfolioExcelInsights({ now, analytics }: { now: number; analytics: DashboardAnalytics }) {
     const { state: { assets, transactions, lastPriceUpdate } } = usePortfolio();
     const [tab, setTab] = useState<InsightTab>('evolution');
     const [evolutionPeriod, setEvolutionPeriod] = useState<EvolutionPeriod>('ALL');
@@ -106,25 +108,8 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         period: null,
         data: [],
     });
-    const [assetHistory, setAssetHistory] = useState<Map<string, HistoricalDataPoint[]>>(new Map());
-    const portfolioTransactions = useMemo(() => normalizePortfolioTransactions(assets, transactions), [transactions, assets]);
-    const workbookHistory = useMemo(() => readWorkbookHistory(), []);
-    const workbookBenchmarkHistory = useMemo(() => readWorkbookBenchmarkHistory(), []);
-    const usingWorkbookHistory = workbookHistory.points.length >= 2;
-    const currentSnapshot = useMemo(
-        () => createQuoteSnapshot(assets, portfolioTransactions, new Date(now).toISOString()),
-        [assets, now, portfolioTransactions],
-    );
-    const chartAssetSignature = useMemo(
-        () => JSON.stringify(assets
-            .map((asset) => ({ id: asset.id, symbol: asset.symbol, isin: asset.isin }))
-            .sort((left, right) => left.id.localeCompare(right.id))),
-        [assets],
-    );
-    const chartAssets = useMemo(
-        () => JSON.parse(chartAssetSignature) as Array<{ id: string; symbol: string; isin?: string }>,
-        [chartAssetSignature],
-    );
+    const { workbookHistory, usingWorkbookHistory, portfolioTransactions, history, series, monthly, hasEstimates } = analytics;
+    const workbookBenchmarkHistory = readWorkbookBenchmarkHistory();
 
     const totalValue = useMemo(
         () => assets.reduce((sum, asset) => sum + (asset.currentPrice || asset.purchasePrice) * asset.quantity, 0),
@@ -135,41 +120,6 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         [assets],
     );
 
-    useEffect(() => {
-        if (!assets.length || usingWorkbookHistory || !isApiEnabled()) {
-            return undefined;
-        }
-        const controller = new AbortController();
-        Promise.all(chartAssets.map(async (asset) => {
-            const symbol = asset.isin || asset.symbol;
-            const points = await getAssetChartData(symbol, 'ALL', controller.signal);
-            return [asset.id, points] as const;
-        })).then((entries) => {
-            if (!controller.signal.aborted) setAssetHistory(new Map(entries));
-        }).catch(() => {
-            if (!controller.signal.aborted) setAssetHistory(new Map());
-        });
-        return () => controller.abort();
-    }, [assets.length, chartAssets, usingWorkbookHistory]);
-
-    const liveHistory = useMemo(() => {
-        const marketHistory = createMarketPortfolioHistory(assets, portfolioTransactions, assetHistory);
-        return buildPortfolioAnalyticsHistory([...getHistory(), ...marketHistory], portfolioTransactions, currentSnapshot || undefined, assets);
-    }, [assetHistory, assets, currentSnapshot, portfolioTransactions]);
-    const history = useMemo(
-        () => usingWorkbookHistory
-            ? [...workbookHistory.points, ...(currentSnapshot ? [currentSnapshot] : [])]
-            : liveHistory,
-        [currentSnapshot, liveHistory, usingWorkbookHistory, workbookHistory.points],
-    );
-    const analyticsTransactions = usingWorkbookHistory ? workbookHistory.flowTransactions : portfolioTransactions;
-    const historyMaxGapDays = usingWorkbookHistory && workbookHistory.source === 'monthly' ? 45 : 16;
-    const series = useMemo(
-        () => performanceSeries(history, analyticsTransactions, assets, { maxGapDays: historyMaxGapDays }),
-        [analyticsTransactions, assets, history, historyMaxGapDays],
-    );
-
-    const monthly = useMemo(() => portfolioMonthlyRows(series, now), [series, now]);
     const dailyReturns = useMemo(
         () => series.map(p => p.dailyReturn).filter((r): r is number => r !== null),
         [series],
@@ -179,19 +129,12 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
             .map(row => ({ ...row, monthlyReturn: row.monthlyReturn! })),
         [monthly],
     );
-    const monthlyReturns = useMemo(() => validMonthly.map(row => row.monthlyReturn), [validMonthly]);
-    // Only the most recent continuous run is eligible for aggregate risk.
-    const contiguous = useMemo(() => validMonthly.every((row, i) => {
-        if (!i) return true;
-        const previous = validMonthly[i - 1].month;
-        return Number(row.month.slice(0, 4)) * 12 + Number(row.month.slice(5)) -
-            (Number(previous.slice(0, 4)) * 12 + Number(previous.slice(5))) === 1;
-    }), [validMonthly]);
+    const recentMonthly = useMemo(() => latestContinuousMonths(validMonthly), [validMonthly]);
     const { volatility, sharpe, sortino, annualized, maxDrawdown } = useMemo(
-        () => workbookRiskStats(contiguous ? monthlyReturns : [], RISK_FREE_ANNUAL_PCT),
-        [contiguous, monthlyReturns],
+        () => workbookRiskStats(recentMonthly.map(row => row.monthlyReturn), RISK_FREE_ANNUAL_PCT),
+        [recentMonthly],
     );
-    const historyYears = monthlyReturns.length ? monthlyReturns.length / 12 : null;
+    const historyYears = recentMonthly.length ? recentMonthly.length / 12 : null;
     const positiveDays = dailyReturns.length ? dailyReturns.filter((value) => value > 0).length / dailyReturns.length * 100 : null;
     const currentReturn = investedValue > 0 ? (totalValue / investedValue - 1) * 100 : 0;
     const bestMonth = validMonthly.length
@@ -202,8 +145,8 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         : null;
     const negativeMonths = validMonthly.filter((row) => row.monthlyReturn < 0).length;
     const stale = useMemo(() => assets.filter((asset) => {
-        if (!asset.lastQuoteAt) return true;
-        return now - new Date(asset.lastQuoteAt).getTime() > QUOTE_WINDOW_MS;
+        const checked = Date.parse(asset.lastCheckedAt || asset.lastQuoteAt || '');
+        return !Number.isFinite(checked) || now - checked > QUOTE_WINDOW_MS;
     }).length, [assets, now]);
     const freshQuotes = assets.length - stale;
     const dataCoverage = assets.length ? freshQuotes / assets.length * 100 : 0;
@@ -273,56 +216,35 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
             now,
         );
     }, [evolutionPeriod, now, workbookBenchmarkHistory]);
-    const hasWorkbookBenchmark = workbookBenchmarkLine.length > 1;
-    const benchmark = useMemo(
-        () => !hasWorkbookBenchmark && benchmarkResult.period === evolutionPeriod ? benchmarkResult.data : [],
-        [benchmarkResult, evolutionPeriod, hasWorkbookBenchmark],
-    );
-    const benchmarkLoading = tab === 'benchmark' && !hasWorkbookBenchmark && isApiEnabled() && benchmarkResult.period !== evolutionPeriod;
-    const benchmarkLine = useMemo(
-        () => hasWorkbookBenchmark ? workbookBenchmarkLine : alignedBenchmark(periodSeries, benchmark),
-        [benchmark, hasWorkbookBenchmark, periodSeries, workbookBenchmarkLine],
-    );
-    const benchmarkUsesWorkbook = hasWorkbookBenchmark;
-
-    const automaticBenchmarkPerformance = useMemo(() => {
-        if (hasWorkbookBenchmark || benchmark.length === 0) return null;
-        const cutoff = getPeriodCutoff(evolutionPeriod, now);
-        const maxBaseGap = cutoff === null
-            ? Number.POSITIVE_INFINITY
-            : usingWorkbookHistory && workbookHistory.source === 'monthly'
-                ? Math.max(45 * DAY_MS, (now - cutoff) * 1.5)
-                : Math.max(3 * DAY_MS, (now - cutoff) * 1.5);
-        return calculateBenchmarkPeriodPerformance(
-            series,
-            benchmark,
-            cutoff ?? Number.NEGATIVE_INFINITY,
-            now,
-            maxBaseGap,
-        );
-    }, [benchmark, evolutionPeriod, hasWorkbookBenchmark, now, series, usingWorkbookHistory, workbookHistory.source]);
-
+    const benchmark = useMemo(() => benchmarkResult.period === evolutionPeriod ? benchmarkResult.data : [], [benchmarkResult, evolutionPeriod]);
+    const automaticLine = useMemo(() => alignedBenchmark(periodSeries, benchmark), [periodSeries, benchmark]);
+    const benchmarkUsesWorkbook = automaticLine.length < 2 && workbookBenchmarkLine.length > 1;
+    const benchmarkLine = automaticLine.length > 1 ? automaticLine : workbookBenchmarkLine;
+    const benchmarkLoading = tab === 'benchmark' && isApiEnabled() && benchmarkResult.period !== evolutionPeriod && benchmarkLine.length < 2;
     useEffect(() => {
-        if (tab !== 'benchmark' || hasWorkbookBenchmark || !isApiEnabled()) return undefined;
-
+        if (tab !== 'benchmark' || !isApiEnabled()) return;
         const controller = new AbortController();
         getAssetChartData('URTH', evolutionPeriod, controller.signal)
-            .then((data) => {
-                if (!controller.signal.aborted) {
-                    setBenchmarkResult({ period: evolutionPeriod, data });
-                }
+            .then(async data => {
+                // Match the portfolio's EUR reporting currency using dated FX observations.
+                if (data.some(p => p.currency === 'USD')) {
+                    const fx = await getAssetChartData('USDEUR=X', evolutionPeriod, controller.signal);
+                    data = data.flatMap(p => {
+                        const time = p.timestamp ?? Date.parse(p.date);
+                        const rate = fx.filter(f => (f.timestamp ?? Date.parse(f.date)) <= time).at(-1);
+                        if (!rate || time - (rate.timestamp ?? Date.parse(rate.date)) > 4 * DAY_MS) return [];
+                        return [{ ...p, close: p.close * rate.close, previousClose: undefined, currency: 'EUR' }];
+                    });
+                } else if (data.some(p => p.currency !== 'EUR')) data = [];
+                if (!controller.signal.aborted) setBenchmarkResult({ period: evolutionPeriod, data });
             })
             .catch(() => {
                 if (!controller.signal.aborted) setBenchmarkResult({ period: evolutionPeriod, data: [] });
             });
         return () => controller.abort();
-    }, [evolutionPeriod, hasWorkbookBenchmark, lastPriceUpdate, tab]);
-    const benchmarkReturn = hasWorkbookBenchmark
-        ? benchmarkLine.at(-1)?.benchmark ?? null
-        : automaticBenchmarkPerformance?.benchmarkReturn ?? benchmarkLine.at(-1)?.benchmark ?? null;
-    const portfolioBenchmarkReturn = hasWorkbookBenchmark
-        ? benchmarkLine.at(-1)?.portfolio ?? null
-        : automaticBenchmarkPerformance?.portfolioReturn ?? benchmarkLine.at(-1)?.portfolio ?? null;
+    }, [evolutionPeriod, lastPriceUpdate, tab]);
+    const benchmarkReturn = benchmarkLine.at(-1)?.benchmark ?? null;
+    const portfolioBenchmarkReturn = benchmarkLine.at(-1)?.portfolio ?? null;
     const hasPortfolioBenchmark = benchmarkLine.length > 1;
     const benchmarkDifference = benchmarkReturn !== null && portfolioBenchmarkReturn !== null ? portfolioBenchmarkReturn - benchmarkReturn : null;
 
@@ -356,7 +278,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         { label: 'Valor actual', value: currency(totalValue), detail: `${assets.length} posiciones`, icon: <WalletCards size={17} /> },
         { label: 'Capital invertido', value: currency(investedValue), detail: `${transactions.length} operaciones`, icon: <Coins size={17} /> },
         { label: 'Rentabilidad total', value: percent(currentReturn), detail: currency(totalValue - investedValue), icon: <ArrowUpRight size={17} />, tone: currentReturn >= 0 ? 'is-positive' : 'is-negative' },
-        { label: 'Rentabilidad anualizada', value: percent(annualized), detail: historyYears === null ? 'Sin meses cerrados' : `${monthlyReturns.length} meses cerrados`, icon: <Gauge size={17} /> },
+        { label: 'Rentabilidad anualizada', value: percent(annualized), detail: historyYears === null ? 'Sin meses cerrados' : `${recentMonthly.length} meses cerrados`, icon: <Gauge size={17} /> },
         { label: 'Volatilidad anualizada', value: plainPercent(volatility), detail: 'Riesgo estimado', icon: <BarChart3 size={17} /> },
         { label: 'Máximo drawdown', value: plainPercent(maxDrawdown), detail: 'Entre cierres mensuales', icon: <ArrowDownRight size={17} />, tone: maxDrawdown !== null && maxDrawdown < 0 ? 'is-negative' : undefined },
         { label: 'Periodos positivos', value: plainPercent(positiveDays), detail: `${dailyReturns.length} intervalos válidos`, icon: <ShieldCheck size={17} /> },
@@ -378,8 +300,8 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         { label: 'Cotizaciones sin actualizar', value: stale, ok: stale === 0 },
         { label: 'Histórico utilizado', value: usingWorkbookHistory
             ? `${workbookHistory.evolutionCount} cierres · ${workbookHistory.dcaCount} flujos Excel`
-            : `${history.length} registros verificados`, ok: history.length >= 2 },
-        { label: 'Snapshots en vivo', value: `${getHistory().length}`, ok: getHistory().length >= 2 },
+            : `${history.length} registros${hasEstimates ? ' · incluye estimaciones' : ' verificados'}`, ok: history.length >= 2 },
+        { label: 'Snapshots en vivo', value: `${history.filter(p => p.source === 'quotes-v2').length}`, ok: history.filter(p => p.source === 'quotes-v2').length >= 2 },
         { label: 'Operaciones registradas', value: transactions.length, ok: transactions.length > 0 },
         { label: 'Divisa normalizada', value: assets.every((asset) => !asset.currency || asset.currency === 'EUR') ? 'EUR' : 'Revisar', ok: assets.every((asset) => !asset.currency || asset.currency === 'EUR') },
     ];
@@ -388,7 +310,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
         <Card className="portfolio-excel-insights">
             <CardHeader title="Análisis avanzado" subtitle={usingWorkbookHistory
                 ? 'Posiciones actuales y evolución mensual importada de tu Excel'
-                : 'Posiciones actuales y rentabilidad calculada con valoraciones verificadas'} />
+                : hasEstimates ? 'Incluye histórico estimado a partir de operaciones y precios de mercado' : 'Posiciones actuales y rentabilidad calculada con valoraciones verificadas'} />
             <CardContent>
                 <p className="portfolio-excel-insights__chart-note" role="status">
                     {usingWorkbookHistory
@@ -492,10 +414,10 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                                 <h3><BarChart3 size={16} /> Comparativa automática</h3>
                                 <p>{benchmarkUsesWorkbook
                                     ? 'Comparativa importada de tu hoja Comparativa, con ambos recorridos en los mismos cierres.'
-                                    : 'Tu cartera frente al MSCI World (URTH), usando datos vivos del mercado.'}</p>
+                                    : 'Tu cartera frente al MSCI World (URTH), en euros y con las mismas fechas de comparación.'}</p>
                             </div>
                             <div className="portfolio-excel-insights__panel-actions">
-                                <strong>{benchmarkLine.length} {benchmarkUsesWorkbook ? 'puntos comparables' : 'puntos coincidentes'}</strong>
+                                <strong>{benchmarkLine[0]?.date} — {benchmarkLine.at(-1)?.date} · {benchmarkLine.length} {benchmarkUsesWorkbook ? 'puntos comparables' : 'puntos coincidentes'}</strong>
                                 <div className="portfolio-excel-insights__periods" role="group" aria-label="Periodo de benchmark">
                                     {evolutionPeriods.map((period) => (
                                         <button
@@ -592,7 +514,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                             <span>Peor mes <strong>{plainPercent(worstMonth?.monthlyReturn)}</strong></span>
                             <span>Meses negativos <strong>{validMonthly.length ? `${negativeMonths} de ${validMonthly.length}` : 'N/D'}</strong></span>
                             <span>Observaciones <strong>{history.length}</strong></span>
-                            <span>Stale <strong>{stale}</strong></span>
+                            <span>Pendientes de consulta <strong>{stale}</strong></span>
                         </div>
                     </section>
                 )}
@@ -623,7 +545,7 @@ export function PortfolioExcelInsights({ now }: { now: number }) {
                         </div>
                         <div className="portfolio-excel-insights__control-column">
                             <h3><ShieldCheck size={16} /> Estado de actualización</h3>
-                            <p>{stale ? 'Hay posiciones sin cotización reciente. Pulsa Actualizar precios para reintentar.' : 'Todas las posiciones tienen una cotización reciente.'}</p>
+                            <p>{stale ? 'Hay posiciones sin cotización reciente. Pulsa Actualizar precios para reintentar.' : 'Todas las posiciones se han consultado recientemente; la fecha de valoración puede ser anterior.'}</p>
                             <div className="portfolio-excel-insights__live-status">
                                 <Activity size={15} />
                                 <strong>{lastPriceUpdate ? lastPriceUpdate.toLocaleString('es-ES') : 'Pendiente'}</strong>

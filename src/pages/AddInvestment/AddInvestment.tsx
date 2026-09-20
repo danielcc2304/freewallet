@@ -22,6 +22,7 @@ interface FormData {
 }
 
 interface FormErrors {
+    save?: string;
     symbol?: string;
     name?: string;
     purchasePrice?: string;
@@ -427,7 +428,7 @@ export function AddInvestment() {
                     quantity: parseFloat(formData.quantity),
                     isin: formData.isin || undefined,
                     currentPrice: parseFloat(formData.purchasePrice),
-                    previousClose: parseFloat(formData.purchasePrice),
+                    previousClose: undefined,
                     currency,
                 };
                 addAsset(newAsset, {
@@ -450,7 +451,7 @@ export function AddInvestment() {
                 navigate('/');
             }, 1500);
         } catch (error) {
-            console.error('Error saving asset:', error);
+            setErrors(prev => ({ ...prev, save: error instanceof Error ? error.message : 'No se pudieron guardar los cambios.' }));
         } finally {
             setIsSubmitting(false);
         }
@@ -720,6 +721,7 @@ export function AddInvestment() {
                         )}
 
                         {/* Submit */}
+                        {errors.save && <p role="alert">{errors.save}</p>}
                         <div className="form-actions">
                             <Button
                                 type="button"

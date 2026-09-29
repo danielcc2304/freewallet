@@ -168,8 +168,10 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
         return value.toLocaleString('es-ES', { maximumFractionDigits: 2 });
     };
 
-    const priceChange = (asset.currentPrice || 0) - (asset.previousClose || 0);
-    const priceChangePercent = asset.previousClose ? (priceChange / asset.previousClose) * 100 : 0;
+    const hasPreviousClose = Number.isFinite(asset.previousClose) && asset.previousClose! > 0
+        && Number.isFinite(asset.currentPrice);
+    const priceChange = hasPreviousClose ? asset.currentPrice! - asset.previousClose! : 0;
+    const priceChangePercent = hasPreviousClose ? (priceChange / asset.previousClose!) * 100 : 0;
     const investedValue = asset.purchasePrice * asset.quantity;
     const currentValue = (asset.currentPrice || asset.purchasePrice) * asset.quantity;
     const positionGain = currentValue - investedValue;
@@ -356,9 +358,9 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                     <div className="asset-detail__price">
                         {formatValue(asset.currentPrice || asset.purchasePrice, 'price')}
                     </div>
-                    <div className={`asset-detail__change ${priceChange >= 0 ? 'positive' : 'negative'}`}>
-                        {priceChange >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
-                        {formatValue(priceChange, 'price')} ({formatValue(priceChangePercent, 'percent')})
+                    <div className={`asset-detail__change ${hasPreviousClose ? priceChange >= 0 ? 'positive' : 'negative' : ''}`}>
+                        {hasPreviousClose ? <>{priceChange >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
+                            {formatValue(priceChange, 'price')} ({formatValue(priceChangePercent, 'percent')})</> : 'Cambio diario no disponible'}
                     </div>
                 </div>
             </div>

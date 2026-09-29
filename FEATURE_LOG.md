@@ -12,6 +12,32 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-30 - v5.3.9 - Continuidad del histórico y pulido del Dashboard
+- Funcionalidad:
+  - Se conservan los cierres mensuales y se añade la continuación diaria sin duplicar aportaciones ni asignar fechas inventadas a los movimientos.
+  - Se reconocen fechas con año de dos cifras y la hoja Diario; los periodos incompletos conservan su base y cuentan los intervalos válidos y desconocidos.
+  - Se usa una escala temporal real en evolución, se contienen las columnas del Dashboard en escritorio y los modales evitan el fondo gris en Liquid Glass claro manteniendo el bloqueo de scroll.
+  - Las cotizaciones antiguas no generan una valoración nueva al abrir el Dashboard y el detalle no inventa una variación diaria cuando falta el cierre anterior.
+  - Las doce guías de Recursos enlazan directamente a sus vídeos concretos de YouTube y cada enlace incluye un nombre accesible con el título del vídeo.
+- Resumen:
+  - Mejora la continuidad y trazabilidad de los datos importados, el aspecto del Dashboard en Liquid Glass claro y el acceso a los recursos de Academy.
+- Archivos:
+  - `src/services/portfolioWorkbookHistory.ts`
+  - `src/services/portfolioPerformance.ts`
+  - `src/pages/PortfolioCsv/portfolioCsvUtils.ts`
+  - `src/pages/PortfolioCsv/PortfolioCsv.tsx`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `src/components/dashboard/useDashboardAnalytics.ts`
+  - `src/components/dashboard/AssetDetail.tsx`
+  - `src/components/dashboard/AssetDetail.css`
+  - `src/components/ui/Modal/Modal.tsx`
+  - `src/styles/liquidGlass.css`
+  - `src/components/dashboard/PortfolioComposition.css`
+  - `src/pages/Dashboard/Dashboard.css`
+  - `src/types/portfolio.ts`
+  - `scripts/test-workbook-continuity.ts`
+  - `src/components/academy/guides/InProcess.tsx`
+
 ### 2026-09-21 - v5.3.8 - Integridad del Dashboard y continuidad de cartera
 - Funcionalidad:
   - Se reconcilian el histórico, las compras, las ventas completas y las aportaciones para evitar duplicidades y valoraciones inconsistentes.

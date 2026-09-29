@@ -52,7 +52,13 @@ export function useDashboardAnalytics(now: number) {
     }, [signature, usingWorkbookHistory]);
 
     return useMemo(() => {
-        const currentSnapshot = createQuoteSnapshot(assets, portfolioTransactions, new Date(now).toISOString());
+        const quoteTimes = assets.map(a => Date.parse(a.quotedAt || a.lastQuoteAt || ''));
+        const workbookEnd = Date.parse(workbookHistory.endDate || '');
+        const quotesAlreadyImported = usingWorkbookHistory && quoteTimes.length > 0
+            && quoteTimes.every(time => Number.isFinite(time) && time <= workbookEnd);
+        // Opening the page must not turn yesterday's unchanged prices into a new valuation today.
+        const currentSnapshot = quotesAlreadyImported ? null
+            : createQuoteSnapshot(assets, portfolioTransactions, new Date(now).toISOString());
         const recorded = buildPortfolioAnalyticsHistory(getHistory(), portfolioTransactions, currentSnapshot ?? undefined);
         const verifiedDays = new Set(recorded.map(p => accountingDay(p.date)));
         const estimated = createMarketPortfolioHistory(assets, portfolioTransactions, market)
@@ -62,7 +68,7 @@ export function useDashboardAnalytics(now: number) {
             ? continueWorkbookHistory(workbookHistory, recorded, portfolioTransactions, now)
             : { history: liveHistory, transactions: portfolioTransactions };
         const series = performanceSeries(combined.history, combined.transactions, assets, {
-            maxGapDays: usingWorkbookHistory && workbookHistory.source === 'monthly' ? 45 : 16,
+            maxGapDays: usingWorkbookHistory ? 45 : 16,
         });
         return { workbookHistory, usingWorkbookHistory, portfolioTransactions, history: combined.history, series,
             liveSeries: performanceSeries(recorded, portfolioTransactions), monthly: portfolioMonthlyRows(series, now),

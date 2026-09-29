@@ -189,7 +189,7 @@ export function performanceSeries(history: PortfolioHistoryPoint[], transactions
         // ALL-period market candles are weekly; allow a holiday fortnight but
         // still reject monthly/unknown gaps that would fabricate a return.
         const valid = !!previous && previous[1].value > 0 && gap > 0 && gap <= maxGapDays && Number.isFinite(flow) &&
-            !unexplainedCostChange && !operations.some(t => !getTransactionEventDay(t) || t.type === 'edit' || t.type === 'delete');
+            !point.returnUnavailable && !unexplainedCostChange && !operations.some(t => !getTransactionEventDay(t) || t.type === 'edit' || t.type === 'delete');
         const rawReturn = valid ? (point.value - previous[1].value - flow) / previous[1].value * 100 : null;
         const intervalReturn = rawReturn !== null && Math.abs(rawReturn) < 1e-10 ? 0 : rawReturn;
         if (intervalReturn !== null) index *= 1 + intervalReturn / 100;
@@ -203,18 +203,21 @@ export function calculatePeriodPerformance(series: ReturnType<typeof performance
     endMs = Infinity, maxBaseGapMs = 4 * DAY_MS) {
     const points = series.filter(p => p.timestamp <= endMs);
     const empty = { hasBase: false, baseDate: null as string | null, endDate: points.at(-1)?.date ?? null,
-        change: null as number | null, returnPercent: null as number | null, netFlow: 0, observations: 0 };
+        change: null as number | null, returnPercent: null as number | null, netFlow: 0, observations: 0, missingIntervals: 0 };
     const baseIndex = startMs === -Infinity ? 0 : points.reduce((index, p, i) => p.timestamp <= startMs ? i : index, -1);
     const base = points[baseIndex];
     if (!base || (Number.isFinite(startMs) && startMs - base.timestamp > maxBaseGapMs)) return empty;
     const selected = points.slice(baseIndex + 1);
     // Never join returns across an unknown interval.
-    if (!selected.length || selected.some(p => p.dailyReturn === null)) return empty;
     const flow = selected.reduce((sum, p) => sum + p.netFlow, 0);
+    const missingIntervals = selected.filter(p => p.dailyReturn === null).length;
+    const metadata = { ...empty, hasBase: true, baseDate: base.date, netFlow: flow,
+        observations: selected.length - missingIntervals, missingIntervals };
+    if (!selected.length || missingIntervals) return metadata;
     const growth = selected.reduce((factor, p) => factor * (1 + p.dailyReturn! / 100), 1);
     return { hasBase: true, baseDate: base.date, endDate: points.at(-1)!.date,
         change: points.at(-1)!.value - base.value - flow, returnPercent: (growth - 1) * 100,
-        netFlow: flow, observations: selected.length };
+        netFlow: flow, observations: selected.length, missingIntervals: 0 };
 }
 
 export interface BenchmarkPeriodPerformance {
@@ -248,7 +251,7 @@ export function calculateBenchmarkPeriodPerformance(
     maxBaseGapMs = 4 * DAY_MS,
 ): BenchmarkPeriodPerformance {
     const period = calculatePeriodPerformance(series, startMs, endMs, maxBaseGapMs);
-    if (!period.hasBase) return { portfolioReturn: null, benchmarkReturn: null };
+    if (!period.hasBase || period.returnPercent === null) return { portfolioReturn: null, benchmarkReturn: null };
     const selected = series.filter(p => p.timestamp <= endMs && p.date >= period.baseDate!);
     const line = alignedBenchmark(selected, benchmark.filter(p => historicalPointTimestamp(p) <= endMs));
     const last = line.at(-1);

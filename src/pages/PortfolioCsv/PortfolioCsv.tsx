@@ -486,7 +486,7 @@ export function PortfolioCsv() {
             const evolutionSheetName = normalizedNames.evolucion || normalizedNames.evolution;
             const comparisonSheetName = normalizedNames.comparativa || normalizedNames.benchmark || normalizedNames.comparison;
             const advancedSheetName = normalizedNames.estadisticasavanzadas || normalizedNames.advancedstats || normalizedNames.advancedstatistics;
-            const dailySheetName = normalizedNames.datosdiarios || normalizedNames.dailydata || normalizedNames.diarios;
+            const dailySheetName = normalizedNames.datosdiarios || normalizedNames.dailydata || normalizedNames.diarios || normalizedNames.diario;
             const movementsSheetName = normalizedNames.movimientos || normalizedNames.movements;
             const objectivesSheetName = normalizedNames.objetivos || normalizedNames.objectives || normalizedNames.targets;
             const controlSheetName = normalizedNames.control || normalizedNames.checks;
@@ -504,9 +504,12 @@ export function PortfolioCsv() {
             const advancedText = advancedSheetName
                 ? XLSX.utils.sheet_to_csv(workbook.Sheets[advancedSheetName])
                 : '';
-            const dailyText = dailySheetName
+            let dailyText = dailySheetName
                 ? XLSX.utils.sheet_to_csv(workbook.Sheets[dailySheetName])
                 : '';
+            if (parseDailyData(dailyText).length === 0 && normalizedNames.diario) {
+                dailyText = XLSX.utils.sheet_to_csv(workbook.Sheets[normalizedNames.diario]);
+            }
             const movementsText = movementsSheetName
                 ? XLSX.utils.sheet_to_csv(workbook.Sheets[movementsSheetName])
                 : '';

@@ -87,7 +87,7 @@ const formatHistoryDate = (value: string | null | undefined) => {
 const formatChartDate = (value: string | number) => {
     const date = new Date(value);
     return Number.isFinite(date.getTime())
-        ? new Intl.DateTimeFormat('es-ES', { month: 'short', year: 'numeric', timeZone: 'Europe/Madrid' }).format(date).replace('.', '')
+        ? new Intl.DateTimeFormat('es-ES', { day: 'numeric', month: 'short', year: '2-digit', timeZone: 'Europe/Madrid' }).format(date).replace('.', '')
         : String(value);
 };
 
@@ -205,7 +205,8 @@ export function PortfolioExcelInsights({ now, analytics }: { now: number; analyt
     const periodSeries = useMemo(() => {
         const cutoff = getPeriodCutoff(evolutionPeriod, now);
         if (cutoff === null) return series;
-        const base = series.filter((point) => point.timestamp <= cutoff).at(-1);
+        const previous = series.filter((point) => point.timestamp <= cutoff).at(-1);
+        const base = previous && cutoff - previous.timestamp <= 4 * DAY_MS ? previous : undefined;
         const visible = series.filter((point) => point.timestamp > cutoff);
         return base ? [base, ...visible] : series.filter((point) => point.timestamp >= cutoff);
     }, [evolutionPeriod, now, series]);
@@ -251,13 +252,13 @@ export function PortfolioExcelInsights({ now, analytics }: { now: number; analyt
     const evolutionSeries = periodSeries;
     const selectedPeriodPerformance = useMemo(() => {
         const cutoff = getPeriodCutoff(evolutionPeriod, now);
-        const maxBaseGap = cutoff === null
-            ? Number.POSITIVE_INFINITY
-            : usingWorkbookHistory && workbookHistory.source === 'monthly'
-                ? Math.max(45 * DAY_MS, (now - cutoff) * 1.5)
-                : Math.max(3 * DAY_MS, (now - cutoff) * 1.5);
-        return calculatePeriodPerformance(series, cutoff ?? Number.NEGATIVE_INFINITY, now, maxBaseGap);
-    }, [evolutionPeriod, now, series, usingWorkbookHistory, workbookHistory.source]);
+        const first = periodSeries[0];
+        // A nearby close just after the cutoff is preferable to silently
+        // turning a 1M request into two months. Its real base date stays visible.
+        const start = cutoff !== null && first && first.timestamp > cutoff && first.timestamp - cutoff <= 4 * DAY_MS
+            ? first.timestamp : cutoff ?? Number.NEGATIVE_INFINITY;
+        return calculatePeriodPerformance(series, start, now, cutoff === null ? Infinity : 4 * DAY_MS);
+    }, [evolutionPeriod, now, series, periodSeries]);
     const significantCapitalFlow = evolutionSeries.slice(1)
         .map((point, index) => ({
             date: point.date,
@@ -315,7 +316,7 @@ export function PortfolioExcelInsights({ now, analytics }: { now: number; analyt
                 <p className="portfolio-excel-insights__chart-note" role="status">
                     {usingWorkbookHistory
                         ? `Histórico importado del Excel: ${workbookHistory.evolutionCount} cierres mensuales (${formatHistoryDate(workbookHistory.startDate)} a ${formatHistoryDate(workbookHistory.endDate)}). `
-                            + `Las ${workbookHistory.dcaCount} aportaciones y retiradas se aplican en su fecha de cierre de la hoja Evolucion. `
+                            + `${workbookHistory.dailyCount} filas diarias leídas; ${workbookHistory.dcaCount} flujos aplicados sin duplicar. Las fechas desconocidas se mantienen como resúmenes mensuales. `
                             + `El resumen superior sigue mostrando tus ${assets.length} posiciones y su valoración actual.`
                         : history.length
                             ? `Seguimiento verificable desde ${formatHistoryDate(series[0]?.date)}. `
@@ -354,14 +355,14 @@ export function PortfolioExcelInsights({ now, analytics }: { now: number; analyt
                             <div>
                                 <h3><CalendarClock size={16} /> Evolución registrada de la cartera</h3>
                                 <p>{usingWorkbookHistory
-                                    ? 'Cierres mensuales importados de la hoja Evolucion, con cada DCA aplicado en su fecha.'
+                                    ? 'Cierres mensuales y continuación diaria del Excel. Los movimientos con fecha exacta se aplican ese día; los resúmenes mensuales, al cierre.'
                                     : 'Valoraciones completas guardadas con tus cotizaciones y operaciones.'}</p>
                             </div>
                             <div className="portfolio-excel-insights__panel-actions">
                                 <div className="portfolio-excel-insights__period-summary">
                                     <span>Rentabilidad del periodo</span>
                                     <strong className={selectedPeriodPerformance.returnPercent !== null && selectedPeriodPerformance.returnPercent < 0 ? 'is-negative' : ''}>{percent(selectedPeriodPerformance.returnPercent)}</strong>
-                                    <small>{selectedPeriodPerformance.observations} intervalos · base {formatHistoryDate(selectedPeriodPerformance.baseDate)}</small>
+                                    <small>{selectedPeriodPerformance.observations} intervalos válidos · base {formatHistoryDate(selectedPeriodPerformance.baseDate)}{selectedPeriodPerformance.missingIntervals > 0 && ` · ${selectedPeriodPerformance.missingIntervals} sin base verificable`}</small>
                                 </div>
                                 <strong>{evolutionSeries.length} observaciones</strong>
                                 <div className="portfolio-excel-insights__periods" role="group" aria-label="Periodo de evolución">
@@ -388,9 +389,9 @@ export function PortfolioExcelInsights({ now, analytics }: { now: number; analyt
                                         </linearGradient>
                                     </defs>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
-                                    <XAxis dataKey="date" tickFormatter={formatChartDate} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
+                                    <XAxis dataKey="timestamp" type="number" scale="time" domain={['dataMin', 'dataMax']} tickFormatter={formatChartDate} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} minTickGap={28} />
                                     <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={formatAxisCurrency} width={48} />
-                                    <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined, name?: string) => [currency(Number(value || 0)), name === 'value' ? 'Valor actual' : 'Capital invertido']} />
+                                    <Tooltip {...tooltipTheme} labelFormatter={label => formatChartDate(Number(label))} formatter={(value: number | string | undefined, name?: string) => [currency(Number(value || 0)), name === 'value' ? 'Valor actual' : 'Capital invertido']} />
                                     <Legend formatter={(value) => value === 'value' ? 'Valor actual' : 'Capital invertido'} />
                                     <Area type="linear" isAnimationActive={false} dataKey="value" stroke="#10b981" fill="url(#liveValueFill)" strokeWidth={2} />
                                     <Line type="monotone" dataKey="invested" stroke="#8b5cf6" strokeWidth={2} dot={false} />

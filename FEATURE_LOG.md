@@ -12,6 +12,40 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-30 - Enlaces directos en Recursos y guías
+- Funcionalidad:
+  - Las doce guías abren su vídeo concreto en YouTube, con identificadores comprobados en la página fuente, en lugar de una búsqueda por título.
+  - Cada enlace incluye el título de su vídeo en el nombre accesible.
+- Resumen:
+  - Acceso directo a los vídeos sin un paso intermedio de búsqueda.
+- Archivos:
+  - `src/components/academy/guides/InProcess.tsx`
+
+### 2026-09-30 - Continuidad del Excel y presentación del Dashboard
+- Funcionalidad:
+  - Se conservan los cierres mensuales y se añade la continuación diaria sin duplicar aportaciones ni asignar fechas inventadas a los movimientos.
+  - Se reconocen fechas con año de dos cifras y la hoja Diario; los periodos incompletos conservan su base y cuentan los intervalos válidos y desconocidos.
+  - Se usa una escala temporal real en evolución y se contienen las columnas del Dashboard en escritorio.
+  - Los modales se presentan fuera del layout, conservan el bloqueo de scroll y evitan el fondo gris en Liquid Glass claro.
+  - Las cotizaciones antiguas no generan una valoración nueva al abrir el Dashboard y el detalle no inventa una variación diaria cuando falta el cierre anterior.
+- Resumen:
+  - Correcciones de importación, trazabilidad y presentación, sin incluir datos privados en el repositorio.
+- Archivos:
+  - `src/services/portfolioWorkbookHistory.ts`
+  - `src/services/portfolioPerformance.ts`
+  - `src/pages/PortfolioCsv/portfolioCsvUtils.ts`
+  - `src/pages/PortfolioCsv/PortfolioCsv.tsx`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `src/components/dashboard/useDashboardAnalytics.ts`
+  - `src/components/dashboard/AssetDetail.tsx`
+  - `src/components/dashboard/AssetDetail.css`
+  - `src/components/ui/Modal/Modal.tsx`
+  - `src/styles/liquidGlass.css`
+  - `src/components/dashboard/PortfolioComposition.css`
+  - `src/pages/Dashboard/Dashboard.css`
+  - `src/types/portfolio.ts`
+  - `scripts/test-workbook-continuity.ts`
+
 ### 2026-09-21 - v5.3.8 - Integridad del Dashboard y continuidad de cartera
 - Funcionalidad:
   - Se reconcilian el histórico, las compras, las ventas completas y las aportaciones para evitar duplicidades y valoraciones inconsistentes.

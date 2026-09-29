@@ -12,6 +12,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-30 - Enlaces directos en Recursos y guías
+- Funcionalidad:
+  - Las doce guías abren su vídeo concreto en YouTube, con identificadores comprobados en la página fuente, en lugar de una búsqueda por título.
+  - Cada enlace incluye el título de su vídeo en el nombre accesible.
+- Resumen:
+  - Acceso directo a los vídeos sin un paso intermedio de búsqueda.
+- Archivos:
+  - `src/components/academy/guides/InProcess.tsx`
+
 ### 2026-09-30 - Continuidad del Excel y presentación del Dashboard
 - Funcionalidad:
   - Se conservan los cierres mensuales y se añade la continuación diaria sin duplicar aportaciones ni asignar fechas inventadas a los movimientos.

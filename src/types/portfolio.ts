@@ -16,6 +16,7 @@ export interface PortfolioMetrics {
 }
 
 export interface PortfolioHistoryPoint {
+    returnUnavailable?: boolean;
     date: string;
     value: number;
     invested: number;

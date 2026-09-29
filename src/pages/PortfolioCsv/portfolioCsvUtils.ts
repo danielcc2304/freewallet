@@ -274,8 +274,11 @@ export function parseHoldings(raw: string): Holding[] {
     const assetIndex = findColumnIndex(headers, (value) => value.includes('activo') || value.includes('asset'), 0);
     const amountIndex = findColumnIndex(headers, (value) => value.includes('importe') || value.includes('valor'), 1);
     const weightIndex = findColumnIndex(headers, (value) => value.includes('peso') || value.includes('weight'), 2);
-    const base = rows
-        .slice(headerIndex + 1)
+    // Cartera may contain allocation summaries repeating the same assets below
+    // its total. Those are not additional positions.
+    const positionRows = rows.slice(headerIndex + 1);
+    const totalIndex = positionRows.findIndex(row => /^total(?:\s+(?:cartera|portfolio|general))?$/i.test((row[assetIndex] || '').trim()));
+    const base = (totalIndex < 0 ? positionRows : positionRows.slice(0, totalIndex))
         .map((row) => ({
             asset: (row[assetIndex] || '').replace(/"/g, '').trim(),
             amount: parseFlexibleNumber(row[amountIndex] || ''),

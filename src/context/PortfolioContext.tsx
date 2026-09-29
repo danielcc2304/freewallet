@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import type { Asset, PortfolioTransaction } from '../types/types';
 import { getAssets, getTransactions, savePortfolioState, updateAssets as updateAssetsInStorage, saveHistory, addHistoryPoint, isApiEnabled, generateId } from '../services/storageService';
 import { getPortfolioAssetQuote } from '../services/portfolioQuoteService';
-import { mockAssets, generateMockHistory } from '../data/mockData';
+import { useLocalDataVersion } from '../hooks/useLocalDataVersion';
 import { PRICE_REFRESH_INTERVAL_MS } from '../constants/app';
 import { createQuoteSnapshot, normalizePortfolioTransactions, portfolioLedgerKey } from '../services/portfolioPerformance';
 
@@ -30,12 +30,14 @@ interface PortfolioState {
     initialized: boolean;
     storageError: string | null;
     quoteFailures: number;
+    lastRefreshAttempt: Date | null;
 }
 
 // Action types
 type PortfolioAction =
     | { type: 'SET_STORAGE_ERROR'; payload: string | null }
     | { type: 'SET_QUOTE_FAILURES'; payload: number }
+    | { type: 'SET_REFRESH_ATTEMPT'; payload: Date }
     | { type: 'SET_ASSETS'; payload: Asset[] }
     | { type: 'SET_TRANSACTIONS'; payload: PortfolioTransaction[] }
     | { type: 'ADD_TRANSACTION'; payload: PortfolioTransaction }
@@ -58,6 +60,7 @@ const initialState: PortfolioState = {
     initialized: false,
     storageError: null,
     quoteFailures: 0,
+    lastRefreshAttempt: null,
 };
 
 const PRICE_REFRESH_CONCURRENCY = 4;
@@ -67,6 +70,7 @@ function portfolioReducer(state: PortfolioState, action: PortfolioAction): Portf
     switch (action.type) {
         case 'SET_STORAGE_ERROR': return { ...state, storageError: action.payload };
         case 'SET_QUOTE_FAILURES': return { ...state, quoteFailures: action.payload };
+        case 'SET_REFRESH_ATTEMPT': return { ...state, lastRefreshAttempt: action.payload };
         case 'SET_ASSETS':
             return { ...state, assets: action.payload, loading: false };
         case 'SET_TRANSACTIONS':
@@ -128,13 +132,15 @@ const PortfolioContext = createContext<PortfolioContextValue | undefined>(undefi
 
 // Provider component
 export function PortfolioProvider({ children }: { children: ReactNode }) {
+    const localRevision = useLocalDataVersion();
+    const apiEnabled = isApiEnabled();
     const [state, dispatch] = useReducer(portfolioReducer, initialState);
     const refreshInFlight = useRef(false);
 
     const commit = useCallback((assets: Asset[], transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => {
-        const ledger = getTransactions();
-        if (transaction) ledger.unshift({ ...transaction, id: generateId(), createdAt: new Date().toISOString() });
         try {
+            const ledger = getTransactions();
+            if (transaction) ledger.unshift({ ...transaction, id: generateId(), createdAt: new Date().toISOString() });
             savePortfolioState(assets, ledger);
             dispatch({ type: 'SET_ASSETS', payload: assets });
             dispatch({ type: 'SET_TRANSACTIONS', payload: ledger });
@@ -150,11 +156,12 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         if (assetsToUpdate.length === 0 || refreshInFlight.current) return;
 
         refreshInFlight.current = true;
+        dispatch({ type: 'SET_REFRESH_ATTEMPT', payload: new Date() });
         dispatch({ type: 'SET_UPDATING_PRICES', payload: true });
         const refreshDate = new Date().toISOString();
         const requested = forceRefresh ? assetsToUpdate : assetsToUpdate.filter(a => shouldRefreshAssets([a]));
-        const initialLedgerKey = portfolioLedgerKey(normalizePortfolioTransactions(assetsToUpdate, getTransactions()), refreshDate);
         try {
+            const initialLedgerKey = portfolioLedgerKey(normalizePortfolioTransactions(assetsToUpdate, getTransactions()), refreshDate);
             const quoteUpdates: Array<{ id: string; updates: Partial<Asset> }> = [];
             let nextIndex = 0;
             const updateNextAsset = async () => {
@@ -164,7 +171,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                     const deadline = window.setTimeout(() => controller.abort(), 15000);
                     try {
                         const quote = await getPortfolioAssetQuote(asset, controller.signal, forceRefresh);
-                        if (quote && quote.price > 0 && quote.currency === 'EUR') {
+                        if (quote && Number.isFinite(quote.price) && quote.price >= 0 && quote.currency === 'EUR') {
                             const updates = {
                                 currentPrice: quote.price,
                                 previousClose: quote.previousClose,
@@ -172,7 +179,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                                 lastCheckedAt: new Date().toISOString(),
                                 quotedAt: quote.quotedAt,
                                 lastQuoteAt: quote.quotedAt,
-                                quoteSource: asset.isin ? 'Finect' : 'Mercado',
+                                quoteSource: asset.isin || /^[A-Z]{2}[A-Z0-9]{10}$/i.test(asset.symbol) ? 'Finect' : asset.type === 'cash' ? 'Saldo' : 'Mercado',
                             } as const;
                             quoteUpdates.push({ id: asset.id, updates });
                         }
@@ -202,7 +209,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             const snapshot = createQuoteSnapshot(refreshedAssets, getTransactions(), new Date().toISOString());
             const samePositions = refreshedAssets.length === assetsToUpdate.length && refreshedAssets.every(a =>
                 assetsToUpdate.some(old => old.id === a.id && old.quantity === a.quantity && old.purchasePrice === a.purchasePrice && old.purchaseDate === a.purchaseDate));
-            if (quoteUpdates.length === requested.length && samePositions && snapshot && snapshot.ledgerKey === initialLedgerKey) addHistoryPoint(snapshot);
+            if (requested.length > 0 && quoteUpdates.length === requested.length && samePositions && snapshot && snapshot.ledgerKey === initialLedgerKey) addHistoryPoint(snapshot);
             const latestQuoteAt = getLatestQuoteAt(refreshedAssets);
             dispatch({ type: 'SET_LAST_UPDATE', payload: latestQuoteAt });
             dispatch({ type: 'SET_QUOTE_FAILURES', payload: requested.length - quoteUpdates.length });
@@ -232,7 +239,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     }, [state.initialized, updatePricesInternal]);
 
     useEffect(() => {
-        if (!state.initialized || state.assets.length === 0 || !isApiEnabled()) return undefined;
+        if (!state.initialized || state.assets.length === 0 || !apiEnabled) return undefined;
         const refresh = () => {
             if (document.visibilityState !== 'visible') return;
             try {
@@ -241,12 +248,13 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             } catch (error) { dispatch({ type: 'SET_STORAGE_ERROR', payload: String(error) }); }
         };
         const intervalId = window.setInterval(refresh, PRICE_REFRESH_INTERVAL_MS);
+        refresh();
         document.addEventListener('visibilitychange', refresh);
         return () => {
             window.clearInterval(intervalId);
             document.removeEventListener('visibilitychange', refresh);
         };
-    }, [state.assets.length, state.initialized, updatePricesInternal]);
+    }, [state.assets.length, state.initialized, updatePricesInternal, apiEnabled]);
 
     useEffect(() => {
         const sync = (event: StorageEvent) => {
@@ -306,7 +314,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         await updatePricesInternal(state.assets, true);
     }, [state.assets, updatePricesInternal]);
 
-    const loadDemoData = useCallback(() => {
+    const loadDemoData = useCallback(async () => {
+        const { mockAssets, generateMockHistory } = await import('../data/mockData');
         const demoTransactions: PortfolioTransaction[] = mockAssets.map((asset) => ({
             id: `demo-${asset.id}`,
             assetId: asset.id,
@@ -330,6 +339,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         const latestQuoteAt = getLatestQuoteAt(mockAssets);
         if (latestQuoteAt) dispatch({ type: 'SET_LAST_UPDATE', payload: latestQuoteAt });
     }, []);
+    void localRevision;
 
     const value: PortfolioContextValue = {
         state,

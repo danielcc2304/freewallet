@@ -1,17 +1,17 @@
-import { useState } from 'react';
 import { MetricCard } from '../../ui/MetricCard';
 import { Wallet, TrendingUp, PiggyBank, BarChart3 } from 'lucide-react';
-import type { PortfolioMetrics } from '../../../types/types';
+import type { PortfolioMetrics, TimePeriod } from '../../../types/types';
 import './PortfolioSummary.css';
 
 interface PortfolioSummaryProps {
     metrics: PortfolioMetrics;
+    period: TimePeriod;
+    onPeriodChange: (period: TimePeriod) => void;
 }
 
-type PeriodTab = 'daily' | 'monthly' | '3month' | 'ytd';
+type PeriodTab = TimePeriod;
 
-export function PortfolioSummary({ metrics }: PortfolioSummaryProps) {
-    const [activeTab, setActiveTab] = useState<PeriodTab>('daily');
+export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange }: PortfolioSummaryProps) {
 
     const formatCurrency = (value: number): string => {
         if (!Number.isFinite(value)) return 'Sin histórico suficiente';
@@ -24,24 +24,26 @@ export function PortfolioSummary({ metrics }: PortfolioSummaryProps) {
 
     const getChangeForPeriod = (): { value: number; percent: number; label: string } => {
         switch (activeTab) {
-            case 'monthly':
+            case '1M':
                 return {
                     value: metrics.monthlyChange,
                     percent: metrics.monthlyChangePercent,
                     label: 'último mes'
                 };
-            case '3month':
+            case '3M':
                 return {
                     value: metrics.threeMonthChange,
                     percent: metrics.threeMonthChangePercent,
                     label: 'últimos 3 meses'
                 };
-            case 'ytd':
+            case 'YTD':
                 return {
                     value: metrics.ytdChange,
                     percent: metrics.ytdChangePercent,
                     label: 'este año (YTD)'
                 };
+            case '7D': return { value: metrics.weeklyChange ?? NaN, percent: metrics.weeklyChangePercent ?? NaN, label: 'últimos 7 días' };
+            case 'ALL': return { value: metrics.historyChange ?? NaN, percent: metrics.historyChangePercent ?? NaN, label: 'del histórico' };
             default:
                 return {
                     value: metrics.dailyChange,
@@ -54,10 +56,12 @@ export function PortfolioSummary({ metrics }: PortfolioSummaryProps) {
     const periodChange = getChangeForPeriod();
 
     const tabs: { key: PeriodTab; label: string }[] = [
-        { key: 'daily', label: 'Diario' },
-        { key: 'monthly', label: 'Mensual' },
-        { key: '3month', label: '3 Meses' },
-        { key: 'ytd', label: 'YTD' },
+        { key: '1D', label: 'Diario' },
+        { key: '7D', label: '7 días' },
+        { key: '1M', label: 'Mensual' },
+        { key: '3M', label: '3 Meses' },
+        { key: 'YTD', label: 'YTD' },
+        { key: 'ALL', label: 'Todo' },
     ];
 
     return (
@@ -70,13 +74,15 @@ export function PortfolioSummary({ metrics }: PortfolioSummaryProps) {
                             key={tab.key}
                             className={`portfolio-summary__tab ${activeTab === tab.key ? 'portfolio-summary__tab--active' : ''
                                 }`}
-                            onClick={() => setActiveTab(tab.key)}
+                            type="button" aria-pressed={activeTab === tab.key}
+                            onClick={() => onPeriodChange(tab.key)}
                         >
                             {tab.label}
                         </button>
                     ))}
                 </div>
             </div>
+            {metrics.periodDates?.[activeTab]?.baseDate && <p className="portfolio-summary__dates">Periodo efectivo: {new Date(metrics.periodDates[activeTab]!.baseDate!).toLocaleDateString('es-ES')} — {metrics.periodDates[activeTab]!.endDate ? new Date(metrics.periodDates[activeTab]!.endDate!).toLocaleDateString('es-ES') : 'sin cierre'}. Cambio ajustado por aportaciones y retiradas.</p>}
 
             <div className="portfolio-summary__grid">
                 <MetricCard

@@ -7,6 +7,7 @@ import type { PortfolioHistoryPoint, PortfolioTransaction } from '../types/portf
 export type WorkbookHistorySource = 'daily' | 'monthly' | 'mixed';
 
 export interface WorkbookHistoryBundle {
+    identity?: string;
     points: PortfolioHistoryPoint[];
     flowTransactions: PortfolioTransaction[];
     source: WorkbookHistorySource | null;
@@ -74,6 +75,7 @@ function normalizeEvolution(points: EvolutionPoint[]): NormalizedWorkbookPoint[]
     dated.forEach(({ row, date }) => {
         cumulativeContribution += row.monthlyContribution;
         const point: NormalizedWorkbookPoint = {
+            cadence: 'monthly',
             date,
             flowDate: date.slice(0, 10),
             value: row.totalValue,
@@ -102,6 +104,7 @@ function normalizeDaily(points: DailyPortfolioPoint[], monthly: NormalizedWorkbo
         invested += row.netFlow;
         return {
             date: `${row.date}T18:00:00.000Z`,
+            cadence: 'daily',
             flowDate: row.date,
             value: row.totalValue,
             invested: Math.max(0, invested),
@@ -210,6 +213,9 @@ export function readWorkbookHistory(): WorkbookHistoryBundle {
 
     const isDemoEvolution = workbookFile === 'Demo precargada' && evolutionRaw.trim() === DEFAULT_EVOLUTION_CSV.trim();
     const bundle = isDemoEvolution ? EMPTY_BUNDLE : buildWorkbookHistory(evolutionRaw, dailyRaw, movementsRaw);
+    let hash = 2166136261;
+    for (const char of workbookFile + '\u0000' + evolutionRaw + '\u0000' + dailyRaw + '\u0000' + movementsRaw) hash = Math.imul(hash ^ char.charCodeAt(0), 16777619);
+    bundle.identity = String(hash >>> 0);
     cachedReadKey = readKey;
     cachedReadBundle = bundle;
     return bundle;

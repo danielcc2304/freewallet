@@ -1,7 +1,11 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { Button } from '../Button';
 import './Modal.css';
+
+let openModals = 0;
+let previousBodyOverflow = '';
 
 interface ModalProps {
     isOpen: boolean;
@@ -13,21 +17,22 @@ interface ModalProps {
 
 export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
+    const titleId = useId();
 
     // Close on escape key
     useEffect(() => {
+        if (!isOpen) return;
         const handleEscape = (e: KeyboardEvent) => {
             if (e.key === 'Escape') onClose();
         };
 
-        if (isOpen) {
-            document.addEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'hidden';
-        }
+        document.addEventListener('keydown', handleEscape);
+        if (openModals++ === 0) previousBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
 
         return () => {
             document.removeEventListener('keydown', handleEscape);
-            document.body.style.overflow = '';
+            if (--openModals === 0) document.body.style.overflow = previousBodyOverflow;
         };
     }, [isOpen, onClose]);
 
@@ -40,17 +45,17 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className="modal-backdrop" onClick={handleBackdropClick}>
             <div
                 ref={modalRef}
                 className={`modal modal--${size}`}
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby={title ? 'modal-title' : undefined}
+                aria-labelledby={title ? titleId : undefined}
             >
                 <div className="modal__header">
-                    {title && <h2 id="modal-title" className="modal__title">{title}</h2>}
+                    {title && <h2 id={titleId} className="modal__title">{title}</h2>}
                     <button className="modal__close" onClick={onClose} aria-label="Cerrar">
                         <X size={20} />
                     </button>
@@ -59,7 +64,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
                     {children}
                 </div>
             </div>
-        </div>
+        </div>, document.body
     );
 }
 

@@ -548,13 +548,16 @@ export function parseAdvancedStats(raw: string): { riskFreeAnnualPct: number | n
     return { riskFreeAnnualPct };
 }
 
-function parseDateLabel(value: string): string | null {
+export function parseDateLabel(value: string): string | null {
     const normalized = value.trim();
     if (!normalized) return null;
 
-    const dayFirst = normalized.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
+    const dayFirst = normalized.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4}|\d{2})$/);
     if (dayFirst) {
-        return `${dayFirst[3]}-${dayFirst[2].padStart(2, '0')}-${dayFirst[1].padStart(2, '0')}`;
+        const year = dayFirst[3].length === 2 ? `20${dayFirst[3]}` : dayFirst[3];
+        const iso = `${year}-${dayFirst[2].padStart(2, '0')}-${dayFirst[1].padStart(2, '0')}`;
+        const parsed = new Date(`${iso}T00:00:00Z`);
+        return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === iso ? iso : null;
     }
 
     const iso = normalized.match(/^(20\d{2})-(\d{1,2})-(\d{1,2})/);
@@ -573,15 +576,15 @@ export function parseDailyData(raw: string): DailyPortfolioPoint[] {
     const headerIndex = findHeaderRow(rows, (row) => {
         const normalized = row.map(normalizeHeader);
         return normalized.some((value) => value === 'fecha' || value === 'date')
-            && normalized.some((value) => value.includes('valorportfolio') || value.includes('portfoliovalue'));
+            && normalized.some((value) => value.includes('valorportfolio') || value.includes('portfoliovalue') || value === 'valorcartera');
     });
     if (headerIndex < 0) return [];
 
     const headers = rows[headerIndex];
     const dateIndex = findColumnIndex(headers, (value) => value === 'fecha' || value === 'date', 0);
-    const valueIndex = findColumnIndex(headers, (value) => value.includes('valorportfolio') || value.includes('portfoliovalue'), 1);
-    const flowIndex = findColumnIndex(headers, (value) => value.includes('flujoneto') || value.includes('netflow'), 2);
-    const returnIndex = findColumnIndex(headers, (value) => value.includes('retornodiario') || value.includes('dailyreturn'), 3);
+    const valueIndex = findColumnIndex(headers, (value) => value.includes('valorportfolio') || value.includes('portfoliovalue') || value === 'valorcartera', 1);
+    const flowIndex = findColumnIndex(headers, (value) => value.includes('flujoneto') || value.includes('netflow'), -1);
+    const returnIndex = findColumnIndex(headers, (value) => value.includes('retornodiario') || value.includes('dailyreturn'), -1);
     const typeIndex = findColumnIndex(headers, (value) => value.includes('tipodedato') || value.includes('datatype'), 4);
 
     let previousDailyValue: number | null = null;
@@ -599,7 +602,7 @@ export function parseDailyData(raw: string): DailyPortfolioPoint[] {
             || normalizedType.includes('basediaria');
         const explicitReturn = parseNullablePercentNumber(row[returnIndex] || '');
         const dailyReturnPct = explicitReturn
-            ?? (isDailyRecord && previousDailyValue !== null && previousDailyValue !== 0
+            ?? (returnIndex < 0 && flowIndex >= 0 && isDailyRecord && previousDailyValue !== null && previousDailyValue !== 0
                 ? ((totalValue - previousDailyValue - netFlow) / previousDailyValue) * 100
                 : null);
 

@@ -12,7 +12,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-09-30 - Cobertura del benchmark e intervalos mensuales
+### 2026-09-30 - v5.3.10 - Cobertura del benchmark e intervalos mensuales
 - Funcionalidad:
   - La comparativa con MSCI World conserva los puntos disponibles cuando faltan cotizaciones en parte del periodo, sin unir tramos de rentabilidad desconocida.
   - El resumen mensual distingue intervalos mensuales, diarios y entre valoraciones para no confundirlos con días cubiertos.

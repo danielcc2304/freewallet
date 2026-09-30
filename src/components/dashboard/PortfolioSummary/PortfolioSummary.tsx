@@ -82,7 +82,7 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange }:
                     ))}
                 </div>
             </div>
-            {metrics.periodDates?.[activeTab]?.baseDate && <p className="portfolio-summary__dates">Periodo efectivo: {new Date(metrics.periodDates[activeTab]!.baseDate!).toLocaleDateString('es-ES')} — {metrics.periodDates[activeTab]!.endDate ? new Date(metrics.periodDates[activeTab]!.endDate!).toLocaleDateString('es-ES') : 'sin cierre'}. Cambio ajustado por aportaciones y retiradas.</p>}
+            {metrics.periodDates?.[activeTab]?.baseDate && <p className="portfolio-summary__dates">Periodo efectivo: {new Date(metrics.periodDates[activeTab]!.baseDate!).toLocaleDateString('es-ES')} — {metrics.periodDates[activeTab]!.endDate ? new Date(metrics.periodDates[activeTab]!.endDate!).toLocaleDateString('es-ES') : 'sin cierre'}.</p>}
 
             <div className="portfolio-summary__grid">
                 <MetricCard

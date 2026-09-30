@@ -355,6 +355,9 @@ export function portfolioMonthlyRows(series: ReturnType<typeof performanceSeries
         peak = Math.max(peak, wealth);
         return { month, value: end.value, invested: end.invested, monthlyReturn, closed, complete,
             observations: points.filter(p => p.dailyReturn !== null).length,
+            monthlyIntervals: points.filter(p => p.dailyReturn !== null && p.cadence === 'monthly').length,
+            dailyIntervals: points.filter(p => p.dailyReturn !== null && p.cadence === 'daily').length,
+            otherIntervals: points.filter(p => p.dailyReturn !== null && !p.cadence).length,
             drawdown: monthlyReturn === null ? null : (wealth / peak - 1) * 100 };
     });
 }
@@ -407,7 +410,9 @@ export function alignedBenchmark(series: ReturnType<typeof performanceSeries>, b
         const marketPoint = findMarketPoint(portfolioTimestamp, portfolioDay);
         return marketPoint ? [{ portfolioPoint, marketPoint }] : [];
     });
-    if (common.length !== series.length || common.length < 2 || common[0].portfolioPoint.segment !== common.at(-1)!.portfolioPoint.segment) return [];
+    // Missing market observations limit coverage, not the validity of the
+    // portfolio index. Never bridge an unknown portfolio return, however.
+    if (common.length < 2 || common[0].portfolioPoint.segment !== common.at(-1)!.portfolioPoint.segment) return [];
 
     const first = common[0];
     return common.map(({ portfolioPoint, marketPoint }) => ({

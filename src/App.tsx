@@ -19,6 +19,7 @@ import {
 } from './pages';
 import './index.css';
 import './styles/liquidGlass.css';
+import { VersionNotice } from './components/ui/VersionNotice';
 
 function App() {
   return (
@@ -64,6 +65,7 @@ function App() {
         {/* Global 404 */}
         <Route path="*" element={<NotFound />} />
       </Routes>
+      <VersionNotice />
     </BrowserRouter>
   );
 }

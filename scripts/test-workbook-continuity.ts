@@ -21,7 +21,10 @@ assert.equal(parseDailyData('Fecha,Valor portfolio,Flujo neto,Retorno diario,Tip
 assert.equal(buildWorkbookHistory(monthly, 'Fecha,Valor cartera,Comentario\n26/09/26,1150,Nota\n29/09/26,1160,Nota', moves, now).points.at(-1)?.invested, 1150, 'Diario uses exact dated Movimientos when no flow column exists');
 assert.equal(buildWorkbookHistory(monthly, daily.split('\n').slice(0, 3).join('\n'), moves, now).points.at(-1)?.date.slice(0, 10), '2026-09-26', 'A single new daily observation must be appended');
 const series = performanceSeries(mixed.points, mixed.flowTransactions, [], { maxGapDays: 45 });
-assert.ok(calculatePeriodPerformance(series, -Infinity).returnPercent !== null);
+assert.equal(calculatePeriodPerformance(series, -Infinity).returnPercent, null, 'A daily series with a 26-day gap cannot give a verified period return');
+const denseDaily = 'Fecha,Valor portfolio,Flujo neto,Retorno diario,Tipo de dato\n01/09/2026,1100,0,,Diario\n08/09/2026,1100,0,,Diario\n15/09/2026,1100,0,,Diario\n22/09/2026,1100,0,,Diario\n26/09/2026,1150,50,,Diario\n29/09/2026,1160,0,,Diario';
+const continuous = buildWorkbookHistory(monthly, denseDaily, moves, now);
+assert.ok(calculatePeriodPerformance(performanceSeries(continuous.points, continuous.flowTransactions, [], { maxGapDays: 45 }), -Infinity).returnPercent !== null, 'Continuous verified daily observations preserve the period return');
 const unknown = buildWorkbookHistory(monthly, daily, moves.replace('TRUE', 'FALSE'), now);
 const unknownPeriod = calculatePeriodPerformance(performanceSeries(unknown.points, unknown.flowTransactions, [], { maxGapDays: 45 }), -Infinity);
 assert.equal(unknownPeriod.returnPercent, null, 'Never invent a daily date for an unknown monthly flow');

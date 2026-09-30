@@ -152,3 +152,6 @@
         width: 100%;
     }
 }
+.modal__close { min-width: 44px; min-height: 44px; }
+.modal button:focus-visible, .modal a:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .modal, .modal-backdrop { animation: none; } }

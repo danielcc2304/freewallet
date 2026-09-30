@@ -6,19 +6,37 @@ import { readWorkbookHistory } from '../../services/portfolioWorkbookHistory';
 import { accountingDay, buildPortfolioAnalyticsHistory, createMarketPortfolioHistory, createQuoteSnapshot, normalizePortfolioTransactions, performanceSeries, portfolioMonthlyRows } from '../../services/portfolioPerformance';
 import { continueWorkbookHistory } from '../../services/dashboardHistory';
 import type { HistoricalDataPoint } from '../../types/types';
+import { convertHistoryToCurrency } from '../../services/assetValuation';
+import { useLocalDataVersion, notifyLocalDataChange } from '../../hooks/useLocalDataVersion';
 
 export function useDashboardAnalytics(now: number) {
-    const { state: { assets, transactions } } = usePortfolio();
-    const workbookHistory = readWorkbookHistory();
+    const { state: { assets, transactions, lastPriceUpdate } } = usePortfolio();
+    const localRevision = useLocalDataVersion();
+    const apiEnabled = isApiEnabled();
+    const day = new Date(now).toISOString().slice(0, 10);
+    const workbookHistory = useMemo(() => { void localRevision; void day; return readWorkbookHistory(); }, [localRevision, day]);
     const usingWorkbookHistory = workbookHistory.points.length >= 2;
     const portfolioTransactions = useMemo(() => normalizePortfolioTransactions(assets, transactions), [assets, transactions]);
+    const workbookLinked = useMemo(() => {
+        void localRevision;
+        try {
+            const link = JSON.parse(localStorage.getItem('freewallet_workbook_link') || 'null');
+            return !!link && link.workbook === workbookHistory.identity && Array.isArray(link.ids)
+                && portfolioTransactions.some(t => link.ids.includes(t.assetId))
+                && assets.every(a => link.ids.includes(a.id) || transactions.some(t => t.assetId === a.id && t.type === 'buy' && t.provenance !== 'initial-position' && !/^(bootstrap|position)-/.test(t.id)));
+        } catch { return false; }
+    }, [assets, transactions, portfolioTransactions, workbookHistory, localRevision]);
+    const linkWorkbook = () => {
+        localStorage.setItem('freewallet_workbook_link', JSON.stringify({ workbook: workbookHistory.identity, ids: [...new Set([...assets.map(a => a.id), ...transactions.map(t => t.assetId)])] }));
+        notifyLocalDataChange();
+    };
     const [market, setMarket] = useState<Map<string, HistoricalDataPoint[]>>(new Map());
     const signature = JSON.stringify([...new Map([
         ...portfolioTransactions.map(t => [t.assetId, t.assetSymbol] as const),
-        ...assets.map(a => [a.id, a.isin || a.symbol] as const),
+        ...assets.filter(a => a.type !== 'cash').map(a => [a.id, a.isin || a.symbol] as const),
     ]).entries()].sort());
     useEffect(() => {
-        if (usingWorkbookHistory || !isApiEnabled()) return;
+        if (usingWorkbookHistory || !apiEnabled) return;
         const controller = new AbortController();
         const entries = JSON.parse(signature) as [string, string][];
         // Bound concurrency and preserve successful histories if another provider fails.
@@ -34,24 +52,25 @@ export function useDashboardAnalytics(now: number) {
                     if (currency && currency !== 'EUR' && currency !== 'Unknown') {
                         if (!fxRequests.has(currency)) fxRequests.set(currency, getAssetChartData(currency + 'EUR=X', 'ALL', controller.signal));
                         const fx = await fxRequests.get(currency)!;
-                        results.set(id, prices.flatMap(p => {
-                            const time = p.timestamp ?? Date.parse(p.date);
-                            const rate = fx.filter(f => (f.timestamp ?? Date.parse(f.date)) <= time).at(-1);
-                            if (!rate || rate.close <= 0 || time - (rate.timestamp ?? Date.parse(rate.date)) > 8 * 86400000) return [];
-                            return [{ ...p, close: p.close * rate.close, currency: 'EUR' }];
-                        }));
-                    } else results.set(id, prices);
+                        const converted = convertHistoryToCurrency(prices, fx);
+                        if (converted.length) results.set(id, converted);
+                    } else if (prices.length) results.set(id, prices);
                 }
                 catch { /* Missing histories remain unavailable. */ }
             }
         };
         void Promise.all(Array.from({ length: Math.min(4, entries.length) }, worker)).then(() => {
-            if (!controller.signal.aborted) setMarket(results);
+            if (!controller.signal.aborted) setMarket(previous => {
+                const next = new Map(entries.flatMap(([id]) => previous.has(id) ? [[id, previous.get(id)!] as const] : []));
+                results.forEach((prices, id) => next.set(id, prices));
+                return next;
+            });
         });
         return () => controller.abort();
-    }, [signature, usingWorkbookHistory]);
+    }, [signature, usingWorkbookHistory, apiEnabled, lastPriceUpdate]);
 
-    return useMemo(() => {
+    const analytics = useMemo(() => {
+        void localRevision;
         const quoteTimes = assets.map(a => Date.parse(a.quotedAt || a.lastQuoteAt || ''));
         const workbookEnd = Date.parse(workbookHistory.endDate || '');
         const quotesAlreadyImported = usingWorkbookHistory && quoteTimes.length > 0
@@ -65,7 +84,7 @@ export function useDashboardAnalytics(now: number) {
             .filter(p => !verifiedDays.has(accountingDay(p.date)) && Date.parse(p.date) <= now);
         const liveHistory = buildPortfolioAnalyticsHistory([...estimated, ...recorded], portfolioTransactions, undefined, assets, true);
         const combined = usingWorkbookHistory
-            ? continueWorkbookHistory(workbookHistory, recorded, portfolioTransactions, now)
+            ? continueWorkbookHistory(workbookHistory, recorded, portfolioTransactions, now, workbookLinked)
             : { history: liveHistory, transactions: portfolioTransactions };
         const series = performanceSeries(combined.history, combined.transactions, assets, {
             maxGapDays: usingWorkbookHistory ? 45 : 16,
@@ -73,7 +92,8 @@ export function useDashboardAnalytics(now: number) {
         return { workbookHistory, usingWorkbookHistory, portfolioTransactions, history: combined.history, series,
             liveSeries: performanceSeries(recorded, portfolioTransactions), monthly: portfolioMonthlyRows(series, now),
             hasEstimates: combined.history.some(p => p.source === 'market-estimate') };
-    }, [assets, portfolioTransactions, market, now, workbookHistory, usingWorkbookHistory]);
+    }, [assets, portfolioTransactions, market, now, workbookHistory, usingWorkbookHistory, localRevision, workbookLinked]);
+    return { ...analytics, workbookLinked, linkWorkbook };
 }
 
 export type DashboardAnalytics = ReturnType<typeof useDashboardAnalytics>;

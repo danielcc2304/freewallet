@@ -1,4 +1,4 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { lazy, Suspense, useEffect, useState, type FormEvent } from 'react';
 import {
     AlertCircle,
     CheckCircle2,
@@ -19,7 +19,7 @@ import {
     Users,
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
-import { RichTextEditor } from '../../components/news';
+const RichTextEditor = lazy(() => import('../../components/news/RichTextEditor/RichTextEditor').then(module => ({ default: module.RichTextEditor })));
 import { Button, Card, CardContent, Input, Modal } from '../../components/ui';
 import type {
     NewsAdminMember,
@@ -620,11 +620,11 @@ export function NewsAdmin() {
 
                         <div className="news-admin__editor-field">
                             <label className="news-admin__label" htmlFor="news-editor">Contenido</label>
-                            <RichTextEditor
+                            <Suspense fallback={<p role="status">Preparando editor…</p>}><RichTextEditor
                                 id="news-editor"
                                 value={draft.content}
                                 onChange={(content) => setDraft((currentDraft) => ({ ...currentDraft, content }))}
-                            />
+                            /></Suspense>
                             <span className="news-admin__hint">Puedes usar tamaños de letra, títulos, énfasis, listas, citas, enlaces y bloques de código.</span>
                         </div>
 

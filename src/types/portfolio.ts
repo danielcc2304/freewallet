@@ -13,9 +13,15 @@ export interface PortfolioMetrics {
     threeMonthChangePercent: number;
     ytdChange: number;
     ytdChangePercent: number;
+    weeklyChange?: number;
+    weeklyChangePercent?: number;
+    historyChange?: number;
+    historyChangePercent?: number;
+    periodDates?: Partial<Record<TimePeriod, { baseDate: string | null; endDate: string | null }>>;
 }
 
 export interface PortfolioHistoryPoint {
+    cadence?: 'daily' | 'monthly';
     returnUnavailable?: boolean;
     date: string;
     value: number;
@@ -27,6 +33,7 @@ export interface PortfolioHistoryPoint {
 export type PortfolioTransactionType = 'buy' | 'sell' | 'edit' | 'delete';
 
 export interface PortfolioTransaction {
+    provenance?: 'initial-position' | 'trade';
     id: string;
     assetId: string;
     assetSymbol: string;

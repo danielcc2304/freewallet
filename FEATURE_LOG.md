@@ -12,6 +12,123 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-30 - Correcciones de la auditoría del Dashboard
+- Funcionalidad:
+  - Periodo compartido entre resumen, evolución y benchmark, con bases verificables y protección frente a huecos diarios.
+  - Valoración coherente ante precios cero o ausentes, precisión de cantidades y divisa explícita en el detalle.
+  - Vinculación local y explícita del Excel con la cartera, sin publicar posiciones privadas ni convertir el saldo inicial en compras reales.
+  - Desgloses parciales con concurrencia limitada y reintento; sectores y países separados de los subyacentes, consolidación por ISIN y coincidencias aproximadas identificadas.
+  - Sincronización local entre pestañas, liquidez como tipo propio y actualización sin crear registros con cotizaciones antiguas.
+  - Navegación accesible por teclado, foco contenido y restaurado en modales, controles táctiles y dependencias pesadas cargadas solo al usarse, sin diferir rutas.
+  - Aviso de nueva versión con acceso a las novedades, mostrado una sola vez por versión en cada navegador.
+  - La importación de posiciones termina en el total de Cartera para no incorporar los resúmenes de bloques como activos adicionales.
+  - La comparativa usa la rentabilidad ajustada por flujos de Evolución y Diario, e identifica las coberturas parciales frente al periodo completo.
+- Resumen:
+  - Correcciones acompañadas de pruebas sintéticas de regresión.
+- Archivos:
+  - `src/services/assetValuation.ts`, `src/services/portfolioPerformance.ts`, `src/services/portfolioWorkbookHistory.ts`
+  - `src/components/dashboard/`, `src/pages/Dashboard/Dashboard.tsx`, `src/components/ui/Modal/`
+  - `src/context/PortfolioContext.tsx`, `src/hooks/useLocalDataVersion.ts`, `src/services/storageService.ts`
+  - `src/pages/AddInvestment/AddInvestment.tsx`, `src/pages/PortfolioCsv/PortfolioCsv.tsx`, `src/pages/NewsAdmin/NewsAdmin.tsx`
+  - `scripts/test-dashboard-audit.ts`, `scripts/test-workbook-continuity.ts`, `scripts/test-dashboard-integrity.ts`, `scripts/test-portfolio-performance.ts`
+
+### 2026-09-30 - v5.3.9 - Continuidad del histórico y pulido del Dashboard
+- Funcionalidad:
+  - Se conservan los cierres mensuales y se añade la continuación diaria sin duplicar aportaciones ni asignar fechas inventadas a los movimientos.
+  - Se reconocen fechas con año de dos cifras y la hoja Diario; los periodos incompletos conservan su base y cuentan los intervalos válidos y desconocidos.
+  - Se usa una escala temporal real en evolución, se contienen las columnas del Dashboard en escritorio y los modales evitan el fondo gris en Liquid Glass claro manteniendo el bloqueo de scroll.
+  - Las cotizaciones antiguas no generan una valoración nueva al abrir el Dashboard y el detalle no inventa una variación diaria cuando falta el cierre anterior.
+  - Las doce guías de Recursos enlazan directamente a sus vídeos concretos de YouTube y cada enlace incluye un nombre accesible con el título del vídeo.
+- Resumen:
+  - Mejora la continuidad y trazabilidad de los datos importados, el aspecto del Dashboard en Liquid Glass claro y el acceso a los recursos de Academy.
+- Archivos:
+  - `src/services/portfolioWorkbookHistory.ts`
+  - `src/services/portfolioPerformance.ts`
+  - `src/pages/PortfolioCsv/portfolioCsvUtils.ts`
+  - `src/pages/PortfolioCsv/PortfolioCsv.tsx`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `src/components/dashboard/useDashboardAnalytics.ts`
+  - `src/components/dashboard/AssetDetail.tsx`
+  - `src/components/dashboard/AssetDetail.css`
+  - `src/components/ui/Modal/Modal.tsx`
+  - `src/styles/liquidGlass.css`
+  - `src/components/dashboard/PortfolioComposition.css`
+  - `src/pages/Dashboard/Dashboard.css`
+  - `src/types/portfolio.ts`
+  - `scripts/test-workbook-continuity.ts`
+  - `src/components/academy/guides/InProcess.tsx`
+
+### 2026-09-21 - v5.3.8 - Integridad del Dashboard y continuidad de cartera
+- Funcionalidad:
+  - Se reconcilian el histórico, las compras, las ventas completas y las aportaciones para evitar duplicidades y valoraciones inconsistentes.
+  - Se continúa el histórico importado desde Excel con las operaciones posteriores y se distinguen las estimaciones de mercado de los datos verificados.
+  - Se alinean rendimiento, benchmark, fechas, divisas y cierres anteriores, evitando indicadores cuando no existe una base válida.
+  - Se unifica el guardado local de posiciones y operaciones con escritura atómica y errores visibles, sin sobrescribir la cartera ante un fallo.
+  - Se actualizan las tablas, tarjetas, insights y el plan del Dashboard para consumir el mismo modelo analítico, junto con pruebas específicas de integridad.
+- Resumen:
+  - El Dashboard ofrece métricas de cartera más coherentes y trazables, conserva correctamente las operaciones y deja claro cuándo un dato procede de una estimación.
+- Archivos:
+  - `src/components/dashboard/useDashboardAnalytics.ts`
+  - `src/services/dashboardHistory.ts`
+  - `src/services/portfolioPerformance.ts`
+  - `src/services/portfolioQuoteService.ts`
+  - `src/services/storageService.ts`
+  - `src/context/PortfolioContext.tsx`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/components/dashboard/LivePortfolioPlan.tsx`
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`
+  - `scripts/test-dashboard-integrity.ts`
+
+### 2026-09-17 - v5.3.7 - Aviso informativo del Dashboard
+- Funcionalidad:
+  - Se incorpora un aviso modal persistente para informar de que el Dashboard sigue en desarrollo.
+  - Se añaden accesos directos a Academia, Configuración y Portfolio desde el aviso.
+- Resumen:
+  - El Dashboard comunica sus limitaciones actuales y orienta al usuario hacia las vistas más completas de la aplicación.
+- Archivos:
+  - `src/pages/Dashboard/Dashboard.tsx`
+
+### 2026-09-17 - v5.3.6 - Cabeceras compartidas y pulido responsive de Academy
+- Funcionalidad:
+  - Se incorpora una cabecera de página compartida para las secciones de Academy y se unifica su navegación auxiliar.
+  - Se ajustan guías, calculadoras, simuladores y herramientas para usar la nueva cabecera y mejorar la adaptación a móvil.
+  - Se revisan las superficies Liquid Glass y los estilos de interacción para mantener una presentación consistente en todo el recorrido de Academy.
+- Resumen:
+  - Academy gana una estructura visual más uniforme y compacta, con cabeceras reutilizables y mejor comportamiento responsive.
+- Archivos:
+  - `src/components/academy/layout/AcademyPageHeader.tsx`
+  - `src/components/academy/layout/AcademyPageHeader.css`
+  - `src/components/academy/layout/AcademyLayout.tsx`
+  - `src/components/academy/layout/AcademyLayout.css`
+  - `src/components/academy/assets/*`
+  - `src/components/academy/calculators/*`
+  - `src/components/academy/guides/*`
+  - `src/components/academy/simulators/*`
+  - `src/components/academy/tools/MarketHeatmap.tsx`
+  - `src/components/academy/tools/MarketHeatmap.css`
+  - `src/components/ui/PageHeader/*`
+  - `src/components/ui/index.ts`
+  - `src/components/layout/MainLayout/MainLayout.tsx`
+  - `src/components/layout/MainLayout/MainLayout.css`
+  - `src/pages/Dashboard/Dashboard.tsx`
+  - `src/pages/Dashboard/Dashboard.css`
+  - `src/context/AppearanceContext.tsx`
+  - `src/styles/liquidGlass.css`
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
+### 2026-09-17 - v5.3.5 - Corrección de versionado de hotfixes
+- Funcionalidad:
+  - Se actualiza la versión visible de FreeWallet a `v5.3.5` en Sidebar, Configuración y Feature Log mediante la constante compartida.
+  - Se sincroniza la versión del paquete y su lockfile con la versión publicada en `hotfixes`.
+- Resumen:
+  - La rama `hotfixes` queda identificada correctamente como `v5.3.5` sin alterar las mejoras funcionales ya integradas.
+- Archivos:
+  - `src/constants/app.ts`
+  - `package.json`
+  - `package-lock.json`
+
 ### 2026-09-17 - v5.3.4 - Pulido del Heatmap y animaciones de interacción
 - Funcionalidad:
   - Se mueve el resumen por sectores del Heatmap debajo del mapa para mantener primero la lectura visual principal.

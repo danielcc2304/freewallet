@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { Search, Info } from 'lucide-react';
 import { GLOSSARY } from '../../../data/academyData';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './Glossary.css';
 
 export function Glossary() {
@@ -23,12 +24,12 @@ export function Glossary() {
 
     return (
         <div className="glossary-page">
-            <header className="glossary-page__header">
+            <AcademyPageHeader className="glossary-page__header" section="Aprender">
                 <h1 className="glossary-page__title">Diccionario Financiero</h1>
                 <p className="glossary-page__subtitle">
                     Los conceptos que necesitas dominar para hablar el lenguaje del dinero.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             <div className="glossary-controls">
                 <div className="glossary-search">

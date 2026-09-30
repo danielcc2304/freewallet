@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { PiggyBank, ShieldCheck, AlertCircle, TrendingUp, HelpCircle, Home, Utensils, Zap, Plus, Users } from 'lucide-react';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './EmergencyFundCalculator.css';
 
 interface EmergencyFundCalculatorStorage {
@@ -14,37 +15,38 @@ interface EmergencyFundCalculatorStorage {
 
 const EMERGENCY_FUND_STORAGE_KEY = 'freewallet_emergency_fund_calculator';
 
+function readStoredEmergencyFund(): Partial<EmergencyFundCalculatorStorage> {
+    if (typeof window === 'undefined') return {};
+
+    try {
+        const raw = window.localStorage.getItem(EMERGENCY_FUND_STORAGE_KEY);
+        if (!raw) return {};
+
+        const stored = JSON.parse(raw) as unknown;
+        return stored && typeof stored === 'object'
+            ? stored as Partial<EmergencyFundCalculatorStorage>
+            : {};
+    } catch {
+        return {};
+    }
+}
+
 export function EmergencyFundCalculator() {
+    const stored = useMemo(() => readStoredEmergencyFund(), []);
+    const initialJobStability = stored.jobStability === 'medium' || stored.jobStability === 'low'
+        ? stored.jobStability
+        : 'high';
+
     // Inputs
-    const [monthlyRent, setMonthlyRent] = useState<number | string>(800);
-    const [monthlyFood, setMonthlyFood] = useState<number | string>(400);
-    const [monthlyBills, setMonthlyBills] = useState<number | string>(200);
-    const [monthlyOther, setMonthlyOther] = useState<number | string>(300);
+    const [monthlyRent, setMonthlyRent] = useState<number | string>(stored.monthlyRent ?? 800);
+    const [monthlyFood, setMonthlyFood] = useState<number | string>(stored.monthlyFood ?? 400);
+    const [monthlyBills, setMonthlyBills] = useState<number | string>(stored.monthlyBills ?? 200);
+    const [monthlyOther, setMonthlyOther] = useState<number | string>(stored.monthlyOther ?? 300);
 
     // Risk factors
-    const [jobStability, setJobStability] = useState('high'); // high, medium, low
-    const [dependents, setDependents] = useState<number | string>(0);
-    const [currentSavings, setCurrentSavings] = useState<number | string>(1000);
-
-    useEffect(() => {
-        try {
-            const raw = localStorage.getItem(EMERGENCY_FUND_STORAGE_KEY);
-            if (!raw) return;
-
-            const stored = JSON.parse(raw) as Partial<EmergencyFundCalculatorStorage>;
-            if (stored.monthlyRent !== undefined) setMonthlyRent(stored.monthlyRent);
-            if (stored.monthlyFood !== undefined) setMonthlyFood(stored.monthlyFood);
-            if (stored.monthlyBills !== undefined) setMonthlyBills(stored.monthlyBills);
-            if (stored.monthlyOther !== undefined) setMonthlyOther(stored.monthlyOther);
-            if (stored.jobStability === 'high' || stored.jobStability === 'medium' || stored.jobStability === 'low') {
-                setJobStability(stored.jobStability);
-            }
-            if (stored.dependents !== undefined) setDependents(stored.dependents);
-            if (stored.currentSavings !== undefined) setCurrentSavings(stored.currentSavings);
-        } catch {
-            // Ignore localStorage failures or malformed saved values.
-        }
-    }, []);
+    const [jobStability, setJobStability] = useState<'high' | 'medium' | 'low'>(initialJobStability);
+    const [dependents, setDependents] = useState<number | string>(stored.dependents ?? 0);
+    const [currentSavings, setCurrentSavings] = useState<number | string>(stored.currentSavings ?? 1000);
 
     useEffect(() => {
         const payload: EmergencyFundCalculatorStorage = {
@@ -52,7 +54,7 @@ export function EmergencyFundCalculator() {
             monthlyFood,
             monthlyBills,
             monthlyOther,
-            jobStability: jobStability as 'high' | 'medium' | 'low',
+            jobStability,
             dependents,
             currentSavings
         };
@@ -97,7 +99,7 @@ export function EmergencyFundCalculator() {
 
     return (
         <div className="emergency">
-            <header className="emergency__header">
+            <AcademyPageHeader className="emergency__header" section="Herramientas">
                 <div className="emergency__title-group">
                     <div className="emergency__icon-container">
                         <PiggyBank className="emergency__title-icon" />
@@ -107,7 +109,7 @@ export function EmergencyFundCalculator() {
                         <p className="emergency__subtitle">El colchón que te permite dormir tranquilo.</p>
                     </div>
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             <div className="emergency__grid">
                 <section className="emergency__inputs">
@@ -160,7 +162,15 @@ export function EmergencyFundCalculator() {
                                 <label>Estabilidad Laboral</label>
                                 <div className="calc__input-wrapper">
                                     <ShieldCheck size={18} />
-                                    <select value={jobStability} onChange={(e) => setJobStability(e.target.value)}>
+                                    <select
+                                        value={jobStability}
+                                        onChange={(e) => {
+                                            const value = e.target.value;
+                                            if (value === 'high' || value === 'medium' || value === 'low') {
+                                                setJobStability(value);
+                                            }
+                                        }}
+                                    >
                                         <option value="high">Alta (Estable)</option>
                                         <option value="medium">Media (Empleado)</option>
                                         <option value="low">Baja (Autónomo)</option>

@@ -3,6 +3,7 @@ import {
     TrendingUp, ArrowLeft, Globe, Zap, CheckCircle2, AlertTriangle,
     Lightbulb, BarChart3, PieChart, Clock, Target, Shield
 } from 'lucide-react';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './AssetPage.css';
 
 const SUB_TYPES = [
@@ -71,7 +72,7 @@ export function AssetEquities() {
                 <ArrowLeft size={18} /> Volver a Carteras
             </Link>
 
-            <header className="asset-page__hero" style={{ '--hero-color': '#3b82f6' } as React.CSSProperties}>
+            <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#3b82f6' } as React.CSSProperties}>
                 <div className="asset-page__hero-icon">
                     <TrendingUp size={48} />
                 </div>
@@ -94,7 +95,7 @@ export function AssetEquities() {
                         <span className="hero-stat__label">Horizonte recomendado</span>
                     </div>
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             {/* What is it */}
             <section className="asset-page__section">

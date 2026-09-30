@@ -14,47 +14,26 @@
     width: 100%;
     margin: 0 auto;
     padding: 0;
-    max-width: 1200px;
+    max-width: var(--content-max-width, 100%);
     overflow-x: hidden;
 }
 
-/* Keep every Academy route on the same outer rhythm as the compound-interest calculator. */
+/* Keep route content in one stacking context. The full-width neutral canvas
+   lives on MainLayout so it cannot be clipped by a route's max-width. */
+.academy--liquid-glass .academy__content {
+    position: relative;
+    isolation: isolate;
+}
+
+/* Keep every Academy route on the same outer width as the Dashboard canvas. */
 .academy__content > * {
     width: 100%;
-    max-width: 1200px !important;
+    max-width: var(--content-max-width, 100%) !important;
     margin-left: auto;
     margin-right: auto;
     padding-left: 0 !important;
     padding-right: 0 !important;
     box-sizing: border-box;
-}
-
-/* Academy page headers: unified style inspired by Portfolio CSV */
-.academy__content > * > header {
-    position: relative;
-    margin-bottom: 1.4rem;
-    padding: 2rem;
-    border-radius: 18px;
-    border: 1px solid var(--border-primary);
-    background:
-        radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.14), transparent 45%),
-        radial-gradient(circle at 90% 20%, rgba(59, 130, 246, 0.14), transparent 42%),
-        var(--bg-secondary);
-    text-align: left;
-    overflow: hidden;
-}
-
-.academy__content > * > header h1 {
-    margin: 0 0 0.65rem;
-    font-size: clamp(1.6rem, 2.3vw, 2.35rem);
-    max-width: 820px;
-}
-
-.academy__content > * > header p {
-    margin: 0;
-    max-width: 820px;
-    color: var(--text-secondary);
-    line-height: 1.7;
 }
 
 /* ===== RESPONSIVE ===== */
@@ -65,12 +44,14 @@
 }
 
 @media (max-width: 640px) {
-    .academy__content {
-        padding: 0;
+    .academy--liquid-glass {
+        --shadow-sm: inset 0 1px 0 var(--glass-edge-bright), inset 0 -1px 0 rgba(0, 0, 0, .045);
+        --shadow-md: inset 0 1px 0 var(--glass-edge-bright), inset 0 -1px 0 rgba(0, 0, 0, .055);
+        --shadow-lg: inset 0 1px 0 var(--glass-edge-bright), inset 0 -1px 0 rgba(0, 0, 0, .065);
+        --shadow-glow: inset 0 1px 0 var(--glass-edge-bright);
     }
 
-    .academy__content > * > header {
-        padding: 1.25rem;
-        border-radius: 14px;
+    .academy__content {
+        padding: 0;
     }
 }

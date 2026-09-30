@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     AlertTriangle,
     ExternalLink,
-    PanelsTopLeft,
     RefreshCw,
     TrendingDown,
     TrendingUp,
@@ -17,6 +16,7 @@ import type {
 import { getQuote, getQuotesYahooSpark } from '../../../services/apiService';
 import { loadMarketIndexHoldings } from '../../../services/marketHeatmapService';
 import type { StockQuote } from '../../../types/types';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './MarketHeatmap.css';
 
 interface LoadedIndexQuotes {
@@ -439,11 +439,10 @@ export function MarketHeatmap() {
 
     return (
         <div className="market-heatmap">
-            <header className="market-heatmap__header">
-                <div className="market-heatmap__eyebrow"><PanelsTopLeft size={16} /> Mercados</div>
+            <AcademyPageHeader className="market-heatmap__header" section="Herramientas">
                 <h1>Heatmap de mercados</h1>
                 <p>Compara el movimiento diario de las principales compañías por su peso dentro de cada índice.</p>
-            </header>
+            </AcademyPageHeader>
 
             <section className="market-heatmap__workspace" aria-labelledby="market-heatmap-index-title">
                 <div className="market-heatmap__toolbar">
@@ -585,6 +584,25 @@ export function MarketHeatmap() {
                     </p>
                 ) : null}
 
+                {(selectedCompany || strongest || weakest) && (
+                    <div className="market-heatmap__details" aria-live="polite">
+                        {selectedCompany ? (
+                            <div className="market-heatmap__selected-company">
+                                <span>Selección</span>
+                                <strong>{selectedCompany.name} · {selectedCompany.displaySymbol || selectedCompany.symbol}</strong>
+                                <small>{selectedCompany.sector} · {selectedCompany.country} · peso {selectedCompany.weight.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%</small>
+                                <b className={selectedCompany.changePercent < 0 ? 'is-negative' : 'is-positive'}>{formatPercent(selectedCompany.changePercent)}</b>
+                            </div>
+                        ) : (
+                            <p className="market-heatmap__selection-hint">Selecciona una compañía para ver su detalle.</p>
+                        )}
+                        <div className="market-heatmap__extremes">
+                            {strongest && <span><TrendingUp size={14} /> Mayor subida: <strong>{strongest.displaySymbol || strongest.symbol} {formatPercent(strongest.changePercent)}</strong></span>}
+                            {weakest && <span><TrendingDown size={14} /> Mayor caída: <strong>{weakest.displaySymbol || weakest.symbol} {formatPercent(weakest.changePercent)}</strong></span>}
+                        </div>
+                    </div>
+                )}
+
                 {sectorSummary.length > 0 && (
                     <section className="market-heatmap__sector-summary" aria-label="Resumen por sectores">
                         <div className="market-heatmap__sector-summary-header">
@@ -604,25 +622,6 @@ export function MarketHeatmap() {
                             ))}
                         </div>
                     </section>
-                )}
-
-                {(selectedCompany || strongest || weakest) && (
-                    <div className="market-heatmap__details" aria-live="polite">
-                        {selectedCompany ? (
-                            <div className="market-heatmap__selected-company">
-                                <span>Selección</span>
-                                <strong>{selectedCompany.name} · {selectedCompany.displaySymbol || selectedCompany.symbol}</strong>
-                                <small>{selectedCompany.sector} · {selectedCompany.country} · peso {selectedCompany.weight.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%</small>
-                                <b className={selectedCompany.changePercent < 0 ? 'is-negative' : 'is-positive'}>{formatPercent(selectedCompany.changePercent)}</b>
-                            </div>
-                        ) : (
-                            <p className="market-heatmap__selection-hint">Selecciona una compañía para ver su detalle.</p>
-                        )}
-                        <div className="market-heatmap__extremes">
-                            {strongest && <span><TrendingUp size={14} /> Mayor subida: <strong>{strongest.displaySymbol || strongest.symbol} {formatPercent(strongest.changePercent)}</strong></span>}
-                            {weakest && <span><TrendingDown size={14} /> Mayor caída: <strong>{weakest.displaySymbol || weakest.symbol} {formatPercent(weakest.changePercent)}</strong></span>}
-                        </div>
-                    </div>
                 )}
 
                 <footer className="market-heatmap__footer">

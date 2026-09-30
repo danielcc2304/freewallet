@@ -4,6 +4,7 @@ import {
     Landmark, ArrowLeft, Globe, Zap, CheckCircle2, AlertTriangle,
     Lightbulb, BarChart3, Clock, Shield, TrendingDown, TrendingUp, ArrowUpDown
 } from 'lucide-react';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './AssetPage.css';
 
 const BOND_TYPES = [
@@ -213,7 +214,7 @@ export function AssetBonds() {
                 <ArrowLeft size={18} /> Volver a Carteras
             </Link>
 
-            <header className="asset-page__hero" style={{ '--hero-color': '#10b981' } as React.CSSProperties}>
+            <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#10b981' } as React.CSSProperties}>
                 <div className="asset-page__hero-icon">
                     <Landmark size={48} />
                 </div>
@@ -236,7 +237,7 @@ export function AssetBonds() {
                         <span className="hero-stat__label">Horizonte recomendado</span>
                     </div>
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             {/* What is it */}
             <section className="asset-page__section">

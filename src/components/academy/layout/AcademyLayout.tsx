@@ -1,6 +1,7 @@
 import { Outlet } from 'react-router-dom';
 import { useAppearance } from '../../../context/AppearanceContext';
 import './AcademyLayout.css';
+import './AcademyPageHeader.css';
 
 export function AcademyLayout() {
     const { isLiquidGlass } = useAppearance();

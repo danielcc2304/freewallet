@@ -1,5 +1,6 @@
 import { Shield, AlertTriangle, Layers, Clock, Globe, BarChart, Zap, Scale, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './RiskManagement.css';
 
 const CORRELATION_ASSETS = ['RV Global', 'Bonos IG', 'REITs', 'Oro', 'Cash', 'Cripto'];
@@ -22,12 +23,12 @@ export function RiskManagement() {
 
     return (
         <div className="risk-mgmt">
-            <header className="risk-mgmt__header">
+            <AcademyPageHeader className="risk-mgmt__header" section="Construir">
                 <h1 className="risk-mgmt__title">Gestión del Riesgo</h1>
                 <p className="risk-mgmt__subtitle">
                     Invertir no es evitar el riesgo, sino saber qué riesgos merece la pena correr y cómo proteger tu patrimonio de los que no.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             <section className="risk-mgmt__vol-vs-risk">
                 <h2 className="risk-mgmt__section-title">1. Volatilidad vs. Riesgo Real</h2>

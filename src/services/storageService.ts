@@ -1,6 +1,9 @@
 import type { Asset, Portfolio, PortfolioGoal, PortfolioHistoryPoint, PortfolioTransaction, WatchlistItem } from '../types/types';
+import { assetValue } from './assetValuation';
+import { calculatePreviousClosePerformance, normalizePortfolioTransactions, performanceSeries, selectPortfolioPeriod } from './portfolioPerformance';
 
 const STORAGE_KEYS = {
+    PORTFOLIO: 'freewallet_portfolio_v1',
     ASSETS: 'freewallet_assets',
     HISTORY: 'freewallet_history',
     TRANSACTIONS: 'freewallet_transactions',
@@ -17,23 +20,39 @@ const DEFAULT_SETTINGS: AppSettings = {
     apiEnabled: true,
 };
 
+/** One atomic localStorage record for positions and their ledger. Legacy keys remain readable. */
+export function savePortfolioState(assets: Asset[], transactions: PortfolioTransaction[]): void {
+    try {
+        localStorage.setItem(STORAGE_KEYS.PORTFOLIO, JSON.stringify({ version: 1, assets, transactions }));
+    } catch {
+        throw new Error('No se han podido guardar los cambios. Comprueba el espacio y los permisos del navegador y vuelve a intentarlo.');
+    }
+}
+
+function readPortfolioState(): { assets: Asset[]; transactions: PortfolioTransaction[] } | null {
+    const raw = localStorage.getItem(STORAGE_KEYS.PORTFOLIO);
+    if (!raw) return null;
+    const state = JSON.parse(raw);
+    if (state.version !== 1 || !Array.isArray(state.assets) || !Array.isArray(state.transactions)) {
+        throw new Error('El archivo local de cartera no es válido.');
+    }
+    return state;
+}
+
 // ===== ASSETS CRUD =====
 export function getAssets(): Asset[] {
     try {
+        const saved = readPortfolioState();
+        if (saved) return saved.assets;
         const data = localStorage.getItem(STORAGE_KEYS.ASSETS);
         return data ? JSON.parse(data) : [];
     } catch {
-        console.error('Error reading assets from localStorage');
-        return [];
+        throw new Error('No se puede leer la cartera guardada. No se han sobrescrito los datos.');
     }
 }
 
 export function saveAssets(assets: Asset[]): void {
-    try {
-        localStorage.setItem(STORAGE_KEYS.ASSETS, JSON.stringify(assets));
-    } catch (error) {
-        console.error('Error saving assets to localStorage:', error);
-    }
+    savePortfolioState(assets, getTransactions());
 }
 
 export function addAsset(asset: Asset): void {
@@ -77,7 +96,8 @@ export function getAssetById(id: string): Asset | undefined {
 export function getHistory(): PortfolioHistoryPoint[] {
     try {
         const data = localStorage.getItem(STORAGE_KEYS.HISTORY);
-        return data ? JSON.parse(data) : [];
+        const parsed: unknown = data ? JSON.parse(data) : [];
+        return Array.isArray(parsed) ? parsed.filter(p => p && typeof p.date === 'string' && Number.isFinite(p.value) && Number.isFinite(p.invested)) : [];
     } catch {
         console.error('Error reading history from localStorage');
         return [];
@@ -106,7 +126,7 @@ export function getSettings(): AppSettings {
 function buildBootstrapTransactions(assets: Asset[]): PortfolioTransaction[] {
     return assets
         .map((asset) => ({
-            id: `bootstrap-${asset.id}`,
+            provenance: 'initial-position' as const, id: `bootstrap-${asset.id}`,
             assetId: asset.id,
             assetSymbol: asset.symbol,
             assetName: asset.name,
@@ -125,6 +145,8 @@ function buildBootstrapTransactions(assets: Asset[]): PortfolioTransaction[] {
 // ===== TRANSACTIONS =====
 export function getTransactions(): PortfolioTransaction[] {
     try {
+        const saved = readPortfolioState();
+        if (saved) return saved.transactions;
         const data = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
         if (data) {
             return JSON.parse(data) as PortfolioTransaction[];
@@ -136,20 +158,14 @@ export function getTransactions(): PortfolioTransaction[] {
         }
 
         const bootstrapTransactions = buildBootstrapTransactions(assets);
-        saveTransactions(bootstrapTransactions);
         return bootstrapTransactions;
     } catch {
-        console.error('Error reading transactions from localStorage');
-        return [];
+        throw new Error('No se pueden leer las operaciones guardadas. No se han sobrescrito los datos.');
     }
 }
 
 export function saveTransactions(transactions: PortfolioTransaction[]): void {
-    try {
-        localStorage.setItem(STORAGE_KEYS.TRANSACTIONS, JSON.stringify(transactions));
-    } catch (error) {
-        console.error('Error saving transactions to localStorage:', error);
-    }
+    savePortfolioState(getAssets(), transactions);
 }
 
 export function addTransaction(transaction: PortfolioTransaction): void {
@@ -226,6 +242,7 @@ export function deleteWatchlistItem(itemId: string): void {
 export function saveSettings(settings: AppSettings): void {
     try {
         localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+        if (typeof window !== 'undefined') window.dispatchEvent(new Event('freewallet-data-change'));
     } catch (error) {
         console.error('Error saving settings to localStorage:', error);
     }
@@ -247,8 +264,9 @@ export function isApiEnabled(): boolean {
 export function saveHistory(history: PortfolioHistoryPoint[]): void {
     try {
         localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
+        if (typeof window !== 'undefined') window.dispatchEvent(new Event('freewallet-data-change'));
     } catch (error) {
-        console.error('Error saving history to localStorage:', error);
+        throw new Error('No se ha podido guardar el histórico de la cartera.', { cause: error });
     }
 }
 
@@ -292,16 +310,16 @@ export function getPortfolio(): Portfolio {
     const history = getHistory();
 
     const totalInvested = assets.reduce((sum, a) => sum + (a.purchasePrice * a.quantity), 0);
-    const currentValue = assets.reduce((sum, a) => sum + ((a.currentPrice || a.purchasePrice) * a.quantity), 0);
+    const currentValue = assets.reduce((sum, a) => sum + assetValue(a), 0);
     const totalGain = currentValue - totalInvested;
     const percentageGain = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
 
-    // Calculate period changes (simplified - in real app would use actual historical data)
-    const dailyChange = assets.reduce((sum, a) => {
-        const prevValue = (a.previousClose || a.purchasePrice) * a.quantity;
-        const currValue = (a.currentPrice || a.purchasePrice) * a.quantity;
-        return sum + (currValue - prevValue);
-    }, 0);
+    const daily = calculatePreviousClosePerformance(assets);
+    const series = performanceSeries(history, normalizePortfolioTransactions(assets, getTransactions()), assets);
+    const now = Date.now();
+    const month = selectPortfolioPeriod(series, '1M', now).performance;
+    const quarter = selectPortfolioPeriod(series, '3M', now).performance;
+    const ytd = selectPortfolioPeriod(series, 'YTD', now).performance;
 
     return {
         assets,
@@ -310,14 +328,14 @@ export function getPortfolio(): Portfolio {
             currentValue,
             totalGain,
             percentageGain,
-            dailyChange,
-            dailyChangePercent: currentValue > 0 ? (dailyChange / (currentValue - dailyChange)) * 100 : 0,
-            monthlyChange: totalGain * 0.3, // Simplified
-            monthlyChangePercent: percentageGain * 0.3,
-            threeMonthChange: totalGain * 0.6,
-            threeMonthChangePercent: percentageGain * 0.6,
-            ytdChange: totalGain,
-            ytdChangePercent: percentageGain,
+            dailyChange: daily.change ?? NaN,
+            dailyChangePercent: daily.returnPercent ?? NaN,
+            monthlyChange: month.returnPercent === null ? NaN : month.change ?? NaN,
+            monthlyChangePercent: month.returnPercent ?? NaN,
+            threeMonthChange: quarter.returnPercent === null ? NaN : quarter.change ?? NaN,
+            threeMonthChangePercent: quarter.returnPercent ?? NaN,
+            ytdChange: ytd.returnPercent === null ? NaN : ytd.change ?? NaN,
+            ytdChangePercent: ytd.returnPercent ?? NaN,
         },
         history,
         lastUpdated: new Date().toISOString(),
@@ -330,6 +348,7 @@ export function generateId(): string {
 }
 
 export function clearAllData(): void {
+    localStorage.removeItem(STORAGE_KEYS.PORTFOLIO);
     localStorage.removeItem(STORAGE_KEYS.ASSETS);
     localStorage.removeItem(STORAGE_KEYS.HISTORY);
     localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);

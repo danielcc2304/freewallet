@@ -1,4 +1,5 @@
 import type { Asset, AssetHolding } from '../types/types';
+import { assetValue } from './assetValuation';
 
 const ISIN_PATTERN = /^[A-Z]{2}[A-Z0-9]{10}$/;
 const CONTAINER_TYPES = new Set<Asset['type']>(['fund', 'etf']);
@@ -54,8 +55,7 @@ function isContainerAsset(asset: Asset): boolean {
 }
 
 function getCurrentValue(asset: Asset): number {
-    const price = asset.currentPrice ?? asset.purchasePrice;
-    return Number.isFinite(price) && Number.isFinite(asset.quantity) ? Math.max(0, price * asset.quantity) : 0;
+    return assetValue(asset);
 }
 
 function normalizeName(value: string): string {
@@ -75,16 +75,14 @@ function normalizeName(value: string): string {
 
 /**
  * Returns the identity used to merge a direct position with the same asset
- * reported inside one or more funds. Names are preferred over tickers because
- * providers frequently omit the ticker or use different listings for it.
+ * reported inside one or more funds. ISIN is authoritative; a name-only match
+ * is approximate and must be labelled as such in the interface.
  */
 export function getExposureIdentity(name: string, symbol?: string, isin?: string): string {
-    const normalizedName = normalizeName(name);
-    if (normalizedName) return `name:${normalizedName}`;
-
-    const normalizedIsin = isin?.replace(/\s+/g, '').toUpperCase();
+    const normalizedIsin = (isin || (ISIN_PATTERN.test(symbol?.toUpperCase() || '') ? symbol : ''))?.replace(/\s+/g, '').toUpperCase();
     if (normalizedIsin && ISIN_PATTERN.test(normalizedIsin)) return `isin:${normalizedIsin}`;
-
+    const normalizedName = normalizeName(name);
+    if (normalizedName) return `approximate-name:${normalizedName}`;
     return `symbol:${(symbol || name).trim().toUpperCase()}`;
 }
 

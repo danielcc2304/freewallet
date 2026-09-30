@@ -8,5 +8,5 @@ declare module 'prerender-spa-plugin-next' {
             headless?: boolean;
         };
     }
-    export default function prerender(options: PrerenderOptions): any;
+    export default function prerender(options: PrerenderOptions): unknown;
 }

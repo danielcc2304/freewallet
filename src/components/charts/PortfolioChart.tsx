@@ -20,6 +20,49 @@ interface PortfolioChartProps {
 
 const periods: TimePeriod[] = ['1D', '7D', '1M', '3M', 'YTD', 'ALL'];
 
+function formatPortfolioCurrency(value: number) {
+    return new Intl.NumberFormat('es-ES', {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0,
+    }).format(value);
+}
+
+function formatPortfolioTooltipValue(value: number) {
+    return new Intl.NumberFormat('es-ES', {
+        style: 'currency',
+        currency: 'EUR',
+        minimumFractionDigits: 2,
+    }).format(value);
+}
+
+interface PortfolioTooltipProps {
+    active?: boolean;
+    payload?: ReadonlyArray<{ value?: number | string }>;
+    label?: number | string;
+}
+
+function PortfolioTooltip({ active, payload, label }: PortfolioTooltipProps) {
+    if (!active || !payload?.length) return null;
+
+    return (
+        <div className="chart-tooltip">
+            <p className="chart-tooltip__label">{label}</p>
+            <p className="chart-tooltip__value chart-tooltip__value--primary">
+                <span className="chart-tooltip__dot chart-tooltip__dot--value" />
+                Valor: {formatPortfolioTooltipValue(Number(payload[0]?.value ?? 0))}
+            </p>
+            {payload[1] && (
+                <p className="chart-tooltip__value chart-tooltip__value--secondary">
+                    <span className="chart-tooltip__dot chart-tooltip__dot--invested" />
+                    Invertido: {formatPortfolioTooltipValue(Number(payload[1]?.value ?? 0))}
+                </p>
+            )}
+        </div>
+    );
+}
+
 export function PortfolioChart({
     data,
     onPeriodChange,
@@ -30,44 +73,6 @@ export function PortfolioChart({
     const handlePeriodChange = (period: TimePeriod) => {
         setActivePeriod(period);
         onPeriodChange?.(period);
-    };
-
-    const formatCurrency = (value: number) => {
-        return new Intl.NumberFormat('es-ES', {
-            style: 'currency',
-            currency: 'EUR',
-            minimumFractionDigits: 0,
-            maximumFractionDigits: 0,
-        }).format(value);
-    };
-
-    const formatTooltipValue = (value: number) => {
-        return new Intl.NumberFormat('es-ES', {
-            style: 'currency',
-            currency: 'EUR',
-            minimumFractionDigits: 2,
-        }).format(value);
-    };
-
-    const CustomTooltip = ({ active, payload, label }: any) => {
-        if (active && payload && payload.length) {
-            return (
-                <div className="chart-tooltip">
-                    <p className="chart-tooltip__label">{label}</p>
-                    <p className="chart-tooltip__value chart-tooltip__value--primary">
-                        <span className="chart-tooltip__dot chart-tooltip__dot--value" />
-                        Valor: {formatTooltipValue(payload[0]?.value)}
-                    </p>
-                    {payload[1] && (
-                        <p className="chart-tooltip__value chart-tooltip__value--secondary">
-                            <span className="chart-tooltip__dot chart-tooltip__dot--invested" />
-                            Invertido: {formatTooltipValue(payload[1]?.value)}
-                        </p>
-                    )}
-                </div>
-            );
-        }
-        return null;
     };
 
     return (
@@ -116,11 +121,11 @@ export function PortfolioChart({
                             fontSize={12}
                             tickLine={false}
                             axisLine={false}
-                            tickFormatter={formatCurrency}
+                            tickFormatter={formatPortfolioCurrency}
                             width={80}
                         />
                         <Tooltip
-                            content={<CustomTooltip />}
+                            content={<PortfolioTooltip />}
                             contentStyle={{ backgroundColor: 'transparent', border: 'none' }}
                         />
                         <Area

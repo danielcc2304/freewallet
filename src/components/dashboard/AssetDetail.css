@@ -212,6 +212,8 @@
 
 .asset-detail__chart-container {
     position: relative;
+    isolation: isolate;
+    overflow: hidden;
     height: 240px;
     min-width: 0;
     width: 100%;
@@ -228,7 +230,7 @@
 .chart-overlay {
     position: absolute;
     inset: 0;
-    background: rgba(0, 0, 0, 0.2);
+    background: var(--bg-tertiary);
     backdrop-filter: blur(2px);
     display: flex;
     align-items: center;
@@ -520,3 +522,5 @@
 
     .asset-detail__fund-sections { grid-template-columns: 1fr; }
 }
+.asset-detail .period-btn { min-height: 44px; }
+.asset-detail button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }

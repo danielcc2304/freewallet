@@ -267,10 +267,10 @@
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .calculators {
-        --academy-space-section: 2rem;
+        --academy-space-section: .75rem;
         --academy-space-card: 1.25rem;
         --academy-space-card-lg: 1.5rem;
-        --academy-space-stack: 1.25rem;
+        --academy-space-stack: .75rem;
     }
 
     .calculators__title {
@@ -283,10 +283,10 @@
     }
 
     .calculators__card {
-        padding: var(--academy-space-card-lg);
+        padding: 1.25rem;
     }
 
     .calculators__footer {
-        padding: var(--academy-space-card-lg);
+        padding: 1.25rem;
     }
 }

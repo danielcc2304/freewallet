@@ -16,17 +16,11 @@
 
 .layout__content {
     width: 100%;
+    min-height: 100vh;
     max-width: none;
     margin: 0 auto;
     padding: var(--spacing-xl);
     animation: fadeIn var(--transition-base) ease-out;
-}
-
-/* Academy keeps its content centered, but its canvas should run edge to edge
-   like the Dashboard so the gaps between floating surfaces never look cut off. */
-.layout__content--academy {
-    min-height: 100vh;
-    background: var(--bg-primary);
 }
 
 @media (min-width: 1025px) {

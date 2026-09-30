@@ -14,3 +14,7 @@
 .live-plan__budget input { width: 140px; }
 .live-plan .is-positive { color: var(--color-positive); }
 .live-plan .is-negative { color: var(--color-negative); }
+.live-plan__scroll { position: relative; overscroll-behavior-x: contain; }
+.live-plan__scroll th:first-child { position: sticky; left: 0; z-index: 1; background: var(--bg-secondary); }
+.live-plan__scroll:focus-visible { outline: 2px solid var(--accent-primary); }
+.live-plan input { min-height: 44px; box-sizing: border-box; }

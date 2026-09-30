@@ -3,6 +3,7 @@ import {
     Coins, ArrowLeft, Globe, CheckCircle2, AlertTriangle,
     Lightbulb, Shield, Database, Lock
 } from 'lucide-react';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './AssetPage.css';
 
 const CRYPTO_CATEGORIES = [
@@ -39,7 +40,7 @@ export function AssetCrypto() {
                 <ArrowLeft size={18} /> Volver a Carteras
             </Link>
 
-            <header className="asset-page__hero" style={{ '--hero-color': '#f59e0b' } as React.CSSProperties}>
+            <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#f59e0b' } as React.CSSProperties}>
                 <div className="asset-page__hero-icon">
                     <Coins size={48} />
                 </div>
@@ -62,7 +63,7 @@ export function AssetCrypto() {
                         <span className="hero-stat__label">Disponibilidad mercado</span>
                     </div>
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             <section className="asset-page__section">
                 <h2><Globe size={22} /> ¿Por qué invertir en Cripto?</h2>

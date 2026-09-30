@@ -1,17 +1,17 @@
 import { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { Asset, PortfolioTransaction } from '../types/types';
-import { getAssets, getTransactions, saveAssets, saveTransactions, addAsset as addAssetToStorage, updateAsset as updateAssetInStorage, updateAssets as updateAssetsInStorage, deleteAsset as deleteAssetFromStorage, saveHistory, addHistoryPoint, addTransaction as addTransactionToStorage, isApiEnabled, generateId } from '../services/storageService';
+import { getAssets, getTransactions, savePortfolioState, updateAssets as updateAssetsInStorage, saveHistory, addHistoryPoint, isApiEnabled, generateId } from '../services/storageService';
 import { getPortfolioAssetQuote } from '../services/portfolioQuoteService';
-import { mockAssets, generateMockHistory } from '../data/mockData';
+import { useLocalDataVersion } from '../hooks/useLocalDataVersion';
 import { PRICE_REFRESH_INTERVAL_MS } from '../constants/app';
 import { createQuoteSnapshot, normalizePortfolioTransactions, portfolioLedgerKey } from '../services/portfolioPerformance';
 
 function getLatestQuoteAt(assets: Asset[]): Date | null {
     const timestamps = assets
-        .map((asset) => asset.lastQuoteAt ? new Date(asset.lastQuoteAt).getTime() : NaN)
+        .map((asset) => (asset.lastCheckedAt || asset.lastQuoteAt) ? Date.parse(asset.lastCheckedAt || asset.lastQuoteAt!) : NaN)
         .filter((timestamp) => Number.isFinite(timestamp));
-    const latest = timestamps.length ? Math.max(...timestamps) : NaN;
+    const latest = timestamps.length === assets.length && timestamps.length ? Math.min(...timestamps) : NaN;
     return Number.isFinite(latest) ? new Date(latest) : null;
 }
 
@@ -28,10 +28,16 @@ interface PortfolioState {
     updatingPrices: boolean;
     lastPriceUpdate: Date | null;
     initialized: boolean;
+    storageError: string | null;
+    quoteFailures: number;
+    lastRefreshAttempt: Date | null;
 }
 
 // Action types
 type PortfolioAction =
+    | { type: 'SET_STORAGE_ERROR'; payload: string | null }
+    | { type: 'SET_QUOTE_FAILURES'; payload: number }
+    | { type: 'SET_REFRESH_ATTEMPT'; payload: Date }
     | { type: 'SET_ASSETS'; payload: Asset[] }
     | { type: 'SET_TRANSACTIONS'; payload: PortfolioTransaction[] }
     | { type: 'ADD_TRANSACTION'; payload: PortfolioTransaction }
@@ -41,7 +47,7 @@ type PortfolioAction =
     | { type: 'DELETE_ASSET'; payload: string }
     | { type: 'SET_LOADING'; payload: boolean }
     | { type: 'SET_UPDATING_PRICES'; payload: boolean }
-    | { type: 'SET_LAST_UPDATE'; payload: Date }
+    | { type: 'SET_LAST_UPDATE'; payload: Date | null }
     | { type: 'SET_INITIALIZED'; payload: boolean };
 
 // Initial state
@@ -52,6 +58,9 @@ const initialState: PortfolioState = {
     updatingPrices: false,
     lastPriceUpdate: null,
     initialized: false,
+    storageError: null,
+    quoteFailures: 0,
+    lastRefreshAttempt: null,
 };
 
 const PRICE_REFRESH_CONCURRENCY = 4;
@@ -59,6 +68,9 @@ const PRICE_REFRESH_CONCURRENCY = 4;
 // Reducer
 function portfolioReducer(state: PortfolioState, action: PortfolioAction): PortfolioState {
     switch (action.type) {
+        case 'SET_STORAGE_ERROR': return { ...state, storageError: action.payload };
+        case 'SET_QUOTE_FAILURES': return { ...state, quoteFailures: action.payload };
+        case 'SET_REFRESH_ATTEMPT': return { ...state, lastRefreshAttempt: action.payload };
         case 'SET_ASSETS':
             return { ...state, assets: action.payload, loading: false };
         case 'SET_TRANSACTIONS':
@@ -120,17 +132,23 @@ const PortfolioContext = createContext<PortfolioContextValue | undefined>(undefi
 
 // Provider component
 export function PortfolioProvider({ children }: { children: ReactNode }) {
+    const localRevision = useLocalDataVersion();
+    const apiEnabled = isApiEnabled();
     const [state, dispatch] = useReducer(portfolioReducer, initialState);
     const refreshInFlight = useRef(false);
 
-    const recordTransaction = useCallback((transaction: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => {
-        const normalizedTransaction: PortfolioTransaction = {
-            ...transaction,
-            id: generateId(),
-            createdAt: new Date().toISOString(),
-        };
-        addTransactionToStorage(normalizedTransaction);
-        dispatch({ type: 'ADD_TRANSACTION', payload: normalizedTransaction });
+    const commit = useCallback((assets: Asset[], transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => {
+        try {
+            const ledger = getTransactions();
+            if (transaction) ledger.unshift({ ...transaction, id: generateId(), createdAt: new Date().toISOString() });
+            savePortfolioState(assets, ledger);
+            dispatch({ type: 'SET_ASSETS', payload: assets });
+            dispatch({ type: 'SET_TRANSACTIONS', payload: ledger });
+            dispatch({ type: 'SET_STORAGE_ERROR', payload: null });
+        } catch (error) {
+            dispatch({ type: 'SET_STORAGE_ERROR', payload: String(error instanceof Error ? error.message : error) });
+            throw error;
+        }
     }, []);
 
     // Update prices
@@ -138,26 +156,30 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         if (assetsToUpdate.length === 0 || refreshInFlight.current) return;
 
         refreshInFlight.current = true;
+        dispatch({ type: 'SET_REFRESH_ATTEMPT', payload: new Date() });
         dispatch({ type: 'SET_UPDATING_PRICES', payload: true });
         const refreshDate = new Date().toISOString();
-        const initialLedgerKey = portfolioLedgerKey(normalizePortfolioTransactions(assetsToUpdate, getTransactions()), refreshDate);
+        const requested = forceRefresh ? assetsToUpdate : assetsToUpdate.filter(a => shouldRefreshAssets([a]));
         try {
+            const initialLedgerKey = portfolioLedgerKey(normalizePortfolioTransactions(assetsToUpdate, getTransactions()), refreshDate);
             const quoteUpdates: Array<{ id: string; updates: Partial<Asset> }> = [];
             let nextIndex = 0;
             const updateNextAsset = async () => {
-                while (nextIndex < assetsToUpdate.length) {
-                    const asset = assetsToUpdate[nextIndex++];
+                while (nextIndex < requested.length) {
+                    const asset = requested[nextIndex++];
                     const controller = new AbortController();
                     const deadline = window.setTimeout(() => controller.abort(), 15000);
                     try {
                         const quote = await getPortfolioAssetQuote(asset, controller.signal, forceRefresh);
-                        if (quote && quote.price > 0 && quote.currency === 'EUR') {
+                        if (quote && Number.isFinite(quote.price) && quote.price >= 0 && quote.currency === 'EUR') {
                             const updates = {
                                 currentPrice: quote.price,
                                 previousClose: quote.previousClose,
                                 currency: quote.currency || asset.currency,
-                                lastQuoteAt: new Date().toISOString(),
-                                quoteSource: asset.isin ? 'Finect' : 'Mercado',
+                                lastCheckedAt: new Date().toISOString(),
+                                quotedAt: quote.quotedAt,
+                                lastQuoteAt: quote.quotedAt,
+                                quoteSource: asset.isin || /^[A-Z]{2}[A-Z0-9]{10}$/i.test(asset.symbol) ? 'Finect' : asset.type === 'cash' ? 'Saldo' : 'Mercado',
                             } as const;
                             quoteUpdates.push({ id: asset.id, updates });
                         }
@@ -171,7 +193,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
             await Promise.all(
                 Array.from(
-                    { length: Math.min(PRICE_REFRESH_CONCURRENCY, assetsToUpdate.length) },
+                    { length: Math.min(PRICE_REFRESH_CONCURRENCY, requested.length) },
                     () => updateNextAsset(),
                 ),
             );
@@ -187,9 +209,12 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             const snapshot = createQuoteSnapshot(refreshedAssets, getTransactions(), new Date().toISOString());
             const samePositions = refreshedAssets.length === assetsToUpdate.length && refreshedAssets.every(a =>
                 assetsToUpdate.some(old => old.id === a.id && old.quantity === a.quantity && old.purchasePrice === a.purchasePrice && old.purchaseDate === a.purchaseDate));
-            if (quoteUpdates.length === assetsToUpdate.length && samePositions && snapshot && snapshot.ledgerKey === initialLedgerKey) addHistoryPoint(snapshot);
+            if (requested.length > 0 && quoteUpdates.length === requested.length && samePositions && snapshot && snapshot.ledgerKey === initialLedgerKey) addHistoryPoint(snapshot);
             const latestQuoteAt = getLatestQuoteAt(refreshedAssets);
-            if (latestQuoteAt) dispatch({ type: 'SET_LAST_UPDATE', payload: latestQuoteAt });
+            dispatch({ type: 'SET_LAST_UPDATE', payload: latestQuoteAt });
+            dispatch({ type: 'SET_QUOTE_FAILURES', payload: requested.length - quoteUpdates.length });
+        } catch (error) {
+            dispatch({ type: 'SET_STORAGE_ERROR', payload: error instanceof Error ? error.message : 'No se pudo guardar la actualización.' });
         } finally {
             refreshInFlight.current = false;
             dispatch({ type: 'SET_UPDATING_PRICES', payload: false });
@@ -198,6 +223,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
     useEffect(() => {
         if (state.initialized) return;
+        try {
         const storedAssets = getAssets();
         dispatch({ type: 'SET_ASSETS', payload: storedAssets });
         dispatch({ type: 'SET_TRANSACTIONS', payload: getTransactions() });
@@ -205,91 +231,80 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         if (latestQuoteAt) dispatch({ type: 'SET_LAST_UPDATE', payload: latestQuoteAt });
         dispatch({ type: 'SET_INITIALIZED', payload: true });
         if (storedAssets.length > 0 && isApiEnabled() && shouldRefreshAssets(storedAssets)) void updatePricesInternal(storedAssets);
+        } catch (error) {
+            dispatch({ type: 'SET_STORAGE_ERROR', payload: String(error) });
+            dispatch({ type: 'SET_LOADING', payload: false });
+            dispatch({ type: 'SET_INITIALIZED', payload: true });
+        }
     }, [state.initialized, updatePricesInternal]);
 
     useEffect(() => {
-        if (!state.initialized || state.assets.length === 0 || !isApiEnabled()) return undefined;
+        if (!state.initialized || state.assets.length === 0 || !apiEnabled) return undefined;
         const refresh = () => {
-            const currentAssets = getAssets();
-            if (document.visibilityState === 'visible' && shouldRefreshAssets(currentAssets)) void updatePricesInternal(currentAssets);
+            if (document.visibilityState !== 'visible') return;
+            try {
+                const currentAssets = getAssets();
+                if (shouldRefreshAssets(currentAssets)) void updatePricesInternal(currentAssets);
+            } catch (error) { dispatch({ type: 'SET_STORAGE_ERROR', payload: String(error) }); }
         };
         const intervalId = window.setInterval(refresh, PRICE_REFRESH_INTERVAL_MS);
+        refresh();
         document.addEventListener('visibilitychange', refresh);
         return () => {
             window.clearInterval(intervalId);
             document.removeEventListener('visibilitychange', refresh);
         };
-    }, [state.assets.length, state.initialized, updatePricesInternal]);
+    }, [state.assets.length, state.initialized, updatePricesInternal, apiEnabled]);
+
+    useEffect(() => {
+        const sync = (event: StorageEvent) => {
+            if (event.key !== 'freewallet_portfolio_v1' && event.key !== null) return;
+            try {
+                const assets = getAssets();
+                dispatch({ type: 'SET_ASSETS', payload: assets });
+                dispatch({ type: 'SET_TRANSACTIONS', payload: getTransactions() });
+                dispatch({ type: 'SET_LAST_UPDATE', payload: getLatestQuoteAt(assets) });
+            } catch (error) {
+                dispatch({ type: 'SET_STORAGE_ERROR', payload: String(error) });
+            }
+        };
+        window.addEventListener('storage', sync);
+        return () => window.removeEventListener('storage', sync);
+    }, []);
 
     // Public methods
-    const addAsset = useCallback(async (asset: Asset, transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => {
-        addAssetToStorage(asset);
-        dispatch({ type: 'ADD_ASSET', payload: asset });
-        if (transaction) {
-            recordTransaction(transaction);
-        }
-
-        // Refresh prices for all assets after adding new one
-        if (!isApiEnabled()) {
-            return;
-        }
-
-        const allAssets = [...state.assets, asset];
-        await updatePricesInternal(allAssets);
-    }, [recordTransaction, state.assets, updatePricesInternal]);
+    const addAsset = useCallback((asset: Asset, transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => {
+        const assets = [...getAssets(), asset];
+        commit(assets, transaction);
+        if (isApiEnabled()) void updatePricesInternal(assets);
+    }, [commit, updatePricesInternal]);
 
     const updateAsset = useCallback((id: string, updates: Partial<Asset>, transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => {
-        updateAssetInStorage(id, updates);
-        dispatch({ type: 'UPDATE_ASSET', payload: { id, updates } });
-        if (transaction) {
-            recordTransaction(transaction);
-        }
-    }, [recordTransaction]);
+        commit(getAssets().map(a => a.id === id ? { ...a, ...updates } : a), transaction);
+    }, [commit]);
 
     const deleteAsset = useCallback((id: string) => {
-        const assetToDelete = state.assets.find((asset) => asset.id === id);
-        if (assetToDelete) {
-            recordTransaction({
-                assetId: assetToDelete.id,
-                assetSymbol: assetToDelete.symbol,
-                assetName: assetToDelete.name,
-                assetType: assetToDelete.type,
-                type: 'delete',
-                date: new Date().toISOString().split('T')[0],
-                quantity: assetToDelete.quantity,
-                price: assetToDelete.purchasePrice,
-                total: assetToDelete.purchasePrice * assetToDelete.quantity,
-                notes: 'Activo eliminado de la cartera',
-            });
-        }
-        deleteAssetFromStorage(id);
-        dispatch({ type: 'DELETE_ASSET', payload: id });
-    }, [recordTransaction, state.assets]);
+        const assets = getAssets();
+        const asset = assets.find(a => a.id === id);
+        if (!asset) return;
+        commit(assets.filter(a => a.id !== id), {
+            assetId: id, assetSymbol: asset.symbol, assetName: asset.name, assetType: asset.type,
+            type: 'delete', date: new Date().toISOString().slice(0, 10), quantity: asset.quantity,
+            price: asset.purchasePrice, total: asset.purchasePrice * asset.quantity, notes: 'Activo eliminado de la cartera',
+        });
+    }, [commit]);
 
     const sellAsset = useCallback((id: string, quantity: number, price: number, date: string) => {
-        const asset = state.assets.find((item) => item.id === id);
-        if (!asset || quantity <= 0 || quantity > asset.quantity) return;
-        const remainingQuantity = asset.quantity - quantity;
-        recordTransaction({
-            assetId: asset.id,
-            assetSymbol: asset.symbol,
-            assetName: asset.name,
-            assetType: asset.type,
-            type: 'sell',
-            date,
-            quantity,
-            price,
-            total: quantity * price,
-            notes: remainingQuantity === 0 ? 'Cierre total de la posición' : 'Venta parcial',
+        const assets = getAssets();
+        const asset = assets.find(a => a.id === id);
+        if (!asset || !Number.isFinite(quantity) || !Number.isFinite(price) || quantity <= 0 || price <= 0 || quantity > asset.quantity) throw new Error('Venta no válida.');
+        const remaining = asset.quantity - quantity;
+        commit(assets.flatMap(a => a.id !== id ? [a] : remaining > 1e-8 ? [{ ...a, quantity: remaining }] : []), {
+            assetId: id, assetSymbol: asset.symbol, assetName: asset.name, assetType: asset.type,
+            type: 'sell', date, quantity, price, total: quantity * price,
+            notes: remaining > 1e-8 ? 'Venta parcial' : 'Cierre total de la posición',
         });
-        if (remainingQuantity === 0) {
-            deleteAssetFromStorage(id);
-            dispatch({ type: 'DELETE_ASSET', payload: id });
-        } else {
-            updateAssetInStorage(id, { quantity: remainingQuantity });
-            dispatch({ type: 'UPDATE_ASSET', payload: { id, updates: { quantity: remainingQuantity } } });
-        }
-    }, [recordTransaction, state.assets]);
+    }, [commit]);
 
     const refreshPrices = useCallback(async () => {
         if (!isApiEnabled()) {
@@ -299,9 +314,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         await updatePricesInternal(state.assets, true);
     }, [state.assets, updatePricesInternal]);
 
-    const loadDemoData = useCallback(() => {
-        saveAssets(mockAssets);
-        saveHistory(generateMockHistory(365));
+    const loadDemoData = useCallback(async () => {
+        const { mockAssets, generateMockHistory } = await import('../data/mockData');
         const demoTransactions: PortfolioTransaction[] = mockAssets.map((asset) => ({
             id: `demo-${asset.id}`,
             assetId: asset.id,
@@ -316,12 +330,16 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             notes: 'Carga de datos demo',
             createdAt: asset.purchaseDate,
         }));
-        saveTransactions(demoTransactions);
+        try { savePortfolioState(mockAssets, demoTransactions); }
+        catch (error) { dispatch({ type: 'SET_STORAGE_ERROR', payload: String(error) }); return; }
+        try { saveHistory(generateMockHistory(365)); }
+        catch (error) { dispatch({ type: 'SET_STORAGE_ERROR', payload: String(error) }); }
         dispatch({ type: 'SET_ASSETS', payload: mockAssets });
         dispatch({ type: 'SET_TRANSACTIONS', payload: demoTransactions.sort((a, b) => (a.date < b.date ? 1 : -1)) });
         const latestQuoteAt = getLatestQuoteAt(mockAssets);
         if (latestQuoteAt) dispatch({ type: 'SET_LAST_UPDATE', payload: latestQuoteAt });
     }, []);
+    void localRevision;
 
     const value: PortfolioContextValue = {
         state,
@@ -335,6 +353,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
     return (
         <PortfolioContext.Provider value={value}>
+            {state.storageError && <div role="alert">{state.storageError}</div>}
             {children}
         </PortfolioContext.Provider>
     );

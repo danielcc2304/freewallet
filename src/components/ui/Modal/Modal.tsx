@@ -1,7 +1,12 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useEffectEvent, useId, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { Button } from '../Button';
 import './Modal.css';
+
+let openModals = 0;
+let previousBodyOverflow = '';
+const modalStack: HTMLElement[] = [];
 
 interface ModalProps {
     isOpen: boolean;
@@ -13,23 +18,45 @@ interface ModalProps {
 
 export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalProps) {
     const modalRef = useRef<HTMLDivElement>(null);
+    const titleId = useId();
+    const closeFromKeyboard = useEffectEvent(() => onClose());
 
     // Close on escape key
     useEffect(() => {
+        if (!isOpen) return;
+        const dialog = modalRef.current;
+        if (!dialog) return;
+        const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+        const root = document.getElementById('root');
+        const focusable = () => [...dialog.querySelectorAll<HTMLElement>('button:not(:disabled), a[href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex="0"]')].filter(e => e.getClientRects().length > 0);
+        modalStack.push(dialog);
+        if (root) root.inert = true;
+        (focusable()[0] || dialog).focus();
         const handleEscape = (e: KeyboardEvent) => {
-            if (e.key === 'Escape') onClose();
+            if (modalStack.at(-1) !== dialog) return;
+            if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closeFromKeyboard(); }
+            if (e.key === 'Tab') {
+                const nodes = focusable();
+                const first = nodes[0] || dialog;
+                const last = nodes.at(-1) || dialog;
+                if (!dialog.contains(document.activeElement) || (e.shiftKey && document.activeElement === first)) { e.preventDefault(); (e.shiftKey ? last : first).focus(); }
+                else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+            }
         };
 
-        if (isOpen) {
-            document.addEventListener('keydown', handleEscape);
-            document.body.style.overflow = 'hidden';
-        }
+        document.addEventListener('keydown', handleEscape);
+        if (openModals++ === 0) previousBodyOverflow = document.body.style.overflow;
+        document.body.style.overflow = 'hidden';
 
         return () => {
             document.removeEventListener('keydown', handleEscape);
-            document.body.style.overflow = '';
+            const index = modalStack.indexOf(dialog);
+            if (index >= 0) modalStack.splice(index, 1);
+            if (root && !modalStack.length) root.inert = false;
+            if (--openModals === 0) document.body.style.overflow = previousBodyOverflow;
+            if (previousFocus?.isConnected) previousFocus.focus();
         };
-    }, [isOpen, onClose]);
+    }, [isOpen]);
 
     // Close on backdrop click
     const handleBackdropClick = (e: React.MouseEvent) => {
@@ -40,17 +67,19 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
 
     if (!isOpen) return null;
 
-    return (
+    return createPortal(
         <div className="modal-backdrop" onClick={handleBackdropClick}>
             <div
                 ref={modalRef}
                 className={`modal modal--${size}`}
                 role="dialog"
                 aria-modal="true"
-                aria-labelledby={title ? 'modal-title' : undefined}
+                aria-labelledby={title ? titleId : undefined}
+                aria-label={title ? undefined : 'Información de FreeWallet'}
+                tabIndex={-1}
             >
                 <div className="modal__header">
-                    {title && <h2 id="modal-title" className="modal__title">{title}</h2>}
+                    {title && <h2 id={titleId} className="modal__title">{title}</h2>}
                     <button className="modal__close" onClick={onClose} aria-label="Cerrar">
                         <X size={20} />
                     </button>
@@ -59,7 +88,7 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
                     {children}
                 </div>
             </div>
-        </div>
+        </div>, document.body
     );
 }
 

@@ -2,6 +2,7 @@ import { memo, useState, useMemo } from 'react';
 import { ArrowUpDown, Trash2, ChevronUp, ChevronDown, Eye, EyeOff, Pencil, PencilOff, PlusCircle, MinusCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../ui';
 import type { Asset } from '../../types/types';
+import { assetPrice, assetValue, formatQuantity, hasValidPrice } from '../../services/assetValuation';
 import './AssetsTable.css';
 
 interface AssetsTableProps {
@@ -36,18 +37,18 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
     const hasActionHandlers = Boolean(onDelete || onEdit || onAddPurchase || onSell);
 
     const totalValue = assets.reduce(
-        (sum, a) => sum + (a.currentPrice || a.purchasePrice) * a.quantity,
+        (sum, a) => sum + assetValue(a),
         0
     );
 
     const processedAssets = useMemo(() => {
         return assets.map((asset) => {
-            const currentValue = (asset.currentPrice || asset.purchasePrice) * asset.quantity;
+            const currentValue = assetValue(asset);
             const investedValue = asset.purchasePrice * asset.quantity;
             const gain = currentValue - investedValue;
             const changePercent = investedValue > 0 ? (gain / investedValue) * 100 : 0;
             const weight = totalValue > 0 ? (currentValue / totalValue) * 100 : 0;
-            const hasCurrentPrice = Number.isFinite(asset.currentPrice) && asset.currentPrice! > 0;
+            const hasCurrentPrice = hasValidPrice(asset);
             const hasPreviousClose = Number.isFinite(asset.previousClose) && asset.previousClose! > 0;
             const todayChange = hasCurrentPrice && hasPreviousClose
                 ? (asset.currentPrice! - asset.previousClose!) * asset.quantity
@@ -74,7 +75,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
             let comparison = 0;
             switch (sortKey) {
                 case 'symbol':
-                    comparison = a.symbol.localeCompare(b.symbol);
+                    comparison = a.name.localeCompare(b.name, 'es');
                     break;
                 case 'value':
                     comparison = a.currentValue - b.currentValue;
@@ -137,7 +138,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
     const formatPercent = (value: number): string => {
         if (!Number.isFinite(value)) return 'N/D';
         const sign = value > 0 ? '+' : '';
-        return `${sign}${value.toFixed(2)}%`;
+        return `${sign}${value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
     };
 
     if (assets.length === 0) {
@@ -191,8 +192,8 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                         <table className={`assets-table__table ${showMobileDetails ? 'assets-table__table--show-details' : ''} ${showMobileActions ? 'assets-table__table--show-actions' : ''}`}>
                             <thead>
                                 <tr>
-                                    <th className="assets-table__column--asset" onClick={() => handleSort('symbol')}>
-                                        Activo <SortIcon column="symbol" sortKey={sortKey} sortDirection={sortDirection} />
+                                    <th className="assets-table__column--asset" aria-sort={sortKey === 'symbol' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
+                                        <button type="button" className="assets-table__sort" onClick={() => handleSort('symbol')}>Activo <SortIcon column="symbol" sortKey={sortKey} sortDirection={sortDirection} /></button>
                                     </th>
                                     <th className="assets-table__optional">Cantidad</th>
                                     <th className="assets-table__optional">Precio Compra</th>
@@ -200,14 +201,14 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                         <span className="assets-table__current-price-label">Precio Actual</span>
                                         <span className="assets-table__today-label">Variación hoy</span>
                                     </th>
-                                    <th className="assets-table__column--value" onClick={() => handleSort('value')}>
-                                        Valor <SortIcon column="value" sortKey={sortKey} sortDirection={sortDirection} />
+                                    <th className="assets-table__column--value" aria-sort={sortKey === 'value' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
+                                        <button type="button" className="assets-table__sort" onClick={() => handleSort('value')}>Valor <SortIcon column="value" sortKey={sortKey} sortDirection={sortDirection} /></button>
                                     </th>
-                                    <th className="assets-table__column--gain" onClick={() => handleSort('change')}>
-                                        Ganancia <SortIcon column="change" sortKey={sortKey} sortDirection={sortDirection} />
+                                    <th className="assets-table__column--gain" aria-sort={sortKey === 'change' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
+                                        <button type="button" className="assets-table__sort" onClick={() => handleSort('change')}>Ganancia <SortIcon column="change" sortKey={sortKey} sortDirection={sortDirection} /></button>
                                     </th>
-                                    <th className="assets-table__optional" onClick={() => handleSort('weight')}>
-                                        Peso <SortIcon column="weight" sortKey={sortKey} sortDirection={sortDirection} />
+                                    <th className="assets-table__optional" aria-sort={sortKey === 'weight' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
+                                        <button type="button" className="assets-table__sort" onClick={() => handleSort('weight')}>Peso <SortIcon column="weight" sortKey={sortKey} sortDirection={sortDirection} /></button>
                                     </th>
                                     {hasActionHandlers && <th className="assets-table__actions-header">Acciones</th>}
                                 </tr>
@@ -221,7 +222,11 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                     >
                                         <td className="assets-table__column--asset">
                                             <div className="assets-table__asset">
-                                                <span className="assets-table__name">{asset.name}</span>
+                                                <button type="button" className="assets-table__name assets-table__open" onClick={e => { e.stopPropagation(); onViewDetails?.(asset); }} aria-label={`Ver detalles de ${asset.name}`}>{asset.name}</button>
+                                                {!hasValidPrice(asset) && <small>Valor estimado al coste · sin cotización válida</small>}
+                                                <small>{asset.quotedAt && Number.isFinite(Date.parse(asset.quotedAt))
+                                                    ? 'Valoración: ' + new Date(asset.quotedAt).toLocaleDateString('es-ES')
+                                                    : 'Fecha de valoración no disponible'}</small>
                                                 <div className="assets-table__identifiers">
                                                     <span className="assets-table__symbol">{asset.symbol}</span>
                                                     {asset.isin && asset.isin !== asset.symbol && (
@@ -230,10 +235,10 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                                 </div>
                                             </div>
                                         </td>
-                                        <td className="assets-table__optional">{asset.quantity}</td>
+                                        <td className="assets-table__optional">{formatQuantity(asset)}</td>
                                         <td className="assets-table__optional">{formatPrice(asset.purchasePrice)}</td>
                                         <td className="assets-table__column--price">
-                                            <span className="assets-table__current-price">{formatPrice(asset.currentPrice || asset.purchasePrice)}</span>
+                                            <span className="assets-table__current-price">{formatPrice(assetPrice(asset))}</span>
                                             <span className={`assets-table__today ${Number.isFinite(asset.todayChangePercent) && asset.todayChangePercent < 0
                                                 ? 'assets-table__change--negative'
                                                 : Number.isFinite(asset.todayChangePercent) && asset.todayChangePercent > 0

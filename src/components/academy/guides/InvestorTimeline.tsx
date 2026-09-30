@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Check, AlertCircle, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { TIMELINE_PHASES } from '../../../data/academyData';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './InvestorTimeline.css';
 
 export function InvestorTimeline() {
@@ -16,12 +17,12 @@ export function InvestorTimeline() {
 
     return (
         <div className="timeline">
-            <header className="timeline__header">
+            <AcademyPageHeader className="timeline__header" section="Aprender">
                 <h1 className="timeline__title">Tu Journey como Inversor</h1>
                 <p className="timeline__description">
                     Una guía visual que te acompaña en cada etapa de tu camino como inversor.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             <div className="timeline__disclaimer">
                 <strong>⚠️ Importante:</strong> Esta línea temporal es una guía orientativa.

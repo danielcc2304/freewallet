@@ -3,6 +3,7 @@ import {
     Building2, ArrowLeft, Globe, Zap, CheckCircle2, AlertTriangle,
     Lightbulb, Home, Building, Factory, Truck, Shield
 } from 'lucide-react';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './AssetPage.css';
 
 const REIT_TYPES = [
@@ -43,7 +44,7 @@ export function AssetREITs() {
                 <ArrowLeft size={18} /> Volver a Carteras
             </Link>
 
-            <header className="asset-page__hero" style={{ '--hero-color': '#8b5cf6' } as React.CSSProperties}>
+            <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#8b5cf6' } as React.CSSProperties}>
                 <div className="asset-page__hero-icon">
                     <Building2 size={48} />
                 </div>
@@ -66,7 +67,7 @@ export function AssetREITs() {
                         <span className="hero-stat__label">Horizonte recomendado</span>
                     </div>
                 </div>
-            </header>
+            </AcademyPageHeader>
 
             <section className="asset-page__section">
                 <h2><Globe size={22} /> ¿Qué son los REITs?</h2>

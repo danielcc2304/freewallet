@@ -1,17 +1,18 @@
 import { Receipt, ShieldCheck, Landmark, ArrowDownRight, ArrowUpRight, Scale } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './Taxation.css';
 
 export function Taxation() {
     return (
         <div className="tax-info">
-            <header className="tax-info__header">
+            <AcademyPageHeader className="tax-info__header" section="Construir">
                 <h1 className="tax-info__title">Fiscalidad del Inversor</h1>
                 <p className="tax-info__subtitle">
                     En España, entender cómo tributan tus inversiones es clave para optimizar tu rentabilidad neta.
                     No es lo que ganas, sino lo que te queda después de impuestos.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             <section className="tax-info__brackets">
                 <h2 className="tax-info__section-title">1. Base Imponible del Ahorro</h2>

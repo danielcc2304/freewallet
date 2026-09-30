@@ -1,17 +1,18 @@
 import { BarChart3, TrendingUp, Zap, Repeat, Target, ArrowRight, ShieldCheck, HelpCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './Strategies.css';
 
 export function Strategies() {
     return (
         <div className="strategies">
-            <header className="strategies__header">
+            <AcademyPageHeader className="strategies__header" section="Construir">
                 <h1 className="strategies__title">Estrategias de Inversión</h1>
                 <p className="strategies__subtitle">
                     No existe una "mejor" estrategia universal, pero sí una que se adapta mejor a tus objetivos y temperamento.
                     Elige tu camino y mantén el rumbo.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             <section className="strategies__active-passive">
                 <h2 className="strategies__section-title">1. Gestión Pasiva vs. Activa</h2>

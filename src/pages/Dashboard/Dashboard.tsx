@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio } from 'lucide-react';
+import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio, Wrench, GraduationCap, Settings, FileSpreadsheet } from 'lucide-react';
 import { PortfolioSummary } from '../../components/dashboard/PortfolioSummary';
 import { Performers } from '../../components/dashboard/Performers';
 import { AssetsTable } from '../../components/dashboard/AssetsTable';
@@ -9,27 +9,42 @@ import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan'
 import { PortfolioComposition } from '../../components/dashboard/PortfolioComposition';
 import { AssetDetail } from '../../components/dashboard/AssetDetail';
 import { UnderlyingAssetDetail } from '../../components/dashboard/UnderlyingAssetDetail';
-import { Button, Card, CardContent, Modal } from '../../components/ui';
+import { Button, Card, CardContent, Modal, PageHeader } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { getHistory, isApiEnabled } from '../../services/storageService';
-import type { PortfolioMetrics, PerformerData, Asset, AssetHolding } from '../../types/types';
-import { buildPortfolioAnalyticsHistory, calculatePeriodPerformance, calculatePreviousClosePerformance, createQuoteSnapshot, getPeriodCutoff, normalizePortfolioTransactions, performanceSeries } from '../../services/portfolioPerformance';
-import { readWorkbookHistory } from '../../services/portfolioWorkbookHistory';
+import { isApiEnabled } from '../../services/storageService';
+import type { PortfolioMetrics, PerformerData, Asset, AssetHolding, TimePeriod } from '../../types/types';
+import { calculatePreviousClosePerformance, selectPortfolioPeriod } from '../../services/portfolioPerformance';
+import { assetValue, hasValidPrice } from '../../services/assetValuation';
+import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
+import { useDashboardAnalytics } from '../../components/dashboard/useDashboardAnalytics';
+import type { performanceSeries } from '../../services/portfolioPerformance';
 import type { ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
 import './Dashboard.css';
 import { PRICE_REFRESH_INTERVAL_MS } from '../../constants/app';
 
-const DAY_MS = 24 * 60 * 60 * 1000;
 const DASHBOARD_CALCULATION_TICK_MS = 60 * 1000;
+const DASHBOARD_NOTICE_STORAGE_KEY = 'freewallet-dashboard-notice-dismissed';
+
+function hasDismissedDashboardNotice(): boolean {
+    if (typeof window === 'undefined') return false;
+
+    try {
+        return window.localStorage.getItem(DASHBOARD_NOTICE_STORAGE_KEY) === '1';
+    } catch {
+        return false;
+    }
+}
 
 function DashboardLiveStatus({
     apiEnabled,
     updatingPrices,
     lastPriceUpdate,
+    lastRefreshAttempt,
 }: {
     apiEnabled: boolean;
     updatingPrices: boolean;
     lastPriceUpdate: Date | null;
+    lastRefreshAttempt: Date | null;
 }) {
     const [now, setNow] = useState(() => Date.now());
 
@@ -49,8 +64,8 @@ function DashboardLiveStatus({
         return <span className="dashboard__live-status"><Radio size={13} /> Auto desactivada</span>;
     }
 
-    const nextRefreshSeconds = lastPriceUpdate
-        ? Math.max(0, Math.ceil((lastPriceUpdate.getTime() + PRICE_REFRESH_INTERVAL_MS - now) / 1000))
+    const nextRefreshSeconds = (lastRefreshAttempt || lastPriceUpdate)
+        ? Math.max(0, Math.ceil(((lastRefreshAttempt || lastPriceUpdate)!.getTime() + PRICE_REFRESH_INTERVAL_MS - now) / 1000))
         : null;
     const countdownLabel = nextRefreshSeconds === null
         ? 'preparando…'
@@ -65,43 +80,71 @@ function DashboardLiveStatus({
 }
 
 export function Dashboard() {
+    useLocalDataVersion();
+    const [dashboardPeriod, setDashboardPeriod] = useState<TimePeriod>('ALL');
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
-    const { assets, loading, updatingPrices, lastPriceUpdate } = state;
+    const { assets, loading, updatingPrices, lastPriceUpdate, quoteFailures } = state;
     const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
     const [selectedHolding, setSelectedHolding] = useState<{
         holding: AssetHolding;
         parentAsset: Asset;
         exposure?: ConsolidatedPortfolioExposure;
     } | null>(null);
+    const [showDashboardNotice, setShowDashboardNotice] = useState(() => !hasDismissedDashboardNotice());
     // Expensive portfolio calculations do not need a one-second clock. Keep
     // the live countdown isolated in DashboardLiveStatus below.
     const [calculationNow, setCalculationNow] = useState(() => Date.now());
     const navigate = useNavigate();
     const apiEnabled = isApiEnabled();
-    const workbookHistory = useMemo(() => readWorkbookHistory(), []);
-    const usingWorkbookHistory = workbookHistory.points.length >= 2;
-    const portfolioTransactions = useMemo(
-        () => normalizePortfolioTransactions(assets, state.transactions),
-        [assets, state.transactions],
-    );
-    const currentSnapshot = useMemo(
-        () => createQuoteSnapshot(assets, portfolioTransactions, new Date(calculationNow).toISOString()),
-        [assets, calculationNow, portfolioTransactions],
-    );
-    const workbookSeries = useMemo(
-        () => usingWorkbookHistory
-            ? performanceSeries(
-                [...workbookHistory.points, ...(currentSnapshot ? [currentSnapshot] : [])],
-                workbookHistory.flowTransactions,
-                assets,
-                {
-                maxGapDays: workbookHistory.source === 'monthly' ? 45 : 16,
-                },
-            )
-            : [],
-        [assets, currentSnapshot, usingWorkbookHistory, workbookHistory],
-    );
+    const analytics = useDashboardAnalytics(calculationNow);
+    const { series: historicalSeries, liveSeries } = analytics;
     const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || null;
+
+    const handleCloseDashboardNotice = () => {
+        setShowDashboardNotice(false);
+        try {
+            window.localStorage.setItem(DASHBOARD_NOTICE_STORAGE_KEY, '1');
+        } catch {
+            // Ignore storage failures; the notice remains dismissed for this mount.
+        }
+    };
+
+    const dashboardNoticeModal = (
+        <Modal
+            isOpen={showDashboardNotice}
+            onClose={handleCloseDashboardNotice}
+            size="md"
+        >
+            <div className="dashboard__notice dashboard__notice--hero">
+                <div className="dashboard__notice-icon">
+                    <Wrench size={44} />
+                </div>
+                <h2 className="dashboard__notice-title">Dashboard en desarrollo</h2>
+                <p className="dashboard__notice-description">
+                    Esta vista incorpora por ahora solo la funcionalidad básica. Los datos de los activos que introduzcas y las
+                    gráficas pueden ser inexactos, incompletos o provisionales. Utiliza esta información como referencia y
+                    comprueba los datos antes de tomar decisiones de inversión.
+                </p>
+                <div className="dashboard__notice-links">
+                    <Link to="/academy" onClick={handleCloseDashboardNotice}>
+                        <GraduationCap size={18} />
+                        Academia
+                    </Link>
+                    <Link to="/settings" onClick={handleCloseDashboardNotice}>
+                        <Settings size={18} />
+                        Configuración
+                    </Link>
+                    <Link to="/portfolio-csv" onClick={handleCloseDashboardNotice}>
+                        <FileSpreadsheet size={18} />
+                        Portfolio
+                    </Link>
+                </div>
+                <Button onClick={handleCloseDashboardNotice} size="lg" fullWidth>
+                    Entendido
+                </Button>
+            </div>
+        </Modal>
+    );
 
     useEffect(() => {
         const update = () => {
@@ -140,33 +183,23 @@ export function Dashboard() {
     const metrics: PortfolioMetrics = useMemo(() => {
         const totalInvested = assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0);
         const currentValue = assets.reduce(
-            (sum, a) => sum + (a.currentPrice || a.purchasePrice) * a.quantity,
+            (sum, a) => sum + assetValue(a),
             0
         );
         const totalGain = currentValue - totalInvested;
         const percentageGain = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
 
-        const liveSeries = performanceSeries(
-            buildPortfolioAnalyticsHistory(getHistory(), portfolioTransactions, currentSnapshot || undefined, assets),
-            portfolioTransactions,
-            assets,
-        );
-        const historicalSeries = usingWorkbookHistory ? workbookSeries : liveSeries;
-        const periodChange = (periodName: '1D' | '1M' | '3M' | 'YTD', source: ReturnType<typeof performanceSeries>, maxBaseGap: number) => {
-            const cutoff = getPeriodCutoff(periodName, calculationNow);
-            const period = calculatePeriodPerformance(source, cutoff ?? Number.NEGATIVE_INFINITY, calculationNow, maxBaseGap);
+        const periodChange = (periodName: TimePeriod, source: ReturnType<typeof performanceSeries>) => {
+            const { performance: period } = selectPortfolioPeriod(source, periodName, calculationNow);
             return {
+                baseDate: period.baseDate, endDate: period.endDate,
                 hasBase: period.hasBase && period.returnPercent !== null,
                 change: period.returnPercent === null ? NaN : period.change ?? NaN,
                 percent: period.returnPercent ?? NaN,
             };
         };
-        const historicalGap = usingWorkbookHistory && workbookHistory.source === 'monthly' ? 45 * DAY_MS : 4 * DAY_MS;
-        const historicalDay = periodChange(
-            '1D',
-            liveSeries.length > 0 ? liveSeries : historicalSeries,
-            4 * DAY_MS,
-        );
+        const liveDay = periodChange('1D', liveSeries);
+        const historicalDay = liveDay.hasBase ? liveDay : periodChange('1D', historicalSeries);
         const previousClose = calculatePreviousClosePerformance(assets);
         const day = historicalDay.hasBase
             ? historicalDay
@@ -175,9 +208,11 @@ export function Dashboard() {
                 change: previousClose.change ?? NaN,
                 percent: previousClose.returnPercent ?? NaN,
             };
-        const month = periodChange('1M', historicalSeries, historicalGap);
-        const quarter = periodChange('3M', historicalSeries, historicalGap);
-        const ytd = periodChange('YTD', historicalSeries, historicalGap);
+        const week = periodChange('7D', historicalSeries);
+        const month = periodChange('1M', historicalSeries);
+        const quarter = periodChange('3M', historicalSeries);
+        const ytd = periodChange('YTD', historicalSeries);
+        const all = periodChange('ALL', historicalSeries);
 
         return {
             totalInvested,
@@ -192,12 +227,15 @@ export function Dashboard() {
             threeMonthChangePercent: quarter.percent,
             ytdChange: ytd.change,
             ytdChangePercent: ytd.percent,
+            weeklyChange: week.change, weeklyChangePercent: week.percent,
+            historyChange: all.change, historyChangePercent: all.percent,
+            periodDates: { '1D': historicalDay, '7D': week, '1M': month, '3M': quarter, YTD: ytd, ALL: all },
         };
-    }, [assets, calculationNow, currentSnapshot, portfolioTransactions, usingWorkbookHistory, workbookHistory, workbookSeries]);
+    }, [assets, calculationNow, historicalSeries, liveSeries]);
 
     const performersData: PerformerData[] = useMemo(() => {
         return assets.map((asset) => {
-            const currentValue = (asset.currentPrice || asset.purchasePrice) * asset.quantity;
+            const currentValue = assetValue(asset);
             const investedValue = asset.purchasePrice * asset.quantity;
             const change = currentValue - investedValue;
             const changePercent = investedValue > 0 ? (change / investedValue) * 100 : 0;
@@ -215,17 +253,21 @@ export function Dashboard() {
 
     if (loading) {
         return (
-            <div className="dashboard dashboard--loading">
+            <>
+                <div className="dashboard dashboard--loading">
                     <div className="skeleton skeleton--large" />
                     <div className="skeleton skeleton--medium" />
                     <div className="skeleton skeleton--medium" />
-            </div>
+                </div>
+                {dashboardNoticeModal}
+            </>
         );
     }
 
-    if (assets.length === 0) {
+    if (assets.length === 0 && historicalSeries.length === 0) {
         return (
-            <div className="dashboard dashboard--empty">
+            <>
+                <div className="dashboard dashboard--empty">
                     <Card className="dashboard__welcome">
                         <CardContent>
                             <div className="welcome-content">
@@ -252,20 +294,22 @@ export function Dashboard() {
                             </div>
                         </CardContent>
                     </Card>
-            </div>
+                </div>
+                {dashboardNoticeModal}
+            </>
         );
     }
 
     return (
         <div className="dashboard">
-            <div className="dashboard__header">
-                <div>
+            <PageHeader className="dashboard__header" eyebrow="Cartera">
+                <div className="dashboard__header-content">
                     <h1 className="dashboard__title">Dashboard</h1>
                     <p className="dashboard__subtitle">
                         Seguimiento automático de tu cartera
                         {lastPriceUpdate && (
                             <span className="dashboard__last-update">
-                                · Actualizado: {lastPriceUpdate.toLocaleTimeString()}
+                                · Consultado: {lastPriceUpdate.toLocaleTimeString()}
                             </span>
                         )}
                     </p>
@@ -273,9 +317,10 @@ export function Dashboard() {
                         apiEnabled={apiEnabled}
                         updatingPrices={updatingPrices}
                         lastPriceUpdate={lastPriceUpdate}
+                        lastRefreshAttempt={state.lastRefreshAttempt}
                     />
                 </div>
-            </div>
+            </PageHeader>
 
             {updatingPrices && (
                 <div className="dashboard__updating-banner">
@@ -284,7 +329,8 @@ export function Dashboard() {
                 </div>
             )}
 
-            <PortfolioSummary metrics={metrics} />
+            {assets.some(a => !hasValidPrice(a)) && <p role="status">Parte del valor actual está estimada al coste: faltan cotizaciones válidas.</p>}
+            <PortfolioSummary metrics={metrics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} />
             <section className="dashboard__section">
                 <AssetsTable
                     assets={assets}
@@ -296,7 +342,8 @@ export function Dashboard() {
                 />
             </section>
             <section className="dashboard__section">
-                <PortfolioExcelInsights now={calculationNow} />
+                <p role="status">{assets.filter(a => Number.isFinite(Date.parse(a.lastCheckedAt || a.lastQuoteAt || '')) && calculationNow - Date.parse(a.lastCheckedAt || a.lastQuoteAt!) <= 15 * 60 * 1000).length} de {assets.length} posiciones consultadas recientemente{quoteFailures ? ` · ${quoteFailures} pendientes; se reintentará automáticamente` : ''}. La fecha de valoración depende de cada mercado.</p>
+                <PortfolioExcelInsights now={calculationNow} analytics={analytics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} />
             </section>
 
             <section className="dashboard__section dashboard__performers">
@@ -313,13 +360,13 @@ export function Dashboard() {
             </section>
 
             <section className="dashboard__section">
-                <LivePortfolioPlan now={calculationNow} section="monthly" />
+                <LivePortfolioPlan analytics={analytics} section="monthly" />
             </section>
             <section className="dashboard__section">
-                <LivePortfolioPlan now={calculationNow} section="recent" />
+                <LivePortfolioPlan analytics={analytics} section="recent" />
             </section>
             <section className="dashboard__section">
-                <LivePortfolioPlan now={calculationNow} section="plan" />
+                <LivePortfolioPlan analytics={analytics} section="plan" />
             </section>
 
             <Modal
@@ -341,6 +388,7 @@ export function Dashboard() {
                     <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} />
                 ) : null}
             </Modal>
+            {dashboardNoticeModal}
             <div className="dashboard__floating-actions" aria-label="Acciones de cartera">
                 <Button
                     variant="secondary"

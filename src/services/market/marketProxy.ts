@@ -36,16 +36,17 @@ export function getNextProxy(): ProxyConfig {
     return proxy;
 }
 
-export function markProxyFailure(proxyUrl: string, err?: any) {
-    if (axios.isCancel(err) || err?.name === 'AbortError') return;
+export function markProxyFailure(proxyUrl: string, err?: unknown) {
+    if (axios.isCancel(err) || (err instanceof Error && err.name === 'AbortError')) return;
 
-    const status = err?.response?.status;
-    const isNetworkError = !status && err?.code;
+    const status = axios.isAxiosError(err) ? err.response?.status : undefined;
+    const code = axios.isAxiosError(err) ? err.code : undefined;
+    const isNetworkError = !status && Boolean(code);
     const isRateLimit = status === 429;
-    const isServerError = status >= 500;
+    const isServerError = status !== undefined && status >= 500;
 
     if (isNetworkError || isRateLimit || isServerError) {
-        console.warn(`[Proxy] Penalty for ${proxyUrl}:`, err?.message || status);
+        console.warn(`[Proxy] Penalty for ${proxyUrl}:`, err instanceof Error ? err.message : status);
         PROXY_COOLDOWN.set(proxyUrl, Date.now() + COOLDOWN_MS);
     }
 }

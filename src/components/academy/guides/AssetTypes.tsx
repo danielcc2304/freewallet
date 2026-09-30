@@ -1,8 +1,9 @@
-import { TrendingUp, ShieldCheck, Building2, Coins, Wallet, Landmark, Info, AlertTriangle, CheckCircle2 } from 'lucide-react';
+import { TrendingUp, ShieldCheck, Building2, Coins, Wallet, Landmark, Info, AlertTriangle, CheckCircle2, type LucideIcon } from 'lucide-react';
 import { ASSET_CLASSES_DETAIL } from '../../../data/academyData';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './AssetTypes.css';
 
-const IconMap: Record<string, any> = {
+const IconMap: Record<string, LucideIcon> = {
     acciones: TrendingUp,
     bonos: ShieldCheck,
     reits: Building2,
@@ -14,12 +15,12 @@ const IconMap: Record<string, any> = {
 export function AssetTypes() {
     return (
         <div className="asset-types-page">
-            <header className="asset-types-page__header">
+            <AcademyPageHeader className="asset-types-page__header" section="Aprender">
                 <h1 className="asset-types-page__title">Explorando los Activos</h1>
                 <p className="asset-types-page__subtitle">
                     Cada clase de activo tiene una personalidad única. Entender cómo se comportan es vital para construir una cartera que sobreviva a cualquier clima económico.
                 </p>
-            </header>
+            </AcademyPageHeader>
 
             <div className="asset-types-grid">
                 {ASSET_CLASSES_DETAIL.map((asset) => {

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import {
     ChevronDown,
     Feather,
@@ -29,12 +29,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     const [academyExpanded, setAcademyExpanded] = useState(isAcademyRoute);
     const [toolsExpanded, setToolsExpanded] = useState(isToolRoute);
     const toolsAreExpanded = toolsExpanded || isToolRoute;
-
-    useEffect(() => {
-        if (isAcademyRoute) {
-            setAcademyExpanded(true);
-        }
-    }, [isAcademyRoute]);
+    const academyIsExpanded = academyExpanded || isAcademyRoute;
 
     const navItems = [
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
@@ -42,7 +37,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     ];
 
     const handleAcademyToggle = () => {
-        setAcademyExpanded(!academyExpanded);
+        setAcademyExpanded(!academyIsExpanded);
     };
 
     const closeMobileSidebar = () => {
@@ -127,12 +122,12 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                             <GraduationCap className="sidebar__link-icon" size={20} />
                             <span className="sidebar__link-text">Academia</span>
                             <ChevronDown
-                                className={`sidebar__chevron ${academyExpanded ? 'sidebar__chevron--open' : ''}`}
+                                className={`sidebar__chevron ${academyIsExpanded ? 'sidebar__chevron--open' : ''}`}
                                 size={16}
                             />
                         </button>
 
-                        <div className={`sidebar__sub-nav ${academyExpanded ? 'sidebar__sub-nav--open' : ''}`}>
+                        <div className={`sidebar__sub-nav ${academyIsExpanded ? 'sidebar__sub-nav--open' : ''}`}>
                             <div className="sidebar__sub-nav-inner">
                                 {academySidebarGroups.filter((group) => group !== 'Herramientas').map((group) => (
                                     <div key={group} className="sidebar__sub-group">

@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import {
     Target, ArrowRight, RotateCcw, Shield, Scale,
-    TrendingUp, PieChart, CheckCircle2, ChevronRight
+    TrendingUp, PieChart, CheckCircle2, ChevronRight, type LucideIcon
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './InvestorProfileTest.css';
 
 interface Question {
@@ -97,7 +98,7 @@ export function InvestorProfileTest() {
         }
     };
 
-    const getProfile = (): { type: ProfileType; icon: any; desc: string; auth: string } => {
+    const getProfile = (): { type: ProfileType; icon: LucideIcon; desc: string; auth: string } => {
         if (score <= 9) {
             return {
                 type: 'Conservador',
@@ -127,10 +128,10 @@ export function InvestorProfileTest() {
 
     return (
         <div className="investor-profile">
-            <header className="investor-profile__header">
+            <AcademyPageHeader className="investor-profile__header" section="Construir">
                 <h1>Test de Perfil de Inversor</h1>
                 <p>Descubre qué tipo de inversor eres y qué estrategia se adapta mejor a tu psicología y objetivos.</p>
-            </header>
+            </AcademyPageHeader>
 
             <div className="quiz-card">
                 {step === 'start' && (

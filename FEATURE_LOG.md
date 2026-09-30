@@ -12,6 +12,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-30 - v5.3.10 - Cobertura del benchmark e intervalos mensuales
+- Funcionalidad:
+  - La comparativa con MSCI World conserva los puntos disponibles cuando faltan cotizaciones en parte del periodo, sin unir tramos de rentabilidad desconocida.
+  - El resumen mensual distingue intervalos mensuales, diarios y entre valoraciones para no confundirlos con días cubiertos.
+  - Se simplifica el texto del periodo efectivo del resumen.
+- Resumen:
+  - Comparativas parciales visibles y cobertura del histórico más clara.
+- Archivos:
+  - `src/services/portfolioPerformance.ts`, `src/components/dashboard/LivePortfolioPlan.tsx`
+  - `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`, `scripts/test-import-benchmark-coverage.ts`
+
 ### 2026-09-30 - Correcciones de la auditoría del Dashboard
 - Funcionalidad:
   - Periodo compartido entre resumen, evolución y benchmark, con bases verificables y protección frente a huecos diarios.

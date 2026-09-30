@@ -316,7 +316,7 @@ export function AddInvestment() {
     };
 
     const handleInputChange = (field: keyof FormData, value: string) => {
-        setFormData(prev => ({ ...prev, [field]: value }));
+        setFormData(prev => ({ ...prev, [field]: value, ...(field === 'type' && value === 'cash' ? { purchasePrice: '1', isin: '' } : {}) }));
         if (errors[field as keyof FormErrors]) {
             setErrors(prev => ({ ...prev, [field]: undefined }));
         }
@@ -462,6 +462,7 @@ export function AddInvestment() {
         { value: 'etf', label: 'ETF' },
         { value: 'fund', label: 'Fondo' },
         { value: 'crypto', label: 'Crypto' },
+        { value: 'cash', label: 'Liquidez / efectivo' },
     ];
 
     const operationTotal = (parseFloat(formData.purchasePrice) || 0) * (parseFloat(formData.quantity) || 0);
@@ -681,6 +682,7 @@ export function AddInvestment() {
                                     min="0"
                                     placeholder="0.000000"
                                     value={formData.purchasePrice}
+                                    disabled={formData.type === 'cash'}
                                     onChange={(e) => handleInputChange('purchasePrice', e.target.value)}
                                     icon={<Coins size={18} />}
                                     error={errors.purchasePrice}
@@ -689,7 +691,7 @@ export function AddInvestment() {
 
                             <div className="form-group">
                                 <Input
-                                    label={isDcaMode ? 'Nueva cantidad' : isSellMode ? 'Cantidad a vender' : 'Cantidad'}
+                                    label={formData.type === 'cash' ? 'Saldo en euros' : isDcaMode ? 'Nueva cantidad' : isSellMode ? 'Cantidad a vender' : 'Cantidad'}
                                     type="number"
                                     step="0.0001"
                                     min="0"

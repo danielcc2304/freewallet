@@ -26,7 +26,7 @@ assert.deepEqual(createMarketPortfolioHistory([asset], purchases, new Map([[asse
 
 const workbook = buildWorkbookHistory('2026\nMes,Valor Total,Capital Inicial,Capital Aportado,Plusvalias,% mens.,TWR YTD\nEne,1000,1000,0,,,\nFeb,1000,1000,0,,,', '');
 const additional = trade('after-import', '2026-03-05', 'buy', 5);
-const combined = continueWorkbookHistory(workbook, [{ date: '2026-03-10', value: 1500, invested: 1500 }], [...purchases, additional], Date.parse('2026-03-11'));
+const combined = continueWorkbookHistory(workbook, [{ date: '2026-03-10', value: 1500, invested: 1500 }], [...purchases, additional], Date.parse('2026-03-11'), true);
 assert.equal(combined.transactions.filter(t => t.id === additional.id).length, 1);
 assert.ok(!combined.transactions.some(t => t.id === 'dca'), 'Operations covered by the imported close must not be duplicated');
 assert.equal(performanceSeries(combined.history, combined.transactions, [], { maxGapDays: 45 }).at(-1)?.dailyReturn, 0);

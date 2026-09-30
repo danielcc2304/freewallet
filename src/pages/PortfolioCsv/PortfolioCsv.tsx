@@ -31,7 +31,6 @@ import {
     XAxis,
     YAxis,
 } from 'recharts';
-import * as XLSX from 'xlsx';
 import {
     BUCKET_LABELS,
     CATEGORY_LABELS,
@@ -297,6 +296,7 @@ export function PortfolioCsv() {
             localStorage.setItem(STORAGE_KEYS.updatedAt, updatedAt);
             localStorage.setItem(STORAGE_KEYS.categoryOverrides, JSON.stringify(categoryOverrides));
             localStorage.setItem(STORAGE_KEYS.bucketTargets, JSON.stringify(bucketTargets));
+            window.dispatchEvent(new Event('freewallet-data-change'));
         } catch {
             // localStorage puede fallar en modo privado o por limites de cuota.
         }
@@ -476,6 +476,7 @@ export function PortfolioCsv() {
     const onUploadWorkbook = async (file: File) => {
         try {
             const buffer = await file.arrayBuffer();
+            const XLSX = await import('xlsx');
             const workbook = XLSX.read(buffer, { type: 'array' });
             const normalizedNames = workbook.SheetNames.reduce<Record<string, string>>((acc, sheetName) => {
                 acc[normalizeSheetName(sheetName)] = sheetName;

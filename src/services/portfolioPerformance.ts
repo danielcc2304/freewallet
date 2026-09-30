@@ -46,7 +46,7 @@ export function normalizePortfolioTransactions(assets: Asset[], transactions: Po
     const result = [...transactions];
     for (const asset of assets) {
         if (transactions.some(transaction => transaction.assetId === asset.id)) continue;
-        result.push({ id: `position-${asset.id}`, assetId: asset.id, assetSymbol: asset.symbol, assetName: asset.name,
+        result.push({ provenance: 'initial-position', id: `position-${asset.id}`, assetId: asset.id, assetSymbol: asset.symbol, assetName: asset.name,
             assetType: asset.type, type: 'buy', date: asset.purchaseDate, quantity: asset.quantity,
             price: asset.purchasePrice, total: asset.purchasePrice * asset.quantity, createdAt: asset.purchaseDate });
     }
@@ -70,7 +70,14 @@ export function portfolioLedgerKey(transactions: PortfolioTransaction[], date: s
 }
 
 export function createQuoteSnapshot(assets: Asset[], transactions: PortfolioTransaction[], date: string): PortfolioHistoryPoint | null {
-    if (!assets.length || assets.some(a => !Number.isFinite(a.currentPrice) || a.currentPrice! <= 0 || a.currency !== 'EUR')) return null;
+    if (!assets.length || assets.some(a => !Number.isFinite(a.currentPrice) || a.currentPrice! < 0 || a.currency !== 'EUR')) return null;
+    const now = Date.parse(date);
+    if (!Number.isFinite(now) || assets.some(a => !Number.isFinite(a.quantity) || a.quantity < 0 || !Number.isFinite(a.purchasePrice) || a.purchasePrice < 0)) return null;
+    // A recent successful consultation may verify an older fund NAV, but opening
+    // the dashboard never counts as a new consultation.
+    if (assets.some(a => a.type !== 'cash' && (!Number.isFinite(Date.parse(a.lastCheckedAt || a.quotedAt || a.lastQuoteAt || ''))
+        || now - Date.parse(a.lastCheckedAt || a.quotedAt || a.lastQuoteAt!) > 15 * 60000
+        || Date.parse(a.lastCheckedAt || a.quotedAt || a.lastQuoteAt!) > now))) return null;
     return { date, value: assets.reduce((sum, a) => sum + a.currentPrice! * a.quantity, 0),
         invested: assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0),
         source: 'quotes-v2', ledgerKey: portfolioLedgerKey(normalizePortfolioTransactions(assets, transactions), date) };
@@ -82,16 +89,12 @@ export function createQuoteSnapshot(assets: Asset[], transactions: PortfolioTran
  * the current day (for example after importing monthly workbook data).
  */
 export function calculatePreviousClosePerformance(assets: Asset[]) {
-    if (!assets.length || assets.some(a => !Number.isFinite(a.currentPrice) || a.currentPrice! <= 0 || !Number.isFinite(a.previousClose) || a.previousClose! <= 0)) {
+    if (!assets.length || assets.some(a => !Number.isFinite(a.quantity) || a.quantity < 0 || (a.type !== 'cash' && (!Number.isFinite(a.currentPrice) || a.currentPrice! < 0 || !Number.isFinite(a.previousClose) || a.previousClose! <= 0)))) {
         return { change: null as number | null, returnPercent: null as number | null };
     }
     const values = assets.map((asset) => {
-        const currentPrice = Number.isFinite(asset.currentPrice) && asset.currentPrice! > 0
-            ? asset.currentPrice!
-            : asset.purchasePrice;
-        const previousPrice = Number.isFinite(asset.previousClose) && asset.previousClose! > 0
-            ? asset.previousClose!
-            : asset.purchasePrice;
+        const currentPrice = asset.type === 'cash' ? 1 : asset.currentPrice!;
+        const previousPrice = asset.type === 'cash' ? 1 : asset.previousClose!;
         return {
             current: currentPrice * asset.quantity,
             previous: previousPrice * asset.quantity,
@@ -119,6 +122,7 @@ export function createMarketPortfolioHistory(
     if (ledger.some(t => !getTransactionEventDay(t))) return [];
     const ids = new Set([...assets.map(a => a.id), ...ledger.map(t => t.assetId)]);
     const positions = [...ids].map(id => ({
+        isCash: assets.find(a => a.id === id)?.type === 'cash' || ledger.find(t => t.assetId === id)?.assetType === 'cash',
         operations: ledger.filter(t => t.assetId === id).sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt)),
         quotes: (assetHistory.get(id) || []).map(p => ({ ...p, day: accountingDay(p.date) })).filter(p => p.day).sort((a, b) => a.day.localeCompare(b.day)),
         operationIndex: 0, quoteIndex: -1, quantity: 0, cost: 0, invalid: false,
@@ -141,6 +145,7 @@ export function createMarketPortfolioHistory(
             while (position.quoteIndex + 1 < position.quotes.length && position.quotes[position.quoteIndex + 1].day <= day) position.quoteIndex++;
             if (position.invalid) { complete = false; continue; }
             if (position.quantity <= 1e-8) continue;
+            if (position.isCash) { value += position.quantity; invested += position.cost; continue; }
             const quote = position.quotes[position.quoteIndex];
             if (!quote || quote.close <= 0 || quote.currency !== 'EUR' || Date.parse(day) - Date.parse(quote.day) > 8 * DAY_MS) { complete = false; continue; }
             value += quote.close * position.quantity;
@@ -188,7 +193,8 @@ export function performanceSeries(history: PortfolioHistoryPoint[], transactions
         const unexplainedCostChange = previous && !operations.length && Math.abs(point.invested - previous[1].invested) > 0.01;
         // ALL-period market candles are weekly; allow a holiday fortnight but
         // still reject monthly/unknown gaps that would fabricate a return.
-        const valid = !!previous && previous[1].value > 0 && gap > 0 && gap <= maxGapDays && Number.isFinite(flow) &&
+        const intervalGap = point.cadence === 'daily' ? Math.min(maxGapDays, 8) : point.cadence === 'monthly' ? 45 : maxGapDays;
+        const valid = !!previous && previous[1].value > 0 && gap > 0 && gap <= intervalGap && Number.isFinite(flow) &&
             !point.returnUnavailable && !unexplainedCostChange && !operations.some(t => !getTransactionEventDay(t) || t.type === 'edit' || t.type === 'delete');
         const rawReturn = valid ? (point.value - previous[1].value - flow) / previous[1].value * 100 : null;
         const intervalReturn = rawReturn !== null && Math.abs(rawReturn) < 1e-10 ? 0 : rawReturn;
@@ -218,6 +224,19 @@ export function calculatePeriodPerformance(series: ReturnType<typeof performance
     return { hasBase: true, baseDate: base.date, endDate: points.at(-1)!.date,
         change: points.at(-1)!.value - base.value - flow, returnPercent: (growth - 1) * 100,
         netFlow: flow, observations: selected.length, missingIntervals: 0 };
+}
+
+/** Shared real base and coverage for summary, evolution and benchmark. */
+export function selectPortfolioPeriod(series: ReturnType<typeof performanceSeries>, period: TimePeriod, now: number) {
+    const cutoff = getPeriodCutoff(period, now);
+    const available = series.filter(p => p.timestamp <= now);
+    const previous = cutoff === null ? available[0] : available.filter(p => p.timestamp <= cutoff).at(-1);
+    const following = cutoff === null ? undefined : available.find(p => p.timestamp > cutoff);
+    const base = cutoff === null ? previous : previous && cutoff - previous.timestamp <= 4 * DAY_MS ? previous
+        : following && following.timestamp - cutoff <= 4 * DAY_MS ? following : undefined;
+    const points = base ? available.filter(p => p.timestamp >= base.timestamp) : available.filter(p => cutoff === null || p.timestamp >= cutoff);
+    const performance = calculatePeriodPerformance(available, base?.timestamp ?? cutoff ?? -Infinity, now, period === 'ALL' ? Infinity : 4 * DAY_MS);
+    return { points, performance, cutoff };
 }
 
 export interface BenchmarkPeriodPerformance {
@@ -299,6 +318,19 @@ export function normalizeAccumulatedBenchmark(
         portfolio: ((1 + point.portfolioAccumPct / 100) / basePortfolio - 1) * 100,
         benchmark: ((1 + point.benchmarkAccumPct / 100) / baseBenchmark - 1) * 100,
     }));
+}
+
+/** Imported comparison supplies the index only; portfolio returns always come
+ * from the flow-adjusted Evolucion/Diario series. Partial coverage stays dated. */
+export function alignImportedBenchmark(series: ReturnType<typeof performanceSeries>, points: AccumulatedBenchmarkPoint[]) {
+    const market: HistoricalDataPoint[] = points.filter(p => Number.isFinite(Date.parse(p.date)) && Number.isFinite(p.benchmarkAccumPct) && p.benchmarkAccumPct > -100)
+        .map(p => ({ date: p.date, close: 1 + p.benchmarkAccumPct / 100, open: 1, high: 1, low: 1, volume: 0, currency: 'EUR' }))
+        .sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
+    if (market.length < 2) return [];
+    const start = Date.parse(market[0].date) - 4 * DAY_MS;
+    const endDay = accountingDay(market.at(-1)!.date);
+    const covered = series.filter(p => p.timestamp >= start && accountingDay(p.date) <= endDay);
+    return alignedBenchmark(covered, market);
 }
 
 /** Evolucion!F: (month-end value - net flows - previous close) / previous close.

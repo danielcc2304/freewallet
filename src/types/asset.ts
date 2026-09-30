@@ -1,4 +1,4 @@
-export type AssetType = 'stock' | 'etf' | 'fund' | 'crypto';
+export type AssetType = 'stock' | 'etf' | 'fund' | 'crypto' | 'cash';
 
 export interface AssetHolding {
     symbol: string;
@@ -25,5 +25,5 @@ export interface Asset {
     lastQuoteAt?: string;
     lastCheckedAt?: string;
     quotedAt?: string;
-    quoteSource?: 'Finect' | 'Mercado';
+    quoteSource?: 'Finect' | 'Mercado' | 'Saldo';
 }

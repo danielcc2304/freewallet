@@ -3,10 +3,11 @@ import type { WorkbookHistoryBundle } from './portfolioWorkbookHistory';
 import { accountingDay, getTransactionEventDay } from './portfolioPerformance';
 
 /** The imported closing day owns all its flows; local operations take over afterwards. */
-export function continueWorkbookHistory(workbook: WorkbookHistoryBundle, live: PortfolioHistoryPoint[], ledger: PortfolioTransaction[], now: number) {
+export function continueWorkbookHistory(workbook: WorkbookHistoryBundle, live: PortfolioHistoryPoint[], ledger: PortfolioTransaction[], now: number, scopeVerified = false) {
     const imported = workbook.points.filter(p => Date.parse(p.date) <= now);
     const last = imported.at(-1);
     if (!last) return { history: live, transactions: ledger };
+    if (!scopeVerified) return { history: imported, transactions: workbook.flowTransactions };
     const cutoff = accountingDay(last.date);
     const later = ledger.filter(t => getTransactionEventDay(t) > cutoff);
     const history = [

@@ -12,6 +12,26 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-09-30 - Correcciones de la auditoría del Dashboard
+- Funcionalidad:
+  - Periodo compartido entre resumen, evolución y benchmark, con bases verificables y protección frente a huecos diarios.
+  - Valoración coherente ante precios cero o ausentes, precisión de cantidades y divisa explícita en el detalle.
+  - Vinculación local y explícita del Excel con la cartera, sin publicar posiciones privadas ni convertir el saldo inicial en compras reales.
+  - Desgloses parciales con concurrencia limitada y reintento; sectores y países separados de los subyacentes, consolidación por ISIN y coincidencias aproximadas identificadas.
+  - Sincronización local entre pestañas, liquidez como tipo propio y actualización sin crear registros con cotizaciones antiguas.
+  - Navegación accesible por teclado, foco contenido y restaurado en modales, controles táctiles y dependencias pesadas cargadas solo al usarse, sin diferir rutas.
+  - Aviso de nueva versión con acceso a las novedades, mostrado una sola vez por versión en cada navegador.
+  - La importación de posiciones termina en el total de Cartera para no incorporar los resúmenes de bloques como activos adicionales.
+  - La comparativa usa la rentabilidad ajustada por flujos de Evolución y Diario, e identifica las coberturas parciales frente al periodo completo.
+- Resumen:
+  - Correcciones acompañadas de pruebas sintéticas de regresión.
+- Archivos:
+  - `src/services/assetValuation.ts`, `src/services/portfolioPerformance.ts`, `src/services/portfolioWorkbookHistory.ts`
+  - `src/components/dashboard/`, `src/pages/Dashboard/Dashboard.tsx`, `src/components/ui/Modal/`
+  - `src/context/PortfolioContext.tsx`, `src/hooks/useLocalDataVersion.ts`, `src/services/storageService.ts`
+  - `src/pages/AddInvestment/AddInvestment.tsx`, `src/pages/PortfolioCsv/PortfolioCsv.tsx`, `src/pages/NewsAdmin/NewsAdmin.tsx`
+  - `scripts/test-dashboard-audit.ts`, `scripts/test-workbook-continuity.ts`, `scripts/test-dashboard-integrity.ts`, `scripts/test-portfolio-performance.ts`
+
 ### 2026-09-30 - v5.3.9 - Continuidad del histórico y pulido del Dashboard
 - Funcionalidad:
   - Se conservan los cierres mensuales y se añade la continuación diaria sin duplicar aportaciones ni asignar fechas inventadas a los movimientos.

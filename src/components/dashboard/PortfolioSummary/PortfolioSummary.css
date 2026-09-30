@@ -77,3 +77,7 @@
         grid-template-columns: 1fr;
     }
 }
+.portfolio-summary__tabs { flex-wrap: wrap; }
+.portfolio-summary__tab { min-height: 44px; }
+.portfolio-summary__tab:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+.portfolio-summary__dates { font-size: .8rem; color: var(--text-secondary); }

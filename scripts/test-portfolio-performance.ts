@@ -30,7 +30,7 @@ assert.equal(checked[0].value, 1500, 'Never substitute purchase cost for market 
 const retroactive = { ...buy, id: 'retro', date: '2025-02-01', createdAt: '2025-04-01' };
 assert.equal(buildPortfolioAnalyticsHistory(raw, [buy, retroactive]).length, 0, 'Backdated changes invalidate affected valuations');
 assert.equal(buildPortfolioAnalyticsHistory(raw, ledger).length, 1, 'Later sales preserve earlier valuations');
-assert.equal(createQuoteSnapshot([asset], [buy], '2025-02-27T18:00:00Z')?.value, 1500);
+assert.equal(createQuoteSnapshot([{ ...asset, lastCheckedAt: '2025-02-27T18:00:00Z' }], [buy], '2025-02-27T18:00:00Z')?.value, 1500);
 assert.equal(createQuoteSnapshot([{ ...asset, currentPrice: undefined }], [buy], '2025-02-27'), null);
 const previousClosePerformance = calculatePreviousClosePerformance([{ ...asset, previousClose: 140 }]);
 near(previousClosePerformance.change, 100, 'Previous close fallback uses observed P&L');

@@ -1,11 +1,12 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { Card, CardHeader, CardContent } from '../ui';
 import { DonutChart, Heatmap } from '../charts';
 import type { Asset, AssetHolding, CompositionItem, HeatmapItem } from '../../types/types';
-import { getColorForIndex } from '../../data/mockData';
+import { getColorForIndex } from '../../data/chartColors';
 import { getFundRelevance } from '../../services/finect/finectService';
 import { isApiEnabled } from '../../services/storageService';
 import { buildConsolidatedPortfolioExposures, type ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
+import { assetValue } from '../../services/assetValuation';
 import './PortfolioComposition.css';
 
 interface PortfolioCompositionProps {
@@ -21,19 +22,6 @@ function getFundIsin(asset: Asset): string | null {
     return ISIN_PATTERN.test(candidate) ? candidate : null;
 }
 
-function getHoldingSymbol(name: string, index: number): string {
-    const initials = name
-        .split(/\s+/)
-        .map((word) => word.replace(/[^\p{L}\p{N}]/gu, ''))
-        .filter(Boolean)
-        .slice(0, 3)
-        .map((word) => word[0])
-        .join('')
-        .toUpperCase();
-
-    return initials || `#${index + 1}`;
-}
-
 function normalizeFundHoldings(fund: Awaited<ReturnType<typeof getFundRelevance>>): AssetHolding[] {
     const holdings = fund.holdings
         .filter((holding) => Number.isFinite(holding.weight) && holding.weight > 0)
@@ -44,25 +32,7 @@ function normalizeFundHoldings(fund: Awaited<ReturnType<typeof getFundRelevance>
             isin: holding.isin,
         }));
 
-    if (holdings.length > 0) return holdings;
-
-    // Some Finect fund classes expose allocation by sector/geography instead
-    // of individual holdings. It is still useful as a portfolio breakdown.
-    const allocation = [...fund.breakdowns]
-        .sort((left, right) => {
-            const leftScore = /sector|geograf|pa[ií]s|asset|activo/i.test(left.type) ? 1 : 0;
-            const rightScore = /sector|geograf|pa[ií]s|asset|activo/i.test(right.type) ? 1 : 0;
-            return rightScore - leftScore;
-        })[0];
-
-    return allocation?.items
-        .filter((item) => Number.isFinite(item.value) && item.value > 0)
-        .slice(0, 10)
-        .map((item, index) => ({
-            symbol: getHoldingSymbol(item.label, index),
-            name: item.label,
-            percentage: item.value,
-        })) ?? [];
+    return holdings;
 }
 
 function getExposureSourceLabel(exposure: ConsolidatedPortfolioExposure): string {
@@ -88,72 +58,73 @@ function getExposureDisplayName(exposure: ConsolidatedPortfolioExposure): string
 export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: PortfolioCompositionProps) {
     const [showBreakdown, setShowBreakdown] = useState(false);
     const [remoteHoldings, setRemoteHoldings] = useState<Record<string, AssetHolding[]>>({});
+    const [remoteBreakdowns, setRemoteBreakdowns] = useState<Record<string, Awaited<ReturnType<typeof getFundRelevance>>['breakdowns']>>({});
+    const [breakdownErrors, setBreakdownErrors] = useState<Record<string, boolean>>({});
+    const [retry, setRetry] = useState(0);
     const apiEnabled = isApiEnabled();
 
-    const funds = useMemo(() => assets.filter((asset) => asset.type === 'fund'), [assets]);
+    const funds = useMemo(() => assets.filter((asset) => asset.type === 'fund' || asset.type === 'etf'), [assets]);
     const fundsWithRemoteLookup = useMemo(
         () => funds.filter((asset) => !asset.holdings?.length && getFundIsin(asset)),
         [funds],
     );
     const pendingBreakdownCount = fundsWithRemoteLookup.filter(
-        (asset) => !Object.prototype.hasOwnProperty.call(remoteHoldings, asset.id),
+        (asset) => !Object.prototype.hasOwnProperty.call(remoteHoldings, getFundIsin(asset) || asset.id),
     ).length;
     const breakdownLoading = showBreakdown && apiEnabled && pendingBreakdownCount > 0;
+    const lookupSignature = JSON.stringify(fundsWithRemoteLookup.map(a => ({ id: a.id, isin: getFundIsin(a) })));
+    const selectPendingFunds = useEffectEvent((entries: { isin: string }[]) =>
+        [...new Map(entries.map(entry => [entry.isin, entry])).values()].filter(({ isin }) =>
+            !Object.prototype.hasOwnProperty.call(remoteHoldings, isin) || breakdownErrors[isin]));
 
     useEffect(() => {
         if (!showBreakdown || !apiEnabled) return undefined;
 
-        const pendingFunds = fundsWithRemoteLookup.filter(
-            (asset) => !Object.prototype.hasOwnProperty.call(remoteHoldings, asset.id),
-        );
+        const pendingFunds = selectPendingFunds(JSON.parse(lookupSignature) as { isin: string }[]);
         if (pendingFunds.length === 0) return undefined;
 
         const controller = new AbortController();
-        const timeoutId = window.setTimeout(() => controller.abort(), 12000);
         let disposed = false;
-
-        void Promise.all(pendingFunds.map(async (asset) => {
-            const isin = getFundIsin(asset);
-            if (!isin) return { id: asset.id, holdings: [] as AssetHolding[] };
-
-            try {
-                const fund = await getFundRelevance(isin, controller.signal);
-                return { id: asset.id, holdings: normalizeFundHoldings(fund) };
-            } catch (error) {
-                if (!controller.signal.aborted) {
-                    console.warn(`[Portfolio] No se pudo cargar el desglose de ${asset.symbol}.`, error);
-                }
-                return { id: asset.id, holdings: [] as AssetHolding[] };
+        let next = 0;
+        const worker = async () => {
+            while (next < pendingFunds.length && !disposed) {
+                const { isin } = pendingFunds[next++];
+                const request = new AbortController();
+                const abort = () => request.abort();
+                controller.signal.addEventListener('abort', abort, { once: true });
+                const timeout = window.setTimeout(abort, 12000);
+                try {
+                    const fund = await getFundRelevance(isin, request.signal, retry > 0);
+                    if (!disposed) {
+                        setRemoteHoldings(current => ({ ...current, [isin]: normalizeFundHoldings(fund) }));
+                        setRemoteBreakdowns(current => ({ ...current, [isin]: fund.breakdowns }));
+                        setBreakdownErrors(current => ({ ...current, [isin]: false }));
+                    }
+                } catch {
+                    if (!disposed) {
+                        setRemoteHoldings(current => ({ ...current, [isin]: current[isin] || [] }));
+                        setBreakdownErrors(current => ({ ...current, [isin]: true }));
+                    }
+                } finally { window.clearTimeout(timeout); controller.signal.removeEventListener('abort', abort); }
             }
-        })).then((results) => {
-            if (disposed) return;
-            setRemoteHoldings((current) => {
-                const next = { ...current };
-                results.forEach(({ id, holdings }) => {
-                    next[id] = holdings;
-                });
-                return next;
-            });
-        }).finally(() => {
-            window.clearTimeout(timeoutId);
-        });
+        };
+        void Promise.all(Array.from({ length: Math.min(3, pendingFunds.length) }, worker));
 
         return () => {
             disposed = true;
             controller.abort();
-            window.clearTimeout(timeoutId);
         };
-    }, [apiEnabled, fundsWithRemoteLookup, remoteHoldings, showBreakdown]);
+    }, [apiEnabled, lookupSignature, showBreakdown, retry]);
 
     const totalValue = useMemo(
-        () => assets.reduce((sum, a) => sum + (a.currentPrice || a.purchasePrice) * a.quantity, 0),
+        () => assets.reduce((sum, a) => sum + assetValue(a), 0),
         [assets],
     );
 
     const holdingsByAsset = useMemo(() => {
         const result = new Map<string, readonly AssetHolding[]>();
         assets.forEach((asset) => {
-            const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[asset.id];
+            const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[getFundIsin(asset) || asset.id];
             if (holdings?.length) result.set(asset.id, holdings);
         });
         return result;
@@ -174,7 +145,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
 
     // Generate composition data for donut chart
     const compositionData: CompositionItem[] = useMemo(() => assets.map((asset, index) => {
-        const value = (asset.currentPrice || asset.purchasePrice) * asset.quantity;
+        const value = assetValue(asset);
         return {
             id: asset.id,
             symbol: asset.symbol,
@@ -187,7 +158,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
 
     // Generate heatmap data
     const heatmapData: HeatmapItem[] = useMemo(() => assets.map((asset) => {
-        const currentValue = (asset.currentPrice || asset.purchasePrice) * asset.quantity;
+        const currentValue = assetValue(asset);
         const investedValue = asset.purchasePrice * asset.quantity;
         const changePercent = investedValue > 0
             ? ((currentValue - investedValue) / investedValue) * 100
@@ -195,15 +166,15 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
 
         // Prefer holdings saved with the position and fall back to the live
         // Finect breakdown loaded when the toggle is enabled.
-        const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[asset.id];
+        const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[getFundIsin(asset) || asset.id];
         const children = holdings?.map((holding, hIndex) => ({
             id: `${asset.id}-${hIndex}`,
             symbol: holding.symbol || holding.name,
             name: holding.name,
             value: currentValue * (holding.percentage / 100),
             weight: holding.percentage,
-            change: currentValue * (holding.percentage / 100) * (changePercent / 100),
-            changePercent,
+            change: NaN,
+            changePercent: NaN,
         }));
 
         return {
@@ -253,7 +224,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
         }
 
         const holdingIndex = Number(item.id.slice(asset.id.length + 1));
-        const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[asset.id];
+        const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[getFundIsin(asset) || asset.id];
         const holding = Number.isInteger(holdingIndex) && holdingIndex >= 0 ? holdings?.[holdingIndex] : undefined;
         if (!holding) return;
 
@@ -286,7 +257,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
     };
 
     const fundsWithBreakdown = useMemo(() => funds.filter((asset) => {
-        const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[asset.id];
+        const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[getFundIsin(asset) || asset.id];
         return Boolean(holdings?.length);
     }), [funds, remoteHoldings]);
     const fundsWithoutIsin = useMemo(
@@ -306,7 +277,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
             >
                 <span className="portfolio-composition__exposure-name">
                     <strong>{getExposureDisplayName(exposure)}</strong>
-                    <small>{exposure.isResidual ? 'Resto no desglosado' : `${exposure.symbol && exposure.symbol !== exposure.name ? `${exposure.symbol} · ` : ''}${getExposureSourceLabel(exposure)}`}</small>
+                    <small>{exposure.isResidual ? 'Resto no desglosado' : `${exposure.symbol && exposure.symbol !== exposure.name ? `${exposure.symbol} · ` : ''}${getExposureSourceLabel(exposure)}${exposure.id.includes('approximate-name:') ? ' · coincidencia aproximada por nombre' : ''}`}</small>
                 </span>
                 <span className="portfolio-composition__exposure-value">
                     <strong>{exposure.weight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong>
@@ -344,6 +315,20 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
                     <div className="portfolio-composition__heatmap">
                         <h4 className="portfolio-composition__section-title">Mapa de Calor</h4>
                         <Heatmap data={heatmapData} showBreakdown={showBreakdown} onItemClick={handleHeatmapClick} />
+                        {showBreakdown && !apiEnabled && <p>Consultas externas desactivadas. Solo se muestran los desgloses guardados.</p>}
+                        {showBreakdown && apiEnabled && funds.some(a => breakdownErrors[getFundIsin(a) || a.id]) && <button type="button" onClick={() => setRetry(n => n + 1)}>Reintentar desgloses pendientes</button>}
+                        {showBreakdown && <p>Los subyacentes muestran exposición estimada, no la rentabilidad del fondo como si fuera propia.</p>}
+                        {showBreakdown && Object.entries(remoteBreakdowns).map(([isin, groups]) => {
+                            const fund = funds.find(a => getFundIsin(a) === isin);
+                            const distributions = groups.filter(g => /sector|geograf|pa[ií]s|countr|region/i.test(g.type));
+                            if (!fund || !distributions.length) return null;
+                            return <div key={isin} className="portfolio-composition__breakdown-groups">
+                                <h4>{fund.name} · sectores y distribución geográfica</h4>
+                                {distributions.map(g => <section key={g.type}><h5>{g.type}</h5><ul>
+                                    {g.items.filter(i => Number.isFinite(i.value) && i.value > 0).map(i => <li key={i.label}>{i.label}: {i.value.toLocaleString('es-ES', { maximumFractionDigits: 2 })}% del fondo</li>)}
+                                </ul></section>)}
+                            </div>;
+                        })}
                         {showBreakdown && funds.length > 0 && (
                             <p className="portfolio-composition__breakdown-status" aria-live="polite">
                                 {breakdownLoading

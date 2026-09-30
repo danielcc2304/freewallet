@@ -27,6 +27,9 @@ import { getAssetChartData, getFundamentalData } from '../../services/apiService
 import { getFundRelevance } from '../../services/finect/finectService';
 import type { FinectFundRelevance } from '../../services/finect/finectService';
 import type { Asset, StockQuote, HistoricalDataPoint, TimePeriod } from '../../types/types';
+import { assetPrice, assetValue, formatQuantity, hasValidPrice } from '../../services/assetValuation';
+import { isApiEnabled } from '../../services/storageService';
+import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
 import './AssetDetail.css';
 
 interface AssetDetailProps {
@@ -55,6 +58,9 @@ const periods: { label: string; value: TimePeriod }[] = [
  * large artificial spikes seen in the detail modal.
  */
 export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
+    useLocalDataVersion();
+    const apiEnabled = isApiEnabled() && asset.type !== 'cash';
+    const [retry, setRetry] = useState(0);
     const [quote, setQuote] = useState<Partial<StockQuote> | null>(null);
     const [chartData, setChartData] = useState<HistoricalDataPoint[]>([]);
     const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M');
@@ -78,6 +84,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
             setLoadingFundamentals(true);
             setFundData(null);
             setQuote(null);
+            if (!apiEnabled) { setLoadingFundamentals(false); return; }
             try {
                 if (isFund) {
                     const data = await getFundRelevance(assetIsin, controller.signal);
@@ -109,13 +116,15 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
 
         fetchFundamentals();
         return () => controller.abort();
-    }, [asset.symbol, assetIsin, isFund]);
+    }, [asset.symbol, assetIsin, isFund, apiEnabled, retry]);
 
     // Effect for Chart (runs on asset or period change)
     useEffect(() => {
         const controller = new AbortController();
         const fetchChart = async () => {
             setLoadingChart(true);
+            setChartData([]);
+            if (!apiEnabled) { setLoadingChart(false); return; }
             try {
                 const data = await getAssetChartData(isFund ? assetIsin : asset.symbol, selectedPeriod, controller.signal);
                 if (!controller.signal.aborted) {
@@ -134,7 +143,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
 
         fetchChart();
         return () => controller.abort();
-    }, [asset.symbol, assetIsin, isFund, selectedPeriod]);
+    }, [asset.symbol, assetIsin, isFund, selectedPeriod, apiEnabled, retry]);
 
     useEffect(() => {
         setChartSelection(null);
@@ -142,20 +151,21 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
         activeTouchPointersRef.current.clear();
     }, [asset.symbol, isFund, selectedPeriod]);
 
-    const formatValue = (value: number | undefined, type: 'currency' | 'price' | 'percent' | 'number' | 'compact' = 'number') => {
-        if (value === undefined || value === null) return 'N/A';
+    const formatValue = (value: number | undefined, type: 'currency' | 'price' | 'percent' | 'number' | 'compact' = 'number', currency = asset.currency || 'EUR') => {
+        if (value === undefined || value === null || !Number.isFinite(value)) return 'N/D';
 
         if (type === 'currency' || type === 'price') {
+            if (!/^[A-Z]{3}$/.test(currency)) return `${value.toLocaleString('es-ES', { maximumFractionDigits: 6 })} (divisa no disponible)`;
             return new Intl.NumberFormat('es-ES', {
                 style: 'currency',
-                currency: asset.currency || 'EUR',
+                currency,
                 minimumFractionDigits: 2,
                 maximumFractionDigits: type === 'price' ? 6 : 2,
             }).format(value);
         }
 
         if (type === 'percent') {
-            return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`;
+            return `${value > 0 ? '+' : ''}${value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}%`;
         }
 
         if (type === 'compact') {
@@ -165,7 +175,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
             }).format(value);
         }
 
-        return value.toLocaleString('es-ES', { maximumFractionDigits: 2 });
+        return value.toLocaleString('es-ES', { maximumFractionDigits: 6 });
     };
 
     const hasPreviousClose = Number.isFinite(asset.previousClose) && asset.previousClose! > 0
@@ -173,7 +183,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
     const priceChange = hasPreviousClose ? asset.currentPrice! - asset.previousClose! : 0;
     const priceChangePercent = hasPreviousClose ? (priceChange / asset.previousClose!) * 100 : 0;
     const investedValue = asset.purchasePrice * asset.quantity;
-    const currentValue = (asset.currentPrice || asset.purchasePrice) * asset.quantity;
+    const currentValue = assetValue(asset);
     const positionGain = currentValue - investedValue;
     const positionReturn = investedValue > 0 ? (positionGain / investedValue) * 100 : 0;
     const portfolioWeight = portfolioValue > 0 ? (currentValue / portfolioValue) * 100 : 0;
@@ -191,7 +201,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
         { label: 'P/S Ratio', value: formatValue(quote?.ps), icon: <BarChart3 size={16} />, category: 'Valoración' },
         { label: 'P/B Ratio', value: formatValue(quote?.pb), icon: <Layers size={16} />, category: 'Valoración' },
         { label: 'Div. Yield', value: formatValue(quote?.dividendYield, 'percent'), icon: <Percent size={16} />, category: 'Dividendos' },
-        { label: 'Div. Rate', value: formatValue(quote?.dividendRate, 'currency'), icon: <Coins size={16} />, category: 'Dividendos' },
+        { label: 'Div. Rate', value: formatValue(quote?.dividendRate, 'currency', quote?.currency), icon: <Coins size={16} />, category: 'Dividendos' },
         { label: 'EBITDA', value: formatValue(quote?.ebitda, 'compact'), icon: <BarChart3 size={16} />, category: 'Resultados' },
         { label: 'EV/EBITDA', value: formatValue(quote?.evToEbitda), icon: <Activity size={16} />, category: 'Valoración' },
         { label: 'Crecim. Ingresos', value: formatValue(quote?.revenueGrowth, 'percent'), icon: <TrendingUp size={16} />, category: 'Resultados' },
@@ -199,9 +209,9 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
         { label: 'ROE', value: formatValue(quote?.roe, 'percent'), icon: <Activity size={16} />, category: 'Rentabilidad' },
         { label: 'Deuda/Capital', value: formatValue(quote?.debtToEquity), icon: <Layers size={16} />, category: 'Salud Financiera' },
         { label: 'Beta', value: formatValue(quote?.beta), icon: <Activity size={16} />, category: 'Riesgo' },
-        { label: 'EPS', value: formatValue(quote?.eps), icon: <Coins size={16} />, category: 'Resultados' },
-        { label: 'Max (52 sem)', value: formatValue(quote?.fiftyTwoWeekHigh, 'currency'), icon: <ArrowUpRight size={16} />, category: 'Técnico' },
-        { label: 'Min (52 sem)', value: formatValue(quote?.fiftyTwoWeekLow, 'currency'), icon: <ArrowDownRight size={16} />, category: 'Técnico' },
+        { label: 'EPS', value: formatValue(quote?.eps, 'currency', quote?.currency), icon: <Coins size={16} />, category: 'Resultados' },
+        { label: 'Max (52 sem)', value: formatValue(quote?.fiftyTwoWeekHigh, 'currency', quote?.currency), icon: <ArrowUpRight size={16} />, category: 'Técnico' },
+        { label: 'Min (52 sem)', value: formatValue(quote?.fiftyTwoWeekLow, 'currency', quote?.currency), icon: <ArrowDownRight size={16} />, category: 'Técnico' },
     ].filter(item => getRelevance(item.category));
 
     const fundMetricItems = [
@@ -257,7 +267,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
        if (value === undefined) return 'N/D';
         return new Intl.NumberFormat('es-ES', {
             style: 'currency',
-            currency: asset.currency || 'EUR',
+            currency: chartData[0]?.currency && chartData[0].currency !== 'Unknown' ? chartData[0].currency : asset.currency || 'EUR',
             maximumFractionDigits: 6,
         }).format(value);
     };
@@ -341,7 +351,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
     const formatChartAxisValue = (value: number) => isFund
         ? new Intl.NumberFormat('es-ES', {
             style: 'currency',
-            currency: asset.currency || 'EUR',
+            currency: chartData[0]?.currency && chartData[0].currency !== 'Unknown' ? chartData[0].currency : asset.currency || 'EUR',
             maximumFractionDigits: 6,
         }).format(value)
         : new Intl.NumberFormat('es-ES', { maximumFractionDigits: 6 }).format(value);
@@ -356,7 +366,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                 </div>
                 <div className="asset-detail__price-group">
                     <div className="asset-detail__price">
-                        {formatValue(asset.currentPrice || asset.purchasePrice, 'price')}
+                        {formatValue(assetPrice(asset), 'price')}
                     </div>
                     <div className={`asset-detail__change ${hasPreviousClose ? priceChange >= 0 ? 'positive' : 'negative' : ''}`}>
                         {hasPreviousClose ? <>{priceChange >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
@@ -366,7 +376,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
             </div>
 
             <div className="asset-detail__position-grid">
-                <div><span>Cantidad</span><strong>{formatValue(asset.quantity)}</strong></div>
+                <div><span>Cantidad</span><strong>{formatQuantity(asset)}</strong></div>
                 <div><span>Precio medio</span><strong>{formatValue(asset.purchasePrice, 'price')}</strong></div>
                 <div><span>Capital invertido</span><strong>{formatValue(investedValue, 'currency')}</strong></div>
                 <div><span>Valor actual</span><strong>{formatValue(currentValue, 'currency')}</strong></div>
@@ -377,6 +387,8 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
             </div>
 
             {/* Chart Section */}
+            {!hasValidPrice(asset) && <p role="status">Valor estimado al coste: no hay una cotización válida.</p>}
+            {!apiEnabled && <p role="status">{asset.type === 'cash' ? 'Saldo de liquidez registrado; no requiere consultas de mercado.' : 'Consultas externas desactivadas. Los datos de tu posición siguen disponibles.'}</p>}
             <div className="asset-detail__chart-section">
                 <div className="asset-detail__chart-header">
                     <div className="asset-detail__chart-title">
@@ -387,6 +399,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                         {periods.map((p) => (
                             <button
                                 key={p.value}
+                                type="button" aria-pressed={selectedPeriod === p.value}
                                 className={`period-btn ${selectedPeriod === p.value ? 'active' : ''}`}
                                 onClick={() => setSelectedPeriod(p.value)}
                             >
@@ -414,8 +427,9 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                     {loadingChart && <div className="chart-overlay"><div className="spinner-sm" /><span>Preparando histórico…</span></div>}
                     {!loadingChart && chartData.length < 2 && (
                         <div className="chart-overlay error-state">
-                            <p>{chartData.length === 1 ? 'Recopilando datos del histórico…' : 'Datos históricos no disponibles temporalmente.'}</p>
-                            <small>{chartData.length === 1 ? 'Necesitamos al menos dos cotizaciones para dibujar la evolución.' : isFund ? 'Finect no ha devuelto una serie histórica' : 'No se ha podido consultar el proveedor de mercado'}</small>
+                            <p>{!apiEnabled ? 'Consulta de histórico desactivada.' : chartData.length === 1 ? 'Recopilando datos del histórico…' : 'Datos históricos no disponibles.'}</p>
+                            <small>{!apiEnabled ? 'No se han realizado llamadas al proveedor.' : chartData.length === 1 ? 'Necesitamos al menos dos cotizaciones para dibujar la evolución.' : 'El proveedor no ha devuelto un histórico utilizable para este periodo.'}</small>
+                            {apiEnabled && <button type="button" onClick={() => setRetry(n => n + 1)}>Reintentar consulta</button>}
                         </div>
                     )}
                     {canDrawChart && <ResponsiveContainer width="100%" height={240}>
@@ -502,7 +516,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                 )}
                 <div className="asset-detail__chart-legend">
                     <span><i className="asset-detail__legend-line" /> {isFund ? 'Precio participación' : 'Precio'}</span>
-                    <span className="asset-detail__chart-axis-hint">Eje vertical: {asset.currency || 'EUR'} · Eje horizontal: {isFund ? 'horizonte' : 'fecha'}</span>
+                    <span className="asset-detail__chart-axis-hint">Eje vertical: {chartData[0]?.currency || asset.currency || 'EUR'} · Eje horizontal: fecha. Histórico en su divisa de origen; la posición se valora en {asset.currency || 'EUR'}.</span>
                 </div>
                {isFund && (
                    <p className="asset-detail__chart-source">

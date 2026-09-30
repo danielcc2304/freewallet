@@ -19,6 +19,7 @@ export function Heatmap({ data, showBreakdown = false, onItemClick }: HeatmapPro
     const [hoveredItem, setHoveredItem] = useState<string | null>(null);
 
     const getBackgroundColor = (changePercent: number): string => {
+        if (!Number.isFinite(changePercent)) return 'var(--bg-tertiary)';
         const intensity = Math.min(Math.abs(changePercent) / 10, 1);
 
         if (changePercent > 0) {
@@ -97,7 +98,7 @@ export function Heatmap({ data, showBreakdown = false, onItemClick }: HeatmapPro
                                 {getSecondaryIdentifier(child.symbol, child.name) && (
                                     <span className="heatmap__item-name">{getSecondaryIdentifier(child.symbol, child.name)}</span>
                                 )}
-                                <span className="heatmap__item-change">{formatChange(child.changePercent)}</span>
+                                <span className="heatmap__item-change">{Number.isFinite(child.changePercent) ? formatChange(child.changePercent) : `${child.weight.toLocaleString('es-ES', { maximumFractionDigits: 2 })}% del fondo`}</span>
                             </div>
                         ))}
                     </div>

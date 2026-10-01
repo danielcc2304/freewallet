@@ -15,16 +15,20 @@
 }
 
 .assets-table__column--price,
+.assets-table__column--today,
 .assets-table__column--value,
 .assets-table__column--gain {
     text-align: right;
     white-space: nowrap;
 }
 
-.assets-table__today-label,
 .assets-table__today {
-    display: none;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
 }
+.assets-table__today small { color: var(--text-muted); }
 
 /* Header */
 .assets-table__table th {
@@ -238,15 +242,6 @@
         line-height: 1.2;
     }
 
-    .assets-table__current-price-label,
-    .assets-table__current-price {
-        display: none;
-    }
-
-    .assets-table__today-label {
-        display: inline;
-    }
-
     .assets-table__today {
         display: flex;
         flex-direction: column;
@@ -265,14 +260,17 @@
         font-size: .64rem;
     }
 
-    .assets-table__table--show-details .assets-table__current-price-label,
-    .assets-table__table--show-details .assets-table__current-price {
-        display: inline;
+    .assets-table__table--show-details thead tr,
+    .assets-table__table--show-details tbody tr {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-
-    .assets-table__table--show-details .assets-table__today-label,
-    .assets-table__table--show-details .assets-table__today {
-        display: none;
+    .assets-table__table--show-details .assets-table__column--asset { grid-column: 1 / -1; }
+    .assets-table__table--show-details .assets-table__name {
+        white-space: normal;
+        overflow: visible;
+        text-overflow: clip;
+        overflow-wrap: anywhere;
+        width: 100%;
     }
 
     .assets-table__table td {

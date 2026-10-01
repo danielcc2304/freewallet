@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Percent, Info, ShieldCheck, Landmark, Receipt, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
+import { validateCalculatorInputs } from './calculatorValidation';
 import './TaxSimulator.css';
 
 interface TaxSimulatorStorage {
@@ -75,6 +76,10 @@ export function TaxSimulator() {
 
     const gainNum = Number(gain) || 0;
     const yearsNum = Number(holdingYears) || 0;
+    const calculationError = validateCalculatorInputs([
+        { label: 'Ganancias', value: gain },
+        { label: 'Años', value: holdingYears, min: 1, max: 40, integer: true },
+    ]);
 
     const taxAmount = useMemo(() => calculateSavingsTaxes(gainNum), [gainNum]);
     const netProfit = gainNum - taxAmount;
@@ -92,7 +97,7 @@ export function TaxSimulator() {
         const etfBuyHoldNet = finalPreTax - exitTax;
 
         let annualRealisationNet = principal;
-        for (let i = 0; i < yearsNum; i++) {
+        for (let i = 0; !calculationError && i < yearsNum; i++) {
             const annualGain = annualRealisationNet * rate;
             const annualTax = calculateSavingsTaxes(annualGain);
             annualRealisationNet = annualRealisationNet + annualGain - annualTax;
@@ -108,7 +113,7 @@ export function TaxSimulator() {
             selectedEtfNet: simulateAnnualTransfers ? annualRealisationNet : etfBuyHoldNet,
             selectedDifference: simulateAnnualTransfers ? fundNet - annualRealisationNet : fundNet - etfBuyHoldNet
         };
-    }, [simulateAnnualTransfers, yearsNum]);
+    }, [simulateAnnualTransfers, yearsNum, calculationError]);
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('es-ES', {
@@ -210,6 +215,7 @@ export function TaxSimulator() {
                 </aside>
 
                 <main className="tax-sim__results">
+                    {calculationError ? <p role="alert">{calculationError}</p> : <>
                     <div className="tax-sim__summary">
                         <div className="tax-sim__metric">
                             <span className="label">Total Impuestos</span>
@@ -317,6 +323,7 @@ export function TaxSimulator() {
                             </div>
                         </div>
                     </div>
+                    </>}
                 </main>
             </div>
         </div>

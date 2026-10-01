@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
+import { validateCalculatorInputs } from './calculatorValidation';
 import './InflationPredator.css';
 
 interface InflationPredatorStorage {
@@ -51,13 +52,18 @@ export function InflationPredator() {
     // Calculation: P = Amount / (1 + r)^n
     const r = inflation / 100;
     const n = years;
+    const calculationError = validateCalculatorInputs([
+        { label: 'Capital inicial', value: amount },
+        { label: 'Plazo', value: years, max: 100, integer: true },
+        { label: 'Inflación', value: inflation, min: -99, max: 100 },
+    ]);
     const purchasingPower = amount / Math.pow(1 + r, n);
     const loss = amount - purchasingPower;
-    const lossPercentage = (loss / amount) * 100;
+    const lossPercentage = amount > 0 ? (loss / amount) * 100 : 0;
 
     // Visual scale factor (from 1 to 0.2)
-    const scaleFactor = Math.max(0.2, (purchasingPower / amount));
-    const opacityFactor = Math.max(0.4, (purchasingPower / amount));
+    const scaleFactor = amount > 0 ? Math.max(0.2, Math.min(1, purchasingPower / amount)) : 1;
+    const opacityFactor = amount > 0 ? Math.max(0.4, Math.min(1, purchasingPower / amount)) : 1;
 
     return (
         <div className="inflation-predator">
@@ -165,6 +171,7 @@ export function InflationPredator() {
                 </aside>
 
                 <main className="inflation-predator__visualizer">
+                    {calculationError ? <p role="alert">{calculationError}</p> : <>
                     <div className="money-display">
                         <div
                             className={`ghost-overlay ${inflation > 5 ? 'ghost-overlay--active' : ''}`}
@@ -212,6 +219,7 @@ export function InflationPredator() {
                             Combatir Inflación <TrendingUp size={16} />
                         </Link>
                     </div>
+                    </>}
                 </main>
             </div>
         </div>

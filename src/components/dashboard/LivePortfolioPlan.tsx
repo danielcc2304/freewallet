@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader } from '../ui';
+import { Button, Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import type { DashboardAnalytics } from './useDashboardAnalytics';
 import { formatQuantity, hasValidPrice } from '../../services/assetValuation';
 import { useEffect } from 'react';
-import { notifyLocalDataChange } from '../../hooks/useLocalDataVersion';
 import { calculateContributionPlan, migratePlanTargets, PLAN_TARGETS_KEY, LEGACY_PLAN_TARGETS_KEY, parsePlanNumber, targetsFromCurrentWeights } from '../../services/portfolioPlan';
 import type { Asset } from '../../types/types';
 import './LivePortfolioPlan.css';
@@ -18,7 +17,8 @@ const intervalLabel = (row: DashboardAnalytics['monthly'][number]) => [
 ].filter(Boolean).join(' · ') || 'Sin intervalos válidos';
 function readTargets(assets: Asset[]): Record<string, string> {
     const stored = JSON.parse(localStorage.getItem(PLAN_TARGETS_KEY) || '{}');
-    const legacy = JSON.parse(localStorage.getItem(LEGACY_PLAN_TARGETS_KEY) || '{}');
+    let legacy: Record<string, number> = {};
+    try { legacy = JSON.parse(localStorage.getItem(LEGACY_PLAN_TARGETS_KEY) || '{}'); } catch { /* A damaged legacy key must not hide valid current targets. */ }
     const current = stored && typeof stored === 'object' && !Array.isArray(stored)
         ? Object.fromEntries(Object.entries(stored).filter(([, v]) => typeof v === 'string' || typeof v === 'number').map(([k, v]) => [k, String(v)])) : {};
     return migratePlanTargets(assets, current, legacy && typeof legacy === 'object' ? legacy : {});
@@ -27,24 +27,26 @@ const operationName = { buy: 'Compra', sell: 'Venta', edit: 'Corrección', delet
 
 type LivePortfolioPlanSection = 'all' | 'plan' | 'monthly' | 'recent';
 
-export function LivePortfolioPlan({ analytics, section = 'all' }: { analytics: DashboardAnalytics; section?: LivePortfolioPlanSection }) {
+function LivePortfolioPlanEditor({ analytics, section = 'all' }: { analytics: DashboardAnalytics; section?: LivePortfolioPlanSection }) {
     const { state: { assets } } = usePortfolio();
-    const { workbookHistory, usingWorkbookHistory, portfolioTransactions, monthly: months } = analytics;
+    const { portfolioTransactions } = analytics;
     const [targets, setTargets] = useState<Record<string, string>>(() => { try { return readTargets(assets); } catch { return {}; } });
     const [budgetInput, setBudgetInput] = useState('');
     const [saveError, setSaveError] = useState(false);
     useEffect(() => {
-        const sync = () => {
+        const sync = (event?: Event) => {
+            if (event instanceof StorageEvent && event.key !== PLAN_TARGETS_KEY && event.key !== LEGACY_PLAN_TARGETS_KEY && event.key !== null) return;
             try {
                 const stored = readTargets(assets);
-                localStorage.setItem(PLAN_TARGETS_KEY, JSON.stringify(stored));
-                setTargets(stored);
+                const serialized = JSON.stringify(stored);
+                if (localStorage.getItem(PLAN_TARGETS_KEY) !== serialized) localStorage.setItem(PLAN_TARGETS_KEY, serialized);
+                setTargets(previous => JSON.stringify(previous) === serialized ? previous : stored);
             } catch { setSaveError(true); }
         };
         sync();
         window.addEventListener('storage', sync);
-        window.addEventListener('freewallet-data-change', sync);
-        return () => { window.removeEventListener('storage', sync); window.removeEventListener('freewallet-data-change', sync); };
+        window.addEventListener('freewallet-plan-targets-change', sync);
+        return () => { window.removeEventListener('storage', sync); window.removeEventListener('freewallet-plan-targets-change', sync); };
     }, [assets]);
     const plan = useMemo(() => calculateContributionPlan(assets, targets, budgetInput), [assets, targets, budgetInput]);
     const { targetTotal, validTargets, canCalculate } = plan;
@@ -62,25 +64,19 @@ export function LivePortfolioPlan({ analytics, section = 'all' }: { analytics: D
         const next = { ...targets };
         next[id] = raw;
         setTargets(next);
-        try { localStorage.setItem(PLAN_TARGETS_KEY, JSON.stringify(next)); notifyLocalDataChange(); setSaveError(false); } catch { setSaveError(true); }
+        try { localStorage.setItem(PLAN_TARGETS_KEY, JSON.stringify(next)); window.dispatchEvent(new Event('freewallet-plan-targets-change')); setSaveError(false); } catch { setSaveError(true); }
     };
     const useCurrentWeights = () => {
         if (plan.total <= 0 || !rows.length) return;
         const next = { ...targets, ...targetsFromCurrentWeights(assets) };
         setTargets(next);
-        try { localStorage.setItem(PLAN_TARGETS_KEY, JSON.stringify(next)); notifyLocalDataChange(); setSaveError(false); } catch { setSaveError(true); }
+        try { localStorage.setItem(PLAN_TARGETS_KEY, JSON.stringify(next)); window.dispatchEvent(new Event('freewallet-plan-targets-change')); setSaveError(false); } catch { setSaveError(true); }
     };
     const currentResult = useMemo(() => rows.reduce((sum, row) => sum + row.value - row.cost, 0), [rows]);
-    const recentTransactions = useMemo(
-        () => [...portfolioTransactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8),
-        [portfolioTransactions],
-    );
     const initialCost = portfolioTransactions.filter(t => t.provenance === 'initial-position' || /^(position|bootstrap)-/.test(t.id)).reduce((s, t) => s + (t.total || 0), 0);
     const ledgerDifference = initialCost + buys - sells - invested;
 
     const showPlan = section === 'all' || section === 'plan';
-    const showMonthly = section === 'all' || section === 'monthly';
-    const showRecent = section === 'all' || section === 'recent';
 
     return <div className="live-plan-stack">
         {showPlan && <Card className="live-plan">
@@ -96,7 +92,7 @@ export function LivePortfolioPlan({ analytics, section = 'all' }: { analytics: D
                 {Math.abs(ledgerDifference) > 0.01 && <p role="status">El flujo neto y el coste de las posiciones difieren en {money(Math.abs(ledgerDifference))}. Las ventas con ganancias o pérdidas pueden explicar esa diferencia; no se modifican los importes registrados.</p>}
                 {!assets.length && <p role="status">El Excel aporta el histórico, pero el plan necesita posiciones en el Dashboard. Añade tus activos para definir objetivos.</p>}
                 {assets.some(a => !hasValidPrice(a)) && <p role="status">La propuesta es orientativa: algunas posiciones se valoran al coste porque falta una cotización en euros.</p>}
-                {assets.length > 0 && <button type="button" onClick={useCurrentWeights} disabled={plan.total <= 0}>Usar pesos actuales como objetivos</button>}
+                {assets.length > 0 && <Button className="live-plan__use-weights" variant="secondary" type="button" onClick={useCurrentWeights} disabled={plan.total <= 0}>Usar pesos actuales como objetivos</Button>}
                 <label className="live-plan__budget">Próxima aportación (€)<input type="text" inputMode="decimal" value={budgetInput} onChange={e => setBudgetInput(e.target.value)} aria-invalid={!!budgetInput && parsePlanNumber(budgetInput) === null} /></label>
                 <p role="status">Objetivos: {pct(targetTotal)} / 100%. {validTargets ? 'Plan listo para distribuir la aportación entre posiciones infraponderadas.' : 'Completa los pesos hasta el 100% para calcular la propuesta.'}</p>
                 {validTargets && !canCalculate && <p role="status">Introduce una aportación mayor que cero para calcular el reparto.</p>}
@@ -117,6 +113,16 @@ export function LivePortfolioPlan({ analytics, section = 'all' }: { analytics: D
             </CardContent>
         </Card>}
 
+        {section === 'all' && <LivePortfolioHistory analytics={analytics} section="all" />}
+    </div>;
+}
+
+function LivePortfolioHistory({ analytics, section }: { analytics: DashboardAnalytics; section: LivePortfolioPlanSection }) {
+    const { workbookHistory, usingWorkbookHistory, portfolioTransactions, monthly: months } = analytics;
+    const showMonthly = section === 'all' || section === 'monthly';
+    const showRecent = section === 'all' || section === 'recent';
+    const recentTransactions = useMemo(() => [...portfolioTransactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8), [portfolioTransactions]);
+    return <div className="live-plan-stack">
         {showMonthly && <Card className="live-plan">
              <CardHeader title="Resumen mensual" subtitle={usingWorkbookHistory
                  ? 'Cierres mensuales y DCA importados desde la hoja Evolucion'
@@ -127,7 +133,7 @@ export function LivePortfolioPlan({ analytics, section = 'all' }: { analytics: D
                     <tbody>{[...months].reverse().map(m => <tr key={m.month}><th scope="row">{m.month}{!m.closed ? ' · provisional' : ''}</th><td>{money(m.value)}</td><td>{money(m.invested)}</td><td>{m.monthlyReturn !== null ? pct(m.monthlyReturn) : 'N/D'}</td><td>{m.drawdown !== null ? pct(m.drawdown) : 'N/D'}</td><td>{intervalLabel(m)}</td></tr>)}</tbody>
                 </table></div>
                 <p>Los intervalos cuentan comparaciones entre valoraciones, no días cubiertos. Un cierre mensual del Excel equivale a un intervalo mensual.</p>
-                 <p>*Misma fórmula mensual del Excel: (cierre − flujos − cierre anterior) / cierre anterior, suponiendo flujos al final del mes. {usingWorkbookHistory
+                 <p>*Retornos enlazados entre valoraciones, con flujos al final de cada intervalo. Con un único cierre mensual coincide con la fórmula del Excel. {usingWorkbookHistory
                      ? `Se muestran ${workbookHistory.evolutionCount} cierres de Evolucion y sus ${workbookHistory.dcaCount} flujos.`
                      : 'N/D cuando falta una base verificable. El mes abierto es provisional.'}</p>
             </CardContent>
@@ -143,4 +149,10 @@ export function LivePortfolioPlan({ analytics, section = 'all' }: { analytics: D
             </CardContent>
         </Card>}
     </div>;
+}
+
+export function LivePortfolioPlan(props: { analytics: DashboardAnalytics; section?: LivePortfolioPlanSection }) {
+    return props.section === 'monthly' || props.section === 'recent'
+        ? <LivePortfolioHistory analytics={props.analytics} section={props.section} />
+        : <LivePortfolioPlanEditor {...props} />;
 }

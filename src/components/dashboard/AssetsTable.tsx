@@ -4,6 +4,7 @@ import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../ui';
 import type { Asset } from '../../types/types';
 import { assetPrice, assetValue, formatQuantity, hasValidPrice } from '../../services/assetValuation';
 import './AssetsTable.css';
+import { compareKnownReturns } from '../../services/dashboardIntegrity';
 
 interface AssetsTableProps {
     assets: Asset[];
@@ -72,6 +73,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
 
     const sortedAssets = useMemo(() => {
         return [...processedAssets].sort((a, b) => {
+            if (sortKey === 'change') return compareKnownReturns(a.changePercent, b.changePercent, sortDirection);
             let comparison = 0;
             switch (sortKey) {
                 case 'symbol':
@@ -79,9 +81,6 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                     break;
                 case 'value':
                     comparison = a.currentValue - b.currentValue;
-                    break;
-                case 'change':
-                    comparison = a.changePercent - b.changePercent;
                     break;
                 case 'weight':
                     comparison = a.weight - b.weight;

@@ -28,6 +28,7 @@ import { getFundRelevance } from '../../services/finect/finectService';
 import type { FinectFundRelevance } from '../../services/finect/finectService';
 import type { Asset, StockQuote, HistoricalDataPoint, TimePeriod } from '../../types/types';
 import { assetPrice, assetValue, formatQuantity, hasValidPrice } from '../../services/assetValuation';
+import { portfolioQuoteStatus, quoteDateLabel } from '../../services/portfolioQuoteStatus';
 import { isApiEnabled } from '../../services/storageService';
 import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
 import './AssetDetail.css';
@@ -35,6 +36,7 @@ import './AssetDetail.css';
 interface AssetDetailProps {
     asset: Asset;
     portfolioValue?: number;
+    marketOnly?: boolean;
 }
 
 interface ChartSelection {
@@ -57,7 +59,7 @@ const periods: { label: string; value: TimePeriod }[] = [
  * are not points of the same series and drawing them together produces the
  * large artificial spikes seen in the detail modal.
  */
-export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
+export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: AssetDetailProps) {
     useLocalDataVersion();
     const apiEnabled = isApiEnabled() && asset.type !== 'cash';
     const [retry, setRetry] = useState(0);
@@ -87,7 +89,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
             if (!apiEnabled) { setLoadingFundamentals(false); return; }
             try {
                 if (isFund) {
-                    const data = await getFundRelevance(assetIsin, controller.signal);
+                    const data = await getFundRelevance(assetIsin, controller.signal, retry > 0);
                     if (!controller.signal.aborted) {
                         setFundData(data);
                         setQuote({
@@ -126,7 +128,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
             setChartData([]);
             if (!apiEnabled) { setLoadingChart(false); return; }
             try {
-                const data = await getAssetChartData(isFund ? assetIsin : asset.symbol, selectedPeriod, controller.signal);
+                const data = await getAssetChartData(isFund ? assetIsin : asset.symbol, selectedPeriod, controller.signal, { forceRefresh: retry > 0 });
                 if (!controller.signal.aborted) {
                     setChartData(data);
                 }
@@ -179,7 +181,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
     };
 
     const hasPreviousClose = Number.isFinite(asset.previousClose) && asset.previousClose! > 0
-        && hasValidPrice(asset);
+        && (hasValidPrice(asset) || (marketOnly && Number.isFinite(asset.currentPrice) && asset.currentPrice! >= 0));
     const priceChange = hasPreviousClose ? asset.currentPrice! - asset.previousClose! : 0;
     const priceChangePercent = hasPreviousClose ? (priceChange / asset.previousClose!) * 100 : 0;
     const investedValue = asset.purchasePrice * asset.quantity;
@@ -187,6 +189,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
     const positionGain = currentValue - investedValue;
     const positionReturn = investedValue > 0 && hasValidPrice(asset) ? (positionGain / investedValue) * 100 : NaN;
     const portfolioWeight = portfolioValue > 0 ? (currentValue / portfolioValue) * 100 : 0;
+    const quoteStatus = portfolioQuoteStatus(asset, Date.now());
 
     // Type-aware rendering (Fix 17)
     const getRelevance = (category: string) => {
@@ -366,7 +369,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                 </div>
                 <div className="asset-detail__price-group">
                     <div className="asset-detail__price">
-                        {formatValue(assetPrice(asset), 'price')}
+                        {formatValue(marketOnly ? asset.currentPrice : assetPrice(asset), 'price')}
                     </div>
                     <div className={`asset-detail__change ${hasPreviousClose ? priceChange >= 0 ? 'positive' : 'negative' : ''}`}>
                         {hasPreviousClose ? <>{priceChange >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
@@ -375,7 +378,7 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                 </div>
             </div>
 
-            <div className="asset-detail__position-grid">
+            {!marketOnly && <div className="asset-detail__position-grid">
                 <div><span>Cantidad</span><strong>{formatQuantity(asset)}</strong></div>
                 <div><span>Precio medio</span><strong>{formatValue(asset.purchasePrice, 'price')}</strong></div>
                 <div><span>Capital invertido</span><strong>{formatValue(investedValue, 'currency')}</strong></div>
@@ -383,11 +386,14 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
                 <div><span>Resultado</span><strong className={positionGain >= 0 ? 'positive' : 'negative'}>{formatValue(positionGain, 'currency')}</strong></div>
                 <div><span>Rentabilidad</span><strong className={positionReturn >= 0 ? 'positive' : 'negative'}>{formatValue(positionReturn, 'percent')}</strong></div>
                 <div><span>Peso en cartera</span><strong>{portfolioWeight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong></div>
-                <div><span>Última actualización</span><strong>{asset.lastQuoteAt ? new Date(asset.lastQuoteAt).toLocaleString('es-ES') : 'Pendiente'}</strong></div>
-            </div>
+                <div><span>Última consulta</span><strong>{quoteDateLabel(asset.lastCheckedAt)}</strong></div>
+                <div><span>Fecha del precio</span><strong>{quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)}</strong></div>
+            </div>}
+            {marketOnly && <p>Fecha del precio: {quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)} · Última consulta: {quoteDateLabel(asset.lastCheckedAt)}</p>}
+            {asset.type !== 'cash' && (quoteStatus.stalePrice || quoteStatus.unknownPriceDate) && <p role="status">{quoteStatus.stalePrice ? 'El último precio disponible está atrasado; una consulta reciente no implica una cotización nueva.' : 'El proveedor no identifica la fecha del precio; su antigüedad no puede verificarse.'}</p>}
 
             {/* Chart Section */}
-            {!hasValidPrice(asset) && <p role="status">Valor estimado al coste: no hay una cotización válida.</p>}
+            {!marketOnly && !hasValidPrice(asset) && <p role="status">Valor estimado al coste: no hay una cotización válida.</p>}
             {!apiEnabled && <p role="status">{asset.type === 'cash' ? 'Saldo de liquidez registrado; no requiere consultas de mercado.' : 'Consultas externas desactivadas. Los datos de tu posición siguen disponibles.'}</p>}
             <div className="asset-detail__chart-section">
                 <div className="asset-detail__chart-header">

@@ -908,7 +908,7 @@ export async function getAssetChartData(
     symbol: string,
     period: TimePeriod = '1M',
     signal?: AbortSignal,
-    options: { startDate?: number } = {},
+    options: { startDate?: number; forceRefresh?: boolean } = {},
 ): Promise<HistoricalDataPoint[]> {
     if (!isApiEnabled()) {
         return [];
@@ -916,7 +916,7 @@ export async function getAssetChartData(
 
     const cacheKey = `${symbol.trim().toUpperCase()}::${period}::${Number.isFinite(options.startDate) ? new Date(options.startDate!).toISOString().slice(0, 10) : ''}`;
     const cached = CHART_CACHE.get(cacheKey);
-    if (cached && Date.now() - cached.timestamp < TTL.CHART) {
+    if (!options.forceRefresh && cached && Date.now() - cached.timestamp < TTL.CHART) {
         return cached.data;
     }
 

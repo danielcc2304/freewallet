@@ -1,5 +1,6 @@
 import type { Asset, HistoricalDataPoint, PortfolioHistoryPoint, PortfolioTransaction, TimePeriod } from '../types/types';
 import { accountingDay } from './portfolioCalendar';
+import { portfolioQuoteStatus } from './portfolioQuoteStatus';
 export { accountingDay } from './portfolioCalendar';
 
 const DAY_MS = 86400000;
@@ -64,14 +65,10 @@ export function portfolioLedgerKey(transactions: PortfolioTransaction[], date: s
 }
 
 export function createQuoteSnapshot(assets: Asset[], transactions: PortfolioTransaction[], date: string): PortfolioHistoryPoint | null {
-    if (!assets.length || assets.some(a => !Number.isFinite(a.currentPrice) || a.currentPrice! < 0 || a.currency !== 'EUR')) return null;
     const now = Date.parse(date);
-    if (!Number.isFinite(now) || assets.some(a => !Number.isFinite(a.quantity) || a.quantity < 0 || !Number.isFinite(a.purchasePrice) || a.purchasePrice < 0)) return null;
+    if (!assets.length || !Number.isFinite(now) || assets.some(a => portfolioQuoteStatus(a, now).blockers.length > 0)) return null;
     // A recent successful consultation may verify an older fund NAV, but opening
     // the dashboard never counts as a new consultation.
-    if (assets.some(a => a.type !== 'cash' && (!Number.isFinite(Date.parse(a.lastCheckedAt || a.quotedAt || a.lastQuoteAt || ''))
-        || now - Date.parse(a.lastCheckedAt || a.quotedAt || a.lastQuoteAt!) > 15 * 60000
-        || Date.parse(a.lastCheckedAt || a.quotedAt || a.lastQuoteAt!) > now))) return null;
     return { date, value: assets.reduce((sum, a) => sum + a.currentPrice! * a.quantity, 0),
         invested: assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0),
         source: 'quotes-v2', ledgerKey: portfolioLedgerKey(normalizePortfolioTransactions(assets, transactions), date) };
@@ -343,8 +340,7 @@ export function portfolioMonthlyRows(series: ReturnType<typeof performanceSeries
         const closed = month < accountingDay(now).slice(0, 7);
         const complete = !!base && base.value > 0 && Date.parse(startDay) - Date.parse(base.date) <= 8 * DAY_MS &&
             (!closed || Date.parse(lastDay) - Date.parse(end.date) <= 8 * DAY_MS) && points.every(p => p.dailyReturn !== null);
-        const flow = points.reduce((sum, p) => sum + p.netFlow, 0);
-        const monthlyReturn = complete ? (end.value - flow - base!.value) / base!.value * 100 : null;
+        const monthlyReturn = complete ? (points.reduce((growth, p) => growth * (1 + p.dailyReturn! / 100), 1) - 1) * 100 : null;
         if (monthlyReturn !== null) wealth *= 1 + monthlyReturn / 100;
         else { wealth = 1; peak = 1; }
         peak = Math.max(peak, wealth);

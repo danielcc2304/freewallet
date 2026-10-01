@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
     Activity,
@@ -106,6 +106,7 @@ const evolutionPeriods: Array<{ value: EvolutionPeriod; label: string }> = [
 export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod, onPeriodChange: setEvolutionPeriod }: { now: number; analytics: DashboardAnalytics; period: EvolutionPeriod; onPeriodChange: (period: EvolutionPeriod) => void }) {
     const { state: { assets, transactions, lastPriceUpdate } } = usePortfolio();
     const [tab, setTab] = useState<InsightTab>('evolution');
+    const tabId = useId();
     const [benchmarkRetry, setBenchmarkRetry] = useState(0);
     const [linkError, setLinkError] = useState('');
     const apiEnabled = isApiEnabled();
@@ -114,8 +115,9 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         data: [],
     });
     const { workbookHistory, usingWorkbookHistory, portfolioTransactions, history, series, monthly, hasEstimates } = analytics;
-    const workbookBenchmarkHistory = readWorkbookBenchmarkHistory();
-    const riskFreeAnnual = parseAdvancedStats(readStoredValue(STORAGE_KEYS.advancedRaw, '')).riskFreeAnnualPct ?? WORKBOOK_RISK_FREE_ANNUAL_PCT;
+    const workbookBenchmarkHistory = useMemo(() => { void analytics.localRevision; return readWorkbookBenchmarkHistory(); }, [analytics.localRevision]);
+    const advancedRaw = readStoredValue(STORAGE_KEYS.advancedRaw, '');
+    const riskFreeAnnual = useMemo(() => parseAdvancedStats(advancedRaw).riskFreeAnnualPct ?? WORKBOOK_RISK_FREE_ANNUAL_PCT, [advancedRaw]);
 
     const totalValue = useMemo(
         () => assets.reduce((sum, asset) => sum + assetValue(asset), 0),
@@ -138,7 +140,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     );
     const historyYears = recentMonthly.length ? recentMonthly.length / 12 : null;
     const positiveDays = validMonthly.length ? validMonthly.filter(row => row.monthlyReturn > 0).length / validMonthly.length * 100 : null;
-    const currentReturn = investedValue > 0 ? (totalValue / investedValue - 1) * 100 : 0;
+    const currentReturn = investedValue > 0 ? (totalValue / investedValue - 1) * 100 : NaN;
     const bestMonth = validMonthly.length
         ? validMonthly.reduce((best, row) => row.monthlyReturn > best.monthlyReturn ? row : best)
         : null;
@@ -218,11 +220,11 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     useEffect(() => {
         if (tab !== 'benchmark' || !apiEnabled) return;
         const controller = new AbortController();
-        getAssetChartData('URTH', evolutionPeriod, controller.signal, { startDate: benchmarkStart })
+        getAssetChartData('URTH', evolutionPeriod, controller.signal, { startDate: benchmarkStart, forceRefresh: benchmarkRetry > 0 })
             .then(async data => {
                 // Match the portfolio's EUR reporting currency using dated FX observations.
                 if (data.some(p => p.currency === 'USD')) {
-                    const fx = await getAssetChartData('USDEUR=X', evolutionPeriod, controller.signal, { startDate: benchmarkStart });
+                    const fx = await getAssetChartData('USDEUR=X', evolutionPeriod, controller.signal, { startDate: benchmarkStart, forceRefresh: benchmarkRetry > 0 });
                     data = convertHistoryToCurrency(data, fx, 'EUR', 4);
                 } else if (data.some(p => p.currency !== 'EUR')) data = [];
                 if (!controller.signal.aborted) setBenchmarkResult({ period: evolutionPeriod, startDate: benchmarkStart, data });
@@ -325,6 +327,18 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                             key={item.value}
                             type="button"
                             role="tab"
+                            id={`${tabId}-${item.value}`}
+                            aria-controls={`${tabId}-panel`}
+                            tabIndex={tab === item.value ? 0 : -1}
+                            onKeyDown={event => {
+                                const keys = ['ArrowRight', 'ArrowLeft', 'Home', 'End'];
+                                if (!keys.includes(event.key)) return;
+                                event.preventDefault();
+                                const index = tabs.findIndex(t => t.value === item.value);
+                                const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+                                setTab(tabs[next].value);
+                                document.getElementById(`${tabId}-${tabs[next].value}`)?.focus();
+                            }}
                             aria-selected={tab === item.value}
                             className={tab === item.value ? 'is-active' : ''}
                             onClick={() => setTab(item.value)}
@@ -334,6 +348,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                     ))}
                 </div>
 
+                <div role="tabpanel" id={`${tabId}-panel`} aria-labelledby={`${tabId}-${tab}`}>
                 {tab === 'evolution' && (
                     <section className="portfolio-excel-insights__panel">
                         <div className="portfolio-excel-insights__panel-heading">
@@ -546,6 +561,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                         </div>
                     </section>
                 )}
+                </div>
             </CardContent>
         </Card>
     );

@@ -22,9 +22,4 @@ export function continueWorkbookHistory(workbook: WorkbookHistoryBundle, live: P
     return { history, transactions: [...workbook.flowTransactions.filter(t => getTransactionEventDay(t) <= cutoff), ...later] };
 }
 
-export function latestContinuousMonths<T extends { month: string; monthlyReturn: number }>(rows: T[]): T[] {
-    let start = rows.length - 1;
-    const ordinal = (month: string) => Number(month.slice(0, 4)) * 12 + Number(month.slice(5));
-    while (start > 0 && ordinal(rows[start].month) - ordinal(rows[start - 1].month) === 1) start--;
-    return rows.slice(Math.max(0, start));
-}
+export { latestContinuousMonths } from './portfolioRisk';

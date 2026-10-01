@@ -41,7 +41,7 @@ export function MetricCard({
                 {icon && <span className="metric-card__icon">{icon}</span>}
             </div>
             <div className="metric-card__value">{value}</div>
-            {change !== undefined && (
+            {change !== undefined && Number.isFinite(change) && (
                 <div
                     className={`metric-card__change ${isPositive ? 'metric-card__change--positive' : ''
                         } ${isNegative ? 'metric-card__change--negative' : ''} ${isNeutral ? 'metric-card__change--neutral' : ''

@@ -13,7 +13,7 @@ export function useDashboardAnalytics(now: number) {
     const { state: { assets, transactions, lastPriceUpdate } } = usePortfolio();
     const localRevision = useLocalDataVersion();
     const apiEnabled = isApiEnabled();
-    const day = new Date(now).toISOString().slice(0, 10);
+    const day = accountingDay(now);
     const workbookHistory = useMemo(() => { void localRevision; void day; return readWorkbookHistory(); }, [localRevision, day]);
     const usingWorkbookHistory = workbookHistory.points.length >= 2;
     const portfolioTransactions = useMemo(() => normalizePortfolioTransactions(assets, transactions), [assets, transactions]);
@@ -90,7 +90,7 @@ export function useDashboardAnalytics(now: number) {
             maxGapDays: usingWorkbookHistory ? 45 : 16,
         });
         return { workbookHistory, usingWorkbookHistory, portfolioTransactions, history: combined.history, series,
-            liveSeries: performanceSeries(recorded, portfolioTransactions), monthly: portfolioMonthlyRows(series, now),
+            liveSeries: performanceSeries(recorded, portfolioTransactions, assets), monthly: portfolioMonthlyRows(series, now),
             hasEstimates: combined.history.some(p => p.source === 'market-estimate') };
     }, [assets, portfolioTransactions, market, now, workbookHistory, usingWorkbookHistory, localRevision, workbookLinked]);
     return { ...analytics, workbookLinked, linkWorkbook };

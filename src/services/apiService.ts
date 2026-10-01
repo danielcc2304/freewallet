@@ -815,6 +815,8 @@ export async function getFundamentalData(symbol: string, signal?: AbortSignal): 
 // ===== YAHOO FINANCE GET CHART DATA =====
 async function getChartSymbolCandidates(symbol: string, signal?: AbortSignal): Promise<string[]> {
     const normalized = symbol.trim().toUpperCase();
+    // FX pairs must not fall back to similarly named or inverse instruments.
+    if (/^[A-Z]{6}=X$/.test(normalized)) return [normalized];
     const cached = CHART_SYMBOL_CACHE.get(normalized);
     if (cached) return cached;
 
@@ -862,9 +864,10 @@ async function fetchYahooChartPoints(
     period: TimePeriod,
     signal?: AbortSignal,
     startDate?: number,
+    endDate?: number,
 ): Promise<HistoricalDataPoint[]> {
     const dates = Number.isFinite(startDate)
-        ? `period1=${Math.floor((startDate! - 7 * 86400000) / 1000)}&period2=${Math.ceil(Date.now() / 1000)}`
+        ? `period1=${Math.floor((startDate! - 7 * 86400000) / 1000)}&period2=${Math.ceil((endDate ?? Date.now()) / 1000)}`
         : 'range=' + range;
     const url = YAHOO_CHART_URL + '/' + encodeURIComponent(symbol) + '?' + dates + '&interval=' + interval;
     const rawData: unknown = url.startsWith('/')
@@ -908,13 +911,13 @@ export async function getAssetChartData(
     symbol: string,
     period: TimePeriod = '1M',
     signal?: AbortSignal,
-    options: { startDate?: number; forceRefresh?: boolean } = {},
+    options: { startDate?: number; endDate?: number; forceRefresh?: boolean } = {},
 ): Promise<HistoricalDataPoint[]> {
     if (!isApiEnabled()) {
         return [];
     }
 
-    const cacheKey = `${symbol.trim().toUpperCase()}::${period}::${Number.isFinite(options.startDate) ? new Date(options.startDate!).toISOString().slice(0, 10) : ''}`;
+    const cacheKey = `${symbol.trim().toUpperCase()}::${period}::${Number.isFinite(options.startDate) ? new Date(options.startDate!).toISOString().slice(0, 10) : ''}::${options.endDate ?? ''}`;
     const cached = CHART_CACHE.get(cacheKey);
     if (!options.forceRefresh && cached && Date.now() - cached.timestamp < TTL.CHART) {
         return cached.data;
@@ -957,7 +960,7 @@ export async function getAssetChartData(
 
         for (const candidate of candidates) {
             try {
-                const points = await fetchYahooChartPoints(candidate, range, Number.isFinite(options.startDate) ? '1d' : interval, period, signal, options.startDate);
+                const points = await fetchYahooChartPoints(candidate, range, Number.isFinite(options.startDate) ? '1d' : interval, period, signal, options.startDate, options.endDate);
                 if (points.length > bestPoints.length) bestPoints = points;
 
                 // A single quote cannot render an evolution. Keep looking for

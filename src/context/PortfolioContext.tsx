@@ -6,6 +6,8 @@ import { getPortfolioAssetQuote } from '../services/portfolioQuoteService';
 import { useLocalDataVersion } from '../hooks/useLocalDataVersion';
 import { PRICE_REFRESH_INTERVAL_MS } from '../constants/app';
 import { createQuoteSnapshot, normalizePortfolioTransactions, portfolioLedgerKey } from '../services/portfolioPerformance';
+import { applicableQuoteUpdates, applyPositionUpdate } from '../services/dashboardIntegrity';
+import { accountingDay } from '../services/portfolioCalendar';
 
 function getLatestQuoteAt(assets: Asset[]): Date | null {
     const timestamps = assets
@@ -200,19 +202,20 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
             // Publish one state update for the whole refresh. This prevents a
             // portfolio with many positions from rendering once per quote.
-            if (quoteUpdates.length > 0) {
-                updateAssetsInStorage(quoteUpdates);
-                dispatch({ type: 'UPDATE_ASSETS', payload: quoteUpdates });
+            const applicable = applicableQuoteUpdates(requested, getAssets(), quoteUpdates);
+            if (applicable.length > 0) {
+                updateAssetsInStorage(applicable);
+                dispatch({ type: 'UPDATE_ASSETS', payload: applicable });
             }
 
             const refreshedAssets = getAssets();
             const snapshot = createQuoteSnapshot(refreshedAssets, getTransactions(), new Date().toISOString());
             const samePositions = refreshedAssets.length === assetsToUpdate.length && refreshedAssets.every(a =>
                 assetsToUpdate.some(old => old.id === a.id && old.quantity === a.quantity && old.purchasePrice === a.purchasePrice && old.purchaseDate === a.purchaseDate));
-            if (requested.length > 0 && quoteUpdates.length === requested.length && samePositions && snapshot && snapshot.ledgerKey === initialLedgerKey) addHistoryPoint(snapshot);
+            if (requested.length > 0 && applicable.length === requested.length && samePositions && snapshot && snapshot.ledgerKey === initialLedgerKey) addHistoryPoint(snapshot);
             const latestQuoteAt = getLatestQuoteAt(refreshedAssets);
             dispatch({ type: 'SET_LAST_UPDATE', payload: latestQuoteAt });
-            dispatch({ type: 'SET_QUOTE_FAILURES', payload: requested.length - quoteUpdates.length });
+            dispatch({ type: 'SET_QUOTE_FAILURES', payload: requested.length - applicable.length });
         } catch (error) {
             dispatch({ type: 'SET_STORAGE_ERROR', payload: error instanceof Error ? error.message : 'No se pudo guardar la actualización.' });
         } finally {
@@ -280,7 +283,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     }, [commit, updatePricesInternal]);
 
     const updateAsset = useCallback((id: string, updates: Partial<Asset>, transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => {
-        commit(getAssets().map(a => a.id === id ? { ...a, ...updates } : a), transaction);
+        commit(getAssets().map(a => a.id === id ? applyPositionUpdate(a, updates) : a), transaction);
     }, [commit]);
 
     const deleteAsset = useCallback((id: string) => {
@@ -289,7 +292,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         if (!asset) return;
         commit(assets.filter(a => a.id !== id), {
             assetId: id, assetSymbol: asset.symbol, assetName: asset.name, assetType: asset.type,
-            type: 'delete', date: new Date().toISOString().slice(0, 10), quantity: asset.quantity,
+            type: 'delete', date: accountingDay(Date.now()), quantity: asset.quantity,
             price: asset.purchasePrice, total: asset.purchasePrice * asset.quantity, notes: 'Activo eliminado de la cartera',
         });
     }, [commit]);

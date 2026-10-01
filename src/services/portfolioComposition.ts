@@ -50,6 +50,22 @@ export interface ConsolidatedPortfolioExposure {
 
 export type PortfolioHoldingsByAsset = ReadonlyMap<string, readonly AssetHolding[]>;
 
+export interface UnderlyingSelection {
+    holding: AssetHolding;
+    parentAsset: Asset;
+    exposure?: ConsolidatedPortfolioExposure;
+}
+
+/** Resolve the open detail against current positions and current look-through data. */
+export function resolveLiveUnderlyingSelection(previous: UnderlyingSelection | null, assets: readonly Asset[], exposures: readonly ConsolidatedPortfolioExposure[]): UnderlyingSelection | null {
+    if (!previous) return null;
+    const parentAsset = assets.find(a => a.id === previous.parentAsset.id);
+    const exposure = exposures.find(e => e.id === previous.exposure?.id);
+    if (!parentAsset || (previous.exposure && !exposure)) return null;
+    if (parentAsset === previous.parentAsset && exposure === previous.exposure) return previous;
+    return { ...previous, parentAsset, exposure };
+}
+
 function isContainerAsset(asset: Asset): boolean {
     return CONTAINER_TYPES.has(asset.type);
 }
@@ -187,7 +203,10 @@ function addLookThroughExposure(
         .filter(({ holding, weight }) => holding.name.trim() && Number.isFinite(weight) && weight > 0);
 
     if (validHoldings.length === 0) {
-        addDirectExposure(exposures, asset, totalValue);
+        addExposure(exposures, {
+            parentAssetId: asset.id, parentAssetName: asset.name, parentAssetSymbol: asset.symbol,
+            holding: buildResidualHolding(asset, 100), value, weight: 100, isDirect: false, isResidual: true,
+        }, totalValue);
         return;
     }
 

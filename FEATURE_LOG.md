@@ -12,6 +12,21 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-02 - v5.3.12 - Calculadoras, integridad del Dashboard y desglose de fondos
+- Funcionalidad:
+  - Calculadoras: aportaciones necesarias coherentes con las aportaciones al inicio de mes; objetivos inalcanzables y entradas inválidas identificados; retiradas limitadas al saldo; correcciones de casos límite en FIRE e Inflación; cupones de bonos con ancla de fecha, finales de mes y años bisiestos.
+  - Dashboard: edición de posiciones sin alterar su fecha de compra ni aplicar cotizaciones de instrumentos anteriores; búsqueda inequívoca y detalle de subyacentes sin posiciones ficticias; valores sin cotización como N/D, ordenación estable y cobertura incompleta explícita; resumen mensual coherente con Evolución; objetivos, historial y reintentos actualizados sin cálculos duplicados; fechas de consulta y precio diferenciadas, avisos de antigüedad y errores de persistencia visibles.
+  - Noticias: SDK editorial compartido y cargado solo al utilizar esa sección, sin diferir la navegación de rutas.
+  - Desglose de fondos: celdas legibles en móvil y escritorio, exposición consolidada a ancho completo, asignaciones por fondo desplegables y título «Mapa de riesgo».
+- Resumen:
+  - Reúne correcciones matemáticas, de integridad de cartera y de presentación; incluye regresiones automatizadas para calculadoras, Dashboard y desglose de fondos.
+- Archivos:
+  - `src/components/academy/calculators/`, `scripts/test-calculator-integrity.ts`
+  - `src/services/dashboardIntegrity.ts`, `src/services/portfolioQuoteStatus.ts`, `src/services/portfolioPerformance.ts`, `src/services/portfolioComposition.ts`, `src/services/apiService.ts`, `src/services/newsService.ts`
+  - `src/context/PortfolioContext.tsx`, `src/pages/AddInvestment/AddInvestment.tsx`, `src/pages/Dashboard/`, `src/pages/PortfolioCsv/`
+  - `src/components/dashboard/`, `src/components/charts/`, `scripts/test-dashboard-audit-fixes.ts`, `scripts/test-dashboard-bundle.ts`, `scripts/test-dashboard-followups.ts`, `scripts/test-fund-breakdown-layout.ts`
+  - `README.md`, `docs/dashboard-logic-review.md`
+
 ### 2026-10-01 - v5.3.11 - Coherencia de cálculos y planificación del Dashboard
 - Funcionalidad:
   - YTD completo separado de los tramos comparables del benchmark, con consulta de su base y selección por cobertura.

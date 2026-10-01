@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Calendar, Info, ShieldAlert, BadgeInfo, Wallet2, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { CalculatorCard } from './CalculatorCard';
+import { validateCalculatorInputs } from './calculatorValidation';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './RetirementCalculator.css';
 
@@ -92,13 +93,22 @@ export function RetirementCalculator() {
     const contributionNum = Number(monthlyContribution) || 0;
     const returnNum = Number(annualReturn) || 0;
     const inflationNum = Number(inflationRate) || 0;
+    const calculationError = validateCalculatorInputs([
+        { label: 'Edad actual', value: currentAge, max: 120, integer: true },
+        { label: 'Edad de jubilación', value: retirementAge, min: ageNum, max: 120, integer: true },
+        { label: 'Ahorro actual', value: currentSavings },
+        { label: 'Aportación mensual', value: monthlyContribution },
+        { label: 'Rentabilidad', value: annualReturn, min: -99.99, max: 100 },
+        { label: 'Inflación', value: inflationRate, min: -99, max: 100 },
+    ]);
 
     // Derived values
     const yearsToRetire = Math.max(0, retAgeNum - ageNum);
 
     // Projection Data
     const projectionData = useMemo(() => {
-        const data = [];
+        const data: Array<{ age: number; nominal: number; real: number }> = [];
+        if (calculationError) return data;
         let balanceNominal = savingsNum;
         const monthlyRate = Math.pow(1 + returnNum / 100, 1 / 12) - 1;
 
@@ -119,7 +129,7 @@ export function RetirementCalculator() {
             }
         }
         return data;
-    }, [ageNum, savingsNum, contributionNum, returnNum, inflationNum, yearsToRetire]);
+    }, [ageNum, savingsNum, contributionNum, returnNum, inflationNum, yearsToRetire, calculationError]);
 
     const finalNominal = projectionData[projectionData.length - 1]?.nominal || 0;
     const finalReal = projectionData[projectionData.length - 1]?.real || 0;
@@ -138,7 +148,7 @@ export function RetirementCalculator() {
                 </div>
                 <div className="retirement__summary-badge">
                     <span className="retirement__summary-label">Objetivo en {yearsToRetire} años</span>
-                    <span className="retirement__summary-value">{formatRetirementCurrency(finalNominal)}</span>
+                    <span className="retirement__summary-value">{calculationError ? 'N/D' : formatRetirementCurrency(finalNominal)}</span>
                 </div>
             </AcademyPageHeader>
 
@@ -241,6 +251,7 @@ export function RetirementCalculator() {
                 </aside>
 
                 <main className="retirement__main">
+                    {calculationError ? <p role="alert">{calculationError}</p> : <>
                     <div className="retirement__metrics">
                         <CalculatorCard className="retirement__metric-card">
                             <Wallet2 className="retirement__metric-icon" />
@@ -335,6 +346,7 @@ export function RetirementCalculator() {
                             </p>
                         </div>
                     </CalculatorCard>
+                    </>}
                 </main>
             </div>
         </div>

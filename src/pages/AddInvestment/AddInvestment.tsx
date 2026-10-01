@@ -10,6 +10,7 @@ import { generateId, isApiEnabled } from '../../services/storageService';
 import { usePortfolio } from '../../context/PortfolioContext';
 import type { SearchResult, AssetType, Asset, StockQuote } from '../../types/types';
 import './AddInvestment.css';
+import { accountingDay } from '../../services/portfolioCalendar';
 
 interface FormData {
     symbol: string;
@@ -74,7 +75,7 @@ export function AddInvestment() {
         type: targetAsset?.type || 'stock',
         // In DCA mode, start empty to ask for NEW purchase price. In Edit mode, show OLD price.
         purchasePrice: isEditMode ? targetAsset?.purchasePrice.toString() || '' : (isSellMode ? String(targetAsset?.currentPrice || targetAsset?.purchasePrice || '') : ''),
-        purchaseDate: new Date().toISOString().split('T')[0],
+        purchaseDate: isEditMode ? targetAsset!.purchaseDate.slice(0, 10) : accountingDay(Date.now()),
         // In DCA mode, start empty. In Edit mode, show OLD quantity.
         quantity: isEditMode ? targetAsset?.quantity.toString() || '' : '',
         isin: targetAsset?.isin || '',
@@ -210,7 +211,7 @@ export function AddInvestment() {
             name: result.name,
             type: result.type,
             purchasePrice: '',
-            purchaseDate: new Date().toISOString().split('T')[0],
+            purchaseDate: isEditMode ? targetAsset!.purchaseDate.slice(0, 10) : accountingDay(Date.now()),
             quantity: '',
             isin: isISIN(result.symbol) ? result.symbol : ''
         });

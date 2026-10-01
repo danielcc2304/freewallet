@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { PiggyBank, ShieldCheck, AlertCircle, TrendingUp, HelpCircle, Home, Utensils, Zap, Plus, Users } from 'lucide-react';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
+import { validateCalculatorInputs } from './calculatorValidation';
 import './EmergencyFundCalculator.css';
 
 interface EmergencyFundCalculatorStorage {
@@ -73,6 +74,14 @@ export function EmergencyFundCalculator() {
     const otherNum = Number(monthlyOther) || 0;
     const savingsNum = Number(currentSavings) || 0;
     const dependentsNum = Number(dependents) || 0;
+    const calculationError = validateCalculatorInputs([
+        { label: 'Vivienda', value: monthlyRent },
+        { label: 'Alimentación', value: monthlyFood },
+        { label: 'Suministros', value: monthlyBills },
+        { label: 'Otros gastos', value: monthlyOther },
+        { label: 'Ahorro actual', value: currentSavings },
+        { label: 'Personas dependientes', value: dependents, max: 100, integer: true },
+    ]);
 
     // Calculations
     const totalExpenses = rentNum + foodNum + billsNum + otherNum;
@@ -201,6 +210,7 @@ export function EmergencyFundCalculator() {
                 </section>
 
                 <main className="emergency__results">
+                    {calculationError ? <p role="alert">{calculationError}</p> : <>
                     <div className="emergency__recommendation-box">
                         <div className="emergency__rec-header">
                             <ShieldCheck className="emergency__rec-icon" />
@@ -272,6 +282,7 @@ export function EmergencyFundCalculator() {
                             </div>
                         </div>
                     </div>
+                    </>}
                 </main>
             </div>
         </div>

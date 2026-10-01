@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import type { DashboardAnalytics } from './useDashboardAnalytics';
-import { assetValue, formatQuantity } from '../../services/assetValuation';
+import { formatQuantity, hasValidPrice } from '../../services/assetValuation';
 import { useEffect } from 'react';
 import { notifyLocalDataChange } from '../../hooks/useLocalDataVersion';
+import { calculateContributionPlan, migratePlanTargets, PLAN_TARGETS_KEY, LEGACY_PLAN_TARGETS_KEY, parsePlanNumber, targetsFromCurrentWeights } from '../../services/portfolioPlan';
+import type { Asset } from '../../types/types';
 import './LivePortfolioPlan.css';
 
 const money = (n: number) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
@@ -14,7 +16,13 @@ const intervalLabel = (row: DashboardAnalytics['monthly'][number]) => [
     row.dailyIntervals ? `${row.dailyIntervals} diario${row.dailyIntervals === 1 ? '' : 's'}` : '',
     row.otherIntervals ? `${row.otherIntervals} entre valoraciones` : '',
 ].filter(Boolean).join(' · ') || 'Sin intervalos válidos';
-const KEY = 'freewallet_live_targets';
+function readTargets(assets: Asset[]): Record<string, string> {
+    const stored = JSON.parse(localStorage.getItem(PLAN_TARGETS_KEY) || '{}');
+    const legacy = JSON.parse(localStorage.getItem(LEGACY_PLAN_TARGETS_KEY) || '{}');
+    const current = stored && typeof stored === 'object' && !Array.isArray(stored)
+        ? Object.fromEntries(Object.entries(stored).filter(([, v]) => typeof v === 'string' || typeof v === 'number').map(([k, v]) => [k, String(v)])) : {};
+    return migratePlanTargets(assets, current, legacy && typeof legacy === 'object' ? legacy : {});
+}
 const operationName = { buy: 'Compra', sell: 'Venta', edit: 'Corrección', delete: 'Eliminación' } as const;
 
 type LivePortfolioPlanSection = 'all' | 'plan' | 'monthly' | 'recent';
@@ -22,50 +30,45 @@ type LivePortfolioPlanSection = 'all' | 'plan' | 'monthly' | 'recent';
 export function LivePortfolioPlan({ analytics, section = 'all' }: { analytics: DashboardAnalytics; section?: LivePortfolioPlanSection }) {
     const { state: { assets } } = usePortfolio();
     const { workbookHistory, usingWorkbookHistory, portfolioTransactions, monthly: months } = analytics;
-    const [targets, setTargets] = useState<Record<string, number>>(() => {
-        try {
-            const data: unknown = JSON.parse(localStorage.getItem(KEY) || '{}');
-            return data && typeof data === 'object' && !Array.isArray(data)
-                ? Object.fromEntries(Object.entries(data).filter(([, v]) => typeof v === 'number' && Number.isFinite(v) && v >= 0 && v <= 100)) : {};
-        } catch { return {}; }
-    });
+    const [targets, setTargets] = useState<Record<string, string>>(() => { try { return readTargets(assets); } catch { return {}; } });
     const [budgetInput, setBudgetInput] = useState('');
-    const budget = Math.max(0, Number(budgetInput) || 0);
     const [saveError, setSaveError] = useState(false);
     useEffect(() => {
         const sync = () => {
             try {
-                const stored = JSON.parse(localStorage.getItem(KEY) || '{}');
-                setTargets(stored && typeof stored === 'object' && !Array.isArray(stored) ? Object.fromEntries(Object.entries(stored).filter(([, value]) => typeof value === 'number' && Number.isFinite(value) && value >= 0 && value <= 100)) as Record<string, number> : {});
+                const stored = readTargets(assets);
+                localStorage.setItem(PLAN_TARGETS_KEY, JSON.stringify(stored));
+                setTargets(stored);
             } catch { setSaveError(true); }
         };
+        sync();
         window.addEventListener('storage', sync);
         window.addEventListener('freewallet-data-change', sync);
         return () => { window.removeEventListener('storage', sync); window.removeEventListener('freewallet-data-change', sync); };
-    }, []);
-    const { total, invested, targetTotal } = useMemo(() => ({
-        total: assets.reduce((sum, a) => sum + assetValue(a), 0),
-        invested: assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0),
-        targetTotal: assets.reduce((sum, a) => sum + (targets[a.id] || 0), 0),
-    }), [assets, targets]);
-    const validTargets = Math.abs(targetTotal - 100) < .01;
-    const rows = useMemo(() => assets.map(a => {
-        const value = assetValue(a);
-        const cost = a.purchasePrice * a.quantity;
-        const target = targets[a.id] || 0;
-        return { a, value, cost, target, weight: total ? value / total * 100 : 0, gap: (total + budget) * target / 100 - value };
-    }).sort((a, b) => b.value - a.value), [assets, budget, targets, total]);
-    const shortfall = useMemo(() => rows.reduce((sum, r) => sum + Math.max(0, r.gap), 0), [rows]);
+    }, [assets]);
+    const plan = useMemo(() => calculateContributionPlan(assets, targets, budgetInput), [assets, targets, budgetInput]);
+    const { targetTotal, validTargets, canCalculate } = plan;
+    const rows = useMemo(() => plan.rows.map(r => {
+        const cost = r.assets.reduce((s, a) => s + a.purchasePrice * a.quantity, 0);
+        const quantity = r.assets.reduce((s, a) => s + a.quantity, 0);
+        return { ...r, a: { ...r.assets[0], quantity }, cost, weight: plan.total ? r.value / plan.total * 100 : 0 };
+    }).sort((a, b) => b.value - a.value), [plan]);
+    const invested = rows.reduce((s, r) => s + r.cost, 0);
     const { buys, sells } = useMemo(() => ({
         buys: portfolioTransactions.filter(t => t.type === 'buy' && t.provenance !== 'initial-position' && !/^(position|bootstrap)-/.test(t.id)).reduce((s, t) => s + (t.total || 0), 0),
         sells: portfolioTransactions.filter(t => t.type === 'sell' && t.provenance !== 'initial-position').reduce((s, t) => s + (t.total || 0), 0),
     }), [portfolioTransactions]);
     const setTarget = (id: string, raw: string) => {
         const next = { ...targets };
-        if (raw === '') delete next[id];
-        else next[id] = Math.min(100, Math.max(0, Number(raw) || 0));
+        next[id] = raw;
         setTargets(next);
-        try { localStorage.setItem(KEY, JSON.stringify(next)); notifyLocalDataChange(); setSaveError(false); } catch { setSaveError(true); }
+        try { localStorage.setItem(PLAN_TARGETS_KEY, JSON.stringify(next)); notifyLocalDataChange(); setSaveError(false); } catch { setSaveError(true); }
+    };
+    const useCurrentWeights = () => {
+        if (plan.total <= 0 || !rows.length) return;
+        const next = { ...targets, ...targetsFromCurrentWeights(assets) };
+        setTargets(next);
+        try { localStorage.setItem(PLAN_TARGETS_KEY, JSON.stringify(next)); notifyLocalDataChange(); setSaveError(false); } catch { setSaveError(true); }
     };
     const currentResult = useMemo(() => rows.reduce((sum, row) => sum + row.value - row.cost, 0), [rows]);
     const recentTransactions = useMemo(
@@ -91,19 +94,23 @@ export function LivePortfolioPlan({ analytics, section = 'all' }: { analytics: D
                     <div><span>Resultado abierto</span><strong>{money(currentResult)}</strong></div>
                 </div>
                 {Math.abs(ledgerDifference) > 0.01 && <p role="status">El flujo neto y el coste de las posiciones difieren en {money(Math.abs(ledgerDifference))}. Las ventas con ganancias o pérdidas pueden explicar esa diferencia; no se modifican los importes registrados.</p>}
-                <label className="live-plan__budget">Próxima aportación (€)<input type="number" min="0" step="10" value={budgetInput} onChange={e => setBudgetInput(e.target.value)} /></label>
+                {!assets.length && <p role="status">El Excel aporta el histórico, pero el plan necesita posiciones en el Dashboard. Añade tus activos para definir objetivos.</p>}
+                {assets.some(a => !hasValidPrice(a)) && <p role="status">La propuesta es orientativa: algunas posiciones se valoran al coste porque falta una cotización en euros.</p>}
+                {assets.length > 0 && <button type="button" onClick={useCurrentWeights} disabled={plan.total <= 0}>Usar pesos actuales como objetivos</button>}
+                <label className="live-plan__budget">Próxima aportación (€)<input type="text" inputMode="decimal" value={budgetInput} onChange={e => setBudgetInput(e.target.value)} aria-invalid={!!budgetInput && parsePlanNumber(budgetInput) === null} /></label>
                 <p role="status">Objetivos: {pct(targetTotal)} / 100%. {validTargets ? 'Plan listo para distribuir la aportación entre posiciones infraponderadas.' : 'Completa los pesos hasta el 100% para calcular la propuesta.'}</p>
+                {validTargets && !canCalculate && <p role="status">Introduce una aportación mayor que cero para calcular el reparto.</p>}
                 {saveError && <p role="alert">No se han podido guardar los objetivos en este navegador.</p>}
                 <div className="live-plan__scroll"><table>
                     <caption>Posiciones y asignación objetivo</caption>
                     <thead><tr>{['Activo', 'Cantidad', 'Coste', 'Valor actual', 'Resultado', 'Rentabilidad', 'Peso actual', 'Objetivo %', 'Desviación (pp)', 'Aportar'].map(h => <th key={h}>{h}</th>)}</tr></thead>
-                    <tbody>{rows.map(r => <tr key={r.a.id}>
+                    <tbody>{rows.map(r => <tr key={r.key}>
                         <th scope="row">{r.a.name}<small>{r.a.symbol}{!r.a.lastQuoteAt ? ' · Sin cotización verificada' : ''}</small></th>
                         <td>{formatQuantity(r.a)}</td><td>{money(r.cost)}</td><td>{money(r.value)}</td>
                         <td className={r.value >= r.cost ? 'is-positive' : 'is-negative'}>{money(r.value - r.cost)}</td><td>{r.cost ? pct((r.value / r.cost - 1) * 100) : '—'}</td><td>{pct(r.weight)}</td>
-                        <td><input aria-label={'Peso objetivo de ' + r.a.name} type="number" min="0" max="100" step="0.1" value={targets[r.a.id] ?? ''} onChange={e => setTarget(r.a.id, e.target.value)} /></td>
-                        <td>{targets[r.a.id] !== undefined ? (r.weight - r.target).toFixed(2) : '—'}</td>
-                        <td>{validTargets ? money(shortfall ? budget * Math.max(0, r.gap) / shortfall : 0) : '—'}</td>
+                        <td><input aria-label={'Peso objetivo de ' + r.a.name} type="text" inputMode="decimal" value={targets[r.key] ?? ''} onChange={e => setTarget(r.key, e.target.value)} aria-invalid={!!targets[r.key] && (r.target === null || r.target > 100)} /></td>
+                        <td>{r.target !== null ? (r.weight - r.target).toFixed(2) : '—'}</td>
+                        <td>{canCalculate ? money(r.contribution) : '—'}</td>
                     </tr>)}</tbody>
                 </table></div>
                 <p>La propuesta usa aportaciones sin ventas ni comisiones. Las cantidades cambian al registrar operaciones y los pesos con cada cotización.</p>

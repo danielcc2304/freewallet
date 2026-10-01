@@ -2,14 +2,14 @@ import type { Asset, HistoricalDataPoint } from '../types/types';
 
 /** Zero is a valid price; absent/invalid quotes are explicitly estimated at cost. */
 export function assetPrice(asset: Asset): number {
-    if (Number.isFinite(asset.currentPrice) && asset.currentPrice! >= 0) return asset.currentPrice!;
+    if (hasValidPrice(asset)) return asset.currentPrice!;
     return Number.isFinite(asset.purchasePrice) && asset.purchasePrice >= 0 ? asset.purchasePrice : 0;
 }
 export function assetValue(asset: Asset): number {
     return Number.isFinite(asset.quantity) && asset.quantity >= 0 ? assetPrice(asset) * asset.quantity : 0;
 }
 export function hasValidPrice(asset: Asset): boolean {
-    return Number.isFinite(asset.currentPrice) && asset.currentPrice! >= 0;
+    return Number.isFinite(asset.currentPrice) && asset.currentPrice! >= 0 && (!asset.currency || asset.currency === 'EUR');
 }
 export function formatQuantity(asset: Pick<Asset, 'quantity' | 'type'>): string {
     return Number.isFinite(asset.quantity) ? asset.quantity.toLocaleString('es-ES', { maximumFractionDigits: asset.type === 'crypto' ? 8 : 10 }) : 'N/D';

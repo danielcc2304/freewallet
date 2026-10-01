@@ -118,7 +118,8 @@ function addExposure(
     source: ConsolidatedExposureSource,
     totalValue: number,
 ): void {
-    const key = getExposureIdentity(source.holding.name, source.holding.symbol, source.holding.isin);
+    const identity = getExposureIdentity(source.holding.name, source.holding.symbol, source.holding.isin);
+    const key = source.isResidual ? `residual:${identity}` : identity;
     const existing = exposures.get(key);
     const sourceSymbol = getDisplaySymbol(source.holding);
 
@@ -210,7 +211,7 @@ function addLookThroughExposure(
     });
 
     const residualWeight = Math.max(0, 100 - coveredWeight);
-    if (residualWeight > 0.05) {
+    if (residualWeight > 0) {
         const holding = buildResidualHolding(asset, residualWeight);
         addExposure(exposures, {
             parentAssetId: asset.id,

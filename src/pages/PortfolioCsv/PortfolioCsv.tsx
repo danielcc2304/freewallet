@@ -77,9 +77,10 @@ import {
     parseObjectives,
     parsePeriodParts,
     resolveEvolutionPeriods,
-    standardDeviation,
 } from './portfolioCsvUtils';
 import './PortfolioCsv.css';
+import { buildWorkbookHistory } from '../../services/portfolioWorkbookHistory';
+import { performanceSeries, portfolioMonthlyRows } from '../../services/portfolioPerformance';
 
 const getBasePeriodKey = (value: string) => value.replace(/__reset$/, '');
 
@@ -206,23 +207,30 @@ export function PortfolioCsv() {
     const movements = useMemo(() => parseMovements(deferredMovementsRaw), [deferredMovementsRaw]);
     const objectives = useMemo(() => parseObjectives(deferredObjectivesRaw), [deferredObjectivesRaw]);
     const workbookControls = useMemo(() => parseControlRows(deferredControlRaw), [deferredControlRaw]);
+    const riskMonths = useMemo(() => {
+        const now = Date.now();
+        const workbook = buildWorkbookHistory(deferredEvolutionRaw, deferredDailyRaw, deferredMovementsRaw, now);
+        return portfolioMonthlyRows(performanceSeries(workbook.points.filter(p => Date.parse(p.date) <= now), workbook.flowTransactions), now);
+    }, [deferredEvolutionRaw, deferredDailyRaw, deferredMovementsRaw]);
     const advancedStats = useMemo<AdvancedPortfolioStats>(
-        () => calculateAdvancedPortfolioStats(evolutionBase, benchmarkComparison, dailyPoints, advancedSource.riskFreeAnnualPct),
-        [advancedSource.riskFreeAnnualPct, benchmarkComparison, dailyPoints, evolutionBase],
+        () => calculateAdvancedPortfolioStats(evolutionBase, benchmarkComparison, dailyPoints, advancedSource.riskFreeAnnualPct, riskMonths),
+        [advancedSource.riskFreeAnnualPct, benchmarkComparison, dailyPoints, evolutionBase, riskMonths],
     );
 
     const evolution = useMemo<EnrichedEvolutionPoint[]>(() => {
         if (evolutionBase.length === 0) return [];
         const baseInitial = evolutionBase[0].initialCapital;
         let cumulativeContribution = 0;
-        let peak = evolutionBase[0].totalValue;
+        const periods = resolveEvolutionPeriods(evolutionBase);
         return evolutionBase.map((row) => {
             cumulativeContribution += row.monthlyContribution;
             const investedValue = baseInitial + cumulativeContribution;
-            peak = Math.max(peak, row.totalValue);
-            return { ...row, investedValue, gainVsInvested: row.totalValue - investedValue, drawdownPct: peak > 0 ? ((row.totalValue - peak) / peak) * 100 : 0 };
+            const parts = parsePeriodParts(periods.get(row.period) || row.period);
+            const month = parts?.year === undefined ? '' : `${parts.year}-${String(parts.monthIndex + 1).padStart(2, '0')}`;
+            const risk = riskMonths.find(m => m.month === month);
+            return { ...row, investedValue, gainVsInvested: row.totalValue - investedValue, drawdownPct: risk?.drawdown ?? NaN };
         });
-    }, [evolutionBase]);
+    }, [evolutionBase, riskMonths]);
     const resolvedPeriodMap = useMemo(() => resolveEvolutionPeriods(evolutionBase), [evolutionBase]);
     const mobilePeriodMap = useMemo(() => {
         const monthCounts = evolutionBase.reduce<Record<string, number>>((acc, point) => {
@@ -241,7 +249,11 @@ export function PortfolioCsv() {
         }));
     }, [evolutionBase, resolvedPeriodMap]);
     const riskMapData = useMemo<RiskMapPoint[]>(() => {
-        return evolution.flatMap((row, index) => {
+        return evolution.flatMap((original, index) => {
+            const parts = parsePeriodParts(resolvedPeriodMap.get(original.period) || original.period);
+            const key = parts?.year === undefined ? '' : `${parts.year}-${String(parts.monthIndex + 1).padStart(2, '0')}`;
+            const risk = riskMonths.find(m => m.month === key);
+            const row = { ...original, monthlyReturnPct: risk?.closed && risk.complete ? risk.monthlyReturn : null };
             const previous = index > 0 ? evolution[index - 1] : null;
             const currentResolvedPeriod = resolvedPeriodMap.get(row.period) || row.period;
             const previousResolvedPeriod = previous ? (resolvedPeriodMap.get(previous.period) || previous.period) : null;
@@ -258,7 +270,7 @@ export function PortfolioCsv() {
 
             if (index > 0 && !startsNewYear) {
                 return [{
-                    ...row,
+                    ...row, drawdownPct: Number.isFinite(row.drawdownPct) ? row.drawdownPct : null,
                     twrYtdPctReset: null,
                     drawdownPctReset: null,
                 }] as RiskMapPoint[];
@@ -271,17 +283,18 @@ export function PortfolioCsv() {
                     monthlyReturnPct: null,
                     drawdownPct: null,
                     twrYtdPct: null,
-                    drawdownPctReset: 0,
+                    drawdownPctReset: null,
                     twrYtdPctReset: 0,
                 },
                 {
                     ...row,
-                    drawdownPctReset: row.drawdownPct,
+                    drawdownPct: Number.isFinite(row.drawdownPct) ? row.drawdownPct : null,
+                    drawdownPctReset: Number.isFinite(row.drawdownPct) ? row.drawdownPct : null,
                     twrYtdPctReset: row.twrYtdPct,
                 },
             ] as RiskMapPoint[];
         });
-    }, [evolution, resolvedPeriodMap]);
+    }, [evolution, resolvedPeriodMap, riskMonths]);
     useEffect(() => {
         try {
             localStorage.setItem(STORAGE_KEYS.holdingsRaw, holdingsRaw);
@@ -367,19 +380,21 @@ export function PortfolioCsv() {
     }, [holdings]);
 
     const latestEvolution = evolution.length > 0 ? evolution[evolution.length - 1] : null;
-    const bestMonth = evolution.length > 0 ? [...evolution].sort((a, b) => b.monthlyReturnPct - a.monthlyReturnPct)[0] : null;
-    const worstMonth = evolution.length > 0 ? [...evolution].sort((a, b) => a.monthlyReturnPct - b.monthlyReturnPct)[0] : null;
-    const avgMonthlyReturn = useMemo(() => (evolution.length ? evolution.reduce((acc, row) => acc + row.monthlyReturnPct, 0) / evolution.length : 0), [evolution]);
-    const monthlyVolatility = useMemo(() => standardDeviation(evolution.map((row) => row.monthlyReturnPct)), [evolution]);
+    const validRiskMonths = useMemo(() => riskMonths.filter(r => r.closed && r.complete && r.monthlyReturn !== null).map(r => ({ period: r.month, monthlyReturnPct: r.monthlyReturn! })), [riskMonths]);
+    const bestMonth = validRiskMonths.length > 0 ? [...validRiskMonths].sort((a, b) => b.monthlyReturnPct - a.monthlyReturnPct)[0] : null;
+    const worstMonth = validRiskMonths.length > 0 ? [...validRiskMonths].sort((a, b) => a.monthlyReturnPct - b.monthlyReturnPct)[0] : null;
+    const avgMonthlyReturn = useMemo(() => (validRiskMonths.length ? validRiskMonths.reduce((acc, row) => acc + row.monthlyReturnPct, 0) / validRiskMonths.length : NaN), [validRiskMonths]);
+    const monthlyVolatility = advancedStats.annualizedVolatilityPct === null ? NaN : advancedStats.annualizedVolatilityPct / Math.sqrt(12);
     const positiveMonthRatio = useMemo(() => {
-        if (evolution.length === 0) return 0;
-        const positives = evolution.filter((row) => row.monthlyReturnPct > 0).length;
-        return (positives / evolution.length) * 100;
-    }, [evolution]);
+        if (validRiskMonths.length === 0) return NaN;
+        const positives = validRiskMonths.filter((row) => row.monthlyReturnPct > 0).length;
+        return (positives / validRiskMonths.length) * 100;
+    }, [validRiskMonths]);
     const projection12m = useMemo(() => {
         if (!latestEvolution) return 0;
         const monthlyContribution = evolution.length ? evolution.reduce((acc, row) => acc + row.monthlyContribution, 0) / evolution.length : 0;
         const rate = avgMonthlyReturn / 100;
+        if (!Number.isFinite(rate)) return NaN;
         if (Math.abs(rate) < 0.0001) return latestEvolution.totalValue + (monthlyContribution * 12);
         const futureValue = latestEvolution.totalValue * ((1 + rate) ** 12);
         const annuity = monthlyContribution * ((((1 + rate) ** 12) - 1) / rate);
@@ -408,7 +423,7 @@ export function PortfolioCsv() {
     );
 
     const riskChecks = useMemo(() => {
-        const maxDrawdown = evolution.length ? Math.min(...evolution.map((row) => row.drawdownPct)) : 0;
+        const maxDrawdown = advancedStats.maxDrawdownPct;
         const liquidityWeight = holdings.filter((row) => row.category === 'cash').reduce((acc, row) => acc + row.weight, 0);
         const uncategorizedWeight = holdings.filter((row) => row.category === 'other').reduce((acc, row) => acc + row.weight, 0);
         const topHolding = holdings[0];
@@ -433,9 +448,9 @@ export function PortfolioCsv() {
             },
             {
                 title: 'Drawdown máximo',
-                value: formatPct(maxDrawdown),
-                tone: maxDrawdown <= -15 ? 'warn' : 'good',
-                detail: maxDrawdown <= -15 ? 'La serie registra caídas relevantes.' : 'El drawdown histórico es moderado.',
+                value: maxDrawdown === null ? 'N/D' : formatPct(maxDrawdown),
+                tone: maxDrawdown === null || maxDrawdown <= -15 ? 'warn' : 'good',
+                detail: maxDrawdown === null ? 'Sin meses cerrados verificables.' : maxDrawdown <= -15 ? 'La serie registra caídas relevantes.' : 'El drawdown histórico es moderado.',
             },
             {
                 title: 'Meses positivos',
@@ -450,7 +465,7 @@ export function PortfolioCsv() {
                 detail: uncategorizedWeight > 10 ? 'Conviene revisar categorías manualmente.' : 'La clasificación actual cubre casi toda la cartera.',
             },
         ] as const;
-    }, [evolution, holdings, positiveMonthRatio, topConcentration]);
+    }, [advancedStats.maxDrawdownPct, holdings, positiveMonthRatio, topConcentration]);
 
     const setHoldingCategoryOverride = (asset: string, category: HoldingCategory) => {
         setCategoryOverrides((current) => {
@@ -1052,7 +1067,7 @@ export function PortfolioCsv() {
             <section className="portfolio-csv-grid">
                 <article className="portfolio-csv-card">
                     <h2><AlertTriangle size={18} /> Mapa de riesgo: retorno mensual y drawdown</h2>
-                    <p>Compara retorno mensual, drawdown y TWR YTD.</p>
+                    <p>Retorno de meses cerrados y drawdown ajustado por aportaciones, con la misma base que Dashboard. El TWR YTD conserva el dato del Excel.</p>
                     <div className="portfolio-csv-chart portfolio-csv-chart--risk-map">
                         <ResponsiveContainer width="100%" height={320}>
                             <ComposedChart

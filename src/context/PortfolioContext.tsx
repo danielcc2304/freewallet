@@ -124,7 +124,7 @@ interface PortfolioContextValue {
     addAsset: (asset: Asset, transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => void;
     updateAsset: (id: string, updates: Partial<Asset>, transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => void;
     deleteAsset: (id: string) => void;
-    sellAsset: (id: string, quantity: number, price: number, date: string) => void;
+    sellAsset: (id: string, quantity: number, price: number, date: string, conversionNote?: string) => void;
     refreshPrices: () => Promise<void>;
     loadDemoData: () => void;
 }
@@ -297,7 +297,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         });
     }, [commit]);
 
-    const sellAsset = useCallback((id: string, quantity: number, price: number, date: string) => {
+    const sellAsset = useCallback((id: string, quantity: number, price: number, date: string, conversionNote = '') => {
         const assets = getAssets();
         const asset = assets.find(a => a.id === id);
         if (!asset || !Number.isFinite(quantity) || !Number.isFinite(price) || quantity <= 0 || price <= 0 || quantity > asset.quantity) throw new Error('Venta no válida.');
@@ -305,7 +305,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         commit(assets.flatMap(a => a.id !== id ? [a] : remaining > 1e-8 ? [{ ...a, quantity: remaining }] : []), {
             assetId: id, assetSymbol: asset.symbol, assetName: asset.name, assetType: asset.type,
             type: 'sell', date, quantity, price, total: quantity * price,
-            notes: remaining > 1e-8 ? 'Venta parcial' : 'Cierre total de la posición',
+            notes: (remaining > 1e-8 ? 'Venta parcial' : 'Cierre total de la posición') + conversionNote,
         });
     }, [commit]);
 

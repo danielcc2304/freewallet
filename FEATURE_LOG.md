@@ -12,7 +12,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-01 - Coherencia de cálculos y planificación del Dashboard
+### 2026-10-01 - v5.3.11 - Coherencia de cálculos y planificación del Dashboard
 - Funcionalidad:
   - YTD completo separado de los tramos comparables del benchmark, con consulta de su base y selección por cobertura.
   - Riesgo compartido con Portfolio: drawdown ajustado por flujos, volatilidad muestral, Sortino y tasa libre de riesgo del Excel.

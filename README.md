@@ -58,6 +58,10 @@ El Dashboard conserva los cierres importados del Excel y, tras confirmar que cor
 
 Las posiciones y operaciones se guardan juntas en `freewallet_portfolio_v1`, con lectura compatible de las claves anteriores y sincronización entre pestañas. Los errores de guardado se muestran en la interfaz. `lastCheckedAt` identifica la consulta y `quotedAt` la fecha del proveedor, cuando está disponible.
 
+El Dashboard identifica las posiciones que impiden guardar una valoración completa y conserva el histórico existente. La fecha de consulta se muestra separada de la fecha del precio; los avisos de antigüedad usan márgenes orientativos de 7 días en fondos, 4 en acciones y ETF, y 2 en criptomonedas, sin descartar automáticamente un precio disponible. El detalle de subyacentes se actualiza con la exposición consolidada actual.
+
+El SDK editorial de Supabase se carga al utilizar Noticias, con un único cliente compartido entre solicitudes. Las rutas permanecen cargadas de forma directa, sin pantallas de espera añadidas a la navegación.
+
 Pruebas de integridad del Dashboard: `npx tsx scripts/test-dashboard-integrity.ts`.
 
 Regresiones de la auditoría (datos sintéticos): `npm run test:dashboard-audit`.
@@ -76,6 +80,8 @@ Regresiones de la auditoría (datos sintéticos): `npm run test:dashboard-audit`
 - Guias: fundamentos, timeline, fiscalidad, riesgo, estrategias, glosario, etc.
 - Simuladores: crisis, perfil inversor, market timing, asset allocation, portfolio builder.
 - Calculadoras: interes compuesto, FIRE, jubilacion, fondo de emergencia, bonos, impuestos, inflacion.
+
+Las proyecciones de ahorro aplican las aportaciones al inicio de cada mes; la aportación necesaria usa la misma convención. Los objetivos que no se alcanzan en 100 años se identifican como tales, las retiradas se limitan al saldo disponible y las entradas inválidas no producen resultados numéricos. Los cupones de bonos conservan su fecha de referencia y respetan finales de mes y años bisiestos. Regresiones: `npx tsx scripts/test-calculator-integrity.ts`.
 - Deep-dives por tipo de activo (equities, bonds, cash, REITs, crypto).
 
 ### 4) Portfolio CSV

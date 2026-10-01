@@ -3,7 +3,9 @@ import { Activity, Loader2 } from 'lucide-react';
 import { AssetDetail } from './AssetDetail';
 import { getQuote, searchSymbol } from '../../services/apiService';
 import { isApiEnabled } from '../../services/storageService';
-import type { Asset, AssetHolding, SearchResult } from '../../types/types';
+import type { Asset, AssetHolding } from '../../types/types';
+import { chooseUnderlyingResult } from '../../services/dashboardIntegrity';
+import { assetValue } from '../../services/assetValuation';
 import type { ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
 import './UnderlyingAssetDetail.css';
 
@@ -16,32 +18,9 @@ interface UnderlyingAssetDetailProps {
 function isTicker(value: string, name: string): boolean {
     const candidate = value.trim();
     return Boolean(candidate)
+        && !/^[A-Z]{2}[A-Z0-9]{9}\d$/i.test(candidate)
         && candidate.toLowerCase() !== name.trim().toLowerCase()
         && /^[A-Z0-9][A-Z0-9.-]{0,15}$/i.test(candidate);
-}
-
-function normalizeSearchText(value: string): string {
-    return value
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, ' ')
-        .trim();
-}
-
-function chooseSearchResult(results: SearchResult[], holding: AssetHolding): SearchResult | undefined {
-    const expected = normalizeSearchText(holding.name);
-    const expectedTokens = expected.split(/\s+/).filter((token) => token.length > 2);
-
-    return [...results].sort((left, right) => {
-        const score = (result: SearchResult) => {
-            const candidate = normalizeSearchText(result.name);
-            const tokenScore = expectedTokens.reduce((sum, token) => sum + (candidate.includes(token) ? 1 : 0), 0);
-            const typeScore = result.type === 'stock' ? 0.25 : 0;
-            return tokenScore + typeScore;
-        };
-        return score(right) - score(left);
-    })[0];
 }
 
 function formatCurrency(value: number): string {
@@ -87,7 +66,7 @@ export function UnderlyingAssetDetail({ holding, parentAsset, exposure }: Underl
             try {
                 const query = holding.isin || (isTicker(holding.symbol, holding.name) ? holding.symbol : holding.name);
                 const results = await searchSymbol(query, controller.signal);
-                const match = chooseSearchResult(results, holding) || (isTicker(holding.symbol, holding.name)
+                const match = chooseUnderlyingResult(results, holding) || (!holding.isin && !results.length && isTicker(holding.symbol, holding.name)
                     ? {
                         symbol: holding.symbol,
                         name: holding.name,
@@ -96,7 +75,7 @@ export function UnderlyingAssetDetail({ holding, parentAsset, exposure }: Underl
                         currency: parentAsset.currency || 'EUR',
                     }
                     : undefined);
-                if (!match) throw new Error('No he podido resolver un ticker para esta posición.');
+                if (!match) throw new Error('No hay una coincidencia inequívoca para este activo. Su exposición se conserva; no se mostrará la ficha de otro instrumento.');
 
                 const quote = await getQuote(match.symbol, controller.signal);
                 if (disposed || controller.signal.aborted) return;
@@ -107,14 +86,15 @@ export function UnderlyingAssetDetail({ holding, parentAsset, exposure }: Underl
                     symbol: match.symbol,
                     name: match.name || holding.name,
                     type: match.type,
-                    purchasePrice: price,
-                    purchaseDate: parentAsset.purchaseDate,
-                    quantity: 1,
-                    currentPrice: price || undefined,
+                    purchasePrice: 0,
+                    purchaseDate: '',
+                    quantity: 0,
+                    currentPrice: quote && Number.isFinite(price) && price >= 0 ? price : undefined,
                     previousClose: quote?.previousClose,
                     currency: quote?.currency || parentAsset.currency || 'EUR',
                     isin: holding.isin,
-                    lastQuoteAt: quote ? new Date().toISOString() : undefined,
+                    lastQuoteAt: quote?.quotedAt,
+                    lastCheckedAt: quote ? new Date().toISOString() : undefined,
                 });
                 setStatus('ready');
             } catch (error) {
@@ -131,7 +111,7 @@ export function UnderlyingAssetDetail({ holding, parentAsset, exposure }: Underl
         };
     }, [apiEnabled, holding, holding.isin, holding.name, holding.symbol, parentAsset.currency, parentAsset.purchaseDate]);
 
-    const parentValue = (parentAsset.currentPrice ?? parentAsset.purchasePrice) * parentAsset.quantity;
+    const parentValue = assetValue(parentAsset);
     const exposureValue = exposure?.value ?? parentValue * (holding.percentage / 100);
     const exposureWeight = exposure?.weight ?? 0;
 
@@ -170,7 +150,7 @@ export function UnderlyingAssetDetail({ holding, parentAsset, exposure }: Underl
                     <span>Buscando la ficha de {holding.name}…</span>
                 </div>
             )}
-            {status === 'ready' && resolvedAsset && <AssetDetail asset={resolvedAsset} />}
+            {status === 'ready' && resolvedAsset && <AssetDetail asset={resolvedAsset} marketOnly />}
             {status === 'unavailable' && (
                 <div className="underlying-detail__unavailable">
                     <strong>{holding.name}</strong>

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import { Info, AlertTriangle, TrendingDown, Scale, Landmark, HelpCircle, Wallet, CalendarDays, ChevronDown, ChevronUp } from 'lucide-react';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
+import { addMonthsClampedUtc, validateCalculatorInputs } from './calculatorValidation';
 import './BondCalculator.css';
 
 type CouponFrequency = 'annual' | 'semiannual' | 'quarterly' | 'monthly';
@@ -75,9 +76,9 @@ function getTodayIso() {
 }
 
 function parseIsoDate(value: string) {
-    if (!value) return null;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
     const parsed = new Date(`${value}T00:00:00Z`);
-    return Number.isNaN(parsed.getTime()) ? null : parsed;
+    return Number.isNaN(parsed.getTime()) || parsed.toISOString().slice(0, 10) !== value ? null : parsed;
 }
 
 function toIsoDate(date: Date) {
@@ -85,11 +86,7 @@ function toIsoDate(date: Date) {
 }
 
 function addMonthsUtc(date: Date, months: number) {
-    return new Date(Date.UTC(
-        date.getUTCFullYear(),
-        date.getUTCMonth() + months,
-        date.getUTCDate()
-    ));
+    return addMonthsClampedUtc(date, months);
 }
 
 function dateDiffDaysUtc(start: Date, end: Date) {
@@ -163,10 +160,10 @@ function buildCouponSchedule(issueDate: Date, maturityDate: Date, periodsPerYear
     let cursor = addMonthsUtc(issueDate, couponMonths);
     let guard = 0;
 
-    while (cursor < maturityDate && guard < 1000) {
+    while (cursor < maturityDate && guard < 1200) {
         schedule.push(cursor);
-        cursor = addMonthsUtc(cursor, couponMonths);
         guard++;
+        cursor = addMonthsUtc(issueDate, couponMonths * (guard + 1));
     }
 
     if (schedule.length === 0 || !datesEqual(schedule[schedule.length - 1], maturityDate)) {
@@ -264,7 +261,7 @@ function solveBasicBond({
 }: YtmInputs): BondCalculationResult {
     if (!Number.isFinite(price) || price <= 0 || !Number.isFinite(couponRate) || couponRate < 0 || !Number.isFinite(yearsToMaturity) || yearsToMaturity <= 0 || !Number.isFinite(face) || face <= 0) {
         return {
-            ytm: 0,
+            ytm: NaN,
             accruedInterest: 0,
             cleanPrice: price,
             dirtyPrice: price,
@@ -323,7 +320,7 @@ function solveAdvancedBond(params: {
     const maturity = parseIsoDate(maturityDate);
     const periodsPerYear = getPeriodsPerYear(couponFrequency);
 
-    if (!settlement || !issue || !maturity || settlement >= maturity || issue >= maturity || issue > settlement || !Number.isFinite(price) || price <= 0 || !Number.isFinite(couponRate) || couponRate < 0 || !Number.isFinite(face) || face <= 0) {
+    if (!settlement || !issue || !maturity || settlement >= maturity || issue >= maturity || issue > settlement || dateDiffDaysUtc(issue, maturity) > 36600 || !Number.isFinite(price) || price <= 0 || !Number.isFinite(couponRate) || couponRate < 0 || !Number.isFinite(face) || face <= 0) {
         return null;
     }
 
@@ -457,6 +454,13 @@ export function BondCalculator() {
         const numericPrice = price === '' ? 0 : Number(price);
         const numericCoupon = coupon === '' ? 0 : Number(coupon);
         const numericFace = face === '' ? 0 : Number(face);
+        const inputError = validateCalculatorInputs([
+            { label: 'Precio', value: price, min: 0.000001 },
+            { label: 'Cupón', value: coupon, max: 100 },
+            { label: 'Nominal', value: face, min: 0.000001 },
+            ...(advancedEnabled ? [] : [{ label: 'Años', value: years, max: 100, integer: true }, { label: 'Meses', value: months, max: 11, integer: true }]),
+        ]);
+        if (inputError) return solveBasicBond({ price: 0, couponRate: 0, yearsToMaturity: 0 });
 
         if (advancedEnabled) {
             const advancedResult = solveAdvancedBond({
@@ -474,6 +478,7 @@ export function BondCalculator() {
             if (advancedResult) {
                 return advancedResult;
             }
+            return solveBasicBond({ price: 0, couponRate: 0, yearsToMaturity: 0 });
         }
 
         return solveBasicBond({
@@ -487,6 +492,8 @@ export function BondCalculator() {
         coupon,
         face,
         totalYearsToMaturity,
+        years,
+        months,
         advancedEnabled,
         settlementDate,
         issueDate,
@@ -704,6 +711,7 @@ export function BondCalculator() {
                 </div>
 
                 <div className="bond-calc__results">
+                    {!Number.isFinite(calculation.ytm) ? <p role="alert">Revisa precio, nominal, cupón y plazo. En modo avanzado las fechas deben ser válidas y cumplir emisión ≤ liquidación &lt; vencimiento.</p> : <>
                     <div className="result-main-card">
                         <span className="label">TIR / YTM (Anualizada)</span>
                         <h2 className="result-value">{(calculation.ytm * 100).toFixed(2)}%</h2>
@@ -753,6 +761,7 @@ export function BondCalculator() {
                             </div>
                         )}
                     </div>
+                    </>}
                 </div>
             </div>
 

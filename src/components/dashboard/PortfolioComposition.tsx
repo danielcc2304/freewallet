@@ -1,18 +1,19 @@
 import { useEffect, useEffectEvent, useMemo, useState } from 'react';
-import { Card, CardHeader, CardContent } from '../ui';
+import { Button, Card, CardHeader, CardContent } from '../ui';
 import { DonutChart, Heatmap } from '../charts';
 import type { Asset, AssetHolding, CompositionItem, HeatmapItem } from '../../types/types';
 import { getColorForIndex } from '../../data/chartColors';
 import { getFundRelevance } from '../../services/finect/finectService';
 import { isApiEnabled } from '../../services/storageService';
 import { buildConsolidatedPortfolioExposures, type ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
-import { assetValue } from '../../services/assetValuation';
+import { assetValue, hasValidPrice } from '../../services/assetValuation';
 import './PortfolioComposition.css';
 
 interface PortfolioCompositionProps {
     assets: Asset[];
     onAssetClick?: (asset: Asset) => void;
     onHoldingClick?: (holding: AssetHolding, parentAsset: Asset, exposure?: ConsolidatedPortfolioExposure) => void;
+    onExposuresChange?: (exposures: ConsolidatedPortfolioExposure[]) => void;
 }
 
 const ISIN_PATTERN = /^[A-Z]{2}[A-Z0-9]{10}$/;
@@ -55,7 +56,7 @@ function getExposureDisplayName(exposure: ConsolidatedPortfolioExposure): string
     return parentNames.join(' · ') || exposure.name;
 }
 
-export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: PortfolioCompositionProps) {
+export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onExposuresChange }: PortfolioCompositionProps) {
     const [showBreakdown, setShowBreakdown] = useState(false);
     const [remoteHoldings, setRemoteHoldings] = useState<Record<string, AssetHolding[]>>({});
     const [remoteBreakdowns, setRemoteBreakdowns] = useState<Record<string, Awaited<ReturnType<typeof getFundRelevance>>['breakdowns']>>({});
@@ -134,6 +135,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
         () => buildConsolidatedPortfolioExposures(assets, holdingsByAsset),
         [assets, holdingsByAsset],
     );
+    useEffect(() => { onExposuresChange?.(consolidatedExposures); }, [consolidatedExposures, onExposuresChange]);
     const identifiedExposures = useMemo(
         () => consolidatedExposures.filter((exposure) => !exposure.isResidual),
         [consolidatedExposures],
@@ -160,9 +162,9 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
     const heatmapData: HeatmapItem[] = useMemo(() => assets.map((asset) => {
         const currentValue = assetValue(asset);
         const investedValue = asset.purchasePrice * asset.quantity;
-        const changePercent = investedValue > 0
+        const changePercent = investedValue > 0 && hasValidPrice(asset)
             ? ((currentValue - investedValue) / investedValue) * 100
-            : 0;
+            : NaN;
 
         // Prefer holdings saved with the position and fall back to the live
         // Finect breakdown loaded when the toggle is enabled.
@@ -316,19 +318,8 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
                         <h4 className="portfolio-composition__section-title">Mapa de Calor</h4>
                         <Heatmap data={heatmapData} showBreakdown={showBreakdown} onItemClick={handleHeatmapClick} />
                         {showBreakdown && !apiEnabled && <p>Consultas externas desactivadas. Solo se muestran los desgloses guardados.</p>}
-                        {showBreakdown && apiEnabled && funds.some(a => breakdownErrors[getFundIsin(a) || a.id]) && <button type="button" onClick={() => setRetry(n => n + 1)}>Reintentar desgloses pendientes</button>}
+                        {showBreakdown && apiEnabled && funds.some(a => breakdownErrors[getFundIsin(a) || a.id]) && <Button variant="secondary" type="button" onClick={() => setRetry(n => n + 1)}>Reintentar desgloses pendientes</Button>}
                         {showBreakdown && <p>Los subyacentes muestran exposición estimada, no la rentabilidad del fondo como si fuera propia.</p>}
-                        {showBreakdown && Object.entries(remoteBreakdowns).map(([isin, groups]) => {
-                            const fund = funds.find(a => getFundIsin(a) === isin);
-                            const distributions = groups.filter(g => /sector|geograf|pa[ií]s|countr|region/i.test(g.type));
-                            if (!fund || !distributions.length) return null;
-                            return <div key={isin} className="portfolio-composition__breakdown-groups">
-                                <h4>{fund.name} · sectores y distribución geográfica</h4>
-                                {distributions.map(g => <section key={g.type}><h5>{g.type}</h5><ul>
-                                    {g.items.filter(i => Number.isFinite(i.value) && i.value > 0).map(i => <li key={i.label}>{i.label}: {i.value.toLocaleString('es-ES', { maximumFractionDigits: 2 })}% del fondo</li>)}
-                                </ul></section>)}
-                            </div>;
-                        })}
                         {showBreakdown && funds.length > 0 && (
                             <p className="portfolio-composition__breakdown-status" aria-live="polite">
                                 {breakdownLoading
@@ -340,6 +331,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
                                             : 'No hay posiciones detalladas disponibles para estos fondos.'}
                             </p>
                         )}
+                    </div>
                         {showBreakdown && (
                             <div className="portfolio-composition__consolidated">
                                 <div className="portfolio-composition__consolidated-header">
@@ -381,13 +373,27 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick }: P
                                 </p>
                             </div>
                         )}
-                    </div>
                     <div className="portfolio-composition__donut">
                         <DonutChart
                             data={showBreakdown ? consolidatedCompositionData : compositionData}
                             title={showBreakdown ? 'Exposición total' : 'Distribución por Valor'}
                         />
                     </div>
+                    {showBreakdown && <div className="portfolio-composition__distributions">
+                        {Object.entries(remoteBreakdowns).map(([isin, groups]) => {
+                            const fund = funds.find(a => getFundIsin(a) === isin);
+                            const distributions = groups.filter(g => /sector|geograf|pa[ií]s|countr|region/i.test(g.type) && g.items.some(i => Number.isFinite(i.value) && i.value > 0));
+                            if (!fund || !distributions.length) return null;
+                            return <details key={isin} className="portfolio-composition__breakdown-groups">
+                                <summary>{fund.name}<span>Sectores y distribución geográfica</span></summary>
+                                <div className="portfolio-composition__distribution-grid">
+                                    {distributions.map(g => <section key={g.type}><h5>{g.type}</h5><ul>
+                                        {g.items.filter(i => Number.isFinite(i.value) && i.value > 0).map(i => <li key={i.label}><span>{i.label}</span><strong>{i.value.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%</strong></li>)}
+                                    </ul><p>Porcentajes sobre el fondo</p></section>)}
+                                </div>
+                            </details>;
+                        })}
+                    </div>}
                 </div>
             </CardContent>
         </Card>

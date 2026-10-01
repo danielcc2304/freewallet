@@ -30,18 +30,22 @@ export function useDashboardAnalytics(now: number) {
         localStorage.setItem('freewallet_workbook_link', JSON.stringify({ workbook: workbookHistory.identity, ids: [...new Set([...assets.map(a => a.id), ...transactions.map(t => t.assetId)])] }));
         notifyLocalDataChange();
     };
-    const [market, setMarket] = useState<Map<string, HistoricalDataPoint[]>>(new Map());
+    const [marketCache, setMarket] = useState<Map<string, { symbol: string; prices: HistoricalDataPoint[] }>>(new Map());
     const signature = JSON.stringify([...new Map([
         ...portfolioTransactions.map(t => [t.assetId, t.assetSymbol] as const),
         ...assets.filter(a => a.type !== 'cash').map(a => [a.id, a.isin || a.symbol] as const),
     ]).entries()].sort());
+    const market = useMemo(() => new Map((JSON.parse(signature) as [string, string][]).flatMap(([id, symbol]) => {
+        const cached = marketCache.get(id);
+        return cached?.symbol === symbol ? [[id, cached.prices] as const] : [];
+    })), [signature, marketCache]);
     useEffect(() => {
         if (usingWorkbookHistory || !apiEnabled) return;
         const controller = new AbortController();
         const entries = JSON.parse(signature) as [string, string][];
         // Bound concurrency and preserve successful histories if another provider fails.
         let next = 0;
-        const results = new Map<string, HistoricalDataPoint[]>();
+        const results = new Map<string, { symbol: string; prices: HistoricalDataPoint[] }>();
         const fxRequests = new Map<string, Promise<HistoricalDataPoint[]>>();
         const worker = async () => {
             while (next < entries.length && !controller.signal.aborted) {
@@ -53,15 +57,15 @@ export function useDashboardAnalytics(now: number) {
                         if (!fxRequests.has(currency)) fxRequests.set(currency, getAssetChartData(currency + 'EUR=X', 'ALL', controller.signal));
                         const fx = await fxRequests.get(currency)!;
                         const converted = convertHistoryToCurrency(prices, fx);
-                        if (converted.length) results.set(id, converted);
-                    } else if (prices.length) results.set(id, prices);
+                        if (converted.length) results.set(id, { symbol, prices: converted });
+                    } else if (prices.length) results.set(id, { symbol, prices });
                 }
                 catch { /* Missing histories remain unavailable. */ }
             }
         };
         void Promise.all(Array.from({ length: Math.min(4, entries.length) }, worker)).then(() => {
             if (!controller.signal.aborted) setMarket(previous => {
-                const next = new Map(entries.flatMap(([id]) => previous.has(id) ? [[id, previous.get(id)!] as const] : []));
+                const next = new Map(entries.flatMap(([id, symbol]) => previous.get(id)?.symbol === symbol ? [[id, previous.get(id)!] as const] : []));
                 results.forEach((prices, id) => next.set(id, prices));
                 return next;
             });
@@ -93,7 +97,7 @@ export function useDashboardAnalytics(now: number) {
             liveSeries: performanceSeries(recorded, portfolioTransactions, assets), monthly: portfolioMonthlyRows(series, now),
             hasEstimates: combined.history.some(p => p.source === 'market-estimate') };
     }, [assets, portfolioTransactions, market, now, workbookHistory, usingWorkbookHistory, localRevision, workbookLinked]);
-    return { ...analytics, workbookLinked, linkWorkbook };
+    return { ...analytics, localRevision, workbookLinked, linkWorkbook };
 }
 
 export type DashboardAnalytics = ReturnType<typeof useDashboardAnalytics>;

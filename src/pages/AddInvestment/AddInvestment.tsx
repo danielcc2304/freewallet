@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import { Search, Coins, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp, Wrench, Loader2 } from 'lucide-react';
 import { Card, CardHeader, CardContent, Input, Button } from '../../components/ui';
-import { searchSymbol, getQuote } from '../../services/apiService';
+import { searchSymbol, getQuote, getAssetChartData } from '../../services/apiService';
+import { OPERATION_CURRENCIES, historicalOperationRate, operationEuroPrice } from '../../services/operationCurrency';
 import { normalizeQuoteToEuro } from '../../services/portfolioQuoteService';
 import { getFundRelevance } from '../../services/finect/finectService';
 import { generateId, isApiEnabled } from '../../services/storageService';
@@ -95,6 +96,41 @@ export function AddInvestment() {
     const [loadingPrice, setLoadingPrice] = useState(false);
     const [priceLookupFailed, setPriceLookupFailed] = useState(false);
     const [currency, setCurrency] = useState(targetAsset?.currency || 'EUR');
+    const [manualEuroTotal, setManualEuroTotal] = useState('');
+    const [fx, setFx] = useState<{ key: string; rate?: number; date?: string; loading: boolean }>({ key: '', loading: false });
+    const currencyRef = useRef(currency);
+    currencyRef.current = currency;
+    const fxKey = `${currency}:${formData.purchaseDate}`;
+    const activeFx = fx.key === fxKey ? fx : undefined;
+    const euroPrice = operationEuroPrice(Number(formData.purchasePrice), Number(formData.quantity), currency,
+        activeFx?.rate, manualEuroTotal.trim() ? Number(manualEuroTotal) : undefined);
+
+    useEffect(() => {
+        if (currency === 'EUR') return;
+        const date = formData.purchaseDate;
+        const day = Date.parse(`${date}T00:00:00Z`);
+        if (!Number.isFinite(day) || new Date(day).toISOString().slice(0, 10) !== date || date > accountingDay(Date.now())) return;
+        const controller = new AbortController();
+        const key = `${currency}:${date}`;
+        const timer = window.setTimeout(() => controller.abort(), 12000);
+        let disposed = false;
+        setFx({ key, loading: true });
+        void getAssetChartData(`${currency}EUR=X`, '1M', controller.signal, { startDate: day, endDate: day + 86400000 })
+            .then(points => {
+                const rate = historicalOperationRate(points, date);
+                if (!disposed) setFx({ key, loading: false, rate: rate?.close, date: rate?.date });
+            }).catch(() => { if (!disposed) setFx({ key, loading: false }); })
+            .finally(() => window.clearTimeout(timer));
+        return () => { disposed = true; controller.abort(); window.clearTimeout(timer); };
+    }, [currency, formData.purchaseDate]);
+
+    const handleCurrencyChange = (value: string) => {
+        setCurrency(value);
+        currencyRef.current = value;
+        setManualEuroTotal('');
+        setFormData(prev => ({ ...prev, purchasePrice: '' }));
+        setErrors({});
+    };
     // Al seleccionar una sugerencia actualizamos también el texto del buscador.
     // Este ref evita que ese cambio vuelva a abrir el desplegable y obligue a
     // seleccionar el activo una segunda vez.
@@ -181,6 +217,7 @@ export function AddInvestment() {
     }, [searchQuery, isEditMode, editAsset, apiEnabled]);
 
     const handleSearchChange = (value: string) => {
+        setManualEuroTotal('');
         quoteRequestRef.current?.abort();
         setCurrentPrice(null);
         setLoadingPrice(false);
@@ -217,9 +254,10 @@ export function AddInvestment() {
         });
         setSearchQuery(result.symbol);
 
-        // El formulario trabaja siempre en euros, independientemente de la
-        // bolsa en la que cotice el activo seleccionado.
+        // Start in the accounting currency; the user can choose the trade currency.
         setCurrency('EUR');
+        currencyRef.current = 'EUR';
+        setManualEuroTotal('');
 
         setShowResults(false);
         setManualMode(false);
@@ -261,9 +299,8 @@ export function AddInvestment() {
                 setCurrentPrice(resolvedPrice);
                 setFormData(prev => ({
                     ...prev,
-                    purchasePrice: prev.purchasePrice || resolvedPrice.toFixed(6)
+                    purchasePrice: currencyRef.current === 'EUR' ? prev.purchasePrice || resolvedPrice.toFixed(6) : prev.purchasePrice
                 }));
-                setCurrency('EUR');
             } else {
                 setPriceLookupFailed(true);
             }
@@ -317,6 +354,8 @@ export function AddInvestment() {
     };
 
     const handleInputChange = (field: keyof FormData, value: string) => {
+        if (field === 'type' && value === 'cash') { setCurrency('EUR'); currencyRef.current = 'EUR'; }
+        if (field === 'quantity' || field === 'purchaseDate' || field === 'purchasePrice') setManualEuroTotal('');
         setFormData(prev => ({ ...prev, [field]: value, ...(field === 'type' && value === 'cash' ? { purchasePrice: '1', isin: '' } : {}) }));
         if (errors[field as keyof FormErrors]) {
             setErrors(prev => ({ ...prev, [field]: undefined }));
@@ -335,21 +374,25 @@ export function AddInvestment() {
         }
 
         const price = parseFloat(formData.purchasePrice);
-        if (!formData.purchasePrice || isNaN(price) || price <= 0) {
+        if (!formData.purchasePrice || !Number.isFinite(price) || price <= 0) {
             newErrors.purchasePrice = 'Introduce un precio válido mayor que 0';
         }
 
-        if (!formData.purchaseDate) {
-            newErrors.purchaseDate = 'La fecha de compra es requerida';
+        const day = Date.parse(`${formData.purchaseDate}T00:00:00Z`);
+        if (!Number.isFinite(day) || new Date(day).toISOString().slice(0, 10) !== formData.purchaseDate || formData.purchaseDate > accountingDay(Date.now())) {
+            newErrors.purchaseDate = 'Introduce una fecha válida que no sea futura';
         }
 
         const qty = parseFloat(formData.quantity);
-        if (!formData.quantity || isNaN(qty) || qty <= 0) {
+        if (!formData.quantity || !Number.isFinite(qty) || qty <= 0) {
             newErrors.quantity = 'Introduce una cantidad válida mayor que 0';
         } else if (isSellMode && assetToSell && qty > assetToSell.quantity) {
             newErrors.quantity = `No puedes vender más de ${assetToSell.quantity}`;
         }
 
+        if (!Number.isFinite(euroPrice) || !Number.isFinite(euroPrice * qty)) {
+            newErrors.save = currency === 'EUR' ? 'Introduce importes válidos.' : 'Indica el importe real en euros o espera a un cambio histórico válido.';
+        }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
@@ -362,21 +405,22 @@ export function AddInvestment() {
         }
 
         setIsSubmitting(true);
+        const conversionNote = currency === 'EUR' ? '' : ` · Precio original: ${formData.purchasePrice} ${currency}; ${manualEuroTotal.trim() ? `importe indicado: ${manualEuroTotal} EUR` : `cambio ${activeFx?.date}: ${activeFx?.rate} EUR/${currency}`}`;
 
         try {
             if (isSellMode && assetToSell) {
-                sellAsset(assetToSell.id, parseFloat(formData.quantity), parseFloat(formData.purchasePrice), formData.purchaseDate);
+                sellAsset(assetToSell.id, parseFloat(formData.quantity), euroPrice, formData.purchaseDate, conversionNote);
             } else if (isEditMode && editAsset) {
                 // Update existing asset (Overwrite)
                 updateAsset(editAsset.id, {
                     symbol: formData.symbol.toUpperCase(),
                     name: formData.name || formData.symbol,
                     type: formData.type,
-                    purchasePrice: parseFloat(formData.purchasePrice),
+                    purchasePrice: euroPrice,
                     purchaseDate: formData.purchaseDate,
                     quantity: parseFloat(formData.quantity),
                     isin: formData.isin || undefined,
-                    currency,
+                    currency: 'EUR',
                 }, {
                     assetId: editAsset.id,
                     assetSymbol: formData.symbol.toUpperCase(),
@@ -385,14 +429,14 @@ export function AddInvestment() {
                     type: 'edit',
                     date: formData.purchaseDate,
                     quantity: parseFloat(formData.quantity),
-                    price: parseFloat(formData.purchasePrice),
-                    total: parseFloat(formData.purchasePrice) * parseFloat(formData.quantity),
-                    notes: 'Edición manual de la posición',
+                    price: euroPrice,
+                    total: euroPrice * parseFloat(formData.quantity),
+                    notes: 'Edición manual de la posición' + conversionNote,
                 });
             } else if (isDcaMode && dcaAsset) {
                 // DCA Logic: Calculate weighted average
                 const newQty = parseFloat(formData.quantity);
-                const newPrice = parseFloat(formData.purchasePrice);
+                const newPrice = euroPrice;
                 const oldQty = dcaAsset.quantity;
                 const oldAvgPrice = dcaAsset.purchasePrice;
 
@@ -415,7 +459,7 @@ export function AddInvestment() {
                     quantity: newQty,
                     price: newPrice,
                     total: newQty * newPrice,
-                    notes: 'Compra adicional para promediar precio',
+                    notes: 'Compra adicional para promediar precio' + conversionNote,
                 });
             } else {
                 // Add new asset
@@ -424,13 +468,13 @@ export function AddInvestment() {
                     symbol: formData.symbol.toUpperCase(),
                     name: formData.name || formData.symbol,
                     type: formData.type,
-                    purchasePrice: parseFloat(formData.purchasePrice),
+                    purchasePrice: euroPrice,
                     purchaseDate: formData.purchaseDate,
                     quantity: parseFloat(formData.quantity),
                     isin: formData.isin || undefined,
-                    currentPrice: parseFloat(formData.purchasePrice),
-                    previousClose: undefined,
-                    currency,
+                    currentPrice: formData.type === 'cash' ? 1 : undefined,
+                    previousClose: formData.type === 'cash' ? 1 : undefined,
+                    currency: 'EUR',
                 };
                 addAsset(newAsset, {
                     assetId: newAsset.id,
@@ -442,7 +486,7 @@ export function AddInvestment() {
                     quantity: newAsset.quantity,
                     price: newAsset.purchasePrice,
                     total: newAsset.purchasePrice * newAsset.quantity,
-                    notes: 'Alta inicial de la posición',
+                    notes: 'Alta inicial de la posición' + conversionNote,
                 });
             }
 
@@ -659,7 +703,7 @@ export function AddInvestment() {
                             <div className="current-price-banner">
                                 <div className="current-price-banner__label">Cotización de referencia</div>
                                 <div className="current-price-banner__value">
-                                    {loadingPrice ? <><Loader2 size={16} className="search-loading__spinner" /> Consultando…</> : `${currentPrice?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 6 })} ${currency}`}
+                                    {loadingPrice ? <><Loader2 size={16} className="search-loading__spinner" /> Consultando…</> : `${currentPrice?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 6 })} EUR`}
                                 </div>
                             </div>
                         )}
@@ -671,13 +715,21 @@ export function AddInvestment() {
                         )}
 
                         {/* Price, Quantity, Date in row */}
+                        <div className="form-group">
+                            <label className="form-label" htmlFor="operation-currency">Divisa del precio de la operación</label>
+                            <select className="input" id="operation-currency" value={currency} disabled={formData.type === 'cash' || isSubmitting}
+                                onChange={e => handleCurrencyChange(e.target.value)}>
+                                {OPERATION_CURRENCIES.map(code => <option key={code} value={code}>{code}</option>)}
+                            </select>
+                            <p className="form-hint">La cartera se contabiliza en euros. La liquidez se registra en EUR.</p>
+                        </div>
                         {isSellMode && assetToSell && (
                             <p className="position-availability">Disponible para vender: <strong>{assetToSell.quantity}</strong> participaciones</p>
                         )}
                         <div className="form-row">
                             <div className="form-group">
                                 <Input
-                                    label={isSellMode ? 'Precio de venta (€)' : 'Precio de compra (€)'}
+                                    label={`${isSellMode ? 'Precio de venta' : 'Precio de compra'} (${currency})`}
                                     type="number"
                                     step="0.000001"
                                     min="0"
@@ -716,6 +768,18 @@ export function AddInvestment() {
                             </div>
                         </div>
 
+                        {currency !== 'EUR' && (
+                            <div className="form-group">
+                                <p className="form-hint" role="status">{activeFx?.loading ? 'Consultando el cambio histórico…' : activeFx?.rate
+                                    ? `Cambio de cierre del ${activeFx.date}: 1 ${currency} = ${activeFx.rate} EUR. Es una estimación, no el cambio aplicado por tu bróker.`
+                                    : 'No hay cambio histórico disponible. Introduce el importe real en euros para guardar.'}</p>
+                                <Input label={isSellMode ? 'Importe recibido en euros (sin comisiones)' : 'Importe pagado en euros (sin comisiones)'}
+                                    type="number" min="0" step="any" value={manualEuroTotal}
+                                    placeholder="Opcional si hay cambio histórico" onChange={e => setManualEuroTotal(e.target.value)} />
+                                <p className="form-hint">Este importe sustituye la estimación. Si editas un precio medio, indica el coste total de la posición en euros.</p>
+                                {Number.isFinite(euroPrice) && <p className="form-hint">Importe contabilizado: {(euroPrice * Number(formData.quantity)).toLocaleString('es-ES', { maximumFractionDigits: 2 })} EUR</p>}
+                            </div>
+                        )}
                         {operationTotal > 0 && (
                             <div className="operation-total" aria-live="polite">
                                 <span>{isSellMode ? 'Importe estimado de la venta' : 'Importe de la operación'}</span>

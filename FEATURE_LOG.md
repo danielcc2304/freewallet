@@ -12,6 +12,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-02 - v5.3.14 - Divisa de las operaciones
+- Funcionalidad:
+  - Selector de divisa para compras, ventas y edición manual de posiciones.
+  - Conversión a euros con el cierre histórico de la fecha (hasta siete días anteriores) o con el importe real indicado por el usuario.
+  - Las posiciones, ventas y aportaciones DCA se contabilizan en EUR; la divisa y el precio originales quedan anotados en el movimiento.
+- Resumen:
+  - Permite registrar operaciones en moneda extranjera conservando los cálculos de cartera en euros.
+- Archivos:
+  - `src/pages/AddInvestment/AddInvestment.tsx`, `src/services/operationCurrency.ts`
+  - `src/services/apiService.ts`, `src/context/PortfolioContext.tsx`, `scripts/test-operation-currency.ts`
+
 ### 2026-10-02 - v5.3.13 - Detalle y ordenación de Mis Activos
 - Funcionalidad:
   - En móvil, «Ver todo» muestra los nombres completos a ancho de fila y mantiene visible la variación diaria.

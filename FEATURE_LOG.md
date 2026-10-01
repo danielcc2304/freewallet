@@ -12,6 +12,14 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-01 - Estilo del botón de objetivos de cartera
+- Funcionalidad:
+  - Botón de pesos actuales integrado con el diseño compartido, incluido Liquid Glass.
+- Resumen:
+  - Tamaño táctil, texto adaptable al ancho disponible y foco visible al navegar con teclado.
+- Archivos:
+  - `src/components/dashboard/LivePortfolioPlan.tsx`, `src/components/dashboard/LivePortfolioPlan.css`
+
 ### 2026-10-01 - Coherencia de cálculos y planificación del Dashboard
 - Funcionalidad:
   - YTD completo separado de los tramos comparables del benchmark, con consulta de su base y selección por cobertura.

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Card, CardContent, CardHeader } from '../ui';
+import { Button, Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import type { DashboardAnalytics } from './useDashboardAnalytics';
 import { formatQuantity, hasValidPrice } from '../../services/assetValuation';
@@ -96,7 +96,7 @@ export function LivePortfolioPlan({ analytics, section = 'all' }: { analytics: D
                 {Math.abs(ledgerDifference) > 0.01 && <p role="status">El flujo neto y el coste de las posiciones difieren en {money(Math.abs(ledgerDifference))}. Las ventas con ganancias o pérdidas pueden explicar esa diferencia; no se modifican los importes registrados.</p>}
                 {!assets.length && <p role="status">El Excel aporta el histórico, pero el plan necesita posiciones en el Dashboard. Añade tus activos para definir objetivos.</p>}
                 {assets.some(a => !hasValidPrice(a)) && <p role="status">La propuesta es orientativa: algunas posiciones se valoran al coste porque falta una cotización en euros.</p>}
-                {assets.length > 0 && <button type="button" onClick={useCurrentWeights} disabled={plan.total <= 0}>Usar pesos actuales como objetivos</button>}
+                {assets.length > 0 && <Button className="live-plan__use-weights" variant="secondary" type="button" onClick={useCurrentWeights} disabled={plan.total <= 0}>Usar pesos actuales como objetivos</Button>}
                 <label className="live-plan__budget">Próxima aportación (€)<input type="text" inputMode="decimal" value={budgetInput} onChange={e => setBudgetInput(e.target.value)} aria-invalid={!!budgetInput && parsePlanNumber(budgetInput) === null} /></label>
                 <p role="status">Objetivos: {pct(targetTotal)} / 100%. {validTargets ? 'Plan listo para distribuir la aportación entre posiciones infraponderadas.' : 'Completa los pesos hasta el 100% para calcular la propuesta.'}</p>
                 {validTargets && !canCalculate && <p role="status">Introduce una aportación mayor que cero para calcular el reparto.</p>}

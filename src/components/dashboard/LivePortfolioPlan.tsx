@@ -9,6 +9,11 @@ import './LivePortfolioPlan.css';
 
 const money = (n: number) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
 const pct = (n: number) => n.toLocaleString('es-ES', { maximumFractionDigits: 2 }) + '%';
+const intervalLabel = (row: DashboardAnalytics['monthly'][number]) => [
+    row.monthlyIntervals ? `${row.monthlyIntervals} mensual${row.monthlyIntervals === 1 ? '' : 'es'}` : '',
+    row.dailyIntervals ? `${row.dailyIntervals} diario${row.dailyIntervals === 1 ? '' : 's'}` : '',
+    row.otherIntervals ? `${row.otherIntervals} entre valoraciones` : '',
+].filter(Boolean).join(' · ') || 'Sin intervalos válidos';
 const KEY = 'freewallet_live_targets';
 const operationName = { buy: 'Compra', sell: 'Venta', edit: 'Corrección', delete: 'Eliminación' } as const;
 
@@ -112,8 +117,9 @@ export function LivePortfolioPlan({ analytics, section = 'all' }: { analytics: D
             <CardContent>
                 <div className="live-plan__scroll"><table>
                     <thead><tr><th>Mes</th><th>Último valor</th><th>{usingWorkbookHistory ? 'Capital de referencia' : 'Coste de posiciones'}</th><th>Rentabilidad observada*</th><th>Drawdown</th><th>Intervalos válidos</th></tr></thead>
-                    <tbody>{[...months].reverse().map(m => <tr key={m.month}><th scope="row">{m.month}{!m.closed ? ' · provisional' : ''}</th><td>{money(m.value)}</td><td>{money(m.invested)}</td><td>{m.monthlyReturn !== null ? pct(m.monthlyReturn) : 'N/D'}</td><td>{m.drawdown !== null ? pct(m.drawdown) : 'N/D'}</td><td>{m.observations}</td></tr>)}</tbody>
+                    <tbody>{[...months].reverse().map(m => <tr key={m.month}><th scope="row">{m.month}{!m.closed ? ' · provisional' : ''}</th><td>{money(m.value)}</td><td>{money(m.invested)}</td><td>{m.monthlyReturn !== null ? pct(m.monthlyReturn) : 'N/D'}</td><td>{m.drawdown !== null ? pct(m.drawdown) : 'N/D'}</td><td>{intervalLabel(m)}</td></tr>)}</tbody>
                 </table></div>
+                <p>Los intervalos cuentan comparaciones entre valoraciones, no días cubiertos. Un cierre mensual del Excel equivale a un intervalo mensual.</p>
                  <p>*Misma fórmula mensual del Excel: (cierre − flujos − cierre anterior) / cierre anterior, suponiendo flujos al final del mes. {usingWorkbookHistory
                      ? `Se muestran ${workbookHistory.evolutionCount} cierres de Evolucion y sus ${workbookHistory.dcaCount} flujos.`
                      : 'N/D cuando falta una base verificable. El mes abierto es provisional.'}</p>

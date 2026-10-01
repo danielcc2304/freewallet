@@ -1,4 +1,13 @@
 import type { Asset, AssetHolding, SearchResult } from '../types/types';
+import { hasValidPrice } from './assetValuation';
+
+export function dailyAssetVariation(asset: Asset) {
+    const valid = hasValidPrice(asset) && Number.isFinite(asset.previousClose) && asset.previousClose! > 0;
+    return {
+        todayChange: valid ? (asset.currentPrice! - asset.previousClose!) * asset.quantity : NaN,
+        todayChangePercent: valid ? (asset.currentPrice! / asset.previousClose! - 1) * 100 : NaN,
+    };
+}
 
 export function quoteIdentity(asset: Pick<Asset, 'symbol' | 'isin' | 'type' | 'currency'>): string {
     return [asset.symbol.trim().toUpperCase(), asset.isin?.trim().toUpperCase() || '', asset.type, asset.currency || 'EUR'].join('|');

@@ -12,6 +12,21 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-01 - v5.3.11 - Coherencia de cálculos y planificación del Dashboard
+- Funcionalidad:
+  - YTD completo separado de los tramos comparables del benchmark, con consulta de su base y selección por cobertura.
+  - Riesgo compartido con Portfolio: drawdown ajustado por flujos, volatilidad muestral, Sortino y tasa libre de riesgo del Excel.
+  - Objetivos por instrumento, entrada decimal, agrupación de lotes y reparto exacto de la aportación en céntimos.
+  - Importación sin duplicar flujos, nombres de meses ampliados y calendario contable de Madrid.
+  - Valoraciones, rankings y composición con bases válidas y residuos reconciliados.
+- Resumen:
+  - Revisión de la lógica del Dashboard acompañada de regresiones y verificación local de las posiciones de referencia.
+- Archivos:
+  - `src/services/portfolioRisk.ts`, `src/services/portfolioPlan.ts`, `src/services/portfolioCalendar.ts`
+  - `src/services/portfolioPerformance.ts`, `src/services/portfolioWorkbookHistory.ts`, `src/services/apiService.ts`
+  - `src/components/dashboard/`, `src/pages/Dashboard/`, `src/pages/PortfolioCsv/`
+  - `scripts/test-dashboard-logic.ts`, `docs/dashboard-logic-review.md`
+
 ### 2026-09-30 - v5.3.10 - Cobertura del benchmark e intervalos mensuales
 - Funcionalidad:
   - La comparativa con MSCI World conserva los puntos disponibles cuando faltan cotizaciones en parte del periodo, sin unir tramos de rentabilidad desconocida.

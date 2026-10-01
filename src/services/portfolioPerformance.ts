@@ -1,7 +1,9 @@
 import type { Asset, HistoricalDataPoint, PortfolioHistoryPoint, PortfolioTransaction, TimePeriod } from '../types/types';
+import { accountingDay } from './portfolioCalendar';
+export { accountingDay } from './portfolioCalendar';
 
 const DAY_MS = 86400000;
-export const WORKBOOK_RISK_FREE_ANNUAL_PCT = 2.75;
+export { WORKBOOK_RISK_FREE_ANNUAL_PCT, workbookRiskStats } from './portfolioRisk';
 
 /**
  * Keep every dashboard period on the same calendar/time basis. The one and
@@ -22,14 +24,6 @@ export function getPeriodCutoff(period: TimePeriod, nowMs: number): number | nul
     const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     now.setDate(Math.min(day, lastDay));
     return now.getTime();
-}
-
-/** Accounting days follow the workbook's Europe/Madrid calendar. */
-export function accountingDay(date: string | number): string {
-    if (typeof date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(date)) return date;
-    const parsed = new Date(date);
-    if (!Number.isFinite(parsed.getTime())) return '';
-    return new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Madrid', year: 'numeric', month: '2-digit', day: '2-digit' }).format(parsed);
 }
 
 export function getTransactionEventDay(transaction: PortfolioTransaction): string {
@@ -89,7 +83,7 @@ export function createQuoteSnapshot(assets: Asset[], transactions: PortfolioTran
  * the current day (for example after importing monthly workbook data).
  */
 export function calculatePreviousClosePerformance(assets: Asset[]) {
-    if (!assets.length || assets.some(a => !Number.isFinite(a.quantity) || a.quantity < 0 || (a.type !== 'cash' && (!Number.isFinite(a.currentPrice) || a.currentPrice! < 0 || !Number.isFinite(a.previousClose) || a.previousClose! <= 0)))) {
+    if (!assets.length || assets.some(a => (a.currency && a.currency !== 'EUR') || !Number.isFinite(a.quantity) || a.quantity < 0 || (a.type !== 'cash' && (!Number.isFinite(a.currentPrice) || a.currentPrice! < 0 || !Number.isFinite(a.previousClose) || a.previousClose! <= 0)))) {
         return { change: null as number | null, returnPercent: null as number | null };
     }
     const values = assets.map((asset) => {
@@ -174,7 +168,7 @@ export function buildPortfolioAnalyticsHistory(history: PortfolioHistoryPoint[],
 }
 
 export function performanceSeries(history: PortfolioHistoryPoint[], transactions: PortfolioTransaction[], _assets: Asset[] = [], options: { maxGapDays?: number } = {}) {
-    void _assets;
+    const includesCash = _assets.some(a => a.type === 'cash');
     const maxGapDays = options.maxGapDays ?? 16;
     const days = new Map<string, PortfolioHistoryPoint>();
     [...history].sort((a, b) => Date.parse(a.date) - Date.parse(b.date)).forEach(point => {
@@ -191,11 +185,12 @@ export function performanceSeries(history: PortfolioHistoryPoint[], transactions
         const flow = operations.reduce((sum, t) => sum + transactionFlow(t), 0);
         const gap = previous ? (Date.parse(date) - Date.parse(previous[0])) / DAY_MS : 0;
         const unexplainedCostChange = previous && !operations.length && Math.abs(point.invested - previous[1].invested) > 0.01;
+        const ambiguousCashFlow = includesCash && operations.some(t => t.assetId !== 'workbook-history' && (t.type === 'buy' || t.type === 'sell'));
         // ALL-period market candles are weekly; allow a holiday fortnight but
         // still reject monthly/unknown gaps that would fabricate a return.
         const intervalGap = point.cadence === 'daily' ? Math.min(maxGapDays, 8) : point.cadence === 'monthly' ? 45 : maxGapDays;
         const valid = !!previous && previous[1].value > 0 && gap > 0 && gap <= intervalGap && Number.isFinite(flow) &&
-            !point.returnUnavailable && !unexplainedCostChange && !operations.some(t => !getTransactionEventDay(t) || t.type === 'edit' || t.type === 'delete');
+            !point.returnUnavailable && !unexplainedCostChange && !ambiguousCashFlow && !operations.some(t => !getTransactionEventDay(t) || t.type === 'edit' || t.type === 'delete');
         const rawReturn = valid ? (point.value - previous[1].value - flow) / previous[1].value * 100 : null;
         const intervalReturn = rawReturn !== null && Math.abs(rawReturn) < 1e-10 ? 0 : rawReturn;
         if (intervalReturn !== null) index *= 1 + intervalReturn / 100;
@@ -362,21 +357,6 @@ export function portfolioMonthlyRows(series: ReturnType<typeof performanceSeries
     });
 }
 
-/** Estadísticas avanzadas!A49/E49/A52/A55/E55, inputs in percentage points. */
-export function workbookRiskStats(returns: number[], riskFreeAnnualPct = WORKBOOK_RISK_FREE_ANNUAL_PCT) {
-    const n = returns.length;
-    const mean = n ? returns.reduce((sum, r) => sum + r, 0) / n : 0;
-    const sigma = n > 1 ? Math.sqrt(returns.reduce((sum, r) => sum + (r - mean) ** 2, 0) / (n - 1)) : 0;
-    const excess = mean - riskFreeAnnualPct / 12;
-    const downside = n ? Math.sqrt(returns.reduce((sum, r) => sum + Math.min(r - riskFreeAnnualPct / 12, 0) ** 2, 0) / n) : 0;
-    let wealth = 1, peak = 1, drawdown = 0;
-    returns.forEach(r => { wealth *= 1 + r / 100; peak = Math.max(peak, wealth); drawdown = Math.min(drawdown, (wealth / peak - 1) * 100); });
-    return { sharpe: sigma > 0 ? excess / sigma * Math.sqrt(12) : null,
-        sortino: downside > 0 ? excess / downside * Math.sqrt(12) : null,
-        volatility: n > 1 ? sigma * Math.sqrt(12) : null,
-        annualized: n ? (wealth ** (12 / n) - 1) * 100 : null, maxDrawdown: n ? drawdown : null };
-}
-
 export function alignedBenchmark(series: ReturnType<typeof performanceSeries>, benchmark: HistoricalDataPoint[]) {
     const market = benchmark
         .map((point) => ({
@@ -387,9 +367,12 @@ export function alignedBenchmark(series: ReturnType<typeof performanceSeries>, b
         .filter(({ point, timestamp, day }) => point.close > 0 && Number.isFinite(timestamp) && !!day)
         .sort((left, right) => left.timestamp - right.timestamp);
 
-    const findMarketPoint = (portfolioTimestamp: number, portfolioDay: string) => {
+    const findMarketPoint = (portfolioTimestamp: number, portfolioDay: string, cadence?: 'daily' | 'monthly') => {
         const sameDay = market.filter((candidate) => candidate.day === portfolioDay).at(-1);
-        if (sameDay && sameDay.timestamp <= portfolioTimestamp) return sameDay;
+        // Imported closes have an artificial 18:00 timestamp, not an intraday
+        // valuation. Match their accounting day; real quote snapshots retain
+        // the strict timestamp constraint against future market observations.
+        if (sameDay && (cadence || sameDay.timestamp <= portfolioTimestamp)) return sameDay;
         const preceding = market.filter((candidate) => candidate.timestamp <= portfolioTimestamp).at(-1);
         if (preceding && portfolioTimestamp - preceding.timestamp <= 4 * DAY_MS) return preceding;
         if (preceding) return undefined;
@@ -407,7 +390,7 @@ export function alignedBenchmark(series: ReturnType<typeof performanceSeries>, b
     const common = series.flatMap((portfolioPoint) => {
         const portfolioTimestamp = portfolioPoint.timestamp;
         const portfolioDay = accountingDay(portfolioTimestamp);
-        const marketPoint = findMarketPoint(portfolioTimestamp, portfolioDay);
+        const marketPoint = findMarketPoint(portfolioTimestamp, portfolioDay, portfolioPoint.cadence);
         return marketPoint ? [{ portfolioPoint, marketPoint }] : [];
     });
     // Missing market observations limit coverage, not the validity of the
@@ -420,4 +403,14 @@ export function alignedBenchmark(series: ReturnType<typeof performanceSeries>, b
         portfolio: (portfolioPoint.index / first.portfolioPoint.index - 1) * 100,
         benchmark: (marketPoint.point.close / first.marketPoint.point.close - 1) * 100,
     }));
+}
+
+/** Prefer coverage of the requested period, never just the provider priority. */
+export function chooseBenchmarkLine(series: ReturnType<typeof performanceSeries>, automatic: ReturnType<typeof alignedBenchmark>, imported: ReturnType<typeof alignedBenchmark>) {
+    const start = series[0]?.date;
+    const end = series.at(-1)?.date;
+    const score = (line: ReturnType<typeof alignedBenchmark>) => line.length < 2 ? -1
+        : (Number(line[0].date === start) + Number(line.at(-1)!.date === end)) * 1e15
+            + Date.parse(line.at(-1)!.date) - Date.parse(line[0].date);
+    return score(imported) > score(automatic) ? imported : automatic;
 }

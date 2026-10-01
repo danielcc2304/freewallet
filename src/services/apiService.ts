@@ -861,8 +861,12 @@ async function fetchYahooChartPoints(
     interval: string,
     period: TimePeriod,
     signal?: AbortSignal,
+    startDate?: number,
 ): Promise<HistoricalDataPoint[]> {
-    const url = YAHOO_CHART_URL + '/' + encodeURIComponent(symbol) + '?range=' + range + '&interval=' + interval;
+    const dates = Number.isFinite(startDate)
+        ? `period1=${Math.floor((startDate! - 7 * 86400000) / 1000)}&period2=${Math.ceil(Date.now() / 1000)}`
+        : 'range=' + range;
+    const url = YAHOO_CHART_URL + '/' + encodeURIComponent(symbol) + '?' + dates + '&interval=' + interval;
     const rawData: unknown = url.startsWith('/')
         ? (await axios.get(url, { signal, timeout: 6000 })).data
         : await fetchFromFastestProxy(url, signal);
@@ -903,13 +907,14 @@ async function fetchYahooChartPoints(
 export async function getAssetChartData(
     symbol: string,
     period: TimePeriod = '1M',
-    signal?: AbortSignal
+    signal?: AbortSignal,
+    options: { startDate?: number } = {},
 ): Promise<HistoricalDataPoint[]> {
     if (!isApiEnabled()) {
         return [];
     }
 
-    const cacheKey = `${symbol.trim().toUpperCase()}::${period}`;
+    const cacheKey = `${symbol.trim().toUpperCase()}::${period}::${Number.isFinite(options.startDate) ? new Date(options.startDate!).toISOString().slice(0, 10) : ''}`;
     const cached = CHART_CACHE.get(cacheKey);
     if (cached && Date.now() - cached.timestamp < TTL.CHART) {
         return cached.data;
@@ -952,7 +957,7 @@ export async function getAssetChartData(
 
         for (const candidate of candidates) {
             try {
-                const points = await fetchYahooChartPoints(candidate, range, interval, period, signal);
+                const points = await fetchYahooChartPoints(candidate, range, Number.isFinite(options.startDate) ? '1d' : interval, period, signal, options.startDate);
                 if (points.length > bestPoints.length) bestPoints = points;
 
                 // A single quote cannot render an evolution. Keep looking for

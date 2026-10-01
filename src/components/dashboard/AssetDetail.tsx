@@ -179,13 +179,13 @@ export function AssetDetail({ asset, portfolioValue = 0 }: AssetDetailProps) {
     };
 
     const hasPreviousClose = Number.isFinite(asset.previousClose) && asset.previousClose! > 0
-        && Number.isFinite(asset.currentPrice);
+        && hasValidPrice(asset);
     const priceChange = hasPreviousClose ? asset.currentPrice! - asset.previousClose! : 0;
     const priceChangePercent = hasPreviousClose ? (priceChange / asset.previousClose!) * 100 : 0;
     const investedValue = asset.purchasePrice * asset.quantity;
     const currentValue = assetValue(asset);
     const positionGain = currentValue - investedValue;
-    const positionReturn = investedValue > 0 ? (positionGain / investedValue) * 100 : 0;
+    const positionReturn = investedValue > 0 && hasValidPrice(asset) ? (positionGain / investedValue) * 100 : NaN;
     const portfolioWeight = portfolioValue > 0 ? (currentValue / portfolioValue) * 100 : 0;
 
     // Type-aware rendering (Fix 17)

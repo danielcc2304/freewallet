@@ -52,7 +52,11 @@ Portfolio relacionadas con el riesgo se revisaron para compartir las fórmulas.
 El retorno mensual del libro sigue `(cierre − flujos − cierre anterior) /
 cierre anterior`, que supone los flujos al final del mes. No es un TWR exacto
 cuando los flujos ocurren durante el mes y faltan valoraciones en esas fechas.
-Los retornos de los intervalos disponibles se encadenan geométricamente.
+Los retornos de los intervalos disponibles se encadenan geométricamente,
+también en el resumen mensual. Con una única valoración de cierre coincide
+con la fórmula del Excel; con valoraciones intermedias refleja los flujos
+al final de cada intervalo, sin asumir que todas las aportaciones llegaron
+al final del mes.
 El drawdown es `índice / máximo anterior del índice − 1`.
 Los ratios emplean meses cerrados válidos del último tramo consecutivo; mejor,
 peor mes y porcentaje de meses positivos identifican el conjunto cerrado válido.

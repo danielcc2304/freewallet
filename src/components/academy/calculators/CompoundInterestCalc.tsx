@@ -11,6 +11,7 @@ import {
     ResponsiveContainer
 } from 'recharts';
 import { CalculatorCard } from './CalculatorCard';
+import { validateCalculatorInputs } from './calculatorValidation';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import {
     COMPOUNDING_FREQUENCY_OPTIONS,
@@ -77,6 +78,7 @@ function readStoredCompoundInterest(): Partial<CompoundInterestCalcStorage> {
 }
 
 function formatCompoundCurrency(value: number) {
+    if (!Number.isFinite(value)) return 'N/D';
     return new Intl.NumberFormat('es-ES', {
         style: 'currency',
         currency: 'EUR',
@@ -201,8 +203,17 @@ export function CompoundInterestCalc() {
     ), [annualRate, interestRateType, compoundingFrequency]);
 
     const effectiveAnnualRatePercent = rateConversion.effectiveAnnualRate * 100;
+    const calculationError = validateCalculatorInputs([
+        { label: 'Capital inicial', value: initialCapital },
+        { label: 'Rentabilidad', value: annualRate, min: -99.99, max: 100 },
+        ...(calculationMode === 'requiredContribution' ? [] : [{ label: 'Aportación mensual', value: monthlyContribution }]),
+        ...(calculationMode === 'timeToGoal' ? [] : [{ label: 'Plazo', value: years, min: 1, max: 50, integer: true }]),
+        ...(calculationMode === 'normal' ? [] : [{ label: 'Objetivo', value: targetAmount, min: 0.01 }]),
+        ...(calculationMode === 'normal' && withdrawalType !== 'none' ? [{ label: 'Retirada', value: withdrawalValue, max: withdrawalType === 'percentage' ? 100 : 1e12 }] : []),
+    ]);
 
     const chartData = useMemo(() => {
+        if (calculationError) return [];
         const initial = Number(initialCapital) || 0;
         const monthly = Number(monthlyContribution) || 0;
         const periods = Number(years) || 0;
@@ -229,7 +240,7 @@ export function CompoundInterestCalc() {
                 initial,
                 monthly,
                 monthlyRate: rateConversion.monthlyRate,
-                periods: yearsToGoal || 1,
+                periods: Number.isFinite(yearsToGoal) ? yearsToGoal : 0,
                 withdrawalType: 'none',
                 withdrawalValue: 0
             });
@@ -249,9 +260,9 @@ export function CompoundInterestCalc() {
                 withdrawalValue: 0
             });
         }
-    }, [initialCapital, monthlyContribution, years, targetAmount, withdrawalValue, withdrawalType, calculationMode, rateConversion]);
+    }, [initialCapital, monthlyContribution, years, targetAmount, withdrawalValue, withdrawalType, calculationMode, rateConversion, calculationError]);
 
-    const finalData = chartData[chartData.length - 1];
+    const finalData = chartData[chartData.length - 1] ?? { contributed: 0, interest: 0, total: 0 };
 
     const timeToGoalYears = useMemo(() => {
         if (calculationMode !== 'timeToGoal') return null;
@@ -583,6 +594,7 @@ export function CompoundInterestCalc() {
 
                 {/* Results Section */}
                 <div className="compound__results">
+                    {calculationError ? <p role="alert">{calculationError}</p> : <>
                     {calculationMode === 'normal' && (
                         <>
                             <div className="compound__result-cards">
@@ -594,7 +606,7 @@ export function CompoundInterestCalc() {
                                     <div className="compound__result-label">Intereses Generados</div>
                                     <div className="compound__result-value">{formatCurrency(finalData.interest)}</div>
                                     <div className="compound__result-subtext">
-                                        {((finalData.interest / finalData.contributed) * 100).toFixed(1)}% sobre lo aportado
+                                        {finalData.contributed > 0 ? `${((finalData.interest / finalData.contributed) * 100).toFixed(1)}% sobre lo aportado` : 'Sin capital aportado'}
                                     </div>
                                 </div>
                                 <div className="compound__result-card compound__result-card--total">
@@ -612,7 +624,7 @@ export function CompoundInterestCalc() {
                                         <div className="compound__result-subtext">
                                             {withdrawalType === 'percentage'
                                                 ? 'Aplicada como porcentaje del capital al cierre de cada año'
-                                                : 'Aplicada como importe fijo al cierre de cada año'}
+                                                : 'Aplicada al cierre de cada año, limitada al saldo disponible'}
                                         </div>
                                     </div>
                                 )}
@@ -622,7 +634,7 @@ export function CompoundInterestCalc() {
 
                     {calculationMode === 'timeToGoal' && timeToGoalYears !== null && (
                         <div className={`compound__goal-result ${timeToGoalYears <= 0 ? 'compound__goal-result--achieved' : ''}`}>
-                            {timeToGoalYears <= 0 ? (
+                            {!Number.isFinite(timeToGoalYears) ? <p role="status">No se alcanza el objetivo en los próximos 100 años con estos parámetros.</p> : timeToGoalYears <= 0 ? (
                                 <div className="compound__goal-achieved">
                                     <div className="compound__goal-badge">🎉</div>
                                     <div className="compound__goal-content">
@@ -728,10 +740,10 @@ export function CompoundInterestCalc() {
                     <CalculatorCard className="compound__breakdown">
                         <div className="compound__breakdown-item">
                             <div className="compound__breakdown-bar" style={{
-                                width: `${(finalData.contributed / finalData.total) * 100}%`,
+                                width: `${finalData.total > 0 ? Math.min(100, finalData.contributed / finalData.total * 100) : 0}%`,
                                 background: '#3b82f6'
                             }}>
-                                <span>{((finalData.contributed / finalData.total) * 100).toFixed(1)}%</span>
+                                <span>{finalData.total > 0 ? (finalData.contributed / finalData.total * 100).toFixed(1) : '0'}%</span>
                             </div>
                             <div className="compound__breakdown-label-row">
                                 <div className="compound__breakdown-label">Tu dinero</div>
@@ -740,10 +752,10 @@ export function CompoundInterestCalc() {
                         </div>
                         <div className="compound__breakdown-item">
                             <div className="compound__breakdown-bar" style={{
-                                width: `${(finalData.interest / finalData.total) * 100}%`,
+                                width: `${finalData.total > 0 ? Math.max(0, Math.min(100, finalData.interest / finalData.total * 100)) : 0}%`,
                                 background: '#10b981'
                             }}>
-                                <span>{((finalData.interest / finalData.total) * 100).toFixed(1)}%</span>
+                                <span>{finalData.total > 0 ? (finalData.interest / finalData.total * 100).toFixed(1) : '0'}%</span>
                             </div>
                             <div className="compound__breakdown-label-row">
                                 <div className="compound__breakdown-label">Magia del interés compuesto</div>
@@ -838,6 +850,7 @@ export function CompoundInterestCalc() {
                             })}
                         </div>
                     </CalculatorCard>
+                    </>}
                 </div>
             </div>
 

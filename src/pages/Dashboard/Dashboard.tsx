@@ -19,6 +19,8 @@ import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
 import { useDashboardAnalytics } from '../../components/dashboard/useDashboardAnalytics';
 import type { performanceSeries } from '../../services/portfolioPerformance';
 import type { ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
+import { resolveLiveUnderlyingSelection } from '../../services/portfolioComposition';
+import { portfolioQuoteStatus, quoteDateLabel } from '../../services/portfolioQuoteStatus';
 import './Dashboard.css';
 import { PRICE_REFRESH_INTERVAL_MS } from '../../constants/app';
 
@@ -99,6 +101,9 @@ export function Dashboard() {
     const analytics = useDashboardAnalytics(calculationNow);
     const { series: historicalSeries, liveSeries } = analytics;
     const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || null;
+    const quoteStatuses = useMemo(() => assets.map(asset => ({ asset, ...portfolioQuoteStatus(asset, calculationNow) })), [assets, calculationNow]);
+    const consultationTimes = quoteStatuses.map(s => s.checkedAt).filter(t => Number.isFinite(t) && t <= calculationNow);
+    const lastConsultedAt = consultationTimes.length ? new Date(Math.max(...consultationTimes)).toISOString() : undefined;
 
     const handleCloseDashboardNotice = () => {
         setShowDashboardNotice(false);
@@ -179,6 +184,9 @@ export function Dashboard() {
         setSelectedAssetId(null);
         setSelectedHolding({ holding, parentAsset, exposure });
     }, []);
+    const handleExposuresChange = useCallback((exposures: ConsolidatedPortfolioExposure[]) => {
+        setSelectedHolding(previous => resolveLiveUnderlyingSelection(previous, assets, exposures));
+    }, [assets]);
 
     const metrics: PortfolioMetrics = useMemo(() => {
         const totalInvested = assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0);
@@ -308,9 +316,9 @@ export function Dashboard() {
                     <h1 className="dashboard__title">Dashboard</h1>
                     <p className="dashboard__subtitle">
                         Seguimiento automático de tu cartera
-                        {lastPriceUpdate && (
+                        {lastConsultedAt && (
                             <span className="dashboard__last-update">
-                                · Consultado: {lastPriceUpdate.toLocaleTimeString()}
+                                · Última consulta: {quoteDateLabel(lastConsultedAt)}
                             </span>
                         )}
                     </p>
@@ -344,7 +352,9 @@ export function Dashboard() {
                 />
             </section>
             <section className="dashboard__section">
-                <p role="status">{assets.filter(a => Number.isFinite(Date.parse(a.lastCheckedAt || a.lastQuoteAt || '')) && calculationNow - Date.parse(a.lastCheckedAt || a.lastQuoteAt!) <= 15 * 60 * 1000).length} de {assets.length} posiciones consultadas recientemente{quoteFailures ? ` · ${quoteFailures} pendientes; se reintentará automáticamente` : ''}. La fecha de valoración depende de cada mercado.</p>
+                <p role="status">{quoteStatuses.filter(s => s.asset.type !== 'cash' && s.recentlyChecked).length} de {assets.filter(a => a.type !== 'cash').length} posiciones de mercado consultadas recientemente{quoteFailures ? ` · ${quoteFailures} pendientes; se reintentará automáticamente` : ''}. La consulta y la fecha del precio son distintas.</p>
+                {quoteStatuses.some(s => s.blockers.length) && <details className="dashboard__quote-status"><summary>No se puede registrar una valoración completa · {quoteStatuses.filter(s => s.blockers.length).length} posiciones pendientes</summary><p>El histórico existente se conserva. Se añadirá una valoración cuando todas las posiciones tengan datos válidos.</p><ul>{quoteStatuses.filter(s => s.blockers.length).map(s => <li key={s.asset.id}><strong>{s.asset.name}</strong>: {s.blockers.join(' · ')}</li>)}</ul></details>}
+                {quoteStatuses.some(s => s.stalePrice || s.unknownPriceDate) && <details className="dashboard__quote-status"><summary>Revisar fechas de precios · {quoteStatuses.filter(s => s.stalePrice || s.unknownPriceDate).length} posiciones</summary><p>Se señalan precios con más de 7 días en fondos, 4 en acciones y ETF, o 2 en criptomonedas. Son márgenes orientativos, no un calendario bursátil.</p><ul>{quoteStatuses.filter(s => s.stalePrice || s.unknownPriceDate).map(s => <li key={s.asset.id}><strong>{s.asset.name}</strong> · Precio: {quoteDateLabel(s.asset.quotedAt || s.asset.lastQuoteAt)} · Consulta: {quoteDateLabel(s.asset.lastCheckedAt)}</li>)}</ul></details>}
                 <PortfolioExcelInsights now={calculationNow} analytics={analytics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} />
             </section>
 
@@ -358,6 +368,7 @@ export function Dashboard() {
                     assets={assets}
                     onAssetClick={handleViewDetails}
                     onHoldingClick={handleViewHolding}
+                    onExposuresChange={handleExposuresChange}
                 />
             </section>
 

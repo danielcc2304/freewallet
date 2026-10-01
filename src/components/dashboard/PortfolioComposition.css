@@ -1,8 +1,28 @@
 .portfolio-composition__content {
     display: grid;
     grid-template-columns: minmax(0, 1fr) 300px;
+    grid-template-areas: "heatmap donut";
+    align-items: start;
     gap: var(--spacing-xl);
 }
+
+.portfolio-composition__heatmap { grid-area: heatmap; min-width: 0; }
+.portfolio-composition__donut { grid-area: donut; min-width: 0; }
+.portfolio-composition__consolidated { grid-column: 1 / -1; min-width: 0; }
+.portfolio-composition__distributions { grid-column: 1 / -1; display: grid; gap: var(--spacing-md); min-width: 0; }
+.portfolio-composition__distributions:empty { display: none; }
+.portfolio-composition__breakdown-groups { min-width: 0; border: 1px solid var(--border-primary); border-radius: var(--radius-md); background: var(--bg-tertiary); }
+.portfolio-composition__breakdown-groups summary { cursor: pointer; padding: var(--spacing-md); color: var(--text-primary); font-weight: 600; overflow-wrap: anywhere; }
+.portfolio-composition__breakdown-groups summary span { display: block; margin-top: var(--spacing-xs); font-size: var(--font-size-xs); color: var(--text-secondary); font-weight: 400; }
+.portfolio-composition__breakdown-groups summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; border-radius: var(--radius-md); }
+.portfolio-composition__distribution-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr)); gap: var(--spacing-lg); padding: 0 var(--spacing-md) var(--spacing-md); }
+.portfolio-composition__distribution-grid section { min-width: 0; }
+.portfolio-composition__distribution-grid h5 { margin: 0 0 var(--spacing-sm); color: var(--text-primary); font-size: var(--font-size-sm); }
+.portfolio-composition__distribution-grid ul { list-style: none; padding: 0; margin: 0; display: grid; gap: var(--spacing-xs); }
+.portfolio-composition__distribution-grid li { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: var(--spacing-sm); padding-block: var(--spacing-xs); border-bottom: 1px solid var(--border-primary); color: var(--text-secondary); font-size: var(--font-size-sm); }
+.portfolio-composition__distribution-grid li span { overflow-wrap: anywhere; }
+.portfolio-composition__distribution-grid li strong { color: var(--text-primary); font-variant-numeric: tabular-nums; white-space: nowrap; }
+.portfolio-composition__distribution-grid p { font-size: var(--font-size-xs); color: var(--text-muted); }
 
 .portfolio-composition__section-title {
     font-size: var(--font-size-base);
@@ -36,6 +56,7 @@
 }
 
 .breakdown-toggle__slider {
+    flex-shrink: 0;
     position: relative;
     width: 44px;
     height: 24px;
@@ -85,7 +106,7 @@
 .portfolio-composition__consolidated {
     display: grid;
     gap: var(--spacing-md);
-    margin-top: var(--spacing-lg);
+    margin-top: 0;
     padding: var(--spacing-md);
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-md);
@@ -230,6 +251,7 @@
 
 .portfolio-composition__exposure-name small,
 .portfolio-composition__exposure-value small {
+    overflow-wrap: anywhere;
     color: var(--text-muted);
     font-size: var(--font-size-xs);
 }
@@ -283,6 +305,7 @@
 @media (max-width: 1024px) {
     .portfolio-composition__content {
         grid-template-columns: 1fr;
+        grid-template-areas: "donut" "heatmap";
     }
 
     .portfolio-composition__donut {

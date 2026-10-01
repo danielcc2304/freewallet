@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Info, TrendingUp, Wallet, ShieldCheck, Flame, Banknote } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getRateConversion } from './compoundInterestUtils';
+import { validateCalculatorInputs } from './calculatorValidation';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './FIRECalculator.css';
 
@@ -59,7 +60,8 @@ function calculateYearsToFire({
     nominalMonthlyRate: number;
     adjustForInflation: boolean;
 }) {
-    if (fireNumber <= 0) return 0;
+    if (![fireNumber, savings, monthlySavings, inflationAnnualFactor, nominalMonthlyRate].every(Number.isFinite) || fireNumber < 0 || savings < 0 || monthlySavings < 0 || inflationAnnualFactor <= 0 || nominalMonthlyRate < -1) return NaN;
+    if (fireNumber === 0) return 0;
 
     let nominalBalance = savings;
     for (let month = 0; month <= 1200; month++) {
@@ -152,9 +154,17 @@ export function FIRECalculator() {
     const annualReturnNum = Number(annualReturn) || 0;
     const inflationRateNum = Number(inflationRate) || 0;
     const withdrawalRateNum = Number(withdrawalRate) || 0;
+    const calculationError = validateCalculatorInputs([
+        { label: 'Gastos mensuales', value: monthlyExpenses },
+        { label: 'Capital actual', value: currentSavings },
+        { label: 'Ahorro mensual', value: monthlySavings },
+        { label: 'Rentabilidad', value: annualReturn, min: -99.99, max: 100 },
+        { label: 'Tasa de retirada', value: withdrawalRate, min: 0.01, max: 100 },
+        ...(includeInflation ? [{ label: 'Inflación', value: inflationRate, min: -99.99, max: 100 }] : []),
+    ]);
 
     const annualExpenses = expensesNum * 12;
-    const fireNumber = withdrawalRateNum > 0 ? annualExpenses / (withdrawalRateNum / 100) : 0;
+    const fireNumber = calculationError ? NaN : annualExpenses / (withdrawalRateNum / 100);
     const leanFireNumber = fireNumber * 0.8;
     const fatFireNumber = fireNumber * 1.5;
 
@@ -166,7 +176,7 @@ export function FIRECalculator() {
     const nominalAnnualFactor = 1 + rateConversion.effectiveAnnualRate;
     const inflationAnnualFactor = 1 + inflationRateNum / 100;
     const nominalMonthlyRate = rateConversion.monthlyRate;
-    const shouldAdjustForInflation = includeInflation && inflationRateNum > 0;
+    const shouldAdjustForInflation = includeInflation;
     const realAnnualReturn = inflationAnnualFactor > 0
         ? ((nominalAnnualFactor / inflationAnnualFactor) - 1) * 100
         : annualReturnNum;
@@ -225,7 +235,8 @@ export function FIRECalculator() {
         : 'Objetivo base en euros de hoy';
 
     const projectionData = useMemo(() => {
-        const data = [];
+        const data: Array<{ year: number; balance: number; fireNumber: number; leanFire: number; fatFire: number }> = [];
+        if (calculationError) return data;
         let nominalBalance = savingsNum;
 
         for (let year = 0; year <= projectionMaxYear; year++) {
@@ -259,7 +270,8 @@ export function FIRECalculator() {
         projectionMaxYear,
         projectionMode,
         savingsNum,
-        shouldAdjustForInflation
+        shouldAdjustForInflation,
+        calculationError
     ]);
 
     const simulationSummary = useMemo(() => {
@@ -299,9 +311,9 @@ export function FIRECalculator() {
                     </div>
                 </div>
                 <div className="fire__years-badge">
-                    <span className="fire__years-value">{yearsToFIRE < 100 ? yearsToFIRE.toFixed(1) : '∞'}</span>
+                    <span className="fire__years-value">{calculationError ? 'N/D' : yearsToFIRE < 100 ? yearsToFIRE.toFixed(1) : '∞'}</span>
                     <span className="fire__years-label">Años para FIRE</span>
-                    {includeInflation && (
+                    {includeInflation && !calculationError && (
                         <div className="fire__years-compare">
                             <span>Sin inflación: {yearsToFIREWithoutInflation < 100 ? `${yearsToFIREWithoutInflation.toFixed(1)}` : '∞'}</span>
                             <span>Con inflación: {yearsToFIREWithInflation < 100 ? `${yearsToFIREWithInflation.toFixed(1)}` : '∞'}</span>
@@ -427,7 +439,7 @@ export function FIRECalculator() {
                                         <span className="unit">%</span>
                                     </div>
                                     <small className="fire__input-hint">
-                                        Rentabilidad real estimada: {realAnnualReturn.toFixed(2)}% anual.
+                                        Rentabilidad real estimada: {calculationError || !Number.isFinite(realAnnualReturn) ? 'N/D' : `${realAnnualReturn.toFixed(2)}% anual`}.
                                     </small>
                                 </div>
 
@@ -466,6 +478,7 @@ export function FIRECalculator() {
                 </section>
 
                 <main className="fire__results">
+                    {calculationError ? <p role="alert">{calculationError}</p> : <>
                     <div className="fire__metrics">
                         <div className="fire__metric-card fire__metric-card--lean">
                             <span className="fire__metric-label">Lean FIRE (80%)</span>
@@ -544,6 +557,7 @@ export function FIRECalculator() {
                         <h3 className="fire__scenario-title">Lectura de la simulación</h3>
                         <p className="fire__scenario-text">{simulationSummary}</p>
                     </div>
+                    </>}
                 </main>
             </div>
 

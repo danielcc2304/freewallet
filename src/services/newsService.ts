@@ -1,8 +1,7 @@
-import {
-    createClient,
-    type Session,
-    type SupabaseClient,
-    type User,
+import type {
+    Session,
+    SupabaseClient,
+    User,
 } from '@supabase/supabase-js';
 import type {
     NewsAdminMember,
@@ -29,18 +28,8 @@ function isUsableConfigValue(value: string | undefined): value is string {
     return Boolean(value && !CONFIG_PLACEHOLDER_PATTERN.test(value));
 }
 
-const supabaseClient = isUsableConfigValue(SUPABASE_URL) && isUsableConfigValue(SUPABASE_KEY)
-    ? createClient(SUPABASE_URL, SUPABASE_KEY, {
-        auth: {
-            autoRefreshToken: true,
-            detectSessionInUrl: true,
-            persistSession: true,
-            storageKey: SESSION_STORAGE_KEY,
-        },
-    })
-    : null;
-
-export const isNewsBackendConfigured = supabaseClient !== null;
+export const isNewsBackendConfigured = isUsableConfigValue(SUPABASE_URL) && isUsableConfigValue(SUPABASE_KEY);
+let clientPromise: Promise<SupabaseClient> | undefined;
 
 export class NewsServiceError extends Error {
     status?: number;
@@ -76,14 +65,19 @@ interface NewsAdminRow {
     accepted_at: string | null;
 }
 
-function requireClient(): SupabaseClient {
-    if (!supabaseClient) {
+async function requireClient(): Promise<SupabaseClient> {
+    if (!isNewsBackendConfigured) {
         throw new NewsServiceError(
             'La sección de noticias necesita VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY (o VITE_SUPABASE_ANON_KEY).',
         );
     }
 
-    return supabaseClient;
+    // The Dashboard and Academy do not need the editorial backend SDK.
+    // Concurrent editorial requests share a single client; failed loads can retry.
+    clientPromise ??= import('@supabase/supabase-js').then(({ createClient }) => createClient(SUPABASE_URL!, SUPABASE_KEY!, {
+        auth: { autoRefreshToken: true, detectSessionInUrl: true, persistSession: true, storageKey: SESSION_STORAGE_KEY },
+    })).catch(error => { clientPromise = undefined; throw error; });
+    return clientPromise;
 }
 
 function getSupabaseErrorMessage(error: { message?: string } | null, fallback: string): string {
@@ -167,7 +161,7 @@ function mapAdminMember(row: NewsAdminRow): NewsAdminMember {
 }
 
 export async function getNewsSession(): Promise<NewsSession | null> {
-    const client = requireClient();
+    const client = await requireClient();
     const { data, error } = await client.auth.getSession();
     if (error) {
         throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo recuperar la sesión editorial.'));
@@ -177,7 +171,7 @@ export async function getNewsSession(): Promise<NewsSession | null> {
 }
 
 export async function signInNewsAdmin(email: string, password: string): Promise<NewsSession> {
-    const client = requireClient();
+    const client = await requireClient();
     const { data, error } = await client.auth.signInWithPassword({
         email: email.trim(),
         password,
@@ -195,15 +189,16 @@ export async function signInNewsAdmin(email: string, password: string): Promise<
 }
 
 export async function signOutNewsAdmin(): Promise<void> {
-    if (!supabaseClient) {
+    if (!isNewsBackendConfigured) {
         return;
     }
 
-    await supabaseClient.auth.signOut().catch(() => undefined);
+    const client = await requireClient();
+    await client.auth.signOut().catch(() => undefined);
 }
 
 export async function isCurrentUserNewsAdmin(): Promise<boolean> {
-    const { data, error } = await requireClient().rpc('is_news_admin');
+    const { data, error } = await (await requireClient()).rpc('is_news_admin');
     if (error) {
         throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo comprobar el permiso editorial.'));
     }
@@ -212,7 +207,7 @@ export async function isCurrentUserNewsAdmin(): Promise<boolean> {
 }
 
 export async function isCurrentUserNewsOwner(): Promise<boolean> {
-    const { data, error } = await requireClient().rpc('is_news_owner');
+    const { data, error } = await (await requireClient()).rpc('is_news_owner');
     if (error) {
         throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo comprobar el propietario editorial.'));
     }
@@ -221,7 +216,7 @@ export async function isCurrentUserNewsOwner(): Promise<boolean> {
 }
 
 export async function ensureNewsOwnerMembership(): Promise<boolean> {
-    const { data, error } = await requireClient().rpc('ensure_news_owner');
+    const { data, error } = await (await requireClient()).rpc('ensure_news_owner');
     if (error) {
         throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo activar el propietario editorial.'));
     }
@@ -230,7 +225,7 @@ export async function ensureNewsOwnerMembership(): Promise<boolean> {
 }
 
 export async function hasPendingNewsInvitation(): Promise<boolean> {
-    const { data, error } = await requireClient().rpc('has_pending_news_invitation');
+    const { data, error } = await (await requireClient()).rpc('has_pending_news_invitation');
     if (error) {
         throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo comprobar la invitación editorial.'));
     }
@@ -239,7 +234,7 @@ export async function hasPendingNewsInvitation(): Promise<boolean> {
 }
 
 export async function acceptNewsEditorInvitation(password: string): Promise<void> {
-    const client = requireClient();
+    const client = await requireClient();
     const { error: passwordError } = await client.auth.updateUser({ password });
     if (passwordError) {
         throw new NewsServiceError(getSupabaseErrorMessage(passwordError, 'No se pudo establecer la contraseña.'));
@@ -256,7 +251,7 @@ export async function acceptNewsEditorInvitation(password: string): Promise<void
 }
 
 export async function listNewsAdmins(): Promise<NewsAdminMember[]> {
-    const { data, error } = await requireClient()
+    const { data, error } = await (await requireClient())
         .from('news_admins')
         .select(NEWS_ADMIN_COLUMNS)
         .order('role', { ascending: true })
@@ -271,7 +266,7 @@ export async function listNewsAdmins(): Promise<NewsAdminMember[]> {
 
 export async function inviteNewsEditor(email: string): Promise<void> {
     const normalizedEmail = email.trim().toLowerCase();
-    const { data, error } = await requireClient().functions.invoke('invite-news-editor', {
+    const { data, error } = await (await requireClient()).functions.invoke('invite-news-editor', {
         body: { email: normalizedEmail },
     });
 
@@ -285,7 +280,7 @@ export async function inviteNewsEditor(email: string): Promise<void> {
 }
 
 export async function revokeNewsEditor(userId: string): Promise<void> {
-    const { data, error } = await requireClient().rpc('revoke_news_editor', { target_user_id: userId });
+    const { data, error } = await (await requireClient()).rpc('revoke_news_editor', { target_user_id: userId });
     if (error) {
         throw new NewsServiceError(getSupabaseErrorMessage(error, 'No se pudo revocar el acceso editorial.'));
     }
@@ -296,7 +291,7 @@ export async function revokeNewsEditor(userId: string): Promise<void> {
 }
 
 export async function listPublishedNews(): Promise<NewsPost[]> {
-    const { data, error } = await requireClient()
+    const { data, error } = await (await requireClient())
         .from('news_posts')
         .select(NEWS_COLUMNS)
         .eq('status', 'published')
@@ -310,7 +305,7 @@ export async function listPublishedNews(): Promise<NewsPost[]> {
 }
 
 export async function getPublishedNewsBySlug(slug: string): Promise<NewsPost | null> {
-    const { data, error } = await requireClient()
+    const { data, error } = await (await requireClient())
         .from('news_posts')
         .select(NEWS_COLUMNS)
         .eq('status', 'published')
@@ -325,7 +320,7 @@ export async function getPublishedNewsBySlug(slug: string): Promise<NewsPost | n
 }
 
 export async function listAdminNews(): Promise<NewsPost[]> {
-    const { data, error } = await requireClient()
+    const { data, error } = await (await requireClient())
         .from('news_posts')
         .select(NEWS_COLUMNS)
         .order('updated_at', { ascending: false });
@@ -343,7 +338,7 @@ export async function saveNewsPost(input: NewsPostInput, existingId?: string): P
         throw new NewsServiceError('Tu sesión editorial ha caducado. Vuelve a iniciar sesión.');
     }
 
-    const client = requireClient();
+    const client = await requireClient();
     const content = sanitizeNewsHtml(input.content);
     const publishedAt = input.status === 'published'
         ? input.publishedAt ?? new Date().toISOString()
@@ -387,7 +382,7 @@ export async function saveNewsPost(input: NewsPostInput, existingId?: string): P
 }
 
 export async function deleteNewsPost(id: string): Promise<void> {
-    const { error } = await requireClient()
+    const { error } = await (await requireClient())
         .from('news_posts')
         .delete()
         .eq('id', id);

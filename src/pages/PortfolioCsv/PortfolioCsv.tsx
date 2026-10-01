@@ -1066,7 +1066,7 @@ export function PortfolioCsv() {
 
             <section className="portfolio-csv-grid">
                 <article className="portfolio-csv-card">
-                    <h2><AlertTriangle size={18} /> Mapa de riesgo: retorno mensual y drawdown</h2>
+                    <h2><AlertTriangle size={18} /> Mapa de riesgo</h2>
                     <p>Retorno de meses cerrados y drawdown ajustado por aportaciones, con la misma base que Dashboard. El TWR YTD conserva el dato del Excel.</p>
                     <div className="portfolio-csv-chart portfolio-csv-chart--risk-map">
                         <ResponsiveContainer width="100%" height={320}>

@@ -12,6 +12,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-02 - v5.3.13 - Detalle y ordenación de Mis Activos
+- Funcionalidad:
+  - En móvil, «Ver todo» muestra los nombres completos a ancho de fila y mantiene visible la variación diaria.
+  - Ordenación ascendente y descendente por variación porcentual de hoy, con los valores no disponibles al final.
+  - El detalle móvil incluye el precio actual y presenta las cantidades con formato y precisión consistentes.
+- Resumen:
+  - Mejora la lectura y exploración de la cartera sin alterar sus datos; incluye regresiones para variaciones, ordenación y diseño adaptable.
+- Archivos:
+  - `src/components/dashboard/AssetsTable.tsx`, `src/components/dashboard/AssetsTable.css`
+  - `src/services/dashboardIntegrity.ts`, `scripts/test-assets-table.ts`
+
 ### 2026-10-02 - v5.3.12 - Calculadoras, integridad del Dashboard y desglose de fondos
 - Funcionalidad:
   - Calculadoras: aportaciones necesarias coherentes con las aportaciones al inicio de mes; objetivos inalcanzables y entradas inválidas identificados; retiradas limitadas al saldo; correcciones de casos límite en FIRE e Inflación; cupones de bonos con ancla de fecha, finales de mes y años bisiestos.

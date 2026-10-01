@@ -4,7 +4,7 @@ import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../ui';
 import type { Asset } from '../../types/types';
 import { assetPrice, assetValue, formatQuantity, hasValidPrice } from '../../services/assetValuation';
 import './AssetsTable.css';
-import { compareKnownReturns } from '../../services/dashboardIntegrity';
+import { compareKnownReturns, dailyAssetVariation } from '../../services/dashboardIntegrity';
 
 interface AssetsTableProps {
     assets: Asset[];
@@ -15,7 +15,7 @@ interface AssetsTableProps {
     onViewDetails?: (asset: Asset) => void;
 }
 
-type SortKey = 'symbol' | 'value' | 'change' | 'weight';
+type SortKey = 'symbol' | 'value' | 'change' | 'weight' | 'today';
 type SortDirection = 'asc' | 'desc';
 
 function SortIcon({ column, sortKey, sortDirection }: { column: SortKey; sortKey: SortKey; sortDirection: SortDirection }) {
@@ -49,14 +49,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
             const gain = currentValue - investedValue;
             const changePercent = investedValue > 0 && hasValidPrice(asset) ? (gain / investedValue) * 100 : NaN;
             const weight = totalValue > 0 ? (currentValue / totalValue) * 100 : 0;
-            const hasCurrentPrice = hasValidPrice(asset);
-            const hasPreviousClose = Number.isFinite(asset.previousClose) && asset.previousClose! > 0;
-            const todayChange = hasCurrentPrice && hasPreviousClose
-                ? (asset.currentPrice! - asset.previousClose!) * asset.quantity
-                : NaN;
-            const todayChangePercent = hasCurrentPrice && hasPreviousClose
-                ? (asset.currentPrice! - asset.previousClose!) / asset.previousClose! * 100
-                : NaN;
+            const { todayChange, todayChangePercent } = dailyAssetVariation(asset);
 
             return {
                 ...asset,
@@ -74,6 +67,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
     const sortedAssets = useMemo(() => {
         return [...processedAssets].sort((a, b) => {
             if (sortKey === 'change') return compareKnownReturns(a.changePercent, b.changePercent, sortDirection);
+            if (sortKey === 'today') return compareKnownReturns(a.todayChangePercent, b.todayChangePercent, sortDirection);
             let comparison = 0;
             switch (sortKey) {
                 case 'symbol':
@@ -196,9 +190,11 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                     </th>
                                     <th className="assets-table__optional">Cantidad</th>
                                     <th className="assets-table__optional">Precio Compra</th>
-                                    <th className="assets-table__column--price">
+                                    <th className="assets-table__column--price assets-table__optional">
                                         <span className="assets-table__current-price-label">Precio Actual</span>
-                                        <span className="assets-table__today-label">Variación hoy</span>
+                                    </th>
+                                    <th className="assets-table__column--today" aria-sort={sortKey === 'today' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
+                                        <button type="button" className="assets-table__sort" onClick={() => handleSort('today')} title="Ordenar por variación porcentual de hoy">Variación hoy <SortIcon column="today" sortKey={sortKey} sortDirection={sortDirection} /></button>
                                     </th>
                                     <th className="assets-table__column--value" aria-sort={sortKey === 'value' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
                                         <button type="button" className="assets-table__sort" onClick={() => handleSort('value')}>Valor <SortIcon column="value" sortKey={sortKey} sortDirection={sortDirection} /></button>
@@ -236,8 +232,10 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                         </td>
                                         <td className="assets-table__optional">{formatQuantity(asset)}</td>
                                         <td className="assets-table__optional">{formatPrice(asset.purchasePrice)}</td>
-                                        <td className="assets-table__column--price">
+                                        <td className="assets-table__column--price assets-table__optional">
                                             <span className="assets-table__current-price">{formatPrice(assetPrice(asset))}</span>
+                                        </td>
+                                        <td className="assets-table__column--today">
                                             <span className={`assets-table__today ${Number.isFinite(asset.todayChangePercent) && asset.todayChangePercent < 0
                                                 ? 'assets-table__change--negative'
                                                 : Number.isFinite(asset.todayChangePercent) && asset.todayChangePercent > 0
@@ -281,11 +279,15 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                             <div className="assets-table__mobile-details">
                                                 <div>
                                                     <span>Cantidad</span>
-                                                    <strong>{asset.quantity}</strong>
+                                                    <strong>{formatQuantity(asset)}</strong>
                                                 </div>
                                                 <div>
                                                     <span>Precio compra</span>
                                                     <strong>{formatPrice(asset.purchasePrice)}</strong>
+                                                </div>
+                                                <div>
+                                                    <span>Precio actual</span>
+                                                    <strong>{formatPrice(assetPrice(asset))}</strong>
                                                 </div>
                                                 <div>
                                                     <span>Peso</span>

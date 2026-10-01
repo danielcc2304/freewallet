@@ -3,6 +3,7 @@ import { readStoredValue } from '../pages/PortfolioCsv/portfolioCsvStorage';
 import { parseBenchmarkComparison, parseDailyData, parseDateLabel, parseEvolution, parseMovements, parsePeriodParts, resolveEvolutionPeriods } from '../pages/PortfolioCsv/portfolioCsvUtils';
 import type { BenchmarkComparisonPoint, DailyPortfolioPoint, EvolutionPoint } from '../pages/PortfolioCsv/portfolioCsvTypes';
 import type { PortfolioHistoryPoint, PortfolioTransaction } from '../types/portfolio';
+import { accountingDay } from './portfolioCalendar';
 
 export type WorkbookHistorySource = 'daily' | 'monthly' | 'mixed';
 
@@ -60,12 +61,14 @@ function validNumericPoint(point: PortfolioHistoryPoint): boolean {
 
 function normalizeEvolution(points: EvolutionPoint[]): NormalizedWorkbookPoint[] {
     const periodMap = resolveEvolutionPeriods(points);
-    const dated = points.flatMap((row, index) => {
+    const candidates = points.flatMap((row, index) => {
         const resolvedPeriod = periodMap.get(row.period) || row.period;
         const date = monthEndDate(resolvedPeriod);
         if (!date || !Number.isFinite(row.totalValue) || row.totalValue < 0) return [];
         return [{ row, date, index }];
     }).sort((left, right) => Date.parse(left.date) - Date.parse(right.date) || left.index - right.index);
+    // Corrections replace an observation; they are not another contribution.
+    const dated = [...new Map(candidates.map(p => [p.date, p])).values()];
 
     if (!dated.length) return [];
     const baseInitial = Math.max(0, dated[0].row.initialCapital);
@@ -90,8 +93,9 @@ function normalizeEvolution(points: EvolutionPoint[]): NormalizedWorkbookPoint[]
 
 function normalizeDaily(points: DailyPortfolioPoint[], monthly: NormalizedWorkbookPoint[]): NormalizedWorkbookPoint[] {
     if (points.length < 1 || monthly.length === 0) return [];
-    const dated = points
+    const dated = [...new Map(points
         .filter((row) => Number.isFinite(Date.parse(row.date)) && row.totalValue >= 0)
+        .map(row => [row.date, row])).values()]
         .sort((left, right) => Date.parse(left.date) - Date.parse(right.date));
     if (dated.length < 1) return [];
 
@@ -140,7 +144,7 @@ export function buildWorkbookHistory(evolutionRaw: string, dailyRaw: string, mov
     const monthly = normalizeEvolution(evolution);
     const daily = parseDailyData(dailyRaw);
     const movements = parseMovements(movementsRaw);
-    const currentMonth = new Date(now).toISOString().slice(0, 7);
+    const currentMonth = accountingDay(now).slice(0, 7);
     const closedMonthly = monthly.filter(p => p.date.slice(0, 7) < currentMonth);
     const lastClose = closedMonthly.at(-1);
     // Monthly closes remain authoritative; append actual daily observations,
@@ -208,7 +212,7 @@ export function readWorkbookHistory(): WorkbookHistoryBundle {
     const dailyRaw = readStoredValue(STORAGE_KEYS.dailyRaw, '');
     const movementsRaw = readStoredValue(STORAGE_KEYS.movementsRaw, '');
     const workbookFile = readStoredValue(STORAGE_KEYS.workbookFile, '');
-    const readKey = `${workbookFile}\u0000${evolutionRaw}\u0000${dailyRaw}\u0000${movementsRaw}\u0000${new Date().toISOString().slice(0, 10)}`;
+    const readKey = `${workbookFile}\u0000${evolutionRaw}\u0000${dailyRaw}\u0000${movementsRaw}\u0000${accountingDay(Date.now())}`;
     if (cachedReadBundle && cachedReadKey === readKey) return cachedReadBundle;
 
     const isDemoEvolution = workbookFile === 'Demo precargada' && evolutionRaw.trim() === DEFAULT_EVOLUTION_CSV.trim();

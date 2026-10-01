@@ -35,19 +35,22 @@ import { Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { isApiEnabled } from '../../services/storageService';
 import { getAssetChartData } from '../../services/apiService';
-import { alignedBenchmark, alignImportedBenchmark, selectPortfolioPeriod, workbookRiskStats } from '../../services/portfolioPerformance';
+import { alignedBenchmark, alignImportedBenchmark, chooseBenchmarkLine, selectPortfolioPeriod, workbookRiskStats } from '../../services/portfolioPerformance';
 import { assetValue, convertHistoryToCurrency } from '../../services/assetValuation';
 import { readWorkbookBenchmarkHistory } from '../../services/portfolioWorkbookHistory';
 import type { HistoricalDataPoint } from '../../types/types';
 import './PortfolioExcelInsights.css';
 import type { DashboardAnalytics } from './useDashboardAnalytics';
 import { latestContinuousMonths } from '../../services/dashboardHistory';
+import { parseAdvancedStats } from '../../pages/PortfolioCsv/portfolioCsvUtils';
+import { readStoredValue } from '../../pages/PortfolioCsv/portfolioCsvStorage';
+import { STORAGE_KEYS } from '../../pages/PortfolioCsv/portfolioCsvConstants';
+import { WORKBOOK_RISK_FREE_ANNUAL_PCT } from '../../services/portfolioRisk';
 
 type InsightTab = 'evolution' | 'benchmark' | 'allocation' | 'risk' | 'controls';
 type EvolutionPeriod = '1D' | '7D' | '1M' | '3M' | 'YTD' | 'ALL';
 
 const QUOTE_WINDOW_MS = 15 * 60 * 1000;
-const RISK_FREE_ANNUAL_PCT = 2.75;
 const currency = (value: number) => value.toLocaleString('es-ES', {
     style: 'currency',
     currency: 'EUR',
@@ -106,12 +109,13 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const [benchmarkRetry, setBenchmarkRetry] = useState(0);
     const [linkError, setLinkError] = useState('');
     const apiEnabled = isApiEnabled();
-    const [benchmarkResult, setBenchmarkResult] = useState<{ period: EvolutionPeriod | null; data: HistoricalDataPoint[] }>({
+    const [benchmarkResult, setBenchmarkResult] = useState<{ period: EvolutionPeriod | null; startDate?: number; data: HistoricalDataPoint[] }>({
         period: null,
         data: [],
     });
     const { workbookHistory, usingWorkbookHistory, portfolioTransactions, history, series, monthly, hasEstimates } = analytics;
     const workbookBenchmarkHistory = readWorkbookBenchmarkHistory();
+    const riskFreeAnnual = parseAdvancedStats(readStoredValue(STORAGE_KEYS.advancedRaw, '')).riskFreeAnnualPct ?? WORKBOOK_RISK_FREE_ANNUAL_PCT;
 
     const totalValue = useMemo(
         () => assets.reduce((sum, asset) => sum + assetValue(asset), 0),
@@ -122,10 +126,6 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         [assets],
     );
 
-    const dailyReturns = useMemo(
-        () => series.map(p => p.dailyReturn).filter((r): r is number => r !== null),
-        [series],
-    );
     const validMonthly = useMemo(
         () => monthly.filter(row => row.closed && row.complete && row.monthlyReturn !== null)
             .map(row => ({ ...row, monthlyReturn: row.monthlyReturn! })),
@@ -133,11 +133,11 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     );
     const recentMonthly = useMemo(() => latestContinuousMonths(validMonthly), [validMonthly]);
     const { volatility, sharpe, sortino, annualized, maxDrawdown } = useMemo(
-        () => workbookRiskStats(recentMonthly.map(row => row.monthlyReturn), RISK_FREE_ANNUAL_PCT),
-        [recentMonthly],
+        () => workbookRiskStats(recentMonthly.map(row => row.monthlyReturn), riskFreeAnnual),
+        [recentMonthly, riskFreeAnnual],
     );
     const historyYears = recentMonthly.length ? recentMonthly.length / 12 : null;
-    const positiveDays = dailyReturns.length ? dailyReturns.filter((value) => value > 0).length / dailyReturns.length * 100 : null;
+    const positiveDays = validMonthly.length ? validMonthly.filter(row => row.monthlyReturn > 0).length / validMonthly.length * 100 : null;
     const currentReturn = investedValue > 0 ? (totalValue / investedValue - 1) * 100 : 0;
     const bestMonth = validMonthly.length
         ? validMonthly.reduce((best, row) => row.monthlyReturn > best.monthlyReturn ? row : best)
@@ -209,28 +209,29 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const workbookBenchmarkLine = useMemo(() => {
         return alignImportedBenchmark(periodSeries, workbookBenchmarkHistory);
     }, [periodSeries, workbookBenchmarkHistory]);
-    const benchmark = useMemo(() => benchmarkResult.period === evolutionPeriod ? benchmarkResult.data : [], [benchmarkResult, evolutionPeriod]);
+    const benchmarkStart = periodSeries[0]?.timestamp;
+    const benchmark = useMemo(() => benchmarkResult.period === evolutionPeriod && benchmarkResult.startDate === benchmarkStart ? benchmarkResult.data : [], [benchmarkResult, evolutionPeriod, benchmarkStart]);
     const automaticLine = useMemo(() => alignedBenchmark(periodSeries, benchmark), [periodSeries, benchmark]);
-    const benchmarkUsesWorkbook = automaticLine.length < 2 && workbookBenchmarkLine.length > 1;
-    const benchmarkLine = automaticLine.length > 1 ? automaticLine : workbookBenchmarkLine;
-    const benchmarkLoading = tab === 'benchmark' && isApiEnabled() && benchmarkResult.period !== evolutionPeriod && benchmarkLine.length < 2;
+    const benchmarkLine = useMemo(() => chooseBenchmarkLine(periodSeries, automaticLine, workbookBenchmarkLine), [periodSeries, automaticLine, workbookBenchmarkLine]);
+    const benchmarkUsesWorkbook = benchmarkLine.length > 1 && benchmarkLine === workbookBenchmarkLine;
+    const benchmarkLoading = tab === 'benchmark' && apiEnabled && (benchmarkResult.period !== evolutionPeriod || benchmarkResult.startDate !== benchmarkStart) && benchmarkLine.length < 2;
     useEffect(() => {
         if (tab !== 'benchmark' || !apiEnabled) return;
         const controller = new AbortController();
-        getAssetChartData('URTH', evolutionPeriod, controller.signal)
+        getAssetChartData('URTH', evolutionPeriod, controller.signal, { startDate: benchmarkStart })
             .then(async data => {
                 // Match the portfolio's EUR reporting currency using dated FX observations.
                 if (data.some(p => p.currency === 'USD')) {
-                    const fx = await getAssetChartData('USDEUR=X', evolutionPeriod, controller.signal);
+                    const fx = await getAssetChartData('USDEUR=X', evolutionPeriod, controller.signal, { startDate: benchmarkStart });
                     data = convertHistoryToCurrency(data, fx, 'EUR', 4);
                 } else if (data.some(p => p.currency !== 'EUR')) data = [];
-                if (!controller.signal.aborted) setBenchmarkResult({ period: evolutionPeriod, data });
+                if (!controller.signal.aborted) setBenchmarkResult({ period: evolutionPeriod, startDate: benchmarkStart, data });
             })
             .catch(() => {
-                if (!controller.signal.aborted) setBenchmarkResult({ period: evolutionPeriod, data: [] });
+                if (!controller.signal.aborted) setBenchmarkResult({ period: evolutionPeriod, startDate: benchmarkStart, data: [] });
             });
         return () => controller.abort();
-    }, [evolutionPeriod, lastPriceUpdate, tab, apiEnabled, benchmarkRetry]);
+    }, [evolutionPeriod, lastPriceUpdate, tab, apiEnabled, benchmarkRetry, benchmarkStart]);
     const benchmarkReturn = benchmarkLine.at(-1)?.benchmark ?? null;
     const portfolioBenchmarkReturn = benchmarkLine.at(-1)?.portfolio ?? null;
     const hasPortfolioBenchmark = benchmarkLine.length > 1;
@@ -264,7 +265,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         { label: 'Rentabilidad anualizada', value: percent(annualized), detail: historyYears === null ? 'Sin meses cerrados' : `${recentMonthly.length} meses cerrados`, icon: <Gauge size={17} /> },
         { label: 'Volatilidad anualizada', value: plainPercent(volatility), detail: 'Riesgo estimado', icon: <BarChart3 size={17} /> },
         { label: 'Máximo drawdown', value: plainPercent(maxDrawdown), detail: 'Entre cierres mensuales', icon: <ArrowDownRight size={17} />, tone: maxDrawdown !== null && maxDrawdown < 0 ? 'is-negative' : undefined },
-        { label: 'Periodos positivos', value: plainPercent(positiveDays), detail: `${dailyReturns.length} intervalos válidos`, icon: <ShieldCheck size={17} /> },
+        { label: 'Meses positivos', value: plainPercent(positiveDays), detail: `${validMonthly.length} meses cerrados válidos`, icon: <ShieldCheck size={17} /> },
         { label: 'Ratio Sharpe', value: sharpe === null ? 'N/D' : sharpe.toFixed(2), detail: 'Retorno / riesgo', icon: <Gauge size={17} /> },
         { label: 'Ratio Sortino', value: sortino === null ? 'N/D' : sortino.toFixed(2), detail: 'Riesgo bajista', icon: <Gauge size={17} /> },
         { label: 'Mejor mes', value: percent(bestMonth?.monthlyReturn), detail: bestMonth?.month || 'Sin histórico', icon: <ArrowUpRight size={17} />, tone: bestMonth ? (bestMonth.monthlyReturn < 0 ? 'is-negative' : 'is-positive') : undefined },
@@ -420,9 +421,10 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                             </div>
                         </div>
                         <div className="portfolio-excel-insights__benchmark-kpis">
-                            <div><span>{benchmarkPartial ? 'Tu cartera · periodo comparable' : 'Tu cartera'}</span><strong>{percent(portfolioBenchmarkReturn)}</strong></div>
-                            <div><span>MSCI World</span><strong>{percent(benchmarkReturn)}</strong></div>
-                            <div><span>Diferencia</span><strong className={benchmarkDifference !== null && benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'}>{percent(benchmarkDifference)}</strong></div>
+                            <div><span>Tu cartera · {evolutionPeriod === 'YTD' ? 'YTD completo' : 'periodo seleccionado'}</span><strong>{percent(selectedPeriod.performance.returnPercent)}</strong></div>
+                            {benchmarkPartial && <div><span>Tu cartera · tramo comparable</span><strong>{percent(portfolioBenchmarkReturn)}</strong></div>}
+                            <div><span>{benchmarkPartial ? 'MSCI World · tramo comparable' : 'MSCI World'}</span><strong>{percent(benchmarkReturn)}</strong></div>
+                            <div><span>{benchmarkPartial ? 'Diferencia · tramo comparable' : 'Diferencia'}</span><strong className={benchmarkDifference === null ? '' : benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'}>{percent(benchmarkDifference)}</strong></div>
                         </div>
                         {benchmarkPartial && <p className="portfolio-excel-insights__chart-note" role="status">
                             Cobertura parcial: esta comparación abarca del {benchmarkLine[0].date.slice(0, 10)} al {benchmarkLine.at(-1)!.date.slice(0, 10)}.
@@ -480,13 +482,13 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                         <div className="portfolio-excel-insights__panel-heading">
                             <div>
                                 <h3><AlertTriangle size={16} /> Riesgo y consistencia</h3>
-                                <p>Meses cerrados, desviación mensual y €STR constante del 2,75% anual, igual que el Excel.</p>
+                                <p>Meses cerrados consecutivos, retornos ajustados por flujos y tasa libre de riesgo del {plainPercent(riskFreeAnnual)} anual.</p>
                             </div>
-                            <strong>{validMonthly.length} meses</strong>
+                            <strong>{recentMonthly.length} meses</strong>
                         </div>
-                        {validMonthly.length > 1 ? (
+                        {recentMonthly.length > 1 ? (
                             <ResponsiveContainer width="100%" height={270}>
-                                <ComposedChart data={validMonthly} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
+                                <ComposedChart data={recentMonthly} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
                                     <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} minTickGap={28} />
                                     <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />

@@ -1,4 +1,5 @@
 import { MONTH_KEYS } from './portfolioCsvConstants';
+import { latestContinuousMonths, workbookRiskStats, WORKBOOK_RISK_FREE_ANNUAL_PCT } from '../../services/portfolioRisk';
 import type {
     AdvancedPortfolioStats,
     BenchmarkComparisonPoint,
@@ -301,12 +302,12 @@ export function parseHoldings(raw: string): Holding[] {
 }
 
 export function isMonthLabel(value: string): boolean {
-    return /^(?:20\d{2}\s+)?(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)\b/i.test(value.trim())
-        || /^(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)(?:\s+20\d{2})?\b/i.test(value.trim());
+    return parsePeriodParts(value) !== null;
 }
 
 export function parsePeriodParts(value: string): ParsedPeriod | null {
-    const normalized = value.trim().toLowerCase();
+    const months: Record<string, string> = { enero: 'ene', febrero: 'feb', marzo: 'mar', abril: 'abr', mayo: 'may', junio: 'jun', julio: 'jul', agosto: 'ago', septiembre: 'sep', setiembre: 'sep', sept: 'sep', octubre: 'oct', noviembre: 'nov', diciembre: 'dic' };
+    const normalized = value.trim().toLowerCase().replace(/\b[a-z]+\b/g, month => months[month] || month).replace(/\.(?=\s|$)/g, '');
     const yearFirstMatch = normalized.match(/^(20\d{2})\s+(ene|feb|mar|abr|may|jun|jul|ago|sep|oct|nov|dic)$/i);
     const match = yearFirstMatch
         ? ['', yearFirstMatch[2], yearFirstMatch[1]]
@@ -615,6 +616,7 @@ export function parseDailyData(raw: string): DailyPortfolioPoint[] {
 }
 
 export function formatCurrency(value: number): string {
+    if (!Number.isFinite(value)) return 'N/D';
     return value.toLocaleString('es-ES', {
         style: 'currency',
         currency: 'EUR',
@@ -624,6 +626,7 @@ export function formatCurrency(value: number): string {
 }
 
 export function formatPct(value: number): string {
+    if (!Number.isFinite(value)) return 'N/D';
     return `${value.toLocaleString('es-ES', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
@@ -676,52 +679,35 @@ function regression(portfolioReturns: number[], benchmarkReturns: number[]): { b
     };
 }
 
-function annualizedReturn(monthlyReturns: number[]): number | null {
-    if (monthlyReturns.length === 0) return null;
-    const growth = monthlyReturns.reduce((acc, value) => acc * (1 + value / 100), 1);
-    if (growth <= 0) return null;
-    return ((growth ** (12 / monthlyReturns.length)) - 1) * 100;
-}
-
-function maximumDrawdown(monthlyReturns: number[]): number | null {
-    if (monthlyReturns.length === 0) return null;
-    let wealth = 1;
-    let peak = 1;
-    let maxDrawdown = 0;
-    monthlyReturns.forEach((value) => {
-        wealth *= 1 + value / 100;
-        peak = Math.max(peak, wealth);
-        maxDrawdown = Math.min(maxDrawdown, ((wealth / peak) - 1) * 100);
-    });
-    return maxDrawdown;
-}
-
 export function calculateAdvancedPortfolioStats(
     evolution: EvolutionPoint[],
     benchmark: BenchmarkComparisonPoint[],
     dailyPoints: DailyPortfolioPoint[],
     riskFreeAnnualPct: number | null,
+    monthlyHistory?: { month: string; monthlyReturn: number | null; complete: boolean; closed: boolean }[],
 ): AdvancedPortfolioStats {
-    const paired = benchmark.filter((row) => Number.isFinite(row.portfolioReturnPct) && Number.isFinite(row.benchmarkReturnPct));
-    const portfolioReturns = paired.length > 0
-        ? paired.map((row) => row.portfolioReturnPct)
+    const canonical = monthlyHistory ? latestContinuousMonths(monthlyHistory.filter(r => r.closed && r.complete && r.monthlyReturn !== null)) : null;
+    const paired = benchmark.flatMap(row => {
+        const parts = parsePeriodParts(row.period) || parsePeriodParts(`${row.month} ${row.year}`);
+        const month = parts?.year === undefined ? '' : `${parts.year}-${String(parts.monthIndex + 1).padStart(2, '0')}`;
+        const ownReturn = canonical ? canonical.find(r => r.month === month)?.monthlyReturn : row.portfolioReturnPct;
+        return ownReturn !== null && ownReturn !== undefined && Number.isFinite(ownReturn) && Number.isFinite(row.benchmarkReturnPct)
+            ? [{ ...row, portfolioReturnPct: ownReturn, relativeReturnPct: ownReturn - row.benchmarkReturnPct }] : [];
+    });
+    const portfolioReturns = canonical ? canonical.map(r => r.monthlyReturn!)
         : evolution.map((row) => row.monthlyReturnPct).filter(Number.isFinite);
     const benchmarkReturns = paired.map((row) => row.benchmarkReturnPct);
     const relativeReturns = paired.map((row) => row.relativeReturnPct);
-    const monthlyRiskFreePct = (riskFreeAnnualPct ?? 0) / 12;
-    const excessReturns = portfolioReturns.map((value) => value - monthlyRiskFreePct);
-    const meanExcess = average(excessReturns);
-    const monthlyVolatility = sampleStandardDeviation(portfolioReturns);
-    const negativeExcess = excessReturns.filter((value) => value < 0);
-    const downsideDeviation = negativeExcess.length > 0
-        ? Math.sqrt(negativeExcess.reduce((acc, value) => acc + (value ** 2), 0) / negativeExcess.length)
-        : null;
+    const riskFree = riskFreeAnnualPct ?? WORKBOOK_RISK_FREE_ANNUAL_PCT;
+    const stats = workbookRiskStats(portfolioReturns, riskFree);
     const relativeAverage = average(relativeReturns);
     const trackingErrorMonthly = sampleStandardDeviation(relativeReturns);
-    const regressionStats = regression(portfolioReturns, benchmarkReturns);
-    const bestMonth = evolution.length > 0
-        ? evolution.reduce((best, row) => (row.monthlyReturnPct > best.monthlyReturnPct ? row : best), evolution[0])
-        : null;
+    const pairedPortfolioReturns = paired.map(row => row.portfolioReturnPct);
+    const regressionStats = regression(pairedPortfolioReturns, benchmarkReturns);
+    const pairedExcess = average(pairedPortfolioReturns.map(r => r - riskFree / 12));
+    const bestCandidates = canonical ? canonical.map(r => ({ period: r.month, monthlyReturnPct: r.monthlyReturn! })) : evolution;
+    const bestMonth = bestCandidates.length > 0
+        ? bestCandidates.reduce((best, row) => (row.monthlyReturnPct > best.monthlyReturnPct ? row : best), bestCandidates[0]) : null;
     const dailyRecords = dailyPoints.filter((point) => {
         const normalizedType = normalizeHeader(point.dataType);
         return !point.dataType
@@ -735,20 +721,20 @@ export function calculateAdvancedPortfolioStats(
     const dailyVolatility = sampleStandardDeviation(dailyReturns);
 
     return {
-        riskFreeAnnualPct,
-        sharpeRatio: meanExcess !== null && monthlyVolatility ? (meanExcess / monthlyVolatility) * Math.sqrt(12) : null,
-        sortinoRatio: meanExcess !== null && downsideDeviation ? (meanExcess / downsideDeviation) * Math.sqrt(12) : null,
+        riskFreeAnnualPct: riskFree,
+        sharpeRatio: stats.sharpe,
+        sortinoRatio: stats.sortino,
         annualAlphaPct: regressionStats.alphaMonthlyPct === null ? null : regressionStats.alphaMonthlyPct * 12,
         beta: regressionStats.beta,
-        maxDrawdownPct: maximumDrawdown(portfolioReturns),
+        maxDrawdownPct: stats.maxDrawdown,
         informationRatio: relativeAverage !== null && trackingErrorMonthly ? (relativeAverage / trackingErrorMonthly) * Math.sqrt(12) : null,
         trackingErrorAnnualPct: trackingErrorMonthly === null ? null : trackingErrorMonthly * Math.sqrt(12),
         correlation: regressionStats.correlation,
-        annualizedReturnPct: annualizedReturn(portfolioReturns),
-        annualizedVolatilityPct: monthlyVolatility === null ? null : monthlyVolatility * Math.sqrt(12),
+        annualizedReturnPct: stats.annualized,
+        annualizedVolatilityPct: stats.volatility,
         analyzedMonths: portfolioReturns.length,
         bestMonth: bestMonth ? { period: bestMonth.period, returnPct: bestMonth.monthlyReturnPct } : null,
-        treynorRatioPct: meanExcess !== null && regressionStats.beta ? (meanExcess * 12) / regressionStats.beta : null,
+        treynorRatioPct: pairedExcess !== null && regressionStats.beta ? (pairedExcess * 12) / regressionStats.beta : null,
         dailyObservations: dailyReturns.length,
         dailyVolatilityAnnualPct: dailyVolatility === null ? null : dailyVolatility * Math.sqrt(252),
         latestDailyPoint: dailyPoints.length > 0 ? dailyPoints[dailyPoints.length - 1] : null,

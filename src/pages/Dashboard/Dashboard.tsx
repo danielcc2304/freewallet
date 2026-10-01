@@ -13,7 +13,7 @@ import { Button, Card, CardContent, Modal, PageHeader } from '../../components/u
 import { usePortfolio } from '../../context/PortfolioContext';
 import { isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, PerformerData, Asset, AssetHolding, TimePeriod } from '../../types/types';
-import { calculatePreviousClosePerformance, selectPortfolioPeriod } from '../../services/portfolioPerformance';
+import { calculatePreviousClosePerformance, selectPortfolioPeriod, accountingDay } from '../../services/portfolioPerformance';
 import { assetValue, hasValidPrice } from '../../services/assetValuation';
 import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
 import { useDashboardAnalytics } from '../../components/dashboard/useDashboardAnalytics';
@@ -187,7 +187,7 @@ export function Dashboard() {
             0
         );
         const totalGain = currentValue - totalInvested;
-        const percentageGain = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
+        const percentageGain = totalInvested > 0 ? (totalGain / totalInvested) * 100 : NaN;
 
         const periodChange = (periodName: TimePeriod, source: ReturnType<typeof performanceSeries>) => {
             const { performance: period } = selectPortfolioPeriod(source, periodName, calculationNow);
@@ -200,7 +200,8 @@ export function Dashboard() {
         };
         const liveDay = periodChange('1D', liveSeries);
         const historicalDay = liveDay.hasBase ? liveDay : periodChange('1D', historicalSeries);
-        const previousClose = calculatePreviousClosePerformance(assets);
+        const changedToday = analytics.portfolioTransactions.some(t => t.date?.slice(0, 10) === accountingDay(calculationNow) && t.provenance !== 'initial-position' && !/^(position|bootstrap)-/.test(t.id));
+        const previousClose = changedToday ? { change: null, returnPercent: null } : calculatePreviousClosePerformance(assets);
         const day = historicalDay.hasBase
             ? historicalDay
             : {
@@ -231,10 +232,10 @@ export function Dashboard() {
             historyChange: all.change, historyChangePercent: all.percent,
             periodDates: { '1D': historicalDay, '7D': week, '1M': month, '3M': quarter, YTD: ytd, ALL: all },
         };
-    }, [assets, calculationNow, historicalSeries, liveSeries]);
+    }, [assets, calculationNow, historicalSeries, liveSeries, analytics.portfolioTransactions]);
 
     const performersData: PerformerData[] = useMemo(() => {
-        return assets.map((asset) => {
+        return assets.filter(asset => hasValidPrice(asset) && Number.isFinite(asset.purchasePrice) && asset.purchasePrice > 0 && asset.quantity > 0).map((asset) => {
             const currentValue = assetValue(asset);
             const investedValue = asset.purchasePrice * asset.quantity;
             const change = currentValue - investedValue;
@@ -330,6 +331,7 @@ export function Dashboard() {
             )}
 
             {assets.some(a => !hasValidPrice(a)) && <p role="status">Parte del valor actual está estimada al coste: faltan cotizaciones válidas.</p>}
+            {assets.some(a => a.type === 'cash') && <p role="status">Con liquidez en cartera, las compras y ventas no identifican por sí solas aportaciones externas. Los intervalos con flujos ambiguos se muestran como N/D.</p>}
             <PortfolioSummary metrics={metrics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} />
             <section className="dashboard__section">
                 <AssetsTable

@@ -78,6 +78,7 @@ export function calculateCompoundInterestProjection({
     withdrawalType,
     withdrawalValue
 }: CompoundProjectionInput): CompoundProjectionPoint[] {
+    if (![initial, monthly, monthlyRate, periods, withdrawalValue].every(Number.isFinite) || initial < 0 || monthly < 0 || monthlyRate < -1 || periods < 0 || periods > 100 || !Number.isInteger(periods) || withdrawalValue < 0) return [];
     const data: CompoundProjectionPoint[] = [];
 
     let totalContributed = initial;
@@ -100,9 +101,10 @@ export function calculateCompoundInterestProjection({
                 totalGrossInterest += interestEarned;
 
                 if (month === 12 && withdrawalType !== 'none') {
-                    const withdrawalAmount = withdrawalType === 'percentage'
+                    const requestedWithdrawal = withdrawalType === 'percentage'
                         ? currentValue * (withdrawalValue / 100)
                         : withdrawalValue;
+                    const withdrawalAmount = Math.min(Math.max(currentValue, 0), requestedWithdrawal);
 
                     currentValue -= withdrawalAmount;
                     totalWithdrawals += withdrawalAmount;
@@ -131,6 +133,7 @@ export function calculateTimeToGoal(
     monthlyRate: number,
     goal: number
 ): number {
+    if (![initial, monthly, monthlyRate, goal].every(Number.isFinite) || initial < 0 || monthly < 0 || monthlyRate < -1 || goal < 0) return NaN;
     let currentValue = initial;
     let months = 0;
     const maxMonths = 100 * 12;
@@ -141,7 +144,7 @@ export function calculateTimeToGoal(
         months++;
     }
 
-    return months / 12;
+    return currentValue >= goal ? months / 12 : Infinity;
 }
 
 export function calculateRequiredMonthly(
@@ -150,12 +153,13 @@ export function calculateRequiredMonthly(
     years: number,
     goal: number
 ): number {
+    if (![initial, monthlyRate, years, goal].every(Number.isFinite) || initial < 0 || monthlyRate <= -1 || years <= 0 || years > 100 || !Number.isInteger(years * 12) || goal < 0) return NaN;
     const totalMonths = years * 12;
-    const growthFactor = Math.pow(1 + monthlyRate, totalMonths);
+    const growthFactor = Math.exp(totalMonths * Math.log1p(monthlyRate));
     const futureValueOfInitial = initial * growthFactor;
     const annuityFactor = monthlyRate === 0
         ? totalMonths
-        : (growthFactor - 1) / monthlyRate;
+        : (Math.expm1(totalMonths * Math.log1p(monthlyRate)) / monthlyRate) * (1 + monthlyRate);
 
-    return (goal - futureValueOfInitial) / annuityFactor;
+    return Math.max(0, (goal - futureValueOfInitial) / annuityFactor);
 }

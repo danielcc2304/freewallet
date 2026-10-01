@@ -43,6 +43,7 @@ export function Heatmap({ data, showBreakdown = false, onItemClick }: HeatmapPro
     };
 
     const formatChange = (value: number): string => {
+        if (!Number.isFinite(value)) return 'N/D';
         const sign = value > 0 ? '+' : '';
         return `${sign}${value.toFixed(2)}%`;
     };
@@ -74,18 +75,18 @@ export function Heatmap({ data, showBreakdown = false, onItemClick }: HeatmapPro
                 <div
                     key={item.id}
                     className="heatmap__group"
-                    style={{ flex: `${widthPercent} 1 0` }}
+                    style={{ flex: `${widthPercent} 1 200px` }}
                 >
                     <div className="heatmap__group-label">{item.name}</div>
                     <div className="heatmap__group-items">
                         {item.children.map((child) => (
                             <div
                                 key={child.id}
-                                className={`heatmap__item heatmap__item--child ${isHovered ? 'heatmap__item--hovered' : ''}`}
+                                className={`heatmap__item heatmap__item--child ${hoveredItem === child.id ? 'heatmap__item--hovered' : ''}`}
                                 style={{
                                     backgroundColor: getBackgroundColor(child.changePercent),
                                     color: getTextColor(child.changePercent),
-                                    flex: `${child.weight} 1 0`,
+                                    flex: `${child.weight} 1 96px`,
                                 }}
                                 onMouseEnter={() => setHoveredItem(child.id)}
                                 onMouseLeave={() => setHoveredItem(null)}

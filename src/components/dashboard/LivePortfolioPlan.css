@@ -12,6 +12,8 @@
 .live-plan input { width: 85px; padding: .5rem; border: 1px solid var(--border-primary); border-radius: 8px; background: var(--bg-tertiary); color: var(--text-primary); }
 .live-plan__budget { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; margin-top: 1.5rem; }
 .live-plan__budget input { width: 140px; }
+.live-plan__use-weights { max-width: 100%; min-height: 44px; margin-top: .75rem; white-space: normal; text-align: center; }
+.live-plan__use-weights:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
 .live-plan .is-positive { color: var(--color-positive); }
 .live-plan .is-negative { color: var(--color-negative); }
 .live-plan__scroll { position: relative; overscroll-behavior-x: contain; }

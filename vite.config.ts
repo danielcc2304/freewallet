@@ -41,6 +41,12 @@ export default defineConfig(({ mode }) => {
         secure: true,
         rewrite: () => '/us/en/intermediary/library-content/products/fund-data/etfs/us/holdings-daily-us-en-spy.xlsx',
       },
+      '/__holdings/ndq': {
+        target: 'https://www.betashares.com.au',
+        changeOrigin: true,
+        secure: true,
+        rewrite: () => '/files/csv/NDQ_Portfolio_Holdings.csv',
+      },
       '/__holdings/sp500-sectors': {
         target: 'https://en.wikipedia.org',
         changeOrigin: true,

@@ -1,4 +1,6 @@
-export type MarketHeatmapIndexId = 'sp500' | 'msci-world' | 'msci-emerging';
+import {NASDAQ_100_HOLDINGS} from './nasdaq100Holdings';
+
+export type MarketHeatmapIndexId = 'sp500' | 'nasdaq100' | 'msci-world' | 'msci-emerging';
 
 export interface MarketHeatmapConstituent {
     symbol: string;
@@ -27,6 +29,21 @@ export interface MarketHeatmapIndex {
 }
 
 export const MARKET_HEATMAP_INDICES: MarketHeatmapIndex[] = [
+    {
+        id: 'nasdaq100',
+        label: 'Nasdaq 100',
+        shortLabel: 'Nasdaq 100',
+        description: 'Grandes compañías no financieras del Nasdaq. Composición del ETF NDQ y cotización de referencia de QQQ.',
+        proxySymbol: 'QQQ',
+        proxyLabel: 'Invesco QQQ Trust',
+        holdingsEndpoint: '/__holdings/ndq',
+        holdingsFormat: 'csv',
+        holdingsAsOf: '1 oct 2026',
+        totalHoldings: NASDAQ_100_HOLDINGS.length,
+        sourceLabel: 'Betashares · NDQ',
+        sourceUrl: 'https://www.betashares.com.au/fund/nasdaq-100-etf/',
+        constituents: NASDAQ_100_HOLDINGS,
+    },
     {
         id: 'sp500',
         label: 'S&P 500',

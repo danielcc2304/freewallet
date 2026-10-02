@@ -12,6 +12,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-02 - v6.0.3 - Bonos, Nasdaq 100 y controles móviles
+- Funcionalidad:
+  - Resultado TIR/YTM legible en tema claro y en Liquid Glass, con tipografía y contraste coherentes.
+  - Nasdaq 100 en el heatmap, con composición oficial de Betashares NDQ, cotización de referencia QQQ y respaldo completo de posiciones.
+  - Acciones de cartera separadas en móvil, con áreas táctiles de 44 px y controles compatibles con Liquid Glass.
+  - Avisos de carga y error de cotizaciones legibles sobre el fondo oscuro del heatmap en ambos temas.
+- Resumen:
+  - Mejora la lectura de resultados y reduce pulsaciones accidentales al gestionar activos desde el móvil.
+- Archivos:
+  - `src/components/academy/calculators/BondCalculator.css`, `src/components/academy/tools/MarketHeatmap.css`, `src/components/dashboard/AssetsTable.css`, `src/data/marketHeatmapIndices.ts`, `src/data/nasdaq100Holdings.ts`, `src/services/marketHeatmapService.ts`, `scripts/test-dashboard-market-polish.ts`, `package.json`, `vite.config.ts`, `vercel.json`
+
 ### 2026-10-02 - v6.0.2 - Academia y configuración de cuenta
 - Funcionalidad:
   - Ruta guiada de Fundamentos desplegada por defecto, manteniendo el control para contraerla.

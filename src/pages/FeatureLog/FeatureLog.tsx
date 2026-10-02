@@ -23,7 +23,7 @@ type FeatureLogEntry = {
 const sectionLabels = new Set(['Funcionalidad', 'Resumen', 'Archivos']);
 
 function parseFeatureLog(markdown: string): FeatureLogEntry[] {
-    const entryBlocks = markdown
+    const entryBlocks = markdown.replace(/\r\n?/g, '\n')
         .split(/\n(?=###\s+\d{4}-\d{2}-\d{2}\s+-\s+)/)
         .filter((block) => block.startsWith('### '));
 

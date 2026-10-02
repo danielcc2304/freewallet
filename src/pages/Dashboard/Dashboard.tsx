@@ -24,6 +24,7 @@ import { resolveLiveUnderlyingSelection } from '../../services/portfolioComposit
 import { portfolioQuoteStatus, quoteDateLabel } from '../../services/portfolioQuoteStatus';
 import './Dashboard.css';
 import { PRICE_REFRESH_INTERVAL_MS } from '../../constants/app';
+import { hasCurrentDayQuotes } from '../../services/dashboardIntegrity';
 import {useAccount} from '../../context/AccountContext';
 
 const DASHBOARD_CALCULATION_TICK_MS = 60 * 1000;
@@ -212,7 +213,7 @@ export function Dashboard() {
         const liveDay = periodChange('1D', liveSeries);
         const historicalDay = liveDay.hasBase ? liveDay : periodChange('1D', historicalSeries);
         const changedToday = analytics.portfolioTransactions.some(t => t.date?.slice(0, 10) === accountingDay(calculationNow) && t.provenance !== 'initial-position' && !/^(position|bootstrap)-/.test(t.id));
-        const previousClose = changedToday ? { change: null, returnPercent: null } : calculatePreviousClosePerformance(assets);
+        const previousClose = changedToday || !hasCurrentDayQuotes(assets, calculationNow) ? { change: null, returnPercent: null } : calculatePreviousClosePerformance(assets);
         const day = historicalDay.hasBase
             ? historicalDay
             : {
@@ -345,6 +346,7 @@ export function Dashboard() {
             <PortfolioDataQuality assets={assets} now={calculationNow} quoteFailures={quoteFailures} />
             <section className="dashboard__section">
                 <AssetsTable
+                    now={calculationNow}
                     assets={assets}
                     onDelete={deleteAsset}
                     onEdit={handleEditAsset}

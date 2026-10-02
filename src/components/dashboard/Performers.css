@@ -98,11 +98,11 @@
     white-space: nowrap;
 }
 
-.performers__change--best {
+.performers__change--positive {
     color: var(--color-positive);
 }
 
-.performers__change--worst {
+.performers__change--negative {
     color: var(--color-negative);
 }
 

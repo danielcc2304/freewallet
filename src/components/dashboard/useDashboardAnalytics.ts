@@ -9,6 +9,7 @@ import { continueWorkbookHistory } from '../../services/dashboardHistory';
 import type { HistoricalDataPoint } from '../../types/types';
 import { convertHistoryToCurrency } from '../../services/assetValuation';
 import { useLocalDataVersion, notifyLocalDataChange } from '../../hooks/useLocalDataVersion';
+import { dashboardMarketHistory } from '../../services/dashboardMarketHistory';
 
 export function useDashboardAnalytics(now: number) {
     const { state: { assets, transactions, lastPriceUpdate } } = usePortfolio();
@@ -47,16 +48,19 @@ export function useDashboardAnalytics(now: number) {
         // Bound concurrency and preserve successful histories if another provider fails.
         let next = 0;
         const results = new Map<string, { symbol: string; prices: HistoricalDataPoint[] }>();
-        const fxRequests = new Map<string, Promise<HistoricalDataPoint[]>>();
+        const requests = new Map<string, Promise<HistoricalDataPoint[]>>();
+        const load = (symbol: string) => {
+            if (!requests.has(symbol)) requests.set(symbol, dashboardMarketHistory.load(symbol, controller.signal, getAssetChartData));
+            return requests.get(symbol)!;
+        };
         const worker = async () => {
             while (next < entries.length && !controller.signal.aborted) {
                 const [id, symbol] = entries[next++];
                 try {
-                    const prices = await getAssetChartData(symbol, 'ALL', controller.signal);
+                    const prices = await load(symbol);
                     const currency = prices[0]?.currency;
                     if (currency && currency !== 'EUR' && currency !== 'Unknown') {
-                        if (!fxRequests.has(currency)) fxRequests.set(currency, getAssetChartData(currency + 'EUR=X', 'ALL', controller.signal));
-                        const fx = await fxRequests.get(currency)!;
+                        const fx = await load(currency + 'EUR=X');
                         const converted = convertHistoryToCurrency(prices, fx);
                         if (converted.length) results.set(id, { symbol, prices: converted });
                     } else if (prices.length) results.set(id, { symbol, prices });

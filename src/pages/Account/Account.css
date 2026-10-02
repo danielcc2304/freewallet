@@ -1,8 +1,17 @@
 .account-page {max-width: 900px; width:100%; min-width:0; margin: 0 auto; display: grid; gap: 1.25rem;}
 .account-page .card {padding: 1.5rem; overflow-wrap: anywhere;}
+.account-page h1 {font-size:clamp(1.65rem,4vw,2rem);line-height:1.2;}
+.account-page h2 {font-size:1.25rem;line-height:1.35;}
+.account-page p {line-height:1.55;}
+.account-page__email {font-size:1rem;font-weight:500;overflow-wrap:anywhere;}
 .account-page__form {display:grid;gap:1rem;}
 .account-page__form label {display:grid;gap:.5rem;}
-.account-page__form input:not([type="checkbox"]) {width:100%;min-width:0;box-sizing:border-box;padding:.8rem;border:1px solid var(--border-color);border-radius:.75rem;color:var(--text-primary);background:var(--bg-secondary);}
+.account-page__form input:not([type="checkbox"]) {width:100%;min-width:0;box-sizing:border-box;padding:.8rem;border:1px solid var(--border-color);border-radius:.75rem;color:var(--text-primary);background:var(--bg-secondary);font:inherit;font-size:1rem;}
+.account-page__backup {position:relative;display:grid;gap:.65rem;min-width:0;}
+.account-page__backup label {font-weight:500;}
+.account-page__backup p {margin:0;font-size:.875rem;color:var(--text-secondary);}
+.account-page__file-input {position:absolute;width:1px;height:1px;padding:0;border:0;clip-path:inset(50%);overflow:hidden;white-space:nowrap;}
+.account-page__file-name {overflow-wrap:anywhere;}
 .account-page__actions {display:flex;gap:.75rem;flex-wrap:wrap;margin:1rem 0;}
 .account-page .btn {min-height:44px;white-space:normal;text-align:center;}
 .account-page .btn:focus-visible {outline:2px solid var(--accent-primary);outline-offset:3px;}

@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
-import {readFileSync,readdirSync} from 'node:fs';
+import {readFileSync,readdirSync,writeFileSync,unlinkSync} from 'node:fs';
+import {tmpdir} from 'node:os';
+import {join} from 'node:path';
 import puppeteer from 'puppeteer';
 import type {Page} from 'puppeteer';
 import {PGlite} from '@electric-sql/pglite';
@@ -19,6 +21,8 @@ if(process.env.FREEWALLET_REFERENCE_FILE){
 const origin=process.env.FREEWALLET_TEST_URL??'http://127.0.0.1:5176';
 assert.match(origin,/^http:\/\/(127\.0\.0\.1|localhost):\d+$/);
 const browser=await puppeteer.launch({headless:true});
+const backupPath=join(tmpdir(),`freewallet-private-backup-mobile-layout-${crypto.randomUUID()}.json`);
+const removeTestBackup=()=>{try{unlinkSync(backupPath);}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}};
 try {
     await db.exec(`create role anon nologin;create role authenticated nologin;create schema auth;
         create table auth.users(id uuid primary key,email_confirmed_at timestamptz default now(),is_anonymous boolean default false);
@@ -34,7 +38,7 @@ try {
     }
     const prepare=async(index:number):Promise<Page>=>{
         const context=await browser.createBrowserContext();const page=await context.newPage();await page.setViewport({width:1440,height:1000});
-        const user={id:users[index],aud:'authenticated',role:'authenticated',email:`ui-${index}@example.invalid`,email_confirmed_at:new Date().toISOString(),is_anonymous:false,app_metadata:{provider:'email',providers:['email']},user_metadata:{},created_at:new Date().toISOString()};
+        const user={id:users[index],aud:'authenticated',role:'authenticated',email:`ui-${index}-long-account-address-for-mobile-layout-check@example.invalid`,email_confirmed_at:new Date().toISOString(),is_anonymous:false,app_metadata:{provider:'email',providers:['email']},user_metadata:{},created_at:new Date().toISOString()};
         const jwt=`${btoa(JSON.stringify({alg:'HS256',typ:'JWT'}))}.${btoa(JSON.stringify({sub:user.id,exp:Math.floor(Date.now()/1000)+3600,session_id:sessions[index],role:'authenticated'}))}.synthetic-test-only`;
         await page.evaluateOnNewDocument((auth,portfolio)=>{
             localStorage.setItem('freewallet-news-auth',JSON.stringify(auth));
@@ -83,6 +87,17 @@ try {
         assert.ok(await page.$('.sidebar a[href="/account"] .sidebar__account-status'),'Sync status belongs inside the account menu link');
         assert.equal(await page.$('a::-p-text(Ir al Dashboard)'),null);
         assert.ok(await page.$$eval('.account-page .btn',buttons=>buttons.every(button=>button.getBoundingClientRect().height>=44)),'Account actions must have usable touch targets');
+        assert.ok(await page.$eval('.account-page__email',element=>element.textContent?.includes('long-account-address')&&parseFloat(getComputedStyle(element).fontSize)<=18),'Full email must use restrained body typography');
+        assert.ok(await page.$$eval('.account-page h2',headings=>headings.every(element=>parseFloat(getComputedStyle(element).fontSize)<=22)),'Section headings must not dominate mobile cards');
+        const backup=await page.$('#account-private-backup');
+        if(backup){
+            assert.ok(await backup.evaluate(element=>{
+                const input=element as HTMLInputElement;
+                return input.labels?.[0]?.textContent?.includes('Cargar una copia privada')&&input.getAttribute('aria-describedby')==='account-private-backup-help'
+                    &&input.tabIndex===-1;
+            }),'Native backup chooser must be labelled, styled and fit its card');
+            assert.ok(await page.$('button::-p-text(Seleccionar archivo)'),'Backup chooser must expose a keyboard-accessible button');
+        }
     };
     await checkLayout(a);
     const click=async(page:Page,text:string)=>{const button=await page.$(`button::-p-text(${text})`);assert.ok(button,`Missing ${text}`);await button.click();};
@@ -93,6 +108,12 @@ try {
     await a.click('input[type="checkbox"]');await click(a,'Confirmar importación');
     await a.waitForFunction(()=>document.body.innerText.includes('Guardado en tu cuenta'));
     assert.ok(await b.$('button::-p-text(Empezar una cartera vacía)'),'Other account must remain empty');
+    writeFileSync(backupPath,JSON.stringify({format:'freewallet-private-backup',version:1,data:{freewallet_portfolio_v1:JSON.stringify(localPortfolio)}}));
+    const chooserReady=b.waitForFileChooser();await click(b,'Seleccionar archivo');const fileChooser=await chooserReady;await fileChooser.accept([backupPath]);
+    await b.waitForFunction(()=>document.querySelector('#account-private-backup-name')?.textContent?.endsWith('.json'));
+    await b.waitForFunction(count=>document.body.innerText.includes(`${count} posiciones`),{},localPortfolio.assets.length);
+    assert.equal(await b.$eval('button::-p-text(Confirmar importación)',element=>(element as HTMLButtonElement).disabled),true,'Selecting a backup must not import automatically');
+    assert.equal((await db.query<{count:number}>('select count(*)::int as count from public.user_portfolios')).rows[0].count,1,'Only the explicitly confirmed account may have a portfolio');
     await a.goto(`${origin}/`,{waitUntil:'networkidle2'});
     await a.waitForFunction(()=>document.body.innerText.includes('Mis Activos'));
     assert.equal(await a.$('.layout__main > .account-sync'),null);
@@ -107,16 +128,17 @@ try {
     await a.setViewport({width:390,height:844});await a.reload({waitUntil:'networkidle2'});
     assert.ok(await a.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'Account must fit mobile');
     await checkLayout(a);
-    for(const theme of ['light','dark']){
-        for(const appearance of ['standard','liquid-glass']){
-            await a.evaluate((modes)=>{
+    for(const width of [320,390,600])for(const page of [a,b]){
+        await page.setViewport({width,height:844});
+        for(const theme of ['light','dark'])for(const appearance of ['standard','liquid-glass']){
+            await page.evaluate((modes)=>{
                 document.documentElement.setAttribute('data-theme',modes.theme);
                 document.documentElement.setAttribute('data-appearance',modes.appearance);
             },{theme,appearance});
-            await checkLayout(a);
-            assert.ok(await a.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),`${theme}/${appearance} must fit mobile`);
+            await checkLayout(page);
+            assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),`${width}px ${theme}/${appearance} must fit mobile`);
         }
     }
     assert.deepEqual(errors,[],'Frontend must not throw errors');
     console.log(`UI passed: isolated accounts, scoped Authorization, explicit preview/confirmation, ${localPortfolio.assets.length} position quantities/costs preserved, Dashboard/Portfolio, reload, no replacement import and mobile fit. Auth is mocked; production transport receives nothing.`);
-}finally{await browser.close();await db.close();}
+}finally{await Promise.all([browser.close(),db.close()]);removeTestBackup();}

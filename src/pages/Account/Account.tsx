@@ -17,6 +17,7 @@ export function Account(){
     const [email,setEmail]=useState('');const [password,setPassword]=useState('');
     const [busy,setBusy]=useState(false);const [message,setMessage]=useState('');
     const [preview,setPreview]=useState<CloudData|null>(null);const [confirmed,setConfirmed]=useState(false);
+    const fileInput=useRef<HTMLInputElement>(null);const [fileName,setFileName]=useState('');
     const importId=useRef(crypto.randomUUID());
     const action=async(task:()=>Promise<void>)=>{if(busy)return;setBusy(true);setMessage('');try{await task();}catch(error){setMessage(error instanceof Error?error.message:'No se pudo completar la operación.');}finally{setBusy(false);}};
     const submit=(event:React.FormEvent)=>{event.preventDefault();void action(async()=>{
@@ -39,7 +40,7 @@ export function Account(){
             {!account.recovery && <div className="account-page__actions">{(['login','register','recover'] as const).filter(item=>item!==mode).map(item=><Button type="button" variant="secondary" key={item} onClick={()=>{setMode(item);setMessage('');setPassword('');}}>{item==='login'?'Entrar':item==='register'?'Crear cuenta':'Olvidé mi contraseña'}</Button>)}</div>}
         </form>}
         {account.user && <div className="card">
-            <h2>{account.user.email}</h2><p>Estado: {account.sync.status==='synced'?'Guardado en tu cuenta':account.sync.status==='empty'?'Sin cartera importada':account.sync.status==='saving'?'Guardando…':account.sync.status==='conflict'?'Conflicto entre dispositivos':'No se pudo confirmar la conexión'}</p>
+            <h2>Tu cuenta</h2><p className="account-page__email">{account.user.email}</p><p>Estado: {account.sync.status==='synced'?'Guardado en tu cuenta':account.sync.status==='empty'?'Sin cartera importada':account.sync.status==='saving'?'Guardando…':account.sync.status==='conflict'?'Conflicto entre dispositivos':'No se pudo confirmar la conexión'}</p>
             {account.sync.error && <p role="alert">{account.sync.error}</p>}
             {account.sync.recovered && <div role="alert"><p>Una sesión anterior de esta cuenta dejó cambios sin confirmar. Puedes exportarlos y compararlos con la versión del servidor; no se aplicarán automáticamente.</p><Button variant="secondary" onClick={()=>download(portfolioStorage.recoveredData()!)}>Exportar cambios de la sesión anterior</Button></div>}
             <div className="account-page__actions">
@@ -56,7 +57,13 @@ export function Account(){
                 <Button variant="secondary" disabled={busy} onClick={()=>void action(async()=>{setPreview(captureLocalPortfolio());setConfirmed(false);importId.current=crypto.randomUUID();})}>Revisar datos de este navegador</Button>
                 <Button variant="secondary" disabled={busy} onClick={()=>{setPreview({freewallet_portfolio_v1:JSON.stringify({version:1,assets:[],transactions:[]})});setConfirmed(false);importId.current=crypto.randomUUID();}}>Empezar una cartera vacía</Button>
             </div>
-            <label>Cargar una copia privada (.json)<input type="file" accept=".json,application/json" disabled={busy} onChange={event=>{const file=event.target.files?.[0];if(file)void action(async()=>{if(file.size>8388608)throw new Error('La copia supera el límite de 8 MB.');setPreview(readPrivateBackup(await file.text()));setConfirmed(false);importId.current=crypto.randomUUID();});}}/></label>
+            <div className="account-page__backup">
+                <label htmlFor="account-private-backup">Cargar una copia privada</label>
+                <input ref={fileInput} id="account-private-backup" className="account-page__file-input" tabIndex={-1} type="file" accept=".json,application/json" aria-describedby="account-private-backup-help" disabled={busy} onChange={event=>{const file=event.target.files?.[0];setFileName(file?.name??'');setPreview(null);setConfirmed(false);if(file)void action(async()=>{if(file.size>8388608)throw new Error('La copia supera el límite de 8 MB.');setPreview(readPrivateBackup(await file.text()));importId.current=crypto.randomUUID();});}}/>
+                <Button type="button" variant="secondary" disabled={busy} aria-describedby="account-private-backup-help account-private-backup-name" onClick={()=>fileInput.current?.click()}>Seleccionar archivo</Button>
+                <p id="account-private-backup-name" className="account-page__file-name" aria-live="polite">{fileName||'Ningún archivo seleccionado'}</p>
+                <p id="account-private-backup-help">Archivo JSON · máximo 8 MB. Podrás revisar los datos antes de importarlos.</p>
+            </div>
             {summary && <div><p>{summary.assets.length} posiciones · {summary.transactions.length} movimientos · {Object.keys(preview!).length} apartados</p>
                 <p>Coste de las posiciones: {summary.assets.reduce((sum:number,asset:{quantity:number;purchasePrice:number})=>sum+asset.quantity*asset.purchasePrice,0).toLocaleString('es-ES',{style:'currency',currency:'EUR'})}</p>
                 <Button variant="secondary" onClick={()=>download(preview!)}>Descargar copia antes de importar</Button>

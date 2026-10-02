@@ -4,7 +4,7 @@
 
 Implementación en `feature/portfolio-supabase`, desde `origin/dev` (4ebaa11, v5.3.13). La versión no cambia. No se ha publicado la rama ni desplegado la web.
 
-Las cuatro migraciones están aplicadas en `hocuefrnotspaejtmpsw`, región `eu-central-1`, plan Free. Sus nombres locales coinciden con el historial remoto. No se han modificado Noticias, cuentas existentes, SMTP, redirects ni ajustes Auth.
+Las cuatro migraciones están aplicadas en `hocuefrnotspaejtmpsw`, región `eu-central-1`, plan Free. Sus nombres locales coinciden con el historial remoto. No se han modificado Noticias, cuentas existentes ni SMTP. Con autorización del titular se añadieron tres redirects exactos de cuenta, conservando el editorial existente.
 
 En local se activa mediante un `.env.local` ignorado por Git. El valor por defecto de `.env.example` mantiene desactivada la sincronización hasta verificar el acceso y correo del despliegue.
 
@@ -84,9 +84,9 @@ Para las pruebas UI arranca Vite en el puerto 5176 con la sincronización local 
 
 ## Antes de activar públicamente
 
-- Confirmar dominio: el generador SEO apunta actualmente a `https://freewallet-v2.vercel.app`.
-- Verificar Site URL y redirects exactos `/account`, tanto de producción como de pruebas. Revisar los redirects editoriales existentes antes de modificar la lista. [Guía oficial](https://supabase.com/docs/guides/auth/redirect-urls).
-- Verificar/configurar SMTP propio, entrega de confirmación y recuperación con un usuario que no pertenezca al equipo del proyecto. El SMTP por defecto está restringido; tener login funcional no demuestra que el alta pública funcione. [Checklist oficial](https://supabase.com/docs/guides/deployment/going-into-prod).
+- Dominio de producción confirmado por el titular: `https://freewallet-gilt.vercel.app/`. Site URL ya coincide. El generador SEO sigue apuntando a `https://freewallet-v2.vercel.app`; su actualización queda para la preparación del despliegue.
+- Redirects verificados en Supabase: `https://freewallet-gilt.vercel.app/admin/news`, `https://freewallet-gilt.vercel.app/account`, `http://localhost:5176/account` y `http://127.0.0.1:5176/account`. No se utilizan comodines. [Guía oficial](https://supabase.com/docs/guides/auth/redirect-urls).
+- SMTP propio ya habilitado con `smtp.gmail.com:587` y remitente FreeWallet. Las plantillas de confirmación y recuperación utilizan `{{ .ConfirmationURL }}`. No se han modificado credenciales ni enviado correos de prueba: queda verificar entrega real con un usuario externo al equipo y revisar la idoneidad de un proveedor transaccional antes de abrir el registro público. Tener login funcional no demuestra que el alta pública funcione. [Checklist oficial](https://supabase.com/docs/guides/deployment/going-into-prod).
 - Revisar límites de Auth, CAPTCHA, política de contraseñas, recuperación MFA y copias/restauración. No contratar recursos ni habilitar servicios de pago sin autorización.
 - El asesor del proyecto sigue mostrando avisos editoriales preexistentes: [search_path de set_news_post_updated_at](https://supabase.com/docs/guides/database/database-linter?lint=0011_function_search_path_mutable) y [ejecución pública de funciones SECURITY DEFINER de Noticias](https://supabase.com/docs/guides/database/database-linter?lint=0028_anon_security_definer_function_executable). No se han cambiado en esta feature. Sus comprobaciones internas de identidad fueron revisadas, pero necesitan auditoría específica antes de una apertura pública.
 - La protección frente a contraseñas filtradas aparece desactivada. Revisar disponibilidad/configuración sin asumir que el plan Free ofrece todas las opciones.

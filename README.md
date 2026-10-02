@@ -268,6 +268,8 @@ Script utilitario para verificar fondos de `BEST_FUNDS` (consistencia de enlace/
 
 ## Noticias editoriales
 
+La cartera multidispositivo se describe en [docs/portfolio-supabase.md](docs/portfolio-supabase.md): acceso, importación voluntaria, sincronización y control de conflictos. Está habilitada en desarrollo; para producción se deben verificar Auth, correo y redirects antes de activar `VITE_PORTFOLIO_CLOUD_ENABLED`. Pruebas: `test:portfolio-backend`, `test:portfolio-sync` y `test:portfolio-ui`.
+
 La ruta `/news` muestra los análisis publicados y `/admin/news` ofrece un panel privado para crear borradores y publicar noticias desde un editor WYSIWYG con formato, enlaces seguros y tamaños de letra.
 
 La feature no necesita un servidor Node separado: el frontend sigue desplegándose en Vercel y usa Supabase como backend gestionado para Auth y PostgreSQL.

@@ -6,6 +6,7 @@ import { usePortfolio } from '../../context/PortfolioContext';
 import { addGoal, addWatchlistItem, deleteGoal, deleteWatchlistItem, generateId, getGoals, getWatchlist } from '../../services/storageService';
 import type { AssetType, PortfolioGoal, PortfolioGoalCategory, WatchlistItem } from '../../types/types';
 import './Planning.css';
+import {portfolioStorage} from '../../services/portfolioCloudStorage';
 
 type GoalFormState = {
     title: string;
@@ -50,6 +51,13 @@ function monthsUntil(date?: string): number | null {
 }
 
 export function Planning() {
+    const [saving,setSaving]=useState(false);const [saveError,setSaveError]=useState('');
+    const persist=async(write:()=>void,done:()=>void)=>{
+        if(saving)return;setSaving(true);setSaveError('');
+        try {write();await portfolioStorage.flush();done();}
+        catch(error){setSaveError(error instanceof Error?error.message:'No se pudo confirmar el guardado. Abre Mi cuenta.');}
+        finally{setSaving(false);}
+    };
     const { state } = usePortfolio();
     const [goals, setGoals] = useState<PortfolioGoal[]>(() => getGoals());
     const [watchlist, setWatchlist] = useState<WatchlistItem[]>(() => getWatchlist());
@@ -152,7 +160,7 @@ export function Planning() {
             createdAt: new Date().toISOString(),
         };
 
-        addGoal(goal);
+        void persist(()=>addGoal(goal),()=>{
         setGoals((current) => [goal, ...current]);
         setGoalForm({
             title: '',
@@ -161,6 +169,7 @@ export function Planning() {
             currentAmount: '',
             targetDate: '',
             notes: '',
+        });
         });
     };
 
@@ -180,7 +189,7 @@ export function Planning() {
             createdAt: new Date().toISOString(),
         };
 
-        addWatchlistItem(item);
+        void persist(()=>addWatchlistItem(item),()=>{
         setWatchlist((current) => [item, ...current]);
         setWatchlistForm({
             symbol: '',
@@ -189,10 +198,12 @@ export function Planning() {
             targetPrice: '',
             notes: '',
         });
+        });
     };
 
     return (
         <div className="planning-page">
+            {saveError && <p role="alert">{saveError}</p>}
             <div className="planning-page__header">
                 <div>
                     <h1 className="planning-page__title">Planificacion</h1>
@@ -300,7 +311,7 @@ export function Planning() {
                                 onChange={(e) => setGoalForm((current) => ({ ...current, notes: e.target.value }))}
                                 placeholder="Notas opcionales"
                             />
-                            <Button type="submit" icon={<Target size={16} />}>Guardar objetivo</Button>
+                            <Button type="submit" disabled={saving} icon={<Target size={16} />}>{saving?'Guardando…':'Guardar objetivo'}</Button>
                         </form>
 
                         <div className="planning-list">
@@ -318,10 +329,7 @@ export function Planning() {
                                                 <h3>{goal.title}</h3>
                                                 <span>{GOAL_CATEGORY_LABELS[goal.category]}</span>
                                             </div>
-                                            <button type="button" className="planning-item__icon-button" onClick={() => {
-                                                deleteGoal(goal.id);
-                                                setGoals((current) => current.filter((item) => item.id !== goal.id));
-                                            }}>
+                                            <button type="button" disabled={saving} className="planning-item__icon-button" onClick={() => void persist(()=>deleteGoal(goal.id),()=>setGoals((current)=>current.filter((item)=>item.id!==goal.id)))}>
                                                 <Trash2 size={16} />
                                             </button>
                                         </div>
@@ -386,7 +394,7 @@ export function Planning() {
                                 onChange={(e) => setWatchlistForm((current) => ({ ...current, notes: e.target.value }))}
                                 placeholder="Tesis, nivel de interés, qué quieres vigilar..."
                             />
-                            <Button type="submit" variant="secondary" icon={<Eye size={16} />}>Guardar en watchlist</Button>
+                            <Button type="submit" disabled={saving} variant="secondary" icon={<Eye size={16} />}>{saving?'Guardando…':'Guardar en watchlist'}</Button>
                         </form>
 
                         <div className="planning-list">
@@ -399,10 +407,7 @@ export function Planning() {
                                             <h3>{item.symbol}</h3>
                                             <span>{item.name}</span>
                                         </div>
-                                        <button type="button" className="planning-item__icon-button" onClick={() => {
-                                            deleteWatchlistItem(item.id);
-                                            setWatchlist((current) => current.filter((watch) => watch.id !== item.id));
-                                        }}>
+                                        <button type="button" disabled={saving} className="planning-item__icon-button" onClick={() => void persist(()=>deleteWatchlistItem(item.id),()=>setWatchlist((current)=>current.filter((watch)=>watch.id!==item.id)))}>
                                             <Trash2 size={16} />
                                         </button>
                                     </div>

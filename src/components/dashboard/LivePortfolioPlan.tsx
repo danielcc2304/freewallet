@@ -1,3 +1,4 @@
+import { portfolioStorage } from '../../services/portfolioCloudStorage';
 import { useMemo, useState } from 'react';
 import { Button, Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
@@ -16,9 +17,9 @@ const intervalLabel = (row: DashboardAnalytics['monthly'][number]) => [
     row.otherIntervals ? `${row.otherIntervals} entre valoraciones` : '',
 ].filter(Boolean).join(' · ') || 'Sin intervalos válidos';
 function readTargets(assets: Asset[]): Record<string, string> {
-    const stored = JSON.parse(localStorage.getItem(PLAN_TARGETS_KEY) || '{}');
+    const stored = JSON.parse(portfolioStorage.getItem(PLAN_TARGETS_KEY) || '{}');
     let legacy: Record<string, number> = {};
-    try { legacy = JSON.parse(localStorage.getItem(LEGACY_PLAN_TARGETS_KEY) || '{}'); } catch { /* A damaged legacy key must not hide valid current targets. */ }
+    try { legacy = JSON.parse(portfolioStorage.getItem(LEGACY_PLAN_TARGETS_KEY) || '{}'); } catch { /* A damaged legacy key must not hide valid current targets. */ }
     const current = stored && typeof stored === 'object' && !Array.isArray(stored)
         ? Object.fromEntries(Object.entries(stored).filter(([, v]) => typeof v === 'string' || typeof v === 'number').map(([k, v]) => [k, String(v)])) : {};
     return migratePlanTargets(assets, current, legacy && typeof legacy === 'object' ? legacy : {});
@@ -39,7 +40,7 @@ function LivePortfolioPlanEditor({ analytics, section = 'all' }: { analytics: Da
             try {
                 const stored = readTargets(assets);
                 const serialized = JSON.stringify(stored);
-                if (localStorage.getItem(PLAN_TARGETS_KEY) !== serialized) localStorage.setItem(PLAN_TARGETS_KEY, serialized);
+                if (portfolioStorage.getItem(PLAN_TARGETS_KEY) !== serialized) portfolioStorage.setItem(PLAN_TARGETS_KEY, serialized);
                 setTargets(previous => JSON.stringify(previous) === serialized ? previous : stored);
             } catch { setSaveError(true); }
         };
@@ -64,13 +65,13 @@ function LivePortfolioPlanEditor({ analytics, section = 'all' }: { analytics: Da
         const next = { ...targets };
         next[id] = raw;
         setTargets(next);
-        try { localStorage.setItem(PLAN_TARGETS_KEY, JSON.stringify(next)); window.dispatchEvent(new Event('freewallet-plan-targets-change')); setSaveError(false); } catch { setSaveError(true); }
+        try { portfolioStorage.setItem(PLAN_TARGETS_KEY, JSON.stringify(next)); window.dispatchEvent(new Event('freewallet-plan-targets-change')); setSaveError(false); } catch { setSaveError(true); }
     };
     const useCurrentWeights = () => {
         if (plan.total <= 0 || !rows.length) return;
         const next = { ...targets, ...targetsFromCurrentWeights(assets) };
         setTargets(next);
-        try { localStorage.setItem(PLAN_TARGETS_KEY, JSON.stringify(next)); window.dispatchEvent(new Event('freewallet-plan-targets-change')); setSaveError(false); } catch { setSaveError(true); }
+        try { portfolioStorage.setItem(PLAN_TARGETS_KEY, JSON.stringify(next)); window.dispatchEvent(new Event('freewallet-plan-targets-change')); setSaveError(false); } catch { setSaveError(true); }
     };
     const currentResult = useMemo(() => rows.reduce((sum, row) => sum + row.value - row.cost, 0), [rows]);
     const initialCost = portfolioTransactions.filter(t => t.provenance === 'initial-position' || /^(position|bootstrap)-/.test(t.id)).reduce((s, t) => s + (t.total || 0), 0);

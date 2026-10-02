@@ -126,6 +126,25 @@
     flex-shrink: 0;
 }
 
+.sidebar__account-label {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    min-width: 0;
+}
+
+.sidebar__account-status {
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+    font-weight: 400;
+    color: var(--text-secondary);
+    overflow-wrap: anywhere;
+}
+
+.sidebar__account-status--warning {
+    color: var(--color-warning);
+}
+
 /* Academy group */
 .sidebar__group {
     display: flex;

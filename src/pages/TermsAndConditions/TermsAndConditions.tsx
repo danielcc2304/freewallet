@@ -114,21 +114,48 @@ export function TermsAndConditions() {
                 <section className="terms__section">
                     <h2>6. Privacidad y Gestión de Datos</h2>
                     <p>
-                        FreeWallet apuesta por la privacidad y la transparencia en el tratamiento de la información técnica necesaria
-                        para su funcionamiento.
+                        FreeWallet permite utilizar una cartera local o una cartera vinculada a una cuenta.
+                        La información no se almacena exclusivamente en el dispositivo: al utilizar una cuenta,
+                        Supabase presta los servicios de autenticación y almacenamiento necesarios para el acceso y la sincronización.
                     </p>
                     <ul>
-                        <li><strong>Modo local:</strong> Sin una cuenta conectada, los datos de cartera se guardan en el navegador o dispositivo del usuario.</li>
-                        <li><strong>Sincronización voluntaria:</strong> Cuando está disponible, el usuario puede crear una cuenta e importar expresamente su cartera en Supabase para consultarla desde distintos dispositivos. Se guardan las posiciones, movimientos, histórico, apartados del Excel importado y preferencias seleccionadas, vinculados a su cuenta. La importación no elimina la copia local.</li>
+                        <li><strong>Modo local:</strong> Sin una cuenta conectada, los datos de cartera se guardan en el almacenamiento del navegador y no se sincronizan con otros dispositivos. Borrar los datos del navegador puede eliminar esa cartera; conviene conservar una copia exportada.</li>
+                        <li><strong>Cuenta y sesión:</strong> Al registrarse o iniciar sesión, Supabase trata el correo electrónico, las credenciales de autenticación y los datos de sesión necesarios para verificar el acceso. El navegador conserva los datos de sesión para mantener la conexión hasta que se cierre o deje de ser válida. Crear una cuenta no importa automáticamente la cartera local.</li>
+                        <li><strong>Cartera sincronizada:</strong> El usuario puede importar expresamente su cartera o crear una cartera vacía en su cuenta desde Mi cuenta. Se guardan en Supabase las posiciones, movimientos, histórico, apartados del Excel importado y preferencias compatibles, vinculados a esa cuenta. A partir de ese momento, los cambios compatibles se envían al servidor mientras la sesión esté conectada y permiten consultar la cartera desde otros dispositivos. La importación no elimina la copia local anterior, que permanece separada de la cartera de la cuenta.</li>
                         <li><strong>Acceso y custodia:</strong> Supabase gestiona la autenticación y el almacenamiento. Las reglas de acceso separan las carteras de los usuarios, pero no constituyen cifrado de extremo a extremo: los administradores autorizados del servicio pueden acceder a los datos para su gestión técnica. Las claves personales de cotizaciones no se incluyen en la sincronización.</li>
-                        <li><strong>Exportación y eliminación:</strong> Mi cuenta permite descargar una copia privada. Para solicitar la eliminación de una cuenta y de su cartera asociada, utiliza el contacto indicado en el apartado de titularidad.</li>
+                        <li><strong>Exportación y eliminación:</strong> Mi cuenta permite descargar una copia privada de la cartera. Cerrar sesión o borrar los datos del navegador no elimina la cuenta ni la cartera guardada en Supabase. Para solicitar la eliminación de la cuenta y de su cartera asociada, o consultar el tratamiento de sus datos personales, utilice el contacto indicado en el apartado de titularidad.</li>
+                        <li><strong>Conexión y guardado:</strong> La sincronización necesita conexión y puede verse afectada por errores o cambios desde otros dispositivos. Revise el estado del guardado en Mi cuenta antes de cerrar la aplicación y mantenga sus propias copias de respaldo. Desactivar las peticiones a APIs de mercado no desactiva los servicios de cuenta, autenticación o sincronización.</li>
                         <li><strong>Infraestructura técnica:</strong> Los proveedores de alojamiento, distribución de contenido o analítica técnica estrictamente necesaria pueden tratar datos técnicos mínimos, como dirección IP, solicitudes HTTP, identificadores de dispositivo o metadatos del navegador, conforme a sus propias políticas.</li>
                         <li><strong>Analítica técnica y rendimiento:</strong> FreeWallet puede utilizar servicios de analítica técnica y medición de rendimiento, como Vercel Analytics y Vercel Speed Insights, cuyos proveedores pueden tratar datos técnicos mínimos de navegación y funcionamiento, tales como dirección IP, metadatos del navegador, páginas visitadas, eventos de navegación, tiempos de carga, métricas web de rendimiento y métricas agregadas de uso, conforme a sus propias políticas.</li>
                         <li><strong>APIs y servicios externos:</strong> Cuando la aplicación consulta cotizaciones u otra información de terceros, dichos proveedores pueden recibir los datos técnicos imprescindibles para responder a la solicitud y se regirán por sus propias políticas de privacidad y tratamiento.</li>
                     </ul>
                     <p>
                         El usuario es responsable de la custodia de su dispositivo, de la configuración de su navegador y de cualquier copia,
-                        exportación o conservación local de sus datos.
+                        exportación o conservación local de sus datos. En dispositivos compartidos, cierre la sesión al terminar
+                        y no comparta sus credenciales, códigos de verificación ni copias privadas.
+                    </p>
+                </section>
+
+                <section className="terms__section">
+                    <h2>6.1. Seguridad de la Cuenta y de la Cartera</h2>
+                    <p>
+                        FreeWallet utiliza controles de autenticación y acceso para proteger las carteras vinculadas a una cuenta.
+                        Estas medidas reducen riesgos, pero no garantizan una seguridad absoluta ni sustituyen la protección
+                        del dispositivo y de las credenciales del usuario.
+                    </p>
+                    <ul>
+                        <li><strong>Acceso identificado:</strong> Supabase gestiona el inicio de sesión. Las operaciones de cartera comprueban la identidad, la sesión y los permisos en el servidor; no basta con conocer el identificador de otro usuario para acceder a su cartera.</li>
+                        <li><strong>Separación de carteras:</strong> Las políticas de acceso y las comprobaciones del servidor limitan la consulta y modificación de cada cartera a su cuenta autorizada. No se ofrece acceso público a las carteras personales.</li>
+                        <li><strong>Verificación en dos pasos:</strong> Mi cuenta permite configurar un autenticador compatible con códigos temporales. Cuando está activado, las operaciones de cartera requieren una sesión que haya completado el segundo factor. No comparta el QR, la clave de configuración ni los códigos temporales.</li>
+                        <li><strong>Conexiones y claves:</strong> Las comunicaciones con Supabase se realizan mediante HTTPS. Las claves privilegiadas del servidor no se incluyen en el cliente web y las claves personales de cotizaciones no forman parte de la sincronización de cartera.</li>
+                        <li><strong>Integridad del guardado:</strong> El servidor valida los datos y controla las revisiones de la cartera para detectar cambios simultáneos. Los reintentos de una misma operación se identifican para evitar guardados duplicados. Ante un error o conflicto, revise el estado en Mi cuenta antes de continuar.</li>
+                        <li><strong>Dispositivos y copias privadas:</strong> La sesión se conserva en el navegador. Use dispositivos de confianza, manténgalos actualizados y cierre sesión al terminar en equipos compartidos. Las copias privadas exportadas no están cifradas por la aplicación; guárdelas en un lugar protegido.</li>
+                    </ul>
+                    <p>
+                        La cartera sincronizada no utiliza cifrado de extremo a extremo: los administradores autorizados
+                        pueden acceder a los datos para su gestión técnica. Si sospecha un acceso no autorizado o detecta
+                        una vulnerabilidad, contacte con el titular mediante el correo indicado en el apartado de contacto,
+                        sin enviar contraseñas, códigos de autenticación ni claves privadas.
                     </p>
                 </section>
 

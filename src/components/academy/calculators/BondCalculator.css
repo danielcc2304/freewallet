@@ -146,7 +146,7 @@
 }
 
 .result-main-card {
-    background: linear-gradient(135deg, var(--accent-primary), #6366f1);
+    background: linear-gradient(135deg, #065f46, #3730a3);
     color: white;
     padding: 2.5rem;
     border-radius: 24px;
@@ -161,10 +161,21 @@
     margin-bottom: 0.5rem;
 }
 
-.result-main-card .value {
+.result-main-card .result-value {
     font-size: 3.5rem;
     font-weight: 800;
     margin: 0;
+    color: inherit;
+}
+
+/* The shared glass material replaces the gradient; use its matching text palette. */
+html[data-appearance='liquid-glass'] .bond-calc .result-main-card {
+    color: var(--text-primary);
+}
+
+html[data-appearance='liquid-glass'] .bond-calc .result-main-card__subtext {
+    color: var(--text-secondary);
+    text-shadow: none;
 }
 
 .result-main-card__subtext {

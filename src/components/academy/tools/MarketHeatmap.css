@@ -40,6 +40,7 @@
 
 .market-heatmap__tabs {
     display: inline-flex;
+    flex-wrap: wrap;
     max-width: 100%;
     padding: 3px;
     border: 1px solid var(--border-primary);
@@ -348,7 +349,7 @@
     justify-content: center;
     gap: 0.75rem;
     padding: 2rem;
-    color: var(--text-secondary);
+    color: #cbd5e1;
     text-align: center;
 }
 
@@ -357,12 +358,12 @@
 }
 
 .market-heatmap__error strong {
-    color: var(--text-primary);
+    color: #f8fafc;
 }
 
 .market-heatmap__error span {
     max-width: 30rem;
-    color: var(--text-muted);
+    color: #cbd5e1;
     font-size: var(--font-size-sm);
 }
 
@@ -522,7 +523,7 @@
 
     .market-heatmap__tabs {
         display: grid;
-        grid-template-columns: repeat(3, 1fr);
+        grid-template-columns: repeat(2, 1fr);
         width: 100%;
     }
 

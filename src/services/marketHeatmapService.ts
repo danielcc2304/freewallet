@@ -187,7 +187,7 @@ function parseRows(index: MarketHeatmapIndex, rows: WorkbookRow[]): MarketHeatma
     const nameColumn = column('Name');
     const weightColumn = column('Weight (%)') >= 0 ? column('Weight (%)') : column('Weight');
     const sectorColumn = column('Sector');
-    const locationColumn = column('Location');
+    const locationColumn = column('Location') >= 0 ? column('Location') : column('Country');
     const exchangeColumn = column('Exchange');
     const assetClassColumn = column('Asset Class');
     const fallbackBySymbol = new Map(index.constituents.map((item) => [item.symbol, item]));
@@ -195,11 +195,11 @@ function parseRows(index: MarketHeatmapIndex, rows: WorkbookRow[]): MarketHeatma
 
     return rows.slice(headerIndex + 1).flatMap((row) => {
         const assetClass = assetClassColumn >= 0 ? cellText(row[assetClassColumn]) : 'Equity';
-        if (assetClass && assetClass !== 'Equity') return [];
+        if (assetClass && !['Equity', 'Equities'].includes(assetClass)) return [];
 
         const symbol = normalizeYahooSymbol(
-            row[tickerColumn],
-            exchangeColumn >= 0 ? row[exchangeColumn] : '',
+            index.id === 'nasdaq100' ? cellText(row[tickerColumn]).split(/\s+/)[0] : row[tickerColumn],
+            index.id === 'nasdaq100' ? 'nasdaq' : exchangeColumn >= 0 ? row[exchangeColumn] : '',
             locationColumn >= 0 ? row[locationColumn] : index.id === 'sp500' ? 'United States' : '',
         );
         const weight = parseWeight(row[weightColumn]);
@@ -236,7 +236,12 @@ export async function loadMarketIndexHoldings(
                 }));
             }
         }
-        return parsed.length > index.constituents.length ? parsed : index.constituents;
+        // Accept refreshed weights even when the provider returns the same number
+        // of holdings, but retain the complete snapshot for truncated responses.
+        const minimumHoldings = index.id === 'nasdaq100'
+            ? Math.ceil(index.constituents.length * 0.9)
+            : index.constituents.length;
+        return parsed.length >= minimumHoldings ? parsed : index.constituents;
     } catch (error) {
         if (signal.aborted) throw error;
         console.warn(`Could not refresh holdings for ${index.id}:`, error);

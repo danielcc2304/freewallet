@@ -12,7 +12,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-02 - Bonos, Nasdaq 100 y controles móviles
+### 2026-10-02 - v6.0.3 - Bonos, Nasdaq 100 y controles móviles
 - Funcionalidad:
   - Resultado TIR/YTM legible en tema claro y en Liquid Glass, con tipografía y contraste coherentes.
   - Nasdaq 100 en el heatmap, con composición oficial de Betashares NDQ, cotización de referencia QQQ y respaldo completo de posiciones.

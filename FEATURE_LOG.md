@@ -12,35 +12,42 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-02 - v6.0.1 - Primer acceso con una cartera existente
+### 2026-10-02 - v6.0.2 - Academia y configuración de cuenta
 - Funcionalidad:
+  - Ruta guiada de Fundamentos desplegada por defecto, manteniendo el control para contraerla.
+  - Configuración TOTP con QR legible, clave manual accesible y tratamiento explícito de factores pendientes.
+  - Ajustes visuales del modo Liquid Glass y control accesible para activar o desactivar peticiones a APIs.
+  - Novedades de cuenta agrupadas y términos ampliados sobre almacenamiento, sincronización y seguridad.
+- Resumen:
+  - Pulido de Academia, apariencia y controles de cuenta, con instrucciones más claras para configurar el segundo factor.
+- Archivos:
+  - `src/components/academy/guides/Fundamentos.tsx`, `src/pages/Account/AccountMfa.tsx`, `src/pages/Account/Account.css`, `src/services/mfaQr.ts`
+  - `src/pages/Settings/Settings.tsx`, `src/pages/Settings/Settings.css`, `src/pages/FeatureLog/FeatureLog.tsx`, `src/pages/TermsAndConditions/TermsAndConditions.tsx`
+  - `scripts/test-academy-account-polish.ts`, `scripts/test-portfolio-ui.ts`, `package.json`, `package-lock.json`
+
+### 2026-10-02 - v6.0.1 - Mejoras de acceso y configuración de cuenta
+- Funcionalidad:
+  - Ruta guiada de Fundamentos desplegada por defecto, manteniendo el control para contraerla.
+  - QR del autenticador con fondo blanco y margen de lectura, normalización de SVG y clave manual para configurar desde el mismo móvil.
+  - Icono Liquid Glass sin el borde interior que conectaba visualmente sus dos elementos.
+  - Interruptor de peticiones a APIs sin etiquetas interiores, con estado accesible para lectores de pantalla.
+  - Términos actualizados para explicar el almacenamiento local y en Supabase, junto con controles de acceso, segundo factor, integridad del guardado y precauciones para dispositivos y copias privadas.
   - Aviso claro al encontrar una cartera local y una cuenta sin importar, con opciones para revisarla o continuar sin subir datos.
   - Guía de tres pasos en Mi cuenta, revisión enfocada y botón explícito para guardar la cartera en la cuenta.
-- Resumen:
-  - Explica que la cartera local no se ha borrado y mantiene la confirmación obligatoria antes de importar, sin reemplazar datos existentes.
-- Archivos:
-  - `src/pages/Account/Account.tsx`, `src/pages/Account/Account.css`, `src/components/ui/LocalPortfolioPrompt.tsx`, `src/components/ui/LocalPortfolioPrompt.css`
-  - `src/components/layout/MainLayout/MainLayout.tsx`, `src/services/localPortfolioSummary.ts`, `scripts/test-portfolio-ui.ts`
-
-### 2026-10-02 - v6.0.1 - Avisos coherentes de cuenta y acceso
-- Funcionalidad:
   - Mensajes de error y confirmación de Mi cuenta con el mismo aviso flotante del acceso editorial de Noticias.
   - Formato compartido para recuperación, registro, importación y verificación en dos pasos, con roles accesibles y ajuste móvil.
   - Tarjeta de conexión cuidada e indicador de carga integrado en el botón de acceso, sin textos sueltos al iniciar sesión o refrescar.
-- Resumen:
-  - Unifica la presentación de los resultados sin desplazar los formularios ni modificar la configuración de envío.
-- Archivos:
-  - `src/components/ui/FeedbackToast.tsx`, `src/components/ui/FeedbackToast.css`, `src/components/ui/useFeedbackNotice.ts`
-  - `src/pages/Account/Account.tsx`, `src/pages/Account/AccountMfa.tsx`, `src/pages/NewsAdmin/NewsAdmin.tsx`
-  - `src/context/FeedbackContext.tsx`, `src/context/AccountContext.tsx`, `src/main.tsx`, `src/components/ui/AccountConnectionState.tsx`, `src/components/ui/AccountConnectionState.css`, `scripts/test-account-feedback.ts`
-
-### 2026-10-02 - v6.0.1 - Preparación de correo con Outlook
-- Funcionalidad:
   - Plantillas de acceso y recuperación en español, con cambio de correo seguro e invitaciones editoriales.
   - Transporte privado para Microsoft Graph, validación de redirects y pruebas sin envío real.
 - Resumen:
-  - Base local preparada para integrar Outlook. La conexión y activación requieren registrar y autorizar la aplicación de Microsoft.
+  - Reúne las mejoras de Academia, configuración y acceso de la cuenta, facilita conectar una cartera existente sin borrar la copia local ni reemplazar datos, y unifica los avisos y estados de carga.
+  - Incluye la preparación técnica del correo con Outlook; su conexión y activación requieren registrar y autorizar la aplicación de Microsoft.
 - Archivos:
+  - `src/components/academy/guides/Fundamentos.tsx`, `src/pages/Account/Account.tsx`, `src/pages/Account/Account.css`, `src/pages/Account/AccountMfa.tsx`, `src/services/mfaQr.ts`, `src/pages/NewsAdmin/NewsAdmin.tsx`
+  - `src/pages/Settings/Settings.tsx`, `src/pages/Settings/Settings.css`, `src/pages/FeatureLog/FeatureLog.tsx`, `src/pages/TermsAndConditions/TermsAndConditions.tsx`, `scripts/test-academy-account-polish.ts`
+  - `src/components/ui/LocalPortfolioPrompt.tsx`, `src/components/ui/LocalPortfolioPrompt.css`, `src/components/layout/MainLayout/MainLayout.tsx`, `src/services/localPortfolioSummary.ts`, `scripts/test-portfolio-ui.ts`
+  - `src/components/ui/FeedbackToast.tsx`, `src/components/ui/FeedbackToast.css`, `src/components/ui/useFeedbackNotice.ts`
+  - `src/context/FeedbackContext.tsx`, `src/context/AccountContext.tsx`, `src/main.tsx`, `src/components/ui/AccountConnectionState.tsx`, `src/components/ui/AccountConnectionState.css`, `scripts/test-account-feedback.ts`
   - `supabase/mail/outlook.ts`, `scripts/test-outlook-mail.ts`, `docs/outlook-auth-mail.md`
 
 ### 2026-10-02 - v6.0.0 - Cartera multidispositivo con Supabase

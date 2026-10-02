@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { compareKnownReturns, dailyAssetVariation } from '../src/services/dashboardIntegrity';
 import type { Asset } from '../src/types/types';
 
-const base: Asset = { id: 'synthetic', name: 'Synthetic fund with a long descriptive name', symbol: 'TEST', type: 'fund', currency: 'EUR', quantity: 10, purchasePrice: 8, purchaseDate: '2026-01-01', previousClose: 100 };
+const base: Asset = { id: 'synthetic', name: 'Synthetic fund with a long descriptive name', symbol: 'TEST', type: 'fund', currency: 'EUR', quantity: 10, purchasePrice: 8, purchaseDate: '2026-01-01', previousClose: 100, quotedAt: new Date().toISOString() };
 const rows = [105, undefined, 95, 100, 0].map(currentPrice => ({ ...base, currentPrice, ...dailyAssetVariation({ ...base, currentPrice }) }));
 for (const direction of ['asc', 'desc'] as const) {
     const sorted = [...rows].sort((a, b) => compareKnownReturns(a.todayChangePercent, b.todayChangePercent, direction));
@@ -16,7 +16,7 @@ const component = readFileSync(new URL('../src/components/dashboard/AssetsTable.
 const css = readFileSync(new URL('../src/components/dashboard/AssetsTable.css', import.meta.url), 'utf8');
 assert.match(component, /handleSort\('today'\)/);
 assert.match(component, /aria-sort=\{sortKey === 'today'/);
-assert.match(component, /compareKnownReturns\(a.todayChangePercent, b.todayChangePercent/);
+assert.match(component, /compareKnownReturns\(a.latestChangePercent, b.latestChangePercent/);
 assert.match(css, /\.assets-table__table--show-details \.assets-table__name\s*\{[^}]*white-space: normal;[^}]*overflow-wrap: anywhere;/);
 assert.match(css, /\.assets-table__table--show-details \.assets-table__column--asset\s*\{ grid-column: 1 \/ -1;/);
 assert.doesNotMatch(css, /\.assets-table__table--show-details \.assets-table__today\s*\{[^}]*display: none/);

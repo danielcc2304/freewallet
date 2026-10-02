@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
     Activity,
@@ -119,6 +119,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const [tab, setTab] = useState<InsightTab>('evolution');
     const tabId = useId();
     const [benchmarkRetry, setBenchmarkRetry] = useState(0);
+    const requestedRetry = useRef(0);
     const [linkError, setLinkError] = useState('');
     const apiEnabled = isApiEnabled();
     const [benchmarkResult, setBenchmarkResult] = useState<{ period: EvolutionPeriod | null; startDate?: number; data: HistoricalDataPoint[] }>({
@@ -229,11 +230,13 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     useEffect(() => {
         if (tab !== 'benchmark' || !apiEnabled) return;
         const controller = new AbortController();
-        getAssetChartData('URTH', evolutionPeriod, controller.signal, { startDate: benchmarkStart, forceRefresh: benchmarkRetry > 0 })
+        const forceRefresh = benchmarkRetry > requestedRetry.current;
+        requestedRetry.current = benchmarkRetry;
+        getAssetChartData('URTH', evolutionPeriod, controller.signal, { startDate: benchmarkStart, forceRefresh })
             .then(async data => {
                 // Match the portfolio's EUR reporting currency using dated FX observations.
                 if (data.some(p => p.currency === 'USD')) {
-                    const fx = await getAssetChartData('USDEUR=X', evolutionPeriod, controller.signal, { startDate: benchmarkStart, forceRefresh: benchmarkRetry > 0 });
+                    const fx = await getAssetChartData('USDEUR=X', evolutionPeriod, controller.signal, { startDate: benchmarkStart, forceRefresh });
                     data = convertHistoryToCurrency(data, fx, 'EUR', 4);
                 } else if (data.some(p => p.currency !== 'EUR')) data = [];
                 if (!controller.signal.aborted) setBenchmarkResult({ period: evolutionPeriod, startDate: benchmarkStart, data });

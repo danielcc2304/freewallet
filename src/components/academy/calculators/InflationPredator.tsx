@@ -10,9 +10,9 @@ import { validateCalculatorInputs } from './calculatorValidation';
 import './InflationPredator.css';
 
 interface InflationPredatorStorage {
-    amount: number;
-    years: number;
-    inflation: number;
+    amount: number | string;
+    years: number | string;
+    inflation: number | string;
 }
 
 const INFLATION_PREDATOR_STORAGE_KEY = 'freewallet_inflation_predator';
@@ -36,9 +36,9 @@ function readStoredInflationPredator(): Partial<InflationPredatorStorage> {
 export function InflationPredator() {
     const navigate = useNavigate();
     const stored = useMemo(() => readStoredInflationPredator(), []);
-    const [amount, setAmount] = useState<number>(stored.amount ?? 10000);
-    const [years, setYears] = useState<number>(stored.years ?? 10);
-    const [inflation, setInflation] = useState<number>(stored.inflation ?? 3);
+    const [amount, setAmount] = useState<number | string>(stored.amount ?? 10000);
+    const [years, setYears] = useState<number | string>(stored.years ?? 10);
+    const [inflation, setInflation] = useState<number | string>(stored.inflation ?? 3);
 
     useEffect(() => {
         const payload: InflationPredatorStorage = { amount, years, inflation };
@@ -50,20 +50,23 @@ export function InflationPredator() {
     }, [amount, years, inflation]);
 
     // Calculation: P = Amount / (1 + r)^n
-    const r = inflation / 100;
-    const n = years;
+    const amountNum = Number(amount) || 0;
+    const yearsNum = Number(years) || 0;
+    const inflationNum = Number(inflation) || 0;
+    const r = inflationNum / 100;
+    const n = yearsNum;
     const calculationError = validateCalculatorInputs([
         { label: 'Capital inicial', value: amount },
         { label: 'Plazo', value: years, max: 100, integer: true },
         { label: 'Inflación', value: inflation, min: -99, max: 100 },
     ]);
-    const purchasingPower = amount / Math.pow(1 + r, n);
-    const loss = amount - purchasingPower;
-    const lossPercentage = amount > 0 ? (loss / amount) * 100 : 0;
+    const purchasingPower = calculationError ? 0 : amountNum / Math.pow(1 + r, n);
+    const loss = amountNum - purchasingPower;
+    const lossPercentage = amountNum > 0 ? (loss / amountNum) * 100 : 0;
 
     // Visual scale factor (from 1 to 0.2)
-    const scaleFactor = amount > 0 ? Math.max(0.2, Math.min(1, purchasingPower / amount)) : 1;
-    const opacityFactor = amount > 0 ? Math.max(0.4, Math.min(1, purchasingPower / amount)) : 1;
+    const scaleFactor = amountNum > 0 ? Math.max(0.2, Math.min(1, purchasingPower / amountNum)) : 1;
+    const opacityFactor = amountNum > 0 ? Math.max(0.4, Math.min(1, purchasingPower / amountNum)) : 1;
 
     return (
         <div className="inflation-predator">
@@ -89,9 +92,9 @@ export function InflationPredator() {
                                 id="amount"
                                 type="number"
                                 value={amount}
-                                onChange={(e) => setAmount(Number(e.target.value))}
-                                min="1000"
-                                step="1000"
+                                onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                                min="0"
+                                step="any"
                             />
                             <span className="unit">€</span>
                         </div>
@@ -100,10 +103,11 @@ export function InflationPredator() {
                             min="1000"
                             max="100000"
                             step="1000"
-                            value={amount}
+                            aria-label="Capital inicial (deslizador)"
+                            value={amountNum}
                             onChange={(e) => setAmount(Number(e.target.value))}
                             className="custom-slider"
-                            style={{ '--progress': `${(amount / 100000) * 100}%` } as CSSProperties}
+                            style={{ '--progress': `${Math.max(0, Math.min(100, (amountNum / 100000) * 100))}%` } as CSSProperties}
                         />
                     </div>
 
@@ -115,9 +119,9 @@ export function InflationPredator() {
                                 id="years"
                                 type="number"
                                 value={years}
-                                onChange={(e) => setYears(Number(e.target.value))}
-                                min="1"
-                                max="40"
+                                onChange={(e) => setYears(e.target.value === '' ? '' : Number(e.target.value))}
+                                min="0"
+                                max="100"
                                 step="1"
                             />
                             <span className="unit">años</span>
@@ -127,10 +131,11 @@ export function InflationPredator() {
                             min="1"
                             max="40"
                             step="1"
-                            value={years}
+                            aria-label="Tiempo en años (deslizador)"
+                            value={yearsNum}
                             onChange={(e) => setYears(Number(e.target.value))}
                             className="custom-slider"
-                            style={{ '--progress': `${((years - 1) / (40 - 1)) * 100}%` } as CSSProperties}
+                            style={{ '--progress': `${Math.max(0, Math.min(100, ((yearsNum - 1) / 39) * 100))}%` } as CSSProperties}
                         />
                     </div>
 
@@ -142,10 +147,10 @@ export function InflationPredator() {
                                 id="inflation"
                                 type="number"
                                 value={inflation}
-                                onChange={(e) => setInflation(Number(e.target.value))}
-                                min="0.5"
-                                max="15"
-                                step="0.5"
+                                onChange={(e) => setInflation(e.target.value === '' ? '' : Number(e.target.value))}
+                                min="-99"
+                                max="100"
+                                step="any"
                             />
                             <span className="unit">%</span>
                         </div>
@@ -154,10 +159,11 @@ export function InflationPredator() {
                             min="0.5"
                             max="15"
                             step="0.5"
-                            value={inflation}
+                            aria-label="Inflación anual (deslizador)"
+                            value={inflationNum}
                             onChange={(e) => setInflation(Number(e.target.value))}
                             className="custom-slider"
-                            style={{ '--progress': `${((inflation - 0.5) / (15 - 0.5)) * 100}%` } as CSSProperties}
+                            style={{ '--progress': `${Math.max(0, Math.min(100, ((inflationNum - 0.5) / 14.5) * 100))}%` } as CSSProperties}
                         />
                     </div>
 
@@ -174,7 +180,7 @@ export function InflationPredator() {
                     {calculationError ? <p role="alert">{calculationError}</p> : <>
                     <div className="money-display">
                         <div
-                            className={`ghost-overlay ${inflation > 5 ? 'ghost-overlay--active' : ''}`}
+                            className={`ghost-overlay ${inflationNum > 5 ? 'ghost-overlay--active' : ''}`}
                         >
                             <Ghost size={60} />
                         </div>
@@ -197,13 +203,13 @@ export function InflationPredator() {
                             {purchasingPower.toLocaleString('es-ES', { maximumFractionDigits: 0 })} €
                         </div>
                         <div className="result-sub">
-                            En {years} años, con esos {amount.toLocaleString()} € <br />
+                            En {yearsNum} años, con esos {amountNum.toLocaleString('es-ES')} € <br />
                             <strong>solo podrás comprar lo que hoy valdría {purchasingPower.toLocaleString('es-ES', { maximumFractionDigits: 0 })} €</strong>.
                         </div>
 
                         <div className="loss-tag">
                             <TrendingDown size={18} style={{ marginRight: '8px' }} />
-                            Pérdida de valor: -{lossPercentage.toFixed(1)}%
+                            {lossPercentage < 0 ? 'Ganancia de poder de compra' : 'Pérdida de valor'}: {(-lossPercentage).toLocaleString('es-ES', { maximumFractionDigits: 1, signDisplay: 'exceptZero' })}%
                         </div>
                     </div>
 

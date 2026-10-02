@@ -15,7 +15,8 @@
     "test:portfolio-backend": "tsx scripts/test-portfolio-backend.ts",
     "test:portfolio-sync": "tsx scripts/test-portfolio-sync.ts",
     "test:portfolio-ui": "tsx scripts/test-portfolio-ui.ts",
-    "test:academy-account-polish": "tsx scripts/test-academy-account-polish.ts"
+    "test:academy-account-polish": "tsx scripts/test-academy-account-polish.ts",
+    "test:dashboard-market-polish": "tsx scripts/test-dashboard-market-polish.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

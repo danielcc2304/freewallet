@@ -1,6 +1,10 @@
 {
     "routes": [
         {
+            "src": "/__holdings/ndq",
+            "dest": "https://www.betashares.com.au/files/csv/NDQ_Portfolio_Holdings.csv"
+        },
+        {
             "src": "/__market/yahoo1/(.*)",
             "dest": "https://query1.finance.yahoo.com/$1"
         },

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio, Wrench, GraduationCap, Settings, FileSpreadsheet } from 'lucide-react';
 import { PortfolioSummary } from '../../components/dashboard/PortfolioSummary';
+import { PortfolioDataQuality } from '../../components/dashboard/PortfolioDataQuality';
 import { Performers } from '../../components/dashboard/Performers';
 import { AssetsTable } from '../../components/dashboard/AssetsTable';
 import { PortfolioExcelInsights } from '../../components/dashboard/PortfolioExcelInsights';
@@ -340,9 +341,8 @@ export function Dashboard() {
                 </div>
             )}
 
-            {assets.some(a => !hasValidPrice(a)) && <p role="status">Parte del valor actual está estimada al coste: faltan cotizaciones válidas.</p>}
-            {assets.some(a => a.type === 'cash') && <p role="status">Con liquidez en cartera, las compras y ventas no identifican por sí solas aportaciones externas. Los intervalos con flujos ambiguos se muestran como N/D.</p>}
-            <PortfolioSummary metrics={metrics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} />
+            <PortfolioSummary metrics={metrics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} estimatedCount={assets.filter(a => !hasValidPrice(a)).length} />
+            <PortfolioDataQuality assets={assets} now={calculationNow} quoteFailures={quoteFailures} />
             <section className="dashboard__section">
                 <AssetsTable
                     assets={assets}
@@ -354,9 +354,6 @@ export function Dashboard() {
                 />
             </section>
             <section className="dashboard__section">
-                <p role="status">{quoteStatuses.filter(s => s.asset.type !== 'cash' && s.recentlyChecked).length} de {assets.filter(a => a.type !== 'cash').length} posiciones de mercado consultadas recientemente{quoteFailures ? ` · ${quoteFailures} pendientes; se reintentará automáticamente` : ''}. La consulta y la fecha del precio son distintas.</p>
-                {quoteStatuses.some(s => s.blockers.length) && <details className="dashboard__quote-status"><summary>No se puede registrar una valoración completa · {quoteStatuses.filter(s => s.blockers.length).length} posiciones pendientes</summary><p>El histórico existente se conserva. Se añadirá una valoración cuando todas las posiciones tengan datos válidos.</p><ul>{quoteStatuses.filter(s => s.blockers.length).map(s => <li key={s.asset.id}><strong>{s.asset.name}</strong>: {s.blockers.join(' · ')}</li>)}</ul></details>}
-                {quoteStatuses.some(s => s.stalePrice || s.unknownPriceDate) && <details className="dashboard__quote-status"><summary>Revisar fechas de precios · {quoteStatuses.filter(s => s.stalePrice || s.unknownPriceDate).length} posiciones</summary><p>Se señalan precios con más de 7 días en fondos, 4 en acciones y ETF, o 2 en criptomonedas. Son márgenes orientativos, no un calendario bursátil.</p><ul>{quoteStatuses.filter(s => s.stalePrice || s.unknownPriceDate).map(s => <li key={s.asset.id}><strong>{s.asset.name}</strong> · Precio: {quoteDateLabel(s.asset.quotedAt || s.asset.lastQuoteAt)} · Consulta: {quoteDateLabel(s.asset.lastCheckedAt)}</li>)}</ul></details>}
                 <PortfolioExcelInsights now={calculationNow} analytics={analytics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} />
             </section>
 

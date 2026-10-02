@@ -20,6 +20,7 @@ import {
 import './index.css';
 import './styles/liquidGlass.css';
 import { VersionNotice } from './components/ui/VersionNotice';
+import {Account} from './pages/Account/Account';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="transactions" element={<Transactions />} />
           <Route path="add" element={<AddInvestment />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="account" element={<Account />} />
           <Route path="portfolio-csv" element={<PortfolioCsv />} />
           <Route path="feature-log" element={<FeatureLog />} />
           <Route path="market-heatmap" element={<MarketHeatmap />} />

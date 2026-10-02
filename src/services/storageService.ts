@@ -1,3 +1,4 @@
+import { portfolioStorage } from './portfolioCloudStorage';
 import type { Asset, Portfolio, PortfolioGoal, PortfolioHistoryPoint, PortfolioTransaction, WatchlistItem } from '../types/types';
 import { assetValue } from './assetValuation';
 import { calculatePreviousClosePerformance, normalizePortfolioTransactions, performanceSeries, selectPortfolioPeriod } from './portfolioPerformance';
@@ -23,14 +24,24 @@ const DEFAULT_SETTINGS: AppSettings = {
 /** One atomic localStorage record for positions and their ledger. Legacy keys remain readable. */
 export function savePortfolioState(assets: Asset[], transactions: PortfolioTransaction[]): void {
     try {
-        localStorage.setItem(STORAGE_KEYS.PORTFOLIO, JSON.stringify({ version: 1, assets, transactions }));
+        portfolioStorage.setItem(STORAGE_KEYS.PORTFOLIO, JSON.stringify({ version: 1, assets, transactions }));
     } catch {
         throw new Error('No se han podido guardar los cambios. Comprueba el espacio y los permisos del navegador y vuelve a intentarlo.');
     }
 }
 
+/** Operations are only acknowledged after the atomic cloud command succeeds. */
+export async function commitPortfolioState(assets:Asset[],transactions:PortfolioTransaction[]):Promise<void> {
+    const epoch=portfolioStorage.epoch;
+    if(portfolioStorage.cloud) await portfolioStorage.flush();
+    if(epoch!==portfolioStorage.epoch)throw new Error('La sesión ha cambiado; no se han enviado los datos de esta cartera.');
+    savePortfolioState(assets,transactions);
+    await portfolioStorage.flush();
+    if(epoch!==portfolioStorage.epoch)throw new Error('La sesión ha cambiado; no se ha aplicado el resultado en esta cuenta.');
+}
+
 function readPortfolioState(): { assets: Asset[]; transactions: PortfolioTransaction[] } | null {
-    const raw = localStorage.getItem(STORAGE_KEYS.PORTFOLIO);
+    const raw = portfolioStorage.getItem(STORAGE_KEYS.PORTFOLIO);
     if (!raw) return null;
     const state = JSON.parse(raw);
     if (state.version !== 1 || !Array.isArray(state.assets) || !Array.isArray(state.transactions)) {
@@ -44,7 +55,7 @@ export function getAssets(): Asset[] {
     try {
         const saved = readPortfolioState();
         if (saved) return saved.assets;
-        const data = localStorage.getItem(STORAGE_KEYS.ASSETS);
+        const data = portfolioStorage.getItem(STORAGE_KEYS.ASSETS);
         return data ? JSON.parse(data) : [];
     } catch {
         throw new Error('No se puede leer la cartera guardada. No se han sobrescrito los datos.');
@@ -95,7 +106,7 @@ export function getAssetById(id: string): Asset | undefined {
 // ===== HISTORY =====
 export function getHistory(): PortfolioHistoryPoint[] {
     try {
-        const data = localStorage.getItem(STORAGE_KEYS.HISTORY);
+        const data = portfolioStorage.getItem(STORAGE_KEYS.HISTORY);
         const parsed: unknown = data ? JSON.parse(data) : [];
         return Array.isArray(parsed) ? parsed.filter(p => p && typeof p.date === 'string' && Number.isFinite(p.value) && Number.isFinite(p.invested)) : [];
     } catch {
@@ -107,7 +118,7 @@ export function getHistory(): PortfolioHistoryPoint[] {
 // ===== SETTINGS =====
 export function getSettings(): AppSettings {
     try {
-        const data = localStorage.getItem(STORAGE_KEYS.SETTINGS);
+        const data = portfolioStorage.getItem(STORAGE_KEYS.SETTINGS);
         if (!data) {
             return DEFAULT_SETTINGS;
         }
@@ -147,7 +158,7 @@ export function getTransactions(): PortfolioTransaction[] {
     try {
         const saved = readPortfolioState();
         if (saved) return saved.transactions;
-        const data = localStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
+        const data = portfolioStorage.getItem(STORAGE_KEYS.TRANSACTIONS);
         if (data) {
             return JSON.parse(data) as PortfolioTransaction[];
         }
@@ -182,7 +193,7 @@ export function deleteTransactionsByAssetId(assetId: string): void {
 // ===== GOALS =====
 export function getGoals(): PortfolioGoal[] {
     try {
-        const data = localStorage.getItem(STORAGE_KEYS.GOALS);
+        const data = portfolioStorage.getItem(STORAGE_KEYS.GOALS);
         return data ? JSON.parse(data) as PortfolioGoal[] : [];
     } catch {
         console.error('Error reading goals from localStorage');
@@ -192,9 +203,9 @@ export function getGoals(): PortfolioGoal[] {
 
 export function saveGoals(goals: PortfolioGoal[]): void {
     try {
-        localStorage.setItem(STORAGE_KEYS.GOALS, JSON.stringify(goals));
+        portfolioStorage.setItem(STORAGE_KEYS.GOALS, JSON.stringify(goals));
     } catch (error) {
-        console.error('Error saving goals to localStorage:', error);
+        throw new Error('No se han podido guardar los objetivos. Revisa la conexión y el estado de Mi cuenta.',{cause:error});
     }
 }
 
@@ -212,7 +223,7 @@ export function deleteGoal(goalId: string): void {
 // ===== WATCHLIST =====
 export function getWatchlist(): WatchlistItem[] {
     try {
-        const data = localStorage.getItem(STORAGE_KEYS.WATCHLIST);
+        const data = portfolioStorage.getItem(STORAGE_KEYS.WATCHLIST);
         return data ? JSON.parse(data) as WatchlistItem[] : [];
     } catch {
         console.error('Error reading watchlist from localStorage');
@@ -222,9 +233,9 @@ export function getWatchlist(): WatchlistItem[] {
 
 export function saveWatchlist(items: WatchlistItem[]): void {
     try {
-        localStorage.setItem(STORAGE_KEYS.WATCHLIST, JSON.stringify(items));
+        portfolioStorage.setItem(STORAGE_KEYS.WATCHLIST, JSON.stringify(items));
     } catch (error) {
-        console.error('Error saving watchlist to localStorage:', error);
+        throw new Error('No se ha podido guardar la lista de seguimiento. Revisa la conexión y Mi cuenta.',{cause:error});
     }
 }
 
@@ -241,10 +252,10 @@ export function deleteWatchlistItem(itemId: string): void {
 
 export function saveSettings(settings: AppSettings): void {
     try {
-        localStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
+        portfolioStorage.setItem(STORAGE_KEYS.SETTINGS, JSON.stringify(settings));
         if (typeof window !== 'undefined') window.dispatchEvent(new Event('freewallet-data-change'));
     } catch (error) {
-        console.error('Error saving settings to localStorage:', error);
+        throw new Error('No se ha podido guardar la configuración. Revisa la conexión y Mi cuenta.',{cause:error});
     }
 }
 
@@ -263,7 +274,7 @@ export function isApiEnabled(): boolean {
 
 export function saveHistory(history: PortfolioHistoryPoint[]): void {
     try {
-        localStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
+        portfolioStorage.setItem(STORAGE_KEYS.HISTORY, JSON.stringify(history));
         if (typeof window !== 'undefined') window.dispatchEvent(new Event('freewallet-data-change'));
     } catch (error) {
         throw new Error('No se ha podido guardar el histórico de la cartera.', { cause: error });
@@ -348,11 +359,12 @@ export function generateId(): string {
 }
 
 export function clearAllData(): void {
-    localStorage.removeItem(STORAGE_KEYS.PORTFOLIO);
-    localStorage.removeItem(STORAGE_KEYS.ASSETS);
-    localStorage.removeItem(STORAGE_KEYS.HISTORY);
-    localStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);
-    localStorage.removeItem(STORAGE_KEYS.GOALS);
-    localStorage.removeItem(STORAGE_KEYS.WATCHLIST);
-    localStorage.removeItem(STORAGE_KEYS.SETTINGS);
+    if(portfolioStorage.cloud) throw new Error('Cierra sesión para gestionar los datos locales. La cartera cloud no se borra desde este botón.');
+    portfolioStorage.removeItem(STORAGE_KEYS.PORTFOLIO);
+    portfolioStorage.removeItem(STORAGE_KEYS.ASSETS);
+    portfolioStorage.removeItem(STORAGE_KEYS.HISTORY);
+    portfolioStorage.removeItem(STORAGE_KEYS.TRANSACTIONS);
+    portfolioStorage.removeItem(STORAGE_KEYS.GOALS);
+    portfolioStorage.removeItem(STORAGE_KEYS.WATCHLIST);
+    portfolioStorage.removeItem(STORAGE_KEYS.SETTINGS);
 }

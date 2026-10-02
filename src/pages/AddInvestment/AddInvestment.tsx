@@ -409,10 +409,10 @@ export function AddInvestment() {
 
         try {
             if (isSellMode && assetToSell) {
-                sellAsset(assetToSell.id, parseFloat(formData.quantity), euroPrice, formData.purchaseDate, conversionNote);
+                await sellAsset(assetToSell.id, parseFloat(formData.quantity), euroPrice, formData.purchaseDate, conversionNote);
             } else if (isEditMode && editAsset) {
                 // Update existing asset (Overwrite)
-                updateAsset(editAsset.id, {
+                await updateAsset(editAsset.id, {
                     symbol: formData.symbol.toUpperCase(),
                     name: formData.name || formData.symbol,
                     type: formData.type,
@@ -445,10 +445,10 @@ export function AddInvestment() {
                 const totalCost = (oldQty * oldAvgPrice) + (newQty * newPrice);
                 const newAvgPrice = totalCost / totalQty;
 
-                updateAsset(dcaAsset.id, {
+                await updateAsset(dcaAsset.id, {
                     quantity: totalQty,
                     purchasePrice: newAvgPrice,
-                    purchaseDate: formData.purchaseDate,
+                    purchaseDate: dcaAsset.purchaseDate,
                 }, {
                     assetId: dcaAsset.id,
                     assetSymbol: dcaAsset.symbol,
@@ -476,7 +476,7 @@ export function AddInvestment() {
                     previousClose: formData.type === 'cash' ? 1 : undefined,
                     currency: 'EUR',
                 };
-                addAsset(newAsset, {
+                await addAsset(newAsset, {
                     assetId: newAsset.id,
                     assetSymbol: newAsset.symbol,
                     assetName: newAsset.name,

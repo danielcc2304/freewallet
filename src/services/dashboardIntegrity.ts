@@ -1,5 +1,12 @@
 import type { Asset, AssetHolding, SearchResult } from '../types/types';
 import { hasValidPrice } from './assetValuation';
+import { planAssetKey } from './portfolioPlan';
+
+/** Multiple lots are legitimate; only a reused record ID is a definite duplicate. */
+export function positionLotCounts(assets: Asset[]) {
+    const instruments = new Set(assets.map(a => `${planAssetKey(a)}:${a.currency || 'EUR'}`));
+    return { extraLots: assets.length - instruments.size, duplicateIds: assets.length - new Set(assets.map(a => a.id)).size };
+}
 
 export function dailyAssetVariation(asset: Asset) {
     const valid = hasValidPrice(asset) && Number.isFinite(asset.previousClose) && asset.previousClose! > 0;

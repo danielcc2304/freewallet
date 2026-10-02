@@ -64,7 +64,7 @@ export const Performers = memo(function Performers({ data, type, limit = 5 }: Pe
                                 <span className="performers__name">{item.name}</span>
                             </div>
                             <div className="performers__data">
-                                <span className={`performers__change performers__change--${type}`}>
+                                <span className={`performers__change ${item.changePercent > 0 ? 'performers__change--positive' : item.changePercent < 0 ? 'performers__change--negative' : ''}`}>
                                     {formatChange(item.changePercent)}
                                 </span>
                                 <span className="performers__value">{formatCurrency(item.value)}</span>

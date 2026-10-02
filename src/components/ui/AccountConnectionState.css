@@ -1,0 +1,35 @@
+.account-connection {
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    padding: max(1.25rem, env(safe-area-inset-top)) 1.25rem max(1.25rem, env(safe-area-inset-bottom));
+    background: var(--bg-primary);
+}
+.account-connection__card {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(100%, 400px);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+}
+.account-connection__icon {
+    display: grid;
+    place-items: center;
+    width: 56px;
+    height: 56px;
+    margin-bottom: 1rem;
+    border-radius: var(--radius-lg);
+    background: rgba(var(--accent-rgb), .1);
+    color: var(--accent-primary);
+}
+.account-connection__brand { color: var(--text-secondary); font-size: .875rem; font-weight: 600; }
+.account-connection__card h1 { margin: .5rem 0; font-size: 1.25rem; line-height: 1.4; color: var(--text-primary); }
+.account-connection__card p { font-size: .875rem; line-height: 1.6; color: var(--text-secondary); }
+.account-connection__spinner { margin-top: 1.25rem; color: var(--accent-primary); animation: account-connection-spin 1s linear infinite; }
+@keyframes account-connection-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .account-connection__spinner { animation: none; } }

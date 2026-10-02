@@ -12,6 +12,37 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-02 - v6.0.1 - Primer acceso con una cartera existente
+- Funcionalidad:
+  - Aviso claro al encontrar una cartera local y una cuenta sin importar, con opciones para revisarla o continuar sin subir datos.
+  - Guía de tres pasos en Mi cuenta, revisión enfocada y botón explícito para guardar la cartera en la cuenta.
+- Resumen:
+  - Explica que la cartera local no se ha borrado y mantiene la confirmación obligatoria antes de importar, sin reemplazar datos existentes.
+- Archivos:
+  - `src/pages/Account/Account.tsx`, `src/pages/Account/Account.css`, `src/components/ui/LocalPortfolioPrompt.tsx`, `src/components/ui/LocalPortfolioPrompt.css`
+  - `src/components/layout/MainLayout/MainLayout.tsx`, `src/services/localPortfolioSummary.ts`, `scripts/test-portfolio-ui.ts`
+
+### 2026-10-02 - v6.0.1 - Avisos coherentes de cuenta y acceso
+- Funcionalidad:
+  - Mensajes de error y confirmación de Mi cuenta con el mismo aviso flotante del acceso editorial de Noticias.
+  - Formato compartido para recuperación, registro, importación y verificación en dos pasos, con roles accesibles y ajuste móvil.
+  - Tarjeta de conexión cuidada e indicador de carga integrado en el botón de acceso, sin textos sueltos al iniciar sesión o refrescar.
+- Resumen:
+  - Unifica la presentación de los resultados sin desplazar los formularios ni modificar la configuración de envío.
+- Archivos:
+  - `src/components/ui/FeedbackToast.tsx`, `src/components/ui/FeedbackToast.css`, `src/components/ui/useFeedbackNotice.ts`
+  - `src/pages/Account/Account.tsx`, `src/pages/Account/AccountMfa.tsx`, `src/pages/NewsAdmin/NewsAdmin.tsx`
+  - `src/context/FeedbackContext.tsx`, `src/context/AccountContext.tsx`, `src/main.tsx`, `src/components/ui/AccountConnectionState.tsx`, `src/components/ui/AccountConnectionState.css`, `scripts/test-account-feedback.ts`
+
+### 2026-10-02 - v6.0.1 - Preparación de correo con Outlook
+- Funcionalidad:
+  - Plantillas de acceso y recuperación en español, con cambio de correo seguro e invitaciones editoriales.
+  - Transporte privado para Microsoft Graph, validación de redirects y pruebas sin envío real.
+- Resumen:
+  - Base local preparada para integrar Outlook. La conexión y activación requieren registrar y autorizar la aplicación de Microsoft.
+- Archivos:
+  - `supabase/mail/outlook.ts`, `scripts/test-outlook-mail.ts`, `docs/outlook-auth-mail.md`
+
 ### 2026-10-02 - v6.0.0 - Cartera multidispositivo con Supabase
 - Funcionalidad:
   - Mi cuenta: acceso, registro, recuperación y autenticador en dos pasos.

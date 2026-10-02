@@ -9,10 +9,13 @@ import { useState } from 'react';
 import { clearAllData, isApiEnabled, updateSettings } from '../../services/storageService';
 import { getFinnhubApiKey, setFinnhubApiKey as setFinnhubApiKeyAction } from '../../services/apiService';
 import './Settings.css';
+import {useAccount} from '../../context/AccountContext';
+import {portfolioStorage} from '../../services/portfolioCloudStorage';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
 export function Settings() {
+    const account=useAccount();
     const { themeMode, setThemeMode } = useTheme();
     const { appearance, setAppearance } = useAppearance();
     const { state, loadDemoData } = usePortfolio();
@@ -20,6 +23,7 @@ export function Settings() {
     const [showDemoConfirm, setShowDemoConfirm] = useState(false);
     const [finnhubKey, setFinnhubKey] = useState(getFinnhubApiKey());
     const [apiEnabled, setApiEnabled] = useState(isApiEnabled());
+    const [saveError,setSaveError]=useState('');const [saving,setSaving]=useState(false);
 
     const themeOptions: { value: ThemeMode; label: string; icon: React.ReactNode }[] = [
         { value: 'light', label: 'Claro', icon: <Sun size={20} /> },
@@ -37,14 +41,17 @@ export function Settings() {
         setShowDemoConfirm(false);
     };
 
-    const handleApiToggle = () => {
+    const handleApiToggle = async () => {
+        if(saving)return;setSaving(true);setSaveError('');
         const nextValue = !apiEnabled;
-        setApiEnabled(nextValue);
-        updateSettings({ apiEnabled: nextValue });
+        try{updateSettings({ apiEnabled: nextValue });await portfolioStorage.flush();setApiEnabled(nextValue);}
+        catch(error){setSaveError(error instanceof Error?error.message:'No se pudo confirmar la configuración.');}
+        finally{setSaving(false);}
     };
 
     return (
         <div className="settings">
+            {saveError&&<p role="alert">{saveError}</p>}
             <div className="settings__header">
                 <h1 className="settings__title">Configuración</h1>
                 <p className="settings__subtitle">Personaliza tu experiencia</p>
@@ -149,6 +156,7 @@ export function Settings() {
                             variant="secondary"
                             icon={<Database size={16} />}
                             onClick={() => setShowDemoConfirm(true)}
+                            disabled={!!account.user}
                         >
                             Cargar Datos Demo
                         </Button>
@@ -156,6 +164,7 @@ export function Settings() {
                             variant="danger"
                             icon={<Trash2 size={16} />}
                             onClick={() => setShowClearConfirm(true)}
+                            disabled={!!account.user}
                         >
                             Borrar Todos los Datos
                         </Button>
@@ -186,6 +195,7 @@ export function Settings() {
                                 type="button"
                                 className={`settings__toggle ${apiEnabled ? 'settings__toggle--active' : ''}`}
                                 onClick={handleApiToggle}
+                                disabled={saving}
                                 aria-pressed={apiEnabled}
                             >
                                 <span className="settings__toggle-thumb" />
@@ -236,7 +246,7 @@ export function Settings() {
                         </Link>
                         <p className="about-description">
                             Aplicación de gestión de portfolio de inversiones.
-                            Los datos se almacenan localmente en tu navegador.
+                            {account.user?'Tu cartera está vinculada a tu cuenta. Consulta el estado del guardado en Mi cuenta.':'Los datos se almacenan localmente en tu navegador.'}
                         </p>
                         <p className="about-api">
                             Datos de mercado proporcionados por Alpha Vantage y Finnhub.

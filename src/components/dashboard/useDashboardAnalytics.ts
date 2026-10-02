@@ -1,3 +1,4 @@
+import { portfolioStorage } from '../../services/portfolioCloudStorage';
 import { useEffect, useMemo, useState } from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory, isApiEnabled } from '../../services/storageService';
@@ -20,14 +21,14 @@ export function useDashboardAnalytics(now: number) {
     const workbookLinked = useMemo(() => {
         void localRevision;
         try {
-            const link = JSON.parse(localStorage.getItem('freewallet_workbook_link') || 'null');
+            const link = JSON.parse(portfolioStorage.getItem('freewallet_workbook_link') || 'null');
             return !!link && link.workbook === workbookHistory.identity && Array.isArray(link.ids)
                 && portfolioTransactions.some(t => link.ids.includes(t.assetId))
                 && assets.every(a => link.ids.includes(a.id) || transactions.some(t => t.assetId === a.id && t.type === 'buy' && t.provenance !== 'initial-position' && !/^(bootstrap|position)-/.test(t.id)));
         } catch { return false; }
     }, [assets, transactions, portfolioTransactions, workbookHistory, localRevision]);
     const linkWorkbook = () => {
-        localStorage.setItem('freewallet_workbook_link', JSON.stringify({ workbook: workbookHistory.identity, ids: [...new Set([...assets.map(a => a.id), ...transactions.map(t => t.assetId)])] }));
+        portfolioStorage.setItem('freewallet_workbook_link', JSON.stringify({ workbook: workbookHistory.identity, ids: [...new Set([...assets.map(a => a.id), ...transactions.map(t => t.assetId)])] }));
         notifyLocalDataChange();
     };
     const [marketCache, setMarket] = useState<Map<string, { symbol: string; prices: HistoricalDataPoint[] }>>(new Map());

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../Sidebar';
+import { LocalPortfolioPrompt } from '../../ui/LocalPortfolioPrompt';
 import './MainLayout.css';
 
 export function MainLayout() {
@@ -14,6 +15,7 @@ export function MainLayout() {
                     <Outlet />
                 </div>
             </main>
+            <LocalPortfolioPrompt />
         </div>
     );
 }

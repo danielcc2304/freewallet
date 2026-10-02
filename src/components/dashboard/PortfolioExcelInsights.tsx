@@ -36,7 +36,7 @@ import { usePortfolio } from '../../context/PortfolioContext';
 import { isApiEnabled } from '../../services/storageService';
 import { getAssetChartData } from '../../services/apiService';
 import { alignedBenchmark, alignImportedBenchmark, chooseBenchmarkLine, selectPortfolioPeriod, workbookRiskStats } from '../../services/portfolioPerformance';
-import { assetValue, convertHistoryToCurrency } from '../../services/assetValuation';
+import { assetValue, convertHistoryToCurrency, hasValidPrice } from '../../services/assetValuation';
 import { readWorkbookBenchmarkHistory } from '../../services/portfolioWorkbookHistory';
 import type { HistoricalDataPoint } from '../../types/types';
 import './PortfolioExcelInsights.css';
@@ -46,6 +46,17 @@ import { parseAdvancedStats } from '../../pages/PortfolioCsv/portfolioCsvUtils';
 import { readStoredValue } from '../../pages/PortfolioCsv/portfolioCsvStorage';
 import { STORAGE_KEYS } from '../../pages/PortfolioCsv/portfolioCsvConstants';
 import { WORKBOOK_RISK_FREE_ANNUAL_PCT } from '../../services/portfolioRisk';
+import { positionLotCounts } from '../../services/dashboardIntegrity';
+
+function missingMetricReason(label: string, months: number) {
+    if (label.startsWith('Rentabilidad total')) return 'Falta un capital invertido mayor que cero para calcular el porcentaje.';
+    if (label === 'Volatilidad anualizada' && months < 2) return 'Se necesitan al menos dos meses cerrados, válidos y consecutivos.';
+    if (label === 'Ratio Sharpe') return months < 2
+        ? 'Se necesitan al menos dos meses cerrados, válidos y consecutivos.'
+        : 'La volatilidad es cero: no se puede dividir el exceso de retorno entre un riesgo nulo.';
+    if (label === 'Ratio Sortino' && months) return 'No hay desviación bajista respecto a la tasa libre de riesgo: el denominador del ratio es cero.';
+    return 'No hay meses cerrados con una base y retornos verificables suficientes. Un mes abierto no cuenta como cierre.';
+}
 
 type InsightTab = 'evolution' | 'benchmark' | 'allocation' | 'risk' | 'controls';
 type EvolutionPeriod = '1D' | '7D' | '1M' | '3M' | 'YTD' | 'ALL';
@@ -139,6 +150,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         [recentMonthly, riskFreeAnnual],
     );
     const historyYears = recentMonthly.length ? recentMonthly.length / 12 : null;
+    const estimatedCount = assets.filter(asset => !hasValidPrice(asset)).length;
     const positiveDays = validMonthly.length ? validMonthly.filter(row => row.monthlyReturn > 0).length / validMonthly.length * 100 : null;
     const currentReturn = investedValue > 0 ? (totalValue / investedValue - 1) * 100 : NaN;
     const bestMonth = validMonthly.length
@@ -154,10 +166,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     }).length, [assets, now]);
     const freshQuotes = assets.length - stale;
     const dataCoverage = assets.length ? freshQuotes / assets.length * 100 : 0;
-    const duplicateSymbols = useMemo(
-        () => assets.length - new Set(assets.map((asset) => asset.symbol.toUpperCase())).size,
-        [assets],
-    );
+    const lots = useMemo(() => positionLotCounts(assets), [assets]);
     const invalidPositions = useMemo(
         () => assets.filter((asset) => !Number.isFinite(asset.quantity) || asset.quantity < 0 || !Number.isFinite(asset.purchasePrice) || asset.purchasePrice < 0 || (asset.currentPrice !== undefined && (!Number.isFinite(asset.currentPrice) || asset.currentPrice < 0))).length,
         [assets],
@@ -261,9 +270,9 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         { value: 'controls', label: 'Controles', icon: <ListChecks size={15} /> },
     ];
     const kpis: Array<{ label: string; value: string; detail?: string; icon: ReactNode; tone?: string }> = [
-        { label: 'Valor actual', value: currency(totalValue), detail: `${assets.length} posiciones`, icon: <WalletCards size={17} /> },
+        { label: 'Valor actual', value: currency(totalValue), detail: `${assets.length} posiciones${estimatedCount ? ` · ${estimatedCount} estimadas al coste` : ''}`, icon: <WalletCards size={17} /> },
         { label: 'Capital invertido', value: currency(investedValue), detail: `${transactions.length} operaciones`, icon: <Coins size={17} /> },
-        { label: 'Rentabilidad total', value: percent(currentReturn), detail: currency(totalValue - investedValue), icon: <ArrowUpRight size={17} />, tone: currentReturn >= 0 ? 'is-positive' : 'is-negative' },
+        { label: estimatedCount ? 'Rentabilidad total (estimada)' : 'Rentabilidad total', value: percent(currentReturn), detail: currency(totalValue - investedValue), icon: <ArrowUpRight size={17} />, tone: currentReturn >= 0 ? 'is-positive' : 'is-negative' },
         { label: 'Rentabilidad anualizada', value: percent(annualized), detail: historyYears === null ? 'Sin meses cerrados' : `${recentMonthly.length} meses cerrados`, icon: <Gauge size={17} /> },
         { label: 'Volatilidad anualizada', value: plainPercent(volatility), detail: 'Riesgo estimado', icon: <BarChart3 size={17} /> },
         { label: 'Máximo drawdown', value: plainPercent(maxDrawdown), detail: 'Entre cierres mensuales', icon: <ArrowDownRight size={17} />, tone: maxDrawdown !== null && maxDrawdown < 0 ? 'is-negative' : undefined },
@@ -281,7 +290,8 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         { label: 'Diversificación', value: `${assets.length} posiciones · ${assetTypes} tipos`, ok: assets.length > 1 },
         { label: 'Consultas recientes', value: `${dataCoverage.toFixed(0)}%`, ok: stale === 0 },
         { label: 'Flujo neto registrado', value: currency(ledgerFlow), ok: Number.isFinite(ledgerFlow) },
-        { label: 'Posiciones duplicadas', value: duplicateSymbols, ok: duplicateSymbols === 0 },
+        { label: 'Lotes adicionales del mismo activo', value: lots.extraLots, ok: true },
+        { label: 'Registros con identificador duplicado', value: lots.duplicateIds, ok: lots.duplicateIds === 0 },
         { label: 'Cantidades o precios inválidos', value: invalidPositions, ok: invalidPositions === 0 },
         { label: 'Consultas pendientes', value: stale, ok: stale === 0 },
         { label: 'Histórico utilizado', value: usingWorkbookHistory
@@ -316,7 +326,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                             <span className="portfolio-excel-insights__kpi-icon">{kpi.icon}</span>
                             <span>{kpi.label}</span>
                             <strong className={kpi.tone}>{kpi.value}</strong>
-                            {kpi.detail && <small>{kpi.detail}</small>}
+                            {kpi.value === 'N/D' ? <details className="portfolio-excel-insights__missing"><summary>¿Por qué no hay dato?</summary><p>{missingMetricReason(kpi.label, recentMonthly.length)}</p></details> : kpi.detail && <small>{kpi.detail}</small>}
                         </div>
                     ))}
                 </div>
@@ -524,6 +534,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                             <span>Observaciones <strong>{history.length}</strong></span>
                             <span>Pendientes de consulta <strong>{stale}</strong></span>
                         </div>
+                        {(sharpe === null || sortino === null) && <details className="portfolio-excel-insights__missing"><summary>¿Por qué hay ratios sin dato?</summary>{sharpe === null && <p>Sharpe: {missingMetricReason('Ratio Sharpe', recentMonthly.length)}</p>}{sortino === null && <p>Sortino: {missingMetricReason('Ratio Sortino', recentMonthly.length)}</p>}</details>}
                     </section>
                 )}
 

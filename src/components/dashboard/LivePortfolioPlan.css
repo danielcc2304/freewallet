@@ -20,3 +20,24 @@
 .live-plan__scroll th:first-child { position: sticky; left: 0; z-index: 1; background: var(--bg-secondary); }
 .live-plan__scroll:focus-visible { outline: 2px solid var(--accent-primary); }
 .live-plan input { min-height: 44px; box-sizing: border-box; }
+
+.live-plan__mobile-positions { display: none; }
+@media (max-width: 640px) {
+    .live-plan__desktop-positions { display: none; }
+    .live-plan__mobile-positions { display: grid; gap: .75rem; margin: 1rem 0; }
+    .live-plan__position { padding: 1rem; border: 1px solid var(--border-primary); border-radius: 12px; min-width: 0; }
+    .live-plan__position h3 { font-size: .9rem; line-height: 1.5; overflow-wrap: anywhere; margin: 0; }
+    .live-plan__position-main { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-items: start; gap: .5rem; margin: .75rem 0; }
+    .live-plan__position-main > div, .live-plan__position-main > label { display: grid; gap: .4rem; min-width: 0; font-size: .75rem; color: var(--text-secondary); }
+    .live-plan__position-main strong { color: var(--text-primary); font-size: .85rem; overflow-wrap: anywhere; min-height: 44px; display: flex; align-items: center; }
+    .live-plan__position-main input { width: 100%; min-width: 0; }
+    .live-plan__position summary { font-size: .8rem; cursor: pointer; min-height: 44px; display: flex; align-items: center; color: var(--text-secondary); }
+    .live-plan__position summary::before { content: '+'; margin-right: .5rem; }
+    .live-plan__position details[open] summary::before { content: '−'; }
+    .live-plan__position summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+    .live-plan__position dl { display: grid; gap: .5rem; margin: 0; font-size: .8rem; }
+    .live-plan__position dl > div { display: flex; flex-wrap: wrap; justify-content: space-between; gap: .5rem; }
+    .live-plan__position dt { color: var(--text-secondary); }
+    .live-plan__position dd { margin: 0; color: var(--text-primary); }
+    html[data-appearance='liquid-glass'] .live-plan__position { background: var(--glass-content); border-color: var(--glass-edge-soft); }
+}

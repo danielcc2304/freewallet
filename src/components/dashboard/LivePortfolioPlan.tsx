@@ -98,13 +98,32 @@ function LivePortfolioPlanEditor({ analytics, section = 'all' }: { analytics: Da
                 <p role="status">Objetivos: {pct(targetTotal)} / 100%. {validTargets ? 'Plan listo para distribuir la aportación entre posiciones infraponderadas.' : 'Completa los pesos hasta el 100% para calcular la propuesta.'}</p>
                 {validTargets && !canCalculate && <p role="status">Introduce una aportación mayor que cero para calcular el reparto.</p>}
                 {saveError && <p role="alert">No se han podido guardar los objetivos en este navegador.</p>}
-                <div className="live-plan__scroll"><table>
+                <div className="live-plan__mobile-positions" aria-label="Plan de aportaciones por activo">
+                    {rows.map(r => <article className="live-plan__position" key={r.key}>
+                        <h3>{r.a.name}</h3><small>{r.a.symbol}</small>
+                        {!r.assets.every(hasValidPrice) && <small>Incluye valor estimado al coste</small>}
+                        <div className="live-plan__position-main">
+                            <div><span>Peso actual</span><strong>{pct(r.weight)}</strong></div>
+                            <label>Objetivo %<input aria-label={'Peso objetivo de ' + r.a.name} type="text" inputMode="decimal" value={targets[r.key] ?? ''} onChange={e => setTarget(r.key, e.target.value)} aria-invalid={!!targets[r.key] && (r.target === null || r.target > 100)} /></label>
+                            <div><span>Aportar</span><strong>{canCalculate ? money(r.contribution) : '—'}</strong></div>
+                        </div>
+                        <details><summary>Ver detalle de la posición</summary><dl>
+                            <div><dt>Cantidad</dt><dd>{formatQuantity(r.a)}</dd></div>
+                            <div><dt>Coste</dt><dd>{money(r.cost)}</dd></div>
+                            <div><dt>Valor actual</dt><dd>{money(r.value)}</dd></div>
+                            <div><dt>Resultado{!r.assets.every(hasValidPrice) ? ' estimado' : ''}</dt><dd>{money(r.value - r.cost)}</dd></div>
+                            <div><dt>Rentabilidad</dt><dd>{r.cost && r.assets.every(hasValidPrice) ? pct((r.value / r.cost - 1) * 100) : 'N/D'}</dd></div>
+                            <div><dt>Desviación (pp)</dt><dd>{r.target !== null ? (r.weight - r.target).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '—'}</dd></div>
+                        </dl></details>
+                    </article>)}
+                </div>
+                <div className="live-plan__scroll live-plan__desktop-positions"><table>
                     <caption>Posiciones y asignación objetivo</caption>
                     <thead><tr>{['Activo', 'Cantidad', 'Coste', 'Valor actual', 'Resultado', 'Rentabilidad', 'Peso actual', 'Objetivo %', 'Desviación (pp)', 'Aportar'].map(h => <th key={h}>{h}</th>)}</tr></thead>
                     <tbody>{rows.map(r => <tr key={r.key}>
-                        <th scope="row">{r.a.name}<small>{r.a.symbol}{!r.a.lastQuoteAt ? ' · Sin cotización verificada' : ''}</small></th>
+                        <th scope="row">{r.a.name}<small>{r.a.symbol}{!r.assets.every(hasValidPrice) ? ' · Estimado al coste' : ''}</small></th>
                         <td>{formatQuantity(r.a)}</td><td>{money(r.cost)}</td><td>{money(r.value)}</td>
-                        <td className={r.value >= r.cost ? 'is-positive' : 'is-negative'}>{money(r.value - r.cost)}</td><td>{r.cost ? pct((r.value / r.cost - 1) * 100) : '—'}</td><td>{pct(r.weight)}</td>
+                        <td className={r.value >= r.cost ? 'is-positive' : 'is-negative'}>{money(r.value - r.cost)}{!r.assets.every(hasValidPrice) && <small>Estimado al coste</small>}</td><td>{r.cost && r.assets.every(hasValidPrice) ? pct((r.value / r.cost - 1) * 100) : 'N/D'}</td><td>{pct(r.weight)}</td>
                         <td><input aria-label={'Peso objetivo de ' + r.a.name} type="text" inputMode="decimal" value={targets[r.key] ?? ''} onChange={e => setTarget(r.key, e.target.value)} aria-invalid={!!targets[r.key] && (r.target === null || r.target > 100)} /></td>
                         <td>{r.target !== null ? (r.weight - r.target).toFixed(2) : '—'}</td>
                         <td>{canCalculate ? money(r.contribution) : '—'}</td>

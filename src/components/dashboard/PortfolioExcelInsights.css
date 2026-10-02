@@ -54,3 +54,7 @@
 @media (max-width: 680px) { .portfolio-excel-insights__panel-actions { justify-items: stretch; } .portfolio-excel-insights__period-summary { justify-items: start; text-align: left; } .portfolio-excel-insights__periods { justify-content: space-between; } .portfolio-excel-insights__periods button { flex: 1; } }
 .portfolio-excel-insights__periods button { min-height: 44px; }
 .portfolio-excel-insights__periods button:focus-visible, .portfolio-excel-insights__tabs button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+.portfolio-excel-insights__missing { font-size: .75rem; color: var(--text-secondary); }
+.portfolio-excel-insights__missing summary { cursor: pointer; min-height: 30px; padding: .4rem 0; }
+.portfolio-excel-insights__missing p { margin: .3rem 0; line-height: 1.5; }
+.portfolio-excel-insights__missing summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }

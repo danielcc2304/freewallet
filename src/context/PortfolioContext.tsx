@@ -8,6 +8,8 @@ import { PRICE_REFRESH_INTERVAL_MS } from '../constants/app';
 import { createQuoteSnapshot, normalizePortfolioTransactions, portfolioLedgerKey } from '../services/portfolioPerformance';
 import { applicableQuoteUpdates, applyPositionUpdate } from '../services/dashboardIntegrity';
 import { accountingDay } from '../services/portfolioCalendar';
+import {portfolioStorage} from '../services/portfolioCloudStorage';
+import {commitPortfolioState} from '../services/storageService';
 
 function getLatestQuoteAt(assets: Asset[]): Date | null {
     const timestamps = assets
@@ -121,10 +123,10 @@ function portfolioReducer(state: PortfolioState, action: PortfolioAction): Portf
 // Context interface
 interface PortfolioContextValue {
     state: PortfolioState;
-    addAsset: (asset: Asset, transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => void;
-    updateAsset: (id: string, updates: Partial<Asset>, transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => void;
-    deleteAsset: (id: string) => void;
-    sellAsset: (id: string, quantity: number, price: number, date: string, conversionNote?: string) => void;
+    addAsset: (asset: Asset, transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => Promise<void>;
+    updateAsset: (id: string, updates: Partial<Asset>, transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => Promise<void>;
+    deleteAsset: (id: string) => Promise<void>;
+    sellAsset: (id: string, quantity: number, price: number, date: string, conversionNote?: string) => Promise<void>;
     refreshPrices: () => Promise<void>;
     loadDemoData: () => void;
 }
@@ -138,24 +140,30 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     const apiEnabled = isApiEnabled();
     const [state, dispatch] = useReducer(portfolioReducer, initialState);
     const refreshInFlight = useRef(false);
+    const commitInFlight = useRef(false);
 
-    const commit = useCallback((assets: Asset[], transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => {
+    const commit = useCallback(async (assets: Asset[], transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => {
+        if(commitInFlight.current)throw new Error('Espera a que termine la operación anterior.');
+        if(portfolioStorage.cloud && ['error','conflict'].includes(portfolioStorage.getSnapshot().status))
+            throw new Error('Abre Mi cuenta para recuperar el guardado pendiente antes de añadir otra operación.');
+        commitInFlight.current=true;
         try {
             const ledger = getTransactions();
-            if (transaction) ledger.unshift({ ...transaction, id: generateId(), createdAt: new Date().toISOString() });
-            savePortfolioState(assets, ledger);
-            dispatch({ type: 'SET_ASSETS', payload: assets });
-            dispatch({ type: 'SET_TRANSACTIONS', payload: ledger });
+            if (transaction) ledger.unshift({ ...transaction, provenance:transaction.provenance??'trade', id: generateId(), createdAt: new Date().toISOString() });
+            await commitPortfolioState(assets, ledger);
+            dispatch({ type: 'SET_ASSETS', payload: getAssets() });
+            dispatch({ type: 'SET_TRANSACTIONS', payload: getTransactions() });
             dispatch({ type: 'SET_STORAGE_ERROR', payload: null });
         } catch (error) {
             dispatch({ type: 'SET_STORAGE_ERROR', payload: String(error instanceof Error ? error.message : error) });
             throw error;
-        }
+        } finally {commitInFlight.current=false;}
     }, []);
 
     // Update prices
     const updatePricesInternal = useCallback(async (assetsToUpdate: Asset[], forceRefresh = false) => {
         if (assetsToUpdate.length === 0 || refreshInFlight.current) return;
+        const accountEpoch=portfolioStorage.epoch;
 
         refreshInFlight.current = true;
         dispatch({ type: 'SET_REFRESH_ATTEMPT', payload: new Date() });
@@ -168,6 +176,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             let nextIndex = 0;
             const updateNextAsset = async () => {
                 while (nextIndex < requested.length) {
+                    if(accountEpoch!==portfolioStorage.epoch)return;
                     const asset = requested[nextIndex++];
                     const controller = new AbortController();
                     const deadline = window.setTimeout(() => controller.abort(), 15000);
@@ -199,6 +208,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                     () => updateNextAsset(),
                 ),
             );
+            if(accountEpoch!==portfolioStorage.epoch)return;
 
             // Publish one state update for the whole refresh. This prevents a
             // portfolio with many positions from rendering once per quote.
@@ -212,7 +222,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             const snapshot = createQuoteSnapshot(refreshedAssets, getTransactions(), new Date().toISOString());
             const samePositions = refreshedAssets.length === assetsToUpdate.length && refreshedAssets.every(a =>
                 assetsToUpdate.some(old => old.id === a.id && old.quantity === a.quantity && old.purchasePrice === a.purchasePrice && old.purchaseDate === a.purchaseDate));
-            if (requested.length > 0 && applicable.length === requested.length && samePositions && snapshot && snapshot.ledgerKey === initialLedgerKey) addHistoryPoint(snapshot);
+            if (requested.length > 0 && applicable.length === requested.length && samePositions && snapshot && snapshot.ledgerKey === initialLedgerKey
+                && (!portfolioStorage.cloud || portfolioStorage.getSnapshot().status==='synced')) addHistoryPoint(snapshot);
             const latestQuoteAt = getLatestQuoteAt(refreshedAssets);
             dispatch({ type: 'SET_LAST_UPDATE', payload: latestQuoteAt });
             dispatch({ type: 'SET_QUOTE_FAILURES', payload: requested.length - applicable.length });
@@ -272,37 +283,39 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             }
         };
         window.addEventListener('storage', sync);
-        return () => window.removeEventListener('storage', sync);
+        const localSync=()=>sync({key:null} as StorageEvent);
+        window.addEventListener('freewallet-data-change',localSync);
+        return () => {window.removeEventListener('storage', sync);window.removeEventListener('freewallet-data-change',localSync);};
     }, []);
 
     // Public methods
-    const addAsset = useCallback((asset: Asset, transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => {
+    const addAsset = useCallback(async (asset: Asset, transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => {
         const assets = [...getAssets(), asset];
-        commit(assets, transaction);
-        if (isApiEnabled()) void updatePricesInternal(assets);
+        await commit(assets, transaction);
+        if (isApiEnabled()) void updatePricesInternal(getAssets());
     }, [commit, updatePricesInternal]);
 
-    const updateAsset = useCallback((id: string, updates: Partial<Asset>, transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => {
-        commit(getAssets().map(a => a.id === id ? applyPositionUpdate(a, updates) : a), transaction);
+    const updateAsset = useCallback(async (id: string, updates: Partial<Asset>, transaction?: Omit<PortfolioTransaction, 'id' | 'createdAt'>) => {
+        await commit(getAssets().map(a => a.id === id ? applyPositionUpdate(a, updates) : a), transaction);
     }, [commit]);
 
-    const deleteAsset = useCallback((id: string) => {
+    const deleteAsset = useCallback(async (id: string) => {
         const assets = getAssets();
         const asset = assets.find(a => a.id === id);
         if (!asset) return;
-        commit(assets.filter(a => a.id !== id), {
+        await commit(assets.filter(a => a.id !== id), {
             assetId: id, assetSymbol: asset.symbol, assetName: asset.name, assetType: asset.type,
             type: 'delete', date: accountingDay(Date.now()), quantity: asset.quantity,
             price: asset.purchasePrice, total: asset.purchasePrice * asset.quantity, notes: 'Activo eliminado de la cartera',
         });
     }, [commit]);
 
-    const sellAsset = useCallback((id: string, quantity: number, price: number, date: string, conversionNote = '') => {
+    const sellAsset = useCallback(async (id: string, quantity: number, price: number, date: string, conversionNote = '') => {
         const assets = getAssets();
         const asset = assets.find(a => a.id === id);
         if (!asset || !Number.isFinite(quantity) || !Number.isFinite(price) || quantity <= 0 || price <= 0 || quantity > asset.quantity) throw new Error('Venta no válida.');
         const remaining = asset.quantity - quantity;
-        commit(assets.flatMap(a => a.id !== id ? [a] : remaining > 1e-8 ? [{ ...a, quantity: remaining }] : []), {
+        await commit(assets.flatMap(a => a.id !== id ? [a] : remaining > 0 ? [{ ...a, quantity: remaining }] : []), {
             assetId: id, assetSymbol: asset.symbol, assetName: asset.name, assetType: asset.type,
             type: 'sell', date, quantity, price, total: quantity * price,
             notes: (remaining > 1e-8 ? 'Venta parcial' : 'Cierre total de la posición') + conversionNote,
@@ -318,7 +331,10 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     }, [state.assets, updatePricesInternal]);
 
     const loadDemoData = useCallback(async () => {
+        if(portfolioStorage.cloud){dispatch({type:'SET_STORAGE_ERROR',payload:'Los datos demo solo están disponibles sin una cuenta conectada.'});return;}
+        const epoch=portfolioStorage.epoch;
         const { mockAssets, generateMockHistory } = await import('../data/mockData');
+        if(epoch!==portfolioStorage.epoch)return;
         const demoTransactions: PortfolioTransaction[] = mockAssets.map((asset) => ({
             id: `demo-${asset.id}`,
             assetId: asset.id,

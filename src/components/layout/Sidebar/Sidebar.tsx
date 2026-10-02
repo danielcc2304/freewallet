@@ -15,6 +15,7 @@ import {
 import { Link, NavLink, useLocation } from 'react-router-dom';
 import { academySidebarGroups, academySidebarSections, toolSidebarSections } from '../../../app/routes/academyRoutes';
 import { APP_VERSION } from '../../../constants/app';
+import { AccountSyncStatus } from '../../ui/AccountSyncStatus';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -32,6 +33,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     const academyIsExpanded = academyExpanded || isAcademyRoute;
 
     const navItems = [
+        { to: '/account', icon: Wallet, label: 'Mi cuenta' },
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/news', icon: Newspaper, label: 'Noticias' },
     ];
@@ -75,7 +77,10 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                             onClick={closeMobileSidebar}
                         >
                             <Icon className="sidebar__link-icon" size={20} />
-                            <span className="sidebar__link-text">{label}</span>
+                            <span className={`sidebar__link-text${to === '/account' ? ' sidebar__account-label' : ''}`}>
+                                {label}
+                                {to === '/account' && <AccountSyncStatus />}
+                            </span>
                         </NavLink>
                     ))}
 

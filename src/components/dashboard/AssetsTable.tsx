@@ -8,7 +8,7 @@ import { compareKnownReturns, dailyAssetVariation } from '../../services/dashboa
 
 interface AssetsTableProps {
     assets: Asset[];
-    onDelete?: (id: string) => void;
+    onDelete?: (id: string) => void | Promise<void>;
     onEdit?: (asset: Asset) => void;
     onAddPurchase?: (asset: Asset) => void;
     onSell?: (asset: Asset) => void;
@@ -33,6 +33,8 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
     const [sortKey, setSortKey] = useState<SortKey>('value');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+    const [deleteError,setDeleteError]=useState('');
+    const [deleting,setDeleting]=useState(false);
     const [showMobileDetails, setShowMobileDetails] = useState(false);
     const [showMobileActions, setShowMobileActions] = useState(false);
     const hasActionHandlers = Boolean(onDelete || onEdit || onAddPurchase || onSell);
@@ -97,11 +99,12 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
         setDeleteConfirmId(id);
     };
 
-    const handleConfirmDelete = () => {
-        if (deleteConfirmId && onDelete) {
-            onDelete(deleteConfirmId);
-        }
-        setDeleteConfirmId(null);
+    const handleConfirmDelete = async () => {
+        if(deleting)return;
+        setDeleting(true);setDeleteError('');
+        try {if(deleteConfirmId && onDelete)await onDelete(deleteConfirmId);setDeleteConfirmId(null);}
+        catch(error){setDeleteError(error instanceof Error?error.message:'No se pudo confirmar la eliminación.');}
+        finally{setDeleting(false);}
     };
 
     const assetToDelete = deleteConfirmId
@@ -351,6 +354,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
             </Card>
 
             {/* Delete Confirmation Dialog */}
+            {deleteError && <p role="alert">{deleteError}</p>}
             <ConfirmDialog
                 isOpen={deleteConfirmId !== null}
                 onClose={() => setDeleteConfirmId(null)}
@@ -359,7 +363,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                 message={assetToDelete
                     ? `¿Estás seguro de que quieres eliminar ${assetToDelete.symbol} (${assetToDelete.name}) de tu portfolio? Esta acción no se puede deshacer.`
                     : '¿Estás seguro de que quieres eliminar este activo?'}
-                confirmText="Eliminar"
+                confirmText={deleting?'Eliminando…':'Eliminar'}
                 cancelText="Cancelar"
                 variant="danger"
             />

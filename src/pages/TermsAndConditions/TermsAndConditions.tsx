@@ -13,7 +13,7 @@ export function TermsAndConditions() {
 
             <div className="terms__container">
                 <h1 className="terms__title">Términos y Condiciones de Uso</h1>
-                <p className="terms__updated">Última actualización: 19 de marzo de 2026</p>
+                <p className="terms__updated">Última actualización: 2 de octubre de 2026</p>
 
                 <section className="terms__section">
                     <h2>0. Titularidad y Contacto</h2>
@@ -118,8 +118,10 @@ export function TermsAndConditions() {
                         para su funcionamiento.
                     </p>
                     <ul>
-                        <li><strong>Almacenamiento local:</strong> Los datos de cartera y otra información introducida por el usuario se almacenan, con carácter general, en el navegador o dispositivo del propio usuario.</li>
-                        <li><strong>Sin tratamiento activo en servidores propios:</strong> FreeWallet no trata activamente en servidores propios los datos financieros del usuario ni mantiene un backend destinado al almacenamiento ordinario de carteras personales.</li>
+                        <li><strong>Modo local:</strong> Sin una cuenta conectada, los datos de cartera se guardan en el navegador o dispositivo del usuario.</li>
+                        <li><strong>Sincronización voluntaria:</strong> Cuando está disponible, el usuario puede crear una cuenta e importar expresamente su cartera en Supabase para consultarla desde distintos dispositivos. Se guardan las posiciones, movimientos, histórico, apartados del Excel importado y preferencias seleccionadas, vinculados a su cuenta. La importación no elimina la copia local.</li>
+                        <li><strong>Acceso y custodia:</strong> Supabase gestiona la autenticación y el almacenamiento. Las reglas de acceso separan las carteras de los usuarios, pero no constituyen cifrado de extremo a extremo: los administradores autorizados del servicio pueden acceder a los datos para su gestión técnica. Las claves personales de cotizaciones no se incluyen en la sincronización.</li>
+                        <li><strong>Exportación y eliminación:</strong> Mi cuenta permite descargar una copia privada. Para solicitar la eliminación de una cuenta y de su cartera asociada, utiliza el contacto indicado en el apartado de titularidad.</li>
                         <li><strong>Infraestructura técnica:</strong> Los proveedores de alojamiento, distribución de contenido o analítica técnica estrictamente necesaria pueden tratar datos técnicos mínimos, como dirección IP, solicitudes HTTP, identificadores de dispositivo o metadatos del navegador, conforme a sus propias políticas.</li>
                         <li><strong>Analítica técnica y rendimiento:</strong> FreeWallet puede utilizar servicios de analítica técnica y medición de rendimiento, como Vercel Analytics y Vercel Speed Insights, cuyos proveedores pueden tratar datos técnicos mínimos de navegación y funcionamiento, tales como dirección IP, metadatos del navegador, páginas visitadas, eventos de navegación, tiempos de carga, métricas web de rendimiento y métricas agregadas de uso, conforme a sus propias políticas.</li>
                         <li><strong>APIs y servicios externos:</strong> Cuando la aplicación consulta cotizaciones u otra información de terceros, dichos proveedores pueden recibir los datos técnicos imprescindibles para responder a la solicitud y se regirán por sus propias políticas de privacidad y tratamiento.</li>

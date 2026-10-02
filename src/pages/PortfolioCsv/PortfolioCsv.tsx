@@ -1,4 +1,5 @@
-﻿import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { portfolioStorage } from '../../services/portfolioCloudStorage';
+import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
     AlertTriangle,
     Activity,
@@ -297,18 +298,18 @@ export function PortfolioCsv() {
     }, [evolution, resolvedPeriodMap, riskMonths]);
     useEffect(() => {
         try {
-            localStorage.setItem(STORAGE_KEYS.holdingsRaw, holdingsRaw);
-            localStorage.setItem(STORAGE_KEYS.evolutionRaw, evolutionRaw);
-            localStorage.setItem(STORAGE_KEYS.comparisonRaw, comparisonRaw);
-            localStorage.setItem(STORAGE_KEYS.advancedRaw, advancedRaw);
-            localStorage.setItem(STORAGE_KEYS.dailyRaw, dailyRaw);
-            localStorage.setItem(STORAGE_KEYS.movementsRaw, movementsRaw);
-            localStorage.setItem(STORAGE_KEYS.objectivesRaw, objectivesRaw);
-            localStorage.setItem(STORAGE_KEYS.controlRaw, controlRaw);
-            localStorage.setItem(STORAGE_KEYS.workbookFile, workbookFileLabel);
-            localStorage.setItem(STORAGE_KEYS.updatedAt, updatedAt);
-            localStorage.setItem(STORAGE_KEYS.categoryOverrides, JSON.stringify(categoryOverrides));
-            localStorage.setItem(STORAGE_KEYS.bucketTargets, JSON.stringify(bucketTargets));
+            portfolioStorage.setItem(STORAGE_KEYS.holdingsRaw, holdingsRaw);
+            portfolioStorage.setItem(STORAGE_KEYS.evolutionRaw, evolutionRaw);
+            portfolioStorage.setItem(STORAGE_KEYS.comparisonRaw, comparisonRaw);
+            portfolioStorage.setItem(STORAGE_KEYS.advancedRaw, advancedRaw);
+            portfolioStorage.setItem(STORAGE_KEYS.dailyRaw, dailyRaw);
+            portfolioStorage.setItem(STORAGE_KEYS.movementsRaw, movementsRaw);
+            portfolioStorage.setItem(STORAGE_KEYS.objectivesRaw, objectivesRaw);
+            portfolioStorage.setItem(STORAGE_KEYS.controlRaw, controlRaw);
+            portfolioStorage.setItem(STORAGE_KEYS.workbookFile, workbookFileLabel);
+            portfolioStorage.setItem(STORAGE_KEYS.updatedAt, updatedAt);
+            portfolioStorage.setItem(STORAGE_KEYS.categoryOverrides, JSON.stringify(categoryOverrides));
+            portfolioStorage.setItem(STORAGE_KEYS.bucketTargets, JSON.stringify(bucketTargets));
             window.dispatchEvent(new Event('freewallet-data-change'));
         } catch {
             // localStorage puede fallar en modo privado o por limites de cuota.

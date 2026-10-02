@@ -13,23 +13,12 @@ import type {
     NewsUser,
 } from '../types/news';
 import { sanitizeNewsHtml } from '../utils/newsContent';
+import { getAppSupabaseClient, isAppBackendConfigured } from './supabaseClient';
 
-const SUPABASE_URL = (import.meta.env.VITE_SUPABASE_URL as string | undefined)?.trim().replace(/\/$/, '');
-const SUPABASE_KEY = (
-    (import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY as string | undefined)
-    ?? (import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined)
-)?.trim();
-const CONFIG_PLACEHOLDER_PATTERN = /tu-proyecto|sb_publishable_xxx|eyj\.\.\./i;
-const SESSION_STORAGE_KEY = 'freewallet-news-auth';
 const NEWS_COLUMNS = 'id,slug,title,excerpt,content,cover_image_url,status,published_at,created_at,updated_at,author_id';
 const NEWS_ADMIN_COLUMNS = 'user_id,email,role,status,created_at,invited_at,accepted_at';
 
-function isUsableConfigValue(value: string | undefined): value is string {
-    return Boolean(value && !CONFIG_PLACEHOLDER_PATTERN.test(value));
-}
-
-export const isNewsBackendConfigured = isUsableConfigValue(SUPABASE_URL) && isUsableConfigValue(SUPABASE_KEY);
-let clientPromise: Promise<SupabaseClient> | undefined;
+export const isNewsBackendConfigured = isAppBackendConfigured;
 
 export class NewsServiceError extends Error {
     status?: number;
@@ -72,12 +61,7 @@ async function requireClient(): Promise<SupabaseClient> {
         );
     }
 
-    // The Dashboard and Academy do not need the editorial backend SDK.
-    // Concurrent editorial requests share a single client; failed loads can retry.
-    clientPromise ??= import('@supabase/supabase-js').then(({ createClient }) => createClient(SUPABASE_URL!, SUPABASE_KEY!, {
-        auth: { autoRefreshToken: true, detectSessionInUrl: true, persistSession: true, storageKey: SESSION_STORAGE_KEY },
-    })).catch(error => { clientPromise = undefined; throw error; });
-    return clientPromise;
+    return getAppSupabaseClient();
 }
 
 function getSupabaseErrorMessage(error: { message?: string } | null, fallback: string): string {

@@ -6,6 +6,7 @@ import App from './App.tsx'
 import { ThemeProvider } from './context/ThemeContext'
 import { AppearanceProvider } from './context/AppearanceContext'
 import { PortfolioProvider } from './context/PortfolioContext'
+import { AccountProvider } from './context/AccountContext'
 
 const CHUNK_RELOAD_KEY = 'freewallet_chunk_reload_once'
 
@@ -45,6 +46,7 @@ window.addEventListener('unhandledrejection', (event) => {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <AccountProvider>
     <ThemeProvider>
       <AppearanceProvider>
         <PortfolioProvider>
@@ -54,5 +56,6 @@ createRoot(document.getElementById('root')!).render(
         </PortfolioProvider>
       </AppearanceProvider>
     </ThemeProvider>
+    </AccountProvider>
   </StrictMode>,
 )

@@ -1,3 +1,4 @@
+import { portfolioStorage } from '../services/portfolioCloudStorage';
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import type { ReactNode } from 'react';
 
@@ -88,7 +89,7 @@ function readStoredAppearance(): AppearanceMode {
     if (typeof window === 'undefined') return 'liquid-glass';
 
     try {
-        const stored = window.localStorage.getItem(APPEARANCE_STORAGE_KEY);
+        const stored = portfolioStorage.getItem(APPEARANCE_STORAGE_KEY);
         if (stored === 'standard' || stored === 'liquid-glass') return stored;
     } catch {
         // Ignore storage access errors so the appearance never blocks the app.
@@ -99,7 +100,7 @@ function readStoredAppearance(): AppearanceMode {
 
 function persistAppearance(appearance: AppearanceMode): void {
     try {
-        window.localStorage.setItem(APPEARANCE_STORAGE_KEY, appearance);
+        portfolioStorage.setItem(APPEARANCE_STORAGE_KEY, appearance);
     } catch {
         // Ignore storage access errors; the preference still applies for this session.
     }

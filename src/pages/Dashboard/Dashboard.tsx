@@ -23,6 +23,7 @@ import { resolveLiveUnderlyingSelection } from '../../services/portfolioComposit
 import { portfolioQuoteStatus, quoteDateLabel } from '../../services/portfolioQuoteStatus';
 import './Dashboard.css';
 import { PRICE_REFRESH_INTERVAL_MS } from '../../constants/app';
+import {useAccount} from '../../context/AccountContext';
 
 const DASHBOARD_CALCULATION_TICK_MS = 60 * 1000;
 const DASHBOARD_NOTICE_STORAGE_KEY = 'freewallet-dashboard-notice-dismissed';
@@ -85,6 +86,7 @@ export function Dashboard() {
     useLocalDataVersion();
     const [dashboardPeriod, setDashboardPeriod] = useState<TimePeriod>('ALL');
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
+    const account=useAccount();
     const { assets, loading, updatingPrices, lastPriceUpdate, quoteFailures } = state;
     const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
     const [selectedHolding, setSelectedHolding] = useState<{
@@ -296,7 +298,7 @@ export function Dashboard() {
                                             Añadir primera inversión
                                         </Button>
                                     </Link>
-                                    <Button variant="secondary" onClick={loadDemoData} icon={<RefreshCw size={18} />} size="lg" fullWidth>
+                                    <Button variant="secondary" onClick={loadDemoData} disabled={!!account.user} icon={<RefreshCw size={18} />} size="lg" fullWidth>
                                         Cargar Datos Demo
                                     </Button>
                                 </div>

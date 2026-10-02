@@ -15,6 +15,8 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 ### 2026-10-02 - Cartera multidispositivo con Supabase
 - Funcionalidad:
   - Mi cuenta: acceso, registro, recuperación y autenticador en dos pasos.
+  - Estado de sincronización integrado en el menú, sin franja superior ni enlaces de navegación redundantes en Mi cuenta.
+  - Formularios y botones de cuenta con espaciado coherente y controles táctiles adaptados a móvil y Liquid Glass.
   - Importación voluntaria con vista previa y respaldo privado, sin reemplazar una cartera existente ni borrar la copia local.
   - Sincronización de posiciones, movimientos, Excel, objetivos y preferencias con revisión, idempotencia y conflictos explícitos.
   - Cálculo decimal servidor para DCA y ventas, aislamiento de cuentas y cancelación de respuestas de sesiones anteriores.

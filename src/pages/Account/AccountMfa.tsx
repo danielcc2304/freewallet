@@ -1,3 +1,4 @@
+import {Button} from '../../components/ui/Button';
 import {useEffect,useState} from 'react';
 import {getAppSupabaseClient} from '../../services/supabaseClient';
 import {useAccount} from '../../context/AccountContext';
@@ -47,14 +48,14 @@ export function AccountMfa(){
     return <div className="card account-page__form"><h2>Verificación en dos pasos</h2>
         <p>{enabled?'Tu cuenta tiene un autenticador configurado.':'Puedes proteger el acceso a tu cartera con una aplicación de autenticación.'}</p>
         {!enabled&&!qr && <><p>Al confirmar el autenticador se cerrarán las otras sesiones. Completa o exporta los cambios pendientes en tus dispositivos antes de activarlo.</p>
-            {pendingFactor ? <button className="btn btn--secondary" disabled={busy} onClick={()=>{
+            {pendingFactor ? <Button variant="secondary" disabled={busy} onClick={()=>{
                 if(!window.confirm('¿Eliminar la configuración de autenticador que quedó sin confirmar? No se eliminará un factor ya verificado.'))return;
                 setBusy(true);void getAppSupabaseClient().then(async(client)=>{const result=await client.auth.mfa.unenroll({factorId:pendingFactor});if(result.error)throw result.error;setPendingFactor('');}).catch(()=>setMessage('No se pudo eliminar la configuración pendiente.')).finally(()=>setBusy(false));
-            }}>Eliminar configuración pendiente</button>:<button className="btn btn--secondary" disabled={busy||account.sync.status==='saving'||account.sync.status==='conflict'} onClick={()=>void enroll()}>Configurar autenticador</button>}</>}
+            }}>Eliminar configuración pendiente</Button>:<Button variant="secondary" disabled={busy||account.sync.status==='saving'||account.sync.status==='conflict'} onClick={()=>void enroll()}>Configurar autenticador</Button>}</>}
         {qr && <><p>Escanea el código con tu aplicación. No compartas esta imagen.</p><img width="220" height="220" src={qr} alt="Código QR privado para configurar el autenticador"/></>}
         {required&&factor && <form className="account-page__form" onSubmit={event=>void verify(event)}>
             <label>Código del autenticador<input value={code} onChange={event=>setCode(event.target.value.replace(/\D/g,''))} inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required/></label>
-            <button className="btn btn--primary" disabled={busy||code.length!==6}>{busy?'Verificando…':'Verificar código'}</button>
+            <Button disabled={busy||code.length!==6}>{busy?'Verificando…':'Verificar código'}</Button>
         </form>}
         {message&&<p role="status">{message}</p>}
     </div>;

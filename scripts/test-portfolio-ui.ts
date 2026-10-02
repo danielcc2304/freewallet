@@ -77,15 +77,25 @@ try {
         return page;
     };
     const a=await prepare(0);const b=await prepare(1);
+    const checkLayout=async(page:Page)=>{
+        assert.equal(await page.$('.layout__main > .account-sync'),null,'No account banner may shift page content');
+        assert.equal(await page.$eval('.layout__main',element=>element.firstElementChild?.className),'layout__content');
+        assert.ok(await page.$('.sidebar a[href="/account"] .sidebar__account-status'),'Sync status belongs inside the account menu link');
+        assert.equal(await page.$('a::-p-text(Ir al Dashboard)'),null);
+        assert.ok(await page.$$eval('.account-page .btn',buttons=>buttons.every(button=>button.getBoundingClientRect().height>=44)),'Account actions must have usable touch targets');
+    };
+    await checkLayout(a);
     const click=async(page:Page,text:string)=>{const button=await page.$(`button::-p-text(${text})`);assert.ok(button,`Missing ${text}`);await button.click();};
     await click(a,'Revisar datos de este navegador');
     await a.waitForFunction(count=>document.body.innerText.includes(`${count} posiciones`),{},localPortfolio.assets.length);
     assert.equal(await a.$eval('button::-p-text(Confirmar importación)',element=>(element as HTMLButtonElement).disabled),true);
+    assert.ok(await a.$eval('.account-page__confirmation input',element=>element.getBoundingClientRect().width<=24),'Confirmation checkbox must not stretch across the card');
     await a.click('input[type="checkbox"]');await click(a,'Confirmar importación');
     await a.waitForFunction(()=>document.body.innerText.includes('Guardado en tu cuenta'));
     assert.ok(await b.$('button::-p-text(Empezar una cartera vacía)'),'Other account must remain empty');
     await a.goto(`${origin}/`,{waitUntil:'networkidle2'});
     await a.waitForFunction(()=>document.body.innerText.includes('Mis Activos'));
+    assert.equal(await a.$('.layout__main > .account-sync'),null);
     await a.goto(`${origin}/portfolio-csv`,{waitUntil:'networkidle2'});
     await a.waitForFunction(()=>document.body.innerText.includes('Análisis de cartera'));
     await a.goto(`${origin}/account`,{waitUntil:'networkidle2'});
@@ -96,6 +106,17 @@ try {
     for(const asset of localPortfolio.assets){const stored=roundTrip.assets.find((item:{id:string})=>item.id===asset.id);assert.equal(stored.quantity,asset.quantity);assert.equal(stored.purchasePrice,asset.purchasePrice);}
     await a.setViewport({width:390,height:844});await a.reload({waitUntil:'networkidle2'});
     assert.ok(await a.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'Account must fit mobile');
+    await checkLayout(a);
+    for(const theme of ['light','dark']){
+        for(const appearance of ['standard','liquid-glass']){
+            await a.evaluate((modes)=>{
+                document.documentElement.setAttribute('data-theme',modes.theme);
+                document.documentElement.setAttribute('data-appearance',modes.appearance);
+            },{theme,appearance});
+            await checkLayout(a);
+            assert.ok(await a.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),`${theme}/${appearance} must fit mobile`);
+        }
+    }
     assert.deepEqual(errors,[],'Frontend must not throw errors');
     console.log(`UI passed: isolated accounts, scoped Authorization, explicit preview/confirmation, ${localPortfolio.assets.length} position quantities/costs preserved, Dashboard/Portfolio, reload, no replacement import and mobile fit. Auth is mocked; production transport receives nothing.`);
 }finally{await browser.close();await db.close();}

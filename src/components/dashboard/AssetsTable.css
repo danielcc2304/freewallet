@@ -294,10 +294,13 @@
     .assets-table__mobile-toolbar {
         display: flex;
         align-items: center;
-        gap: var(--spacing-xs);
+        gap: 10px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
     }
 
     .assets-table__mobile-toolbar .btn {
+        min-height: 44px;
         padding: var(--spacing-xs) var(--spacing-sm);
         font-size: var(--font-size-xs);
         white-space: nowrap;
@@ -384,7 +387,15 @@
     }
 
     .assets-table__actions {
-        gap: 0;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .assets-table__actions .btn {
+        width: 44px;
+        min-width: 44px;
+        min-height: 44px;
+        padding: 0;
     }
 }
 .assets-table__sort, .assets-table__open {

@@ -1,0 +1,4 @@
+.local-portfolio-prompt { display: grid; gap: 1rem; }
+.local-portfolio-prompt p { line-height: 1.6; overflow-wrap: anywhere; }
+.local-portfolio-prompt p:last-child { font-size: .875rem; color: var(--text-secondary); }
+.local-portfolio-prompt .btn { min-height: 44px; white-space: normal; }

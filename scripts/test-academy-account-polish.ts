@@ -127,7 +127,7 @@ try{
     await page.goto(`${origin}/feature-log`,{waitUntil:'networkidle2'});
     assert.equal(await page.$$eval('.feature-log-entry__title',nodes=>nodes.filter(node=>node.textContent?.startsWith('v6.0.1 -')).length),1);
     const entry=await page.$$eval('.feature-log-entry__title',nodes=>nodes.find(node=>node.textContent?.startsWith('v6.0.1 -'))?.closest('article')?.textContent??'');
-    for(const content of ['Aviso claro','Mensajes de error','Microsoft Graph'])assert.ok(entry.includes(content),`Combined card must preserve ${content}: ${entry}`);
+    for(const content of ['Ruta guiada de Fundamentos','QR del autenticador','Aviso claro','Mensajes de error','Microsoft Graph'])assert.ok(entry.includes(content),`Combined v6.0.1 card must preserve ${content}: ${entry}`);
     await page.goto(`${origin}/terms`,{waitUntil:'networkidle2'});
     const terms=await page.$eval('.terms',node=>node.textContent??'');
     for(const content of ['Cuenta y sesión','Cartera sincronizada','no elimina la cuenta','no constituyen cifrado de extremo a extremo','no desactiva los servicios de cuenta','6.1. Seguridad','copias privadas exportadas no están cifradas'])assert.ok(terms.includes(content),`Missing disclosure: ${content}`);

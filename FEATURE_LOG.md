@@ -12,7 +12,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-02 - Dashboard: claridad de datos y plan móvil
+### 2026-10-02 - v6.0.4 - Dashboard: claridad de datos y plan móvil
 - Funcionalidad:
   - Rankings con colores según ganancias o pérdidas, independientemente de su clasificación.
   - Los lotes del mismo instrumento no se confunden con registros de identificador duplicado.

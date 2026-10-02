@@ -7,6 +7,7 @@ import { ThemeProvider } from './context/ThemeContext'
 import { AppearanceProvider } from './context/AppearanceContext'
 import { PortfolioProvider } from './context/PortfolioContext'
 import { AccountProvider } from './context/AccountContext'
+import { FeedbackProvider } from './context/FeedbackContext'
 
 const CHUNK_RELOAD_KEY = 'freewallet_chunk_reload_once'
 
@@ -46,6 +47,7 @@ window.addEventListener('unhandledrejection', (event) => {
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
+    <FeedbackProvider>
     <AccountProvider>
     <ThemeProvider>
       <AppearanceProvider>
@@ -57,5 +59,6 @@ createRoot(document.getElementById('root')!).render(
       </AppearanceProvider>
     </ThemeProvider>
     </AccountProvider>
+    </FeedbackProvider>
   </StrictMode>,
 )

@@ -6,6 +6,7 @@ import {portfolioStorage} from '../services/portfolioCloudStorage';
 import type {CloudData} from '../services/portfolioCloudStorage';
 import {readCloudPortfolio,writeCloudPortfolio} from '../services/portfolioRepository';
 import {AccountScope} from '../services/accountScope';
+import {AccountConnectionState} from '../components/ui/AccountConnectionState';
 
 const portfolioCloudEnabled=isAppBackendConfigured && import.meta.env.VITE_PORTFOLIO_CLOUD_ENABLED==='true';
 const scope=new AccountScope();
@@ -93,7 +94,7 @@ export function AccountProvider({children}:{children:ReactNode}) {
         const client=await getAppSupabaseClient();const {error}=await client.auth.signOut({scope:'local'});if(error)throw error;
         setRecovery(false);
     };
-    if(!ready)return <div role="status" style={{padding:'2rem'}}>Conectando tu cuenta…</div>;
+    if(!ready)return <AccountConnectionState />;
     return <Context.Provider value={{user,recovery,enabled:portfolioCloudEnabled,sync,refresh,importLocal,logout}}>
         <div key={`${sync.userId??'local'}:${sync.viewEpoch}`}>{children}</div>
     </Context.Provider>;

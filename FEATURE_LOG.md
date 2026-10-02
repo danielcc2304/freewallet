@@ -12,7 +12,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-02 - Calculadoras y Dashboard: simulaciones y lectura de cartera
+### 2026-10-02 - v6.0.5 - Calculadoras y Dashboard: simulaciones y lectura de cartera
 - Funcionalidad:
   - Interés compuesto con intereses generados, retiradas acumuladas y saldo disponible diferenciados, también en gráfico y detalle anual.
   - Fondo de emergencia sin resultados engañosos cuando no hay gastos; entradas de inflación editables y etiquetas accesibles en FIRE, jubilación y emergencia.

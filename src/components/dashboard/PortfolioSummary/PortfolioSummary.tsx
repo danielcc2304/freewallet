@@ -7,11 +7,12 @@ interface PortfolioSummaryProps {
     metrics: PortfolioMetrics;
     period: TimePeriod;
     onPeriodChange: (period: TimePeriod) => void;
+    estimatedCount?: number;
 }
 
 type PeriodTab = TimePeriod;
 
-export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange }: PortfolioSummaryProps) {
+export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, estimatedCount = 0 }: PortfolioSummaryProps) {
 
     const formatCurrency = (value: number): string => {
         if (!Number.isFinite(value)) return 'Sin histórico suficiente';
@@ -92,7 +93,7 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange }:
                     size="large"
                 />
                 <MetricCard
-                    title="Valor Actual"
+                    title={estimatedCount ? 'Valor actual (incluye estimaciones)' : 'Valor Actual'}
                     value={formatCurrency(metrics.currentValue)}
                     change={metrics.percentageGain}
                     changeLabel="total"
@@ -100,7 +101,7 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange }:
                     size="large"
                 />
                 <MetricCard
-                    title="Ganancia/Pérdida Total"
+                    title={estimatedCount ? 'Resultado total (estimado)' : 'Ganancia/Pérdida Total'}
                     value={formatCurrency(metrics.totalGain)}
                     change={metrics.percentageGain}
                     icon={<TrendingUp size={20} />}

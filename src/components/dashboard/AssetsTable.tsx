@@ -237,6 +237,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                         <td className="assets-table__optional">{formatPrice(asset.purchasePrice)}</td>
                                         <td className="assets-table__column--price assets-table__optional">
                                             <span className="assets-table__current-price">{formatPrice(assetPrice(asset))}</span>
+                                            {!hasValidPrice(asset) && <small className="assets-table__estimated">Estimado al coste</small>}
                                         </td>
                                         <td className="assets-table__column--today">
                                             <span className={`assets-table__today ${Number.isFinite(asset.todayChangePercent) && asset.todayChangePercent < 0
@@ -251,13 +252,14 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                         </td>
                                         <td className="assets-table__column--value assets-table__value">
                                             {formatCurrency(asset.currentValue)}
+                                            {!hasValidPrice(asset) && <small className="assets-table__estimated">Estimado al coste</small>}
                                         </td>
                                         <td className="assets-table__column--gain">
                                             <div className="assets-table__gain">
                                                 <span
-                                                    className={`assets-table__change ${asset.changePercent >= 0
+                                                    className={`assets-table__change ${asset.changePercent > 0
                                                         ? 'assets-table__change--positive'
-                                                        : 'assets-table__change--negative'
+                                                        : asset.changePercent < 0 ? 'assets-table__change--negative' : ''
                                                         }`}
                                                 >
                                                     {formatPercent(asset.changePercent)}
@@ -291,6 +293,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                                 <div>
                                                     <span>Precio actual</span>
                                                     <strong>{formatPrice(assetPrice(asset))}</strong>
+                                                    {!hasValidPrice(asset) && <span className="assets-table__estimated">Estimado al coste</span>}
                                                 </div>
                                                 <div>
                                                     <span>Peso</span>

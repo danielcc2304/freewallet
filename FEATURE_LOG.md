@@ -12,6 +12,18 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-02 - v6.0.4 - Dashboard: claridad de datos y plan móvil
+- Funcionalidad:
+  - Rankings con colores según ganancias o pérdidas, independientemente de su clasificación.
+  - Los lotes del mismo instrumento no se confunden con registros de identificador duplicado.
+  - Valoraciones estimadas identificadas junto al precio, valor y resumen; panel compacto de calidad de datos y explicación de ratios sin dato.
+  - Histórico de mercado conservado seis horas, con actualización incremental, reintentos limitados y respaldo ante fallos.
+  - Plan móvil con peso actual, objetivo y aportación propuesta, y detalle desplegable de cada posición.
+- Resumen:
+  - Hace más clara la información de cartera y reduce consultas redundantes sin cambiar la navegación ni las fórmulas de rentabilidad.
+- Archivos:
+  - `src/components/dashboard/`, `src/pages/Dashboard/Dashboard.tsx`, `src/services/dashboardIntegrity.ts`, `src/services/dashboardMarketHistory.ts`, `scripts/test-dashboard-quality.ts`, `scripts/test-dashboard-quality-ui.ts`, `package.json`.
+
 ### 2026-10-02 - v6.0.3 - Bonos, Nasdaq 100 y controles móviles
 - Funcionalidad:
   - Resultado TIR/YTM legible en tema claro y en Liquid Glass, con tipografía y contraste coherentes.

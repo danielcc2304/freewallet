@@ -404,3 +404,10 @@
 .assets-table__sort { display: inline-flex; align-items: center; gap: .35rem; min-height: 44px; }
 .assets-table__open { padding: 0; min-height: 44px; }
 .assets-table__sort:focus-visible, .assets-table__open:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; border-radius: 4px; }
+
+.assets-table__estimated {
+    display: block;
+    font-size: .7rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+}

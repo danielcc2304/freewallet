@@ -287,7 +287,7 @@ function loadProgress(): ProgressState {
 export function Fundamentos() {
   const { isLiquidGlass } = useAppearance();
   const [progress, setProgress] = useState<ProgressState>(() => loadProgress());
-  const [levelsExpanded, setLevelsExpanded] = useState(false);
+  const [levelsExpanded, setLevelsExpanded] = useState(true);
 
   const updateProgress = (
     updater: (current: ProgressState) => ProgressState,

@@ -19,6 +19,7 @@ if(process.env.FREEWALLET_REFERENCE_FILE){
     assert.equal(localPortfolio.assets.length,15);
 }
 const origin=process.env.FREEWALLET_TEST_URL??'http://127.0.0.1:5176';
+const appVersion=JSON.parse(readFileSync('package.json','utf8')).version;
 assert.match(origin,/^http:\/\/(127\.0\.0\.1|localhost):\d+$/);
 const browser=await puppeteer.launch({headless:true});
 const backupPath=join(tmpdir(),`freewallet-private-backup-mobile-layout-${crypto.randomUUID()}.json`);
@@ -40,12 +41,12 @@ try {
         const context=await browser.createBrowserContext();const page=await context.newPage();await page.setViewport({width:1440,height:1000});
         const user={id:users[index],aud:'authenticated',role:'authenticated',email:`ui-${index}-long-account-address-for-mobile-layout-check@example.invalid`,email_confirmed_at:new Date().toISOString(),is_anonymous:false,app_metadata:{provider:'email',providers:['email']},user_metadata:{},created_at:new Date().toISOString()};
         const jwt=`${btoa(JSON.stringify({alg:'HS256',typ:'JWT'}))}.${btoa(JSON.stringify({sub:user.id,exp:Math.floor(Date.now()/1000)+3600,session_id:sessions[index],role:'authenticated'}))}.synthetic-test-only`;
-        await page.evaluateOnNewDocument((auth,portfolio)=>{
+        await page.evaluateOnNewDocument((auth,portfolio,version)=>{
             localStorage.setItem('freewallet-news-auth',JSON.stringify(auth));
             localStorage.setItem('freewallet_portfolio_v1',JSON.stringify(portfolio));
             localStorage.setItem('freewallet_settings','{"apiEnabled":false}');
-            localStorage.setItem('freewallet_last_seen_version','5.3.13');
-        },{access_token:jwt,refresh_token:'synthetic-refresh',expires_at:Math.floor(Date.now()/1000)+3600,expires_in:3600,token_type:'bearer',user},localPortfolio);
+            localStorage.setItem('freewallet_last_seen_version',version);
+        },{access_token:jwt,refresh_token:'synthetic-refresh',expires_at:Math.floor(Date.now()/1000)+3600,expires_in:3600,token_type:'bearer',user},localPortfolio,appVersion);
         page.on('pageerror',error=>errors.push(String(error)));
         await page.setRequestInterception(true);
         page.on('request',request=>{void(async()=>{

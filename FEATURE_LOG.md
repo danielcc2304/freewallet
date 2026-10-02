@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-02 - Fundamentos y configuración de cuenta
+- Funcionalidad:
+  - Ruta guiada de Fundamentos desplegada por defecto, manteniendo el control para contraerla.
+  - QR del autenticador con fondo blanco y margen de lectura, normalización de SVG y clave manual para configurar desde el mismo móvil.
+  - Icono Liquid Glass sin el borde interior que conectaba visualmente sus dos elementos.
+- Resumen:
+  - Mejora la lectura de Academia y facilita configurar la verificación en dos pasos sin cambiar la protección de la cuenta.
+- Archivos:
+  - `src/components/academy/guides/Fundamentos.tsx`, `src/pages/Account/AccountMfa.tsx`, `src/pages/Account/Account.css`, `src/services/mfaQr.ts`, `src/pages/Settings/Settings.css`, `scripts/test-academy-account-polish.ts`, `scripts/test-portfolio-ui.ts`, `package.json`, `package-lock.json`
+
 ### 2026-10-02 - v6.0.1 - Primer acceso con una cartera existente
 - Funcionalidad:
   - Aviso claro al encontrar una cartera local y una cuenta sin importar, con opciones para revisarla o continuar sin subir datos.

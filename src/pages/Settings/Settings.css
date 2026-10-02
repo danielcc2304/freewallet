@@ -193,17 +193,6 @@
     border: 1px solid rgba(255, 255, 255, .22);
 }
 
-.appearance-option__visual--glass::after {
-    position: absolute;
-    inset: 5px;
-    content: '';
-    border: 1px solid rgba(255, 255, 255, .38);
-    border-radius: 6px;
-    background: rgba(255, 255, 255, .12);
-    backdrop-filter: blur(4px);
-    -webkit-backdrop-filter: blur(4px);
-}
-
 .appearance-option__visual--glass span {
     position: relative;
     z-index: 1;

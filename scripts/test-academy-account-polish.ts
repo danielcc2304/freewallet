@@ -123,5 +123,49 @@ try{
     assert.equal(await page.$('.account-page__mfa-qr'),null);
     assert.equal(await page.$('#account-mfa-manual'),null,'Secret must disappear after verification');
     assert.equal(enrollments,1);assert.equal(verifications,2);assert.deepEqual(errors,[]);
-    console.log('PASS: expanded academy, glass preview, QR normalization/decoding in four themes, manual setup and mocked MFA success/error. No production requests.');
+
+    await page.goto(`${origin}/feature-log`,{waitUntil:'networkidle2'});
+    assert.equal(await page.$$eval('.feature-log-entry__title',nodes=>nodes.filter(node=>node.textContent?.startsWith('v6.0.1 -')).length),1);
+    const entry=await page.$$eval('.feature-log-entry__title',nodes=>nodes.find(node=>node.textContent?.startsWith('v6.0.1 -'))?.closest('article')?.textContent??'');
+    for(const content of ['Aviso claro','Mensajes de error','Microsoft Graph'])assert.ok(entry.includes(content),`Combined card must preserve ${content}: ${entry}`);
+    await page.goto(`${origin}/terms`,{waitUntil:'networkidle2'});
+    const terms=await page.$eval('.terms',node=>node.textContent??'');
+    for(const content of ['Cuenta y sesión','Cartera sincronizada','no elimina la cuenta','no constituyen cifrado de extremo a extremo','no desactiva los servicios de cuenta','6.1. Seguridad','copias privadas exportadas no están cifradas'])assert.ok(terms.includes(content),`Missing disclosure: ${content}`);
+
+    const localContext=await browser.createBrowserContext();const localPage=await localContext.newPage();
+    await localPage.evaluateOnNewDocument(v=>{
+        if(!localStorage.getItem('freewallet_settings'))localStorage.setItem('freewallet_settings','{"apiEnabled":false}');
+        localStorage.setItem('freewallet_last_seen_version',v);
+    },version);
+    await localPage.setRequestInterception(true);
+    localPage.on('request',request=>{void(new URL(request.url()).origin===origin?request.continue():request.abort());});
+    for(const width of [390,1440]){
+        await localPage.setViewport({width,height:900});await localPage.goto(`${origin}/settings`,{waitUntil:'networkidle2'});
+        const control=await localPage.waitForSelector('.settings__toggle');assert.ok(control);
+        assert.equal(await control.evaluate(node=>node.textContent?.trim()),'');
+        assert.equal(await control.evaluate(node=>node.getAttribute('role')),'switch');
+        assert.equal(await control.evaluate(node=>node.getAttribute('aria-label')),'Activar peticiones a APIs');
+        assert.equal(await control.evaluate(node=>node.getAttribute('aria-checked')),'false');
+        await control.focus();await localPage.keyboard.press('Space');
+        await localPage.waitForFunction(()=>document.querySelector('.settings__toggle')?.getAttribute('aria-checked')==='true');
+        for(const appearance of ['standard','liquid-glass']){
+            await localPage.evaluate(a=>{document.documentElement.dataset.appearance=a;},appearance);
+            await control.evaluate(async node=>{
+                await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));
+                await Promise.all(node.getAnimations({subtree:true}).map(animation=>animation.finished.catch(()=>{})));
+            });
+            const fit=await control.evaluate(node=>{
+                const button=node.getBoundingClientRect();const thumb=node.firstElementChild!.getBoundingClientRect();
+                return {height:button.height,left:button.left,right:button.right,thumbLeft:thumb.left,thumbRight:thumb.right};
+            });
+            assert.ok(fit.height>=44&&fit.thumbLeft>=fit.left&&fit.thumbRight<=fit.right,`Toggle at ${width}/${appearance}: ${JSON.stringify(fit)}`);
+        }
+        if(width===390)await control.screenshot({path:join(tmpdir(),'freewallet-api-toggle-test.png')});
+        await localPage.reload({waitUntil:'networkidle2'});
+        assert.equal(await localPage.$eval('.settings__toggle',node=>node.getAttribute('aria-checked')),'true','API setting must persist');
+        await (await localPage.$('.settings__toggle'))!.click();
+        await localPage.waitForFunction(()=>document.querySelector('.settings__toggle')?.getAttribute('aria-checked')==='false');
+    }
+    await localContext.close();
+    console.log('PASS: academy, glass preview, QR decoding in four themes, mocked MFA, accessible API toggle and persistence, consolidated changelog and storage disclosures. No production requests.');
 }finally{await browser.close();}

@@ -196,10 +196,11 @@ export function Settings() {
                                 className={`settings__toggle ${apiEnabled ? 'settings__toggle--active' : ''}`}
                                 onClick={handleApiToggle}
                                 disabled={saving}
-                                aria-pressed={apiEnabled}
+                                role="switch"
+                                aria-label="Activar peticiones a APIs"
+                                aria-checked={apiEnabled}
                             >
-                                <span className="settings__toggle-thumb" />
-                                <span className="settings__toggle-text">{apiEnabled ? 'On' : 'Off'}</span>
+                                <span className="settings__toggle-thumb" aria-hidden="true" />
                             </button>
                         </div>
 

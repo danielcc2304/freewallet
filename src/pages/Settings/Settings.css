@@ -329,10 +329,12 @@
     position: relative;
     display: inline-flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-    min-width: 88px;
-    padding: 0.3rem 0.45rem;
+    justify-content: flex-start;
+    flex-shrink: 0;
+    width: 66px;
+    min-width: 66px;
+    min-height: 44px;
+    padding: 7px;
     border: 1px solid var(--border-secondary);
     border-radius: 999px;
     background: var(--bg-tertiary);
@@ -359,13 +361,6 @@
 .settings__toggle--active .settings__toggle-thumb {
     transform: translateX(26px);
     background: var(--accent-primary);
-}
-
-.settings__toggle-text {
-    min-width: 24px;
-    font-size: var(--font-size-sm);
-    font-weight: 700;
-    text-transform: uppercase;
 }
 
 .settings__input-group {

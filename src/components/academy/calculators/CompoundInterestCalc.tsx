@@ -118,10 +118,11 @@ function CompoundTooltip({ active, payload }: CompoundTooltipProps) {
                 Capital Aportado: {formatCompoundCurrency(data.contributed)}
             </p>
             <p style={{ margin: '4px 0', color: '#10b981', fontSize: '0.9rem' }}>
-                Intereses: {formatCompoundCurrency(data.interest)}
+                Intereses generados: {formatCompoundCurrency(data.grossInterest)}
             </p>
+            {data.withdrawal > 0 && <p>Retiradas acumuladas: {formatCompoundCurrency(data.withdrawal)}</p>}
             <p style={{ margin: '8px 0 0 0', fontWeight: 700, color: '#5280c7', fontSize: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '8px' }}>
-                Total: {formatCompoundCurrency(data.total)}
+                Saldo disponible: {formatCompoundCurrency(data.total)}
             </p>
         </div>
     );
@@ -262,7 +263,7 @@ export function CompoundInterestCalc() {
         }
     }, [initialCapital, monthlyContribution, years, targetAmount, withdrawalValue, withdrawalType, calculationMode, rateConversion, calculationError]);
 
-    const finalData = chartData[chartData.length - 1] ?? { contributed: 0, interest: 0, total: 0 };
+    const finalData = chartData[chartData.length - 1] ?? { contributed: 0, interest: 0, total: 0, grossInterest: 0, withdrawal: 0 };
 
     const timeToGoalYears = useMemo(() => {
         if (calculationMode !== 'timeToGoal') return null;
@@ -301,7 +302,7 @@ export function CompoundInterestCalc() {
                 balanceChange: point.total - previousPoint.total,
                 totalContributed: point.contributed,
                 totalDeposits: point.contributed - (Number(initialCapital) || 0),
-                totalInterest: point.interest
+                totalInterest: point.grossInterest
             };
         });
     }, [chartData, initialCapital]);
@@ -604,9 +605,9 @@ export function CompoundInterestCalc() {
                                 </div>
                                 <div className="compound__result-card compound__result-card--interest">
                                     <div className="compound__result-label">Intereses Generados</div>
-                                    <div className="compound__result-value">{formatCurrency(finalData.interest)}</div>
+                                    <div className="compound__result-value">{formatCurrency(finalData.grossInterest)}</div>
                                     <div className="compound__result-subtext">
-                                        {finalData.contributed > 0 ? `${((finalData.interest / finalData.contributed) * 100).toFixed(1)}% sobre lo aportado` : 'Sin capital aportado'}
+                                        {finalData.contributed > 0 ? `${((finalData.grossInterest / finalData.contributed) * 100).toFixed(1)}% sobre lo aportado` : 'Sin capital aportado'}
                                     </div>
                                 </div>
                                 <div className="compound__result-card compound__result-card--total">
@@ -615,16 +616,14 @@ export function CompoundInterestCalc() {
                                 </div>
                                 {withdrawalType !== 'none' && (
                                     <div className="compound__result-card">
-                                        <div className="compound__result-label">Retirada Anual</div>
+                                        <div className="compound__result-label">Retiradas Acumuladas</div>
                                         <div className="compound__result-value">
-                                            {withdrawalType === 'percentage'
-                                                ? formatPercent(Number(withdrawalValue) || 0)
-                                                : formatCurrency(Number(withdrawalValue) || 0)}
+                                            {formatCurrency(finalData.withdrawal)}
                                         </div>
                                         <div className="compound__result-subtext">
                                             {withdrawalType === 'percentage'
-                                                ? 'Aplicada como porcentaje del capital al cierre de cada año'
-                                                : 'Aplicada al cierre de cada año, limitada al saldo disponible'}
+                                                ? `Retirada anual del ${formatPercent(Number(withdrawalValue) || 0)}, limitada al saldo disponible`
+                                                : `Retirada anual de ${formatCurrency(Number(withdrawalValue) || 0)}, limitada al saldo disponible`}
                                         </div>
                                     </div>
                                 )}
@@ -675,14 +674,14 @@ export function CompoundInterestCalc() {
                     <CalculatorCard className="compound__chart">
                         <div className="compound__chart-header">
                             <h4>Evolución Temporal</h4>
-                            <div className="compound__chart-legend" aria-label="Leyenda del gr?fico">
+                            <div className="compound__chart-legend" aria-label="Leyenda del gráfico">
                                 <span className="compound__chart-legend-item">
                                     <span className="compound__chart-legend-dot compound__chart-legend-dot--blue" />
                                     Capital Aportado
                                 </span>
                                 <span className="compound__chart-legend-item">
                                     <span className="compound__chart-legend-dot compound__chart-legend-dot--green" />
-                                    Intereses Generados
+                                    Saldo Disponible
                                 </span>
                             </div>
                         </div>
@@ -714,7 +713,6 @@ export function CompoundInterestCalc() {
                                     <Area
                                         type="monotone"
                                         dataKey="contributed"
-                                        stackId="1"
                                         stroke="#3b82f6"
                                         fill="#3b82f6"
                                         fillOpacity={0.4}
@@ -723,44 +721,23 @@ export function CompoundInterestCalc() {
                                     />
                                     <Area
                                         type="monotone"
-                                        dataKey="interest"
-                                        stackId="1"
+                                        dataKey="total"
                                         stroke="#10b981"
                                         fill="#10b981"
                                         fillOpacity={0.4}
                                         strokeWidth={2}
-                                        name="Intereses Generados"
+                                        name="Saldo Disponible"
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
                         </div>
                     </CalculatorCard>
 
-                    {/* Breakdown Chart */}
                     <CalculatorCard className="compound__breakdown">
-                        <div className="compound__breakdown-item">
-                            <div className="compound__breakdown-bar" style={{
-                                width: `${finalData.total > 0 ? Math.min(100, finalData.contributed / finalData.total * 100) : 0}%`,
-                                background: '#3b82f6'
-                            }}>
-                                <span>{finalData.total > 0 ? (finalData.contributed / finalData.total * 100).toFixed(1) : '0'}%</span>
-                            </div>
-                            <div className="compound__breakdown-label-row">
-                                <div className="compound__breakdown-label">Tu dinero</div>
-                                <div className="compound__breakdown-value">{formatCurrency(finalData.contributed)}</div>
-                            </div>
-                        </div>
-                        <div className="compound__breakdown-item">
-                            <div className="compound__breakdown-bar" style={{
-                                width: `${finalData.total > 0 ? Math.max(0, Math.min(100, finalData.interest / finalData.total * 100)) : 0}%`,
-                                background: '#10b981'
-                            }}>
-                                <span>{finalData.total > 0 ? (finalData.interest / finalData.total * 100).toFixed(1) : '0'}%</span>
-                            </div>
-                            <div className="compound__breakdown-label-row">
-                                <div className="compound__breakdown-label">Magia del interés compuesto</div>
-                                <div className="compound__breakdown-value">{formatCurrency(finalData.interest)}</div>
-                            </div>
+                        <div>
+                            <h4>Cómo se calcula el saldo</h4>
+                            <p>Aportaciones {formatCurrency(finalData.contributed)} + intereses generados {formatCurrency(finalData.grossInterest)} − retiradas {formatCurrency(finalData.withdrawal)} = saldo disponible {formatCurrency(finalData.total)}.</p>
+                            <small>Las retiradas pueden incluir tu capital inicial; no se restan de los intereses generados.</small>
                         </div>
                     </CalculatorCard>
                     <CalculatorCard className="compound__detail">
@@ -787,7 +764,7 @@ export function CompoundInterestCalc() {
                                                 <strong className="compound__detail-total">{formatCurrency(row.endingBalance)}</strong>
                                             </div>
                                             <div className="compound__detail-summary-side">
-                                                <span className="compound__detail-yield">{formatCurrency(row.interestEarned)}</span>
+                                                <span className="compound__detail-yield">{formatCurrency(row.grossInterestEarned)}</span>
                                                 <span className="compound__detail-yield-label">Rendimiento</span>
                                             </div>
                                             {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
@@ -837,9 +814,9 @@ export function CompoundInterestCalc() {
                                                         </strong>
                                                     </div>
                                                     <div className="compound__detail-metric">
-                                                        <span>Resultado neto del año</span>
-                                                        <strong className="compound__detail-positive">
-                                                            {formatCurrency(row.interestEarned)} ({formatPercent(effectiveAnnualRatePercent)})
+                                                        <span>Intereses menos retiradas del año</span>
+                                                        <strong>
+                                                            {formatCurrency(row.interestEarned)}
                                                         </strong>
                                                     </div>
                                                 </div>

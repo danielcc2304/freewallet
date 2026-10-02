@@ -84,6 +84,7 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
                 </div>
             </div>
             {metrics.periodDates?.[activeTab]?.baseDate && <p className="portfolio-summary__dates">Periodo efectivo: {new Date(metrics.periodDates[activeTab]!.baseDate!).toLocaleDateString('es-ES')} — {metrics.periodDates[activeTab]!.endDate ? new Date(metrics.periodDates[activeTab]!.endDate!).toLocaleDateString('es-ES') : 'sin cierre'}.</p>}
+            {activeTab === '1D' && !Number.isFinite(periodChange.value) && <p className="portfolio-summary__dates">La variación diaria necesita valoraciones comparables o precios de hoy con cierre anterior. En Mis Activos puedes ver la última variación disponible y su fecha.</p>}
 
             <div className="portfolio-summary__grid">
                 <MetricCard

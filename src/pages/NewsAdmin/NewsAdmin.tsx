@@ -1,7 +1,5 @@
 import { lazy, Suspense, useEffect, useState, type FormEvent } from 'react';
 import {
-    AlertCircle,
-    CheckCircle2,
     Edit3,
     Eye,
     FileText,
@@ -21,6 +19,7 @@ import {
 import { Link, useNavigate } from 'react-router-dom';
 const RichTextEditor = lazy(() => import('../../components/news/RichTextEditor/RichTextEditor').then(module => ({ default: module.RichTextEditor })));
 import { Button, Card, CardContent, Input, Modal } from '../../components/ui';
+import { FeedbackToast as NewsToast } from '../../components/ui/FeedbackToast';
 import type {
     NewsAdminMember,
     NewsPost,
@@ -767,15 +766,6 @@ function getAdminStatusLabel(member: NewsAdminMember): string {
     }
 
     return 'Editor activo';
-}
-
-function NewsToast({ children, tone }: { children: string; tone: 'error' | 'success' }) {
-    return (
-        <div className={`news-admin__toast news-admin__toast--${tone}`} role={tone === 'error' ? 'alert' : 'status'}>
-            {tone === 'error' ? <AlertCircle size={17} /> : <CheckCircle2 size={17} />}
-            <span>{children}</span>
-        </div>
-    );
 }
 
 function NewsAdminInviteAcceptance({ onAccepted }: { onAccepted: () => void }) {

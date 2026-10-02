@@ -5,6 +5,11 @@
 .account-page p {line-height:1.55;}
 .account-page__email {font-size:1rem;font-weight:500;overflow-wrap:anywhere;}
 .account-page__form {display:grid;gap:1rem;}
+.account-page__welcome {display:grid;gap:1rem;border-color:var(--border-accent);}
+.account-page__step {color:var(--accent-primary);font-size:.875rem;font-weight:600;}
+.account-page__welcome ol {padding-left:1.4rem;display:grid;gap:.65rem;line-height:1.55;}
+.account-page__welcome .btn {justify-self:start;}
+.account-page__help {color:var(--text-secondary);font-size:.875rem;}
 .account-page__form label {display:grid;gap:.5rem;}
 .account-page__form input:not([type="checkbox"]) {width:100%;min-width:0;box-sizing:border-box;padding:.8rem;border:1px solid var(--border-color);border-radius:.75rem;color:var(--text-primary);background:var(--bg-secondary);font:inherit;font-size:1rem;}
 .account-page__backup {position:relative;display:grid;gap:.65rem;min-width:0;}

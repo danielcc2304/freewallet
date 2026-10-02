@@ -126,34 +126,34 @@ export function EmergencyFundCalculator() {
                         <h3 className="emergency__card-title">Tus Gastos Mensuales</h3>
                         <div className="emergency__input-list">
                             <div className="calc__input-group">
-                                <label>Vivienda (Alquiler/Hipoteca)</label>
+                                <label htmlFor="emergencyfundcalculator-monthlyRent">Vivienda (Alquiler/Hipoteca)</label>
                                 <div className="calc__input-wrapper">
                                     <Home size={18} />
-                                    <input type="number" value={monthlyRent} onChange={(e) => setMonthlyRent(e.target.value === '' ? '' : Number(e.target.value))} />
+                                    <input id="emergencyfundcalculator-monthlyRent" type="number" value={monthlyRent} onChange={(e) => setMonthlyRent(e.target.value === '' ? '' : Number(e.target.value))} />
                                     <span className="unit">€</span>
                                 </div>
                             </div>
                             <div className="calc__input-group">
-                                <label>Alimentación</label>
+                                <label htmlFor="emergencyfundcalculator-monthlyFood">Alimentación</label>
                                 <div className="calc__input-wrapper">
                                     <Utensils size={18} />
-                                    <input type="number" value={monthlyFood} onChange={(e) => setMonthlyFood(e.target.value === '' ? '' : Number(e.target.value))} />
+                                    <input id="emergencyfundcalculator-monthlyFood" type="number" value={monthlyFood} onChange={(e) => setMonthlyFood(e.target.value === '' ? '' : Number(e.target.value))} />
                                     <span className="unit">€</span>
                                 </div>
                             </div>
                             <div className="calc__input-group">
-                                <label>Suministros (Luz, Agua, Internet)</label>
+                                <label htmlFor="emergencyfundcalculator-monthlyBills">Suministros (Luz, Agua, Internet)</label>
                                 <div className="calc__input-wrapper">
                                     <Zap size={18} />
-                                    <input type="number" value={monthlyBills} onChange={(e) => setMonthlyBills(e.target.value === '' ? '' : Number(e.target.value))} />
+                                    <input id="emergencyfundcalculator-monthlyBills" type="number" value={monthlyBills} onChange={(e) => setMonthlyBills(e.target.value === '' ? '' : Number(e.target.value))} />
                                     <span className="unit">€</span>
                                 </div>
                             </div>
                             <div className="calc__input-group">
-                                <label>Otros Gastos Fijos</label>
+                                <label htmlFor="emergencyfundcalculator-monthlyOther">Otros Gastos Fijos</label>
                                 <div className="calc__input-wrapper">
                                     <Plus size={18} />
-                                    <input type="number" value={monthlyOther} onChange={(e) => setMonthlyOther(e.target.value === '' ? '' : Number(e.target.value))} />
+                                    <input id="emergencyfundcalculator-monthlyOther" type="number" value={monthlyOther} onChange={(e) => setMonthlyOther(e.target.value === '' ? '' : Number(e.target.value))} />
                                     <span className="unit">€</span>
                                 </div>
                             </div>
@@ -168,10 +168,11 @@ export function EmergencyFundCalculator() {
                         <h3 className="emergency__card-title">Perfil de Riesgo</h3>
                         <div className="emergency__input-list">
                             <div className="calc__input-group">
-                                <label>Estabilidad Laboral</label>
+                                <label htmlFor="emergency-job-stability">Estabilidad Laboral</label>
                                 <div className="calc__input-wrapper">
                                     <ShieldCheck size={18} />
                                     <select
+                                        id="emergency-job-stability"
                                         value={jobStability}
                                         onChange={(e) => {
                                             const value = e.target.value;
@@ -187,10 +188,10 @@ export function EmergencyFundCalculator() {
                                 </div>
                             </div>
                             <div className="calc__input-group">
-                                <label>Personas a tu cargo</label>
+                                <label htmlFor="emergencyfundcalculator-dependents">Personas a tu cargo</label>
                                 <div className="calc__input-wrapper">
                                     <Users size={18} />
-                                    <input type="number" min="0" value={dependents} onChange={(e) => setDependents(e.target.value === '' ? '' : Number(e.target.value))} />
+                                    <input id="emergencyfundcalculator-dependents" type="number" min="0" value={dependents} onChange={(e) => setDependents(e.target.value === '' ? '' : Number(e.target.value))} />
                                 </div>
                             </div>
                         </div>
@@ -199,10 +200,10 @@ export function EmergencyFundCalculator() {
                     <div className="emergency__card">
                         <h3 className="emergency__card-title">Estado Actual</h3>
                         <div className="calc__input-group">
-                            <label>Dinero ahorrado para el fondo</label>
+                            <label htmlFor="emergencyfundcalculator-currentSavings">Dinero ahorrado para el fondo</label>
                             <div className="calc__input-wrapper">
                                 <PiggyBank size={18} />
-                                <input type="number" value={currentSavings} onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))} />
+                                <input id="emergencyfundcalculator-currentSavings" type="number" value={currentSavings} onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))} />
                                 <span className="unit">€</span>
                             </div>
                         </div>
@@ -210,7 +211,12 @@ export function EmergencyFundCalculator() {
                 </section>
 
                 <main className="emergency__results">
-                    {calculationError ? <p role="alert">{calculationError}</p> : <>
+                    {calculationError ? <p role="alert">{calculationError}</p> : totalExpenses === 0 ? (
+                        <div className="emergency__insight-card" role="status">
+                            <HelpCircle />
+                            <div><h3>Añade tus gastos mensuales</h3><p>Sin gastos registrados no podemos calcular el fondo que necesitas. Tu ahorro actual se conserva.</p></div>
+                        </div>
+                    ) : <>
                     <div className="emergency__recommendation-box">
                         <div className="emergency__rec-header">
                             <ShieldCheck className="emergency__rec-icon" />
@@ -260,7 +266,7 @@ export function EmergencyFundCalculator() {
                                 <h4>Siguiente Paso</h4>
                                 <p>
                                     {progressPercent < 100
-                                        ? `Te faltan ${formatCurrency(recommendedAmount - savingsNum)} para completar tu tranquilidad.`
+                                        ? `Te faltan ${formatCurrency(Math.max(0, recommendedAmount - savingsNum))} para completar tu tranquilidad.`
                                         : '¡Felicidades! Tienes tu fondo completo. Ahora puedes centrarte en la inversión a largo plazo.'}
                                 </p>
                             </div>

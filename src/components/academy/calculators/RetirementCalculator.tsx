@@ -5,6 +5,7 @@ import { CalculatorCard } from './CalculatorCard';
 import { validateCalculatorInputs } from './calculatorValidation';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './RetirementCalculator.css';
+import { ScenarioComparison } from './ScenarioComparison';
 
 interface RetirementCalculatorStorage {
     currentAge: number | string;
@@ -158,10 +159,11 @@ export function RetirementCalculator() {
                         <h3 className="retirement__section-header">Edades</h3>
                         <div className="retirement__input-grid retirement__input-grid--stacked">
                             <div className="calc__input-group">
-                                <label>Edad Actual</label>
+                                <label htmlFor="retirementcalculator-currentAge">Edad Actual</label>
                                 <div className="calc__input-wrapper">
                                     <Calendar size={18} />
                                     <input
+                                        id="retirementcalculator-currentAge"
                                         type="number"
                                         value={currentAge}
                                         onChange={(e) => setCurrentAge(e.target.value === '' ? '' : Number(e.target.value))}
@@ -170,10 +172,11 @@ export function RetirementCalculator() {
                                 </div>
                             </div>
                             <div className="calc__input-group">
-                                <label>Edad Jubilación</label>
+                                <label htmlFor="retirementcalculator-retirementAge">Edad Jubilación</label>
                                 <div className="calc__input-wrapper">
                                     <Calendar size={18} />
                                     <input
+                                        id="retirementcalculator-retirementAge"
                                         type="number"
                                         value={retirementAge}
                                         onChange={(e) => setRetirementAge(e.target.value === '' ? '' : Number(e.target.value))}
@@ -187,10 +190,11 @@ export function RetirementCalculator() {
                     <CalculatorCard className="retirement__input-section">
                         <h3 className="retirement__section-header">Ahorro y Aportaciones</h3>
                         <div className="calc__input-group">
-                            <label>Ahorro Actual</label>
+                            <label htmlFor="retirementcalculator-currentSavings">Ahorro Actual</label>
                             <div className="calc__input-wrapper">
                                 <Wallet2 size={18} />
                                 <input
+                                    id="retirementcalculator-currentSavings"
                                     type="number"
                                     value={currentSavings}
                                     onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))}
@@ -199,10 +203,11 @@ export function RetirementCalculator() {
                             </div>
                         </div>
                         <div className="calc__input-group">
-                            <label>Aportación Mensual</label>
+                            <label htmlFor="retirementcalculator-monthlyContribution">Aportación Mensual</label>
                             <div className="calc__input-wrapper">
                                 <TrendingUp size={18} />
                                 <input
+                                    id="retirementcalculator-monthlyContribution"
                                     type="number"
                                     value={monthlyContribution}
                                     onChange={(e) => setMonthlyContribution(e.target.value === '' ? '' : Number(e.target.value))}
@@ -216,10 +221,11 @@ export function RetirementCalculator() {
                         <h3 className="retirement__section-header">Mercado e Inflación</h3>
                         <div className="retirement__input-grid">
                             <div className="calc__input-group">
-                                <label>Rentabilidad Anual</label>
+                                <label htmlFor="retirementcalculator-annualReturn">Rentabilidad Anual</label>
                                 <div className="calc__input-wrapper">
                                     <TrendingUp size={18} />
                                     <input
+                                        id="retirementcalculator-annualReturn"
                                         type="number"
                                         step="0.5"
                                         value={annualReturn}
@@ -229,10 +235,11 @@ export function RetirementCalculator() {
                                 </div>
                             </div>
                             <div className="calc__input-group">
-                                <label>Inflación Estimada</label>
+                                <label htmlFor="retirementcalculator-inflationRate">Inflación Estimada</label>
                                 <div className="calc__input-wrapper">
                                     <Info size={18} />
                                     <input
+                                        id="retirementcalculator-inflationRate"
                                         type="number"
                                         step="0.1"
                                         value={inflationRate}
@@ -342,11 +349,26 @@ export function RetirementCalculator() {
                             <h4>Proyección de Retirada</h4>
                             <p>
                                 Con un capital de <strong>{formatRetirementCurrency(finalReal)}</strong> (ajustado), podrías retirar aproximadamente
-                                <strong> {formatRetirementCurrency(finalReal * 0.04 / 12)}/mes</strong> indefinidamente siguiendo la regla del 4%.
+                                <strong> {formatRetirementCurrency(finalReal * 0.04 / 12)}/mes</strong> como referencia inicial al aplicar el 4% anual. Es una simulación, no una garantía de duración del capital.
                             </p>
                         </div>
                     </CalculatorCard>
                     </>}
+                    <ScenarioComparison current={calculationError ? null : {
+                        parametersKey: JSON.stringify([ageNum, retAgeNum, savingsNum, contributionNum, returnNum, inflationNum]),
+                        assumptions: [
+                            { label: 'Edad actual / jubilación', value: `${ageNum} / ${retAgeNum} años` },
+                            { label: 'Ahorro actual', value: formatRetirementCurrency(savingsNum) },
+                            { label: 'Aportación mensual', value: formatRetirementCurrency(contributionNum) },
+                            { label: 'Rentabilidad anual efectiva', value: `${returnNum}%` },
+                            { label: 'Inflación anual', value: `${inflationNum}%` },
+                        ],
+                        results: [
+                            { label: 'Horizonte', value: `${yearsToRetire} ${yearsToRetire === 1 ? 'año' : 'años'}` },
+                            { label: 'Capital futuro (nominal)', value: formatRetirementCurrency(finalNominal) },
+                            { label: 'Poder de compra en euros de hoy', value: formatRetirementCurrency(finalReal) },
+                        ],
+                    }} />
                 </main>
             </div>
         </div>

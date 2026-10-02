@@ -1,13 +1,14 @@
-import { memo, useState, useMemo } from 'react';
+import { memo, useId, useState, useMemo } from 'react';
 import { ArrowUpDown, Trash2, ChevronUp, ChevronDown, Eye, EyeOff, Pencil, PencilOff, PlusCircle, MinusCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../ui';
 import type { Asset } from '../../types/types';
 import { assetPrice, assetValue, formatQuantity, hasValidPrice } from '../../services/assetValuation';
 import './AssetsTable.css';
-import { compareKnownReturns, dailyAssetVariation } from '../../services/dashboardIntegrity';
+import { compareKnownReturns, dailyAssetVariation, filterDashboardAssets } from '../../services/dashboardIntegrity';
 
 interface AssetsTableProps {
     assets: Asset[];
+    now?: number;
     onDelete?: (id: string) => void | Promise<void>;
     onEdit?: (asset: Asset) => void;
     onAddPurchase?: (asset: Asset) => void;
@@ -29,7 +30,10 @@ function SortIcon({ column, sortKey, sortDirection }: { column: SortKey; sortKey
     );
 }
 
-export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit, onAddPurchase, onSell, onViewDetails }: AssetsTableProps) {
+export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(), onDelete, onEdit, onAddPurchase, onSell, onViewDetails }: AssetsTableProps) {
+    const filterId = useId();
+    const [query, setQuery] = useState('');
+    const [assetType, setAssetType] = useState<Asset['type'] | 'all'>('all');
     const [sortKey, setSortKey] = useState<SortKey>('value');
     const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -51,7 +55,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
             const gain = currentValue - investedValue;
             const changePercent = investedValue > 0 && hasValidPrice(asset) ? (gain / investedValue) * 100 : NaN;
             const weight = totalValue > 0 ? (currentValue / totalValue) * 100 : 0;
-            const { todayChange, todayChangePercent } = dailyAssetVariation(asset);
+            const variation = dailyAssetVariation(asset, now);
 
             return {
                 ...asset,
@@ -60,16 +64,15 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                 gain,
                 changePercent,
                 weight,
-                todayChange,
-                todayChangePercent,
+                ...variation,
             };
         });
-    }, [assets, totalValue]);
+    }, [assets, totalValue, now]);
 
     const sortedAssets = useMemo(() => {
-        return [...processedAssets].sort((a, b) => {
+        return filterDashboardAssets(processedAssets, query, assetType).sort((a, b) => {
             if (sortKey === 'change') return compareKnownReturns(a.changePercent, b.changePercent, sortDirection);
-            if (sortKey === 'today') return compareKnownReturns(a.todayChangePercent, b.todayChangePercent, sortDirection);
+            if (sortKey === 'today') return compareKnownReturns(a.latestChangePercent, b.latestChangePercent, sortDirection);
             let comparison = 0;
             switch (sortKey) {
                 case 'symbol':
@@ -84,7 +87,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
             }
             return sortDirection === 'asc' ? comparison : -comparison;
         });
-    }, [processedAssets, sortKey, sortDirection]);
+    }, [processedAssets, sortKey, sortDirection, query, assetType]);
 
     const handleSort = (key: SortKey) => {
         if (sortKey === key) {
@@ -184,6 +187,26 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                     }
                 />
                 <CardContent>
+                    <div className="assets-table__filters">
+                        <div>
+                            <label htmlFor={`${filterId}-query`}>Buscar activo</label>
+                            <input id={`${filterId}-query`} type="search" placeholder="Nombre, símbolo o ISIN" value={query} onChange={e => setQuery(e.target.value)} />
+                        </div>
+                        <div>
+                            <label htmlFor={`${filterId}-type`}>Tipo de activo</label>
+                            <select id={`${filterId}-type`} value={assetType} onChange={e => setAssetType(e.target.value as Asset['type'] | 'all')}>
+                                <option value="all">Todos</option>
+                                <option value="fund">Fondos</option>
+                                <option value="stock">Acciones</option>
+                                <option value="etf">ETF</option>
+                                <option value="crypto">Criptomonedas</option>
+                                <option value="cash">Liquidez</option>
+                            </select>
+                        </div>
+                        {(query || assetType !== 'all') && <Button variant="ghost" size="sm" onClick={() => { setQuery(''); setAssetType('all'); }}>Limpiar filtros</Button>}
+                    </div>
+                    {(query || assetType !== 'all') && <p className="assets-table__filter-count" role="status">{sortedAssets.length} de {assets.length} activos · Los pesos se calculan sobre toda tu cartera.</p>}
+                    {sortedAssets.length === 0 && <p className="assets-table__empty">No hay activos que coincidan con los filtros.</p>}
                     <div className="assets-table__wrapper">
                         <table className={`assets-table__table ${showMobileDetails ? 'assets-table__table--show-details' : ''} ${showMobileActions ? 'assets-table__table--show-actions' : ''}`}>
                             <thead>
@@ -197,7 +220,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                         <span className="assets-table__current-price-label">Precio Actual</span>
                                     </th>
                                     <th className="assets-table__column--today" aria-sort={sortKey === 'today' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
-                                        <button type="button" className="assets-table__sort" onClick={() => handleSort('today')} title="Ordenar por variación porcentual de hoy">Variación hoy <SortIcon column="today" sortKey={sortKey} sortDirection={sortDirection} /></button>
+                                        <button type="button" className="assets-table__sort" onClick={() => handleSort('today')} title="Ordenar por variación de la última cotización, cuya fecha se indica en cada fila">Variación <SortIcon column="today" sortKey={sortKey} sortDirection={sortDirection} /></button>
                                     </th>
                                     <th className="assets-table__column--value" aria-sort={sortKey === 'value' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
                                         <button type="button" className="assets-table__sort" onClick={() => handleSort('value')}>Valor <SortIcon column="value" sortKey={sortKey} sortDirection={sortDirection} /></button>
@@ -240,14 +263,15 @@ export const AssetsTable = memo(function AssetsTable({ assets, onDelete, onEdit,
                                             {!hasValidPrice(asset) && <small className="assets-table__estimated">Estimado al coste</small>}
                                         </td>
                                         <td className="assets-table__column--today">
-                                            <span className={`assets-table__today ${Number.isFinite(asset.todayChangePercent) && asset.todayChangePercent < 0
+                                            <span className={`assets-table__today ${Number.isFinite(asset.latestChangePercent) && asset.latestChangePercent < 0
                                                 ? 'assets-table__change--negative'
-                                                : Number.isFinite(asset.todayChangePercent) && asset.todayChangePercent > 0
+                                                : Number.isFinite(asset.latestChangePercent) && asset.latestChangePercent > 0
                                                     ? 'assets-table__change--positive'
                                                     : ''
                                                 }`}>
-                                                <strong>{formatPercent(asset.todayChangePercent)}</strong>
-                                                <small>{formatCurrency(asset.todayChange)}</small>
+                                                <strong>{formatPercent(asset.latestChangePercent)}</strong>
+                                                <small>{formatCurrency(asset.latestChange)}</small>
+                                                <small className="assets-table__variation-date">{asset.isToday ? 'Hoy' : asset.quoteDay ? new Date(`${asset.quoteDay}T12:00:00`).toLocaleDateString('es-ES') : 'Fecha no disponible'}</small>
                                             </span>
                                         </td>
                                         <td className="assets-table__column--value assets-table__value">

@@ -5,6 +5,7 @@ import { getRateConversion } from './compoundInterestUtils';
 import { validateCalculatorInputs } from './calculatorValidation';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './FIRECalculator.css';
+import { ScenarioComparison } from './ScenarioComparison';
 
 type ProjectionMode = 'nominal' | 'real';
 
@@ -97,9 +98,9 @@ function FIRETooltip({
 }: FIRETooltipProps) {
     if (!active || !payload?.length) return null;
 
-    const valueLabel = shouldAdjustForInflation && projectionMode === 'real'
-        ? 'en euros de hoy'
-        : 'ajustado por inflación';
+    const valueLabel = shouldAdjustForInflation
+        ? (projectionMode === 'real' ? 'en euros de hoy' : 'en euros futuros (nominal)')
+        : 'sin ajuste por inflación';
 
     return (
         <div className="fire-tooltip">
@@ -182,7 +183,7 @@ export function FIRECalculator() {
         : annualReturnNum;
 
     const projectionDescriptor = shouldAdjustForInflation
-        ? (projectionMode === 'real' ? 'euros de hoy' : 'euros ajustados por inflación')
+        ? (projectionMode === 'real' ? 'euros de hoy' : 'euros futuros (nominal)')
         : 'euros actuales sin ajuste por inflación';
 
     const yearsToFIREWithoutInflation = useMemo(
@@ -327,10 +328,11 @@ export function FIRECalculator() {
                     <h2 className="fire__section-title">Parámetros de Simulación</h2>
 
                     <div className="calc__input-group">
-                        <label>Gastos Mensuales</label>
+                        <label htmlFor="firecalculator-monthlyExpenses">Gastos Mensuales</label>
                         <div className="calc__input-wrapper">
                             <Wallet size={18} />
                             <input
+                                id="firecalculator-monthlyExpenses"
                                 type="number"
                                 value={monthlyExpenses}
                                 onChange={(e) => setMonthlyExpenses(e.target.value === '' ? '' : Number(e.target.value))}
@@ -339,6 +341,7 @@ export function FIRECalculator() {
                         </div>
                         <input
                             type="range"
+                            aria-label="Gastos mensuales (deslizador)"
                             min="500"
                             max="10000"
                             step="100"
@@ -350,10 +353,11 @@ export function FIRECalculator() {
                     </div>
 
                     <div className="calc__input-group">
-                        <label>Ahorro Mensual</label>
+                        <label htmlFor="firecalculator-monthlySavings">Ahorro Mensual</label>
                         <div className="calc__input-wrapper">
                             <Banknote size={18} />
                             <input
+                                id="firecalculator-monthlySavings"
                                 type="number"
                                 value={monthlySavings}
                                 onChange={(e) => setMonthlySavings(e.target.value === '' ? '' : Number(e.target.value))}
@@ -362,6 +366,7 @@ export function FIRECalculator() {
                         </div>
                         <input
                             type="range"
+                            aria-label="Ahorro mensual (deslizador)"
                             min="0"
                             max="10000"
                             step="100"
@@ -373,10 +378,11 @@ export function FIRECalculator() {
                     </div>
 
                     <div className="calc__input-group">
-                        <label>Capital Actual</label>
+                        <label htmlFor="firecalculator-currentSavings">Capital Actual</label>
                         <div className="calc__input-wrapper">
                             <Banknote size={18} />
                             <input
+                                id="firecalculator-currentSavings"
                                 type="number"
                                 value={currentSavings}
                                 onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))}
@@ -387,10 +393,11 @@ export function FIRECalculator() {
 
                     <div className="fire__input-grid">
                         <div className="calc__input-group">
-                            <label>Rentab. Anual (CAGR)</label>
+                            <label htmlFor="firecalculator-annualReturn">Rentab. Anual (CAGR)</label>
                             <div className="calc__input-wrapper">
                                 <TrendingUp size={18} />
                                 <input
+                                    id="firecalculator-annualReturn"
                                     type="number"
                                     value={annualReturn}
                                     onChange={(e) => setAnnualReturn(e.target.value === '' ? '' : Number(e.target.value))}
@@ -399,10 +406,11 @@ export function FIRECalculator() {
                             </div>
                         </div>
                         <div className="calc__input-group">
-                            <label>Tasa Retirada</label>
+                            <label htmlFor="firecalculator-withdrawalRate">Tasa Retirada</label>
                             <div className="calc__input-wrapper">
                                 <Info size={18} />
                                 <input
+                                    id="firecalculator-withdrawalRate"
                                     type="number"
                                     value={withdrawalRate}
                                     onChange={(e) => setWithdrawalRate(e.target.value === '' ? '' : Number(e.target.value))}
@@ -428,10 +436,11 @@ export function FIRECalculator() {
                         {includeInflation && (
                             <div className="fire__optional-content">
                                 <div className="calc__input-group">
-                                    <label>Inflación Anual</label>
+                                    <label htmlFor="firecalculator-inflationRate">Inflación Anual</label>
                                     <div className="calc__input-wrapper">
                                         <Info size={18} />
                                         <input
+                                            id="firecalculator-inflationRate"
                                             type="number"
                                             value={inflationRate}
                                             onChange={(e) => setInflationRate(e.target.value === '' ? '' : Number(e.target.value))}
@@ -558,6 +567,21 @@ export function FIRECalculator() {
                         <p className="fire__scenario-text">{simulationSummary}</p>
                     </div>
                     </>}
+                    <ScenarioComparison current={calculationError ? null : {
+                        parametersKey: JSON.stringify([expensesNum, savingsNum, monthlySavingsNum, annualReturnNum, withdrawalRateNum, includeInflation, includeInflation ? inflationRateNum : null]),
+                        assumptions: [
+                            { label: 'Gastos mensuales', value: formatFIRECurrency(expensesNum) },
+                            { label: 'Capital actual', value: formatFIRECurrency(savingsNum) },
+                            { label: 'Ahorro mensual', value: formatFIRECurrency(monthlySavingsNum) },
+                            { label: 'Rentabilidad anual efectiva', value: `${annualReturnNum}%` },
+                            { label: 'Tasa de retirada', value: `${withdrawalRateNum}%` },
+                            { label: 'Inflación', value: includeInflation ? `${inflationRateNum}%` : 'Sin ajuste' },
+                        ],
+                        results: [
+                            { label: 'Objetivo base en euros de hoy', value: formatFIRECurrency(fireNumber) },
+                            { label: 'Tiempo hasta FIRE', value: Number.isFinite(yearsToFIRE) ? `${yearsToFIRE.toLocaleString('es-ES', { maximumFractionDigits: 1 })} ${yearsToFIRE === 1 ? 'año' : 'años'}` : 'No se alcanza en 100 años' },
+                        ],
+                    }} />
                 </main>
             </div>
 

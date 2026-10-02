@@ -12,6 +12,21 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-02 - Cartera multidispositivo con Supabase
+- Funcionalidad:
+  - Mi cuenta: acceso, registro, recuperación y autenticador en dos pasos.
+  - Importación voluntaria con vista previa y respaldo privado, sin reemplazar una cartera existente ni borrar la copia local.
+  - Sincronización de posiciones, movimientos, Excel, objetivos y preferencias con revisión, idempotencia y conflictos explícitos.
+  - Cálculo decimal servidor para DCA y ventas, aislamiento de cuentas y cancelación de respuestas de sesiones anteriores.
+  - Dependencias actualizadas y pruebas de PostgreSQL, sincronización y navegador con la cartera de referencia.
+- Resumen:
+  - Desarrollo habilitado en local y esquema instalado en Supabase. La activación pública permanece condicionada a verificar correo, redirects y acceso multidispositivo.
+- Archivos:
+  - `supabase/migrations/20261001232427_portfolio_foundation.sql`, `supabase/migrations/20261001232431_portfolio_commands.sql`, `supabase/migrations/20261001234107_portfolio_mfa_guard.sql`, `supabase/migrations/20261002000609_portfolio_command_validation.sql`
+  - `src/context/AccountContext.tsx`, `src/pages/Account`, `src/services/portfolioCloudStorage.ts`, `src/services/portfolioRepository.ts`
+  - Contextos y páginas de cartera, preferencias, cliente de Noticias y documentación de privacidad.
+  - `scripts/test-portfolio-backend.ts`, `scripts/test-portfolio-sync.ts`, `scripts/test-portfolio-ui.ts`, `docs/portfolio-supabase.md`
+
 ### 2026-10-02 - v5.3.13 - Detalle y ordenación de Mis Activos
 - Funcionalidad:
   - En móvil, «Ver todo» muestra los nombres completos a ancho de fila y mantiene visible la variación diaria.

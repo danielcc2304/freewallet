@@ -32,6 +32,7 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     const academyIsExpanded = academyExpanded || isAcademyRoute;
 
     const navItems = [
+        { to: '/account', icon: Wallet, label: 'Mi cuenta' },
         { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
         { to: '/news', icon: Newspaper, label: 'Noticias' },
     ];

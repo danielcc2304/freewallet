@@ -1,3 +1,4 @@
+import { portfolioStorage } from '../services/portfolioCloudStorage';
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
 
@@ -17,7 +18,7 @@ const THEME_STORAGE_KEY = 'freewallet_theme_mode';
 
 function readStoredThemeMode(): ThemeMode {
     try {
-        const stored = localStorage.getItem(THEME_STORAGE_KEY);
+        const stored = portfolioStorage.getItem(THEME_STORAGE_KEY);
         if (stored === 'light' || stored === 'dark' || stored === 'system') {
             return stored;
         }
@@ -29,7 +30,7 @@ function readStoredThemeMode(): ThemeMode {
 
 function persistThemeMode(mode: ThemeMode): void {
     try {
-        localStorage.setItem(THEME_STORAGE_KEY, mode);
+        portfolioStorage.setItem(THEME_STORAGE_KEY, mode);
     } catch {
         // Ignore storage access errors to avoid blocking app render.
     }

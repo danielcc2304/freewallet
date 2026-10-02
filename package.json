@@ -11,7 +11,10 @@
     "verify-funds": "tsx scripts/verify-funds.ts",
     "test:compound-interest": "tsx scripts/test-compound-interest.ts",
     "test:finect": "tsx scripts/test-finect.ts",
-    "test:dashboard-audit": "tsx scripts/test-dashboard-audit.ts"
+    "test:dashboard-audit": "tsx scripts/test-dashboard-audit.ts",
+    "test:portfolio-backend": "tsx scripts/test-portfolio-backend.ts",
+    "test:portfolio-sync": "tsx scripts/test-portfolio-sync.ts",
+    "test:portfolio-ui": "tsx scripts/test-portfolio-ui.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",
@@ -32,9 +35,10 @@
     "react-is": "^19.2.4",
     "react-router-dom": "^7.10.1",
     "recharts": "^3.7.0",
-    "xlsx": "^0.18.5"
+    "xlsx": "https://cdn.sheetjs.com/xlsx-0.20.3/xlsx-0.20.3.tgz"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.1",
     "@types/react": "^19.2.5",
@@ -45,8 +49,7 @@
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
-    "prerender-spa-plugin-next": "^4.2.3",
-    "puppeteer": "^24.37.3",
+    "puppeteer": "25.12.0",
     "serve-handler": "^6.1.6",
     "tsx": "^4.21.0",
     "typescript": "~5.9.3",

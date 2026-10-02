@@ -1,6 +1,7 @@
 import type { Asset, AssetHolding, SearchResult } from '../types/types';
 import { hasValidPrice } from './assetValuation';
 import { planAssetKey } from './portfolioPlan';
+import { accountingDay } from './portfolioCalendar';
 
 /** Multiple lots are legitimate; only a reused record ID is a definite duplicate. */
 export function positionLotCounts(assets: Asset[]) {
@@ -8,12 +9,33 @@ export function positionLotCounts(assets: Asset[]) {
     return { extraLots: assets.length - instruments.size, duplicateIds: assets.length - new Set(assets.map(a => a.id)).size };
 }
 
-export function dailyAssetVariation(asset: Asset) {
+export function dailyAssetVariation(asset: Asset, now = Date.now()) {
     const valid = hasValidPrice(asset) && Number.isFinite(asset.previousClose) && asset.previousClose! > 0;
+    const timestamp = Date.parse(asset.quotedAt || asset.lastQuoteAt || '');
+    const quoteDay = Number.isFinite(timestamp) && timestamp <= now ? accountingDay(timestamp) : undefined;
+    const isToday = quoteDay === accountingDay(now);
+    const latestChange = valid ? (asset.currentPrice! - asset.previousClose!) * asset.quantity : NaN;
+    const latestChangePercent = valid ? (asset.currentPrice! / asset.previousClose! - 1) * 100 : NaN;
     return {
-        todayChange: valid ? (asset.currentPrice! - asset.previousClose!) * asset.quantity : NaN,
-        todayChangePercent: valid ? (asset.currentPrice! / asset.previousClose! - 1) * 100 : NaN,
+        todayChange: isToday ? latestChange : NaN,
+        todayChangePercent: isToday ? latestChangePercent : NaN,
+        latestChange,
+        latestChangePercent,
+        quoteDay,
+        isToday,
     };
+}
+
+/** A portfolio daily fallback must not aggregate quotes from different/unknown days. */
+export function hasCurrentDayQuotes(assets: Asset[], now: number) {
+    return assets.some(a => a.type !== 'cash' && a.quantity > 0)
+        && assets.filter(a => a.type !== 'cash' && a.quantity > 0).every(a => dailyAssetVariation(a, now).isToday);
+}
+
+export function filterDashboardAssets<T extends Asset>(assets: T[], query: string, type: Asset['type'] | 'all'): T[] {
+    const normalize = (value: string) => value.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLocaleLowerCase('es').trim();
+    const terms = normalize(query).split(/\s+/).filter(Boolean);
+    return assets.filter(a => (type === 'all' || a.type === type) && terms.every(term => normalize(`${a.name} ${a.symbol} ${a.isin || ''}`).includes(term)));
 }
 
 export function quoteIdentity(asset: Pick<Asset, 'symbol' | 'isin' | 'type' | 'currency'>): string {

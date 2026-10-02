@@ -39,6 +39,7 @@ export const Performers = memo(function Performers({ data, type, limit = 5 }: Pe
             <Card className={`performers performers--${type}`}>
                 <CardHeader
                     title={title}
+                    subtitle="Rentabilidad desde la compra"
                     action={<Icon size={20} className={`performers__icon performers__icon--${type}`} />}
                 />
                 <CardContent>
@@ -52,6 +53,7 @@ export const Performers = memo(function Performers({ data, type, limit = 5 }: Pe
         <Card className={`performers performers--${type}`}>
             <CardHeader
                 title={title}
+                subtitle="Rentabilidad desde la compra"
                 action={<Icon size={20} className={`performers__icon performers__icon--${type}`} />}
             />
             <CardContent>

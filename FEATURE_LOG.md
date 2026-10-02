@@ -12,6 +12,19 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-02 - v6.0.5 - Calculadoras y Dashboard: simulaciones y lectura de cartera
+- Funcionalidad:
+  - Interés compuesto con intereses generados, retiradas acumuladas y saldo disponible diferenciados, también en gráfico y detalle anual.
+  - Fondo de emergencia sin resultados engañosos cuando no hay gastos; entradas de inflación editables y etiquetas accesibles en FIRE, jubilación y emergencia.
+  - Comparación de hasta tres escenarios en FIRE y jubilación, conservando los parámetros y unidades de cada simulación mientras permanece abierta la pantalla.
+  - Buscador por nombre, símbolo o ISIN y filtro por tipo en Mis Activos, sin alterar los pesos de la cartera completa.
+  - Variación de la última cotización identificada por fecha; cotizaciones antiguas no se presentan como cambio de hoy. Rankings identificados como rentabilidad desde la compra.
+  - Reintento del benchmark limitado a la solicitud manual, conservando la caché en las consultas posteriores.
+- Resumen:
+  - Corrige resultados y etiquetas ambiguos y facilita comparar simulaciones y consultar carteras con muchos activos.
+- Archivos:
+  - `src/components/academy/calculators/`, `src/components/dashboard/`, `src/services/dashboardIntegrity.ts`, `src/pages/Dashboard/Dashboard.tsx`, `scripts/test-calculator-dashboard-usability.ts`, `scripts/test-assets-table.ts`, `package.json`.
+
 ### 2026-10-02 - v6.0.4 - Dashboard: claridad de datos y plan móvil
 - Funcionalidad:
   - Rankings con colores según ganancias o pérdidas, independientemente de su clasificación.

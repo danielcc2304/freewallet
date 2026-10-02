@@ -1,0 +1,21 @@
+.scenario-comparison {
+    padding: var(--spacing-lg);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    background: var(--bg-secondary);
+    min-width: 0;
+}
+.scenario-comparison h3, .scenario-comparison h4 { color: var(--text-primary); margin: 0 0 .75rem; overflow-wrap: anywhere; }
+.scenario-comparison p, .scenario-comparison dt, .scenario-comparison summary { color: var(--text-secondary); font-size: .875rem; }
+.scenario-comparison__controls { display: flex; gap: 1rem; align-items: end; flex-wrap: wrap; margin-top: 1rem; }
+.scenario-comparison__controls > div { flex: 1 1 220px; min-width: 0; }
+.scenario-comparison label { display: block; color: var(--text-secondary); font-size: .875rem; margin-bottom: .5rem; }
+.scenario-comparison input { width: 100%; min-height: 44px; min-width: 0; padding: .6rem; color: var(--text-primary); background: var(--bg-tertiary); border: 1px solid var(--border-primary); border-radius: var(--radius-md); }
+.scenario-comparison__status { min-height: 1.3em; }
+.scenario-comparison .btn { min-height: 44px; min-width: 44px; }
+.scenario-comparison__grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 1rem; }
+.scenario-comparison__item { min-width: 0; padding: 1rem; border: 1px solid var(--border-primary); border-radius: var(--radius-md); }
+.scenario-comparison dl { margin: .75rem 0; }
+.scenario-comparison dl > div { margin: .75rem 0; }
+.scenario-comparison dd { margin: .2rem 0 0; color: var(--text-primary); font-weight: 600; overflow-wrap: anywhere; }
+.scenario-comparison summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; }

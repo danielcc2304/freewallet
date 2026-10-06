@@ -344,6 +344,12 @@ export function Dashboard() {
 
             <PortfolioSummary metrics={metrics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} estimatedCount={assets.filter(a => !hasValidPrice(a)).length} />
             <PortfolioDataQuality assets={assets} now={calculationNow} quoteFailures={quoteFailures} />
+            {account.user && <p className="dashboard__empty-description" role="status">
+                {analytics.dailyMarket.error || (analytics.dailyMarket.data?.lastRun
+                    ? `Actualización diaria: ${analytics.dailyMarket.data.lastRun.status === 'success' ? 'completada' : analytics.dailyMarket.data.lastRun.status === 'running' ? 'en curso' : 'con datos pendientes'} · ${new Date(analytics.dailyMarket.data.lastRun.finishedAt || analytics.dailyMarket.data.lastRun.startedAt).toLocaleString('es-ES')}.`
+                    : 'El histórico diario comenzará con la primera actualización programada.')}
+                {!!analytics.dailyMarket.data?.lastRun?.failures.length && ` ${analytics.dailyMarket.data.lastRun.failures.length} consultas de cartera o benchmark pendientes.`}
+            </p>}
             <section className="dashboard__section">
                 <AssetsTable
                     now={calculationNow}

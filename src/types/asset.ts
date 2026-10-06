@@ -25,5 +25,5 @@ export interface Asset {
     lastQuoteAt?: string;
     lastCheckedAt?: string;
     quotedAt?: string;
-    quoteSource?: 'Finect' | 'Mercado' | 'Saldo';
+    quoteSource?: 'Finect' | 'Yahoo Finance' | 'Mercado' | 'Saldo';
 }

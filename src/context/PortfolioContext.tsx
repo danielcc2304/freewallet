@@ -10,6 +10,7 @@ import { applicableQuoteUpdates, applyPositionUpdate } from '../services/dashboa
 import { accountingDay } from '../services/portfolioCalendar';
 import {portfolioStorage} from '../services/portfolioCloudStorage';
 import {commitPortfolioState} from '../services/storageService';
+import { readDailyMarketData, dailyQuote } from '../services/dailyMarketData';
 
 function getLatestQuoteAt(assets: Asset[]): Date | null {
     const timestamps = assets
@@ -172,6 +173,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         const requested = forceRefresh ? assetsToUpdate : assetsToUpdate.filter(a => shouldRefreshAssets([a]));
         try {
             const initialLedgerKey = portfolioLedgerKey(normalizePortfolioTransactions(assetsToUpdate, getTransactions()), refreshDate);
+            const centralData = await readDailyMarketData().catch(() => null);
+            if (accountEpoch !== portfolioStorage.epoch) return;
             const quoteUpdates: Array<{ id: string; updates: Partial<Asset> }> = [];
             let nextIndex = 0;
             const updateNextAsset = async () => {
@@ -181,7 +184,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                     const controller = new AbortController();
                     const deadline = window.setTimeout(() => controller.abort(), 15000);
                     try {
-                        const quote = await getPortfolioAssetQuote(asset, controller.signal, forceRefresh);
+                        const quote = await getPortfolioAssetQuote(asset, controller.signal, forceRefresh, dailyQuote(asset, centralData));
                         if (quote && Number.isFinite(quote.price) && quote.price >= 0 && quote.currency === 'EUR') {
                             const updates = {
                                 currentPrice: quote.price,
@@ -190,7 +193,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                                 lastCheckedAt: new Date().toISOString(),
                                 quotedAt: quote.quotedAt,
                                 lastQuoteAt: quote.quotedAt,
-                                quoteSource: asset.isin || /^[A-Z]{2}[A-Z0-9]{10}$/i.test(asset.symbol) ? 'Finect' : asset.type === 'cash' ? 'Saldo' : 'Mercado',
+                                quoteSource: !forceRefresh && dailyQuote(asset, centralData) ? centralData!.prices.filter(p => p.instrument === (asset.isin || asset.symbol).toUpperCase()).at(-1)!.source : asset.isin || /^[A-Z]{2}[A-Z0-9]{10}$/i.test(asset.symbol) ? 'Finect' : asset.type === 'cash' ? 'Saldo' : 'Mercado',
                             } as const;
                             quoteUpdates.push({ id: asset.id, updates });
                         }

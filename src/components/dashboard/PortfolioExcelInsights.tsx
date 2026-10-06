@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
     Activity,
@@ -33,12 +33,10 @@ import {
 } from 'recharts';
 import { Card, CardContent, CardHeader } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { isApiEnabled } from '../../services/storageService';
-import { getAssetChartData } from '../../services/apiService';
+import { BENCHMARK_ISIN, BENCHMARK_NAME, dailyHistory } from '../../services/dailyMarketData';
 import { alignedBenchmark, alignImportedBenchmark, chooseBenchmarkLine, selectPortfolioPeriod, workbookRiskStats } from '../../services/portfolioPerformance';
-import { assetValue, convertHistoryToCurrency, hasValidPrice } from '../../services/assetValuation';
+import { assetValue, hasValidPrice } from '../../services/assetValuation';
 import { readWorkbookBenchmarkHistory } from '../../services/portfolioWorkbookHistory';
-import type { HistoricalDataPoint } from '../../types/types';
 import './PortfolioExcelInsights.css';
 import type { DashboardAnalytics } from './useDashboardAnalytics';
 import { latestContinuousMonths } from '../../services/dashboardHistory';
@@ -118,14 +116,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const { state: { assets, transactions, lastPriceUpdate } } = usePortfolio();
     const [tab, setTab] = useState<InsightTab>('evolution');
     const tabId = useId();
-    const [benchmarkRetry, setBenchmarkRetry] = useState(0);
-    const requestedRetry = useRef(0);
-    const [linkError, setLinkError] = useState('');
-    const apiEnabled = isApiEnabled();
-    const [benchmarkResult, setBenchmarkResult] = useState<{ period: EvolutionPeriod | null; startDate?: number; data: HistoricalDataPoint[] }>({
-        period: null,
-        data: [],
-    });
+        const [linkError, setLinkError] = useState('');
     const { workbookHistory, usingWorkbookHistory, portfolioTransactions, history, series, monthly, hasEstimates } = analytics;
     const workbookBenchmarkHistory = useMemo(() => { void analytics.localRevision; return readWorkbookBenchmarkHistory(); }, [analytics.localRevision]);
     const advancedRaw = readStoredValue(STORAGE_KEYS.advancedRaw, '');
@@ -221,31 +212,10 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const workbookBenchmarkLine = useMemo(() => {
         return alignImportedBenchmark(periodSeries, workbookBenchmarkHistory);
     }, [periodSeries, workbookBenchmarkHistory]);
-    const benchmarkStart = periodSeries[0]?.timestamp;
-    const benchmark = useMemo(() => benchmarkResult.period === evolutionPeriod && benchmarkResult.startDate === benchmarkStart ? benchmarkResult.data : [], [benchmarkResult, evolutionPeriod, benchmarkStart]);
+    const benchmark = useMemo(() => dailyHistory(analytics.dailyMarket.data, BENCHMARK_ISIN), [analytics.dailyMarket.data]);
     const automaticLine = useMemo(() => alignedBenchmark(periodSeries, benchmark), [periodSeries, benchmark]);
     const benchmarkLine = useMemo(() => chooseBenchmarkLine(periodSeries, automaticLine, workbookBenchmarkLine), [periodSeries, automaticLine, workbookBenchmarkLine]);
     const benchmarkUsesWorkbook = benchmarkLine.length > 1 && benchmarkLine === workbookBenchmarkLine;
-    const benchmarkLoading = tab === 'benchmark' && apiEnabled && (benchmarkResult.period !== evolutionPeriod || benchmarkResult.startDate !== benchmarkStart) && benchmarkLine.length < 2;
-    useEffect(() => {
-        if (tab !== 'benchmark' || !apiEnabled) return;
-        const controller = new AbortController();
-        const forceRefresh = benchmarkRetry > requestedRetry.current;
-        requestedRetry.current = benchmarkRetry;
-        getAssetChartData('URTH', evolutionPeriod, controller.signal, { startDate: benchmarkStart, forceRefresh })
-            .then(async data => {
-                // Match the portfolio's EUR reporting currency using dated FX observations.
-                if (data.some(p => p.currency === 'USD')) {
-                    const fx = await getAssetChartData('USDEUR=X', evolutionPeriod, controller.signal, { startDate: benchmarkStart, forceRefresh });
-                    data = convertHistoryToCurrency(data, fx, 'EUR', 4);
-                } else if (data.some(p => p.currency !== 'EUR')) data = [];
-                if (!controller.signal.aborted) setBenchmarkResult({ period: evolutionPeriod, startDate: benchmarkStart, data });
-            })
-            .catch(() => {
-                if (!controller.signal.aborted) setBenchmarkResult({ period: evolutionPeriod, startDate: benchmarkStart, data: [] });
-            });
-        return () => controller.abort();
-    }, [evolutionPeriod, lastPriceUpdate, tab, apiEnabled, benchmarkRetry, benchmarkStart]);
     const benchmarkReturn = benchmarkLine.at(-1)?.benchmark ?? null;
     const portfolioBenchmarkReturn = benchmarkLine.at(-1)?.portfolio ?? null;
     const hasPortfolioBenchmark = benchmarkLine.length > 1;
@@ -429,7 +399,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                 <h3><BarChart3 size={16} /> Comparativa automática</h3>
                                 <p>{benchmarkUsesWorkbook
                                     ? 'Comparativa importada de tu hoja Comparativa, con ambos recorridos en los mismos cierres. La cobertura puede ser menor que el periodo solicitado.'
-                                    : 'Tu cartera frente al MSCI World (URTH), en euros y con las mismas fechas de comparación.'}</p>
+                                    : `Tu cartera frente a ${BENCHMARK_NAME} (${BENCHMARK_ISIN}), con NAV en euros y las mismas fechas de comparación.`}</p>
                             </div>
                             <div className="portfolio-excel-insights__panel-actions">
                                 <strong>{benchmarkLine[0]?.date} — {benchmarkLine.at(-1)?.date} · {benchmarkLine.length} {benchmarkUsesWorkbook ? 'puntos comparables' : 'puntos coincidentes'}</strong>
@@ -451,16 +421,14 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                         <div className="portfolio-excel-insights__benchmark-kpis">
                             <div><span>Tu cartera · {evolutionPeriod === 'YTD' ? 'YTD completo' : 'periodo seleccionado'}</span><strong>{percent(selectedPeriod.performance.returnPercent)}</strong></div>
                             {benchmarkPartial && <div><span>Tu cartera · tramo comparable</span><strong>{percent(portfolioBenchmarkReturn)}</strong></div>}
-                            <div><span>{benchmarkPartial ? 'MSCI World · tramo comparable' : 'MSCI World'}</span><strong>{percent(benchmarkReturn)}</strong></div>
+                            <div><span>{benchmarkPartial ? 'Fidelity MSCI World · tramo comparable' : 'Fidelity MSCI World'}</span><strong>{percent(benchmarkReturn)}</strong></div>
                             <div><span>{benchmarkPartial ? 'Diferencia · tramo comparable' : 'Diferencia'}</span><strong className={benchmarkDifference === null ? '' : benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'}>{percent(benchmarkDifference)}</strong></div>
                         </div>
                         {benchmarkPartial && <p className="portfolio-excel-insights__chart-note" role="status">
                             Cobertura parcial: esta comparación abarca del {benchmarkLine[0].date.slice(0, 10)} al {benchmarkLine.at(-1)!.date.slice(0, 10)}.
                             {' '}La rentabilidad de tu cartera para todo el periodo seleccionado es {percent(selectedPeriod.performance.returnPercent)}, igual que en el resumen. No se prolonga el benchmark con datos inventados.
                         </p>}
-                        {benchmarkLoading ? (
-                            <div className="portfolio-excel-insights__empty">Cargando datos del benchmark…</div>
-                        ) : benchmarkLine.length > 1 ? (
+                        {benchmarkLine.length > 1 ? (
                             <ResponsiveContainer width="100%" height={230}>
                                 <LineChart data={benchmarkLine} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
@@ -469,11 +437,11 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                     <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined, name?: string) => [percent(Number(value || 0)), benchmarkSeriesLabel(name)]} />
                                     <Legend formatter={(value) => benchmarkSeriesLabel(String(value))} />
                                     {hasPortfolioBenchmark && <Line type="monotone" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} connectNulls />}
-                                    <Line type="monotone" dataKey="benchmark" name="MSCI World" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                                    <Line type="monotone" dataKey="benchmark" name="Fidelity MSCI World" stroke="#3b82f6" strokeWidth={2} dot={false} />
                                 </LineChart>
                             </ResponsiveContainer>
                         ) : (
-                            <div className="portfolio-excel-insights__empty">{apiEnabled ? 'Aún no hay histórico coincidente suficiente para comparar tu cartera con el benchmark.' : 'Consultas externas desactivadas. No hay comparativa importada suficiente para este periodo.'}{apiEnabled && <button type="button" onClick={() => setBenchmarkRetry(n => n + 1)}>Reintentar benchmark</button>}</div>
+                            <div className="portfolio-excel-insights__empty">Aún no hay dos fechas comparables del Fidelity MSCI World ACC EUR. El histórico diario se acumula desde la activación; puedes conservar tu comparativa importada para periodos anteriores.</div>
                         )}
                         {benchmarkLine.length > 1 && !hasPortfolioBenchmark && <p className="portfolio-excel-insights__chart-note">El histórico del benchmark está disponible, pero todavía no hay fechas coincidentes de la cartera para dibujar su línea.</p>}
                     </section>

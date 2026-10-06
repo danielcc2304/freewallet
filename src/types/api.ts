@@ -2,6 +2,9 @@ import type { AssetType } from './asset';
 
 export interface StockQuote {
     quotedAt?: string;
+    checkedAt?: string;
+    origin?: 'batch' | 'provider';
+    source?: 'Finect' | 'Yahoo Finance' | 'Mercado' | 'Saldo';
     symbol: string;
     name: string;
     price: number;

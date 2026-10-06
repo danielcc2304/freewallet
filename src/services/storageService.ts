@@ -1,6 +1,6 @@
 import { portfolioStorage } from './portfolioCloudStorage';
 import type { Asset, Portfolio, PortfolioGoal, PortfolioHistoryPoint, PortfolioTransaction, WatchlistItem } from '../types/types';
-import { assetValue } from './assetValuation';
+import { calculatePortfolioResults } from './portfolioResults';
 import { calculatePreviousClosePerformance, normalizePortfolioTransactions, performanceSeries, selectPortfolioPeriod } from './portfolioPerformance';
 
 const STORAGE_KEYS = {
@@ -320,10 +320,7 @@ export function getPortfolio(): Portfolio {
     const assets = getAssets();
     const history = getHistory();
 
-    const totalInvested = assets.reduce((sum, a) => sum + (a.purchasePrice * a.quantity), 0);
-    const currentValue = assets.reduce((sum, a) => sum + assetValue(a), 0);
-    const totalGain = currentValue - totalInvested;
-    const percentageGain = totalInvested > 0 ? (totalGain / totalInvested) * 100 : 0;
+    const results = calculatePortfolioResults(assets, getTransactions());
 
     const daily = calculatePreviousClosePerformance(assets);
     const series = performanceSeries(history, normalizePortfolioTransactions(assets, getTransactions()), assets);
@@ -335,10 +332,7 @@ export function getPortfolio(): Portfolio {
     return {
         assets,
         metrics: {
-            totalInvested,
-            currentValue,
-            totalGain,
-            percentageGain,
+            ...results,
             dailyChange: daily.change ?? NaN,
             dailyChangePercent: daily.returnPercent ?? NaN,
             monthlyChange: month.returnPercent === null ? NaN : month.change ?? NaN,

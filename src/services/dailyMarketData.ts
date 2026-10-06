@@ -45,7 +45,7 @@ export function dailyQuote(asset: Asset, data: DailyMarketData | null, now = Dat
     const previous = price.previous_close_eur ?? NaN;
     return { symbol: asset.symbol, name: asset.name, price: price.price_eur, previousClose: previous,
         change: price.price_eur - previous, changePercent: previous > 0 ? (price.price_eur / previous - 1) * 100 : NaN,
-        open: previous, high: price.price_eur, low: price.price_eur, volume: 0, currency: 'EUR', quotedAt: price.quoted_at };
+        open: previous, high: price.price_eur, low: price.price_eur, volume: 0, currency: 'EUR', quotedAt: price.quoted_at, checkedAt: price.checked_at, origin: 'batch', source: price.source };
 }
 export function dailyHistory(data: DailyMarketData | null, instrument: string): HistoricalDataPoint[] {
     return (data?.prices ?? []).filter(p => p.instrument === instrument.toUpperCase()).map(p => ({ date: p.quoted_at,

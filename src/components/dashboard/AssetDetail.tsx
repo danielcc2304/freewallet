@@ -383,11 +383,13 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                 <div><span>Resultado</span><strong className={positionGain >= 0 ? 'positive' : 'negative'}>{formatValue(positionGain, 'currency')}</strong></div>
                 <div><span>Rentabilidad</span><strong className={positionReturn >= 0 ? 'positive' : 'negative'}>{formatValue(positionReturn, 'percent')}</strong></div>
                 <div><span>Peso en cartera</span><strong>{portfolioWeight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong></div>
-                <div><span>Última consulta</span><strong>{quoteDateLabel(asset.lastCheckedAt)}</strong></div>
+                <div><span>Consulta al proveedor</span><strong>{quoteDateLabel(asset.lastCheckedAt)}</strong></div>
+                <div><span>Lectura en la app</span><strong>{quoteDateLabel(asset.lastReadAt)}</strong></div>
+                <div><span>Origen</span><strong>{asset.quoteSource || 'No disponible'}{asset.quoteOrigin === 'batch' ? ' · actualización diaria' : ''}</strong></div>
                 <div><span>Fecha del precio</span><strong>{quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)}</strong></div>
             </div>}
-            {marketOnly && <p>Fecha del precio: {quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)} · Última consulta: {quoteDateLabel(asset.lastCheckedAt)}</p>}
-            {asset.type !== 'cash' && (quoteStatus.stalePrice || quoteStatus.unknownPriceDate) && <p role="status">{quoteStatus.stalePrice ? 'El último precio disponible está atrasado; una consulta reciente no implica una cotización nueva.' : 'El proveedor no identifica la fecha del precio; su antigüedad no puede verificarse.'}</p>}
+            {marketOnly && <p>Fecha del precio: {quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)} · Consulta al proveedor: {quoteDateLabel(asset.lastCheckedAt)}</p>}
+            {asset.type !== 'cash' && (quoteStatus.stalePrice || quoteStatus.unknownPriceDate || quoteStatus.futurePrice) && <p role="status">{quoteStatus.futurePrice ? 'La fecha del precio está en el futuro; se necesita una cotización válida.' : quoteStatus.stalePrice ? 'El último precio disponible está atrasado; una consulta reciente no implica una cotización nueva.' : 'El proveedor no identifica la fecha del precio; su antigüedad no puede verificarse.'}</p>}
 
             {/* Chart Section */}
             {!marketOnly && !hasValidPrice(asset) && <p role="status">Valor estimado al coste: no hay una cotización válida.</p>}

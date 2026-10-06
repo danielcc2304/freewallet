@@ -32,7 +32,7 @@ export async function normalizeQuoteToEuro(quote: StockQuote, signal?: AbortSign
 
 export async function getPortfolioAssetQuote(asset: Asset, signal?: AbortSignal, forceRefresh = false, storedQuote?: StockQuote): Promise<StockQuote | null> {
     if (!forceRefresh && storedQuote) return storedQuote;
-    if (asset.type === 'cash') return { symbol: asset.symbol, name: asset.name, price: 1, previousClose: 1, change: 0, changePercent: 0, open: 1, high: 1, low: 1, volume: 0, currency: asset.currency || 'EUR', quotedAt: new Date().toISOString() };
+    if (asset.type === 'cash') return { symbol: asset.symbol, name: asset.name, price: 1, previousClose: 1, change: 0, changePercent: 0, open: 1, high: 1, low: 1, volume: 0, currency: asset.currency || 'EUR', quotedAt: new Date().toISOString(), checkedAt: new Date().toISOString(), origin: 'provider', source: 'Saldo' };
     const isin = (asset.isin || (ISIN_PATTERN.test(asset.symbol) ? asset.symbol : '')).trim().toUpperCase();
 
     if (isin) {
@@ -47,6 +47,7 @@ export async function getPortfolioAssetQuote(asset: Asset, signal?: AbortSignal,
                 const fundQuote: StockQuote = {
                     symbol: isin,
                     quotedAt: fund.lastQuote?.datetime,
+                    checkedAt: fund.fetchedAt, origin: 'provider', source: 'Finect',
                     name: fund.className || fund.name,
                     price,
                     change,

@@ -15,6 +15,7 @@ import { usePortfolio } from '../../context/PortfolioContext';
 import { isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, PerformerData, Asset, AssetHolding, TimePeriod } from '../../types/types';
 import { calculatePreviousClosePerformance, selectPortfolioPeriod, accountingDay } from '../../services/portfolioPerformance';
+import { calculatePortfolioResults } from '../../services/portfolioResults';
 import { assetValue, hasValidPrice } from '../../services/assetValuation';
 import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
 import { useDashboardAnalytics } from '../../components/dashboard/useDashboardAnalytics';
@@ -79,7 +80,7 @@ function DashboardLiveStatus({
 
     return (
         <span className="dashboard__live-status dashboard__live-status--active">
-            <Radio size={13} /> Auto · {refreshIntervalMinutes} min · {updatingPrices ? 'actualizando…' : countdownLabel}
+            <Radio size={13} /> Consulta · {refreshIntervalMinutes} min · {updatingPrices ? 'actualizando…' : countdownLabel}
         </span>
     );
 }
@@ -106,8 +107,10 @@ export function Dashboard() {
     const { series: historicalSeries, liveSeries } = analytics;
     const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || null;
     const quoteStatuses = useMemo(() => assets.map(asset => ({ asset, ...portfolioQuoteStatus(asset, calculationNow) })), [assets, calculationNow]);
-    const consultationTimes = quoteStatuses.map(s => s.checkedAt).filter(t => Number.isFinite(t) && t <= calculationNow);
+    const consultationTimes = quoteStatuses.map(s => s.checkedAt).filter(t => Number.isFinite(t) && t <= calculationNow + 5 * 60000);
     const lastConsultedAt = consultationTimes.length ? new Date(Math.max(...consultationTimes)).toISOString() : undefined;
+    const readTimes = assets.map(a => Date.parse(a.lastReadAt || '')).filter(t => Number.isFinite(t) && t <= calculationNow + 5 * 60000);
+    const lastReadAt = readTimes.length ? new Date(Math.max(...readTimes)).toISOString() : undefined;
 
     const handleCloseDashboardNotice = () => {
         setShowDashboardNotice(false);
@@ -193,13 +196,7 @@ export function Dashboard() {
     }, [assets]);
 
     const metrics: PortfolioMetrics = useMemo(() => {
-        const totalInvested = assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0);
-        const currentValue = assets.reduce(
-            (sum, a) => sum + assetValue(a),
-            0
-        );
-        const totalGain = currentValue - totalInvested;
-        const percentageGain = totalInvested > 0 ? (totalGain / totalInvested) * 100 : NaN;
+        const results = calculatePortfolioResults(assets, analytics.portfolioTransactions, calculationNow);
 
         const periodChange = (periodName: TimePeriod, source: ReturnType<typeof performanceSeries>) => {
             const { performance: period } = selectPortfolioPeriod(source, periodName, calculationNow);
@@ -228,10 +225,7 @@ export function Dashboard() {
         const all = periodChange('ALL', historicalSeries);
 
         return {
-            totalInvested,
-            currentValue,
-            totalGain,
-            percentageGain,
+            ...results,
             dailyChange: day.change,
             dailyChangePercent: day.percent,
             monthlyChange: month.change,
@@ -277,7 +271,7 @@ export function Dashboard() {
         );
     }
 
-    if (assets.length === 0 && historicalSeries.length === 0) {
+    if (assets.length === 0 && historicalSeries.length === 0 && analytics.portfolioTransactions.length === 0) {
         return (
             <>
                 <div className="dashboard dashboard--empty">
@@ -320,9 +314,10 @@ export function Dashboard() {
                     <h1 className="dashboard__title">Dashboard</h1>
                     <p className="dashboard__subtitle">
                         Seguimiento automático de tu cartera
+                        {lastReadAt && <span className="dashboard__last-update">· Última lectura en la app: {quoteDateLabel(lastReadAt)}</span>}
                         {lastConsultedAt && (
                             <span className="dashboard__last-update">
-                                · Última consulta: {quoteDateLabel(lastConsultedAt)}
+                                · Última consulta al proveedor: {quoteDateLabel(lastConsultedAt)}
                             </span>
                         )}
                     </p>
@@ -338,7 +333,7 @@ export function Dashboard() {
             {updatingPrices && (
                 <div className="dashboard__updating-banner">
                     <Loader2 size={16} className="spinning" />
-                    <span>Obteniendo precios en tiempo real...</span>
+                    <span>Consultando precios disponibles...</span>
                 </div>
             )}
 

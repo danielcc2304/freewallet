@@ -29,7 +29,7 @@ try {
         grant usage on schema auth,public to authenticated,anon,service_role;
         insert into auth.users(id) values('${A}'),('${B}');
         insert into auth.sessions values('${S}','${A}');`);
-    for (const suffix of ['portfolio_foundation.sql','portfolio_commands.sql','portfolio_mfa_guard.sql','portfolio_command_validation.sql','daily_market_data.sql','daily_market_accounting_calendar.sql']) {
+    for (const suffix of ['portfolio_foundation.sql','portfolio_commands.sql','portfolio_mfa_guard.sql','portfolio_command_validation.sql','portfolio_opening_basis.sql','daily_market_data.sql','daily_market_accounting_calendar.sql']) {
         const migration = readdirSync('supabase/migrations').find(n=>n.endsWith(suffix));
         assert.ok(migration); await db.exec(readFileSync(`supabase/migrations/${migration}`,'utf8'));
     }

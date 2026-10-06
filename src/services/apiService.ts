@@ -437,6 +437,9 @@ export async function getQuote(symbol: string, signal?: AbortSignal, forceRefres
             const quote = await getQuoteYahoo(symbol, signal);
             if (quote) {
                 resetYahooFinanceFailures();
+                quote.checkedAt = new Date().toISOString();
+                quote.origin = 'provider';
+                quote.source = 'Yahoo Finance';
                 QUOTE_CACHE.set(symbol, { data: quote, timestamp: Date.now() });
                 return quote;
             }
@@ -453,6 +456,9 @@ export async function getQuote(symbol: string, signal?: AbortSignal, forceRefres
             const quote = await getQuoteAlphaVantage(symbol, signal);
             if (quote) {
                 resetAlphaVantageFailures();
+                quote.checkedAt = new Date().toISOString();
+                quote.origin = 'provider';
+                quote.source = 'Mercado';
                 QUOTE_CACHE.set(symbol, { data: quote, timestamp: Date.now() });
                 return quote;
             }
@@ -467,6 +473,9 @@ export async function getQuote(symbol: string, signal?: AbortSignal, forceRefres
     try {
         const quote = await getQuoteFinnhub(symbol, signal);
         if (quote) {
+            quote.checkedAt = new Date().toISOString();
+            quote.origin = 'provider';
+            quote.source = 'Mercado';
             QUOTE_CACHE.set(symbol, { data: quote, timestamp: Date.now() });
             return quote;
         }

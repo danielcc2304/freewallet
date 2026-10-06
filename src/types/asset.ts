@@ -24,6 +24,9 @@ export interface Asset {
     isin?: string;
     lastQuoteAt?: string;
     lastCheckedAt?: string;
+    /** Time the app read the quote; never a provider verification. */
+    lastReadAt?: string;
+    quoteOrigin?: 'batch' | 'provider';
     quotedAt?: string;
     quoteSource?: 'Finect' | 'Yahoo Finance' | 'Mercado' | 'Saldo';
 }

@@ -29,28 +29,26 @@ const withdrawn = calculateCompoundInterestProjection({ initial: 10000, monthly:
 assert.equal(withdrawn.grossInterest, 0); assert.equal(withdrawn.withdrawal, 2000); assert.equal(withdrawn.total, 8000);
 assert.equal(withdrawn.contributed + withdrawn.grossInterest - withdrawn.withdrawal, withdrawn.total);
 
-// Execute the real benchmark effect with controlled hooks/services, not a copy of its logic.
+// Execute the Dashboard's real benchmark selector against the stored NAVs.
 const source = ts.createSourceFile('PortfolioExcelInsights.tsx', readFileSync('src/components/dashboard/PortfolioExcelInsights.tsx', 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
-let effectSource = '';
+let benchmarkSelector = '';
 function visit(node: ts.Node) {
-    if (ts.isCallExpression(node) && node.expression.getText(source) === 'useEffect' && node.arguments[0]?.getText(source).includes("getAssetChartData('URTH'")) effectSource = node.arguments[0].getText(source);
+    if (ts.isVariableDeclaration(node) && node.name.getText(source) === 'benchmark' && node.initializer && ts.isCallExpression(node.initializer)) {
+        benchmarkSelector = node.initializer.arguments[0]?.getText(source) || '';
+    }
     ts.forEachChild(node, visit);
 }
-visit(source); assert.ok(effectSource);
-const effect = ts.transpileModule(`const runEffect = ${effectSource}`, { compilerOptions: { target: ts.ScriptTarget.ES2022 } }).outputText;
-const requests: Array<{ symbol: string; forceRefresh: boolean }> = [];
-const context = vm.createContext({ AbortController, tab: 'benchmark', apiEnabled: true, evolutionPeriod: 'YTD', benchmarkStart: 1, benchmarkRetry: 0, requestedRetry: { current: 0 },
-    getAssetChartData: async (symbol: string, _period: string, _signal: AbortSignal, options: { forceRefresh: boolean }) => { requests.push({ symbol, forceRefresh: options.forceRefresh }); return [{ date: '2026-01-01', close: 100, currency: symbol === 'URTH' ? 'USD' : 'EUR' }]; },
-    convertHistoryToCurrency: (data: unknown) => data, setBenchmarkResult: () => {},
-});
-vm.runInContext(effect, context);
-for (const retry of [0, 1, 1, 2, 2]) {
-    context.benchmarkRetry = retry;
-    const cleanup = vm.runInContext('runEffect()', context) as () => void;
-    await new Promise(resolve => setImmediate(resolve)); cleanup();
-}
-assert.deepEqual(requests.filter(r => r.symbol === 'URTH').map(r => r.forceRefresh), [false, true, false, true, false]);
-assert.deepEqual(requests.filter(r => r.symbol === 'USDEUR=X').map(r => r.forceRefresh), [false, true, false, true, false]);
+visit(source); assert.ok(benchmarkSelector);
+const dailySource = ts.createSourceFile('dailyMarketData.ts', readFileSync('src/services/dailyMarketData.ts','utf8'),ts.ScriptTarget.Latest,true);
+const historyFunction = dailySource.statements.find(s => ts.isFunctionDeclaration(s) && s.name?.text === 'dailyHistory');
+assert.ok(historyFunction);
+const benchmarkContext = vm.createContext({ BENCHMARK_ISIN: 'IE00BYX5NX33', analytics: { dailyMarket: { data: { prices: [
+    { instrument:'URTH',quoted_at:'2026-10-01',price_eur:999 },
+    { instrument:'IE00BYX5NX33',quoted_at:'2026-10-01',price_eur:14 },
+    { instrument:'IE00BYX5NX33',quoted_at:'2026-10-02',price_eur:14.2 },
+] } } } });
+vm.runInContext(ts.transpileModule(historyFunction.getText(dailySource).replace('export ', '') + `\nconst selectBenchmark = ${benchmarkSelector}`,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText, benchmarkContext);
+assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext('selectBenchmark()',benchmarkContext))).map((p: {close:number})=>p.close),[14,14.2]);
 
 const fireSource = ts.createSourceFile('FIRECalculator.tsx', readFileSync('src/components/academy/calculators/FIRECalculator.tsx', 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 const tooltipFunctions = fireSource.statements.filter(s => ts.isFunctionDeclaration(s) && ['formatFIRECurrency', 'FIRETooltip'].includes(s.name?.text || '')).map(s => s.getText(fireSource)).join('\n');
@@ -163,5 +161,5 @@ try {
         }
     }
     assert.deepEqual(errors, []);
-    console.log('PASS: withdrawal accounting, dated daily changes, one-shot benchmark retries, 15-position search/filter weights, zero-expense state, empty inflation inputs, accessible calculator controls and immutable scenarios in mobile/desktop and both themes.');
+    console.log('PASS: withdrawal accounting, dated daily changes, exact Fidelity benchmark NAV selection, 15-position search/filter weights, zero-expense state, empty inflation inputs, accessible calculator controls and immutable scenarios in mobile/desktop and both themes.');
 } finally { await browser.close(); }

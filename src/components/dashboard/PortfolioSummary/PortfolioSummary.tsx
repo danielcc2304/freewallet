@@ -88,7 +88,7 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
 
             <div className="portfolio-summary__grid">
                 <MetricCard
-                    title="Capital Invertido"
+                    title="Coste de posiciones abiertas"
                     value={formatCurrency(metrics.totalInvested)}
                     icon={<PiggyBank size={20} />}
                     size="large"
@@ -96,15 +96,24 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
                 <MetricCard
                     title={estimatedCount ? 'Valor actual (incluye estimaciones)' : 'Valor Actual'}
                     value={formatCurrency(metrics.currentValue)}
-                    change={metrics.percentageGain}
-                    changeLabel="total"
                     icon={<Wallet size={20} />}
                     size="large"
                 />
                 <MetricCard
-                    title={estimatedCount ? 'Resultado total (estimado)' : 'Ganancia/Pérdida Total'}
-                    value={formatCurrency(metrics.totalGain)}
+                    title={estimatedCount ? 'Resultado no realizado (estimado)' : 'Resultado no realizado'}
+                    value={formatCurrency(metrics.unrealizedGain ?? NaN)}
                     change={metrics.percentageGain}
+                    changeLabel="sobre el coste abierto"
+                    icon={<TrendingUp size={20} />}
+                />
+                <MetricCard
+                    title="Resultado realizado"
+                    value={Number.isFinite(metrics.realizedGain) ? formatCurrency(metrics.realizedGain!) : 'No disponible'}
+                    icon={<TrendingUp size={20} />}
+                />
+                <MetricCard
+                    title={estimatedCount ? 'Resultado total (estimado)' : 'Resultado total'}
+                    value={Number.isFinite(metrics.totalGain) ? formatCurrency(metrics.totalGain) : 'No disponible'}
                     icon={<TrendingUp size={20} />}
                 />
                 <MetricCard
@@ -114,6 +123,8 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
                     icon={<BarChart3 size={20} />}
                 />
             </div>
+            <p className="portfolio-summary__dates">El resultado realizado usa el coste medio de las compras y ventas registradas, incluidos los cierres de posiciones. El total suma realizado y no realizado; solo incluye gastos e impuestos que figuren en los importes registrados.</p>
+            {metrics.resultUnavailableReason && <p className="portfolio-summary__dates" role="status">Realizado y total no disponibles: {metrics.resultUnavailableReason} El resultado no realizado corresponde a las posiciones abiertas.</p>}
         </div>
     );
 }

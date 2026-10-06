@@ -66,7 +66,7 @@ export function portfolioLedgerKey(transactions: PortfolioTransaction[], date: s
 
 export function createQuoteSnapshot(assets: Asset[], transactions: PortfolioTransaction[], date: string): PortfolioHistoryPoint | null {
     const now = Date.parse(date);
-    if (!assets.length || !Number.isFinite(now) || assets.some(a => portfolioQuoteStatus(a, now).blockers.length > 0)) return null;
+    if (!assets.length || !Number.isFinite(now) || assets.some(a => a.quoteOrigin === 'batch' || portfolioQuoteStatus(a, now).blockers.length > 0)) return null;
     // A recent successful consultation may verify an older fund NAV, but opening
     // the dashboard never counts as a new consultation.
     return { date, value: assets.reduce((sum, a) => sum + a.currentPrice! * a.quantity, 0),

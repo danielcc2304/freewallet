@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import { PGlite } from '@electric-sql/pglite';
+import { calculatePortfolioResults } from '../src/services/portfolioResults';
 import { AccountScope } from '../src/services/accountScope';
 import { assertPublicSupabaseEnvironment, publicSupabaseConfig } from '../src/services/supabaseConfig';
 
@@ -130,6 +131,8 @@ try {
     await db.exec(readFileSync(`supabase/migrations/${mfa}`,'utf8'));
     const validation=readdirSync('supabase/migrations').find(name=>name.endsWith('_portfolio_command_validation.sql'));assert.ok(validation);
     await db.exec(readFileSync(`supabase/migrations/${validation}`,'utf8'));
+    const openingMigration=readdirSync('supabase/migrations').find(name=>name.endsWith('_portfolio_opening_basis.sql'));assert.ok(openingMigration);
+    await db.exec(readFileSync(`supabase/migrations/${openingMigration}`,'utf8'));
     const C = '55555555-5555-4555-8555-555555555555';
     const session = '66666666-6666-4666-8666-666666666666';
     await db.query('insert into auth.users(id) values ($1)',[C]);
@@ -158,6 +161,9 @@ try {
     const sold = {...verified,assets:[{...verified.assets[0],quantity:3}],transactions:[sell,...verified.transactions]};
     result = await db.query(`select public.commit_portfolio(2,gen_random_uuid(),'save',$1) as result`,[data(sold)]);
     assert.equal(JSON.parse(result.rows[0].result.data.freewallet_portfolio_v1).assets[0].quantity,3);
+    const soldCanonical=JSON.parse(result.rows[0].result.data.freewallet_portfolio_v1);
+    const lateOpening={...buy,id:'position-test',quantity:3,price:14,total:42,date:'2026-01-01',createdAt:'2026-01-01',provenance:'initial-position'};
+    await expectCode(`select public.commit_portfolio(3,gen_random_uuid(),'save',$1)`,[data({...soldCanonical,transactions:[...soldCanonical.transactions,lateOpening]})],'22023');
     const invalid = {...sold,assets:[{...asset,quantity:-10}]};
     await expectCode(`select public.commit_portfolio(3,gen_random_uuid(),'save',$1)`,[data(invalid)],'22023');
     assert.equal((await db.query<{result:{revision:number}}>('select public.read_portfolio() as result')).rows[0].result.revision,3);
@@ -180,6 +186,29 @@ try {
     await db.exec('set role anon');
     await expectCode('select public.read_portfolio()',[],'42501');
     await db.exec('reset role');
+    const importedOwner=crypto.randomUUID(), importedSession=crypto.randomUUID();
+    await db.query('insert into auth.users(id) values ($1)',[importedOwner]);
+    await db.query('insert into auth.sessions values ($1,$2)',[importedSession,importedOwner]);
+    await db.exec('set role authenticated');
+    await db.query(`select set_config('request.jwt.claim.sub',$1,false),set_config('request.jwt.claims',$2,false)`,[importedOwner,JSON.stringify({session_id:importedSession})]);
+    await db.query(`select public.commit_portfolio(-1,gen_random_uuid(),'import',$1)`,[data()]);
+    const opening={id:'position-test',assetId:asset.id,assetSymbol:asset.symbol,assetName:asset.name,assetType:asset.type,type:'buy',provenance:'initial-position',date:asset.purchaseDate,createdAt:asset.purchaseDate,quantity:asset.quantity,price:asset.purchasePrice,total:asset.quantity*asset.purchasePrice};
+    const firstSale={...sell,total:60};
+    const saleWithOpening={version:1,assets:[{...asset,quantity:1}],transactions:[firstSale,opening]};
+    for (const forged of [{...opening,price:1},{...opening,quantity:30},{...opening,total:0},{...opening,assetSymbol:'OTHER'},{...opening,date:'2025-01-01'},{...opening,id:'fake'},{...opening,assetId:'missing'}]) {
+        await expectCode(`select public.commit_portfolio(1,gen_random_uuid(),'save',$1)`,[data({...saleWithOpening,transactions:[firstSale,forged]})],'22023');
+    }
+    await expectCode(`select public.commit_portfolio(1,gen_random_uuid(),'save',$1)`,[data({...saleWithOpening,transactions:[firstSale,{...buy,id:'extra'},opening]})],'22023');
+    assert.equal((await db.query<{result:{revision:number}}>('select public.read_portfolio() as result')).rows[0].result.revision,1,'Forged baselines roll back atomically');
+    const openingRequest=crypto.randomUUID();
+    const actual=await db.query<{result:{revision:number;data:Record<string,string>}}>(`select public.commit_portfolio(1,$1,'save',$2) as result`,[openingRequest,data(saleWithOpening)]);
+    const saved=JSON.parse(actual.rows[0].result.data.freewallet_portfolio_v1);
+    assert.equal(saved.assets[0].quantity,1);assert.equal(saved.transactions.length,2);
+    assert.equal(saved.transactions.find((t:{provenance:string})=>t.provenance==='initial-position').total,30);
+    assert.equal(calculatePortfolioResults(saved.assets,saved.transactions).realizedGain,40,'The first cloud sale retains its verified opening cost');
+    assert.equal((await db.query<{result:{revision:number}}>(`select public.commit_portfolio(1,$1,'save',$2) as result`,[openingRequest,data(saleWithOpening)])).rows[0].result.revision,2,'A repeated sale must not duplicate the opening basis');
+    await expectCode(`select public.commit_portfolio(2,gen_random_uuid(),'save',$1)`,[data({...saved,transactions:[...saved.transactions,{...opening,id:'position-again'}]})],'22023');
+    await db.exec('reset role');
     const zeroOwner='77777777-7777-4777-8777-777777777777';
     const zeroSession='88888888-8888-4888-8888-888888888888';
     await db.query('insert into auth.users(id) values ($1)',[zeroOwner]);
@@ -195,6 +224,6 @@ try {
     const afterRemoval=JSON.parse(deletion.rows[0].result.data.freewallet_portfolio_v1);
     assert.equal(afterRemoval.assets.length,0);
     assert.equal(afterRemoval.transactions[0].total,0);
-    console.log('Atomic API passed: confirmed active sessions, revision conflicts, same-request retries, key allowlist, server DCA/sales, immutable ledger, rollback and revoked-session denial.');
+    console.log('Atomic API passed: confirmed active sessions, revision conflicts, same-request retries, key allowlist, server DCA/sales, verified imported opening costs, forged-basis rejection, immutable ledger, rollback and revoked-session denial.');
     console.log('Portfolio foundation passed: real PostgreSQL migration, 7 private tables, ownership RLS, guest/anonymous denial, denied direct mutations, numeric precision, composite FKs, sold ledger, request uniqueness, cascades, key safety and session cancellation. Supabase Auth/network/live deployment remain untested.');
 } finally { await db.close(); }

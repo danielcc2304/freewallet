@@ -123,8 +123,13 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
                     icon={<BarChart3 size={20} />}
                 />
             </div>
-            <p className="portfolio-summary__dates">El resultado realizado usa el coste medio de las compras y ventas registradas, incluidos los cierres de posiciones. El total suma realizado y no realizado; solo incluye gastos e impuestos que figuren en los importes registrados.</p>
-            {metrics.resultUnavailableReason && <p className="portfolio-summary__dates" role="status">Realizado y total no disponibles: {metrics.resultUnavailableReason} El resultado no realizado corresponde a las posiciones abiertas.</p>}
+            <details className="portfolio-summary__calculation">
+                <summary>{metrics.resultUnavailableReason
+                    ? <><span role="status">Realizado y total no disponibles</span> · Ver motivo</>
+                    : 'Cómo se calculan los resultados'}</summary>
+                {metrics.resultUnavailableReason && <p>{metrics.resultUnavailableReason}</p>}
+                <p>Realizado: ventas menos coste medio, incluidos los cierres. No realizado: posiciones abiertas. Total: suma de ambos. Gastos e impuestos: solo los registrados.</p>
+            </details>
         </div>
     );
 }

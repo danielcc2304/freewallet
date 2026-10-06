@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "verify-funds": "tsx scripts/verify-funds.ts",
     "test:compound-interest": "tsx scripts/test-compound-interest.ts",
+    "test:fund-breakdown": "tsx scripts/test-fund-breakdown.ts",
+    "test:fund-breakdown-ui": "tsx scripts/test-fund-breakdown-ui.ts",
     "test:finect": "tsx scripts/test-finect.ts",
     "test:dashboard-audit": "tsx scripts/test-dashboard-audit.ts",
     "test:dashboard-results": "tsx scripts/test-dashboard-results.ts",

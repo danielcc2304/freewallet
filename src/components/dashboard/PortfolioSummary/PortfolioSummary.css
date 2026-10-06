@@ -81,3 +81,7 @@
 .portfolio-summary__tab { min-height: 44px; }
 .portfolio-summary__tab:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 .portfolio-summary__dates { font-size: .8rem; color: var(--text-secondary); }
+.portfolio-summary__calculation { margin-top: .5rem; font-size: .8rem; color: var(--text-secondary); line-height: 1.5; }
+.portfolio-summary__calculation summary { cursor: pointer; padding: .65rem 0; }
+.portfolio-summary__calculation summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; border-radius: var(--radius-sm); }
+.portfolio-summary__calculation p { margin: .25rem 0 .5rem; }

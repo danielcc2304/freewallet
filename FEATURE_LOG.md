@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-06 - v6.0.6 - Actualización diaria de mercado y benchmark Fidelity
+- Funcionalidad:
+  - Captura programada de precios y NAV con trazabilidad de fuente, divisa y fecha de cotización.
+  - Valoraciones diarias privadas de cartera y consumo de precios guardados en el Dashboard.
+  - Benchmark Fidelity MSCI World ACC EUR, sin inventar histórico anterior a la activación.
+- Resumen:
+  - Mantiene la evolución diaria de la cartera con datos verificables aunque no se abra la aplicación.
+- Archivos:
+  - `supabase/functions/daily-market-data/`, `supabase/migrations/`, `src/hooks/useDailyMarketData.ts`, `src/services/dailyMarketData.ts`, `src/components/dashboard/`, `docs/daily-market-data.md`.
+
 ### 2026-10-02 - v6.0.5 - Calculadoras y Dashboard: simulaciones y lectura de cartera
 - Funcionalidad:
   - Interés compuesto con intereses generados, retiradas acumuladas y saldo disponible diferenciados, también en gráfico y detalle anual.

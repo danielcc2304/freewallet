@@ -4,7 +4,11 @@ export interface PortfolioMetrics {
     totalInvested: number;
     currentValue: number;
     totalGain: number;
+    /** Percentage of the remaining open cost; not a lifetime return. */
     percentageGain: number;
+    unrealizedGain?: number;
+    realizedGain?: number;
+    resultUnavailableReason?: string;
     dailyChange: number;
     dailyChangePercent: number;
     monthlyChange: number;

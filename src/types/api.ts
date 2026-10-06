@@ -2,6 +2,9 @@ import type { AssetType } from './asset';
 
 export interface StockQuote {
     quotedAt?: string;
+    checkedAt?: string;
+    origin?: 'batch' | 'provider';
+    source?: 'Finect' | 'Yahoo Finance' | 'Mercado' | 'Saldo';
     symbol: string;
     name: string;
     price: number;
@@ -43,6 +46,8 @@ export interface SearchResult {
 }
 
 export interface HistoricalDataPoint {
+    /** Listing actually used when a quote-only symbol has no usable history. */
+    sourceSymbol?: string;
     currency?: string;
     date: string;
     /** Source timestamp in milliseconds. The display date may be time-only for 1D charts. */

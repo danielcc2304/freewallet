@@ -46,7 +46,7 @@ export function quoteIdentity(asset: Pick<Asset, 'symbol' | 'isin' | 'type' | 'c
 export function applyPositionUpdate(asset: Asset, updates: Partial<Asset>): Asset {
     const next = { ...asset, ...updates };
     if (quoteIdentity(asset) === quoteIdentity(next)) return next;
-    return { ...next, currentPrice: undefined, previousClose: undefined, lastCheckedAt: undefined, lastQuoteAt: undefined, quotedAt: undefined, quoteSource: undefined, holdings: undefined };
+    return { ...next, currentPrice: undefined, previousClose: undefined, lastCheckedAt: undefined, lastReadAt: undefined, quoteOrigin: undefined, lastQuoteAt: undefined, quotedAt: undefined, quoteSource: undefined, holdings: undefined };
 }
 
 /** Late responses belong to the requested instrument, not just its reusable ID. */

@@ -29,6 +29,10 @@
 .portfolio-excel-insights__panel-heading h3, .portfolio-excel-insights__mini-chart h3, .portfolio-excel-insights__control-column h3 { display: flex; align-items: center; gap: .4rem; margin: 0 0 .35rem; font-size: .95rem; }
 .portfolio-excel-insights__panel-heading p { margin: 0; color: var(--text-muted); font-size: .75rem; }
 .portfolio-excel-insights__chart-note { margin: .75rem 0 0; color: var(--text-muted); font-size: .72rem; line-height: 1.45; }
+.portfolio-excel-insights__history-details { margin-bottom: .5rem; color: var(--text-muted); font-size: .72rem; line-height: 1.45; }
+.portfolio-excel-insights__history-details summary { cursor: pointer; padding: .65rem 0; }
+.portfolio-excel-insights__history-details summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; border-radius: var(--radius-sm); }
+.portfolio-excel-insights__history-details p { margin: .25rem 0 .5rem; }
 .portfolio-excel-insights__panel-heading > strong { color: var(--text-secondary); font-size: .75rem; white-space: nowrap; }
 .portfolio-excel-insights__empty { min-height: 220px; display: grid; place-items: center; color: var(--text-muted); text-align: center; }
 .portfolio-excel-insights__allocation, .portfolio-excel-insights__controls { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }

@@ -59,3 +59,28 @@ assert(Math.abs(totalWeight - 100) < 0.0001, 'reconcilia el 100% incluyendo los 
 assert(exposures.some((exposure) => exposure.isResidual), 'mantiene visible el porcentaje no desglosado');
 
 console.log(`Portfolio composition tests passed: ${assets.length} posiciones → ${exposures.length} exposiciones, ${totalWeight.toFixed(2)}% reconciliado.`);
+
+const nextilSources = new Map<string, readonly AssetHolding[]>([
+    ['asset-8', [{symbol:'ES0126962069',isin:'ES0126962069',name:'Nueva Expresion Textil SA',percentage:7.05}]],
+]);
+const consolidatedNextil = buildConsolidatedPortfolioExposures(assets,nextilSources);
+const nextil = consolidatedNextil.filter(e=>e.id==='exposure-isin:ES0126962069');
+assert(nextil.length===1,'Nextil directa y dentro de Evercapital aparecen en una sola exposición');
+assert(Math.abs(nextil[0].value-(14663.25+2842.07*0.0705))<0.00001,'suma el valor directo y el importe ponderado de Evercapital');
+assert(nextil[0].sourceCount===2 && nextil[0].sources.length===2,'conserva ambas fuentes de exposición');
+assert(Math.abs(consolidatedNextil.reduce((sum,e)=>sum+e.weight,0)-100)<0.00001,'no pierde ni duplica valor después de consolidar');
+const shortName = new Map<string, readonly AssetHolding[]>([['asset-8',[{symbol:'',name:'Nextil',percentage:7.05}]]]);
+assert(buildConsolidatedPortfolioExposures(assets,shortName).filter(e=>e.id==='exposure-isin:ES0126962069').length===1,'reconoce el alias Nextil sin depender de coincidencias difusas');
+const appleWithIsin = new Map<string,readonly AssetHolding[]>([
+    ['asset-0',[{symbol:'AAPL',name:'Apple Inc',isin:'US0378331005',percentage:5}]],
+    ['asset-3',[{symbol:'Apple',name:'Apple Inc.',percentage:3}]],
+]);
+const appleMerged=buildConsolidatedPortfolioExposures(assets,appleWithIsin).filter(e=>e.id==='exposure-isin:US0378331005');
+assert(appleMerged.length===1 && appleMerged[0].sources.length===2,'vincula nombres sin ISIN a una única identidad conocida');
+const conflictingIsins = new Map<string,readonly AssetHolding[]>([
+    ['asset-0',[{symbol:'AAPL',name:'Apple Inc',isin:'US0378331005',percentage:5}]],
+    ['asset-3',[{symbol:'other',name:'Apple Inc.',isin:'US0000000001',percentage:3}]],
+    ['asset-4',[{symbol:'Apple',name:'Apple Inc',percentage:1}]],
+]);
+assert(buildConsolidatedPortfolioExposures(assets,conflictingIsins).filter(e=>e.name.startsWith('Apple')).length===3,'no fusiona ISINs distintos ni resuelve nombres ambiguos');
+console.log('Nextil/Evercapital, alias de marca, puente a ISIN y conflictos de identidad verificados.');

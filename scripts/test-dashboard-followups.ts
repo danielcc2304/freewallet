@@ -15,7 +15,7 @@ assert.equal(createQuoteSnapshot([asset, missing], [], new Date(now).toISOString
 const oldQuote = { ...asset, quotedAt: '2026-09-20T12:00:00Z' };
 assert.ok(portfolioQuoteStatus(oldQuote, now).recentlyChecked);
 assert.ok(portfolioQuoteStatus(oldQuote, now).stalePrice);
-assert.ok(createQuoteSnapshot([oldQuote], [], new Date(now).toISOString())); // age warning does not fabricate a new NAV or remove available valuations
+assert.equal(createQuoteSnapshot([oldQuote], [], new Date(now).toISOString()), null, 'An old NAV cannot create a verified valuation after a recent check');
 assert.equal(portfolioQuoteStatus({ ...asset, quotedAt: '2026-09-27T12:00:00Z' }, now).stalePrice, false);
 assert.equal(portfolioQuoteStatus({ ...asset, type: 'stock', quotedAt: '2026-09-28T12:00:00Z' }, now).stalePrice, false);
 assert.equal(portfolioQuoteStatus({ ...asset, type: 'crypto', quotedAt: '2026-09-28T12:00:00Z' }, now).stalePrice, true);

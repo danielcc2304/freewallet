@@ -10,10 +10,11 @@ import { applicableQuoteUpdates, applyPositionUpdate } from '../services/dashboa
 import { accountingDay } from '../services/portfolioCalendar';
 import {portfolioStorage} from '../services/portfolioCloudStorage';
 import {commitPortfolioState} from '../services/storageService';
+import { readDailyMarketData, dailyQuote } from '../services/dailyMarketData';
 
 function getLatestQuoteAt(assets: Asset[]): Date | null {
     const timestamps = assets
-        .map((asset) => (asset.lastCheckedAt || asset.lastQuoteAt) ? Date.parse(asset.lastCheckedAt || asset.lastQuoteAt!) : NaN)
+        .map((asset) => Date.parse(asset.lastReadAt || asset.lastCheckedAt || asset.lastQuoteAt || ''))
         .filter((timestamp) => Number.isFinite(timestamp));
     const latest = timestamps.length === assets.length && timestamps.length ? Math.min(...timestamps) : NaN;
     return Number.isFinite(latest) ? new Date(latest) : null;
@@ -148,7 +149,10 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             throw new Error('Abre Mi cuenta para recuperar el guardado pendiente antes de añadir otra operación.');
         commitInFlight.current=true;
         try {
-            const ledger = getTransactions();
+            // Capture an imported position before its first sale/edit changes the basis.
+            const ledger = transaction
+                ? normalizePortfolioTransactions(getAssets().filter(a => a.id === transaction.assetId), getTransactions())
+                : getTransactions();
             if (transaction) ledger.unshift({ ...transaction, provenance:transaction.provenance??'trade', id: generateId(), createdAt: new Date().toISOString() });
             await commitPortfolioState(assets, ledger);
             dispatch({ type: 'SET_ASSETS', payload: getAssets() });
@@ -172,6 +176,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         const requested = forceRefresh ? assetsToUpdate : assetsToUpdate.filter(a => shouldRefreshAssets([a]));
         try {
             const initialLedgerKey = portfolioLedgerKey(normalizePortfolioTransactions(assetsToUpdate, getTransactions()), refreshDate);
+            const centralData = await readDailyMarketData().catch(() => null);
+            if (accountEpoch !== portfolioStorage.epoch) return;
             const quoteUpdates: Array<{ id: string; updates: Partial<Asset> }> = [];
             let nextIndex = 0;
             const updateNextAsset = async () => {
@@ -181,16 +187,18 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                     const controller = new AbortController();
                     const deadline = window.setTimeout(() => controller.abort(), 15000);
                     try {
-                        const quote = await getPortfolioAssetQuote(asset, controller.signal, forceRefresh);
+                        const quote = await getPortfolioAssetQuote(asset, controller.signal, forceRefresh, dailyQuote(asset, centralData));
                         if (quote && Number.isFinite(quote.price) && quote.price >= 0 && quote.currency === 'EUR') {
                             const updates = {
                                 currentPrice: quote.price,
                                 previousClose: quote.previousClose,
                                 currency: quote.currency || asset.currency,
-                                lastCheckedAt: new Date().toISOString(),
+                                lastCheckedAt: quote.checkedAt,
+                                lastReadAt: new Date().toISOString(),
+                                quoteOrigin: quote.origin,
                                 quotedAt: quote.quotedAt,
                                 lastQuoteAt: quote.quotedAt,
-                                quoteSource: asset.isin || /^[A-Z]{2}[A-Z0-9]{10}$/i.test(asset.symbol) ? 'Finect' : asset.type === 'cash' ? 'Saldo' : 'Mercado',
+                                quoteSource: quote.source,
                             } as const;
                             quoteUpdates.push({ id: asset.id, updates });
                         }
@@ -219,6 +227,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             }
 
             const refreshedAssets = getAssets();
+            // Reading the batch must not turn its earlier valuation into a new live point.
             const snapshot = createQuoteSnapshot(refreshedAssets, getTransactions(), new Date().toISOString());
             const samePositions = refreshedAssets.length === assetsToUpdate.length && refreshedAssets.every(a =>
                 assetsToUpdate.some(old => old.id === a.id && old.quantity === a.quantity && old.purchasePrice === a.purchasePrice && old.purchaseDate === a.purchaseDate));

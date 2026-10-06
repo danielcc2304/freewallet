@@ -15,7 +15,8 @@ assert.equal(calculatePreviousClosePerformance([{ ...asset, type: 'cash', quanti
 assert.equal(assetPrice({ ...asset, currentPrice: NaN }), 100);
 assert.equal(formatQuantity(asset), '0,01234567');
 assert.equal(createQuoteSnapshot([asset], [], '2026-09-30T12:00:00Z'), null, 'Opening the page cannot verify old quotes');
-assert.equal(createQuoteSnapshot([{ ...asset, lastCheckedAt: '2026-09-30T11:59:00Z' }], [], '2026-09-30T12:00:00Z')?.source, 'quotes-v2');
+assert.equal(createQuoteSnapshot([{ ...asset, lastCheckedAt: '2026-09-30T11:59:00Z' }], [], '2026-09-30T12:00:00Z'), null, 'A fresh check cannot verify an undated price');
+assert.equal(createQuoteSnapshot([{ ...asset, quotedAt: '2026-09-30T11:00:00Z', lastCheckedAt: '2026-09-30T11:59:00Z' }], [], '2026-09-30T12:00:00Z')?.source, 'quotes-v2');
 assert.notEqual(getExposureIdentity('Same name', 'A', 'US0000000001'), getExposureIdentity('Same name', 'B', 'US0000000002'));
 assert.equal(getExposureIdentity('First name', 'A', 'US0000000001'), getExposureIdentity('Different name', 'B', 'US0000000001'));
 const exposures = buildConsolidatedPortfolioExposures([{ ...asset, type: 'fund', quantity: 1, currentPrice: 100 }], new Map([[asset.id, [{ name: 'Synthetic stock', symbol: 'ABC', isin: 'US0000000001', percentage: 30 }]]]));

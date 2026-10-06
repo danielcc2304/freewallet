@@ -1,7 +1,7 @@
 {
   "name": "freewallet",
   "private": true,
-  "version": "6.0.5",
+  "version": "6.0.6",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -12,6 +12,12 @@
     "test:compound-interest": "tsx scripts/test-compound-interest.ts",
     "test:finect": "tsx scripts/test-finect.ts",
     "test:dashboard-audit": "tsx scripts/test-dashboard-audit.ts",
+    "test:dashboard-results": "tsx scripts/test-dashboard-results.ts",
+    "test:dashboard-results-ui": "tsx scripts/test-dashboard-results-ui.ts",
+    "test:dashboard-review": "tsx scripts/test-dashboard-review.ts",
+    "test:portfolio-composition": "tsx scripts/test-portfolio-composition.ts",
+    "test:daily-market": "tsx scripts/test-daily-market-data.ts",
+    "test:daily-market-ui": "tsx scripts/test-daily-market-ui.ts",
     "test:portfolio-backend": "tsx scripts/test-portfolio-backend.ts",
     "test:portfolio-sync": "tsx scripts/test-portfolio-sync.ts",
     "test:portfolio-ui": "tsx scripts/test-portfolio-ui.ts",

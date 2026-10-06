@@ -9,12 +9,15 @@ import { continueWorkbookHistory } from '../../services/dashboardHistory';
 import type { HistoricalDataPoint } from '../../types/types';
 import { convertHistoryToCurrency } from '../../services/assetValuation';
 import { useLocalDataVersion, notifyLocalDataChange } from '../../hooks/useLocalDataVersion';
+import { useDailyMarketData } from '../../hooks/useDailyMarketData';
+import { dailyHistory, dailySnapshots } from '../../services/dailyMarketData';
 import { dashboardMarketHistory } from '../../services/dashboardMarketHistory';
 
 export function useDashboardAnalytics(now: number) {
     const { state: { assets, transactions, lastPriceUpdate } } = usePortfolio();
     const localRevision = useLocalDataVersion();
     const apiEnabled = isApiEnabled();
+    const dailyMarket = useDailyMarketData(lastPriceUpdate?.toISOString() ?? null);
     const day = accountingDay(now);
     const workbookHistory = useMemo(() => { void localRevision; void day; return readWorkbookHistory(); }, [localRevision, day]);
     const usingWorkbookHistory = workbookHistory.points.length >= 2;
@@ -87,9 +90,18 @@ export function useDashboardAnalytics(now: number) {
         // Opening the page must not turn yesterday's unchanged prices into a new valuation today.
         const currentSnapshot = quotesAlreadyImported ? null
             : createQuoteSnapshot(assets, portfolioTransactions, new Date(now).toISOString());
-        const recorded = buildPortfolioAnalyticsHistory(getHistory(), portfolioTransactions, currentSnapshot ?? undefined);
+        const recorded = buildPortfolioAnalyticsHistory([...getHistory(), ...dailySnapshots(dailyMarket.data)], portfolioTransactions, currentSnapshot ?? undefined);
         const verifiedDays = new Set(recorded.map(p => accountingDay(p.date)));
-        const estimated = createMarketPortfolioHistory(assets, portfolioTransactions, market)
+        const datedMarket = new Map(market);
+        for (const asset of assets) {
+            const saved = dailyHistory(dailyMarket.data, asset.isin || asset.symbol);
+            if (saved.length) {
+                const prices = new Map((datedMarket.get(asset.id) || []).map(p => [accountingDay(p.date), p]));
+                saved.forEach(p => prices.set(accountingDay(p.date), p));
+                datedMarket.set(asset.id, [...prices.values()].sort((a, b) => a.date.localeCompare(b.date)));
+            }
+        }
+        const estimated = createMarketPortfolioHistory(assets, portfolioTransactions, datedMarket)
             .filter(p => !verifiedDays.has(accountingDay(p.date)) && Date.parse(p.date) <= now);
         const liveHistory = buildPortfolioAnalyticsHistory([...estimated, ...recorded], portfolioTransactions, undefined, assets, true);
         const combined = usingWorkbookHistory
@@ -101,8 +113,8 @@ export function useDashboardAnalytics(now: number) {
         return { workbookHistory, usingWorkbookHistory, portfolioTransactions, history: combined.history, series,
             liveSeries: performanceSeries(recorded, portfolioTransactions, assets), monthly: portfolioMonthlyRows(series, now),
             hasEstimates: combined.history.some(p => p.source === 'market-estimate') };
-    }, [assets, portfolioTransactions, market, now, workbookHistory, usingWorkbookHistory, localRevision, workbookLinked]);
-    return { ...analytics, localRevision, workbookLinked, linkWorkbook };
+    }, [assets, portfolioTransactions, market, now, workbookHistory, usingWorkbookHistory, localRevision, workbookLinked, dailyMarket.data]);
+    return { ...analytics, localRevision, workbookLinked, linkWorkbook, dailyMarket };
 }
 
 export type DashboardAnalytics = ReturnType<typeof useDashboardAnalytics>;

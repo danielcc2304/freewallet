@@ -279,11 +279,11 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
             >
                 <span className="portfolio-composition__exposure-name">
                     <strong>{getExposureDisplayName(exposure)}</strong>
-                    <small>{exposure.isResidual ? 'Resto no desglosado' : `${exposure.symbol && exposure.symbol !== exposure.name ? `${exposure.symbol} · ` : ''}${getExposureSourceLabel(exposure)}${exposure.id.includes('approximate-name:') ? ' · coincidencia aproximada por nombre' : ''}`}</small>
+                    <small>{exposure.isResidual ? 'Resto no desglosado' : `${exposure.symbol && exposure.symbol !== exposure.name ? `${exposure.symbol} · ` : ''}${getExposureSourceLabel(exposure)}${exposure.hasApproximateMatch || exposure.id.includes('approximate-name:') ? ' · coincidencia aproximada por nombre' : ''}`}</small>
                 </span>
                 <span className="portfolio-composition__exposure-value">
                     <strong>{exposure.weight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong>
-                    <small>{new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 }).format(exposure.value)}</small>
+                    <small>{new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(exposure.value)}</small>
                 </span>
             </button>
         );

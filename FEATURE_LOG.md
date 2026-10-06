@@ -12,6 +12,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-06 - v6.0.8 - Ajustes de lectura del Dashboard
+- Funcionalidad:
+  - Textos más breves en el análisis avanzado y detalles del cálculo de resultados plegados inicialmente.
+  - Paneles del desglose de fondos cerrados inicialmente; cobertura y posiciones permanecen visibles al abrirlos.
+- Resumen:
+  - Reduce la densidad visual inicial y deja disponible el detalle bajo demanda.
+- Archivos:
+  - `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/components/dashboard/PortfolioExcelInsights.css`, `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`, `src/components/dashboard/PortfolioSummary/PortfolioSummary.css`, `src/components/dashboard/PortfolioComposition.tsx`, `docs/dashboard-review.md`.
+
 ### 2026-10-06 - v6.0.7 - Recuperación del desglose de fondos
 - Funcionalidad:
   - Compatibilidad con el estado actual de Finect y su formato URI legado, sin evaluar JavaScript del proveedor.

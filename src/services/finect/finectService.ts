@@ -341,17 +341,22 @@ async function fetchHtmlThroughProxy(targetUrl: string, signal?: AbortSignal): P
 
 /** Extracts the server-rendered state used by the public Finect fund page. */
 export function extractFinectInitialState(html: string): unknown {
-    // Finect's encoded value can contain literal single quotes (for example
-    // in country filters), so the closing delimiter must match the opener.
-    const match = html.match(/window\.INITIAL_STATE\s*=\s*(["'])([\s\S]*?)\1\s*;?/);
-    const encodedState = match?.[2];
-
-    if (!encodedState) {
+    // Accept both legacy URI-encoded state and today's escaped JSON string.
+    // Match escaped characters before delimiters; never evaluate provider JS.
+    const match = html.match(/window\.INITIAL_STATE\s*=\s*(?:"((?:\\[\s\S]|[^"\\])*)"|'((?:\\[\s\S]|[^'\\])*)')/);
+    if (!match) {
         throw new FinectError('No se ha encontrado la información embebida de la ficha de Finect.', 'parse');
     }
-
     try {
-        return JSON.parse(decodeURIComponent(encodedState)) as unknown;
+        const text = match[1] !== undefined ? JSON.parse(`"${match[1]}"`) as string
+            : match[2].replace(/\\(['"\\/bfnrt]|u[\da-fA-F]{4}|x[\da-fA-F]{2})/g, (_, escape: string) => {
+                if (escape.startsWith('u') || escape.startsWith('x')) return String.fromCharCode(parseInt(escape.slice(1), 16));
+                return ({ b: '\b', f: '\f', n: '\n', r: '\r', t: '\t' } as Record<string, string>)[escape] ?? escape;
+            });
+        // Raw JSON can contain literal percent signs; decode URI only for the
+        // old encoded format, after trying JSON itself.
+        try { return JSON.parse(text) as unknown; }
+        catch { return JSON.parse(decodeURIComponent(text)) as unknown; }
     } catch (error) {
         throw new FinectError('No se ha podido interpretar la información de la ficha de Finect.', 'parse', error);
     }
@@ -438,8 +443,7 @@ function readHoldings(model: JsonRecord): FinectHolding[] {
             return name && weight !== undefined ? { name, weight, symbol, isin } : null;
         })
         .filter((item): item is FinectHolding => item !== null)
-        .sort((left, right) => right.weight - left.weight)
-        .slice(0, 10);
+        .sort((left, right) => right.weight - left.weight);
 }
 
 function readDocuments(model: JsonRecord): FinectDocument[] {

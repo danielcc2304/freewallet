@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-06 - v6.0.7 - Recuperación del desglose de fondos
+- Funcionalidad:
+  - Compatibilidad con el estado actual de Finect y su formato URI legado, sin evaluar JavaScript del proveedor.
+  - Recuperación de todas las posiciones publicadas y las distribuciones disponibles por fondo.
+  - Indicador de cobertura y origen; se conserva el desglose guardado cuando la respuesta remota es menos completa.
+- Resumen:
+  - Restaura los desgloses disponibles y mejora la lectura de exposición consolidada en el Dashboard.
+- Archivos:
+  - `src/services/finect/finectService.ts`, `src/services/fundBreakdown.ts`, `src/components/dashboard/PortfolioComposition.tsx`, `docs/dashboard-review.md`.
+
 ### 2026-10-06 - v6.0.6 - Actualización diaria de mercado y benchmark Fidelity
 - Funcionalidad:
   - Captura programada de precios y NAV con trazabilidad de fuente, divisa y fecha de cotización.

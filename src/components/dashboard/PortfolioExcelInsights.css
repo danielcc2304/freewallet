@@ -58,3 +58,14 @@
 .portfolio-excel-insights__missing summary { cursor: pointer; min-height: 30px; padding: .4rem 0; }
 .portfolio-excel-insights__missing p { margin: .3rem 0; line-height: 1.5; }
 .portfolio-excel-insights__missing summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
+
+.portfolio-excel-insights__workbook-notice { display: flex; align-items: center; gap: .85rem; margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border-primary); border-radius: var(--radius-md); background: var(--bg-tertiary); color: var(--text-primary); }
+.portfolio-excel-insights__workbook-notice > svg { flex-shrink: 0; color: var(--color-warning); }
+.portfolio-excel-insights__workbook-notice > div { flex: 1; min-width: 0; }
+.portfolio-excel-insights__workbook-notice strong { font-size: .85rem; }
+.portfolio-excel-insights__workbook-notice p { margin: .3rem 0 0; color: var(--text-muted); font-size: .8rem; line-height: 1.5; }
+.portfolio-excel-insights__workbook-notice button { flex-shrink: 0; border: 1px solid var(--border-primary); border-radius: 8px; padding: .65rem .9rem; min-height: 44px; color: var(--text-primary); background: var(--bg-secondary); cursor: pointer; font: inherit; font-size: .8rem; }
+.portfolio-excel-insights__workbook-notice button:hover { background: var(--accent-primary); color: white; }
+.portfolio-excel-insights__workbook-notice button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
+.portfolio-excel-insights__link-error { color: var(--color-negative); font-size: .8rem; }
+@media (max-width: 680px) { .portfolio-excel-insights__workbook-notice { flex-wrap: wrap; align-items: flex-start; } .portfolio-excel-insights__workbook-notice button { width: 100%; } }

@@ -351,13 +351,10 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
         const parsed = new Date(value);
         return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
     };
-    const formatChartAxisValue = (value: number) => isFund
-        ? new Intl.NumberFormat('es-ES', {
-            style: 'currency',
-            currency: chartData[0]?.currency && chartData[0].currency !== 'Unknown' ? chartData[0].currency : asset.currency || 'EUR',
-            maximumFractionDigits: 6,
-        }).format(value)
-        : new Intl.NumberFormat('es-ES', { maximumFractionDigits: 6 }).format(value);
+    const formatChartAxisValue = (value: number) => new Intl.NumberFormat('es-ES', {
+        maximumFractionDigits: Math.abs(value) < 0.01 ? 6 : Math.abs(value) < 1 ? 4 : Math.abs(value) < 10 ? 3 : 2,
+        notation: Math.abs(value) >= 10000 ? 'compact' : 'standard',
+    }).format(value);
 
     return (
         <div className={`asset-detail ${isFund ? 'asset-detail--fund' : ''}`}>
@@ -386,11 +383,13 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                 <div><span>Resultado</span><strong className={positionGain >= 0 ? 'positive' : 'negative'}>{formatValue(positionGain, 'currency')}</strong></div>
                 <div><span>Rentabilidad</span><strong className={positionReturn >= 0 ? 'positive' : 'negative'}>{formatValue(positionReturn, 'percent')}</strong></div>
                 <div><span>Peso en cartera</span><strong>{portfolioWeight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong></div>
-                <div><span>Última consulta</span><strong>{quoteDateLabel(asset.lastCheckedAt)}</strong></div>
+                <div><span>Consulta al proveedor</span><strong>{quoteDateLabel(asset.lastCheckedAt)}</strong></div>
+                <div><span>Lectura en la app</span><strong>{quoteDateLabel(asset.lastReadAt)}</strong></div>
+                <div><span>Origen</span><strong>{asset.quoteSource || 'No disponible'}{asset.quoteOrigin === 'batch' ? ' · actualización diaria' : ''}</strong></div>
                 <div><span>Fecha del precio</span><strong>{quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)}</strong></div>
             </div>}
-            {marketOnly && <p>Fecha del precio: {quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)} · Última consulta: {quoteDateLabel(asset.lastCheckedAt)}</p>}
-            {asset.type !== 'cash' && (quoteStatus.stalePrice || quoteStatus.unknownPriceDate) && <p role="status">{quoteStatus.stalePrice ? 'El último precio disponible está atrasado; una consulta reciente no implica una cotización nueva.' : 'El proveedor no identifica la fecha del precio; su antigüedad no puede verificarse.'}</p>}
+            {marketOnly && <p>Fecha del precio: {quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)} · Consulta al proveedor: {quoteDateLabel(asset.lastCheckedAt)}</p>}
+            {asset.type !== 'cash' && (quoteStatus.stalePrice || quoteStatus.unknownPriceDate || quoteStatus.futurePrice) && <p role="status">{quoteStatus.futurePrice ? 'La fecha del precio está en el futuro; se necesita una cotización válida.' : quoteStatus.stalePrice ? 'El último precio disponible está atrasado; una consulta reciente no implica una cotización nueva.' : 'El proveedor no identifica la fecha del precio; su antigüedad no puede verificarse.'}</p>}
 
             {/* Chart Section */}
             {!marketOnly && !hasValidPrice(asset) && <p role="status">Valor estimado al coste: no hay una cotización válida.</p>}
@@ -465,7 +464,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                                 tickLine={{ stroke: '#52525b' }}
                                 axisLine={{ stroke: '#52525b' }}
                                 tickFormatter={formatChartAxisValue}
-                                width={isFund ? 52 : 44}
+                                width={64}
                                 tickMargin={0}
                                 domain={['auto', 'auto']}
                             />
@@ -524,6 +523,9 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                     <span><i className="asset-detail__legend-line" /> {isFund ? 'Precio participación' : 'Precio'}</span>
                     <span className="asset-detail__chart-axis-hint">Eje vertical: {chartData[0]?.currency || asset.currency || 'EUR'} · Eje horizontal: fecha. Histórico en su divisa de origen; la posición se valora en {asset.currency || 'EUR'}.</span>
                 </div>
+               {!isFund && chartData[0]?.sourceSymbol && chartData[0].sourceSymbol !== asset.symbol && <p className="asset-detail__chart-source">
+                   Histórico de {chartData[0].sourceSymbol}, cotización alternativa de la misma empresa. El precio de tu posición corresponde a {asset.symbol}.
+               </p>}
                {isFund && (
                    <p className="asset-detail__chart-source">
                        Valores liquidativos históricos de la clase encontrada por ISIN. Finect aporta la ficha y la última valoración.

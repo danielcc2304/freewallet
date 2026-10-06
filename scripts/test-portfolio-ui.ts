@@ -33,7 +33,7 @@ try {
         create function auth.jwt() returns jsonb language sql stable as $$select current_setting('request.jwt.claims',true)::jsonb$$;
         grant usage on schema public,auth to anon,authenticated;`);
     for(let index=0;index<2;index++){await db.query('insert into auth.users(id) values ($1)',[users[index]]);await db.query('insert into auth.sessions values ($1,$2)',[sessions[index],users[index]]);}
-    for(const suffix of ['portfolio_foundation.sql','portfolio_commands.sql','portfolio_mfa_guard.sql','portfolio_command_validation.sql']){
+    for(const suffix of ['portfolio_foundation.sql','portfolio_commands.sql','portfolio_mfa_guard.sql','portfolio_command_validation.sql','portfolio_opening_basis.sql']){
         const migration=readdirSync('supabase/migrations').find(name=>name.endsWith(suffix));assert.ok(migration);
         await db.exec(readFileSync(`supabase/migrations/${migration}`,'utf8'));
     }

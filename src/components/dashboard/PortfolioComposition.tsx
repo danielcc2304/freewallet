@@ -6,6 +6,7 @@ import { getColorForIndex } from '../../data/chartColors';
 import { getFundRelevance } from '../../services/finect/finectService';
 import { isApiEnabled } from '../../services/storageService';
 import { buildConsolidatedPortfolioExposures, type ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
+import { normalizeFundHoldings, selectFundHoldings, holdingsCoverage, availableFundDistributions, fundDistributionLabel } from '../../services/fundBreakdown';
 import { assetValue, hasValidPrice } from '../../services/assetValuation';
 import './PortfolioComposition.css';
 
@@ -21,19 +22,6 @@ const ISIN_PATTERN = /^[A-Z]{2}[A-Z0-9]{10}$/;
 function getFundIsin(asset: Asset): string | null {
     const candidate = (asset.isin || asset.symbol || '').trim().toUpperCase();
     return ISIN_PATTERN.test(candidate) ? candidate : null;
-}
-
-function normalizeFundHoldings(fund: Awaited<ReturnType<typeof getFundRelevance>>): AssetHolding[] {
-    const holdings = fund.holdings
-        .filter((holding) => Number.isFinite(holding.weight) && holding.weight > 0)
-        .map((holding) => ({
-            symbol: holding.symbol || holding.isin || holding.name,
-            name: holding.name,
-            percentage: holding.weight,
-            isin: holding.isin,
-        }));
-
-    return holdings;
 }
 
 function getExposureSourceLabel(exposure: ConsolidatedPortfolioExposure): string {
@@ -62,17 +50,18 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
     const [remoteBreakdowns, setRemoteBreakdowns] = useState<Record<string, Awaited<ReturnType<typeof getFundRelevance>>['breakdowns']>>({});
     const [breakdownErrors, setBreakdownErrors] = useState<Record<string, boolean>>({});
     const [retry, setRetry] = useState(0);
+    const [loadingIsins, setLoadingIsins] = useState<Set<string>>(new Set());
     const apiEnabled = isApiEnabled();
 
     const funds = useMemo(() => assets.filter((asset) => asset.type === 'fund' || asset.type === 'etf'), [assets]);
     const fundsWithRemoteLookup = useMemo(
-        () => funds.filter((asset) => !asset.holdings?.length && getFundIsin(asset)),
+        () => funds.filter((asset) => getFundIsin(asset)),
         [funds],
     );
     const pendingBreakdownCount = fundsWithRemoteLookup.filter(
         (asset) => !Object.prototype.hasOwnProperty.call(remoteHoldings, getFundIsin(asset) || asset.id),
     ).length;
-    const breakdownLoading = showBreakdown && apiEnabled && pendingBreakdownCount > 0;
+    const breakdownLoading = showBreakdown && apiEnabled && (pendingBreakdownCount > 0 || fundsWithRemoteLookup.some(asset => loadingIsins.has(getFundIsin(asset)!)));
     const lookupSignature = JSON.stringify(fundsWithRemoteLookup.map(a => ({ id: a.id, isin: getFundIsin(a) })));
     const selectPendingFunds = useEffectEvent((entries: { isin: string }[]) =>
         [...new Map(entries.map(entry => [entry.isin, entry])).values()].filter(({ isin }) =>
@@ -95,6 +84,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                 controller.signal.addEventListener('abort', abort, { once: true });
                 const timeout = window.setTimeout(abort, 12000);
                 try {
+                    setLoadingIsins(current => new Set(current).add(isin));
                     const fund = await getFundRelevance(isin, request.signal, retry > 0);
                     if (!disposed) {
                         setRemoteHoldings(current => ({ ...current, [isin]: normalizeFundHoldings(fund) }));
@@ -106,7 +96,10 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                         setRemoteHoldings(current => ({ ...current, [isin]: current[isin] || [] }));
                         setBreakdownErrors(current => ({ ...current, [isin]: true }));
                     }
-                } finally { window.clearTimeout(timeout); controller.signal.removeEventListener('abort', abort); }
+                } finally {
+                    if (!disposed) setLoadingIsins(current => { const next = new Set(current); next.delete(isin); return next; });
+                    window.clearTimeout(timeout); controller.signal.removeEventListener('abort', abort);
+                }
             }
         };
         void Promise.all(Array.from({ length: Math.min(3, pendingFunds.length) }, worker));
@@ -125,8 +118,8 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
     const holdingsByAsset = useMemo(() => {
         const result = new Map<string, readonly AssetHolding[]>();
         assets.forEach((asset) => {
-            const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[getFundIsin(asset) || asset.id];
-            if (holdings?.length) result.set(asset.id, holdings);
+            const { holdings } = selectFundHoldings(asset.holdings, remoteHoldings[getFundIsin(asset) || asset.id]);
+            if (holdings.length) result.set(asset.id, holdings);
         });
         return result;
     }, [assets, remoteHoldings]);
@@ -166,9 +159,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
             ? ((currentValue - investedValue) / investedValue) * 100
             : NaN;
 
-        // Prefer holdings saved with the position and fall back to the live
-        // Finect breakdown loaded when the toggle is enabled.
-        const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[getFundIsin(asset) || asset.id];
+        const holdings = holdingsByAsset.get(asset.id);
         const children = holdings?.map((holding, hIndex) => ({
             id: `${asset.id}-${hIndex}`,
             symbol: holding.symbol || holding.name,
@@ -189,7 +180,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
             changePercent,
             children,
         };
-    }), [assets, remoteHoldings, totalValue]);
+    }), [assets, holdingsByAsset, totalValue]);
 
     const consolidatedCompositionData: CompositionItem[] = useMemo(() => {
         const identified = consolidatedExposures.filter((exposure) => !exposure.isResidual);
@@ -226,7 +217,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
         }
 
         const holdingIndex = Number(item.id.slice(asset.id.length + 1));
-        const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[getFundIsin(asset) || asset.id];
+        const holdings = holdingsByAsset.get(asset.id);
         const holding = Number.isInteger(holdingIndex) && holdingIndex >= 0 ? holdings?.[holdingIndex] : undefined;
         if (!holding) return;
 
@@ -258,14 +249,16 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
         if (parentAsset) onHoldingClick(underlyingSource.holding, parentAsset, exposure);
     };
 
-    const fundsWithBreakdown = useMemo(() => funds.filter((asset) => {
-        const holdings = asset.holdings?.length ? asset.holdings : remoteHoldings[getFundIsin(asset) || asset.id];
-        return Boolean(holdings?.length);
-    }), [funds, remoteHoldings]);
-    const fundsWithoutIsin = useMemo(
-        () => funds.filter((asset) => !asset.holdings?.length && !getFundIsin(asset)),
-        [funds],
-    );
+    const fundDetails = funds.map(asset => {
+        const isin = getFundIsin(asset);
+        const selection = selectFundHoldings(asset.holdings, remoteHoldings[isin || asset.id]);
+        const groups = availableFundDistributions(remoteBreakdowns[isin || asset.id]);
+        const loading = showBreakdown && apiEnabled && !!isin && (loadingIsins.has(isin) || !Object.prototype.hasOwnProperty.call(remoteHoldings, isin));
+        const failed = !!isin && !!breakdownErrors[isin];
+        return { asset, isin, ...selection, groups, loading, failed, coverage: holdingsCoverage(selection.holdings) };
+    });
+    const fundsWithBreakdown = fundDetails.filter(f => f.holdings.length);
+    const distributionsOnly = fundDetails.filter(f => !f.holdings.length && f.groups.length);
 
     const renderExposureRow = (exposure: ConsolidatedPortfolioExposure) => {
         const canOpen = !exposure.isResidual && Boolean(onHoldingClick || exposure.hasDirectPosition);
@@ -318,17 +311,14 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                         <h4 className="portfolio-composition__section-title">Mapa de Calor</h4>
                         <Heatmap data={heatmapData} showBreakdown={showBreakdown} onItemClick={handleHeatmapClick} />
                         {showBreakdown && !apiEnabled && <p>Consultas externas desactivadas. Solo se muestran los desgloses guardados.</p>}
-                        {showBreakdown && apiEnabled && funds.some(a => breakdownErrors[getFundIsin(a) || a.id]) && <Button variant="secondary" type="button" onClick={() => setRetry(n => n + 1)}>Reintentar desgloses pendientes</Button>}
+                        {showBreakdown && apiEnabled && funds.some(a => breakdownErrors[getFundIsin(a) || a.id]) && <Button variant="secondary" type="button" disabled={breakdownLoading} onClick={() => setRetry(n => n + 1)}>Reintentar desgloses pendientes</Button>}
                         {showBreakdown && <p>Los subyacentes muestran exposición estimada, no la rentabilidad del fondo como si fuera propia.</p>}
                         {showBreakdown && funds.length > 0 && (
                             <p className="portfolio-composition__breakdown-status" aria-live="polite">
-                                {breakdownLoading
-                                    ? 'Cargando posiciones de los fondos…'
-                                    : fundsWithBreakdown.length > 0
-                                        ? `Desglose activo · ${fundsWithBreakdown.length} fondo${fundsWithBreakdown.length === 1 ? '' : 's'} · exposiciones repetidas sumadas`
-                                        : fundsWithoutIsin.length > 0
-                                            ? 'Añade el ISIN de cada fondo para cargar sus posiciones automáticamente.'
-                                            : 'No hay posiciones detalladas disponibles para estos fondos.'}
+                                {breakdownLoading ? 'Cargando desgloses… · ' : 'Desglose activo · '}
+                                {fundsWithBreakdown.length}/{funds.length} fondos con posiciones
+                                {!!distributionsOnly.length && ` · ${distributionsOnly.length} solo con distribución`}
+                                {' · exposiciones repetidas sumadas'}
                             </p>
                         )}
                     </div>
@@ -380,19 +370,28 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                         />
                     </div>
                     {showBreakdown && <div className="portfolio-composition__distributions">
-                        {Object.entries(remoteBreakdowns).map(([isin, groups]) => {
-                            const fund = funds.find(a => getFundIsin(a) === isin);
-                            const distributions = groups.filter(g => /sector|geograf|pa[ií]s|countr|region/i.test(g.type) && g.items.some(i => Number.isFinite(i.value) && i.value > 0));
-                            if (!fund || !distributions.length) return null;
-                            return <details key={isin} className="portfolio-composition__breakdown-groups">
-                                <summary>{fund.name}<span>Sectores y distribución geográfica</span></summary>
+                        {fundDetails.map(({ asset, isin, holdings, source, groups, loading, failed, coverage }) => (
+                            <details key={asset.id} open className="portfolio-composition__breakdown-groups" data-fund-id={asset.id}>
+                                <summary>{asset.name}<span>
+                                    {holdings.length ? `${holdings.length} posiciones · ${coverage.toLocaleString('es-ES', { maximumFractionDigits: 2 })}% identificado · ${source === 'provider' ? 'Finect' : 'guardado'}`
+                                        : groups.length ? 'Distribución disponible · sin posiciones publicadas'
+                                        : loading ? 'Consultando…' : failed ? 'Consulta fallida' : !isin ? 'Falta el ISIN' : !apiEnabled ? 'Sin desglose guardado' : 'Sin desglose publicado'}
+                                </span></summary>
                                 <div className="portfolio-composition__distribution-grid">
-                                    {distributions.map(g => <section key={g.type}><h5>{g.type}</h5><ul>
-                                        {g.items.filter(i => Number.isFinite(i.value) && i.value > 0).map(i => <li key={i.label}><span>{i.label}</span><strong>{i.value.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%</strong></li>)}
-                                    </ul><p>Porcentajes sobre el fondo</p></section>)}
+                                    {!!holdings.length && <section><h5>Posiciones del fondo</h5><ul>
+                                        {holdings.map((h, i) => <li key={`${h.isin || h.symbol}-${i}`}><span>{h.name}</span><strong>{h.percentage.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%</strong></li>)}
+                                    </ul><p>{Math.max(0, 100 - coverage).toLocaleString('es-ES', { maximumFractionDigits: 2 })}% sin posiciones identificadas.</p></section>}
+                                    {groups.map(g => <section key={g.type}><h5>{fundDistributionLabel(g.type)}</h5><ul>
+                                        {g.items.map(i => <li key={i.label}><span>{i.label}</span><strong>{i.value.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%</strong></li>)}
+                                    </ul><p>Distribución publicada por Finect.</p></section>)}
+                                    {loading && <p role="status">Consultando Finect…</p>}
+                                    {failed && <p role="status">No se pudo consultar Finect.{holdings.length ? ' Se conserva el desglose guardado.' : ' Reintenta la consulta.'}</p>}
+                                    {!isin && apiEnabled && <p>Añade el ISIN para consultar el desglose.</p>}
+                                    {!loading && !failed && isin && apiEnabled && !holdings.length && !groups.length && <p>Finect no publica posiciones ni distribuciones para este fondo.</p>}
+                                    {!apiEnabled && <p>Consultas desactivadas. Se muestra la información guardada.</p>}
                                 </div>
-                            </details>;
-                        })}
+                            </details>
+                        ))}
                     </div>}
                 </div>
             </CardContent>

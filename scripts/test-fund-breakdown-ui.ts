@@ -54,7 +54,7 @@ try {
  await page.waitForFunction(()=>document.querySelector('[data-fund-id="world"]')?.textContent?.includes('18 posiciones'));
  await page.waitForFunction(()=>document.querySelector('[data-fund-id="retry"]')?.textContent?.includes('Consulta fallida')||document.querySelector('[data-fund-id="retry"]')?.textContent?.includes('No se pudo consultar'));
  const world=await page.$eval('[data-fund-id="world"]',el=>({text:el.textContent,open:(el as HTMLDetailsElement).open,holdings:el.querySelector('section ul')?.children.length}));
- assert.equal(world.holdings,18);assert.equal(world.open,true);assert.match(world.text!,/36% identificado/);
+ assert.equal(world.holdings,18);assert.equal(world.open,false);assert.match(world.text!,/36% identificado/);
  assert.doesNotMatch(world.text!,/Saved incomplete position/);assert.match(world.text!,/Tipos de activo/);assert.match(world.text!,/Distribución geográfica/);
  const bonds=await page.$eval('[data-fund-id="bonds"]',el=>el.textContent || '');
  assert.match(bonds,/sin posiciones publicadas/);assert.match(bonds,/Bonds/);assert.match(bonds,/Europe/);
@@ -66,6 +66,8 @@ try {
  const rows=await page.$$eval('.portfolio-composition__exposure-row',els=>els.map(el=>el.textContent || ''));
  assert.equal(rows.filter(s=>s.includes('Published issuer')).length,18,'Both lots consolidate into the same 18 issuers');
  assert.ok(rows.some(s=>s.includes('Published issuer AAA')&&s.includes('4,00')),'Two fund lots sum their exposure');
+ await page.click('[data-fund-id="world"] summary');
+ await page.waitForFunction(()=>(document.querySelector('[data-fund-id="world"]') as HTMLDetailsElement).open);
  await page.$eval('[data-fund-id="world"]',el=>el.scrollIntoView());
  await (await page.$('[data-fund-id="world"]'))!.screenshot({path:'/tmp/freewallet-fund-breakdown.png'});
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Expanded breakdown fits mobile');

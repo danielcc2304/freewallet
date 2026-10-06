@@ -371,7 +371,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                     </div>
                     {showBreakdown && <div className="portfolio-composition__distributions">
                         {fundDetails.map(({ asset, isin, holdings, source, groups, loading, failed, coverage }) => (
-                            <details key={asset.id} open className="portfolio-composition__breakdown-groups" data-fund-id={asset.id}>
+                            <details key={asset.id} className="portfolio-composition__breakdown-groups" data-fund-id={asset.id}>
                                 <summary>{asset.name}<span>
                                     {holdings.length ? `${holdings.length} posiciones · ${coverage.toLocaleString('es-ES', { maximumFractionDigits: 2 })}% identificado · ${source === 'provider' ? 'Finect' : 'guardado'}`
                                         : groups.length ? 'Distribución disponible · sin posiciones publicadas'

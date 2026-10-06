@@ -278,8 +278,8 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     return (
         <Card className="portfolio-excel-insights">
             <CardHeader title="Análisis avanzado" subtitle={usingWorkbookHistory
-                ? 'Posiciones actuales y evolución mensual importada de tu Excel'
-                : hasEstimates ? 'Incluye histórico estimado a partir de operaciones y precios de mercado' : 'Posiciones actuales y rentabilidad calculada con valoraciones verificadas'} />
+                ? 'Cartera actual e histórico del Excel'
+                : hasEstimates ? 'Incluye histórico estimado' : 'Histórico verificado'} />
             <CardContent>
                 {usingWorkbookHistory && !analytics.workbookLinked && <div className="portfolio-excel-insights__workbook-notice" role="status">
                     <AlertTriangle size={20} aria-hidden="true" />
@@ -289,14 +289,17 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                 {linkError && <p className="portfolio-excel-insights__link-error" role="alert">{linkError}</p>}
                 <p className="portfolio-excel-insights__chart-note" role="status">
                     {usingWorkbookHistory
-                        ? `Histórico importado del Excel: ${workbookHistory.evolutionCount} cierres mensuales (${formatHistoryDate(workbookHistory.startDate)} a ${formatHistoryDate(workbookHistory.endDate)}). `
-                            + `${workbookHistory.dailyCount} filas diarias leídas; ${workbookHistory.dcaCount} flujos aplicados sin duplicar. Las fechas desconocidas se mantienen como resúmenes mensuales. `
-                            + `El resumen superior sigue mostrando tus ${assets.length} posiciones y su valoración actual.`
+                        ? `Excel · ${workbookHistory.evolutionCount} cierres mensuales · ${formatHistoryDate(workbookHistory.startDate)}–${formatHistoryDate(workbookHistory.endDate)}`
                         : history.length
-                            ? `Seguimiento verificable desde ${formatHistoryDate(series[0]?.date)}. `
-                                + 'El histórico antiguo se conserva, pero no se usa para calcular retornos porque no identifica las posiciones ni el origen de cada valoración.'
+                            ? `Seguimiento verificado desde ${formatHistoryDate(series[0]?.date)}.`
                             : 'Pendiente de una actualización completa de cotizaciones.'}
                 </p>
+                {(usingWorkbookHistory || history.length > 0) && <details className="portfolio-excel-insights__history-details">
+                    <summary>Detalles del histórico</summary>
+                    <p>{usingWorkbookHistory
+                        ? `${workbookHistory.dailyCount} registros diarios · ${workbookHistory.dcaCount} flujos sin duplicar. Los datos sin fecha exacta se conservan como resúmenes mensuales.`
+                        : 'El histórico antiguo se conserva. Solo las valoraciones con posiciones y origen identificados se usan para calcular retornos.'}</p>
+                </details>}
                 <div className="portfolio-excel-insights__kpis">
                     {kpis.map((kpi) => (
                         <div key={kpi.label}>

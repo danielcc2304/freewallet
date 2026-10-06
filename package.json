@@ -12,6 +12,8 @@
     "test:compound-interest": "tsx scripts/test-compound-interest.ts",
     "test:finect": "tsx scripts/test-finect.ts",
     "test:dashboard-audit": "tsx scripts/test-dashboard-audit.ts",
+    "test:dashboard-review": "tsx scripts/test-dashboard-review.ts",
+    "test:portfolio-composition": "tsx scripts/test-portfolio-composition.ts",
     "test:daily-market": "tsx scripts/test-daily-market-data.ts",
     "test:daily-market-ui": "tsx scripts/test-daily-market-ui.ts",
     "test:portfolio-backend": "tsx scripts/test-portfolio-backend.ts",

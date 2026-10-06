@@ -281,8 +281,12 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                 ? 'Posiciones actuales y evolución mensual importada de tu Excel'
                 : hasEstimates ? 'Incluye histórico estimado a partir de operaciones y precios de mercado' : 'Posiciones actuales y rentabilidad calculada con valoraciones verificadas'} />
             <CardContent>
-                {usingWorkbookHistory && !analytics.workbookLinked && <p role="status">El histórico importado se muestra por separado hasta confirmar que corresponde a estas posiciones. <button type="button" onClick={() => { try { analytics.linkWorkbook(); setLinkError(''); } catch { setLinkError('No se ha podido guardar la vinculación del histórico.'); } }}>Confirmar que este Excel corresponde a mi cartera</button></p>}
-                {linkError && <p role="alert">{linkError}</p>}
+                {usingWorkbookHistory && !analytics.workbookLinked && <div className="portfolio-excel-insights__workbook-notice" role="status">
+                    <AlertTriangle size={20} aria-hidden="true" />
+                    <div><strong>Vincular el histórico del Excel</strong><p>Confirma que el histórico importado pertenece a estas posiciones para continuar su evolución con las valoraciones diarias.</p></div>
+                    <button type="button" onClick={() => { try { analytics.linkWorkbook(); setLinkError(''); } catch { setLinkError('No se ha podido guardar la vinculación del histórico.'); } }}>Usar este histórico</button>
+                </div>}
+                {linkError && <p className="portfolio-excel-insights__link-error" role="alert">{linkError}</p>}
                 <p className="portfolio-excel-insights__chart-note" role="status">
                     {usingWorkbookHistory
                         ? `Histórico importado del Excel: ${workbookHistory.evolutionCount} cierres mensuales (${formatHistoryDate(workbookHistory.startDate)} a ${formatHistoryDate(workbookHistory.endDate)}). `

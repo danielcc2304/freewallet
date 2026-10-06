@@ -351,13 +351,10 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
         const parsed = new Date(value);
         return Number.isNaN(parsed.getTime()) ? value : parsed.toLocaleDateString('es-ES', { day: '2-digit', month: 'short' });
     };
-    const formatChartAxisValue = (value: number) => isFund
-        ? new Intl.NumberFormat('es-ES', {
-            style: 'currency',
-            currency: chartData[0]?.currency && chartData[0].currency !== 'Unknown' ? chartData[0].currency : asset.currency || 'EUR',
-            maximumFractionDigits: 6,
-        }).format(value)
-        : new Intl.NumberFormat('es-ES', { maximumFractionDigits: 6 }).format(value);
+    const formatChartAxisValue = (value: number) => new Intl.NumberFormat('es-ES', {
+        maximumFractionDigits: Math.abs(value) < 0.01 ? 6 : Math.abs(value) < 1 ? 4 : Math.abs(value) < 10 ? 3 : 2,
+        notation: Math.abs(value) >= 10000 ? 'compact' : 'standard',
+    }).format(value);
 
     return (
         <div className={`asset-detail ${isFund ? 'asset-detail--fund' : ''}`}>
@@ -465,7 +462,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                                 tickLine={{ stroke: '#52525b' }}
                                 axisLine={{ stroke: '#52525b' }}
                                 tickFormatter={formatChartAxisValue}
-                                width={isFund ? 52 : 44}
+                                width={64}
                                 tickMargin={0}
                                 domain={['auto', 'auto']}
                             />
@@ -524,6 +521,9 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                     <span><i className="asset-detail__legend-line" /> {isFund ? 'Precio participación' : 'Precio'}</span>
                     <span className="asset-detail__chart-axis-hint">Eje vertical: {chartData[0]?.currency || asset.currency || 'EUR'} · Eje horizontal: fecha. Histórico en su divisa de origen; la posición se valora en {asset.currency || 'EUR'}.</span>
                 </div>
+               {!isFund && chartData[0]?.sourceSymbol && chartData[0].sourceSymbol !== asset.symbol && <p className="asset-detail__chart-source">
+                   Histórico de {chartData[0].sourceSymbol}, cotización alternativa de la misma empresa. El precio de tu posición corresponde a {asset.symbol}.
+               </p>}
                {isFund && (
                    <p className="asset-detail__chart-source">
                        Valores liquidativos históricos de la clase encontrada por ISIN. Finect aporta la ficha y la última valoración.

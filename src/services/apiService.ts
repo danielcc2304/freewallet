@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { verifiedSecurityAlias } from './securityAliases';
 import type { StockQuote, SearchResult, HistoricalDataPoint, AssetType, TimePeriod } from '../types/types';
 import {
     QUOTE_CACHE,
@@ -820,14 +821,15 @@ async function getChartSymbolCandidates(symbol: string, signal?: AbortSignal): P
     const cached = CHART_SYMBOL_CACHE.get(normalized);
     if (cached) return cached;
 
-    const candidates = new Set<string>([normalized]);
+    const verified = verifiedSecurityAlias('', normalized);
+    const candidates = new Set<string>(verified ? [normalized, verified.chartSymbol] : [normalized]);
 
     // Some European listings returned by Yahoo (notably the DXE ".XD"
     // suffix) only expose a quote. Search the same company for a listing
     // that actually has historical candles before giving up on the chart.
     try {
         const queries = new Set([normalized, normalized.split('.')[0]]);
-        let originalName = '';
+        let originalName = verified ? canonicalCompanyName(verified.name) : '';
         for (const query of queries) {
             const url = YAHOO_SEARCH_URL + '?q=' + encodeURIComponent(query) + '&quotesCount=40&newsCount=0';
             const rawData: unknown = url.startsWith('/')
@@ -841,18 +843,18 @@ async function getChartSymbolCandidates(symbol: string, signal?: AbortSignal): P
 
             quotes.forEach((item) => {
                 const candidate = readString(item.symbol).trim().toUpperCase();
-                const candidateName = canonicalCompanyName(readString(item.shortname) || readString(item.longname));
+                const candidateName = canonicalCompanyName(readString(item.longname) || readString(item.shortname));
                 if (!candidate || candidate === normalized) return;
                 // Avoid following an unrelated ticker that merely shares a
                 // short symbol (NXTE ETF vs Nueva Expresion Textil, for example).
-                if (!originalName || candidateName === originalName) candidates.add(candidate);
+                if (originalName && candidateName === originalName) candidates.add(candidate);
             });
         }
     } catch (error) {
         if (axios.isCancel(error) || signal?.aborted) throw error;
     }
 
-    const result = Array.from(candidates);
+    const result = [normalized, ...Array.from(candidates).filter(c => c !== normalized).sort((a, b) => exchangePriority(b) - exchangePriority(a))];
     CHART_SYMBOL_CACHE.set(normalized, result);
     return result;
 }
@@ -897,6 +899,7 @@ async function fetchYahooChartPoints(
             date: dateStr,
             timestamp: timestamp * 1000,
             currency: readString(asJsonRecord(result.meta).currency, 'Unknown'),
+            sourceSymbol: symbol,
             previousClose: i === 0 ? previousClose : undefined,
             open: readNumberAt(quotes.open, i),
             high: readNumberAt(quotes.high, i),

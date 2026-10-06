@@ -1,5 +1,6 @@
 import type { Asset, AssetHolding } from '../types/types';
 import { assetValue } from './assetValuation';
+import { verifiedSecurityAlias } from './securityAliases';
 
 const ISIN_PATTERN = /^[A-Z]{2}[A-Z0-9]{10}$/;
 const CONTAINER_TYPES = new Set<Asset['type']>(['fund', 'etf']);
@@ -45,6 +46,7 @@ export interface ConsolidatedPortfolioExposure {
     sources: ConsolidatedExposureSource[];
     sourceCount: number;
     hasDirectPosition: boolean;
+    hasApproximateMatch?: boolean;
     isResidual: boolean;
 }
 
@@ -97,6 +99,8 @@ function normalizeName(value: string): string {
 export function getExposureIdentity(name: string, symbol?: string, isin?: string): string {
     const normalizedIsin = (isin || (ISIN_PATTERN.test(symbol?.toUpperCase() || '') ? symbol : ''))?.replace(/\s+/g, '').toUpperCase();
     if (normalizedIsin && ISIN_PATTERN.test(normalizedIsin)) return `isin:${normalizedIsin}`;
+    const verified = verifiedSecurityAlias(name, symbol);
+    if (verified) return `isin:${verified.isin}`;
     const normalizedName = normalizeName(name);
     if (normalizedName) return `approximate-name:${normalizedName}`;
     return `symbol:${(symbol || name).trim().toUpperCase()}`;
@@ -133,8 +137,10 @@ function addExposure(
     exposures: Map<string, ConsolidatedPortfolioExposure>,
     source: ConsolidatedExposureSource,
     totalValue: number,
+    aliases: ReadonlyMap<string, string> = new Map(),
 ): void {
-    const identity = getExposureIdentity(source.holding.name, source.holding.symbol, source.holding.isin);
+    const reportedIdentity = getExposureIdentity(source.holding.name, source.holding.symbol, source.holding.isin);
+    const identity = reportedIdentity.startsWith('approximate-name:') ? aliases.get(reportedIdentity) || reportedIdentity : reportedIdentity;
     const key = source.isResidual ? `residual:${identity}` : identity;
     const existing = exposures.get(key);
     const sourceSymbol = getDisplaySymbol(source.holding);
@@ -149,11 +155,13 @@ function addExposure(
             sources: [source],
             sourceCount: 1,
             hasDirectPosition: source.isDirect,
+            hasApproximateMatch: reportedIdentity.startsWith('approximate-name:'),
             isResidual: source.isResidual,
         });
         return;
     }
 
+    existing.hasApproximateMatch ||= reportedIdentity.startsWith('approximate-name:');
     existing.value += source.value;
     existing.weight = totalValue > 0 ? (existing.value / totalValue) * 100 : 0;
     existing.sources.push(source);
@@ -269,7 +277,21 @@ export function buildConsolidatedPortfolioExposures(
         addLookThroughExposure(exposures, asset, holdings, totalValue);
     });
 
-    return Array.from(exposures.values())
+    // Bridge name-only sources to a unique reported ISIN. Conflicting ISINs
+    // never collapse just because a provider uses the same company name.
+    const candidates = new Map<string, Set<string>>();
+    for (const exposure of exposures.values()) for (const source of exposure.sources) {
+        if (source.isResidual) continue;
+        const exact = getExposureIdentity(source.holding.name, source.holding.symbol, source.holding.isin);
+        if (!exact.startsWith('isin:')) continue;
+        const name = `approximate-name:${normalizeName(source.holding.name)}`;
+        const identities = candidates.get(name) || new Set<string>();
+        identities.add(exact); candidates.set(name, identities);
+    }
+    const aliases = new Map([...candidates].flatMap(([name, identities]) => identities.size === 1 ? [[name, [...identities][0]] as const] : []));
+    const consolidated = new Map<string, ConsolidatedPortfolioExposure>();
+    for (const exposure of exposures.values()) for (const source of exposure.sources) addExposure(consolidated, source, totalValue, aliases);
+    return Array.from(consolidated.values())
         .sort((left, right) => right.value - left.value)
         .map((exposure) => ({
             ...exposure,

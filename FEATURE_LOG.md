@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-07 - v6.0.10 - Cartera, benchmark y herramientas de inversión
+- Funcionalidad:
+  - Separa la rentabilidad de cartera de la comparación fechada con benchmark y muestra aportaciones en bloques completos de 50 €.
+  - Añade cierres mensuales para el análisis histórico, detalle de instrumentos subyacentes y generación local del QR de MFA.
+  - Mejora el reto Market Timing, la edición de noticias por sus autores y la presentación del Dashboard.
+- Resumen:
+  - Refuerza el análisis de cartera y amplía las herramientas educativas y editoriales.
+- Archivos:
+  - `README.md`, `docs/dashboard-review.md`, `docs/news-and-market-timing.md`, `package.json`, `package-lock.json`, `scripts/test-academy-account-polish.ts`, `scripts/test-dashboard-logic.ts`, `scripts/test-dashboard-quality-ui.ts`, `scripts/test-market-timing-ui.ts`, `scripts/test-market-timing.ts`, `scripts/test-news-article-editor-ui.ts`, `scripts/test-portfolio-periods-ui.ts`, `scripts/test-portfolio-periods.ts`, `scripts/test-underlying-detail-ui.ts`, `scripts/test-underlying-resolution.ts`, `src/components/academy/guides/InvestorTimeline.tsx`, `src/components/academy/simulators/MarketTimingGame.css`, `src/components/academy/simulators/MarketTimingGame.tsx`, `src/components/academy/simulators/PortfolioBuilder.css`, `src/components/academy/simulators/marketTimingEngine.ts`, `src/components/dashboard/AssetDetail.css`, `src/components/dashboard/AssetDetail.tsx`, `src/components/dashboard/LivePortfolioPlan.tsx`, `src/components/dashboard/PortfolioComposition.css`, `src/components/dashboard/PortfolioComposition.tsx`, `src/components/dashboard/PortfolioExcelInsights.css`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`, `src/components/dashboard/UnderlyingAssetDetail.tsx`, `src/components/layout/Sidebar/Sidebar.css`, `src/hooks/useNewsEditorId.ts`, `src/pages/Account/AccountMfa.tsx`, `src/pages/Dashboard/Dashboard.css`, `src/pages/Dashboard/Dashboard.tsx`, `src/pages/News/News.css`, `src/pages/News/News.tsx`, `src/pages/NewsAdmin/NewsAdmin.tsx`, `src/services/apiService.ts`, `src/services/dashboardIntegrity.ts`, `src/services/mfaQr.ts`, `src/services/portfolioPerformance.ts`, `src/services/portfolioPlan.ts`, `src/services/underlyingInstruments.ts`, `src/types/api.ts`, `src/types/portfolio.ts`.
+
 ### 2026-10-07 - v6.0.9 - Fundamentales de acciones e históricos de fondos
 - Funcionalidad:
   - Resolución de históricos de fondos por ISIN y clase completa para elegir la serie NAV correcta y descartar ETFs o clases distintas.

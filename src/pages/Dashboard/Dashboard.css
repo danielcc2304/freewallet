@@ -22,21 +22,47 @@
     background-clip: text;
 }
 
-.dashboard__subtitle {
+.dashboard__update-details {
+    margin-top: 0.55rem;
     color: var(--text-muted);
-    margin: var(--spacing-xs) 0 0;
+    font-size: var(--font-size-sm);
 }
 
-.dashboard__last-update {
-    font-size: var(--font-size-sm);
-    color: var(--text-muted);
+.dashboard__update-details summary {
+    cursor: pointer;
+    min-height: 44px;
+    align-content: center;
+}
+
+.dashboard__update-details summary:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 3px;
+    border-radius: var(--radius-sm);
+}
+
+.dashboard__update-info {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem 1rem;
+    margin: 0.5rem 0 0;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
+
+.dashboard__update-info dd {
+    margin: 0;
+    color: var(--text-secondary);
+}
+
+@media (max-width: 480px) {
+    .dashboard__update-info { grid-template-columns: 1fr; gap: 0.2rem; }
+    .dashboard__update-info dd { margin-bottom: 0.5rem; }
 }
 
 .dashboard__live-status {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    margin-top: 0.55rem;
     padding: 0.3rem 0.6rem;
     border: 1px solid var(--border-secondary);
     border-radius: 999px;

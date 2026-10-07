@@ -501,6 +501,12 @@
         gap: 1rem;
     }
 
+    .asset-detail__title-group,
+    .asset-detail__price-group {
+        /* Desktop width bases become height constraints in a column. */
+        flex: 0 0 auto;
+    }
+
     .asset-detail__price-group {
         text-align: left;
         max-width: 100%;

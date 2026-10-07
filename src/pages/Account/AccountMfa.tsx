@@ -3,7 +3,7 @@ import {useEffect,useState} from 'react';
 import {getAppSupabaseClient} from '../../services/supabaseClient';
 import {useAccount} from '../../context/AccountContext';
 import type {FeedbackTone} from '../../components/ui/FeedbackToast';
-import {mfaQrImage} from '../../services/mfaQr';
+import {createMfaQrImage} from '../../services/mfaQr';
 
 export function AccountMfa({notify}:{notify:(text:string,tone?:FeedbackTone)=>void}){
     const account=useAccount();
@@ -34,7 +34,7 @@ export function AccountMfa({notify}:{notify:(text:string,tone?:FeedbackTone)=>vo
             if(result.error)throw result.error;
             setFactor(result.data.id);
             setSecret(result.data.totp.secret);setShowSecret(false);setRequired(true);
-            try{setQr(mfaQrImage(result.data.totp.qr_code));}
+            try{setQr(await createMfaQrImage(result.data.totp.qr_code,result.data.totp.uri));}
             catch{setQr('');setShowSecret(true);notify('No se pudo mostrar el QR. Puedes añadir la cuenta con la clave manual.','info');}
         }catch(error){notify(error instanceof Error?error.message:'No se pudo iniciar la configuración.','error');}
         finally{setBusy(false);}

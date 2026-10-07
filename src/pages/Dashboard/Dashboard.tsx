@@ -46,11 +46,15 @@ function DashboardLiveStatus({
     updatingPrices,
     lastPriceUpdate,
     lastRefreshAttempt,
+    lastReadAt,
+    lastConsultedAt,
 }: {
     apiEnabled: boolean;
     updatingPrices: boolean;
     lastPriceUpdate: Date | null;
     lastRefreshAttempt: Date | null;
+    lastReadAt?: string;
+    lastConsultedAt?: string;
 }) {
     const [now, setNow] = useState(() => Date.now());
 
@@ -66,10 +70,6 @@ function DashboardLiveStatus({
         };
     }, []);
 
-    if (!apiEnabled) {
-        return <span className="dashboard__live-status"><Radio size={13} /> Auto desactivada</span>;
-    }
-
     const nextRefreshSeconds = (lastRefreshAttempt || lastPriceUpdate)
         ? Math.max(0, Math.ceil(((lastRefreshAttempt || lastPriceUpdate)!.getTime() + PRICE_REFRESH_INTERVAL_MS - now) / 1000))
         : null;
@@ -79,9 +79,20 @@ function DashboardLiveStatus({
     const refreshIntervalMinutes = Math.max(1, Math.round(PRICE_REFRESH_INTERVAL_MS / 60000));
 
     return (
-        <span className="dashboard__live-status dashboard__live-status--active">
-            <Radio size={13} /> Consulta · {refreshIntervalMinutes} min · {updatingPrices ? 'actualizando…' : countdownLabel}
-        </span>
+        <details className="dashboard__update-details">
+            <summary>
+                <span className={`dashboard__live-status${apiEnabled || updatingPrices ? ' dashboard__live-status--active' : ''}`}>
+                    <Radio size={13} aria-hidden="true" />
+                    {updatingPrices ? 'Actualizando…' : apiEnabled ? 'Actualización automática' : 'Actualización manual'}
+                </span>
+            </summary>
+            <dl className="dashboard__update-info">
+                <dt>Consultas automáticas</dt><dd>{apiEnabled ? `Cada ${refreshIntervalMinutes} min` : 'Desactivadas'}</dd>
+                {apiEnabled && <><dt>Próxima consulta</dt><dd>{updatingPrices ? 'En curso' : nextRefreshSeconds === 0 ? 'Pendiente' : countdownLabel}</dd></>}
+                {lastReadAt && <><dt>Última lectura en la app</dt><dd>{quoteDateLabel(lastReadAt)}</dd></>}
+                {lastConsultedAt && <><dt>Última consulta al proveedor</dt><dd>{quoteDateLabel(lastConsultedAt)}</dd></>}
+            </dl>
+        </details>
     );
 }
 
@@ -199,9 +210,10 @@ export function Dashboard() {
         const results = calculatePortfolioResults(assets, analytics.portfolioTransactions, calculationNow);
 
         const periodChange = (periodName: TimePeriod, source: ReturnType<typeof performanceSeries>) => {
-            const { performance: period } = selectPortfolioPeriod(source, periodName, calculationNow);
+            const { performance: period, monthlyBase } = selectPortfolioPeriod(source, periodName, calculationNow);
             return {
                 baseDate: period.baseDate, endDate: period.endDate,
+                monthlyBase,
                 hasBase: period.hasBase && period.returnPercent !== null,
                 change: period.returnPercent === null ? NaN : period.change ?? NaN,
                 percent: period.returnPercent ?? NaN,
@@ -312,20 +324,13 @@ export function Dashboard() {
             <PageHeader className="dashboard__header" eyebrow="Cartera">
                 <div className="dashboard__header-content">
                     <h1 className="dashboard__title">Dashboard</h1>
-                    <p className="dashboard__subtitle">
-                        Seguimiento automático de tu cartera
-                        {lastReadAt && <span className="dashboard__last-update">· Última lectura en la app: {quoteDateLabel(lastReadAt)}</span>}
-                        {lastConsultedAt && (
-                            <span className="dashboard__last-update">
-                                · Última consulta al proveedor: {quoteDateLabel(lastConsultedAt)}
-                            </span>
-                        )}
-                    </p>
                     <DashboardLiveStatus
                         apiEnabled={apiEnabled}
                         updatingPrices={updatingPrices}
                         lastPriceUpdate={lastPriceUpdate}
                         lastRefreshAttempt={state.lastRefreshAttempt}
+                        lastReadAt={lastReadAt}
+                        lastConsultedAt={lastConsultedAt}
                     />
                 </div>
             </PageHeader>

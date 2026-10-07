@@ -26,6 +26,7 @@
 
 /* Header */
 .sidebar__header {
+    flex-shrink: 0;
     padding: var(--spacing-lg);
     border-bottom: 1px solid var(--border-primary);
     display: flex;
@@ -81,6 +82,7 @@
 /* Navigation */
 .sidebar__nav {
     flex: 1;
+    min-height: 0;
     padding: var(--spacing-md);
     display: flex;
     flex-direction: column;
@@ -90,6 +92,8 @@
 
 .sidebar__link {
     display: flex;
+    /* Expanded groups should scroll the nav instead of compressing its links. */
+    flex-shrink: 0;
     align-items: center;
     gap: var(--spacing-md);
     padding: var(--spacing-md);
@@ -149,6 +153,7 @@
 .sidebar__group {
     display: flex;
     flex-direction: column;
+    flex-shrink: 0;
 }
 
 .sidebar__group-toggle {
@@ -249,6 +254,7 @@
 
 /* Footer */
 .sidebar__footer {
+    flex-shrink: 0;
     padding: var(--spacing-md);
     padding-bottom: calc(var(--spacing-md) + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--border-primary);

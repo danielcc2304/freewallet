@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ArrowLeft, CalendarDays, CheckCircle2, ExternalLink, FileText, Loader2, Newspaper, Settings2 } from 'lucide-react';
+import { ArrowLeft, CalendarDays, CheckCircle2, ExternalLink, FileText, Loader2, Newspaper, Pencil, Settings2 } from 'lucide-react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
 import { Card, CardContent } from '../../components/ui';
 import type { NewsPost } from '../../types/news';
@@ -10,6 +10,7 @@ import {
     listPublishedNews,
 } from '../../services/newsService';
 import { getNewsTextExcerpt, getSafeNewsImageUrl, sanitizeNewsHtml } from '../../utils/newsContent';
+import { useNewsEditorId } from '../../hooks/useNewsEditorId';
 import './News.css';
 
 const dateFormatter = new Intl.DateTimeFormat('es-ES', {
@@ -210,6 +211,7 @@ function NewsCard({ post }: { post: NewsPost }) {
 
 export function NewsArticle() {
     const { slug } = useParams<{ slug: string }>();
+    const editorId = useNewsEditorId();
     const [post, setPost] = useState<NewsPost | null>(null);
     const [loading, setLoading] = useState(isNewsBackendConfigured);
     const [error, setError] = useState<string | null>(null);
@@ -303,11 +305,6 @@ export function NewsArticle() {
 
     return (
         <div className="news-page news-page--article">
-            <Link className="news-page__back-link" to="/news">
-                <ArrowLeft size={16} />
-                Todas las noticias
-            </Link>
-
             <article className="news-article">
                 <header className="news-article__header">
                     <div className="news-article__meta">
@@ -329,13 +326,14 @@ export function NewsArticle() {
 
                 <footer className="news-article__footer">
                     <span>Contenido informativo. No constituye asesoramiento financiero personalizado.</span>
-                    <Link to="/news">
-                        <ArrowLeft size={15} />
-                        Volver a noticias
-                    </Link>
                 </footer>
             </article>
+            {editorId && editorId === post.authorId && (
+                <Link className="news-article__edit" to={`/admin/news?edit=${encodeURIComponent(post.id)}`}
+                    aria-label="Editar noticia" title="Editar noticia">
+                    <Pencil size={22} aria-hidden="true" />
+                </Link>
+            )}
         </div>
     );
 }
-

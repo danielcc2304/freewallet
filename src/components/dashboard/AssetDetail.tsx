@@ -11,7 +11,8 @@ import {
     Percent,
     Layers,
     ArrowUpRight,
-    ArrowDownRight
+    ArrowDownRight,
+    RefreshCw
 } from 'lucide-react';
 import {
     XAxis,
@@ -31,6 +32,7 @@ import { assetPrice, assetValue, formatQuantity, hasValidPrice } from '../../ser
 import { portfolioQuoteStatus, quoteDateLabel } from '../../services/portfolioQuoteStatus';
 import { isApiEnabled } from '../../services/storageService';
 import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
+import { Button } from '../ui';
 import './AssetDetail.css';
 
 interface AssetDetailProps {
@@ -434,7 +436,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                         <div className="chart-overlay error-state">
                             <p>{!apiEnabled ? 'Consulta de histórico desactivada.' : chartData.length === 1 ? 'Recopilando datos del histórico…' : 'Datos históricos no disponibles.'}</p>
                             <small>{!apiEnabled ? 'No se han realizado llamadas al proveedor.' : chartData.length === 1 ? 'Necesitamos al menos dos cotizaciones para dibujar la evolución.' : 'El proveedor no ha devuelto un histórico utilizable para este periodo.'}</small>
-                            {apiEnabled && <button type="button" onClick={() => setRetry(n => n + 1)}>Reintentar consulta</button>}
+                            {apiEnabled && <Button variant="secondary" icon={<RefreshCw size={16} />} type="button" onClick={() => setRetry(n => n + 1)}>Reintentar consulta</Button>}
                         </div>
                     )}
                     {canDrawChart && <ResponsiveContainer width="100%" height={240}>
@@ -528,7 +530,8 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                </p>}
                {isFund && (
                    <p className="asset-detail__chart-source">
-                       Valores liquidativos históricos de la clase encontrada por ISIN. Finect aporta la ficha y la última valoración.
+                       {chartData[0]?.sourceSymbol ? `Histórico Yahoo · ${chartData[0].sourceSymbol}. ` : ''}
+                       Clase identificada por ISIN. Finect aporta la ficha y la última valoración.
                    </p>
                )}
            </div>

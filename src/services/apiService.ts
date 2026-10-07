@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { verifiedSecurityAlias } from './securityAliases';
+import { getFundRelevance } from './finect/finectService';
+import { fundChartSymbols } from './funds/fundChartResolution';
 import type { StockQuote, SearchResult, HistoricalDataPoint, AssetType, TimePeriod } from '../types/types';
 import {
     QUOTE_CACHE,
@@ -823,12 +825,49 @@ export async function getFundamentalData(symbol: string, signal?: AbortSignal): 
 }
 
 // ===== YAHOO FINANCE GET CHART DATA =====
+async function searchChartInstrument(query: string, signal?: AbortSignal): Promise<unknown> {
+    const url = YAHOO_SEARCH_URL + '?q=' + encodeURIComponent(query) + '&quotesCount=40&newsCount=0';
+    return url.startsWith('/')
+        ? (await axios.get(url, { signal, timeout: 5000 })).data as unknown
+        : await fetchFromFastestProxy(url, signal);
+}
+
+async function getFundClassChartSymbols(isin: string, signal?: AbortSignal): Promise<string[]> {
+    const key = 'fund-class::' + isin;
+    const cached = CHART_SYMBOL_CACHE.get(key);
+    if (cached) return cached;
+    try {
+        const fund = await getFundRelevance(isin, signal);
+        if (!fund.className) return [];
+        const symbols = fundChartSymbols(await searchChartInstrument(fund.className, signal), isin, fund.className);
+        if (symbols.length) CHART_SYMBOL_CACHE.set(key, symbols);
+        return symbols;
+    } catch (error) {
+        if (axios.isCancel(error) || signal?.aborted) throw error;
+        return [];
+    }
+}
+
 async function getChartSymbolCandidates(symbol: string, signal?: AbortSignal): Promise<string[]> {
     const normalized = symbol.trim().toUpperCase();
     // FX pairs must not fall back to similarly named or inverse instruments.
     if (/^[A-Z]{6}=X$/.test(normalized)) return [normalized];
     const cached = CHART_SYMBOL_CACHE.get(normalized);
     if (cached) return cached;
+
+    if (looksLikeISIN(normalized)) {
+        let resolved: string[] = [];
+        try { resolved = fundChartSymbols(await searchChartInstrument(normalized, signal), normalized); }
+        catch (error) { if (axios.isCancel(error) || signal?.aborted) throw error; }
+        // Yahoo can return a traded quote with no NAV history (DWS DI4A.F).
+        // Resolve the full, ISIN-verified class instead of a similar fund.
+        if (!resolved.length) {
+            resolved = await getFundClassChartSymbols(normalized, signal);
+        }
+        const candidates = [...new Set([...resolved, normalized + '.SG', normalized])];
+        if (resolved.length) CHART_SYMBOL_CACHE.set(normalized, candidates);
+        return candidates;
+    }
 
     const verified = verifiedSecurityAlias('', normalized);
     const candidates = new Set<string>(verified ? [normalized, verified.chartSymbol] : [normalized]);
@@ -934,6 +973,10 @@ export async function getAssetChartData(
     if (!options.forceRefresh && cached && Date.now() - cached.timestamp < TTL.CHART) {
         return cached.data;
     }
+    if (options.forceRefresh) {
+        CHART_SYMBOL_CACHE.delete(symbol.trim().toUpperCase());
+        CHART_SYMBOL_CACHE.delete('fund-class::' + symbol.trim().toUpperCase());
+    }
 
     let range = '1mo';
     let interval = '1d';
@@ -969,28 +1012,30 @@ export async function getAssetChartData(
     try {
         const candidates = await getChartSymbolCandidates(symbol, signal);
         let bestPoints: HistoricalDataPoint[] = [];
-
-        for (const candidate of candidates) {
-            try {
-                const points = await fetchYahooChartPoints(candidate, range, Number.isFinite(options.startDate) ? '1d' : interval, period, signal, options.startDate, options.endDate);
-                if (points.length > bestPoints.length) bestPoints = points;
-
-                // A single quote cannot render an evolution. Keep looking for
-                // another listing (for example B02.F for NXTE.XD).
-                if (points.length >= 2) {
-                    const result = fundIdentifier && period === '1D' ? points.slice(-2) : points;
-                    CHART_CACHE.set(cacheKey, { data: result, timestamp: Date.now() });
-                    return result;
+        const visited = new Set<string>();
+        const loadCandidates = async (symbols: string[]) => {
+            for (const candidate of symbols) {
+                if (visited.has(candidate)) continue;
+                visited.add(candidate);
+                try {
+                    const points = await fetchYahooChartPoints(candidate, range, Number.isFinite(options.startDate) ? '1d' : interval, period, signal, options.startDate, options.endDate);
+                    if (points.length > bestPoints.length) bestPoints = points;
+                    // Keep looking when a listing only exposes a current quote.
+                    if (points.length >= 2) return;
+                } catch (error) {
+                    if (axios.isCancel(error) || signal?.aborted) throw error;
                 }
-            } catch (error) {
-                if (axios.isCancel(error) || signal?.aborted) throw error;
             }
+        };
+        await loadCandidates(candidates);
+        if (fundIdentifier && bestPoints.length < 2) {
+            await loadCandidates(await getFundClassChartSymbols(symbol.trim().toUpperCase(), signal));
         }
-
-        if (bestPoints.length > 0) {
-            CHART_CACHE.set(cacheKey, { data: bestPoints, timestamp: Date.now() });
+        const result = fundIdentifier && period === '1D' ? bestPoints.slice(-2) : bestPoints;
+        if (result.length > 0) {
+            CHART_CACHE.set(cacheKey, { data: result, timestamp: Date.now() });
         }
-        return bestPoints;
+        return result;
     } catch (error) {
         if (axios.isCancel(error)) throw error;
         console.warn('Yahoo Finance chart failed:', error);

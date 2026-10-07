@@ -465,7 +465,12 @@
     gap: 0.5rem;
     color: var(--text-muted);
     text-align: center;
+    padding: 1rem;
+    box-sizing: border-box;
+    cursor: default;
 }
+
+.chart-overlay.error-state .btn { min-height: 44px; margin-top: .5rem; }
 
 .chart-overlay.error-state p {
     font-weight: 600;

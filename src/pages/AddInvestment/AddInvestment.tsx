@@ -289,7 +289,7 @@ export function AddInvestment() {
                 }
                 : null;
             const quote = rawQuote
-                ? await normalizeQuoteToEuro(rawQuote, quoteController.signal)
+                ? await normalizeQuoteToEuro(rawQuote, quoteController.signal, false, result.type)
                 : fundQuote
                     ? await normalizeQuoteToEuro(fundQuote, quoteController.signal)
                     : null;

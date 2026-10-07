@@ -114,7 +114,7 @@ Hay dos procesos distintos:
 | Proceso | Funcionamiento |
 | --- | --- |
 | Refresco del navegador | Cada cinco minutos, con consultas habilitadas y la pestaña visible. Acciones y ETF consultan directamente durante su sesión; criptoactivos, las 24 horas. Fondos y activos fuera de sesión priorizan el batch disponible. El refresco manual consulta directamente. |
-| Actualización en Supabase | Edge Function `daily-market-data` cada dos horas, de **08:00 a 22:00 en España peninsular** (`Europe/Madrid`, con ajuste de verano/invierno). Utiliza las posiciones guardadas, actualiza instrumentos y benchmark y puede registrar valoraciones privadas completas. |
+| Actualización en Supabase | Edge Function `daily-market-data` cada 30 minutos, de **08:00 a 22:30 en España peninsular** (`Europe/Madrid`, con ajuste de verano/invierno). Utiliza las posiciones guardadas, actualiza instrumentos y benchmark y puede registrar valoraciones privadas completas. |
 
 El proceso en Supabase requiere las migraciones, la función desplegada y el job configurado. Publicar el frontend no instala ni activa por sí solo ese proceso. Tampoco el hecho de que el batch esté activo actualiza el código de una web que aún no haya desplegado la integración.
 

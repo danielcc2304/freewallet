@@ -39,6 +39,42 @@ assert.equal(yahoo.at,at);assert.equal(yahoo.previousAt,'2026-10-05T00:00:00.000
 assert.throws(()=>parseYahooFund(chart,'OTHER',isin,className,'EUR'));
 assert.throws(()=>parseYahooFund(chart,symbol,isin,'Cobas Internacional C FI','EUR'));
 assert.throws(()=>parseYahooFund(chart,symbol,isin,className,'USD'));
+const pictetIsin='LU0625737910',pictetClass='Pictet-China Index P EUR',pictetSymbol=pictetIsin+'.LU';
+const pictetSearch={quotes:[{symbol:pictetSymbol,quoteType:'MUTUALFUND',longname:pictetClass},
+    {symbol:'LU0625737928.LU',quoteType:'MUTUALFUND',longname:pictetClass},
+    {symbol:pictetIsin+'.SG',quoteType:'MUTUALFUND',longname:pictetClass},
+    {symbol:pictetSymbol,quoteType:'MUTUALFUND',longname:'Pictet-China Index P USD'}]};
+assert.deepEqual(yahooFundSymbols(pictetSearch,pictetIsin,pictetClass),[pictetSymbol],'An exact ISIN Luxembourg NAV series is valid; other classes and traded quotes are excluded');
+const fundChart=(ticker:string,name:string,prices:number[])=>({chart:{result:[{...chart.chart.result[0],
+    meta:{symbol:ticker,currency:'EUR',instrumentType:'MUTUALFUND',longName:name},indicators:{quote:[{close:[...prices,null]}]}}]}});
+const pictetChart=fundChart(pictetSymbol,pictetClass,[129.52,130.24]);
+assert.equal(parseYahooFund(pictetChart,pictetSymbol,pictetIsin,pictetClass,'EUR').price,130.24);
+assert.throws(()=>parseYahooFund(fundChart(pictetIsin+'.SG',pictetClass,[129,130]),pictetIsin+'.SG',pictetIsin,pictetClass,'EUR'),'A traded quote must be rejected even by the NAV parser');
+const pictetQueries:string[]=[];
+const pictet=await fetchFreshFund(pictetIsin,async()=>({...finect,isin:pictetIsin,className:pictetClass,price:128.2}),{
+    json:async(url)=>{if(url.includes('/search?')){pictetQueries.push(new URL(url).searchParams.get('q')!);return pictetSearch;}return pictetChart;},
+    text:async()=>{throw Error('VDOS unavailable');}});
+assert.equal(pictet.at,at);assert.equal(pictet.price,130.24);assert.equal(pictet.previous,129.52);
+assert.deepEqual(pictetQueries,[pictetIsin],'A successful ISIN lookup needs no class-name search');
+const dwsIsin='LU0034353002',dwsClass='DWS Floating Rate Notes LC',dwsSymbol='0P00000N4I.F';
+const dwsFinect:FundObservation={...finect,isin:dwsIsin,className:dwsClass,price:94.56,at:'2026-10-05T00:00:00.000Z'};
+const dwsSearch={quotes:[{symbol:dwsSymbol,quoteType:'MUTUALFUND',longname:dwsClass},
+    {symbol:'0P00000N4J.F',quoteType:'MUTUALFUND',longname:'DWS Floating Rate Notes LD'}]};
+for(const primary of [{quotes:[{symbol:'DI4A.F',quoteType:'ETF',longname:'DWS Floating Rate Notes'}]},
+    {quotes:[{symbol:'0P00000000.F',quoteType:'MUTUALFUND',longname:dwsClass}]}]) {
+    const queries:string[]=[],requested:string[]=[];
+    const dws=await fetchFreshFund(dwsIsin,async()=>dwsFinect,{
+        json:async(url)=>{
+            const parsed=new URL(url);
+            if(url.includes('/search?')){const query=parsed.searchParams.get('q')!;queries.push(query);return query===dwsIsin?primary:dwsSearch;}
+            const ticker=decodeURIComponent(parsed.pathname.split('/').at(-1)!);requested.push(ticker);
+            return ticker===dwsSymbol?fundChart(dwsSymbol,dwsClass,[94.56,94.57]):{chart:{result:[]}};
+        },text:async()=>{throw Error('VDOS unavailable');}});
+    assert.deepEqual(queries,[dwsIsin,dwsClass],'Search the complete verified class when ISIN candidates are traded quotes or unusable');
+    assert.equal(dws.at,at);assert.equal(dws.price,94.57);assert.equal(dws.previous,94.56);
+    assert.ok(!requested.includes('DI4A.F')&&!requested.includes('0P00000N4J.F'),'Neither a traded ETF nor a different class may be requested');
+    assert.equal(new Set(requested).size,requested.length,'Do not repeat failed chart candidates');
+}
 const selected=newestFundObservation([finect,yahoo,parseCobas(manager,isin)]);
 assert.equal(selected.source,'Cobas AM');assert.equal(selected.price,299.038746);assert.equal(selected.previous,yahoo.previous);
 assert.equal(newestFundObservation([finect,parseQuefondos(vdos,isin)]).source,'VDOS/Quefondos');
@@ -62,4 +98,4 @@ denied=false;allowed=false;assert.equal((await (await handleFundQuote(request(),
 allowed=true;const retained=await (await handleFundQuote(request(),dependencies)).json();assert.equal(retained.quote.source,'Cobas AM');assert.equal(retained.cached,true);
 const latest=await (await handleFundQuote(request(),{...dependencies,quote:async()=>({...cached,price_eur:301})})).json();assert.equal(latest.quote.price_eur,301);assert.equal(latest.cached,false);
 const failure=await (await handleFundQuote(request(),{...dependencies,quote:async()=>{throw Error('down');}})).json();assert.equal(failure.quote.price_eur,300);
-console.log('Fund quotes: exact ISIN/class/currency, NAV dates, real daily series, official precision, fallback, latest-date selection, authenticated manual refresh and cached-data preservation passed.');
+console.log('Fund quotes: Pictet ISIN NAV series, DWS verified-class fallback, rejected traded/other-class prices, exact currency/dates, official precision, latest-date selection, authenticated manual refresh and cached-data preservation passed.');

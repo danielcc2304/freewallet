@@ -53,16 +53,21 @@ export function parseAzvalor(page:string,xml:string,isin:string):FundObservation
     if(!last)throw new Error('Azvalor no ha publicado NAV');
     return {isin,className:'Azvalor Internacional FI',currency:'EUR',...last,previous:previous?.price??null,previousAt:previous?.at,source:'Azvalor'};
 }
+function isYahooNavSymbol(symbol:string,isin:string):boolean {
+    // Luxembourg NAV series may use the class ISIN itself instead of a 0P
+    // code. An exchange-traded .SG quote is still never a NAV candidate.
+    return /^0P[A-Z0-9]{8}\.[A-Z]{1,3}$/.test(symbol)||symbol===`${isin}.LU`;
+}
 export function yahooFundSymbols(payload:unknown,isin:string,className:string):string[] {
     const quotes=record(payload).quotes;
     return Array.isArray(quotes)?[...new Set(quotes.map(record).filter(q=>q.quoteType==='MUTUALFUND'
-        &&typeof q.symbol==='string'&&/^0P[A-Z0-9]{8}\.[A-Z]{1,3}$/.test(q.symbol)
+        &&typeof q.symbol==='string'&&isYahooNavSymbol(q.symbol,isin)
         &&(q.isin===undefined||q.isin===isin)&&typeof q.longname==='string'
         &&fundClassIdentity(q.longname)===fundClassIdentity(className)).map(q=>q.symbol as string))]:[];
 }
 export function parseYahooFund(payload:unknown,symbol:string,isin:string,className:string,currency:string):FundObservation {
     const results=record(record(payload).chart).result,result=record(Array.isArray(results)?results[0]:undefined),meta=record(result.meta);
-    if(meta.symbol!==symbol||meta.instrumentType!=='MUTUALFUND'||meta.currency!==currency
+    if(!isYahooNavSymbol(symbol,isin)||meta.symbol!==symbol||meta.instrumentType!=='MUTUALFUND'||meta.currency!==currency
         ||typeof meta.longName!=='string'||fundClassIdentity(meta.longName)!==fundClassIdentity(className))throw new Error('Yahoo no confirma la clase del fondo');
     quoteCurrency(currency);
     const timestamps=Array.isArray(result.timestamp)?result.timestamp:[],quote=record(result.indicators).quote;
@@ -84,14 +89,25 @@ export async function fetchFreshFund(isin:string,finect:()=>Promise<FundObservat
     const settled=await Promise.allSettled(requests),observations=settled.flatMap(result=>result.status==='fulfilled'?[result.value]:[]);
     signal?.throwIfAborted();
     const identity=observations.find(q=>q.source==='Finect')??observations[0];
-    if(identity)try {
-        const search=await transport.json(`https://query1.finance.yahoo.com/v1/finance/search?${new URLSearchParams({q:isin,quotesCount:'10',newsCount:'0'})}`,signal);
-        const symbols=yahooFundSymbols(search,isin,identity.className);
-        for(const symbol of symbols.slice(0,2))try {
-            const payload=await transport.json(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1mo&interval=1d`,signal);
-            observations.push(parseYahooFund(payload,symbol,isin,identity.className,identity.currency));break;
-        }catch{signal?.throwIfAborted();}
-    }catch{signal?.throwIfAborted();}
+    if(identity) {
+        const visited=new Set<string>();
+        // DWS's ISIN lookup exposes only a traded ETF quote. Fall back to the
+        // full class independently confirmed by the ISIN source, including
+        // when an ISIN candidate has no usable daily NAV series.
+        for(const query of [isin,identity.className]) {
+            let resolved=false;
+            try {
+                const search=await transport.json(`https://query1.finance.yahoo.com/v1/finance/search?${new URLSearchParams({q:query,quotesCount:'10',newsCount:'0'})}`,signal);
+                const symbols=yahooFundSymbols(search,isin,identity.className).filter(symbol=>!visited.has(symbol));
+                for(const symbol of symbols.slice(0,2))try {
+                    visited.add(symbol);
+                    const payload=await transport.json(`https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=1mo&interval=1d`,signal);
+                    observations.push(parseYahooFund(payload,symbol,isin,identity.className,identity.currency));resolved=true;break;
+                }catch{signal?.throwIfAborted();}
+            }catch{signal?.throwIfAborted();}
+            if(resolved)break;
+        }
+    }
     if(!observations.length)throw new Error('Ninguna fuente ha devuelto un NAV válido para el ISIN');
     return newestFundObservation(observations);
 }

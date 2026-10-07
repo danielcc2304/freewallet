@@ -59,7 +59,13 @@
 .portfolio-excel-insights__footnote { margin: .9rem 0 0; color: var(--text-muted); font-size: .7rem; }
 @media (max-width: 1000px) { .portfolio-excel-insights__kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); } .portfolio-excel-insights__controls { grid-template-columns: 1fr 1fr; } .portfolio-excel-insights__stats { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
 @media (max-width: 680px) { .portfolio-excel-insights__kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .portfolio-excel-insights__allocation, .portfolio-excel-insights__controls { grid-template-columns: 1fr; } .portfolio-excel-insights__benchmark-kpis { grid-template-columns: 1fr; } .portfolio-excel-insights__stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } .portfolio-excel-insights__panel-heading { display: grid; } }
-@media (max-width: 680px) { .portfolio-excel-insights__panel-actions { justify-items: stretch; } .portfolio-excel-insights__period-summary { justify-items: start; text-align: left; } .portfolio-excel-insights__periods { justify-content: space-between; } .portfolio-excel-insights__periods button { flex: 1; } }
+@media (max-width: 680px) {
+    .portfolio-excel-insights__panel-heading { grid-template-columns: minmax(0, 1fr); }
+    .portfolio-excel-insights__panel-actions { width: 100%; min-width: 0; justify-items: stretch; }
+    .portfolio-excel-insights__period-summary { justify-items: start; text-align: left; }
+    .portfolio-excel-insights__periods { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); width: 100%; min-width: 0; }
+    .portfolio-excel-insights__periods button { min-width: 0; padding-inline: .2rem; white-space: nowrap; }
+}
 .portfolio-excel-insights__periods button { min-height: 44px; }
 .portfolio-excel-insights__periods button:focus-visible, .portfolio-excel-insights__tabs button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 .portfolio-excel-insights__missing { font-size: .75rem; color: var(--text-secondary); }

@@ -217,15 +217,28 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const benchmarkLine = useMemo(() => chooseBenchmarkLine(periodSeries, automaticLine, workbookBenchmarkLine), [periodSeries, automaticLine, workbookBenchmarkLine]);
     const benchmarkUsesWorkbook = benchmarkLine.length > 1 && benchmarkLine === workbookBenchmarkLine;
     const benchmarkReturn = benchmarkLine.at(-1)?.benchmark ?? null;
-    const portfolioBenchmarkReturn = benchmarkLine.at(-1)?.portfolio ?? null;
     const hasPortfolioBenchmark = benchmarkLine.length > 1;
+    const benchmarkHasPeriodBase = hasPortfolioBenchmark
+        && benchmarkLine[0].date.slice(0, 10) === selectedPeriod.performance.baseDate?.slice(0, 10);
     const benchmarkPartial = hasPortfolioBenchmark && (
         benchmarkLine[0].date.slice(0, 10) !== selectedPeriod.performance.baseDate?.slice(0, 10)
         || benchmarkLine.at(-1)!.date.slice(0, 10) !== selectedPeriod.performance.endDate?.slice(0, 10));
-    const benchmarkDifference = benchmarkReturn !== null && portfolioBenchmarkReturn !== null ? portfolioBenchmarkReturn - benchmarkReturn : null;
-    const benchmarkPortfolioLabel = benchmarkPartial
-        ? `Tu cartera hasta ${formatChartDate(benchmarkLine.at(-1)!.date)}`
-        : 'Tu cartera';
+    const benchmarkDifference = hasPortfolioBenchmark && !benchmarkPartial && benchmarkReturn !== null
+        && selectedPeriod.performance.returnPercent !== null
+        ? selectedPeriod.performance.returnPercent - benchmarkReturn : null;
+    // The portfolio keeps the same full-period base/end as the summary. A
+    // partial benchmark never truncates it or introduces a second current return.
+    const benchmarkChart = useMemo(() => {
+        const base = periodSeries[0];
+        if (!base || base.index <= 0 || !Number.isFinite(selectedPeriod.performance.returnPercent)) return [];
+        const benchmarkByDate = new Map(benchmarkLine.map(point => [point.date, point.benchmark]));
+        return periodSeries.map(point => ({
+            date: point.date,
+            timestamp: point.timestamp,
+            portfolio: (point.index / base.index - 1) * 100,
+            benchmark: benchmarkHasPeriodBase ? benchmarkByDate.get(point.date) ?? null : null,
+        }));
+    }, [periodSeries, selectedPeriod.performance.returnPercent, benchmarkLine, benchmarkHasPeriodBase]);
 
     const evolutionSeries = periodSeries;
     const selectedPeriodPerformance = selectedPeriod.performance;
@@ -430,31 +443,33 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                             <strong>{percent(selectedPeriod.performance.returnPercent)}</strong>
                         </div>
                         {hasPortfolioBenchmark && <p className="portfolio-excel-insights__comparison-dates">
-                            Comparación del {formatChartDate(benchmarkLine[0].date)} al {formatChartDate(benchmarkLine.at(-1)!.date)}
+                            {benchmarkPartial ? 'Benchmark' : 'Comparación'} del {formatChartDate(benchmarkLine[0].date)} al {formatChartDate(benchmarkLine.at(-1)!.date)}
                         </p>}
                         {benchmarkPartial && <p className="portfolio-excel-insights__chart-note" role="status">
-                            El benchmark aún no cubre todo el periodo. El gráfico y la diferencia se limitan a estas fechas.
+                            {benchmarkHasPeriodBase
+                                ? 'Tu cartera incluye el último dato. Falta el cierre final del benchmark para calcular la diferencia.'
+                                : 'Falta el cierre inicial del benchmark para comparar este periodo. La gráfica muestra tu cartera.'}
                         </p>}
+                        {!hasPortfolioBenchmark && <p className="portfolio-excel-insights__chart-note" role="status">Benchmark sin histórico suficiente para este periodo.</p>}
                         <div className="portfolio-excel-insights__benchmark-kpis">
-                            <div><span>Fidelity MSCI World</span><strong>{percent(benchmarkReturn)}</strong></div>
-                            <div><span>Diferencia en estas fechas</span><strong className={benchmarkDifference === null ? '' : benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'}>{percent(benchmarkDifference).replace('%', ' pp')}</strong></div>
+                            <div><span>Fidelity MSCI World{benchmarkPartial ? ' · datos disponibles' : ''}</span><strong>{percent(benchmarkReturn)}</strong></div>
+                            <div><span>Diferencia del periodo</span><strong className={benchmarkDifference === null ? '' : benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'}>{percent(benchmarkDifference).replace('%', ' pp')}</strong></div>
                         </div>
-                        {benchmarkLine.length > 1 ? (
+                        {benchmarkChart.length > 1 ? (
                             <ResponsiveContainer width="100%" height={230}>
-                                <LineChart data={benchmarkLine} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
+                                <LineChart data={benchmarkChart} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
-                                    <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
+                                    <XAxis dataKey="timestamp" type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatChartDate} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
                                     <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
-                                    <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined, name?: string) => [percent(Number(value || 0)), benchmarkSeriesLabel(name, benchmarkPortfolioLabel)]} />
-                                    <Legend formatter={(value) => benchmarkSeriesLabel(String(value), benchmarkPortfolioLabel)} />
-                                    {hasPortfolioBenchmark && <Line type="monotone" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} connectNulls />}
-                                    <Line type="monotone" dataKey="benchmark" name="Fidelity MSCI World" stroke="#3b82f6" strokeWidth={2} dot={false} />
+                                    <Tooltip {...tooltipTheme} labelFormatter={label => typeof label === 'string' || typeof label === 'number' ? formatChartDate(label) : ''} formatter={(value: number | string | undefined, name?: string) => [percent(value == null ? null : Number(value)), benchmarkSeriesLabel(name)]} />
+                                    <Legend formatter={(value) => benchmarkSeriesLabel(String(value))} />
+                                    <Line type="linear" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} />
+                                    {benchmarkHasPeriodBase && <Line type="linear" dataKey="benchmark" name="Fidelity MSCI World" stroke="#3b82f6" strokeWidth={2} dot={false} connectNulls />}
                                 </LineChart>
                             </ResponsiveContainer>
                         ) : (
-                            <div className="portfolio-excel-insights__empty">Aún no hay dos fechas comparables del Fidelity MSCI World ACC EUR. El histórico diario se acumula desde la activación; puedes conservar tu comparativa importada para periodos anteriores.</div>
+                            <div className="portfolio-excel-insights__empty">No hay histórico suficiente para dibujar la rentabilidad del periodo seleccionado.</div>
                         )}
-                        {benchmarkLine.length > 1 && !hasPortfolioBenchmark && <p className="portfolio-excel-insights__chart-note">El histórico del benchmark está disponible, pero todavía no hay fechas coincidentes de la cartera para dibujar su línea.</p>}
                     </section>
                 )}
 

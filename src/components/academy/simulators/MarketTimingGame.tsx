@@ -1,6 +1,5 @@
 import { useEffect, useReducer, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ArrowLeft, ArrowRight, Pause, Play, RotateCcw, TrendingDown, TrendingUp, Trophy } from 'lucide-react';
+import { ArrowRight, Pause, Play, RotateCcw, TrendingDown, TrendingUp, Trophy } from 'lucide-react';
 import { Area, CartesianGrid, ComposedChart, ReferenceDot, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
 import { Button } from '../../ui';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
@@ -75,7 +74,6 @@ export function MarketTimingGame() {
 
     return (
         <div className="market-timing-game">
-            <Link className="timing-back" to="/academy"><ArrowLeft size={16} /> Academia</Link>
             <AcademyPageHeader className="market-timing-game__header" section="Herramientas">
                 <h1>Reto: Market Timing vs DCA</h1>
                 <p>Tres mercados distintos. El mismo capital. Tus decisiones frente a diez compras programadas.</p>

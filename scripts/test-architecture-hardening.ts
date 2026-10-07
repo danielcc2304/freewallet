@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import {normalizeFundamentals,formatFundamentalMoney} from '../src/services/market/fundamentals';
 import { PGlite } from '@electric-sql/pglite';
-import { quoteCurrency, datedFx, marketSymbolMatches } from '../supabase/functions/_shared/quoteCurrency';
+import { quoteCurrency, datedFx, marketSymbolMatches, previousCryptoClose } from '../supabase/functions/_shared/quoteCurrency';
 import { fetchMarketPrice, providerJson, parseFund, parseChart } from '../supabase/functions/daily-market-data/providers';
 
 assert.deepEqual(quoteCurrency('GBp'),{currency:'GBP',scale:0.01});
@@ -12,6 +12,9 @@ assert.equal(marketSymbolMatches('VOD.L','VOD','USD'),false);
 assert.deepEqual(quoteCurrency('GBP'),{currency:'GBP',scale:1});
 assert.throws(()=>quoteCurrency('UNKNOWN'));
 assert.equal(datedFx([{at:'2026-10-02T00:00:00Z',close:1.1},{at:'2026-10-07T00:00:00Z',close:1.2}],'2026-10-05T12:00:00Z').close,1.1);
+assert.equal(previousCryptoClose([{at:'2026-10-05T00:00:00Z',close:9},{at:'2026-10-06T00:00:00Z',close:10},{at:'2026-10-07T00:00:00Z',close:11}],'2026-10-07T12:00:00Z')?.close,10);
+assert.equal(previousCryptoClose([{at:'2026-10-05T00:00:00Z',close:9},{at:'2026-10-07T00:00:00Z',close:11}],'2026-10-07T12:00:00Z'),undefined,'Crypto cannot borrow a close from an older day');
+assert.equal(previousCryptoClose([],'invalid'),undefined);
 assert.throws(()=>parseFund({data:{entity:{isin:'WRONG',lastQuote:{price:4,datetime:'2026-10-01'},currency:{code:'EUR'},classes:[{isin:'IE00BYX5NX33'}]}}},'IE00BYX5NX33'),'Do not borrow another class NAV');
 assert.throws(()=>parseChart({chart:{result:[{meta:{symbol:'OTHER',currency:'EUR'}}]}},'VOD.L'));
 const fundamentals=normalizeFundamentals({quoteSummary:{result:[{price:{symbol:'VOD.L',currency:'GBp',marketCap:{raw:1000000}},defaultKeyStatistics:{trailingEps:{raw:8}},summaryDetail:{dividendRate:{raw:4},fiftyTwoWeekHigh:{raw:150}},financialData:{financialCurrency:'GBP',ebitda:{raw:900000}}}]}},'VOD.L');
@@ -34,6 +37,22 @@ try {
     assert.equal(quote.price_eur,1.2775*1.2);assert.equal(quote.original_unit,'GBp');assert.equal(quote.original_currency,'GBP');
     assert.equal(quote.previous_close_eur,1.2*1.1);
     assert.ok(requested.every(url=>!url.includes('finect')),'A stock ISIN must not route to the fund provider');
+    const today=new Date().toISOString().slice(0,10);const midnight=Date.parse(today)/1000;
+    let missingCryptoClose=false;
+    globalThis.fetch=(async(url)=>{
+        const target=new URL(String(url));const symbol=decodeURIComponent(target.pathname.split('/chart/')[1]);
+        const fx=symbol==='USDEUR=X',euro=symbol==='BCH-EUR';
+        const current=euro?110:0.007,previous=euro?100:0.008373;
+        return Response.json({chart:{result:[{meta:{symbol,currency:fx||euro?'EUR':'USD',regularMarketPrice:current,regularMarketTime:midnight,previousClose:previous*0.999},
+            timestamp:[midnight-(missingCryptoClose&&!fx?2:1)*86400,midnight],indicators:{quote:[{close:fx?[0.8,0.9]:[previous,current]}]}}]}});
+    }) as typeof fetch;
+    for(const symbol of ['BTC-USD','ROSE-USD','BCH-EUR']) {
+        const crypto=await fetchMarketPrice({instrument:symbol,symbol,type:'crypto'},'fixture');
+        assert.equal(crypto.previous_close_eur,symbol==='BCH-EUR'?100:0.008373*0.8,'Crypto EUR variation must use the dated daily close despite metadata differences');
+        assert.equal(crypto.price_eur,symbol==='BCH-EUR'?110:0.007*0.9);
+    }
+    missingCryptoClose=true;
+    assert.equal((await fetchMarketPrice({instrument:'BTC-USD',symbol:'BTC-USD',type:'crypto'},'fixture')).previous_close_eur,null,'No invented crypto previous close');
     let attempts=0;globalThis.fetch=(async()=>++attempts===1 ? new Response('',{status:429}) : Response.json({ok:true})) as typeof fetch;
     assert.deepEqual(await providerJson('https://fixture.invalid'),{ok:true});assert.equal(attempts,2);
     const aborted=new AbortController();aborted.abort();await assert.rejects(providerJson('https://fixture.invalid',aborted.signal));

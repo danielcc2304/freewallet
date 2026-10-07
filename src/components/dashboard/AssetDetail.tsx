@@ -10,6 +10,7 @@ import {
     Coins,
     Percent,
     Layers,
+    Building2,
     ArrowUpRight,
     ArrowDownRight,
     RefreshCw
@@ -34,6 +35,7 @@ import { isApiEnabled } from '../../services/storageService';
 import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
 import { Button } from '../ui';
 import { formatFundamentalMoney, formatFundamentalPercent, formatFundamentalRatio, hasFundamentals } from '../../services/market/fundamentals';
+import { companyOverview } from '../../services/market/companyOverview';
 import './AssetDetail.css';
 
 interface AssetDetailProps {
@@ -105,7 +107,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                     }
                     return;
                 }
-                const data = await getFundamentalData(asset.symbol, controller.signal);
+                const data = await getFundamentalData(asset.symbol, controller.signal, asset.type === 'stock' && !companyOverview(asset.symbol));
                 if (!controller.signal.aborted) {
                     setQuote(data);
                 }
@@ -122,7 +124,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
 
         fetchFundamentals();
         return () => controller.abort();
-    }, [asset.symbol, assetIsin, isFund, apiEnabled, retry, fundamentalRetry]);
+    }, [asset.symbol, asset.type, assetIsin, isFund, apiEnabled, retry, fundamentalRetry]);
 
     // Effect for Chart (runs on asset or period change)
     useEffect(() => {
@@ -259,6 +261,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
     ];
 
     const visibleMetricItems = isFund ? fundMetricItems : hasFundamentals(quote || {}) ? metricItems : [];
+    const company = asset.type === 'stock' ? companyOverview(asset.symbol, quote?.businessDescription) : undefined;
     const canDrawChart = !loadingChart && chartData.length > 1;
     const chartPeriodStart = chartData[0];
     const chartPeriodEnd = chartData.at(-1);
@@ -541,6 +544,14 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                    </p>
                )}
            </div>
+
+            {asset.type === 'stock' && (
+                <section className="asset-detail__company" aria-label="Sobre la empresa">
+                    <h3 className="section-title"><Building2 size={18} />Sobre la empresa</h3>
+                    <p>{company?.description || (loadingFundamentals ? 'Cargando descripción…' : 'Descripción no disponible.')}</p>
+                    {company && <a href={company.url} target="_blank" rel="noopener noreferrer">Fuente: {company.source}</a>}
+                </section>
+            )}
 
             {/* Metrics Grid */}
             <div className="asset-detail__metrics-section">

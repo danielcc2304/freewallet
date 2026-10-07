@@ -54,7 +54,14 @@ export function applyPositionUpdate(asset: Asset, updates: Partial<Asset>): Asse
 export function applicableQuoteUpdates(requested: Asset[], current: Asset[], updates: Array<{ id: string; updates: Partial<Asset> }>) {
     const identities = new Map(requested.map(a => [a.id, quoteIdentity(a)]));
     const currentIdentities = new Map(current.map(a => [a.id, quoteIdentity(a)]));
-    return updates.filter(u => identities.get(u.id) !== undefined && identities.get(u.id) === currentIdentities.get(u.id));
+    const currentAssets = new Map(current.map(a => [a.id, a]));
+    return updates.filter(u => {
+        if (identities.get(u.id) === undefined || identities.get(u.id) !== currentIdentities.get(u.id)) return false;
+        const asset = currentAssets.get(u.id)!;
+        const currentAt = Date.parse(asset.quotedAt || asset.lastQuoteAt || '');
+        const incomingAt = Date.parse(u.updates.quotedAt || u.updates.lastQuoteAt || '');
+        return !Number.isFinite(currentAt) || (Number.isFinite(incomingAt) && incomingAt >= currentAt);
+    });
 }
 
 export function compareKnownReturns(a: number, b: number, direction: 'asc' | 'desc') {

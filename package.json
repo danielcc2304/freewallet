@@ -27,6 +27,8 @@
     "test:dashboard-review": "tsx scripts/test-dashboard-review.ts",
     "test:portfolio-composition": "tsx scripts/test-portfolio-composition.ts",
     "test:architecture": "tsx scripts/test-architecture-hardening.ts",
+    "test:fund-quotes": "tsx scripts/test-fund-quotes.ts",
+    "test:fund-quotes-ui": "tsx scripts/test-fund-quotes-ui.ts",
     "test:daily-market": "tsx scripts/test-daily-market-data.ts",
     "test:daily-market-ui": "tsx scripts/test-daily-market-ui.ts",
     "test:crypto-variation-ui": "tsx scripts/test-crypto-variation-ui.ts",

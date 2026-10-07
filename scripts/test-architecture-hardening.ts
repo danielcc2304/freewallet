@@ -80,7 +80,7 @@ try {
         insert into auth.users(id,email) values('${A}','daniel230401@gmail.com'),('${B}','editor@example.test');insert into auth.sessions values('${S}','${A}'),('${T}','${B}');`);
     for(const name of ['portfolio_foundation.sql','portfolio_commands.sql','portfolio_mfa_guard.sql','portfolio_command_validation.sql','portfolio_opening_basis.sql','daily_market_data.sql','daily_market_accounting_calendar.sql']) await db.exec(migration(name));
     await db.exec(readFileSync('supabase/news-schema.sql','utf8').replace('create extension if not exists pgcrypto;',''));
-    for(const name of ['architecture_hardening.sql','market_publication_hardening.sql','portfolio_delta_commands.sql','architecture_advisor_cleanup.sql','market_snapshot_completeness.sql','market_half_hour_schedule.sql']) await db.exec(migration(name));
+    for(const name of ['architecture_hardening.sql','market_publication_hardening.sql','portfolio_delta_commands.sql','architecture_advisor_cleanup.sql','market_snapshot_completeness.sql','market_half_hour_schedule.sql','fund_quote_sources.sql']) await db.exec(migration(name));
     const schedule=(await db.query<{schedule:string}>("select schedule from cron.job where jobname='freewallet-daily-market'")).rows;
     assert.deepEqual(schedule,[{schedule:'*/30 6-21 * * *'}],'Update the existing Cron job instead of installing a duplicate');
     assert.equal((await db.query<{schedule:string}>("select schedule from cron.job where jobname='freewallet-market-watchdog'")).rows[0].schedule,'*/5 * * * *');
@@ -110,6 +110,11 @@ try {
         assert.equal((await db.query<{v:boolean}>("select has_function_privilege($1,'portfolio_private.expected_market_refresh_slot(timestamptz,timestamptz)','EXECUTE') v",[role])).rows[0].v,false);
     }
     await login(A,S);
+    const fundContext=(await db.query<{r:{allowed:boolean,name:string,cached:unknown}}>("select public.prepare_fund_quote('IE00BYX5NX33') r")).rows[0].r;
+    assert.equal(fundContext.allowed,true);assert.equal(fundContext.cached,null);
+    assert.equal((await db.query<{r:{allowed:boolean}}>("select public.prepare_fund_quote('IE00BYX5NX33') r")).rows[0].r.allowed,false,'Manual refreshes are throttled independently of the batch');
+    await assert.rejects(db.query("select public.prepare_fund_quote('ES0119199018')"),'A user cannot query an unowned fund through the manual endpoint');
+    await assert.rejects(db.query("select public.prepare_fund_quote('INVALID')"));
     assert.equal((await db.query<{v:boolean}>('select public.ensure_news_owner() v')).rows[0].v,true);
     const asset={id:'vod',symbol:'VOD.L',isin:'GB00BH4HKS39',name:'Vodafone',type:'stock',quantity:2,purchasePrice:1,purchaseDate:'2026-01-01',currency:'EUR'};
     const opening={id:'initial-buy',assetId:'vod',assetSymbol:'VOD.L',assetName:'Vodafone',assetType:'stock',type:'buy',quantity:2,price:1,total:2,date:'2026-01-01',createdAt:'2026-01-01T12:00:00Z',provenance:'trade'};
@@ -133,6 +138,13 @@ try {
     assert.equal(retry.id,prepared.id);assert.equal(retry.deliveryRequired,false,'In-flight invitation cannot mail twice');
     await db.exec(`reset role;insert into auth.users(id,email) values(gen_random_uuid(),'new@example.test');`);
     assert.equal((await db.query<{v:boolean}>('select public.complete_news_invitation($1,true) v',[prepared.id])).rows[0].v,true,'Recover after Auth registered the account but response was lost');
+    await db.query("insert into public.portfolio_positions(user_id,id,symbol,isin,name,asset_type,quantity,purchase_price_eur,purchase_date) values($1,'owned-fund-context','ES0119199018','ES0119199018','Owned fund fixture','fund',1,5,current_date)",[A]);
+    await login(A,S);
+    assert.equal((await db.query<{r:{allowed:boolean,name:string}}>("select public.prepare_fund_quote('ES0119199018') r")).rows[0].r.name,'Owned fund fixture');
+    await login(B,T);
+    await assert.rejects(db.query("select public.prepare_fund_quote('ES0119199018')"),'A different owner cannot refresh or read another portfolio fund');
+    await db.exec('reset role;');
+    await db.query("delete from public.portfolio_positions where user_id=$1 and id='owned-fund-context'",[A]);
     await login(B,T);assert.equal((await db.query<{v:boolean}>('select public.has_pending_news_invitation() v')).rows[0].v,true);
     assert.equal((await db.query<{v:boolean}>('select public.accept_news_editor_invitation() v')).rows[0].v,true);
     await db.query("insert into public.news_posts(slug,title,author_id) values('editor-article','Fixture',$1)",[B]);
@@ -142,10 +154,12 @@ try {
     assert.equal((await db.query("update public.news_posts set title='Own edit' where slug='editor-article' returning id")).rows.length,1);
     await db.exec(`reset role;insert into auth.mfa_factors values(gen_random_uuid(),'${B}','verified');set role authenticated;`);
     assert.equal((await db.query<{v:boolean}>('select public.is_news_admin() v')).rows[0].v,false);
+    await assert.rejects(db.query("select public.prepare_fund_quote('IE00BYX5NX33')"),'MFA is enforced even for cached fund quotes');
     assert.equal((await db.query("update public.news_posts set title='No MFA' where slug='editor-article' returning id")).rows.length,0);
     await login(B,T,'aal2');assert.equal((await db.query<{v:boolean}>('select public.is_news_admin() v')).rows[0].v,true);
     await db.exec(`reset role;delete from auth.sessions where id='${T}';set role authenticated;`);
     assert.equal((await db.query<{v:boolean}>('select public.is_news_admin() v')).rows[0].v,false);
+    await assert.rejects(db.query("select public.prepare_fund_quote('IE00BYX5NX33')"),'A revoked session cannot trigger a fund refresh');
     await db.exec('reset role;set role anon;');
     await assert.rejects(db.query('select public.is_news_admin()'));
     assert.equal((await db.query('select slug from public.news_posts')).rows.length,1,'Public published article remains readable');

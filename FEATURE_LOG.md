@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-07 - v6.0.9 - Fundamentales de acciones e históricos de fondos
+- Funcionalidad:
+  - Resolución de históricos de fondos por ISIN y clase completa para elegir la serie NAV correcta y descartar ETFs o clases distintas.
+  - Recuperación de fundamentales publicados de acciones con fecha y divisa de origen, alternativas verificadas y sin mezclar periodos incompatibles.
+  - Reintento de datos fundamentales independiente de la carga del histórico.
+- Resumen:
+  - Amplía la lectura de cartera con históricos de fondos más fiables y fundamentales de acciones trazables.
+- Archivos:
+  - `docs/dashboard-review.md`, `package.json`, `scripts/test-fund-chart-resolution.ts`, `scripts/test-fund-chart-ui.ts`, `scripts/test-stock-fundamentals.ts`, `scripts/test-stock-fundamentals-ui.ts`, `src/components/dashboard/AssetDetail.css`, `src/components/dashboard/AssetDetail.tsx`, `src/services/apiService.ts`, `src/services/funds/fundChartResolution.ts`, `src/services/market/fundamentals.ts`, `src/types/api.ts`, `vercel.json`, `vite.config.ts`.
+
 ### 2026-10-06 - v6.0.8 - Ajustes de lectura del Dashboard
 - Funcionalidad:
   - Textos más breves en el análisis avanzado y detalles del cálculo de resultados plegados inicialmente.

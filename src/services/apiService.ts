@@ -2,6 +2,7 @@ import axios from 'axios';
 import { verifiedSecurityAlias } from './securityAliases';
 import { getFundRelevance } from './finect/finectService';
 import { fundChartSymbols } from './funds/fundChartResolution';
+import { extractPublicFundamentals, normalizeFundamentals, normalizeFundamentalSeries, mergeFundamentals, hasFundamentals, FUNDAMENTAL_SERIES_TYPES } from './market/fundamentals';
 import type { StockQuote, SearchResult, HistoricalDataPoint, AssetType, TimePeriod } from '../types/types';
 import {
     QUOTE_CACHE,
@@ -64,18 +65,6 @@ function readNumber(value: unknown, fallback = 0): number {
 
 function readNumberAt(value: unknown, index: number, fallback = 0): number {
     return Array.isArray(value) ? readNumber(value[index], fallback) : fallback;
-}
-
-function readRawMetric(value: unknown): number | undefined {
-    return readFiniteNumber(asJsonRecord(value).raw);
-}
-
-function firstRawMetric(...values: unknown[]): number | undefined {
-    for (const value of values) {
-        const metric = readRawMetric(value);
-        if (metric !== undefined) return metric;
-    }
-    return undefined;
 }
 
 function looksLikeISIN(q: string): boolean {
@@ -597,6 +586,8 @@ async function getQuoteYahoo(symbol: string, signal?: AbortSignal): Promise<Stoc
         low: regularMarketPrice,
         volume: readNumber(meta.regularMarketVolume),
         currency: readString(meta.currency, 'Unknown'),
+        fiftyTwoWeekHigh: readFiniteNumber(meta.fiftyTwoWeekHigh),
+        fiftyTwoWeekLow: readFiniteNumber(meta.fiftyTwoWeekLow),
     };
 }
 
@@ -742,86 +733,38 @@ export async function getFundamentalData(symbol: string, signal?: AbortSignal): 
         return {};
     }
 
-    // Strategy: Progressive Enhancement.
-    // 1. Always get the "basic" quote first (v7), which we know is reliable (used in "Add Asset").
-    // 2. Try to get "advanced" details (v10).
-    // 3. Merge them.
-
-    let baseMetrics: Partial<StockQuote> = {};
-
-    try {
-        const basicQuote = await getQuoteYahoo(symbol, signal);
-        if (basicQuote) {
-            baseMetrics = {
-                price: basicQuote.price,
-                change: basicQuote.change,
-                changePercent: basicQuote.changePercent,
-                pe: basicQuote.pe,
-                forwardPe: basicQuote.forwardPe,
-                ps: basicQuote.ps,
-                pb: basicQuote.pb,
-                dividendYield: basicQuote.dividendYield,
-                dividendRate: basicQuote.dividendRate,
-                eps: basicQuote.eps,
-                beta: basicQuote.beta,
-                marketCap: basicQuote.marketCap,
-                fiftyTwoWeekHigh: basicQuote.fiftyTwoWeekHigh,
-                fiftyTwoWeekLow: basicQuote.fiftyTwoWeekLow,
-                averageVolume: basicQuote.averageVolume
-            };
+    const abortOrEmpty = (error: unknown): Partial<StockQuote> => {
+        if (axios.isCancel(error) || signal?.aborted) throw error;
+        return {};
+    };
+    // Same-origin routes work in development and production. The chart quote
+    // only supplies prices/ranges; it is not a source of EBITDA or earnings.
+    const [base, summary] = await Promise.all([
+        getQuoteYahoo(symbol, signal).then(data => data || {}).catch(abortOrEmpty),
+        axios.get(`/__market/yahoo1/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=price,defaultKeyStatistics,financialData,summaryDetail`, {signal, timeout:5000})
+            .then(response => normalizeFundamentals(response.data, symbol)).catch(abortOrEmpty),
+    ]);
+    let published: Partial<StockQuote> = {};
+    let series: Partial<StockQuote> = {};
+    // Yahoo's public statistics page embeds the same JSON data even when v10
+    // returns Invalid Crumb. No login, cookies or execution of scripts needed.
+    if (!Number.isFinite(summary.ebitda) || !Number.isFinite(summary.eps)) {
+        const fetchPublished = async () => { try {
+            const response = await axios.get(`/__market/yahoo-site/quote/${encodeURIComponent(symbol)}/key-statistics/`, {signal, timeout:8000, responseType:'text'});
+            return extractPublicFundamentals(response.data, symbol);
+        } catch (error) { return abortOrEmpty(error); } };
+        const fetchSeries = async (ticker: string) => { try {
+            const dates = `period1=${Math.floor((Date.now()-3*365.25*86400000)/1000)}&period2=${Math.ceil(Date.now()/1000)}`;
+            const response = await axios.get(`/__market/yahoo1/ws/fundamentals-timeseries/v1/finance/timeseries/${encodeURIComponent(ticker)}?type=${FUNDAMENTAL_SERIES_TYPES.join(',')}&merge=false&${dates}`, {signal,timeout:5000});
+            return normalizeFundamentalSeries(response.data,ticker);
+        } catch (error) { return abortOrEmpty(error); } };
+        [published,series] = await Promise.all([fetchPublished(),fetchSeries(symbol)]);
+        if (!hasFundamentals(series)) {
+            const verified = verifiedSecurityAlias('',symbol);
+            if(verified && verified.chartSymbol!==symbol.toUpperCase()) series = await fetchSeries(verified.chartSymbol);
         }
-    } catch (e) {
-        console.warn('Basic quote fetch failed in getFundamentalData', e);
     }
-
-    const v10Url = `${import.meta.env.DEV ? '/__market/yahoo1' : 'https://query1.finance.yahoo.com'}/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=defaultKeyStatistics,financialData,summaryDetail`;
-
-    // Try v10 for advanced metrics (EBITDA, Margins, etc.)
-    try {
-            const rawData: unknown = v10Url.startsWith('/')
-                ? (await axios.get(v10Url, { signal, timeout: 5000 })).data
-                : await fetchFromFastestProxy(v10Url, signal);
-            const data = asJsonRecord(rawData);
-            const quoteSummary = asJsonRecord(data.quoteSummary);
-            const result = asJsonRecords(quoteSummary.result)[0];
-
-            if (result && Object.keys(result).length > 0) {
-                const stats = asJsonRecord(result.defaultKeyStatistics);
-                const financialData = asJsonRecord(result.financialData);
-                const summaryDetail = asJsonRecord(result.summaryDetail);
-                const dividendYield = readRawMetric(summaryDetail.dividendYield);
-                const revenueGrowth = readRawMetric(financialData.revenueGrowth);
-                const profitMargin = readRawMetric(financialData.profitMargins);
-                const roe = readRawMetric(financialData.returnOnEquity);
-
-                // Merge advanced metrics
-                return {
-                    ...baseMetrics,
-                    // Prefer v10 values if available, otherwise keep v7 or undefined
-                    pe: firstRawMetric(stats.trailingPE, summaryDetail.trailingPE) ?? baseMetrics.pe,
-                    forwardPe: firstRawMetric(stats.forwardPE, summaryDetail.forwardPE) ?? baseMetrics.forwardPe,
-                    ps: firstRawMetric(stats.priceToSalesTrailing12Months, summaryDetail.priceToSalesTrailing12Months) ?? baseMetrics.ps,
-                    pb: firstRawMetric(stats.priceToBook, summaryDetail.priceToBook) ?? baseMetrics.pb,
-                    dividendYield: dividendYield !== undefined ? dividendYield * 100 : baseMetrics.dividendYield,
-                    dividendRate: readRawMetric(summaryDetail.dividendRate) ?? baseMetrics.dividendRate,
-                    eps: readRawMetric(stats.trailingEps) ?? baseMetrics.eps,
-                    beta: readRawMetric(stats.beta) ?? baseMetrics.beta,
-
-                    // Advanced metrics ONLY in v10
-                    ebitda: readRawMetric(financialData.ebitda),
-                    evToEbitda: readRawMetric(stats.enterpriseToEbitda),
-                    revenueGrowth: revenueGrowth !== undefined ? revenueGrowth * 100 : undefined,
-                    profitMargin: profitMargin !== undefined ? profitMargin * 100 : undefined,
-                    roe: roe !== undefined ? roe * 100 : undefined,
-                    debtToEquity: readRawMetric(financialData.debtToEquity),
-                };
-            }
-    } catch (error) {
-        if (axios.isCancel(error)) throw error;
-    }
-
-    // If v10 failed completely, return whatever we got from v7
-    return baseMetrics;
+    return {...mergeFundamentals(base,series,published,summary),fundamentalsCheckedAt:new Date().toISOString()};
 }
 
 // ===== YAHOO FINANCE GET CHART DATA =====

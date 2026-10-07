@@ -33,6 +33,7 @@ import { portfolioQuoteStatus, quoteDateLabel } from '../../services/portfolioQu
 import { isApiEnabled } from '../../services/storageService';
 import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
 import { Button } from '../ui';
+import { formatFundamentalMoney, formatFundamentalPercent, formatFundamentalRatio, hasFundamentals } from '../../services/market/fundamentals';
 import './AssetDetail.css';
 
 interface AssetDetailProps {
@@ -65,6 +66,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
     useLocalDataVersion();
     const apiEnabled = isApiEnabled() && asset.type !== 'cash';
     const [retry, setRetry] = useState(0);
+    const [fundamentalRetry, setFundamentalRetry] = useState(0);
     const [quote, setQuote] = useState<Partial<StockQuote> | null>(null);
     const [chartData, setChartData] = useState<HistoricalDataPoint[]>([]);
     const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M');
@@ -91,7 +93,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
             if (!apiEnabled) { setLoadingFundamentals(false); return; }
             try {
                 if (isFund) {
-                    const data = await getFundRelevance(assetIsin, controller.signal, retry > 0);
+                    const data = await getFundRelevance(assetIsin, controller.signal, retry > 0 || fundamentalRetry > 0);
                     if (!controller.signal.aborted) {
                         setFundData(data);
                         setQuote({
@@ -120,7 +122,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
 
         fetchFundamentals();
         return () => controller.abort();
-    }, [asset.symbol, assetIsin, isFund, apiEnabled, retry]);
+    }, [asset.symbol, assetIsin, isFund, apiEnabled, retry, fundamentalRetry]);
 
     // Effect for Chart (runs on asset or period change)
     useEffect(() => {
@@ -201,23 +203,27 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
     };
 
     const metricItems = [
-        { label: 'P/E Ratio', value: formatValue(quote?.pe), icon: <Activity size={16} />, category: 'Valoración' },
-        { label: 'Forward P/E', value: formatValue(quote?.forwardPe), icon: <Clock size={16} />, category: 'Valoración' },
-        { label: 'P/S Ratio', value: formatValue(quote?.ps), icon: <BarChart3 size={16} />, category: 'Valoración' },
-        { label: 'P/B Ratio', value: formatValue(quote?.pb), icon: <Layers size={16} />, category: 'Valoración' },
-        { label: 'Div. Yield', value: formatValue(quote?.dividendYield, 'percent'), icon: <Percent size={16} />, category: 'Dividendos' },
-        { label: 'Div. Rate', value: formatValue(quote?.dividendRate, 'currency', quote?.currency), icon: <Coins size={16} />, category: 'Dividendos' },
-        { label: 'EBITDA', value: formatValue(quote?.ebitda, 'compact'), icon: <BarChart3 size={16} />, category: 'Resultados' },
-        { label: 'EV/EBITDA', value: formatValue(quote?.evToEbitda), icon: <Activity size={16} />, category: 'Valoración' },
-        { label: 'Crecim. Ingresos', value: formatValue(quote?.revenueGrowth, 'percent'), icon: <TrendingUp size={16} />, category: 'Resultados' },
-        { label: 'Margen Beneficio', value: formatValue(quote?.profitMargin, 'percent'), icon: <Activity size={16} />, category: 'Resultados' },
-        { label: 'ROE', value: formatValue(quote?.roe, 'percent'), icon: <Activity size={16} />, category: 'Rentabilidad' },
-        { label: 'Deuda/Capital', value: formatValue(quote?.debtToEquity), icon: <Layers size={16} />, category: 'Salud Financiera' },
-        { label: 'Beta', value: formatValue(quote?.beta), icon: <Activity size={16} />, category: 'Riesgo' },
-        { label: 'EPS', value: formatValue(quote?.eps, 'currency', quote?.currency), icon: <Coins size={16} />, category: 'Resultados' },
-        { label: 'Max (52 sem)', value: formatValue(quote?.fiftyTwoWeekHigh, 'currency', quote?.currency), icon: <ArrowUpRight size={16} />, category: 'Técnico' },
-        { label: 'Min (52 sem)', value: formatValue(quote?.fiftyTwoWeekLow, 'currency', quote?.currency), icon: <ArrowDownRight size={16} />, category: 'Técnico' },
-    ].filter(item => getRelevance(item.category));
+        { label: 'P/E Ratio', value: formatFundamentalRatio(quote?.pe), field:'pe', icon: <Activity size={16} />, category: 'Valoración' },
+        { label: 'Forward P/E', value: formatFundamentalRatio(quote?.forwardPe), icon: <Clock size={16} />, category: 'Valoración' },
+        { label: 'P/S Ratio', value: formatFundamentalRatio(quote?.ps), field:'ps', icon: <BarChart3 size={16} />, category: 'Valoración' },
+        { label: 'P/B Ratio', value: formatFundamentalRatio(quote?.pb), field:'pb', icon: <Layers size={16} />, category: 'Valoración' },
+        { label: 'Rent. dividendo', value: formatFundamentalPercent(quote?.dividendYield), icon: <Percent size={16} />, category: 'Dividendos' },
+        { label: 'Dividendo por acción', value: formatFundamentalMoney(quote?.dividendRate, quote?.currency), icon: <Coins size={16} />, category: 'Dividendos' },
+        { label: 'EBITDA (12 meses)', value: formatFundamentalMoney(quote?.ebitda, quote?.financialCurrency, true), field:'ebitda', icon: <BarChart3 size={16} />, category: 'Resultados' },
+        { label: 'EV/EBITDA', value: formatFundamentalRatio(quote?.evToEbitda), field:'evToEbitda', icon: <Activity size={16} />, category: 'Valoración' },
+        { label: 'Crecim. Ingresos', value: formatFundamentalPercent(quote?.revenueGrowth, true), field:'revenueGrowth', icon: <TrendingUp size={16} />, category: 'Resultados' },
+        { label: 'Margen Beneficio', value: formatFundamentalPercent(quote?.profitMargin), field:'profitMargin', icon: <Activity size={16} />, category: 'Resultados' },
+        { label: 'ROE', value: formatFundamentalPercent(quote?.roe), field:'roe', icon: <Activity size={16} />, category: 'Rentabilidad' },
+        { label: 'Deuda/patrimonio', value: formatFundamentalPercent(quote?.debtToEquity), field:'debtToEquity', icon: <Layers size={16} />, category: 'Salud Financiera' },
+        { label: 'Beta', value: formatFundamentalRatio(quote?.beta), icon: <Activity size={16} />, category: 'Riesgo' },
+        { label: 'BPA (12 meses)', value: formatFundamentalMoney(quote?.eps, quote?.epsCurrency), field:'eps', icon: <Coins size={16} />, category: 'Resultados' },
+        { label: 'Capitalización', value: formatFundamentalMoney(quote?.marketCap, quote?.currency, true), icon: <Coins size={16} />, category: 'Valoración' },
+        { label: 'Max (52 sem)', value: formatFundamentalMoney(quote?.fiftyTwoWeekHigh, quote?.currency), icon: <ArrowUpRight size={16} />, category: 'Técnico' },
+        { label: 'Min (52 sem)', value: formatFundamentalMoney(quote?.fiftyTwoWeekLow, quote?.currency), icon: <ArrowDownRight size={16} />, category: 'Técnico' },
+    ].filter(item => getRelevance(item.category)).map(item=>({...item,
+        asOf:item.field ? quote?.fundamentalDates?.[item.field] : undefined,
+        derived:item.field ? quote?.fundamentalDerived?.[item.field] : undefined,
+    }));
 
     const fundMetricItems = [
         { label: 'Categoría', value: fundData?.category || 'Fondo de inversión', icon: <Layers size={16} />, category: 'Fondo' },
@@ -252,7 +258,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
         }))),
     ];
 
-    const visibleMetricItems = isFund ? fundMetricItems : metricItems.filter((item) => item.value !== 'N/A');
+    const visibleMetricItems = isFund ? fundMetricItems : hasFundamentals(quote || {}) ? metricItems : [];
     const canDrawChart = !loadingChart && chartData.length > 1;
     const chartPeriodStart = chartData[0];
     const chartPeriodEnd = chartData.at(-1);
@@ -550,7 +556,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                 ) : (
                     <div className="metrics-grid">
                         {visibleMetricItems.length === 0 && (
-                            <div className="metrics-empty">La posición está disponible arriba. Los datos de mercado ampliados no están disponibles temporalmente.</div>
+                            <div className="metrics-empty">{apiEnabled ? 'Datos ampliados no disponibles.' : 'Consulta de datos desactivada.'}</div>
                         )}
                         {visibleMetricItems.map((item, idx) => (
                             <div key={idx} className="metric-card">
@@ -560,10 +566,15 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                                 </div>
                                 <div className="metric-card__value">{item.value}</div>
                                 <div className="metric-card__category">{item.category}</div>
+                                {'asOf' in item && typeof item.asOf==='string' && <small className="asset-detail__metric-date">{'derived' in item && item.derived===true ? 'Calculado · ' : ''}{item.asOf}</small>}
                             </div>
                         ))}
                     </div>
                 )}
+                {!isFund && !loadingFundamentals && <div className="asset-detail__metrics-note">
+                    <small>N/D: dato no disponible.{quote?.fundamentalsSymbol && quote.fundamentalsSymbol!==asset.symbol.toUpperCase() && ` Financieros de ${quote.fundamentalsSymbol}, misma acción.`}</small>
+                    {apiEnabled && <Button variant="secondary" size="sm" type="button" onClick={() => setFundamentalRetry(n => n + 1)}>Reintentar datos</Button>}
+                </div>}
             </div>
 
             {isFund && fundData && (
@@ -577,7 +588,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
 
             <div className="asset-detail__footer">
                 <Info size={14} />
-                <p>{isFund ? 'Ficha obtenida de Finect e histórico de mercado de la clase encontrada por ISIN.' : 'Las métricas se obtienen de Yahoo Finance y pueden tener un ligero retraso.'}</p>
+                <p>{isFund ? 'Ficha obtenida de Finect e histórico de mercado de la clase encontrada por ISIN.' : 'Datos de Yahoo Finance. Los financieros corresponden al último periodo publicado.'}</p>
             </div>
         </div>
     );

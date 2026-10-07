@@ -1,6 +1,7 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { assertPublicSupabaseEnvironment } from './src/services/supabaseConfig'
+import { globalAgent } from 'node:https'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -12,24 +13,35 @@ export default defineConfig(({ mode }) => {
       // Finect does not expose ACAO for the browser. These Vite-only routes
       // keep local development usable without adding an application backend.
       '/__finect/api': {
+        agent: process.env.NODE_USE_ENV_PROXY === '1' ? globalAgent : undefined,
         target: 'https://api.finect.com',
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path.replace(/^\/__finect\/api/, ''),
       },
       '/__finect/site': {
+        agent: process.env.NODE_USE_ENV_PROXY === '1' ? globalAgent : undefined,
         target: 'https://www.finect.com',
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path.replace(/^\/__finect\/site/, ''),
       },
       '/__market/yahoo1': {
+        agent: process.env.NODE_USE_ENV_PROXY === '1' ? globalAgent : undefined,
         target: 'https://query1.finance.yahoo.com',
         changeOrigin: true,
         secure: true,
         rewrite: (path) => path.replace(/^\/__market\/yahoo1/, ''),
       },
+      '/__market/yahoo-site': {
+        agent: process.env.NODE_USE_ENV_PROXY === '1' ? globalAgent : undefined,
+        target: 'https://finance.yahoo.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/__market\/yahoo-site/, ''),
+      },
       '/__market/yahoo2': {
+        agent: process.env.NODE_USE_ENV_PROXY === '1' ? globalAgent : undefined,
         target: 'https://query2.finance.yahoo.com',
         changeOrigin: true,
         secure: true,

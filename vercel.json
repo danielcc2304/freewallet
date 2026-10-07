@@ -9,6 +9,10 @@
             "dest": "https://query1.finance.yahoo.com/$1"
         },
         {
+            "src": "/__market/yahoo-site/(.*)",
+            "dest": "https://finance.yahoo.com/$1"
+        },
+        {
             "src": "/__market/yahoo2/(.*)",
             "dest": "https://query2.finance.yahoo.com/$1"
         },

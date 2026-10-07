@@ -13,6 +13,8 @@
     "test:fund-breakdown": "tsx scripts/test-fund-breakdown.ts",
     "test:fund-chart-resolution": "tsx scripts/test-fund-chart-resolution.ts",
     "test:fund-chart-ui": "tsx scripts/test-fund-chart-ui.ts",
+    "test:stock-fundamentals": "tsx scripts/test-stock-fundamentals.ts",
+    "test:stock-fundamentals-ui": "tsx scripts/test-stock-fundamentals-ui.ts",
     "test:fund-breakdown-ui": "tsx scripts/test-fund-breakdown-ui.ts",
     "test:finect": "tsx scripts/test-finect.ts",
     "test:dashboard-audit": "tsx scripts/test-dashboard-audit.ts",

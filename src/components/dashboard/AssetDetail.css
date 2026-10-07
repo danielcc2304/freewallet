@@ -357,6 +357,10 @@
     gap: 1rem;
 }
 
+.asset-detail__metrics-note { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; color: var(--text-muted); }
+.asset-detail__metrics-note .btn { min-height: 44px; }
+.asset-detail__metric-date { display: block; margin-top: .3rem; color: var(--text-muted); font-size: .7rem; }
+
 .metrics-empty {
     grid-column: 1 / -1;
     padding: 1rem;

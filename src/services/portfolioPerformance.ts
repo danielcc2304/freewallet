@@ -318,16 +318,15 @@ export function normalizeAccumulatedBenchmark(
     }));
 }
 
-/** Imported comparison supplies the index only; portfolio returns always come
- * from the flow-adjusted Evolucion/Diario series. Partial coverage stays dated. */
+/** Imported monthly comparison supplies the index only. Match actual workbook
+ * closing days; a monthly close must not become a quote on a later daily snapshot. */
 export function alignImportedBenchmark(series: ReturnType<typeof performanceSeries>, points: AccumulatedBenchmarkPoint[]) {
     const market: HistoricalDataPoint[] = points.filter(p => Number.isFinite(Date.parse(p.date)) && Number.isFinite(p.benchmarkAccumPct) && p.benchmarkAccumPct > -100)
         .map(p => ({ date: p.date, close: 1 + p.benchmarkAccumPct / 100, open: 1, high: 1, low: 1, volume: 0, currency: 'EUR' }))
         .sort((a, b) => Date.parse(a.date) - Date.parse(b.date));
     if (market.length < 2) return [];
-    const start = Date.parse(market[0].date) - 4 * DAY_MS;
-    const endDay = accountingDay(market.at(-1)!.date);
-    const covered = series.filter(p => p.timestamp >= start && accountingDay(p.date) <= endDay);
+    const closingDays = new Set(market.map(point => accountingDay(point.date)));
+    const covered = series.filter(point => closingDays.has(accountingDay(point.date)));
     return alignedBenchmark(covered, market);
 }
 
@@ -368,6 +367,8 @@ export function alignedBenchmark(series: ReturnType<typeof performanceSeries>, b
         }))
         .filter(({ point, timestamp, day }) => point.close > 0 && Number.isFinite(timestamp) && !!day)
         .sort((left, right) => left.timestamp - right.timestamp);
+    const latestMarketDay = market.at(-1)?.day;
+    if (!latestMarketDay) return [];
 
     const findMarketPoint = (portfolioTimestamp: number, portfolioDay: string, cadence?: 'daily' | 'monthly') => {
         const sameDay = market.filter((candidate) => candidate.day === portfolioDay).at(-1);
@@ -392,6 +393,9 @@ export function alignedBenchmark(series: ReturnType<typeof performanceSeries>, b
     const common = series.flatMap((portfolioPoint) => {
         const portfolioTimestamp = portfolioPoint.timestamp;
         const portfolioDay = accountingDay(portfolioTimestamp);
+        // Prior closes can bridge holidays within the observed market range,
+        // but must never extend the benchmark beyond its last actual close.
+        if (portfolioDay > latestMarketDay) return [];
         const marketPoint = findMarketPoint(portfolioTimestamp, portfolioDay, portfolioPoint.cadence);
         return marketPoint ? [{ portfolioPoint, marketPoint }] : [];
     });

@@ -33,6 +33,7 @@ import {
     deleteNewsPost,
     ensureNewsOwnerMembership,
     getNewsSession,
+    requiresNewsMfa,
     hasPendingNewsInvitation,
     inviteNewsEditor,
     isCurrentUserNewsAdmin,
@@ -46,6 +47,8 @@ import {
     signOutNewsAdmin,
 } from '../../services/newsService';
 import { getNewsTextExcerpt, getSafeNewsImageUrl, sanitizeNewsHtml, slugifyNewsTitle } from '../../utils/newsContent';
+import {AccountMfa} from '../Account/AccountMfa';
+import type {FeedbackTone} from '../../components/ui/FeedbackToast';
 import './NewsAdmin.css';
 
 interface NewsDraft {
@@ -104,6 +107,8 @@ export function NewsAdmin() {
     const [searchParams] = useSearchParams();
     const requestedPostId = searchParams.get('edit');
     const titleInput = useRef<HTMLInputElement>(null);
+    const [mfaPending,setMfaPending]=useState(false);
+    const [authVersion,setAuthVersion]=useState(0);
     const [session, setSession] = useState<NewsSession | null>(null);
     const [posts, setPosts] = useState<NewsPost[]>([]);
     const [isOwner, setIsOwner] = useState(false);
@@ -124,6 +129,7 @@ export function NewsAdmin() {
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
     const [previewOpen, setPreviewOpen] = useState(false);
+    const notifyMfa=useCallback((text:string,tone?:FeedbackTone)=>{if(tone==='error')setError(text);else setNotice(text);},[]);
 
     const loadEditorialPosts = useCallback(async (userId: string, isCurrent: () => boolean = () => true) => {
         const nextPosts = await listAdminNews();
@@ -175,6 +181,7 @@ export function NewsAdmin() {
                 }
 
                 if (currentSession) {
+                    if(await requiresNewsMfa()){if(active)setMfaPending(true);return;}
                     const ownerBootstrap = await ensureNewsOwnerMembership();
                     const isAdmin = await isCurrentUserNewsAdmin();
                     if (!isAdmin) {
@@ -210,7 +217,7 @@ export function NewsAdmin() {
         return () => {
             active = false;
         };
-    }, [loadEditorialPosts]);
+    }, [loadEditorialPosts,authVersion]);
 
     const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -220,6 +227,7 @@ export function NewsAdmin() {
 
         try {
             const nextSession = await signInNewsAdmin(email, password);
+            if(await requiresNewsMfa()){setPassword('');setMfaPending(true);return;}
             const ownerBootstrap = await ensureNewsOwnerMembership();
             const isAdmin = await isCurrentUserNewsAdmin();
             if (!isAdmin) {
@@ -284,10 +292,10 @@ export function NewsAdmin() {
         setError(null);
         setNotice(null);
         try {
-            await inviteNewsEditor(inviteEmail);
+            const invitationStatus=await inviteNewsEditor(inviteEmail);
             setInviteEmail('');
             setAdminMembers(await listNewsAdmins());
-            setNotice('Invitación enviada. El editor recibirá un correo para aceptar y crear su contraseña.');
+            setNotice(invitationStatus==='registered' ? 'Acceso invitado registrado. Esa cuenta puede entrar y aceptar la invitación.' : invitationStatus==='sending' ? 'La invitación está en proceso.' : invitationStatus==='active' ? 'Esa cuenta ya tiene acceso editorial.' : 'Invitación enviada. El editor recibirá un correo para aceptar y crear su contraseña.');
         } catch (inviteError: unknown) {
             setError(getErrorMessage(inviteError));
         } finally {
@@ -337,6 +345,7 @@ export function NewsAdmin() {
     };
 
     const editPost = (post: NewsPost) => {
+        if(!isOwner && post.authorId!==session?.user.id)return;
         setDraft(draftFromPost(post));
         setSlugEdited(true);
         setPreviewOpen(false);
@@ -433,6 +442,11 @@ export function NewsAdmin() {
             </div>
         );
     }
+
+    if(mfaPending) return <div className="news-admin news-admin--login">
+        {error && <NewsToast tone="error">{error}</NewsToast>}
+        <AccountMfa notify={notifyMfa} onVerified={()=>{setMfaPending(false);setLoading(true);setAuthVersion(v=>v+1);}}/>
+    </div>;
 
     if (pendingInvitation) {
         return <NewsAdminInviteAcceptance onAccepted={() => void handleInvitationAccepted()} />;
@@ -543,7 +557,7 @@ export function NewsAdmin() {
                                     className={`news-admin__post-row ${draft.id === post.id ? 'news-admin__post-row--selected' : ''}`}
                                     key={post.id}
                                 >
-                                    <button type="button" className="news-admin__post-select" onClick={() => editPost(post)}>
+                                    <button type="button" disabled={!isOwner && post.authorId!==session?.user.id} className="news-admin__post-select" onClick={() => editPost(post)}>
                                         <span className={`news-admin__status news-admin__status--${post.status}`}>
                                             {post.status === 'published' ? 'Publicada' : 'Borrador'}
                                         </span>
@@ -556,6 +570,7 @@ export function NewsAdmin() {
                                             size="sm"
                                             icon={<Edit3 size={15} />}
                                             aria-label={`Editar ${post.title}`}
+                                            disabled={!isOwner && post.authorId!==session?.user.id}
                                             onClick={() => editPost(post)}
                                         >
                                             Editar
@@ -565,7 +580,7 @@ export function NewsAdmin() {
                                             className="news-admin__delete-button"
                                             aria-label={`Eliminar ${post.title}`}
                                             title="Eliminar noticia"
-                                            disabled={deletingId === post.id}
+                                            disabled={deletingId === post.id || (!isOwner && post.authorId!==session?.user.id)}
                                             onClick={() => void handleDelete(post)}
                                         >
                                             {deletingId === post.id ? <Loader2 className="news-admin__spinner" size={16} /> : <Trash2 size={16} />}

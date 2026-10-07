@@ -94,7 +94,7 @@ export function useDashboardAnalytics(now: number) {
         const verifiedDays = new Set(recorded.map(p => accountingDay(p.date)));
         const datedMarket = new Map(market);
         for (const asset of assets) {
-            const saved = dailyHistory(dailyMarket.data, asset.isin || asset.symbol);
+            const saved = dailyHistory(dailyMarket.data, asset.type === 'fund' ? asset.isin || asset.symbol : asset.symbol);
             if (saved.length) {
                 const prices = new Map((datedMarket.get(asset.id) || []).map(p => [accountingDay(p.date), p]));
                 saved.forEach(p => prices.set(accountingDay(p.date), p));

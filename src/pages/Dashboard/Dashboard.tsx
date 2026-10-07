@@ -346,10 +346,16 @@ export function Dashboard() {
             <PortfolioDataQuality assets={assets} now={calculationNow} quoteFailures={quoteFailures} />
             {account.user && <p className="dashboard__empty-description" role="status">
                 {analytics.dailyMarket.error || (analytics.dailyMarket.data?.lastRun
-                    ? `Actualización diaria: ${analytics.dailyMarket.data.lastRun.status === 'success' ? 'completada' : analytics.dailyMarket.data.lastRun.status === 'running' ? 'en curso' : 'con datos pendientes'} · ${new Date(analytics.dailyMarket.data.lastRun.finishedAt || analytics.dailyMarket.data.lastRun.startedAt).toLocaleString('es-ES')}.`
+                    ? `Batch: ${analytics.dailyMarket.data.lastRun.status === 'success' ? 'completada' : analytics.dailyMarket.data.lastRun.status === 'running' ? 'en curso' : 'con datos pendientes'} · ${new Date(analytics.dailyMarket.data.lastRun.finishedAt || analytics.dailyMarket.data.lastRun.startedAt).toLocaleString('es-ES')}.`
                     : 'El histórico diario comenzará con la primera actualización programada.')}
                 {!!analytics.dailyMarket.data?.lastRun?.failures.length && ` ${analytics.dailyMarket.data.lastRun.failures.length} consultas de cartera o benchmark pendientes.`}
+                {analytics.dailyMarket.data?.health?.attentionRequired && ' El batch requiere revisión; se conservan los últimos precios válidos.'}
+                {analytics.dailyMarket.data?.snapshotStatus && !['captured','empty'].includes(analytics.dailyMarket.data.snapshotStatus) && ' La valoración diaria de esta cartera quedó pendiente.'}
             </p>}
+            {account.user && !!analytics.dailyMarket.data?.snapshots.length && <details className="dashboard__update-details">
+                <summary>Sobre las valoraciones diarias</summary>
+                <p>Última valoración disponible del día, con precios y NAV de distintas fechas. No representa un cierre oficial de mercado.</p>
+            </details>}
             <section className="dashboard__section">
                 <AssetsTable
                     now={calculationNow}

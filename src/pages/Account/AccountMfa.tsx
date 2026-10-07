@@ -4,8 +4,9 @@ import {getAppSupabaseClient} from '../../services/supabaseClient';
 import {useAccount} from '../../context/AccountContext';
 import type {FeedbackTone} from '../../components/ui/FeedbackToast';
 import {createMfaQrImage} from '../../services/mfaQr';
+import './Account.css';
 
-export function AccountMfa({notify}:{notify:(text:string,tone?:FeedbackTone)=>void}){
+export function AccountMfa({notify,onVerified}:{notify:(text:string,tone?:FeedbackTone)=>void;onVerified?:()=>void}){
     const account=useAccount();
     const [factor,setFactor]=useState('');const [required,setRequired]=useState(false);
     const [enabled,setEnabled]=useState(false);const [qr,setQr]=useState('');
@@ -45,7 +46,7 @@ export function AccountMfa({notify}:{notify:(text:string,tone?:FeedbackTone)=>vo
             const client=await getAppSupabaseClient();
             const result=await client.auth.mfa.challengeAndVerify({factorId:factor,code});if(result.error)throw result.error;
             setCode('');setQr('');setSecret('');setShowSecret(false);setEnabled(true);setRequired(false);
-            await account.refresh();notify('Verificación en dos pasos completada.');
+            await account.refresh();notify('Verificación en dos pasos completada.');onVerified?.();
         }catch(error){notify(error instanceof Error?error.message:'El código no es válido o ha caducado.','error');}
         finally{setBusy(false);}
     };

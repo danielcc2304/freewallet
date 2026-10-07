@@ -1,3 +1,12 @@
+-- Bootstrap only: apply this BEFORE the versioned Supabase migrations.
+-- An already hardened installation must use migrations, never rerun this file.
+begin;
+do $$begin
+    if to_regprocedure('portfolio_private.news_access(boolean)') is not null then
+        raise exception 'Editorial security is migration-managed. Apply versioned migrations instead of rerunning news-schema.sql';
+    end if;
+end $$;
+
 -- FreeWallet: contenido editorial de Noticias
 --
 -- Ejecuta este archivo en el SQL Editor de Supabase. La primera cuenta
@@ -321,3 +330,5 @@ on storage.objects
 for delete
 to authenticated
 using (bucket_id = 'news-images' and public.is_news_admin());
+
+commit;

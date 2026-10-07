@@ -42,7 +42,7 @@ try {
             let result:unknown=null;
             if(url.pathname==='/auth/v1/user')result=user;
             else if(url.pathname.endsWith('read_portfolio'))result={revision:0,data:{freewallet_portfolio_v1:JSON.stringify({version:1,assets:[asset],transactions:[]}),freewallet_settings:'{"apiEnabled":true}'}};
-            else if(url.pathname.endsWith('read_daily_market_data')){assert.equal(request.headers().authorization,`Bearer ${token}`);reads++;result=data;}
+            else if(url.pathname.endsWith('read_daily_market_data_v2')){assert.equal(request.headers().authorization,`Bearer ${token}`);reads++;result=data;}
             else if(url.pathname.endsWith('commit_portfolio')){mutations++;const body=JSON.parse(request.postData()!);if (body.data?.freewallet_history) historyWrites.push(body.data.freewallet_history);result={revision:mutations,data:body.data};}
             else {await request.respond({status:404,headers,body:'{}'});return;}
             await request.respond({status:200,headers,contentType:'application/json',body:JSON.stringify(result)});
@@ -50,13 +50,13 @@ try {
         else await request.abort();
     })().catch(error=>errors.push(String(error)));});
     await page.goto(origin,{waitUntil:'networkidle2'});
-    await page.waitForFunction(()=>document.body.innerText.includes('Actualización diaria: completada'));
+    await page.waitForFunction(()=>document.body.innerText.includes('Batch: completada'));
     await page.waitForFunction(()=>document.querySelector('.assets-table')?.textContent?.includes('22,00'));
     await page.$$eval('.assets-table__table tbody tr',rows => (rows[0] as HTMLElement).click());
     await page.waitForSelector('.asset-detail');
     const detailText = await page.$eval('.asset-detail',el=>el.textContent || '');
     assert.ok(detailText.includes(new Date(providerCheckedAt).toLocaleString('es-ES')), 'Shows the original provider-check time');
-    assert.match(detailText,/Lectura en la app/);assert.match(detailText,/actualización diaria/);
+    assert.match(detailText,/Lectura en la app/);assert.match(detailText,/batch/);
     assert.equal(historyWrites.length,0,'Reading a batch must not create new historical valuations');
     await page.keyboard.press('Escape');
     await page.click('.portfolio-excel-insights__tabs button:nth-child(2)');

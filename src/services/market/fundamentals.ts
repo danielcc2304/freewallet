@@ -1,3 +1,4 @@
+import {quoteCurrency} from '../../../supabase/functions/_shared/quoteCurrency';
 import type {StockQuote} from '../../types/types';
 type RecordData = Record<string, unknown>;
 const record = (v: unknown): RecordData => v && typeof v === 'object' ? v as RecordData : {};
@@ -23,9 +24,13 @@ export function normalizeFundamentals(payload: unknown, symbol: string): Partial
     const detail = record(result.summaryDetail), price = record(result.price);
     const profile = record(result.summaryProfile), assetProfile = record(result.assetProfile);
     const quarter = fundamentalNumber(stats.mostRecentQuarter);
+    const priceUnit=text(price.currency)||text(result.currency);
+    let baseCurrency: string | undefined;
+    try{if(priceUnit)baseCurrency=quoteCurrency(priceUnit).currency;}catch{/* Unknown units remain unavailable. */}
     const fields: Partial<StockQuote> = {
         businessDescription: text(profile.longBusinessSummary) || text(assetProfile.longBusinessSummary),
-        currency: currency(price.currency) || currency(result.currency),
+        currency: baseCurrency ? priceUnit : undefined,
+        marketCapCurrency: baseCurrency, dividendCurrency: baseCurrency ? priceUnit : undefined,
         financialCurrency: currency(financial.financialCurrency) || currency(result.financialCurrency),
         pe: first(stats.trailingPE, detail.trailingPE, result.trailingPE),
         forwardPe: first(stats.forwardPE, detail.forwardPE, result.forwardPE),
@@ -85,8 +90,10 @@ export function hasFundamentals(data: Partial<StockQuote>): boolean {
 
 export function formatFundamentalMoney(value: number | undefined, code: string | undefined, compact = false): string {
     if (!Number.isFinite(value)) return 'N/D';
-    const number = new Intl.NumberFormat('es-ES', {notation:compact?'compact':'standard',maximumFractionDigits:compact?2:6}).format(value!);
-    return `${number} ${code && /^[A-Z]{3}$/.test(code) ? code : '(divisa no disponible)'}`;
+    let converted=value!, currencyCode: string | undefined;
+    try{if(code){const unit=quoteCurrency(code);converted*=unit.scale;currencyCode=unit.currency;}}catch{/* Keep unavailable currency explicit. */}
+    const number = new Intl.NumberFormat('es-ES', {notation:compact?'compact':'standard',maximumFractionDigits:compact?2:6}).format(converted);
+    return `${number} ${currencyCode || '(divisa no disponible)'}`;
 }
 
 export function formatFundamentalPercent(value: number | undefined, signed = false): string {

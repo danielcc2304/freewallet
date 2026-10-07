@@ -17,6 +17,14 @@ export interface StockQuote {
     volume: number;
     marketCap?: number;
     currency?: string;
+    /** Currency of financial statements, which may differ from share trading. */
+    financialCurrency?: string;
+    epsCurrency?: string;
+    fundamentalPeriodEnd?: string;
+    fundamentalsCheckedAt?: string;
+    fundamentalsSymbol?: string;
+    fundamentalDates?: Record<string, string>;
+    fundamentalDerived?: Record<string, boolean>;
     // Fundamentals
     pe?: number;
     forwardPe?: number;

@@ -17,6 +17,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Separa la rentabilidad de cartera de la comparación fechada con benchmark y muestra aportaciones en bloques completos de 50 €.
   - Añade cierres mensuales para el análisis histórico, detalle de instrumentos subyacentes y generación local del QR de MFA.
   - Mejora el reto Market Timing, la edición de noticias por sus autores y la presentación del Dashboard.
+  - La cartera conserva el periodo completo aunque el benchmark tenga cobertura parcial; la comparación mensual se alinea por fecha de cierre y los controles se adaptan a móvil.
 - Resumen:
   - Refuerza el análisis de cartera y amplía las herramientas educativas y editoriales.
 - Archivos:

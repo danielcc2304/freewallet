@@ -12,6 +12,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-07 - v6.0.11 - Cotizaciones y valoraciones diarias
+- Funcionalidad:
+  - Automatiza las cotizaciones y valoraciones de carteras sincronizadas con fechas contables, fuentes identificadas y validación de precios, divisas y cobertura.
+  - Actualiza acciones y ETF durante la sesión y prioriza el batch para fondos y mercados cerrados; los refrescos manuales evitan cachés antiguas.
+  - Ejecuta el batch en ocho franjas horarias peninsulares, recupera cierres tardíos y aplica cambios de divisa fechados.
+  - Añade descripciones breves de empresas cuando se verifica la identidad del instrumento.
+- Resumen:
+  - Mejora la actualidad y trazabilidad de la cartera sin fabricar cotizaciones ni modificar cantidades o transacciones.
+- Archivos:
+  - `README.md`, `docs/daily-market-data.md`, `package.json`, `package-lock.json`, `src/constants/app.ts`, `src/components/dashboard/AssetDetail.css`, `src/components/dashboard/AssetDetail.tsx`, `src/context/PortfolioContext.tsx`, `src/services/apiService.ts`, `src/services/dashboardIntegrity.ts`, `src/services/market/companyOverview.ts`, `src/services/market/fundamentals.ts`, `src/services/market/marketConfig.ts`, `src/services/market/marketSessions.ts`, `src/services/portfolioQuoteService.ts`, `src/types/api.ts`, `supabase/functions/daily-market-data/providers.ts`, `supabase/migrations/20261007153147_daily_market_two_hour_schedule.sql`.
+
 ### 2026-10-07 - v6.0.10 - Cartera, benchmark y herramientas de inversión
 - Funcionalidad:
   - Separa la rentabilidad de cartera de la comparación fechada con benchmark y muestra aportaciones en bloques completos de 50 €.

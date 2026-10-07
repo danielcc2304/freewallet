@@ -2,6 +2,7 @@ import type { Asset, AssetHolding, SearchResult } from '../types/types';
 import { hasValidPrice } from './assetValuation';
 import { planAssetKey } from './portfolioPlan';
 import { accountingDay } from './portfolioCalendar';
+import { underlyingCompanyKey, underlyingIsin, underlyingNameKey, underlyingReference } from './underlyingInstruments';
 
 /** Multiple lots are legitimate; only a reused record ID is a definite duplicate. */
 export function positionLotCounts(assets: Asset[]) {
@@ -62,21 +63,31 @@ export function compareKnownReturns(a: number, b: number, direction: 'asc' | 'de
     return direction === 'asc' ? a - b : b - a;
 }
 
-export function chooseUnderlyingResult(results: SearchResult[], holding: AssetHolding): SearchResult | undefined {
-    const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
-    const expected = normalize(holding.name);
-    const isin = holding.isin?.trim().toUpperCase() || (/^[A-Z]{2}[A-Z0-9]{9}\d$/i.test(holding.symbol.trim()) ? holding.symbol.trim().toUpperCase() : undefined);
-    if (isin) return results.find(r => r.symbol.toUpperCase() === isin || ('isin' in r && String(r.isin).toUpperCase() === isin));
+export function chooseUnderlyingResult(results: SearchResult[], holding: AssetHolding, isinSearch = false): SearchResult | undefined {
+    const expected = underlyingNameKey(holding.name);
+    const isin = underlyingIsin(holding);
+    if(!expected && !isin) return undefined;
+    const reference = underlyingReference(holding);
+    const candidates = results.filter(r => !isin || !r.isin || r.isin.toUpperCase()===isin);
+    if(reference){
+        const verified=candidates.find(r=>r.type==='stock' && r.symbol.toUpperCase()===reference.symbol && underlyingCompanyKey(r.name)===underlyingCompanyKey(reference.name));
+        return verified ? {...verified,isin:reference.isin} : undefined;
+    }
+    if (isin) {
+        const exact = candidates.filter(r => r.symbol.toUpperCase() === isin || r.isin?.toUpperCase() === isin);
+        if(exact.length===1) return exact[0];
+    }
+    if(isin && !isinSearch) return undefined;
+    // A literal ISIN lookup may omit the ISIN in each result. Require the full
+    // company identity too; preserve separate classes when the ISIN is unknown.
+    const matches=candidates.filter(r=>r.type==='stock' && underlyingNameKey(r.name)===expected);
+    const isinMatches=isinSearch && isin ? candidates.filter(r=>r.type==='stock' && underlyingCompanyKey(r.name)===underlyingCompanyKey(holding.name)) : [];
+    if(isin && isinMatches.length){
+        const primary=[...isinMatches].sort((a,b)=>Number(/^[A-Z0-9]+\.(HK|TW|KS|KQ|MC|PA|L|T)$/.test(b.symbol))-Number(/^[A-Z0-9]+\.(HK|TW|KS|KQ|MC|PA|L|T)$/.test(a.symbol)));
+        return {...primary[0],isin};
+    }
     const symbol = holding.symbol.trim().toUpperCase();
-    const exactSymbol = symbol && normalize(symbol) !== expected ? results.filter(r => r.symbol.toUpperCase() === symbol) : [];
+    const exactSymbol = symbol && underlyingNameKey(symbol) !== expected ? matches.filter(r => r.symbol.toUpperCase() === symbol) : [];
     if (exactSymbol.length === 1) return exactSymbol[0];
-    const exactNames = results.filter(r => normalize(r.name) === expected);
-    if (exactNames.length === 1) return exactNames[0];
-    const tokens = expected.split(' ').filter(t => t.length > 2 && !['inc', 'corp', 'plc', 'ltd', 'corporation', 'limited'].includes(t));
-    if (!tokens.length) return undefined;
-    const matches = results.filter(r => {
-        const name = normalize(r.name).split(' ');
-        return r.type === 'stock' && tokens.every(t => name.includes(t));
-    });
     return matches.length === 1 ? matches[0] : undefined;
 }

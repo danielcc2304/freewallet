@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState, type FormEvent } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import {
     Edit3,
     Eye,
@@ -16,7 +16,7 @@ import {
     UserPlus,
     Users,
 } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 const RichTextEditor = lazy(() => import('../../components/news/RichTextEditor/RichTextEditor').then(module => ({ default: module.RichTextEditor })));
 import { Button, Card, CardContent, Input, Modal } from '../../components/ui';
 import { FeedbackToast as NewsToast } from '../../components/ui/FeedbackToast';
@@ -101,6 +101,9 @@ function getErrorMessage(error: unknown): string {
 
 export function NewsAdmin() {
     const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
+    const requestedPostId = searchParams.get('edit');
+    const titleInput = useRef<HTMLInputElement>(null);
     const [session, setSession] = useState<NewsSession | null>(null);
     const [posts, setPosts] = useState<NewsPost[]>([]);
     const [isOwner, setIsOwner] = useState(false);
@@ -121,6 +124,27 @@ export function NewsAdmin() {
     const [error, setError] = useState<string | null>(null);
     const [notice, setNotice] = useState<string | null>(null);
     const [previewOpen, setPreviewOpen] = useState(false);
+
+    const loadEditorialPosts = useCallback(async (userId: string, isCurrent: () => boolean = () => true) => {
+        const nextPosts = await listAdminNews();
+        if (!isCurrent()) return;
+        setPosts(nextPosts);
+        if (!requestedPostId) return;
+        const requested = nextPosts.find(post => post.id === requestedPostId && post.authorId === userId);
+        if (requested) {
+            setDraft(draftFromPost(requested));
+            setSlugEdited(true);
+        } else {
+            setError('Esta noticia no está disponible para editar desde este enlace.');
+        }
+    }, [requestedPostId]);
+
+    useEffect(() => {
+        if (!loading && draft.id && draft.id === requestedPostId) {
+            titleInput.current?.focus({ preventScroll: true });
+            titleInput.current?.scrollIntoView({ block: 'center' });
+        }
+    }, [draft.id, loading, requestedPostId]);
 
     useEffect(() => {
         if (!notice && !error) {
@@ -165,7 +189,7 @@ export function NewsAdmin() {
                         const currentUserIsOwner = ownerBootstrap || await isCurrentUserNewsOwner();
                         setSession(currentSession);
                         setIsOwner(currentUserIsOwner);
-                        setPosts(await listAdminNews());
+                        await loadEditorialPosts(currentSession.user.id, () => active);
                         if (currentUserIsOwner) {
                             setAdminMembers(await listNewsAdmins());
                         }
@@ -186,7 +210,7 @@ export function NewsAdmin() {
         return () => {
             active = false;
         };
-    }, []);
+    }, [loadEditorialPosts]);
 
     const handleLogin = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
@@ -215,7 +239,7 @@ export function NewsAdmin() {
             setPendingInvitation(false);
             setIsOwner(currentUserIsOwner);
             setPassword('');
-            setPosts(await listAdminNews());
+            await loadEditorialPosts(nextSession.user.id);
             if (currentUserIsOwner) {
                 setAdminMembers(await listNewsAdmins());
             }
@@ -569,6 +593,7 @@ export function NewsAdmin() {
 
                         <div className="news-admin__form-grid">
                             <Input
+                                ref={titleInput}
                                 className="news-admin__field--wide"
                                 label="Título"
                                 value={draft.title}
@@ -874,4 +899,3 @@ function NewsAdminSetup() {
         </div>
     );
 }
-

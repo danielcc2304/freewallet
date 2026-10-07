@@ -55,6 +55,10 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
     };
 
     const periodChange = getChangeForPeriod();
+    const periodDates = metrics.periodDates?.[activeTab];
+    const changeTitle = periodDates?.monthlyBase && periodDates.baseDate
+        ? `Cambio desde ${new Date(periodDates.baseDate).toLocaleDateString('es-ES')}`
+        : `Cambio ${periodChange.label}`;
 
     const tabs: { key: PeriodTab; label: string }[] = [
         { key: '1D', label: 'Diario' },
@@ -83,7 +87,7 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
                     ))}
                 </div>
             </div>
-            {metrics.periodDates?.[activeTab]?.baseDate && <p className="portfolio-summary__dates">Periodo efectivo: {new Date(metrics.periodDates[activeTab]!.baseDate!).toLocaleDateString('es-ES')} — {metrics.periodDates[activeTab]!.endDate ? new Date(metrics.periodDates[activeTab]!.endDate!).toLocaleDateString('es-ES') : 'sin cierre'}.</p>}
+            {periodDates?.baseDate && <p className="portfolio-summary__dates">Periodo efectivo{periodDates.monthlyBase ? ' con cierre mensual' : ''}: {new Date(periodDates.baseDate).toLocaleDateString('es-ES')} — {periodDates.endDate ? new Date(periodDates.endDate).toLocaleDateString('es-ES') : 'sin cierre'}.</p>}
             {activeTab === '1D' && !Number.isFinite(periodChange.value) && <p className="portfolio-summary__dates">La variación diaria necesita valoraciones comparables o precios de hoy con cierre anterior. En Mis Activos puedes ver la última variación disponible y su fecha.</p>}
 
             <div className="portfolio-summary__grid">
@@ -117,7 +121,7 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
                     icon={<TrendingUp size={20} />}
                 />
                 <MetricCard
-                    title={`Cambio ${periodChange.label}`}
+                    title={changeTitle}
                     value={formatCurrency(periodChange.value)}
                     change={Number.isFinite(periodChange.percent) ? periodChange.percent : undefined}
                     icon={<BarChart3 size={20} />}

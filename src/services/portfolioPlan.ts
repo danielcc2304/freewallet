@@ -3,6 +3,7 @@ import { assetValue } from './assetValuation';
 
 export const PLAN_TARGETS_KEY = 'freewallet_live_targets_v2';
 export const LEGACY_PLAN_TARGETS_KEY = 'freewallet_live_targets';
+export const CONTRIBUTION_STEP_EUR = 50;
 export function planAssetKey(asset: Pick<Asset, 'isin' | 'symbol' | 'type'>): string {
     return `${asset.type}:${(asset.isin || asset.symbol).replace(/\s+/g, '').toUpperCase()}`;
 }
@@ -22,7 +23,7 @@ export function migratePlanTargets(assets: Asset[], current: Record<string, stri
     }
     return next;
 }
-/** Targets are per instrument, not per lot; exact cents preserve the budget. */
+/** Targets are per instrument, not per lot; allocate whole €50 blocks within budget. */
 export function calculateContributionPlan(assets: Asset[], targets: Record<string, string>, budgetRaw: string) {
     const groups = new Map<string, { key: string; name: string; value: number; assets: Asset[] }>();
     assets.forEach(a => {
@@ -35,17 +36,22 @@ export function calculateContributionPlan(assets: Asset[], targets: Record<strin
     const rows = [...groups.values()].map(g => ({ ...g, target: parsePlanNumber(targets[g.key] || '') }));
     const targetTotal = rows.reduce((s, r) => s + (r.target ?? 0), 0);
     const validTargets = rows.length > 0 && rows.every(r => r.target !== null && r.target <= 100) && Math.abs(targetTotal - 100) < .01;
-    const canCalculate = validTargets && budget !== null && budget > 0 && Number.isSafeInteger(Math.round(budget * 100));
-    const planned = rows.map(r => ({ ...r, gap: Math.max(0, (total + (budget ?? 0)) * (r.target ?? 0) / 100 - r.value), cents: 0 }));
+    const canCalculate = validTargets && budget !== null && budget >= CONTRIBUTION_STEP_EUR && Number.isSafeInteger(Math.round(budget * 100));
+    const blocks = canCalculate ? Math.floor(budget! / CONTRIBUTION_STEP_EUR) : 0;
+    const available = blocks * CONTRIBUTION_STEP_EUR;
+    const planned = rows.map(r => ({ ...r, gap: Math.max(0, (total + available) * (r.target ?? 0) / 100 - r.value), blocks: 0 }));
     const shortfall = planned.reduce((s, r) => s + r.gap, 0);
-    const cents = Math.round((budget ?? 0) * 100);
     if (canCalculate && shortfall > 0) {
-        planned.forEach(r => { r.cents = Math.floor(cents * r.gap / shortfall); });
-        const byRemainder = [...planned].sort((a, b) => (cents * b.gap / shortfall - b.cents) - (cents * a.gap / shortfall - a.cents));
-        const remaining = cents - planned.reduce((s, r) => s + r.cents, 0);
-        for (let i = 0; i < remaining; i++) byRemainder[i % byRemainder.length].cents++;
+        planned.forEach(r => { r.blocks = Math.floor(blocks * (r.gap / shortfall)); });
+        const byRemainder = planned.filter(r => r.gap > 0).sort((a, b) =>
+            (blocks * (b.gap / shortfall) - b.blocks) - (blocks * (a.gap / shortfall) - a.blocks)
+            || b.gap - a.gap || a.key.localeCompare(b.key));
+        const remaining = blocks - planned.reduce((s, r) => s + r.blocks, 0);
+        for (let i = 0; i < remaining; i++) byRemainder[i % byRemainder.length].blocks++;
     }
-    return { rows: planned.map(r => ({ ...r, contribution: r.cents / 100 })), total, budget, targetTotal, validTargets, canCalculate };
+    const allocated = planned.reduce((s, r) => s + r.blocks * CONTRIBUTION_STEP_EUR, 0);
+    const unallocated = budget === null ? 0 : Math.max(0, Math.round((budget - allocated) * 100) / 100);
+    return { rows: planned.map(r => ({ ...r, contribution: r.blocks * CONTRIBUTION_STEP_EUR })), total, budget, allocated, unallocated, targetTotal, validTargets, canCalculate };
 }
 
 export function targetsFromCurrentWeights(assets: Asset[]): Record<string, string> {

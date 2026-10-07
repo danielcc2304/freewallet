@@ -1,504 +1,245 @@
 # FreeWallet
 
-Aplicacion web de gestion de cartera + academia financiera, construida con React, TypeScript y Vite.
+Aplicación web de gestión de cartera y educación financiera, construida con React, TypeScript y Vite. Incluye un Dashboard, importación de Excel/CSV, cartera multidispositivo con Supabase, noticias editoriales y una academia con guías, calculadoras y simuladores.
 
-FreeWallet combina dos bloques en una sola app:
+Este README describe el código de la rama que estás consultando. Las funciones disponibles en una web publicada dependen de la versión desplegada y de su configuración. La versión de la aplicación está en [`src/constants/app.ts`](src/constants/app.ts).
 
-1. `Dashboard de cartera` para registrar activos, seguir rendimiento y actualizar precios.
-2. `Academy` con guias, simuladores y calculadoras para educacion financiera practica.
+## Contenido
 
-Ademas incluye una pantalla especializada de `Portfolio CSV` para analizar composicion y evolucion mensual desde ficheros CSV exportados de Excel.
-
----
-
-## Tabla de contenidos
-
-- [Vision del producto](#vision-del-producto)
-- [Funcionalidades principales](#funcionalidades-principales)
-- [Stack tecnico](#stack-tecnico)
-- [Arquitectura y flujo de datos](#arquitectura-y-flujo-de-datos)
-- [Estructura del proyecto](#estructura-del-proyecto)
-- [Rutas de la aplicacion](#rutas-de-la-aplicacion)
-- [Puesta en marcha local](#puesta-en-marcha-local)
-- [Scripts disponibles](#scripts-disponibles)
-- [SEO y prerender](#seo-y-prerender)
-- [Configuracion y datos locales](#configuracion-y-datos-locales)
-- [Portfolio CSV: guia funcional](#portfolio-csv-guia-funcional)
-- [Academy: guia funcional](#academy-guia-funcional)
+- [Funciones](#funciones)
+- [Instalación local](#instalación-local)
+- [Configuración](#configuración)
+- [Actualización de precios e histórico](#actualización-de-precios-e-histórico)
+- [Noticias editoriales](#noticias-editoriales)
+- [Arquitectura y rutas](#arquitectura-y-rutas)
+- [Scripts](#scripts)
 - [Despliegue](#despliegue)
-- [Troubleshooting](#troubleshooting)
-- [Seguridad y buenas practicas](#seguridad-y-buenas-practicas)
+- [Problemas habituales](#problemas-habituales)
+- [Documentación técnica](#documentación-técnica)
 
----
+## Funciones
 
-## Vision del producto
+### Dashboard y cartera
 
-FreeWallet esta pensado para usuarios que quieren:
+- Registro y edición de posiciones, compras adicionales y ventas; libro de operaciones y respaldo JSON.
+- Valor actual, coste de posiciones abiertas, resultado no realizado y rendimiento por periodo. El realizado y el total solo se muestran cuando los movimientos permiten calcularlos: borrar una posición no equivale a registrar su venta.
+- Evolución mensual importada y valoraciones diarias cuando existe cobertura suficiente. Los periodos sin datos fiables se identifican en la interfaz.
+- Comparación con Fidelity MSCI World ACC EUR, ISIN **IE00BYX5NX33**, utilizando las fechas comunes disponibles. No se completa el benchmark con precios inventados ni con otro instrumento.
+- Composición por activos y exposición consolidada: suma las posiciones directas y las participaciones conocidas dentro de los fondos. Identifica el resto sin desglosar y las coincidencias aproximadas.
+- Al activar «Desglosar fondos», el mapa de calor y los desgloses por fondo quedan cerrados por defecto y pueden abrirse individualmente.
+- Detalle de activos con gráficos históricos y fundamentales disponibles, incluido EBITDA en acciones. La identidad de la clase del fondo, la divisa y la fecha del precio se conservan; un dato ausente no se sustituye por cero.
+- Plan y control de cartera, con sugerencias de aportaciones en bloques de **50 €**, sin céntimos.
+- Cabecera compacta: fechas de lectura, consulta al proveedor y próxima consulta dentro de un desplegable.
 
-- Llevar control de su cartera en una interfaz clara y simple.
-- Visualizar metricas clave sin depender de hojas de calculo complejas.
-- Aprender fundamentos de inversion dentro de la misma aplicacion.
-- Validar decisiones con simuladores y calculadoras tematicas.
+### Cuenta y sincronización
 
-La filosofia es unir `operativa` + `educacion` en una sola experiencia.
+- Modo local sin backend obligatorio, con persistencia en el navegador.
+- Con Supabase configurado: acceso, registro con confirmación de correo, recuperación de contraseña y verificación en dos pasos mediante TOTP, QR o clave manual.
+- Una cartera por cuenta, sincronización entre dispositivos y control de revisiones, conflictos y peticiones repetidas.
+- La importación de una cartera local a la cuenta requiere confirmación expresa. No reemplaza automáticamente una cartera remota existente.
+- Las modificaciones de una cartera conectada requieren conexión; la vista ya cargada puede consultarse sin red en esa pestaña.
 
----
+### Importación de Excel y CSV
 
-## Funcionalidades principales
+La pantalla `/portfolio-csv` sigue disponible para importar y analizar hojas de cálculo. El Dashboard utiliza los datos importados y puede continuar su histórico con operaciones y valoraciones posteriores, según su cobertura y vinculación.
 
-### 1) Dashboard de cartera
+- Excel `.xlsx`: hojas `Cartera` y `Evolución`; admite información adicional de `Diario`, `Movimientos`, `Comparativa`, `Objetivos`, `Control` y `Datos diarios` según el formato de la plantilla.
+- CSV separados de cartera y evolución mensual.
+- Plantillas descargables, composición, aportaciones, rentabilidad, concentración y métricas de riesgo cuando las series lo permiten.
 
-- Alta, edicion y borrado de activos.
-- Resumen de rendimiento (invertido, valor actual, plusvalia, cambios periodicos).
-- Composicion visual (tabla, mapas, graficos).
-- Carga de datos demo para pruebas.
-- Persistencia local via `localStorage`.
+El Excel proporciona posiciones, movimientos e histórico. La actualización diaria de precios de una cuenta configurada no requiere volver a subirlo.
 
-El Dashboard conserva los cierres importados del Excel y, tras confirmar que corresponden a las posiciones locales, continúa el histórico con las operaciones posteriores a su último día, sin duplicar aportaciones. La vinculación queda guardada solo en el navegador. Las reconstrucciones desde operaciones y precios históricos se identifican como estimaciones y requieren precios en euros para todas las posiciones de la fecha, incluidas las vendidas. La variación diaria queda sin dato cuando falta el cierre anterior; resumen, evolución y benchmark comparten el periodo seleccionado. Los huecos diarios largos no se presentan como rentabilidad verificable. El detalle identifica la divisa nativa del gráfico y respeta la precisión de las cantidades, incluidas criptomonedas.
+### Academia y herramientas
 
-Las posiciones y operaciones se guardan juntas en `freewallet_portfolio_v1`, con lectura compatible de las claves anteriores y sincronización entre pestañas. Los errores de guardado se muestran en la interfaz. `lastCheckedAt` identifica la consulta y `quotedAt` la fecha del proveedor, cuando está disponible.
+- Fundamentos, **Tu viaje como inversor**, glosario, errores comunes, fiscalidad, estrategias y gestión del riesgo.
+- Guías de acciones, bonos, efectivo, REITs y criptoactivos.
+- Perfil inversor, carteras modelo, asignación de activos, escenarios de crisis y radar/ficha de fondos.
+- Calculadoras de interés compuesto, FIRE, jubilación, fondo de emergencia, bonos, impuestos e inflación.
+- **Reto: Market Timing vs DCA**: tres rondas de 30 segundos, compras y ventas parciales, órdenes con demora y límite de operaciones. Ambas estrategias incluyen efectivo y costes; se requieren dos rondas ganadas y al menos 100 € de ventaja acumulada. Son mercados simulados, no una predicción de resultados reales.
 
-El Dashboard identifica las posiciones que impiden guardar una valoración completa y conserva el histórico existente. La fecha de consulta se muestra separada de la fecha del precio; los avisos de antigüedad usan márgenes orientativos de 7 días en fondos, 4 en acciones y ETF, y 2 en criptomonedas, sin descartar automáticamente un precio disponible. El detalle de subyacentes se actualiza con la exposición consolidada actual.
+### Noticias
 
-El SDK editorial de Supabase se carga al utilizar Noticias, con un único cliente compartido entre solicitudes. Las rutas permanecen cargadas de forma directa, sin pantallas de espera añadidas a la navegación.
+Análisis públicos en `/news` y editor privado en `/admin/news`, con borradores, publicación, invitaciones y revocación de editores. El autor con acceso editorial activo puede abrir la edición de su artículo desde un lápiz flotante en la vista de lectura.
 
-Pruebas de integridad del Dashboard: `npx tsx scripts/test-dashboard-integrity.ts`.
+## Instalación local
 
-Regresiones de la auditoría (datos sintéticos): `npm run test:dashboard-audit`.
+### Requisitos
 
-### 2) Actualizacion de precios
-
-- Servicio de cotizaciones con estrategia de fallback:
-  - Yahoo Finance (via proxies CORS).
-  - Alpha Vantage.
-  - Finnhub.
-- Caches y TTL para reducir llamadas y mejorar UX.
-- Control de activacion via ajustes (`apiEnabled`).
-
-### 3) Academy de inversion
-
-- Guias: fundamentos, timeline, fiscalidad, riesgo, estrategias, glosario, etc.
-- Simuladores: crisis, perfil inversor, market timing, asset allocation, portfolio builder.
-- Calculadoras: interes compuesto, FIRE, jubilacion, fondo de emergencia, bonos, impuestos, inflacion.
-
-Las proyecciones de ahorro aplican las aportaciones al inicio de cada mes; la aportación necesaria usa la misma convención. Los objetivos que no se alcanzan en 100 años se identifican como tales, las retiradas se limitan al saldo disponible y las entradas inválidas no producen resultados numéricos. Los cupones de bonos conservan su fecha de referencia y respetan finales de mes y años bisiestos. Regresiones: `npx tsx scripts/test-calculator-integrity.ts`.
-- Deep-dives por tipo de activo (equities, bonds, cash, REITs, crypto).
-
-### 4) Portfolio CSV
-
-- Carga de CSV de cartera y evolucion mensual.
-- KPIs automaticos: concentracion, diversificacion efectiva, retorno medio, volatilidad.
-- Graficos: composicion, bloques, valor total vs invertido, drivers, mapa de riesgo.
-- Plantillas de descarga y persistencia local de los CSV.
-
----
-
-## Stack tecnico
-
-- `React 19`
-- `TypeScript`
-- `Vite`
-- `React Router`
-- `Recharts`
-- `Lucide React`
-- `Axios`
-- `date-fns`
-- `ESLint`
-
-Post-build:
-
-- `scripts/generate-seo.js` para `sitemap.xml` y `robots.txt`.
-- `scripts/prerender.js` con `puppeteer` para prerender SPA por rutas.
-
----
-
-## Arquitectura y flujo de datos
-
-### Capa UI
-
-- Componentes en `src/components`.
-- Paginas en `src/pages`.
-- Navegacion por rutas en `src/App.tsx`.
-
-### Capa de estado
-
-- `PortfolioProvider` en `src/context/PortfolioContext.tsx`.
-- Gestiona estado de activos, loading, actualizacion de precios y acciones CRUD.
-
-### Capa de persistencia
-
-- `src/services/storageService.ts` guarda:
-  - Activos.
-  - Historial.
-  - Settings de la app.
-- Todo en `localStorage` (sin backend obligatorio para operar).
-
-### Capa de datos de mercado
-
-- `src/services/apiService.ts`:
-  - Busqueda de simbolos.
-  - Cotizaciones.
-  - Datos fundamentales.
-  - Datos historicos.
-  - Batch update.
-- Estrategia defensiva con cache, rate limiting y fallback entre proveedores.
-
----
-
-## Estructura del proyecto
-
-Estructura resumida:
-
-```text
-freewallet/
-  public/
-  scripts/
-    generate-seo.js
-    prerender.js
-    verify-funds.ts
-  src/
-    components/
-      academy/
-      charts/
-      dashboard/
-      layout/
-      ui/
-    context/
-      PortfolioContext.tsx
-      ThemeContext.tsx
-    data/
-      academy/
-      mockData.ts
-    pages/
-      Dashboard/
-      AddInvestment/
-      Settings/
-      PortfolioCsv/
-      TermsAndConditions/
-      NotFound/
-    services/
-      apiService.ts
-      storageService.ts
-    App.tsx
-    main.tsx
-  vercel.json
-  package.json
-```
-
----
-
-## Rutas de la aplicacion
-
-### Core
-
-- `/` -> Dashboard
-- `/add` -> Alta/edicion de activo
-- `/settings` -> Ajustes de app y datos
-- `/portfolio-csv` -> Analisis por CSV
-- `/terms` -> Terminos
-
-### Academy (subset principal)
-
-- `/academy` -> Landing Academy
-- `/academy/calculators`
-- `/academy/portfolio`
-- `/academy/asset-allocation`
-- `/academy/investor-profile-test`
-- `/academy/assets/equities`
-- `/academy/assets/bonds`
-- `/academy/assets/cash`
-- `/academy/assets/reits`
-- `/academy/assets/crypto`
-
-Y otras rutas de guias/simuladores listadas en `src/App.tsx`.
-
----
-
-## Puesta en marcha local
-
-## Requisitos
-
-- `Node.js` 20+ recomendado.
-- `npm` (el proyecto usa `package-lock.json`).
-
-## Instalacion
+- **Node.js 22.12 o superior**, compatible con Vite y el Puppeteer del proyecto.
+- npm y el `package-lock.json` del repositorio.
+- Para el prerender o las pruebas de navegador: un Chromium compatible con Puppeteer y sus dependencias del sistema.
 
 ```bash
-npm install
-```
-
-## Desarrollo
-
-```bash
+git clone https://github.com/danielcc2304/freewallet.git
+cd freewallet
+git switch dev
+npm ci
 npm run dev
 ```
 
-Abre la URL que muestre Vite (normalmente `http://localhost:5173`).
+Abre la dirección que muestre Vite, normalmente `http://localhost:5173`. `dev` es la base de desarrollo; selecciona la rama de una feature si quieres trabajar con cambios todavía no integrados.
 
----
+Para utilizar únicamente la cartera local y la Academia no hace falta configurar Supabase. Las funciones de cuenta y Noticias sí requieren backend.
 
-## Scripts disponibles
+## Configuración
 
-### `npm run dev`
+Las variables de ejemplo están en [`.env.example`](.env.example). Para usar Supabase, copia ese archivo a `.env.local` y rellena:
 
-Inicia servidor de desarrollo con HMR.
+| Variable | Uso |
+| --- | --- |
+| `VITE_SUPABASE_URL` | URL pública del proyecto de Supabase. |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Clave publicable del cliente. |
+| `VITE_SUPABASE_ANON_KEY` | Alternativa de compatibilidad con la clave `anon` antigua. |
+| `VITE_PORTFOLIO_CLOUD_ENABLED` | `true` para habilitar la cartera cloud después de preparar la base y Auth; por defecto `false`. |
+| `VITE_FINECT_API_KEY` | Opcional: sustituye la clave de cliente utilizada para las fichas de Finect. |
 
-### `npm run build`
+Las variables `VITE_*` se incluyen en el cliente. Nunca uses una clave secreta ni `service_role` en ellas. `.env.local` no debe subirse al repositorio. Más información: [claves de Supabase](https://supabase.com/docs/guides/api/api-keys).
 
-Pipeline completo:
+### Cartera cloud
 
-1. `tsc -b`
-2. `vite build`
-3. `node scripts/generate-seo.js`
-4. `node scripts/prerender.js`
+Las migraciones están en [`supabase/migrations`](supabase/migrations). Antes de habilitar el flag, configura Auth, correo y redirects de `/account`, y comprueba qué migraciones están ya aplicadas. El esquema editorial de Noticias se configura por separado.
 
-Nota: el prerender requiere entorno compatible con Puppeteer.
+Consulta [cartera con Supabase](docs/portfolio-supabase.md) para el modelo, la importación, las revisiones, los conflictos y MFA. Ese documento incluye informes de implementación y validaciones de su fecha; no constituye una comprobación del estado actual de cada despliegue.
 
-### `npm run preview`
+### Datos locales
 
-Sirve la build local para validacion manual.
+La cartera local actual guarda posiciones y operaciones en `freewallet_portfolio_v1`, con lectura compatible de claves anteriores. Histórico, ajustes, objetivos, watchlist y datos importados usan almacenamiento adicional. Las preferencias de API y apariencia se gestionan desde Ajustes.
 
-### `npm run lint`
+Los datos del navegador dependen del origen: cambiar dominio o puerto no comparte `localStorage`. Exporta un respaldo desde la aplicación antes de limpiar datos o trasladarlos a otro dispositivo.
 
-Ejecuta ESLint en el proyecto.
+## Actualización de precios e histórico
 
-### `npm run verify-funds`
+Hay dos procesos distintos:
 
-Script utilitario para verificar fondos de `BEST_FUNDS` (consistencia de enlace/ISIN/nombre).
+| Proceso | Funcionamiento |
+| --- | --- |
+| Refresco del navegador | Consulta cada cinco minutos cuando está habilitado en Ajustes. Con una cuenta cloud utiliza preferentemente precios guardados; el refresco manual conserva la consulta directa a proveedores. |
+| Actualización diaria en Supabase | Edge Function `daily-market-data` programada por Cron a las **06:00, 20:00 y 22:00 UTC**. Utiliza las posiciones guardadas, actualiza instrumentos y benchmark y puede registrar valoraciones privadas completas. |
+
+El proceso en Supabase requiere las migraciones, la función desplegada y el job configurado. Publicar el frontend no instala ni activa por sí solo ese proceso. Tampoco el hecho de que el batch esté activo actualiza el código de una web que aún no haya desplegado la integración.
+
+Los proveedores principales son **Yahoo Finance** para instrumentos negociados y **Finect** para fondos identificados por ISIN; existen fallbacks con Alpha Vantage y Finnhub según disponibilidad. Los gráficos y fundamentales dependen de la cobertura del instrumento y proveedor.
+
+El proceso diario conserva precio, divisa, proveedor, fecha de cotización y fecha de consulta. Convierte las valoraciones a EUR según las observaciones de cambio admitidas. Un fallo parcial conserva los datos disponibles y registra errores, sin publicar una valoración total incompleta. No modifica cantidades, costes ni el libro de operaciones.
+
+La serie diaria comienza al activar el proceso: no recupera automáticamente todos los precios anteriores. Fondos, festivos y fines de semana pueden conservar el último NAV o cierre disponible. Consulta [actualización diaria](docs/daily-market-data.md) para despliegue, calendario, permisos y diagnóstico.
 
 ## Noticias editoriales
 
-La cartera multidispositivo se describe en [docs/portfolio-supabase.md](docs/portfolio-supabase.md): acceso, importación voluntaria, sincronización y control de conflictos. Está habilitada en desarrollo; para producción se deben verificar Auth, correo y redirects antes de activar `VITE_PORTFOLIO_CLOUD_ENABLED`. Pruebas: `test:portfolio-backend`, `test:portfolio-sync` y `test:portfolio-ui`.
+1. Prepara Auth y la cuenta propietaria indicada en las reglas de bootstrap de [`supabase/news-schema.sql`](supabase/news-schema.sql).
+2. Aplica ese esquema en el proyecto correspondiente y configura las variables públicas del frontend.
+3. Configura los redirects de `/admin/news` y el correo de Auth.
+4. Para invitar editores, despliega la Edge Function [`invite-news-editor`](supabase/functions/invite-news-editor) y configura sus secretos `APP_URL` y `ALLOWED_ORIGINS` para el dominio autorizado.
 
-La ruta `/news` muestra los análisis publicados y `/admin/news` ofrece un panel privado para crear borradores y publicar noticias desde un editor WYSIWYG con formato, enlaces seguros y tamaños de letra.
+La función de invitaciones usa credenciales administrativas únicamente en el servidor. El propietario administra el equipo; los invitados establecen su contraseña mediante el correo de Supabase. Una membresía revocada pierde acceso editorial aunque su cuenta de Auth siga existiendo.
 
-La feature no necesita un servidor Node separado: el frontend sigue desplegándose en Vercel y usa Supabase como backend gestionado para Auth y PostgreSQL.
+Las noticias se almacenan como HTML sanitizado, con editor Tiptap. La portada utiliza una URL HTTPS. Los permisos editoriales no permiten acceder a carteras de otros usuarios.
 
-### Configuración de Supabase
+## Arquitectura y rutas
 
-1. Crea un proyecto en Supabase.
-2. En `Authentication > Users`, crea la cuenta propietaria con el correo configurado para esta feature (`daniel230401@gmail.com`). Define la contraseña desde Supabase; no se guarda ni se cifra en el frontend. Supabase Auth gestiona el hash y la verificación de credenciales.
-3. Ejecuta `supabase/news-schema.sql` desde el SQL Editor. Al iniciar sesión, la función `ensure_news_owner` registra automáticamente al propietario y activa su membresía.
-4. Copia `.env.example` como `.env.local` y rellena `VITE_SUPABASE_URL` y `VITE_SUPABASE_PUBLISHABLE_KEY` (también se admite `VITE_SUPABASE_ANON_KEY`). No subas `.env.local` al repositorio.
-5. Desactiva el registro público de usuarios en Supabase si solo quieres altas mediante invitación. El propietario es la única cuenta que puede invitar o revocar editores desde `/admin/news`.
+### Stack
 
-### Invitaciones de editores
+React 19, TypeScript, Vite, React Router, Recharts, Lucide, Supabase, Tiptap, DOMPurify y SheetJS. Las versiones y dependencias exactas están en [`package.json`](package.json) y `package-lock.json`.
 
-El botón `Enviar invitación` llama a la Edge Function `invite-news-editor`, que usa `auth.admin.inviteUserByEmail` con la `service_role` únicamente en Supabase. Esa clave nunca debe estar en Vite, `.env.local` ni en el navegador.
-
-Despliega la función y configura la URL pública de retorno:
-
-```bash
-supabase functions deploy invite-news-editor
-supabase secrets set APP_URL=https://tu-dominio.example ALLOWED_ORIGINS=https://tu-dominio.example
+```text
+src/
+  app/routes/         Definiciones de rutas de Academia y herramientas
+  components/         Academia, Dashboard, gráficos, navegación y UI
+  context/            Cartera, cuenta y apariencia
+  pages/              Dashboard, cuenta, noticias, importación y ajustes
+  services/           Mercado, valoración, histórico, persistencia y Supabase
+supabase/
+  migrations/         Esquema y funciones de la cartera y datos diarios
+  functions/          Procesos diarios e invitaciones editoriales
+  news-schema.sql     Esquema editorial
+scripts/              SEO, prerender y verificaciones
+public/               Recursos estáticos
 ```
 
-La cuenta invitada recibe el email de Supabase, crea su propia contraseña y entonces pasa de `invited` a `active` en `public.news_admins`. Revocar el acceso marca la membresía como `revoked`; las políticas RLS dejan de permitirle leer o modificar borradores aunque conserve su cuenta de Auth.
+La navegación principal está en [`src/App.tsx`](src/App.tsx); Academia y herramientas se definen en [`src/app/routes/academyRoutes.tsx`](src/app/routes/academyRoutes.tsx).
 
-Configura también el proveedor de correo de Supabase (SMTP propio para producción). En local, `APP_URL` debe coincidir con la URL de Vite que uses, por ejemplo `http://127.0.0.1:5173`.
+| Ruta | Pantalla |
+| --- | --- |
+| `/` | Dashboard de cartera |
+| `/account` | Cuenta, sincronización y verificación en dos pasos |
+| `/add` | Alta y edición de posiciones |
+| `/planning` | Planificación |
+| `/transactions` | Operaciones |
+| `/portfolio-csv` | Importación y análisis de Excel/CSV |
+| `/settings` | Ajustes |
+| `/market-heatmap` | Mapa de mercado |
+| `/news`, `/news/:slug` | Noticias y lectura de artículos |
+| `/admin/news` | Panel editorial |
+| `/academy` | Fundamentos y acceso a Academia |
+| `/academy/timeline` | Tu viaje como inversor |
+| `/academy/portfolio` | Estrategia y cartera |
+| `/academy/market-timing-game` | Reto Market Timing vs DCA |
+| `/academy/fund-information` | Ficha de fondos por ISIN |
+| `/feature-log`, `/terms` | Novedades y condiciones |
 
-Si el listado del equipo carga pero `Enviar invitación` falla, comprueba primero que la función esté desplegada y que tenga `APP_URL`; el panel muestra el motivo concreto como aviso flotante. Si el proyecto no inyecta sus claves internas automáticamente, configura `SUPABASE_SERVICE_ROLE_KEY` como secreto de la función, nunca como variable `VITE_*`.
+## Scripts
 
-Las noticias se guardan como HTML sanitizado. La portada acepta de momento una URL HTTPS; el bucket `news-images` queda preparado para añadir subida de imágenes más adelante.
+| Comando | Función |
+| --- | --- |
+| `npm run dev` | Servidor Vite con recarga durante el desarrollo. |
+| `npm run build` | TypeScript, bundle de Vite, SEO y prerender de rutas públicas con Puppeteer. |
+| `npm run preview` | Vista local de la compilación. |
+| `npm run lint` | ESLint. |
+| `npm run verify-funds` | Verificación de identidad/enlaces de fondos del catálogo. |
 
----
+Las regresiones están agrupadas en scripts `test:*` de `package.json`, entre ellos:
 
-## SEO y prerender
+- Cartera y sincronización: `test:portfolio-backend`, `test:portfolio-sync`, `test:portfolio-ui`.
+- Actualizaciones diarias: `test:daily-market`, `test:daily-market-ui`.
+- Dashboard: `test:dashboard-audit`, `test:dashboard-results`, `test:portfolio-periods`, `test:portfolio-composition`.
+- Fondos y acciones: `test:fund-chart-resolution`, `test:fund-breakdown`, `test:stock-fundamentals`, `test:underlying-resolution`.
+- Noticias y juego: `test:news-article-editor-ui`, `test:market-timing`, `test:market-timing-ui`.
 
-Durante `build` se generan:
-
-- `dist/sitemap.xml`
-- `dist/robots.txt`
-
-Tambien se prerenderizan rutas clave con Puppeteer para mejorar discoverability y carga inicial.
-
-### Saltar prerender si hace falta
-
-En entornos donde Puppeteer falle (CI restringido, timeout, sin sandbox, etc):
-
-```bash
-set SKIP_PRERENDER=1 && npm run build
-```
-
-En PowerShell:
-
-```powershell
-$env:SKIP_PRERENDER="1"; npm run build
-```
-
-El script tambien evita prerender en Vercel cuando detecta `VERCEL`.
-
----
-
-## Configuracion y datos locales
-
-### Persistencia local
-
-`storageService` usa estas claves:
-
-- `freewallet_assets`
-- `freewallet_history`
-- `freewallet_settings`
-
-Para `Portfolio CSV` se usan claves propias (holdings/evolution/file labels/updatedAt).
-
-### Ajuste de API
-
-- `apiEnabled` controla si se realizan llamadas de mercado.
-- Se guarda en `localStorage` desde `Settings`.
-
-### Clave Finnhub personalizada
-
-El usuario puede guardar una clave propia en localStorage (fallback adicional).
-
-### Consulta de fondos por ISIN
-
-La herramienta `/academy/fund-information` permite pegar el ISIN de una clase de fondo y consultar su ficha pública de Finect desde el SPA. La consulta normaliza identidad, costes, riesgo, rentabilidades, composición, posiciones y documentación disponible.
-
-En desarrollo local, Vite expone dos rutas proxy (`/__finect/api` y `/__finect/site`) para que la ficha funcione sin bloquearse por CORS. En Vercel, las mismas rutas se reescriben server-side hacia Finect, manteniendo la petición same-origin sin añadir un backend de aplicación; si el despliegue no soporta esas reescrituras, se conserva un fallback mediante proxies CORS temporales desde el navegador. Por ello está pensada para pruebas o uso interno: un proxy público puede tener límites o dejar de estar disponible y la clave de cliente queda expuesta en el bundle del frontend.
-
-Se puede sobrescribir la clave pública de cliente con `VITE_FINECT_API_KEY` en `.env.local` si Finect la rota. Cuando exista backend, debe conservarse el contrato de `getFundRelevance(isin)` y sustituirse únicamente el transporte para mover la clave y el scraping al servidor.
-
----
-
-## Portfolio CSV: guia funcional
-
-Pantalla: `/portfolio-csv`
-
-### Que espera
-
-- CSV de cartera con columnas de activo/importe/peso.
-- CSV de evolucion mensual con valor total, aportaciones, plusvalias y retornos.
-- Excel `.xlsx` con hojas `Cartera` y `Evolucion`; `Comparativa`, `Estadisticas avanzadas` y `Datos diarios` son opcionales.
-
-### Que calcula
-
-- Patrimonio total.
-- Concentracion Top 3.
-- Diversificacion efectiva (HHI invertido).
-- Ratio de meses positivos.
-- Retorno medio mensual y volatilidad.
-- Proyeccion base a 12 meses.
-
-### Visualizaciones
-
-- Donut de composicion por activo.
-- Barras por bloques.
-- Area de valor total vs capital invertido.
-- Drivers mensuales (aportacion vs plusvalia).
-- Mapa de riesgo (retorno, drawdown, TWR YTD).
-- Ratios de riesgo recalculados a partir de las series validas: Sharpe, Sortino, alpha, beta, drawdown, tracking error y volatilidad diaria.
-
-### UX
-
-- Descarga de plantillas CSV.
-- Descarga de la plantilla Excel de referencia, con formatos, formulas, graficos y datos de prueba.
-- Persistencia de ficheros cargados.
-- Modo demo recuperable en un click.
-
----
-
-## Academy: guia funcional
-
-### Objetivo
-
-Convertir la app en entorno de aprendizaje aplicado:
-
-- Conceptos + practica + simulacion.
-- Rutas de contenido por nivel.
-- Herramientas orientadas a toma de decisiones.
-
-### Portfolio Builder (seccion de modelos)
-
-La seccion ahora permite:
-
-- Ver listado general por defecto.
-- Filtrar por perfil:
-  - Horizonte temporal.
-  - Estilo de inversion.
-  - Aversion al riesgo.
-- Visualizar solo carteras relevantes para el filtro.
-- Limpiar filtros y volver al catalogo completo.
-
----
+Las pruebas UI requieren Vite, Chromium y, en los escenarios de cuenta, configuración de fixtures. No todas usan el mismo puerto. Consulta las cabeceras de los scripts y sus documentos antes de ejecutarlas; no configures pruebas de escritura con credenciales de una cartera real.
 
 ## Despliegue
 
-### Vercel
+El frontend produce `dist`. [`vercel.json`](vercel.json) configura rutas de proxy hacia Yahoo Finance, Finect y fuentes de posiciones, además del fallback de la SPA. Vite proporciona los proxies durante el desarrollo. Otros alojamientos deben ofrecer rutas equivalentes para mantener el mismo transporte; una publicación estática de `dist` no los incluye por sí sola.
 
-`vercel.json` aplica fallback SPA:
+Supabase aloja Auth, la base y las Edge Functions. Sus migraciones y funciones se gestionan por separado del despliegue del frontend.
 
-- Si no existe fichero fisico, redirige a `index.html`.
+La compilación genera `sitemap.xml`, `robots.txt` y, fuera de Vercel, prerender con Puppeteer. Revisa el dominio configurado en [`scripts/generate-seo.js`](scripts/generate-seo.js) antes de publicar: actualmente usa `https://freewallet-v2.vercel.app`.
 
-### Flujo recomendado
+Para omitir solo el prerender en un entorno que no disponga de Chromium:
 
-1. `npm run lint`
-2. `npx tsc -b`
-3. `npm run build`
-4. Publicar `dist` o desplegar con Vercel.
+```bash
+# Bash / shells POSIX
+SKIP_PRERENDER=1 npm run build
+```
 
----
+```powershell
+# PowerShell
+$env:SKIP_PRERENDER="1"
+npm run build
+```
 
-## Troubleshooting
+```bat
+:: Windows CMD
+set SKIP_PRERENDER=1 && npm run build
+```
 
-### 1) `npm run build` falla en prerender por timeout
+El script también omite automáticamente el prerender al detectar `VERCEL`. `PUPPETEER_EXECUTABLE_PATH` permite seleccionar un Chromium ya instalado.
 
-Sintoma tipico: `Navigation timeout exceeded` en Puppeteer.
+## Problemas habituales
 
-Acciones:
+- **No aparecen Cuenta o Noticias con acceso funcional:** revisa variables públicas, flag de cartera, esquemas, Auth y redirects. Las variables del frontend necesitan reiniciar Vite o recompilar el despliegue.
+- **No cambian los precios:** comprueba el ajuste de consultas, la conectividad y los límites del proveedor. En cloud revisa las ejecuciones del batch; una fecha de consulta reciente no significa que el NAV sea de hoy.
+- **Histórico o rentabilidad no disponibles:** revisa cobertura de fechas, clase/ISIN, divisa y operaciones registradas. No se extrapolan resultados para ocultar huecos.
+- **Fondos parcialmente desglosados:** las fuentes pueden publicar solo algunas posiciones o distribuciones agregadas; el Dashboard conserva el resto sin identificar y permite reintentar consultas fallidas.
+- **Conflicto al guardar:** exporta los cambios pendientes y carga expresamente la revisión del servidor. No se fusionan automáticamente decisiones financieras.
+- **Falla el prerender:** revisa Chromium y sus dependencias; puedes omitir esa fase con `SKIP_PRERENDER=1` sin saltarte TypeScript ni la compilación de Vite.
 
-- Reintentar en local (a veces es intermitente).
-- Ejecutar build con `SKIP_PRERENDER=1`.
-- Revisar rutas lentas o bloqueadas.
-- Aumentar timeout en `scripts/prerender.js` si procede.
+## Documentación técnica
 
-### 2) No actualiza precios
+- [Cartera con Supabase](docs/portfolio-supabase.md): importación, sincronización, permisos y MFA.
+- [Actualización diaria](docs/daily-market-data.md): batch, benchmark, histórico y diagnóstico.
+- [Revisión de lógica del Dashboard](docs/dashboard-logic-review.md).
+- [Revisión del Dashboard](docs/dashboard-review.md).
+- [Noticias y Market Timing](docs/news-and-market-timing.md).
 
-Comprobar:
-
-- `apiEnabled` activado en ajustes.
-- Conectividad de red.
-- Limites/rate limit en proveedores.
-- Restricciones CORS/proxy temporal.
-
-### 3) Resultado de busqueda pobre para algunos fondos
-
-El buscador aplica heuristicas y varios backends, pero algunos ISIN/simbolos pueden variar por mercado.
-
-Sugerencias:
-
-- Probar ISIN directo.
-- Probar ticker + exchange.
-- Guardar clave real de Finnhub (mejora fallback vs `demo`).
-
-### 4) Datos incoherentes tras pruebas
-
-- Limpiar storage desde `Settings`.
-- Recargar demo.
-- Repetir flujo con dataset limpio.
-
----
-
-## Seguridad y buenas practicas
-
-- No subir secretos reales al repo.
-- Mantener `.env.local` fuera de control de versiones.
-- Rotar tokens que se hayan expuesto por error.
-- Evitar claves hardcodeadas en frontend para produccion real.
-- Si se evoluciona a backend, mover integraciones sensibles al servidor.
-
----
-
-## Resumen rapido
-
-FreeWallet reúne en una sola app la parte de `gestion + aprendizaje`.
-
-La base actual ya cubre:
-
-- Operativa local completa.
-- Integracion de datos de mercado con fallbacks.
-- Seccion educativa extensa.
-- Analitica avanzada por CSV.
-- Pipeline de build con SEO + prerender.
-
-La base actual cubre bien el uso local, la parte educativa y el analisis por CSV.
+Los informes técnicos recogen el alcance y las verificaciones realizadas en sus respectivas revisiones; para conocer una instalación concreta hay que contrastarlos con su configuración y versión desplegada.

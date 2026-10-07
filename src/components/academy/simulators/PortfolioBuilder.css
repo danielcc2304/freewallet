@@ -140,13 +140,14 @@
 }
 
 /* === Expandable Detail Panel === */
-.asset-detail {
+/* These collapsed panels belong to the simulator, not the Dashboard modal. */
+.portfolio-builder .asset-detail {
     max-height: 0;
     overflow: hidden;
     transition: max-height 0.4s ease;
 }
 
-.asset-detail--open {
+.portfolio-builder .asset-detail--open {
     max-height: 1200px;
 }
 

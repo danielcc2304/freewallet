@@ -907,8 +907,6 @@ async function fetchYahooChartPoints(
     const timestamps = result.timestamp;
     const indicators = asJsonRecord(result.indicators);
     const quotes = asJsonRecords(indicators.quote)[0] ?? {};
-    const adjCloseRecord = asJsonRecords(indicators.adjclose)[0] ?? {};
-    const adjClose = Array.isArray(adjCloseRecord.adjclose) ? adjCloseRecord.adjclose : quotes.close;
     const previousClose = readFiniteNumber(asJsonRecord(result.meta).chartPreviousClose);
     const rawCurrency=readString(asJsonRecord(result.meta).currency, 'Unknown');
     let currency=rawCurrency,scale=1;
@@ -930,7 +928,9 @@ async function fetchYahooChartPoints(
             open: readNumberAt(quotes.open, i) * scale,
             high: readNumberAt(quotes.high, i) * scale,
             low: readNumberAt(quotes.low, i) * scale,
-            close: readNumberAt(adjClose, i, readNumberAt(quotes.close, i)) * scale,
+            // Dividend-adjusted closes represent reinvestment, not the price of
+            // the shares held. Missing quoted closes must remain unavailable.
+            close: readNumberAt(quotes.close, i) * scale,
             volume: readNumberAt(quotes.volume, i),
         };
     }).filter((point) => point.close > 0);

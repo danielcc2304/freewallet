@@ -77,6 +77,7 @@ export interface HistoricalDataPoint {
     open: number;
     high: number;
     low: number;
+    /** Provider close without dividend reinvestment; used to value held units. */
     close: number;
     volume: number;
 }

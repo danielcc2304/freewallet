@@ -15,6 +15,7 @@
     "test:fund-chart-ui": "tsx scripts/test-fund-chart-ui.ts",
     "test:stock-fundamentals": "tsx scripts/test-stock-fundamentals.ts",
     "test:stock-fundamentals-ui": "tsx scripts/test-stock-fundamentals-ui.ts",
+    "test:historical-price-basis-ui": "tsx scripts/test-historical-price-basis-ui.ts",
     "test:underlying-resolution": "tsx scripts/test-underlying-resolution.ts",
     "test:underlying-detail-ui": "tsx scripts/test-underlying-detail-ui.ts",
     "test:portfolio-periods": "tsx scripts/test-portfolio-periods.ts",

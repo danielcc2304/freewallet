@@ -17,6 +17,7 @@ import {
     MAX_FAILURES_BEFORE_SWITCH,
     YAHOO_BASE_URL,
     YAHOO_CHART_URL,
+    YAHOO_CHART_FALLBACK_URL,
     YAHOO_SEARCH_URL,
     YAHOO_SPARK_URL,
 } from './market/marketConfig';
@@ -553,42 +554,43 @@ async function getQuoteFinnhub(symbol: string, signal?: AbortSignal): Promise<St
 
 // ===== YAHOO FINANCE GET QUOTE =====
 async function getQuoteYahoo(symbol: string, signal?: AbortSignal): Promise<StockQuote | null> {
-    const url = `${YAHOO_CHART_URL}/${encodeURIComponent(symbol)}?interval=1d&range=5d`;
-    const rawData: unknown = url.startsWith('/')
-        ? (await axios.get(url, { signal, timeout: 5000 })).data
-        : await fetchFromFastestProxy(url, signal);
-    const data = asJsonRecord(rawData);
-    const chart = asJsonRecord(data.chart);
-    const result = asJsonRecords(chart.result)[0] ?? {};
-    const meta = asJsonRecord(result.meta);
-    const indicators = asJsonRecord(result.indicators);
-    const quote = asJsonRecords(indicators.quote)[0] ?? {};
-    const regularMarketPrice = readFiniteNumber(meta.regularMarketPrice);
-    if (regularMarketPrice === undefined) return null;
-    const closes = Array.isArray(quote.close)
-        ? quote.close.filter((value): value is number => typeof value === 'number' && Number.isFinite(value))
-        : [];
-    const previousClose = readFiniteNumber(meta.previousClose)
-        ?? closes.at(-2)
-        ?? readFiniteNumber(meta.chartPreviousClose)
-        ?? regularMarketPrice;
-    const change = regularMarketPrice - previousClose;
-    return {
-        quotedAt: readFiniteNumber(meta.regularMarketTime) ? new Date(readNumber(meta.regularMarketTime) * 1000).toISOString() : undefined,
-        symbol: readString(meta.symbol, symbol),
-        name: readString(meta.longName) || readString(meta.shortName) || symbol,
-        price: regularMarketPrice,
-        change,
-        changePercent: previousClose ? (change / previousClose) * 100 : 0,
-        previousClose,
-        open: regularMarketPrice,
-        high: regularMarketPrice,
-        low: regularMarketPrice,
-        volume: readNumber(meta.regularMarketVolume),
-        currency: readString(meta.currency, 'Unknown'),
-        fiftyTwoWeekHigh: readFiniteNumber(meta.fiftyTwoWeekHigh),
-        fiftyTwoWeekLow: readFiniteNumber(meta.fiftyTwoWeekLow),
-    };
+    let lastError: unknown;
+    for (const baseUrl of [YAHOO_CHART_URL, YAHOO_CHART_FALLBACK_URL]) {
+        try {
+            // The one-day range supplies the previous session close. A
+            // five-day chartPreviousClose may belong to the start of the range.
+            const url = `${baseUrl}/${encodeURIComponent(symbol)}?interval=1m&range=1d`;
+            const rawData: unknown = (await axios.get(url, { signal, timeout: 5000 })).data;
+            const chart = asJsonRecord(asJsonRecord(rawData).chart);
+            const meta = asJsonRecord((asJsonRecords(chart.result)[0] ?? {}).meta);
+            if (readString(meta.symbol).toUpperCase() !== symbol.trim().toUpperCase()) continue;
+            const price = readFiniteNumber(meta.regularMarketPrice);
+            if (price === undefined || price <= 0) continue;
+            const previousClose = [meta.regularMarketPreviousClose, meta.previousClose, meta.chartPreviousClose]
+                .map(readFiniteNumber).find(value => value !== undefined && value > 0) ?? NaN;
+            const change = price - previousClose;
+            return {
+                quotedAt: readFiniteNumber(meta.regularMarketTime) ? new Date(readNumber(meta.regularMarketTime) * 1000).toISOString() : undefined,
+                symbol: readString(meta.symbol),
+                name: readString(meta.longName) || readString(meta.shortName) || symbol,
+                price, change,
+                changePercent: previousClose > 0 ? change / previousClose * 100 : NaN,
+                previousClose,
+                open: readFiniteNumber(meta.regularMarketOpen) ?? price,
+                high: readFiniteNumber(meta.regularMarketDayHigh) ?? price,
+                low: readFiniteNumber(meta.regularMarketDayLow) ?? price,
+                volume: readNumber(meta.regularMarketVolume),
+                currency: readString(meta.currency, 'Unknown'),
+                fiftyTwoWeekHigh: readFiniteNumber(meta.fiftyTwoWeekHigh),
+                fiftyTwoWeekLow: readFiniteNumber(meta.fiftyTwoWeekLow),
+            };
+        } catch (error) {
+            if (axios.isCancel(error) || signal?.aborted) throw error;
+            lastError = error;
+        }
+    }
+    if (lastError) throw lastError;
+    return null;
 }
 
 // ===== YAHOO FINANCE GET QUOTES BATCH =====

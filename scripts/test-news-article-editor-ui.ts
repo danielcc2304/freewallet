@@ -10,7 +10,7 @@ const other = '22222222-2222-4222-8222-222222222222';
 const stamp = '2026-10-01T12:00:00Z';
 const article = { id: '33333333-3333-4333-8333-333333333333', slug: 'synthetic-news', title: 'Synthetic editorial analysis', excerpt: 'Synthetic excerpt', content: '<p>Original synthetic article.</p>', cover_image_url: null, status: 'published', author_id: author, published_at: stamp, created_at: stamp, updated_at: stamp };
 const user = (id: string, mfa=false) => ({factors:mfa?[{id:'44444444-4444-4444-8444-444444444444',factor_type:'totp',status:'verified',friendly_name:'FreeWallet',created_at:stamp,updated_at:stamp}]:[], id, email: 'fixture@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: stamp });
-const session = (id: string, mfa=false) => ({ access_token: `${btoa('{"alg":"HS256"}')}.${btoa(JSON.stringify({ sub: id, role: 'authenticated', aal: 'aal1', exp: Math.floor(Date.now() / 1000) + 3600 }))}.${btoa('synthetic')}`, refresh_token: 'synthetic', expires_at: Math.floor(Date.now() / 1000) + 3600, expires_in: 3600, token_type: 'bearer', user: user(id,mfa) });
+const session = (id: string, mfa=false, aal='aal1') => ({ access_token: `${btoa('{"alg":"HS256"}')}.${btoa(JSON.stringify({ sub: id, role: 'authenticated', aal, exp: Math.floor(Date.now() / 1000) + 3600 }))}.${btoa('synthetic')}`, refresh_token: 'synthetic', expires_at: Math.floor(Date.now() / 1000) + 3600, expires_in: 3600, token_type: 'bearer', user: user(id,mfa) });
 const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 const errors: string[] = [];
 const writes: { method: string; id: string | null; body: Record<string, unknown> }[] = [];
@@ -22,9 +22,13 @@ try {
         { name: 'unverified identity', id: author, active: true, verifiedId: other, canEdit: false },
         { name: 'author without attribution', id: author, active: true, verifiedId: author, canEdit: false, noAuthor: true },
         { name: 'author requiring MFA', id: author, active: true, verifiedId: author, canEdit: false, mfa:true },
+        { name: 'author completing MFA', id: author, active: true, verifiedId: author, canEdit: false, mfa:true, verifyResult:'success' },
+        { name: 'author completing MFA during a portfolio outage', id: author, active: true, verifiedId: author, canEdit: false, mfa:true, verifyResult:'refresh-error' },
+        { name: 'author with invalid MFA code', id: author, active: true, verifiedId: author, canEdit: false, mfa:true, verifyResult:'invalid-code' },
         { name: 'active author', id: author, active: true, verifiedId: author, canEdit: true },
     ]) {
         const page = await browser.newPage();
+        let mfaVerified=false;let refreshFailures=0;
         page.on('pageerror', error => errors.push(String(error)));
         await page.setViewport({ width: 390, height: 844 });
         await page.evaluateOnNewDocument((auth, version) => {
@@ -42,8 +46,20 @@ try {
                 let data: unknown = null;
                 if (url.pathname === '/auth/v1/user') data = user(scenario.verifiedId,!!scenario.mfa);
                 else if (url.pathname === '/auth/v1/logout') { await request.respond({ status: 204, headers }); return; }
-                else if (url.pathname.endsWith('/rpc/is_news_admin')) data = scenario.active && !scenario.mfa;
-                else if (url.pathname.endsWith('/rpc/read_portfolio')) data = null;
+                else if (url.pathname.endsWith('/challenge')) data = {id:'55555555-5555-4555-8555-555555555555',expires_at:Math.floor(Date.now()/1000)+300};
+                else if (url.pathname.endsWith('/verify')) {
+                    if(scenario.verifyResult==='invalid-code') {
+                        await request.respond({status:400,headers,contentType:'application/json',body:JSON.stringify({code:'mfa_verification_failed',message:'Código de prueba rechazado'})});return;
+                    }
+                    mfaVerified=true;data=session(scenario.verifiedId,true,'aal2');
+                }
+                else if (url.pathname.endsWith('/rpc/is_news_admin')) data = scenario.active && (!scenario.mfa || mfaVerified);
+                else if (url.pathname.endsWith('/rpc/read_portfolio')) {
+                    if(mfaVerified && scenario.verifyResult==='refresh-error') {
+                        refreshFailures++;await request.respond({status:503,headers,contentType:'application/json',body:'{"code":"503","message":"Synthetic portfolio outage"}'});return;
+                    }
+                    data = null;
+                }
                 else if (url.pathname.startsWith('/rest/v1/rpc/')) data = false;
                 else if (url.pathname === '/rest/v1/news_posts') {
                     if (request.method() === 'PATCH') {
@@ -67,6 +83,29 @@ try {
                 await page.goto(`${origin}/admin/news`,{waitUntil:'domcontentloaded'});
                 await page.waitForSelector('.account-page__form input[autocomplete="one-time-code"]');
                 assert.equal(await page.$('.news-admin__editor-card'),null,'A verified MFA account must complete its challenge before editing');
+                if(scenario.verifyResult) {
+                    await page.type('input[autocomplete="one-time-code"]','123456');
+                    await page.click('.account-page__form form button');
+                    if(scenario.verifyResult==='invalid-code') {
+                        await page.waitForFunction(()=>document.body.textContent?.includes('Código de prueba rechazado'));
+                        assert.ok(await page.$('input[autocomplete="one-time-code"]'),'A rejected code must remain retryable');
+                        assert.equal(await page.$('.news-admin__editor-card'),null);assert.equal(mfaVerified,false);
+                    } else {
+                        await page.waitForSelector('.news-admin__editor-card');
+                        assert.equal(await page.$('input[autocomplete="one-time-code"]'),null);
+                        const aal=await page.evaluate(async()=>{
+                            // @ts-expect-error Vite resolves this browser-only absolute source import.
+                            const module=await import('/src/services/supabaseClient.ts');
+                            const client=await module.getAppSupabaseClient();const {data}=await client.auth.getSession();
+                            return JSON.parse(atob(data.session.access_token.split('.')[1])).aal;
+                        });
+                        assert.equal(aal,'aal2');assert.equal(mfaVerified,true);
+                        if(scenario.verifyResult==='refresh-error') {
+                            await page.waitForFunction(()=>document.body.textContent?.includes('No se pudo actualizar la cartera'));
+                            assert.ok(refreshFailures>0);assert.ok(await page.$('.news-admin__editor-card'),'Portfolio loading cannot block an already verified editor');
+                        }
+                    }
+                }
             }
             await page.close();
             continue;
@@ -110,5 +149,5 @@ try {
         await page.close();
     }
     assert.deepEqual(errors, []);
-    console.log('News article UI passed: removed navigation links, verified author with active editorial access only, mobile floating pencil, MFA challenge before editing, selected article editing, preserved publication/author and logout.');
+    console.log('News UI passed: author permissions, mobile pencil, MFA challenge/rejection/success, editing despite a portfolio outage, preserved publication/author and logout.');
 } catch(error) { console.error(errors);throw error; } finally { await browser.close(); }

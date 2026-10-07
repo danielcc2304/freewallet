@@ -137,12 +137,21 @@ export class PortfolioCloudStorage {
                 const record=await writer(request.revision,request.id,request.data,request.baseline);
                 if(epoch!==this.generation) throw new Error('La sesión ha cambiado.');
                 if(!record.data) throw new Error('Respuesta incompleta del servidor.');
-                const unchanged=JSON.stringify(this.exportData())===JSON.stringify(request.data);
-                this.revision=record.revision; this.confirmed=normalized(record.data); this.pending=undefined;
-                if(unchanged) this.values=preserveQuotes(record.data,this.values);
-                else if(this.exportData().freewallet_portfolio_v1===request.data.freewallet_portfolio_v1)
-                    this.values=preserveQuotes({...this.values,freewallet_portfolio_v1:record.data.freewallet_portfolio_v1},this.values);
-                this.emit(unchanged?'synced':'saving');
+                const current=this.exportData();
+                const acknowledged=normalized(record.data);
+                const rebased={...acknowledged};
+                let conflict=false;
+                // A retried receipt can return a newer document from another
+                // device. Carry forward only edits made after this request.
+                for(const key of new Set([...Object.keys(request.data),...Object.keys(current)])) {
+                    if(current[key]===request.data[key]) continue;
+                    if(acknowledged[key]!==request.data[key] && acknowledged[key]!==current[key]) conflict=true;
+                    if(current[key]===undefined) delete rebased[key]; else rebased[key]=current[key];
+                }
+                this.revision=record.revision; this.confirmed=acknowledged; this.pending=undefined;
+                this.values=preserveQuotes(rebased,this.values);
+                if(conflict) throw Object.assign(new Error('Conflicting edits after an acknowledged request'),{code:'40001'});
+                this.emit(JSON.stringify(this.exportData())===JSON.stringify(this.confirmed)?'synced':'saving');
                 if(typeof window!=='undefined') window.dispatchEvent(new Event('freewallet-data-change'));
             } catch(error) {
                 if(epoch===this.generation) {

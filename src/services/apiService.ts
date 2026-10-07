@@ -730,7 +730,7 @@ export async function getQuotesYahooSpark(symbols: string[], signal?: AbortSigna
 }
 
 // ===== YAHOO FINANCE GET FUNDAMENTALS =====
-export async function getFundamentalData(symbol: string, signal?: AbortSignal): Promise<Partial<StockQuote>> {
+export async function getFundamentalData(symbol: string, signal?: AbortSignal, includeCompanyProfile = true): Promise<Partial<StockQuote>> {
     if (!isApiEnabled()) {
         return {};
     }
@@ -743,30 +743,39 @@ export async function getFundamentalData(symbol: string, signal?: AbortSignal): 
     // only supplies prices/ranges; it is not a source of EBITDA or earnings.
     const [base, summary] = await Promise.all([
         getQuoteYahoo(symbol, signal).then(data => data || {}).catch(abortOrEmpty),
-        axios.get(`/__market/yahoo1/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=price,defaultKeyStatistics,financialData,summaryDetail`, {signal, timeout:5000})
+        axios.get(`/__market/yahoo1/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=price,defaultKeyStatistics,financialData,summaryDetail${includeCompanyProfile ? ',summaryProfile' : ''}`, {signal, timeout:5000})
             .then(response => normalizeFundamentals(response.data, symbol)).catch(abortOrEmpty),
     ]);
-    let published: Partial<StockQuote> = {};
     let series: Partial<StockQuote> = {};
     // Yahoo's public statistics page embeds the same JSON data even when v10
     // returns Invalid Crumb. No login, cookies or execution of scripts needed.
-    if (!Number.isFinite(summary.ebitda) || !Number.isFinite(summary.eps)) {
-        const fetchPublished = async () => { try {
-            const response = await axios.get(`/__market/yahoo-site/quote/${encodeURIComponent(symbol)}/key-statistics/`, {signal, timeout:8000, responseType:'text'});
+    const fetchPublished = async (page: 'key-statistics' | 'profile') => {
+        try {
+            const response = await axios.get(`/__market/yahoo-site/quote/${encodeURIComponent(symbol)}/${page}/`, {signal, timeout:8000, responseType:'text'});
             return extractPublicFundamentals(response.data, symbol);
-        } catch (error) { return abortOrEmpty(error); } };
-        const fetchSeries = async (ticker: string) => { try {
+        } catch (error) { return abortOrEmpty(error); }
+    };
+    const fetchSeries = async (ticker: string) => {
+        try {
             const dates = `period1=${Math.floor((Date.now()-3*365.25*86400000)/1000)}&period2=${Math.ceil(Date.now()/1000)}`;
             const response = await axios.get(`/__market/yahoo1/ws/fundamentals-timeseries/v1/finance/timeseries/${encodeURIComponent(ticker)}?type=${FUNDAMENTAL_SERIES_TYPES.join(',')}&merge=false&${dates}`, {signal,timeout:5000});
             return normalizeFundamentalSeries(response.data,ticker);
-        } catch (error) { return abortOrEmpty(error); } };
-        [published,series] = await Promise.all([fetchPublished(),fetchSeries(symbol)]);
+        } catch (error) { return abortOrEmpty(error); }
+    };
+    const needsFinancials = !Number.isFinite(summary.ebitda) || !Number.isFinite(summary.eps);
+    const [profile, published, financialSeries] = await Promise.all([
+        !includeCompanyProfile || summary.businessDescription ? Promise.resolve({}) : fetchPublished('profile'),
+        needsFinancials ? fetchPublished('key-statistics') : Promise.resolve({}),
+        needsFinancials ? fetchSeries(symbol) : Promise.resolve({}),
+    ]);
+    if (needsFinancials) {
+        series = financialSeries;
         if (!hasFundamentals(series)) {
             const verified = verifiedSecurityAlias('',symbol);
             if(verified && verified.chartSymbol!==symbol.toUpperCase()) series = await fetchSeries(verified.chartSymbol);
         }
     }
-    return {...mergeFundamentals(base,series,published,summary),fundamentalsCheckedAt:new Date().toISOString()};
+    return {...mergeFundamentals(base,series,profile,published,summary),fundamentalsCheckedAt:new Date().toISOString()};
 }
 
 // ===== YAHOO FINANCE GET CHART DATA =====

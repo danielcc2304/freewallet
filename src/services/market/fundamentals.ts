@@ -21,8 +21,10 @@ export function normalizeFundamentals(payload: unknown, symbol: string): Partial
     if (!result) return {};
     const stats = record(result.defaultKeyStatistics), financial = record(result.financialData);
     const detail = record(result.summaryDetail), price = record(result.price);
+    const profile = record(result.summaryProfile), assetProfile = record(result.assetProfile);
     const quarter = fundamentalNumber(stats.mostRecentQuarter);
     const fields: Partial<StockQuote> = {
+        businessDescription: text(profile.longBusinessSummary) || text(assetProfile.longBusinessSummary),
         currency: currency(price.currency) || currency(result.currency),
         financialCurrency: currency(financial.financialCurrency) || currency(result.financialCurrency),
         pe: first(stats.trailingPE, detail.trailingPE, result.trailingPE),

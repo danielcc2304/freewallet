@@ -27,7 +27,7 @@ Este README describe el código de la rama que estás consultando. Las funciones
 - Comparación con Fidelity MSCI World ACC EUR, ISIN **IE00BYX5NX33**, utilizando las fechas comunes disponibles. No se completa el benchmark con precios inventados ni con otro instrumento.
 - Composición por activos y exposición consolidada: suma las posiciones directas y las participaciones conocidas dentro de los fondos. Identifica el resto sin desglosar y las coincidencias aproximadas.
 - Al activar «Desglosar fondos», el mapa de calor y los desgloses por fondo quedan cerrados por defecto y pueden abrirse individualmente.
-- Detalle de activos con gráficos históricos y fundamentales disponibles, incluido EBITDA en acciones. La identidad de la clase del fondo, la divisa y la fecha del precio se conservan; un dato ausente no se sustituye por cero.
+- Detalle de activos con gráficos históricos, una breve descripción de la empresa antes de las métricas y fundamentales disponibles, incluido EBITDA en acciones. La identidad de la clase del fondo, la divisa y la fecha del precio se conservan; un dato ausente no se sustituye por cero.
 - Plan y control de cartera, con sugerencias de aportaciones en bloques de **50 €**, sin céntimos.
 - Cabecera compacta: fechas de lectura, consulta al proveedor y próxima consulta dentro de un desplegable.
 
@@ -114,7 +114,7 @@ Hay dos procesos distintos:
 | Proceso | Funcionamiento |
 | --- | --- |
 | Refresco del navegador | Cada cinco minutos, con consultas habilitadas y la pestaña visible. Acciones y ETF consultan directamente durante su sesión; criptoactivos, las 24 horas. Fondos y activos fuera de sesión priorizan el batch disponible. El refresco manual consulta directamente. |
-| Actualización diaria en Supabase | Edge Function `daily-market-data` programada por Cron a las **06:00, 20:00 y 22:00 UTC**. Utiliza las posiciones guardadas, actualiza instrumentos y benchmark y puede registrar valoraciones privadas completas. |
+| Actualización en Supabase | Edge Function `daily-market-data` cada dos horas, de **08:00 a 22:00 en España peninsular** (`Europe/Madrid`, con ajuste de verano/invierno). Utiliza las posiciones guardadas, actualiza instrumentos y benchmark y puede registrar valoraciones privadas completas. |
 
 El proceso en Supabase requiere las migraciones, la función desplegada y el job configurado. Publicar el frontend no instala ni activa por sí solo ese proceso. Tampoco el hecho de que el batch esté activo actualiza el código de una web que aún no haya desplegado la integración.
 

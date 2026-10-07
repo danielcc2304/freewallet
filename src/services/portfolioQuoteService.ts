@@ -1,34 +1,47 @@
 import type { Asset, StockQuote } from '../types/types';
 import { getQuote, getAssetChartData } from './apiService';
-import { quoteCurrency, datedFx } from '../../supabase/functions/_shared/quoteCurrency';
+import { quoteCurrency, datedFx, previousCryptoClose } from '../../supabase/functions/_shared/quoteCurrency';
+import type { FxObservation } from '../../supabase/functions/_shared/quoteCurrency';
 import { getFundRelevance } from './finect/finectService';
 import { prefersBatchQuote } from './market/marketSessions';
 
 const ISIN_PATTERN = /^[A-Z]{2}[A-Z0-9]{10}$/;
 
-export async function normalizeQuoteToEuro(quote: StockQuote, signal?: AbortSignal, forceRefresh = false): Promise<StockQuote> {
+export async function normalizeQuoteToEuro(quote: StockQuote, signal?: AbortSignal, forceRefresh = false, assetType?: Asset['type']): Promise<StockQuote> {
     try {
         const unit = quote.currency || '';
         const { currency, scale } = quoteCurrency(unit);
         let rate = 1, previousRate = 1, fxAt: string | null = null;
+        let previous=quote.previousClose*scale,previousAt=quote.previousQuotedAt;
+        let candles:FxObservation[]=[];
         if (currency !== 'EUR') {
             if (!quote.quotedAt) return quote;
             const history = await getAssetChartData(`${currency}EUR=X`, '1M', signal, { forceRefresh });
-            const candles = history.map(p => ({ at: new Date(p.timestamp ?? Date.parse(p.date)).toISOString(), close: p.close }));
+            candles = history.map(p => ({ at: new Date(p.timestamp ?? Date.parse(p.date)).toISOString(), close: p.close }));
             const observation = datedFx(candles, quote.quotedAt);
             rate = observation.close; fxAt = observation.at;
-            let previousAt=quote.previousQuotedAt;
-            if(!previousAt && Number.isFinite(quote.previousClose) && quote.previousClose>0) {
+        }
+        // An optional previous-close lookup must not discard a valid EUR price.
+        if(assetType==='crypto') {previous=NaN;previousAt=undefined;}
+        if(quote.quotedAt && (assetType==='crypto' || currency!=='EUR' && !previousAt && previous>0)) {
+            try {
                 const prices=await getAssetChartData(quote.symbol,'1M',signal,{forceRefresh});
-                const preceding=prices.filter(p=>p.date.slice(0,10)<quote.quotedAt!.slice(0,10) && p.currency===currency)
-                    .sort((a,b)=>a.date.localeCompare(b.date)).at(-1);
-                if(preceding && Math.abs(preceding.close / (quote.previousClose*scale)-1)<0.000001)
-                    previousAt=new Date(preceding.timestamp ?? Date.parse(preceding.date)).toISOString();
-            }
-            previousRate = previousAt ? datedFx(candles, previousAt).close : NaN;
+                const history=prices.filter(p=>p.currency===currency).map(p=>({at:new Date(p.timestamp ?? Date.parse(p.date)).toISOString(),close:p.close}));
+                if(assetType==='crypto') {
+                    const baseline=previousCryptoClose(history,quote.quotedAt);
+                    previous=baseline?.close ?? NaN;previousAt=baseline?.at;
+                } else {
+                    const preceding=history.filter(p=>p.at.slice(0,10)<quote.quotedAt!.slice(0,10)).sort((a,b)=>a.at.localeCompare(b.at)).at(-1);
+                    if(preceding && Math.abs(preceding.close/previous-1)<0.000001)previousAt=preceding.at;
+                }
+            } catch { /* The current valuation remains valid without a daily change. */ }
+        }
+        if(currency!=='EUR') {
+            previousRate=NaN;
+            if(previousAt)try{previousRate=datedFx(candles,previousAt).close;}catch{/* No dated previous FX: variation is unavailable. */}
         }
         const price = quote.price * scale * rate;
-        const previousClose = quote.previousClose * scale * previousRate;
+        const previousClose = previous * previousRate;
         const change = price - previousClose;
         return {
             ...quote,
@@ -36,6 +49,7 @@ export async function normalizeQuoteToEuro(quote: StockQuote, signal?: AbortSign
             change,
             changePercent: previousClose > 0 ? change / previousClose * 100 : NaN,
             previousClose,
+            previousQuotedAt:previousAt,
             open: quote.open * scale * rate,
             high: quote.high * scale * rate,
             low: quote.low * scale * rate,
@@ -91,7 +105,7 @@ export async function getPortfolioAssetQuote(asset: Asset, signal?: AbortSignal,
     // Session refreshes bypass both the batch and the browser quote cache.
     const directRefresh = forceRefresh || !preferBatch;
     const quote = await getQuote(asset.symbol, signal, directRefresh);
-    if (quote) return normalizeQuoteToEuro(quote, signal, directRefresh);
+    if (quote) return normalizeQuoteToEuro(quote, signal, directRefresh, asset.type);
     // Keep an existing live quote when the batch is older. The caller leaves
     // the current position untouched when no acceptable fallback is available.
     return storedQuote && canUseStored ? storedQuote : null;

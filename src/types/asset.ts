@@ -28,5 +28,12 @@ export interface Asset {
     lastReadAt?: string;
     quoteOrigin?: 'batch' | 'provider';
     quotedAt?: string;
+    originalPrice?: number;
+    originalCurrency?: string;
+    originalUnit?: string;
+    unitScale?: number;
+    fxRate?: number;
+    fxAt?: string | null;
+    valuationBasis?: 'quote-date-fx';
     quoteSource?: 'Finect' | 'Yahoo Finance' | 'Mercado' | 'Saldo';
 }

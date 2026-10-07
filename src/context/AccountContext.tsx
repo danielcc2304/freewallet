@@ -37,9 +37,9 @@ export function AccountProvider({children}:{children:ReactNode}) {
             if(id===lastId) return;
             const turn=++sequence;
             lastId=id;
-            scope.change(id);portfolioStorage.select(id,id ? async(revision,requestId,data)=>{
+            scope.change(id);portfolioStorage.select(id,id ? async(revision,requestId,data,baseline)=>{
                 const ticket=scope.request();
-                try {const result=await writeCloudPortfolio(ticket.userId,revision,requestId,data,ticket.signal);if(!ticket.isCurrent())throw new Error('La sesión ha cambiado.');return result;}
+                try {const result=await writeCloudPortfolio(ticket.userId,revision,requestId,data,ticket.signal,baseline);if(!ticket.isCurrent())throw new Error('La sesión ha cambiado.');return result;}
                 finally {ticket.finish();}
             }:undefined);
             setUser(session?.user??null);

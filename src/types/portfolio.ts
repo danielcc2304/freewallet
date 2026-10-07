@@ -31,6 +31,9 @@ export interface PortfolioHistoryPoint {
     value: number;
     invested: number;
     source?: 'quotes-v2' | 'market-estimate';
+    valuationKind?: 'mixed-observations';
+    observationFrom?: string;
+    observationTo?: string;
     ledgerKey?: string;
 }
 

@@ -33,8 +33,19 @@ async function request(name:string, args:Record<string,unknown>, userId:string, 
     return data as CloudRecord;
 }
 export const readCloudPortfolio=(userId:string,revision:number|null=null,signal?:AbortSignal)=>request('read_portfolio',{known_revision:revision},userId,signal);
-export async function writeCloudPortfolio(userId:string,revision:number,id:string,data:CloudData,signal?:AbortSignal):Promise<CloudRecord> {
-    const result=await request('commit_portfolio',{expected_revision:revision,request_id:id,mode:revision<0?'import':'save',data},userId,signal);
+export async function writeCloudPortfolio(userId:string,revision:number,id:string,data:CloudData,signal?:AbortSignal,baseline?:CloudData):Promise<CloudRecord> {
+    const delta=baseline && revision>=0 ? {
+        changes:Object.fromEntries(Object.entries(data).filter(([key,value])=>baseline[key]!==value)),
+        removed:Object.keys(baseline).filter(key=>!(key in data)),
+    } : null;
+    const result=delta ? await request('patch_portfolio',{expected_revision:revision,request_id:id,...delta},userId,signal)
+        : await request('commit_portfolio',{expected_revision:revision,request_id:id,mode:revision<0?'import':'save',data},userId,signal);
     if(!result || !result.data) throw new Error('No se pudo confirmar el guardado.');
+    if(result.patch) {
+        if(!baseline || !Array.isArray(result.removed) || result.removed.some(key=>typeof key!=='string')) throw new Error('Respuesta incremental no válida.');
+        const merged={...baseline,...result.data};
+        for(const key of result.removed) delete merged[key];
+        return {revision:result.revision,data:merged};
+    }
     return result;
 }

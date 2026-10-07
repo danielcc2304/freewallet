@@ -2,6 +2,14 @@ import type { AssetType } from './asset';
 
 export interface StockQuote {
     quotedAt?: string;
+    previousQuotedAt?: string;
+    valuationBasis?: 'quote-date-fx';
+    originalPrice?: number;
+    originalCurrency?: string;
+    originalUnit?: string;
+    unitScale?: number;
+    fxRate?: number;
+    fxAt?: string | null;
     checkedAt?: string;
     origin?: 'batch' | 'provider';
     source?: 'Finect' | 'Yahoo Finance' | 'Mercado' | 'Saldo';
@@ -19,6 +27,8 @@ export interface StockQuote {
     currency?: string;
     /** Currency of financial statements, which may differ from share trading. */
     financialCurrency?: string;
+    marketCapCurrency?: string;
+    dividendCurrency?: string;
     epsCurrency?: string;
     fundamentalPeriodEnd?: string;
     fundamentalsCheckedAt?: string;

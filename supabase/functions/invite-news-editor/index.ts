@@ -1,4 +1,4 @@
-import { createClient } from 'npm:@supabase/supabase-js@2';
+import { createClient } from 'npm:@supabase/supabase-js@2.112.4';
 
 function readSupabaseKey(legacyName: string, bundledName: string): string {
     const legacyKey = Deno.env.get(legacyName)?.trim();
@@ -101,49 +101,17 @@ Deno.serve(async (request) => {
         auth: { autoRefreshToken: false, persistSession: false },
     });
 
-    const { data: existingMembership, error: membershipLookupError } = await adminClient
-        .from('news_admins')
-        .select('status')
-        .eq('email', email)
-        .maybeSingle();
+    const { data: invitation, error: preparationError } = await userClient.rpc('prepare_news_invitation', { target_email: email });
+    if (preparationError || !invitation) return jsonResponse(request, { error: 'No se pudo preparar la invitación. Puedes reintentar.' }, 500);
+    if (!invitation.deliveryRequired) return jsonResponse(request, { ok: true, status: invitation.state });
 
-    if (membershipLookupError) {
-        return jsonResponse(request, { error: 'No se pudo comprobar el equipo editorial.' }, 500);
-    }
-
-    if (existingMembership?.status === 'active') {
-        return jsonResponse(request, { error: 'Ese correo ya tiene acceso editorial.' }, 409);
-    }
-
-    if (existingMembership?.status === 'invited') {
-        return jsonResponse(request, { error: 'Ya hay una invitación pendiente para ese correo.' }, 409);
-    }
-
-    const { data: invitedUser, error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, {
-        redirectTo: `${appUrl}/admin/news`,
+    // Auth can create the account and send mail even if the subsequent RPC
+    // response is lost. The durable preparation makes the next attempt recover it.
+    const { error: inviteError } = await adminClient.auth.admin.inviteUserByEmail(email, { redirectTo: `${appUrl}/admin/news` });
+    const { data: completed, error: completionError } = await adminClient.rpc('complete_news_invitation', {
+        invitation_id: invitation.id, delivery_error: !!inviteError,
     });
-
-    if (inviteError || !invitedUser.user) {
-        const message = inviteError?.message.toLowerCase().includes('already registered')
-            ? 'Ese correo ya existe en Supabase Auth. Revoca su acceso anterior o gestiona la invitación desde Supabase.'
-            : 'Supabase no pudo enviar la invitación.';
-        return jsonResponse(request, { error: message }, 409);
-    }
-
-    const { error: insertError } = await adminClient
-        .from('news_admins')
-        .insert({
-            user_id: invitedUser.user.id,
-            email,
-            role: 'editor',
-            status: 'invited',
-            invited_by: userData.user.id,
-            invited_at: new Date().toISOString(),
-        });
-
-    if (insertError) {
-        return jsonResponse(request, { error: 'La invitación se envió, pero no se pudo registrar el editor.' }, 500);
-    }
-
-    return jsonResponse(request, { ok: true });
+    if (completionError) return jsonResponse(request, { error: 'No se pudo confirmar la invitación. Reintenta para recuperar su registro.' }, 503);
+    if (!completed) return jsonResponse(request, { error: 'No se pudo enviar la invitación. Puedes reintentar.' }, 502);
+    return jsonResponse(request, { ok: true, status: inviteError ? 'registered' : 'sent' });
 });

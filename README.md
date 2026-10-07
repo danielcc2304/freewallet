@@ -35,7 +35,7 @@ Este README describe el código de la rama que estás consultando. Las funciones
 
 - Modo local sin backend obligatorio, con persistencia en el navegador.
 - Con Supabase configurado: acceso, registro con confirmación de correo, recuperación de contraseña y verificación en dos pasos mediante TOTP, QR o clave manual.
-- Una cartera por cuenta, sincronización entre dispositivos y control de revisiones, conflictos y peticiones repetidas.
+- Una cartera por cuenta, sincronización entre dispositivos y control de revisiones, conflictos y peticiones repetidas. Los guardados posteriores a la importación envían cambios y borrados de campos, con respuesta incremental.
 - La importación de una cartera local a la cuenta requiere confirmación expresa. No reemplaza automáticamente una cartera remota existente.
 - Las modificaciones de una cartera conectada requieren conexión; la vista ya cargada puede consultarse sin red en esa pestaña.
 
@@ -97,7 +97,7 @@ Las variables `VITE_*` se incluyen en el cliente. Nunca uses una clave secreta n
 
 ### Cartera cloud
 
-Las migraciones están en [`supabase/migrations`](supabase/migrations). Antes de habilitar el flag, configura Auth, correo y redirects de `/account`, y comprueba qué migraciones están ya aplicadas. El esquema editorial de Noticias se configura por separado.
+Las migraciones están en [`supabase/migrations`](supabase/migrations). Antes de habilitar el flag, configura Auth, correo y redirects de `/account`, y comprueba qué migraciones están ya aplicadas. En una instalación nueva, prepara primero el esquema editorial base y después aplica todas las migraciones versionadas; estas también protegen Noticias.
 
 Consulta [cartera con Supabase](docs/portfolio-supabase.md) para el modelo, la importación, las revisiones, los conflictos y MFA. Ese documento incluye informes de implementación y validaciones de su fecha; no constituye una comprobación del estado actual de cada despliegue.
 
@@ -120,18 +120,20 @@ El proceso en Supabase requiere las migraciones, la función desplegada y el job
 
 Los proveedores principales son **Yahoo Finance** para instrumentos negociados y **Finect** para fondos identificados por ISIN; existen fallbacks con Alpha Vantage y Finnhub según disponibilidad. Los gráficos y fundamentales dependen de la cobertura del instrumento y proveedor.
 
-El proceso diario conserva precio, divisa, proveedor, fecha de cotización y fecha de consulta. Convierte las valoraciones a EUR según las observaciones de cambio admitidas. Un fallo parcial conserva los datos disponibles y registra errores, sin publicar una valoración total incompleta. No modifica cantidades, costes ni el libro de operaciones.
+El proceso conserva precio y unidad originales (incluidos GBp), divisa, proveedor, fecha de cotización y fecha de consulta. El cliente y el batch usan el cambio correspondiente al día del precio y guardan su fecha. Convierte las valoraciones a EUR según las observaciones de cambio admitidas. Un fallo parcial conserva los datos disponibles y registra errores, sin publicar una valoración total incompleta. No modifica cantidades, costes ni el libro de operaciones.
+
+El batch reintenta fallos transitorios, cancela consultas al agotar su plazo y cuenta con un watchdog cada cinco minutos; los avisos aparecen en el Dashboard. Cada valoración captura solo el bloqueo de su cuenta y referencia un libro de operaciones deduplicado. Es la última valoración del día con precios/NAV de distintas fechas, no un cierre oficial.
 
 La serie diaria comienza al activar el proceso: no recupera automáticamente todos los precios anteriores. Fondos, festivos y fines de semana pueden conservar el último NAV o cierre disponible. Consulta [actualización diaria](docs/daily-market-data.md) para despliegue, calendario, permisos y diagnóstico.
 
 ## Noticias editoriales
 
 1. Prepara Auth y la cuenta propietaria indicada en las reglas de bootstrap de [`supabase/news-schema.sql`](supabase/news-schema.sql).
-2. Aplica ese esquema en el proyecto correspondiente y configura las variables públicas del frontend.
+2. En una instalación nueva, aplica ese esquema base **antes** de las migraciones versionadas. En proyectos ya preparados utiliza las migraciones; no vuelvas a ejecutar el bootstrap. Configura las variables públicas del frontend.
 3. Configura los redirects de `/admin/news` y el correo de Auth.
 4. Para invitar editores, despliega la Edge Function [`invite-news-editor`](supabase/functions/invite-news-editor) y configura sus secretos `APP_URL` y `ALLOWED_ORIGINS` para el dominio autorizado.
 
-La función de invitaciones usa credenciales administrativas únicamente en el servidor. El propietario administra el equipo; los invitados establecen su contraseña mediante el correo de Supabase. Una membresía revocada pierde acceso editorial aunque su cuenta de Auth siga existiendo.
+La función de invitaciones usa credenciales administrativas únicamente en el servidor. El propietario administra el equipo; los invitados establecen su contraseña mediante el correo de Supabase. Una membresía revocada pierde acceso editorial aunque su cuenta de Auth siga existiendo. Las operaciones requieren sesión vigente y MFA si está activado. Cada editor modifica sus artículos; el propietario puede gestionar todos. Las invitaciones se registran antes del envío y pueden recuperarse sin duplicar correos.
 
 Las noticias se almacenan como HTML sanitizado, con editor Tiptap. La portada utiliza una URL HTTPS. Los permisos editoriales no permiten acceder a carteras de otros usuarios.
 

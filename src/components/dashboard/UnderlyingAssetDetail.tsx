@@ -1,26 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Activity, Loader2 } from 'lucide-react';
 import { AssetDetail } from './AssetDetail';
-import { getQuote, searchSymbol } from '../../services/apiService';
+import { getQuote, searchUnderlyingInstrument } from '../../services/apiService';
 import { isApiEnabled } from '../../services/storageService';
 import type { Asset, AssetHolding } from '../../types/types';
 import { chooseUnderlyingResult } from '../../services/dashboardIntegrity';
 import { assetValue } from '../../services/assetValuation';
 import type { ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
 import './UnderlyingAssetDetail.css';
+import { underlyingQueries } from '../../services/underlyingInstruments';
+import { Button } from '../ui';
 
 interface UnderlyingAssetDetailProps {
     holding: AssetHolding;
     parentAsset: Asset;
     exposure?: ConsolidatedPortfolioExposure;
-}
-
-function isTicker(value: string, name: string): boolean {
-    const candidate = value.trim();
-    return Boolean(candidate)
-        && !/^[A-Z]{2}[A-Z0-9]{9}\d$/i.test(candidate)
-        && candidate.toLowerCase() !== name.trim().toLowerCase()
-        && /^[A-Z0-9][A-Z0-9.-]{0,15}$/i.test(candidate);
 }
 
 function formatCurrency(value: number): string {
@@ -46,6 +40,7 @@ export function UnderlyingAssetDetail({ holding, parentAsset, exposure }: Underl
     const [resolvedAsset, setResolvedAsset] = useState<Asset | null>(null);
     const [status, setStatus] = useState<'loading' | 'ready' | 'unavailable'>('loading');
     const [errorMessage, setErrorMessage] = useState('');
+    const [retry,setRetry] = useState(0);
     const apiEnabled = isApiEnabled();
 
     useEffect(() => {
@@ -64,18 +59,13 @@ export function UnderlyingAssetDetail({ holding, parentAsset, exposure }: Underl
             }
 
             try {
-                const query = holding.isin || (isTicker(holding.symbol, holding.name) ? holding.symbol : holding.name);
-                const results = await searchSymbol(query, controller.signal);
-                const match = chooseUnderlyingResult(results, holding) || (!holding.isin && !results.length && isTicker(holding.symbol, holding.name)
-                    ? {
-                        symbol: holding.symbol,
-                        name: holding.name,
-                        type: 'stock' as const,
-                        region: 'Global',
-                        currency: parentAsset.currency || 'EUR',
-                    }
-                    : undefined);
-                if (!match) throw new Error('No hay una coincidencia inequívoca para este activo. Su exposición se conserva; no se mostrará la ficha de otro instrumento.');
+                let match;
+                for(const {query,isinSearch} of underlyingQueries(holding)){
+                    const results=await searchUnderlyingInstrument(query,controller.signal);
+                    match=chooseUnderlyingResult(results,holding,isinSearch);
+                    if(match) break;
+                }
+                if (!match) throw new Error('No hay una cotización identificada para este subyacente.');
 
                 const quote = await getQuote(match.symbol, controller.signal);
                 if (disposed || controller.signal.aborted) return;
@@ -91,8 +81,8 @@ export function UnderlyingAssetDetail({ holding, parentAsset, exposure }: Underl
                     quantity: 0,
                     currentPrice: quote && Number.isFinite(price) && price >= 0 ? price : undefined,
                     previousClose: quote?.previousClose,
-                    currency: quote?.currency || parentAsset.currency || 'EUR',
-                    isin: holding.isin,
+                    currency: quote?.currency || match.currency || 'Unknown',
+                    isin: holding.isin || match.isin,
                     lastQuoteAt: quote?.quotedAt,
                     lastCheckedAt: quote ? new Date().toISOString() : undefined,
                 });
@@ -100,7 +90,8 @@ export function UnderlyingAssetDetail({ holding, parentAsset, exposure }: Underl
             } catch (error) {
                 if (disposed || controller.signal.aborted) return;
                 setStatus('unavailable');
-                setErrorMessage(error instanceof Error ? error.message : 'No he podido cargar la ficha del activo.');
+                setErrorMessage(error instanceof Error && error.message==='No hay una cotización identificada para este subyacente.'
+                    ? error.message : 'No se pudo consultar la cotización. Reintenta.');
             }
         };
 
@@ -109,7 +100,7 @@ export function UnderlyingAssetDetail({ holding, parentAsset, exposure }: Underl
             disposed = true;
             controller.abort();
         };
-    }, [apiEnabled, holding, holding.isin, holding.name, holding.symbol, parentAsset.currency, parentAsset.purchaseDate]);
+    }, [apiEnabled, holding, holding.isin, holding.name, holding.symbol, parentAsset.currency, parentAsset.purchaseDate,retry]);
 
     const parentValue = assetValue(parentAsset);
     const exposureValue = exposure?.value ?? parentValue * (holding.percentage / 100);
@@ -155,7 +146,7 @@ export function UnderlyingAssetDetail({ holding, parentAsset, exposure }: Underl
                 <div className="underlying-detail__unavailable">
                     <strong>{holding.name}</strong>
                     <p>{errorMessage}</p>
-                    <small>La ponderación consolidada sí se mantiene calculada con los datos del fondo.</small>
+                    {apiEnabled && <Button type="button" variant="secondary" onClick={()=>setRetry(n=>n+1)}>Reintentar</Button>}
                 </div>
             )}
         </div>

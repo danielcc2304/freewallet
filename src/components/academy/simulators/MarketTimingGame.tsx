@@ -28,7 +28,7 @@ export function MarketTimingGame() {
     const [currentPrice, setCurrentPrice] = useState(100);
     const [timer, setTimer] = useState(0);
 
-    const gameLoopRef = useRef<ReturnType<typeof setInterval> | undefined>(undefined);
+    const gameLoopRef = useRef<number | undefined>(undefined);
     const lastPriceRef = useRef(100);
     const tickRef = useRef(0);
 

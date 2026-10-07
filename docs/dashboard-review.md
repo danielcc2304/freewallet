@@ -60,9 +60,11 @@ El 7 de octubre se comprobó el recorrido completo en Chromium, sin simular resp
 
 ## Presentación de la comparación con el benchmark
 
-Se elimina la segunda tarjeta de rentabilidad de cartera llamada «tramo comparable». La rentabilidad principal conserva el periodo seleccionado y se separa visualmente de la comparación, cuyo encabezado identifica sus fechas. Cuando la cobertura es parcial, la leyenda y el tooltip identifican hasta qué fecha llega la serie de cartera del gráfico. La diferencia se muestra en puntos porcentuales y sigue calculándose entre ambas series sobre las mismas fechas; no se sustituye por la resta de rentabilidades de periodos diferentes.
+La tarjeta y la línea de la cartera conservan el periodo completo y la misma base que el resumen. Una cobertura parcial del benchmark ya no recorta la cartera ni introduce una segunda rentabilidad actual. La hoja Comparativa se empareja únicamente en sus fechas de cierre: un valor mensual no se reutiliza como si fuera una cotización de los días posteriores. La serie automática tampoco se extiende más allá del último cierre observado.
 
-Verificación en Chromium con datos sintéticos: una rentabilidad completa de +8,94% y una serie que termina antes con +7,85%, frente al +15,53% del benchmark. Se comprueba una sola tarjeta de rentabilidad de cartera, diferencia de -7,68 pp, fechas y leyenda explícitas y ausencia de desbordamiento a 390 y 1280 px. `test-import-benchmark-coverage.ts`, TypeScript y ESLint siguen pasando. No cambia el cálculo ni se añaden precios o fechas al benchmark.
+El benchmark conserva sus fechas disponibles. Si comparte la base inicial, su línea se dibuja hasta el último punto disponible junto a la cartera completa; si falta esa base, se muestra solo la línea de la cartera. La diferencia del periodo queda N/D hasta que ambos cubran los mismos extremos, evitando restar resultados de periodos distintos. Los valores históricos del tooltip corresponden a la fecha seleccionada. El eje temporal respeta la distancia entre las observaciones.
+
+En móvil, el selector utiliza todo el ancho del panel con seis columnas iguales. Esta revisión se ha contrastado con el código y su compilación TypeScript; no se han ejecutado nuevas pruebas de navegador ni de cálculo financiero.
 
 ## Aportaciones en bloques de 50 €
 

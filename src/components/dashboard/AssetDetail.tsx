@@ -529,7 +529,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                 )}
                 <div className="asset-detail__chart-legend">
                     <span><i className="asset-detail__legend-line" /> {isFund ? 'Precio participación' : 'Precio'}</span>
-                    <span className="asset-detail__chart-axis-hint">Eje vertical: {chartData[0]?.currency || asset.currency || 'EUR'} · Eje horizontal: fecha. Histórico en su divisa de origen; la posición se valora en {asset.currency || 'EUR'}.</span>
+                    <span className="asset-detail__chart-axis-hint">Eje vertical: {chartData[0]?.currency || asset.currency || 'EUR'} · Eje horizontal: fecha. {marketOnly ? 'Histórico en su divisa de origen.' : `Histórico en su divisa de origen; la posición se valora en ${asset.currency || 'EUR'}.`}</span>
                 </div>
                {!isFund && chartData[0]?.sourceSymbol && chartData[0].sourceSymbol !== asset.symbol && <p className="asset-detail__chart-source">
                    Histórico de {chartData[0].sourceSymbol}, cotización alternativa de la misma empresa. El precio de tu posición corresponde a {asset.symbol}.

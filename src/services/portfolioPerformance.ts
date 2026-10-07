@@ -224,11 +224,17 @@ export function selectPortfolioPeriod(series: ReturnType<typeof performanceSerie
     const available = series.filter(p => p.timestamp <= now);
     const previous = cutoff === null ? available[0] : available.filter(p => p.timestamp <= cutoff).at(-1);
     const following = cutoff === null ? undefined : available.find(p => p.timestamp > cutoff);
-    const base = cutoff === null ? previous : previous && cutoff - previous.timestamp <= 4 * DAY_MS ? previous
+    const nearbyBase = cutoff === null ? previous : previous && cutoff - previous.timestamp <= 4 * DAY_MS ? previous
         : following && following.timestamp - cutoff <= 4 * DAY_MS ? following : undefined;
+    // Imported monthly closes cannot provide a price on every rolling cutoff.
+    // Use the preceding real close for month ranges, with explicit dates;
+    // never relax daily/weekly windows or fabricate an observation at cutoff.
+    const monthlyBase = !nearbyBase && cutoff !== null && (period === '1M' || period === '3M')
+        && previous?.cadence === 'monthly' && cutoff - previous.timestamp <= 31 * DAY_MS;
+    const base = nearbyBase || (monthlyBase ? previous : undefined);
     const points = base ? available.filter(p => p.timestamp >= base.timestamp) : available.filter(p => cutoff === null || p.timestamp >= cutoff);
     const performance = calculatePeriodPerformance(available, base?.timestamp ?? cutoff ?? -Infinity, now, period === 'ALL' ? Infinity : 4 * DAY_MS);
-    return { points, performance, cutoff };
+    return { points, performance, cutoff, monthlyBase: !!monthlyBase };
 }
 
 export interface BenchmarkPeriodPerformance {

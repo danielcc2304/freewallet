@@ -10,6 +10,7 @@ import type { Asset } from '../../types/types';
 import './LivePortfolioPlan.css';
 
 const money = (n: number) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' });
+const contributionMoney = (n: number) => n.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
 const pct = (n: number) => n.toLocaleString('es-ES', { maximumFractionDigits: 2 }) + '%';
 const intervalLabel = (row: DashboardAnalytics['monthly'][number]) => [
     row.monthlyIntervals ? `${row.monthlyIntervals} mensual${row.monthlyIntervals === 1 ? '' : 'es'}` : '',
@@ -96,7 +97,8 @@ function LivePortfolioPlanEditor({ analytics, section = 'all' }: { analytics: Da
                 {assets.length > 0 && <Button className="live-plan__use-weights" variant="secondary" type="button" onClick={useCurrentWeights} disabled={plan.total <= 0}>Usar pesos actuales como objetivos</Button>}
                 <label className="live-plan__budget">Próxima aportación (€)<input type="text" inputMode="decimal" value={budgetInput} onChange={e => setBudgetInput(e.target.value)} aria-invalid={!!budgetInput && parsePlanNumber(budgetInput) === null} /></label>
                 <p role="status">Objetivos: {pct(targetTotal)} / 100%. {validTargets ? 'Plan listo para distribuir la aportación entre posiciones infraponderadas.' : 'Completa los pesos hasta el 100% para calcular la propuesta.'}</p>
-                {validTargets && !canCalculate && <p role="status">Introduce una aportación mayor que cero para calcular el reparto.</p>}
+                {validTargets && !canCalculate && <p role="status">Introduce una aportación de al menos 50 € para calcular el reparto.</p>}
+                {canCalculate && <p role="status">Reparto en múltiplos de 50 €.{plan.unallocated > 0 && ` Quedan ${plan.unallocated.toLocaleString('es-ES', {style: 'currency', currency: 'EUR', minimumFractionDigits: 0})} sin asignar.`}</p>}
                 {saveError && <p role="alert">No se han podido guardar los objetivos en este navegador.</p>}
                 <div className="live-plan__mobile-positions" aria-label="Plan de aportaciones por activo">
                     {rows.map(r => <article className="live-plan__position" key={r.key}>
@@ -105,7 +107,7 @@ function LivePortfolioPlanEditor({ analytics, section = 'all' }: { analytics: Da
                         <div className="live-plan__position-main">
                             <div><span>Peso actual</span><strong>{pct(r.weight)}</strong></div>
                             <label>Objetivo %<input aria-label={'Peso objetivo de ' + r.a.name} type="text" inputMode="decimal" value={targets[r.key] ?? ''} onChange={e => setTarget(r.key, e.target.value)} aria-invalid={!!targets[r.key] && (r.target === null || r.target > 100)} /></label>
-                            <div><span>Aportar</span><strong>{canCalculate ? money(r.contribution) : '—'}</strong></div>
+                            <div><span>Aportar</span><strong>{canCalculate ? contributionMoney(r.contribution) : '—'}</strong></div>
                         </div>
                         <details><summary>Ver detalle de la posición</summary><dl>
                             <div><dt>Cantidad</dt><dd>{formatQuantity(r.a)}</dd></div>
@@ -126,7 +128,7 @@ function LivePortfolioPlanEditor({ analytics, section = 'all' }: { analytics: Da
                         <td className={r.value >= r.cost ? 'is-positive' : 'is-negative'}>{money(r.value - r.cost)}{!r.assets.every(hasValidPrice) && <small>Estimado al coste</small>}</td><td>{r.cost && r.assets.every(hasValidPrice) ? pct((r.value / r.cost - 1) * 100) : 'N/D'}</td><td>{pct(r.weight)}</td>
                         <td><input aria-label={'Peso objetivo de ' + r.a.name} type="text" inputMode="decimal" value={targets[r.key] ?? ''} onChange={e => setTarget(r.key, e.target.value)} aria-invalid={!!targets[r.key] && (r.target === null || r.target > 100)} /></td>
                         <td>{r.target !== null ? (r.weight - r.target).toFixed(2) : '—'}</td>
-                        <td>{canCalculate ? money(r.contribution) : '—'}</td>
+                        <td>{canCalculate ? contributionMoney(r.contribution) : '—'}</td>
                     </tr>)}</tbody>
                 </table></div>
                 <p>La propuesta usa aportaciones sin ventas ni comisiones. Las cantidades cambian al registrar operaciones y los pesos con cada cotización.</p>

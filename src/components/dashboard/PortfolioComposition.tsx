@@ -308,8 +308,17 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
             <CardContent>
                 <div className="portfolio-composition__content">
                     <div className="portfolio-composition__heatmap">
-                        <h4 className="portfolio-composition__section-title">Mapa de Calor</h4>
-                        <Heatmap data={heatmapData} showBreakdown={showBreakdown} onItemClick={handleHeatmapClick} />
+                        {showBreakdown ? (
+                            <details className="portfolio-composition__heatmap-details">
+                                <summary>Mapa de calor</summary>
+                                <Heatmap data={heatmapData} showBreakdown onItemClick={handleHeatmapClick} />
+                            </details>
+                        ) : (
+                            <>
+                                <h4 className="portfolio-composition__section-title">Mapa de Calor</h4>
+                                <Heatmap data={heatmapData} onItemClick={handleHeatmapClick} />
+                            </>
+                        )}
                         {showBreakdown && !apiEnabled && <p>Consultas externas desactivadas. Solo se muestran los desgloses guardados.</p>}
                         {showBreakdown && apiEnabled && funds.some(a => breakdownErrors[getFundIsin(a) || a.id]) && <Button variant="secondary" type="button" disabled={breakdownLoading} onClick={() => setRetry(n => n + 1)}>Reintentar desgloses pendientes</Button>}
                         {showBreakdown && <p>Los subyacentes muestran exposición estimada, no la rentabilidad del fondo como si fuera propia.</p>}

@@ -7,6 +7,10 @@
 }
 
 .portfolio-composition__heatmap { grid-area: heatmap; min-width: 0; }
+.portfolio-composition__heatmap-details { min-width: 0; padding: var(--spacing-md); border: 1px solid var(--border-primary); border-radius: var(--radius-md); }
+.portfolio-composition__heatmap-details summary { cursor: pointer; min-height: 44px; align-content: center; font-weight: 600; color: var(--text-primary); }
+.portfolio-composition__heatmap-details summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; border-radius: var(--radius-sm); }
+.portfolio-composition__heatmap-details[open] summary { margin-bottom: var(--spacing-md); }
 .portfolio-composition__donut { grid-area: donut; min-width: 0; }
 .portfolio-composition__consolidated { grid-column: 1 / -1; min-width: 0; }
 .portfolio-composition__distributions { grid-column: 1 / -1; display: grid; gap: var(--spacing-md); min-width: 0; }

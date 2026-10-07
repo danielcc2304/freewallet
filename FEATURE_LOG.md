@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-07 - v6.0.13 - Cierres cripto y sincronización de cartera
+- Funcionalidad:
+  - Calcula la variación cripto con el cierre real del día anterior UTC y aplica el cambio de divisa fechado, tanto en el navegador como en el worker.
+  - Conserva las ediciones concurrentes de cartera al confirmar reintentos y evita publicar snapshots con precios incompletos.
+  - Mantiene la valoración actual si falta el cierre anterior y permite completar la verificación MFA aunque falle la recarga de datos.
+- Resumen:
+  - Corrige la variación diaria de criptoactivos y refuerza la recuperación de sincronización y la captura completa de valoraciones.
+- Archivos:
+  - `docs/daily-market-data.md`, `package.json`, `package-lock.json`, `scripts/test-architecture-hardening.ts`, `scripts/test-crypto-variation-ui.ts`, `scripts/test-news-article-editor-ui.ts`, `scripts/test-portfolio-sync.ts`, `src/constants/app.ts`, `src/pages/Account/AccountMfa.tsx`, `src/pages/AddInvestment/AddInvestment.tsx`, `src/services/apiService.ts`, `src/services/portfolioCloudStorage.ts`, `src/services/portfolioQuoteService.ts`, `supabase/functions/_shared/quoteCurrency.ts`, `supabase/functions/daily-market-data/providers.ts`, `supabase/migrations/20261007182903_market_snapshot_completeness.sql`, `FEATURE_LOG.md`.
+
 ### 2026-10-07 - v6.0.12 - Endurecimiento de cotizaciones y persistencia
 - Funcionalidad:
   - Normaliza unidades de cotización minoritarias y valida precio, moneda y cambio fechado antes de publicar datos de mercado.

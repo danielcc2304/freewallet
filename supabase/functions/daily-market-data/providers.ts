@@ -1,4 +1,4 @@
-import { quoteCurrency, datedFx, marketSymbolMatches } from '../_shared/quoteCurrency.ts';
+import { quoteCurrency, datedFx, marketSymbolMatches, previousCryptoClose } from '../_shared/quoteCurrency.ts';
 
 /** Server-only providers. Dates are provider observations, never fetch dates. */
 export interface MarketPrice {
@@ -130,14 +130,17 @@ export async function fetchMarketPrice(input: MarketInstrument | string, finectK
     } else {
         const data = await chart(symbol, signal);
         const last = data.candles.at(-1)!;
-        const previous = data.candles.at(-2);
+        const previous = type==='crypto' ? previousCryptoClose(data.candles,last.at) : data.candles.at(-2);
         raw = { price: last.close, previous: previous?.close ?? null, currency: data.currency, at: last.at,
             source: 'Yahoo Finance', previousAt: previous?.at };
         try {
             const current = await sessionQuote(symbol, signal);
             if (current.currency === raw.currency && current.at >= raw.at) {
                 const previousCandle = data.candles.filter(c => c.at.slice(0, 10) < current.at.slice(0, 10)).at(-1);
-                if (previousCandle && current.previous && Math.abs(previousCandle.close / current.previous - 1) < 0.000001)
+                if(type==='crypto') {
+                    const baseline=previousCryptoClose(data.candles,current.at);
+                    current.previous=baseline?.close ?? null;current.previousAt=baseline?.at;
+                } else if (previousCandle && current.previous && Math.abs(previousCandle.close / current.previous - 1) < 0.000001)
                     current.previousAt = previousCandle.at;
                 raw = current;
             }

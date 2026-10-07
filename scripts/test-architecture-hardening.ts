@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync } from 'node:fs';
 import {normalizeFundamentals,formatFundamentalMoney} from '../src/services/market/fundamentals';
 import { PGlite } from '@electric-sql/pglite';
-import { quoteCurrency, datedFx, marketSymbolMatches } from '../supabase/functions/_shared/quoteCurrency';
+import { quoteCurrency, datedFx, marketSymbolMatches, previousCryptoClose } from '../supabase/functions/_shared/quoteCurrency';
 import { fetchMarketPrice, providerJson, parseFund, parseChart } from '../supabase/functions/daily-market-data/providers';
 
 assert.deepEqual(quoteCurrency('GBp'),{currency:'GBP',scale:0.01});
@@ -12,6 +12,9 @@ assert.equal(marketSymbolMatches('VOD.L','VOD','USD'),false);
 assert.deepEqual(quoteCurrency('GBP'),{currency:'GBP',scale:1});
 assert.throws(()=>quoteCurrency('UNKNOWN'));
 assert.equal(datedFx([{at:'2026-10-02T00:00:00Z',close:1.1},{at:'2026-10-07T00:00:00Z',close:1.2}],'2026-10-05T12:00:00Z').close,1.1);
+assert.equal(previousCryptoClose([{at:'2026-10-05T00:00:00Z',close:9},{at:'2026-10-06T00:00:00Z',close:10},{at:'2026-10-07T00:00:00Z',close:11}],'2026-10-07T12:00:00Z')?.close,10);
+assert.equal(previousCryptoClose([{at:'2026-10-05T00:00:00Z',close:9},{at:'2026-10-07T00:00:00Z',close:11}],'2026-10-07T12:00:00Z'),undefined,'Crypto cannot borrow a close from an older day');
+assert.equal(previousCryptoClose([],'invalid'),undefined);
 assert.throws(()=>parseFund({data:{entity:{isin:'WRONG',lastQuote:{price:4,datetime:'2026-10-01'},currency:{code:'EUR'},classes:[{isin:'IE00BYX5NX33'}]}}},'IE00BYX5NX33'),'Do not borrow another class NAV');
 assert.throws(()=>parseChart({chart:{result:[{meta:{symbol:'OTHER',currency:'EUR'}}]}},'VOD.L'));
 const fundamentals=normalizeFundamentals({quoteSummary:{result:[{price:{symbol:'VOD.L',currency:'GBp',marketCap:{raw:1000000}},defaultKeyStatistics:{trailingEps:{raw:8}},summaryDetail:{dividendRate:{raw:4},fiftyTwoWeekHigh:{raw:150}},financialData:{financialCurrency:'GBP',ebitda:{raw:900000}}}]}},'VOD.L');
@@ -34,6 +37,22 @@ try {
     assert.equal(quote.price_eur,1.2775*1.2);assert.equal(quote.original_unit,'GBp');assert.equal(quote.original_currency,'GBP');
     assert.equal(quote.previous_close_eur,1.2*1.1);
     assert.ok(requested.every(url=>!url.includes('finect')),'A stock ISIN must not route to the fund provider');
+    const today=new Date().toISOString().slice(0,10);const midnight=Date.parse(today)/1000;
+    let missingCryptoClose=false;
+    globalThis.fetch=(async(url)=>{
+        const target=new URL(String(url));const symbol=decodeURIComponent(target.pathname.split('/chart/')[1]);
+        const fx=symbol==='USDEUR=X',euro=symbol==='BCH-EUR';
+        const current=euro?110:0.007,previous=euro?100:0.008373;
+        return Response.json({chart:{result:[{meta:{symbol,currency:fx||euro?'EUR':'USD',regularMarketPrice:current,regularMarketTime:midnight,previousClose:previous*0.999},
+            timestamp:[midnight-(missingCryptoClose&&!fx?2:1)*86400,midnight],indicators:{quote:[{close:fx?[0.8,0.9]:[previous,current]}]}}]}});
+    }) as typeof fetch;
+    for(const symbol of ['BTC-USD','ROSE-USD','BCH-EUR']) {
+        const crypto=await fetchMarketPrice({instrument:symbol,symbol,type:'crypto'},'fixture');
+        assert.equal(crypto.previous_close_eur,symbol==='BCH-EUR'?100:0.008373*0.8,'Crypto EUR variation must use the dated daily close despite metadata differences');
+        assert.equal(crypto.price_eur,symbol==='BCH-EUR'?110:0.007*0.9);
+    }
+    missingCryptoClose=true;
+    assert.equal((await fetchMarketPrice({instrument:'BTC-USD',symbol:'BTC-USD',type:'crypto'},'fixture')).previous_close_eur,null,'No invented crypto previous close');
     let attempts=0;globalThis.fetch=(async()=>++attempts===1 ? new Response('',{status:429}) : Response.json({ok:true})) as typeof fetch;
     assert.deepEqual(await providerJson('https://fixture.invalid'),{ok:true});assert.equal(attempts,2);
     const aborted=new AbortController();aborted.abort();await assert.rejects(providerJson('https://fixture.invalid',aborted.signal));
@@ -58,7 +77,7 @@ try {
         insert into auth.users(id,email) values('${A}','daniel230401@gmail.com'),('${B}','editor@example.test');insert into auth.sessions values('${S}','${A}'),('${T}','${B}');`);
     for(const name of ['portfolio_foundation.sql','portfolio_commands.sql','portfolio_mfa_guard.sql','portfolio_command_validation.sql','portfolio_opening_basis.sql','daily_market_data.sql','daily_market_accounting_calendar.sql']) await db.exec(migration(name));
     await db.exec(readFileSync('supabase/news-schema.sql','utf8').replace('create extension if not exists pgcrypto;',''));
-    for(const name of ['architecture_hardening.sql','market_publication_hardening.sql','portfolio_delta_commands.sql','architecture_advisor_cleanup.sql']) await db.exec(migration(name));
+    for(const name of ['architecture_hardening.sql','market_publication_hardening.sql','portfolio_delta_commands.sql','architecture_advisor_cleanup.sql','market_snapshot_completeness.sql']) await db.exec(migration(name));
     await login(A,S);
     assert.equal((await db.query<{v:boolean}>('select public.ensure_news_owner() v')).rows[0].v,true);
     const asset={id:'vod',symbol:'VOD.L',isin:'GB00BH4HKS39',name:'Vodafone',type:'stock',quantity:2,purchasePrice:1,purchaseDate:'2026-01-01',currency:'EUR'};
@@ -127,9 +146,42 @@ try {
     await login(B,T,'aal2');
     await assert.rejects(db.query('select public.read_daily_market_data_v2()'),'Revoked B session cannot read A ledger');
     await db.exec('reset role;');
+    const completeSnapshot=(await db.query<{snapshot:object}>('select to_jsonb(s) snapshot from portfolio_private.daily_snapshots s order by snapshot_date desc limit 1')).rows[0].snapshot;
+    const missingAsset={...asset,id:'missing',symbol:'MISSING',name:'Unpriced fixture',isin:undefined,quantity:1,purchasePrice:10};
+    const withMissing={...changed,assets:[...changed.assets,missingAsset],transactions:[...changed.transactions,{...opening,id:'missing-buy',assetId:'missing',assetSymbol:'MISSING',assetName:'Unpriced fixture',quantity:1,price:10,total:10}]};
+    await login(A,S);
+    await db.query('select public.patch_portfolio($1,gen_random_uuid(),$2)',[revision+3,JSON.stringify({freewallet_portfolio_v1:JSON.stringify(withMissing)})]);
+    await db.exec('reset role;');
+    const incompleteRun=(await db.query<{r:{id:string}}>("select public.begin_daily_market_refresh('fixture') r")).rows[0].r;
+    await db.query('select public.finish_daily_market_refresh($1,$2,$3)',[incompleteRun.id,JSON.stringify([price]),'[{"instrument":"MISSING","reason":"No provider observation"}]']);
+    assert.equal((await db.query<{v:string}>('select public.capture_market_snapshot($1,$2) v',[incompleteRun.id,A])).rows[0].v,'incomplete','A missing price must be rejected even when another position has a valid price');
+    assert.deepEqual((await db.query<{snapshot:object}>('select to_jsonb(s) snapshot from portfolio_private.daily_snapshots s order by snapshot_date desc limit 1')).rows[0].snapshot,completeSnapshot,'An incomplete run must preserve the entire last valid daily snapshot');
+    assert.equal((await db.query<{n:number}>('select count(*)::int n from portfolio_private.snapshot_ledger')).rows[0].n,2,'An incomplete valuation must not advance its snapshot ledger');
+    assert.equal((await db.query<{v:string}>('select status v from portfolio_private.market_snapshot_results where run_id=$1 and user_id=$2',[incompleteRun.id,A])).rows[0].v,'incomplete');
+    const recoveredRun=(await db.query<{r:{id:string}}>("select public.begin_daily_market_refresh('fixture') r")).rows[0].r;
+    const missingPrice={...price,instrument:'MISSING',price_eur:10,previous_close_eur:9,original_price:10,original_currency:'EUR',original_unit:'EUR',unit_scale:1,fx_rate:1,fx_at:null};
+    await db.query('select public.finish_daily_market_refresh($1,$2,$3)',[recoveredRun.id,JSON.stringify([price,missingPrice]),'[]']);
+    assert.equal((await db.query<{v:string}>('select public.capture_market_snapshot($1,$2) v',[recoveredRun.id,A])).rows[0].v,'captured','The next complete run must recover normally');
+    assert.equal((await db.query<{n:number}>('select count(*)::int n from portfolio_private.snapshot_ledger')).rows[0].n,3);
+    // Cash is valid without a market quote, but cannot mask a missing security.
+    const C='55555555-5555-4555-8555-555555555555',U='66666666-6666-4666-8666-666666666666';
+    await db.query('insert into auth.users(id,email) values($1,$2)',[C,'cash-fixture@example.test']);
+    await db.query('insert into auth.sessions values($1,$2)',[U,C]);await login(C,U);
+    const cash={id:'cash',symbol:'CASH',name:'Cash fixture',type:'cash',quantity:50,purchasePrice:1,purchaseDate:'2026-01-01',currency:'EUR'};
+    const cashBook={version:1,assets:[cash],transactions:[]};
+    const cashRevision=(await db.query<{r:{revision:number}}>("select public.commit_portfolio(-1,gen_random_uuid(),'import',$1) r",[JSON.stringify({freewallet_portfolio_v1:JSON.stringify(cashBook)})])).rows[0].r.revision;
+    await db.exec('reset role;');
+    assert.equal((await db.query<{v:string}>('select public.capture_market_snapshot($1,$2) v',[recoveredRun.id,C])).rows[0].v,'captured','A cash-only portfolio needs no provider price');
+    const cashSnapshot=(await db.query<{snapshot:object}>('select to_jsonb(s) snapshot from portfolio_private.daily_snapshots s where user_id=$1',[C])).rows[0].snapshot;
+    await login(C,U);
+    const absentAsset={...missingAsset,symbol:'ABSENT'};
+    await db.query('select public.patch_portfolio($1,gen_random_uuid(),$2)',[cashRevision,JSON.stringify({freewallet_portfolio_v1:JSON.stringify({...cashBook,assets:[cash,absentAsset],transactions:[{...withMissing.transactions.at(-1)!,assetSymbol:'ABSENT'}]})})]);
+    await db.exec('reset role;');
+    assert.equal((await db.query<{v:string}>('select public.capture_market_snapshot($1,$2) v',[recoveredRun.id,C])).rows[0].v,'incomplete','Cash plus an unpriced security must be incomplete');
+    assert.deepEqual((await db.query<{snapshot:object}>('select to_jsonb(s) snapshot from portfolio_private.daily_snapshots s where user_id=$1',[C])).rows[0].snapshot,cashSnapshot);
     const failedRun=(await db.query<{r:{id:string}}>("select public.begin_daily_market_refresh('fixture') r")).rows[0].r;
     await db.query('select public.finish_daily_market_refresh($1,$2,$3)',[failedRun.id,'[]','[{"instrument":"VOD.L","reason":"fixture"}]']);
     await db.query('select portfolio_private.market_watchdog()');
     assert.equal((await db.query<{v:boolean}>("select exists(select 1 from portfolio_private.market_alerts where resolved_at is null) v")).rows[0].v,true);
-    console.log('Architecture: minor units, typed instruments, dated FX, retries/cancellation, editorial ownership/MFA/revocation, public reads, invitation recovery, patches/idempotency/conflicts, separate captures and worker health passed.');
+    console.log('Architecture: currencies, providers, editorial access/MFA, invitation recovery, patches, missing-price rejection, preserved daily snapshots/ledger, recovery, cash portfolios and worker health passed.');
 } finally {await db.close();}

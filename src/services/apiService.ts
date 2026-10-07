@@ -73,6 +73,10 @@ function looksLikeISIN(q: string): boolean {
     return /^[A-Z]{2}[A-Z0-9]{10}$/.test(q.trim().toUpperCase());
 }
 
+function looksLikeCryptoPair(symbol:string):boolean {
+    return /^[A-Z0-9]+-(USD|EUR|GBP|JPY|AUD|CAD|CHF)$/.test(symbol.trim().toUpperCase());
+}
+
 function isinCandidates(isin: string): string[] {
     const x = isin.trim().toUpperCase();
     // en Yahoo los fondos por ISIN a veces aparecen como ISIN.<exchange>
@@ -818,6 +822,9 @@ async function getChartSymbolCandidates(symbol: string, signal?: AbortSignal): P
     const normalized = symbol.trim().toUpperCase();
     // FX pairs must not fall back to similarly named or inverse instruments.
     if (/^[A-Z]{6}=X$/.test(normalized)) return [normalized];
+    // A crypto pair already identifies the coin and quote currency. Company
+    // searches can delay the refresh or substitute another currency's series.
+    if (looksLikeCryptoPair(normalized)) return [normalized];
     const cached = CHART_SYMBOL_CACHE.get(normalized);
     if (cached) return cached;
 
@@ -893,7 +900,7 @@ async function fetchYahooChartPoints(
     const chart = asJsonRecord(data.chart);
     const result = asJsonRecords(chart.result)[0] ?? {};
 
-    if(symbol.endsWith('=X') && !marketSymbolMatches(symbol,asJsonRecord(result.meta).symbol,asJsonRecord(result.meta).currency))return [];
+    if((symbol.endsWith('=X') || looksLikeCryptoPair(symbol)) && !marketSymbolMatches(symbol,asJsonRecord(result.meta).symbol,asJsonRecord(result.meta).currency))return [];
 
     if (!Array.isArray(result.timestamp) || result.timestamp.length === 0) return [];
 

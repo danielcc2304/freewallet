@@ -33,6 +33,58 @@ assert.equal(storage.exportData().freewallet_theme_mode,'dark','Pending edits re
 assert.throws(()=>storage.setItem('freewallet_theme_mode','system'));
 await storage.flush();assert.equal(ids[0],ids[1],'Uncertain retry preserves request identifier');
 assert.equal(storage.getSnapshot().status,'synced');
+// A lost acknowledgement can be retried after another device has changed
+// unrelated fields. Only edits queued after our original request may be sent.
+const shared={...backup,freewallet_theme_mode:'light',freewallet_goals:'[{"targetAmount":1000}]',freewallet_watchlist:'[]',freewallet_history:'[]'};
+const external={...shared,freewallet_theme_mode:'dark',freewallet_goals:'[{"targetAmount":9000}]',freewallet_history:'[{"date":"2026-10-01","value":25,"invested":20}]'};
+delete (external as CloudData).freewallet_watchlist;
+let loseReceipt:(error:Error)=>void=()=>{};
+const retried:Array<{revision:number;id:string;data:CloudData;baseline:CloudData}>=[];
+storage.select('A',async(revision,id,data,baseline)=>{
+    retried.push({revision,id,data,baseline:baseline!});
+    if(retried.length===1)return new Promise((_resolve,reject)=>{loseReceipt=reject;});
+    if(retried.length===2)return {revision:4,data:external};
+    assert.deepEqual(Object.fromEntries(Object.entries(data).filter(([key,value])=>baseline![key]!==value)),{freewallet_appearance_mode:'liquid-glass'});
+    assert.equal('freewallet_watchlist' in data,false,'Remote deletion must not be resurrected');
+    return {revision:5,data};
+});
+storage.hydrate({revision:2,data:shared});storage.setItem('freewallet_theme_mode','dark');
+const lostReceipt=storage.flush();storage.setItem('freewallet_appearance_mode','liquid-glass');
+loseReceipt(new Error('Receipt lost after commit'));await assert.rejects(lostReceipt);
+await storage.flush();
+assert.equal(retried.length,3);assert.equal(retried[0].id,retried[1].id);
+assert.deepEqual(retried[0].baseline,retried[1].baseline,'The uncertain retry must keep its original baseline');
+assert.equal(retried[2].revision,4);assert.equal(storage.exportData().freewallet_goals,external.freewallet_goals);
+assert.equal(storage.exportData().freewallet_history,external.freewallet_history);
+assert.equal(storage.getSnapshot().status,'synced');
+// A queued deletion is still an intentional local edit after acknowledgement.
+let acknowledgeRemoval:(record:CloudRecord)=>void=()=>{};let removalWrites=0;
+storage.select('A',async(revision,_id,data)=>{
+    if(++removalWrites===1)return new Promise(resolve=>{acknowledgeRemoval=resolve;});
+    assert.equal('freewallet_history' in data,false);return {revision:revision+1,data};
+});
+storage.hydrate({revision:1,data:shared});storage.setItem('freewallet_theme_mode','dark');
+const removalFlight=storage.flush();storage.removeItem('freewallet_history');
+acknowledgeRemoval({revision:2,data:{...shared,freewallet_theme_mode:'dark'}});await removalFlight;
+assert.equal(removalWrites,2);assert.equal(storage.getItem('freewallet_history'),null);
+// Concurrent changes to the same field are never silently resolved by a retry.
+for(const localGoal of ['[{"targetAmount":3000}]',null,external.freewallet_goals]) {
+    let acknowledgeConflict:(record:CloudRecord)=>void=()=>{};let conflictWrites=0;
+    storage.select('A',()=>{conflictWrites++;return new Promise(resolve=>{acknowledgeConflict=resolve;});});
+    storage.hydrate({revision:1,data:shared});storage.setItem('freewallet_theme_mode','dark');
+    const conflictFlight=storage.flush();
+    if(localGoal===null)storage.removeItem('freewallet_goals');else storage.setItem('freewallet_goals',localGoal);
+    acknowledgeConflict({revision:4,data:external});
+    if(localGoal===external.freewallet_goals) {
+        await conflictFlight;assert.equal(storage.getSnapshot().status,'synced','Identical concurrent edits need no conflict');
+    } else {
+        await assert.rejects(conflictFlight);assert.equal(storage.getSnapshot().status,'conflict');
+        assert.equal(storage.getItem('freewallet_goals'),localGoal,'Conflicting local edit remains exportable');
+        await assert.rejects(storage.flush());storage.discard();
+        assert.equal(storage.getItem('freewallet_goals'),external.freewallet_goals,'Discard restores the acknowledged server version');
+    }
+    assert.equal(conflictWrites,1,'A conflict must not send a follow-up overwrite');
+}
 storage.select('A',async()=>{throw {code:'40001'};});storage.hydrate({revision:4,data:backup});
 storage.setItem('freewallet_theme_mode','dark');await assert.rejects(storage.flush());
 assert.equal(storage.getSnapshot().status,'conflict');await assert.rejects(storage.flush());
@@ -58,4 +110,4 @@ await assert.rejects(operation,/sesión ha cambiado/);
 assert.equal(bWrites,0,'Account switch during pre-operation flush must not send A positions as B');
 assert.equal(JSON.parse(portfolioStorage.getItem('freewallet_portfolio_v1')!).assets.length,0);
 portfolioStorage.select(null);
-console.log('Sync passed: whitelist, guest isolation, quote-only cache, acknowledgements, offline read-only, exact retry, conflict export/discard and late-session responses.');
+console.log('Sync passed: whitelist, guest isolation, quotes, queued edits/deletions, unrelated remote updates, exact retry, concurrent-field conflicts, export/discard, offline mode and late-session responses.');

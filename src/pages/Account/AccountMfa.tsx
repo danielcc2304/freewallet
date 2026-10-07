@@ -46,7 +46,10 @@ export function AccountMfa({notify,onVerified}:{notify:(text:string,tone?:Feedba
             const client=await getAppSupabaseClient();
             const result=await client.auth.mfa.challengeAndVerify({factorId:factor,code});if(result.error)throw result.error;
             setCode('');setQr('');setSecret('');setShowSecret(false);setEnabled(true);setRequired(false);
-            await account.refresh();notify('Verificación en dos pasos completada.');onVerified?.();
+            notify('Verificación en dos pasos completada.');onVerified?.();
+            // Authentication has succeeded independently of portfolio loading.
+            // A temporary data error must not strand the verified editor here.
+            void account.refresh().catch(()=>notify('Verificación completada. No se pudo actualizar la cartera; reintenta desde Mi cuenta.','info'));
         }catch(error){notify(error instanceof Error?error.message:'El código no es válido o ha caducado.','error');}
         finally{setBusy(false);}
     };

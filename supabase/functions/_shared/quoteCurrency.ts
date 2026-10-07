@@ -7,6 +7,16 @@ export function quoteCurrency(unit: string): { currency: string; scale: number }
     return { currency, scale: 1 };
 }
 export interface FxObservation { at: string; close: number }
+/** Crypto trades every day. Use the actual daily candle for yesterday UTC,
+ * rather than assigning a date to Yahoo's slightly different quote metadata.
+ */
+export function previousCryptoClose(candles: FxObservation[], at: string): FxObservation | undefined {
+    const timestamp=Date.parse(at);
+    if(!Number.isFinite(timestamp))return undefined;
+    const previousDay=new Date(timestamp-86400000).toISOString().slice(0,10);
+    return candles.filter(c=>c.at.slice(0,10)===previousDay && Number.isFinite(Date.parse(c.at)) && Number.isFinite(c.close) && c.close>0)
+        .sort((a,b)=>a.at.localeCompare(b.at)).at(-1);
+}
 /** Historical EUR accounting: last FX observation on/before the quote's UTC day. */
 export function datedFx(candles: FxObservation[], at: string): FxObservation {
     const day = at.slice(0, 10);

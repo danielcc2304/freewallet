@@ -23,6 +23,7 @@ export interface StockQuote {
     fundamentalPeriodEnd?: string;
     fundamentalsCheckedAt?: string;
     fundamentalsSymbol?: string;
+    businessDescription?: string;
     fundamentalDates?: Record<string, string>;
     fundamentalDerived?: Record<string, boolean>;
     // Fundamentals

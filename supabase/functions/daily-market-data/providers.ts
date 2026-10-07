@@ -70,6 +70,23 @@ async function chart(symbol: string): Promise<ReturnType<typeof parseChart>> {
     }
     throw new Error('Mercado no disponible');
 }
+async function sessionQuote(symbol: string): Promise<RawQuote> {
+    for (const host of ['query1.finance.yahoo.com', 'query2.finance.yahoo.com']) {
+        try {
+            const payload = record(await json(`https://${host}/v8/finance/chart/${encodeURIComponent(symbol)}?range=1d&interval=1m`));
+            const results = record(payload.chart).result;
+            const meta = record(Array.isArray(results) ? record(results[0]).meta : {});
+            if (typeof meta.symbol !== 'string' || meta.symbol.toUpperCase() !== symbol.toUpperCase()) throw new Error('Instrumento de mercado incorrecto');
+            if (typeof meta.currency !== 'string' || !/^[A-Z]{3}$/.test(meta.currency)) throw new Error('Divisa desconocida');
+            if (typeof meta.regularMarketTime !== 'number') throw new Error('Fecha de cotización desconocida');
+            const previous = [meta.regularMarketPreviousClose, meta.previousClose, meta.chartPreviousClose]
+                .find(value => typeof value === 'number' && Number.isFinite(value) && value > 0);
+            return { price: positive(meta.regularMarketPrice), previous: typeof previous === 'number' ? previous : null,
+                currency: meta.currency, at: date(new Date(meta.regularMarketTime * 1000).toISOString()), source: 'Yahoo Finance' };
+        } catch (error) { if (host.startsWith('query2')) throw error; }
+    }
+    throw new Error('Mercado no disponible');
+}
 export function fxAt(candles: Candle[], at: string): Candle {
     // Compare by observation day: daily FX candles can precede the stock close
     // timestamp. Do not use today's FX to convert an older fund NAV.
@@ -85,6 +102,17 @@ export async function fetchMarketPrice(instrument: string, finectKey: string, fx
         const data = await chart(instrument);
         const last = data.candles.at(-1)!;
         raw = { price: last.close, previous: data.candles.at(-2)?.close ?? null, currency: data.currency, at: last.at, source: 'Yahoo Finance', previousAt: data.candles.at(-2)?.at };
+        // Sparse listings such as NXTE.XD may have only one monthly candle.
+        // The one-day metadata provides an actual previous session close; a
+        // range-start close from the monthly chart would be the wrong baseline.
+        // Restrict this fallback to EUR: other currencies also need the date
+        // of the previous close to convert it using the appropriate FX rate.
+        if (raw.previous === null && raw.currency === 'EUR') {
+            try {
+                const current = await sessionQuote(instrument);
+                if (current.currency === 'EUR' && current.at >= raw.at) raw = current;
+            } catch { /* Keep the valid price and its unavailable previous close. */ }
+        }
     }
     let rate = 1, previousRate = 1, fxDate: string | null = null;
     if (raw.currency !== 'EUR') {

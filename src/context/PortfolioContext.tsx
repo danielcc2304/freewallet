@@ -203,6 +203,9 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                                 quotedAt: quote.quotedAt,
                                 lastQuoteAt: quote.quotedAt,
                                 quoteSource: quote.source,
+                                originalPrice: quote.originalPrice, originalCurrency: quote.originalCurrency,
+                                originalUnit: quote.originalUnit, unitScale: quote.unitScale,
+                                fxRate: quote.fxRate, fxAt: quote.fxAt, valuationBasis: quote.valuationBasis,
                             } as const;
                             quoteUpdates.push({ id: asset.id, updates });
                         }

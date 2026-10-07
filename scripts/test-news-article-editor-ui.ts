@@ -9,8 +9,8 @@ const author = '11111111-1111-4111-8111-111111111111';
 const other = '22222222-2222-4222-8222-222222222222';
 const stamp = '2026-10-01T12:00:00Z';
 const article = { id: '33333333-3333-4333-8333-333333333333', slug: 'synthetic-news', title: 'Synthetic editorial analysis', excerpt: 'Synthetic excerpt', content: '<p>Original synthetic article.</p>', cover_image_url: null, status: 'published', author_id: author, published_at: stamp, created_at: stamp, updated_at: stamp };
-const user = (id: string) => ({ id, email: 'fixture@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: stamp });
-const session = (id: string) => ({ access_token: `${btoa('{"alg":"HS256"}')}.${btoa(JSON.stringify({ sub: id, role: 'authenticated', exp: Math.floor(Date.now() / 1000) + 3600 }))}.synthetic`, refresh_token: 'synthetic', expires_at: Math.floor(Date.now() / 1000) + 3600, expires_in: 3600, token_type: 'bearer', user: user(id) });
+const user = (id: string, mfa=false) => ({factors:mfa?[{id:'44444444-4444-4444-8444-444444444444',factor_type:'totp',status:'verified',friendly_name:'FreeWallet',created_at:stamp,updated_at:stamp}]:[], id, email: 'fixture@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: stamp });
+const session = (id: string, mfa=false) => ({ access_token: `${btoa('{"alg":"HS256"}')}.${btoa(JSON.stringify({ sub: id, role: 'authenticated', aal: 'aal1', exp: Math.floor(Date.now() / 1000) + 3600 }))}.${btoa('synthetic')}`, refresh_token: 'synthetic', expires_at: Math.floor(Date.now() / 1000) + 3600, expires_in: 3600, token_type: 'bearer', user: user(id,mfa) });
 const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 const errors: string[] = [];
 const writes: { method: string; id: string | null; body: Record<string, unknown> }[] = [];
@@ -21,6 +21,7 @@ try {
         { name: 'revoked author', id: author, active: false, verifiedId: author, canEdit: false },
         { name: 'unverified identity', id: author, active: true, verifiedId: other, canEdit: false },
         { name: 'author without attribution', id: author, active: true, verifiedId: author, canEdit: false, noAuthor: true },
+        { name: 'author requiring MFA', id: author, active: true, verifiedId: author, canEdit: false, mfa:true },
         { name: 'active author', id: author, active: true, verifiedId: author, canEdit: true },
     ]) {
         const page = await browser.newPage();
@@ -30,7 +31,7 @@ try {
             if (auth) localStorage.setItem('freewallet-news-auth', JSON.stringify(auth));
             localStorage.setItem('freewallet_settings', '{"apiEnabled":false}');
             localStorage.setItem('freewallet_last_seen_version', version);
-        }, scenario.id ? session(scenario.id) : null, version);
+        }, scenario.id ? session(scenario.id,!!scenario.mfa) : null, version);
         await page.setRequestInterception(true);
         page.on('request', request => { void (async () => {
             const url = new URL(request.url());
@@ -39,9 +40,10 @@ try {
                 if (request.method() === 'OPTIONS') { await request.respond({ status: 204, headers }); return; }
                 const post = { ...article, author_id: scenario.noAuthor ? null : article.author_id };
                 let data: unknown = null;
-                if (url.pathname === '/auth/v1/user') data = user(scenario.verifiedId);
+                if (url.pathname === '/auth/v1/user') data = user(scenario.verifiedId,!!scenario.mfa);
                 else if (url.pathname === '/auth/v1/logout') { await request.respond({ status: 204, headers }); return; }
-                else if (url.pathname.endsWith('/rpc/is_news_admin')) data = scenario.active;
+                else if (url.pathname.endsWith('/rpc/is_news_admin')) data = scenario.active && !scenario.mfa;
+                else if (url.pathname.endsWith('/rpc/read_portfolio')) data = null;
                 else if (url.pathname.startsWith('/rest/v1/rpc/')) data = false;
                 else if (url.pathname === '/rest/v1/news_posts') {
                     if (request.method() === 'PATCH') {
@@ -53,14 +55,19 @@ try {
                 await request.respond({ status: 200, headers, contentType: 'application/json', body: JSON.stringify(data) });
             } else if (url.origin === origin || url.protocol === 'data:' || url.protocol === 'blob:') await request.continue();
             else await request.abort();
-        })().catch(error => errors.push(String(error))); });
-        await page.goto(`${origin}/news/${article.slug}`, { waitUntil: 'networkidle2' });
+        })().catch(error => { errors.push(String(error)); if(!request.isInterceptResolutionHandled())void request.abort(); }); });
+        await page.goto(`${origin}/news/${article.slug}`, { waitUntil: 'domcontentloaded' });
         await page.waitForSelector('.news-article');
         assert.equal(await page.$('.news-page--article .news-page__back-link'), null);
         assert.equal(await page.$('.news-article__footer a'), null);
         assert.doesNotMatch(await page.$eval('.news-page--article', el => el.textContent || ''), /Todas las noticias|Volver a noticias/);
         if (!scenario.canEdit) {
             assert.equal(await page.$('.news-article__edit'), null, scenario.name);
+            if(scenario.mfa){
+                await page.goto(`${origin}/admin/news`,{waitUntil:'domcontentloaded'});
+                await page.waitForSelector('.account-page__form input[autocomplete="one-time-code"]');
+                assert.equal(await page.$('.news-admin__editor-card'),null,'A verified MFA account must complete its challenge before editing');
+            }
             await page.close();
             continue;
         }
@@ -95,7 +102,7 @@ try {
         assert.equal(writes[0].body.title, 'Updated synthetic analysis');
         assert.equal(writes[0].body.published_at, stamp);
         assert.equal(writes[0].body.author_id, undefined, 'Editing preserves attribution');
-        await page.goto(`${origin}/news/${article.slug}`, { waitUntil: 'networkidle2' });
+        await page.goto(`${origin}/news/${article.slug}`, { waitUntil: 'domcontentloaded' });
         await page.waitForSelector('.news-article__edit');
         await page.evaluate("import('/src/services/supabaseClient.ts').then(m => m.getAppSupabaseClient()).then(client => client.auth.signOut({scope:'local'}))");
         await page.waitForFunction(() => !document.querySelector('.news-article__edit'));
@@ -103,5 +110,5 @@ try {
         await page.close();
     }
     assert.deepEqual(errors, []);
-    console.log('News article UI passed: removed navigation links, verified author with active editorial access only, mobile floating pencil, selected article editing, preserved publication/author and logout.');
-} finally { await browser.close(); }
+    console.log('News article UI passed: removed navigation links, verified author with active editorial access only, mobile floating pencil, MFA challenge before editing, selected article editing, preserved publication/author and logout.');
+} catch(error) { console.error(errors);throw error; } finally { await browser.close(); }

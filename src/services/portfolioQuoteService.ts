@@ -1,19 +1,34 @@
 import type { Asset, StockQuote } from '../types/types';
-import { getQuote } from './apiService';
+import { getQuote, getAssetChartData } from './apiService';
+import { quoteCurrency, datedFx } from '../../supabase/functions/_shared/quoteCurrency';
 import { getFundRelevance } from './finect/finectService';
 import { prefersBatchQuote } from './market/marketSessions';
 
 const ISIN_PATTERN = /^[A-Z]{2}[A-Z0-9]{10}$/;
 
 export async function normalizeQuoteToEuro(quote: StockQuote, signal?: AbortSignal, forceRefresh = false): Promise<StockQuote> {
-    const sourceCurrency = quote.currency?.toUpperCase();
-    if (!sourceCurrency || sourceCurrency === 'EUR' || sourceCurrency === 'UNKNOWN') return quote;
-
     try {
-        const fxQuote = await getQuote(`${sourceCurrency}EUR=X`, signal, forceRefresh);
-        if (!fxQuote?.price) return quote;
-        const price = quote.price * fxQuote.price;
-        const previousClose = fxQuote.previousClose > 0 ? quote.previousClose * fxQuote.previousClose : NaN;
+        const unit = quote.currency || '';
+        const { currency, scale } = quoteCurrency(unit);
+        let rate = 1, previousRate = 1, fxAt: string | null = null;
+        if (currency !== 'EUR') {
+            if (!quote.quotedAt) return quote;
+            const history = await getAssetChartData(`${currency}EUR=X`, '1M', signal, { forceRefresh });
+            const candles = history.map(p => ({ at: new Date(p.timestamp ?? Date.parse(p.date)).toISOString(), close: p.close }));
+            const observation = datedFx(candles, quote.quotedAt);
+            rate = observation.close; fxAt = observation.at;
+            let previousAt=quote.previousQuotedAt;
+            if(!previousAt && Number.isFinite(quote.previousClose) && quote.previousClose>0) {
+                const prices=await getAssetChartData(quote.symbol,'1M',signal,{forceRefresh});
+                const preceding=prices.filter(p=>p.date.slice(0,10)<quote.quotedAt!.slice(0,10) && p.currency===currency)
+                    .sort((a,b)=>a.date.localeCompare(b.date)).at(-1);
+                if(preceding && Math.abs(preceding.close / (quote.previousClose*scale)-1)<0.000001)
+                    previousAt=new Date(preceding.timestamp ?? Date.parse(preceding.date)).toISOString();
+            }
+            previousRate = previousAt ? datedFx(candles, previousAt).close : NaN;
+        }
+        const price = quote.price * scale * rate;
+        const previousClose = quote.previousClose * scale * previousRate;
         const change = price - previousClose;
         return {
             ...quote,
@@ -21,10 +36,12 @@ export async function normalizeQuoteToEuro(quote: StockQuote, signal?: AbortSign
             change,
             changePercent: previousClose > 0 ? change / previousClose * 100 : NaN,
             previousClose,
-            open: quote.open * fxQuote.price,
-            high: quote.high * fxQuote.price,
-            low: quote.low * fxQuote.price,
+            open: quote.open * scale * rate,
+            high: quote.high * scale * rate,
+            low: quote.low * scale * rate,
             currency: 'EUR',
+            originalPrice: quote.price, originalCurrency: currency, originalUnit: unit, unitScale: scale,
+            fxRate: rate, fxAt, valuationBasis: 'quote-date-fx',
         };
     } catch {
         return quote;

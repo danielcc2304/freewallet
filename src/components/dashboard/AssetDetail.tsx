@@ -210,7 +210,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
         { label: 'P/S Ratio', value: formatFundamentalRatio(quote?.ps), field:'ps', icon: <BarChart3 size={16} />, category: 'Valoración' },
         { label: 'P/B Ratio', value: formatFundamentalRatio(quote?.pb), field:'pb', icon: <Layers size={16} />, category: 'Valoración' },
         { label: 'Rent. dividendo', value: formatFundamentalPercent(quote?.dividendYield), icon: <Percent size={16} />, category: 'Dividendos' },
-        { label: 'Dividendo por acción', value: formatFundamentalMoney(quote?.dividendRate, quote?.currency), icon: <Coins size={16} />, category: 'Dividendos' },
+        { label: 'Dividendo por acción', value: formatFundamentalMoney(quote?.dividendRate, quote?.dividendCurrency || quote?.currency), icon: <Coins size={16} />, category: 'Dividendos' },
         { label: 'EBITDA (12 meses)', value: formatFundamentalMoney(quote?.ebitda, quote?.financialCurrency, true), field:'ebitda', icon: <BarChart3 size={16} />, category: 'Resultados' },
         { label: 'EV/EBITDA', value: formatFundamentalRatio(quote?.evToEbitda), field:'evToEbitda', icon: <Activity size={16} />, category: 'Valoración' },
         { label: 'Crecim. Ingresos', value: formatFundamentalPercent(quote?.revenueGrowth, true), field:'revenueGrowth', icon: <TrendingUp size={16} />, category: 'Resultados' },
@@ -219,7 +219,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
         { label: 'Deuda/patrimonio', value: formatFundamentalPercent(quote?.debtToEquity), field:'debtToEquity', icon: <Layers size={16} />, category: 'Salud Financiera' },
         { label: 'Beta', value: formatFundamentalRatio(quote?.beta), icon: <Activity size={16} />, category: 'Riesgo' },
         { label: 'BPA (12 meses)', value: formatFundamentalMoney(quote?.eps, quote?.epsCurrency), field:'eps', icon: <Coins size={16} />, category: 'Resultados' },
-        { label: 'Capitalización', value: formatFundamentalMoney(quote?.marketCap, quote?.currency, true), icon: <Coins size={16} />, category: 'Valoración' },
+        { label: 'Capitalización', value: formatFundamentalMoney(quote?.marketCap, quote?.marketCapCurrency || quote?.currency, true), icon: <Coins size={16} />, category: 'Valoración' },
         { label: 'Max (52 sem)', value: formatFundamentalMoney(quote?.fiftyTwoWeekHigh, quote?.currency), icon: <ArrowUpRight size={16} />, category: 'Técnico' },
         { label: 'Min (52 sem)', value: formatFundamentalMoney(quote?.fiftyTwoWeekLow, quote?.currency), icon: <ArrowDownRight size={16} />, category: 'Técnico' },
     ].filter(item => getRelevance(item.category)).map(item=>({...item,
@@ -396,9 +396,13 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                 <div><span>Peso en cartera</span><strong>{portfolioWeight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong></div>
                 <div><span>Consulta al proveedor</span><strong>{quoteDateLabel(asset.lastCheckedAt)}</strong></div>
                 <div><span>Lectura en la app</span><strong>{quoteDateLabel(asset.lastReadAt)}</strong></div>
-                <div><span>Origen</span><strong>{asset.quoteSource || 'No disponible'}{asset.quoteOrigin === 'batch' ? ' · actualización diaria' : ''}</strong></div>
+                <div><span>Origen</span><strong>{asset.quoteSource || 'No disponible'}{asset.quoteOrigin === 'batch' ? ' · batch' : ''}</strong></div>
                 <div><span>Fecha del precio</span><strong>{quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)}</strong></div>
             </div>}
+            {!marketOnly && asset.originalCurrency && asset.originalCurrency!=='EUR' && <details className="dashboard__update-details">
+                <summary>Conversión a euros</summary>
+                <p>Precio original: {asset.originalPrice?.toLocaleString('es-ES')} {asset.originalUnit || asset.originalCurrency}. Cambio: {asset.fxRate?.toLocaleString('es-ES')} EUR/{asset.originalCurrency} · {quoteDateLabel(asset.fxAt || undefined)}. Se usa el cambio del día del precio.</p>
+            </details>}
             {marketOnly && <p>Fecha del precio: {quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)} · Consulta al proveedor: {quoteDateLabel(asset.lastCheckedAt)}</p>}
             {asset.type !== 'cash' && (quoteStatus.stalePrice || quoteStatus.unknownPriceDate || quoteStatus.futurePrice) && <p role="status">{quoteStatus.futurePrice ? 'La fecha del precio está en el futuro; se necesita una cotización válida.' : quoteStatus.stalePrice ? 'El último precio disponible está atrasado; una consulta reciente no implica una cotización nueva.' : 'El proveedor no identifica la fecha del precio; su antigüedad no puede verificarse.'}</p>}
 

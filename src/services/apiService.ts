@@ -1,4 +1,5 @@
 import axios from 'axios';
+import {quoteCurrency,marketSymbolMatches} from '../../supabase/functions/_shared/quoteCurrency';
 import { verifiedSecurityAlias } from './securityAliases';
 import { getFundRelevance } from './finect/finectService';
 import { fundChartSymbols } from './funds/fundChartResolution';
@@ -892,6 +893,8 @@ async function fetchYahooChartPoints(
     const chart = asJsonRecord(data.chart);
     const result = asJsonRecords(chart.result)[0] ?? {};
 
+    if(symbol.endsWith('=X') && !marketSymbolMatches(symbol,asJsonRecord(result.meta).symbol,asJsonRecord(result.meta).currency))return [];
+
     if (!Array.isArray(result.timestamp) || result.timestamp.length === 0) return [];
 
     const timestamps = result.timestamp;
@@ -900,6 +903,9 @@ async function fetchYahooChartPoints(
     const adjCloseRecord = asJsonRecords(indicators.adjclose)[0] ?? {};
     const adjClose = Array.isArray(adjCloseRecord.adjclose) ? adjCloseRecord.adjclose : quotes.close;
     const previousClose = readFiniteNumber(asJsonRecord(result.meta).chartPreviousClose);
+    const rawCurrency=readString(asJsonRecord(result.meta).currency, 'Unknown');
+    let currency=rawCurrency,scale=1;
+    try{const unit=quoteCurrency(rawCurrency);currency=unit.currency;scale=unit.scale;}catch{/* Keep unknown chart units explicit. */}
 
     return timestamps.map((timestampValue, i) => {
         const timestamp = readNumber(timestampValue);
@@ -911,13 +917,13 @@ async function fetchYahooChartPoints(
         return {
             date: dateStr,
             timestamp: timestamp * 1000,
-            currency: readString(asJsonRecord(result.meta).currency, 'Unknown'),
+            currency,
             sourceSymbol: symbol,
-            previousClose: i === 0 ? previousClose : undefined,
-            open: readNumberAt(quotes.open, i),
-            high: readNumberAt(quotes.high, i),
-            low: readNumberAt(quotes.low, i),
-            close: readNumberAt(adjClose, i, readNumberAt(quotes.close, i)),
+            previousClose: i === 0 && previousClose !== undefined ? previousClose * scale : undefined,
+            open: readNumberAt(quotes.open, i) * scale,
+            high: readNumberAt(quotes.high, i) * scale,
+            low: readNumberAt(quotes.low, i) * scale,
+            close: readNumberAt(adjClose, i, readNumberAt(quotes.close, i)) * scale,
             volume: readNumberAt(quotes.volume, i),
         };
     }).filter((point) => point.close > 0);

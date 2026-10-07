@@ -154,6 +154,16 @@ export async function getNewsSession(): Promise<NewsSession | null> {
     return data.session ? mapSession(data.session) : null;
 }
 
+export async function requiresNewsMfa(): Promise<boolean> {
+    const client=await requireClient();
+    const session=await client.auth.getSession();
+    if(session.error)throw new NewsServiceError('No se pudo comprobar la sesión editorial.');
+    if(!session.data.session)return false;
+    const {data,error}=await client.auth.mfa.getAuthenticatorAssuranceLevel(session.data.session.access_token);
+    if(error) throw new NewsServiceError('No se pudo comprobar el segundo factor.');
+    return data.nextLevel==='aal2' && data.currentLevel!=='aal2';
+}
+
 export async function signInNewsAdmin(email: string, password: string): Promise<NewsSession> {
     const client = await requireClient();
     const { data, error } = await client.auth.signInWithPassword({
@@ -248,7 +258,7 @@ export async function listNewsAdmins(): Promise<NewsAdminMember[]> {
     return ((data ?? []) as NewsAdminRow[]).map(mapAdminMember);
 }
 
-export async function inviteNewsEditor(email: string): Promise<void> {
+export async function inviteNewsEditor(email: string): Promise<'sent'|'registered'|'sending'|'active'> {
     const normalizedEmail = email.trim().toLowerCase();
     const { data, error } = await (await requireClient()).functions.invoke('invite-news-editor', {
         body: { email: normalizedEmail },
@@ -261,6 +271,7 @@ export async function inviteNewsEditor(email: string): Promise<void> {
     if (data && typeof data === 'object' && 'error' in data && typeof data.error === 'string') {
         throw new NewsServiceError(data.error);
     }
+    return data?.status === 'registered' || data?.status === 'sending' || data?.status === 'active' ? data.status : 'sent';
 }
 
 export async function revokeNewsEditor(userId: string): Promise<void> {

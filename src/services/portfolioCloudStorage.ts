@@ -9,9 +9,9 @@ export const PRIVATE_KEYS = [
         'control_raw','workbook_file','updated_at','category_overrides','bucket_targets'].map(key => `freewallet_portfolio_csv_${key}`),
 ] as const;
 export type CloudData = Record<string, string>;
-export interface CloudRecord { revision: number; data: CloudData | null }
+export interface CloudRecord { revision: number; data: CloudData | null; patch?: boolean; removed?: string[] }
 export type SyncStatus = 'local' | 'loading' | 'empty' | 'synced' | 'saving' | 'error' | 'conflict';
-type Writer = (revision: number, requestId: string, data: CloudData) => Promise<CloudRecord>;
+type Writer = (revision: number, requestId: string, data: CloudData, baseline?: CloudData) => Promise<CloudRecord>;
 const allowed = new Set<string>(PRIVATE_KEYS);
 
 export function canonicalPortfolio(raw: string): string {
@@ -34,8 +34,8 @@ function preserveQuotes(data:CloudData, current:CloudData):CloudData {
     result.assets=result.assets.map((asset:Asset)=>{
         const cached=old.find(a=>a.id===asset.id && a.symbol===asset.symbol && a.isin===asset.isin);
         if(!cached)return asset;
-        const {currentPrice,previousClose,holdings,lastQuoteAt,lastCheckedAt,lastReadAt,quoteOrigin,quotedAt,quoteSource}=cached;
-        return {...asset,currentPrice,previousClose,holdings,lastQuoteAt,lastCheckedAt,lastReadAt,quoteOrigin,quotedAt,quoteSource};
+        const {currentPrice,previousClose,holdings,lastQuoteAt,lastCheckedAt,lastReadAt,quoteOrigin,quotedAt,quoteSource,originalPrice,originalCurrency,originalUnit,unitScale,fxRate,fxAt,valuationBasis}=cached;
+        return {...asset,currentPrice,previousClose,holdings,lastQuoteAt,lastCheckedAt,lastReadAt,quoteOrigin,quotedAt,quoteSource,originalPrice,originalCurrency,originalUnit,unitScale,fxRate,fxAt,valuationBasis};
     });
     return {...data,freewallet_portfolio_v1:JSON.stringify(result)};
 }
@@ -51,7 +51,7 @@ export class PortfolioCloudStorage {
     private writer?: Writer;
     private revision = -1;
     private timer?: ReturnType<typeof setTimeout>;
-    private pending?: { revision:number; id:string; data:CloudData };
+    private pending?: { revision:number; id:string; data:CloudData; baseline:CloudData };
     private flight?: Promise<void>;
     private listeners = new Set<() => void>();
     private viewEpoch=0;
@@ -129,12 +129,12 @@ export class PortfolioCloudStorage {
         if(this.snapshot.status==='conflict') throw new Error(this.snapshot.error);
         const wanted=this.exportData();
         if(!this.pending && JSON.stringify(wanted)===JSON.stringify(this.confirmed)) {this.emit('synced');return;}
-        this.pending ??= {revision:this.revision,id:crypto.randomUUID(),data:wanted};
+        this.pending ??= {revision:this.revision,id:crypto.randomUUID(),data:wanted,baseline:{...this.confirmed}};
         const request=this.pending; const epoch=this.generation; const writer=this.writer;
         this.emit('saving');
         const run=async () => {
             try {
-                const record=await writer(request.revision,request.id,request.data);
+                const record=await writer(request.revision,request.id,request.data,request.baseline);
                 if(epoch!==this.generation) throw new Error('La sesión ha cambiado.');
                 if(!record.data) throw new Error('Respuesta incompleta del servidor.');
                 const unchanged=JSON.stringify(this.exportData())===JSON.stringify(request.data);

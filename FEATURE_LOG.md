@@ -12,6 +12,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-07 - v6.0.12 - Endurecimiento de cotizaciones y persistencia
+- Funcionalidad:
+  - Normaliza unidades de cotización minoritarias y valida precio, moneda y cambio fechado antes de publicar datos de mercado.
+  - Conserva el libro inmutable asociado a cada valoración y captura snapshots solo con precios recientes de la ejecución correspondiente.
+  - Añade alertas de salud del batch y guarda los cambios cloud de cartera mediante parches idempotentes.
+  - Endurece las autorizaciones editoriales, las invitaciones recuperables y los permisos sobre artículos e imágenes.
+- Resumen:
+  - Refuerza la integridad de cotizaciones, valoraciones y sincronización cloud, junto con el control de acceso editorial.
+- Archivos:
+  - `README.md`, `docs/daily-market-data.md`, `package.json`, `package-lock.json`, `scripts/test-architecture-hardening.ts`, `scripts/test-daily-market-ui.ts`, `scripts/test-news-article-editor-ui.ts`, `src/constants/app.ts`, `src/components/dashboard/AssetDetail.tsx`, `src/components/dashboard/useDashboardAnalytics.ts`, `src/context/AccountContext.tsx`, `src/context/PortfolioContext.tsx`, `src/pages/Account/AccountMfa.tsx`, `src/pages/Dashboard/Dashboard.tsx`, `src/pages/NewsAdmin/NewsAdmin.tsx`, `src/services/apiService.ts`, `src/services/dailyMarketData.ts`, `src/services/market/fundamentals.ts`, `src/services/newsService.ts`, `src/services/portfolioCloudStorage.ts`, `src/services/portfolioQuoteService.ts`, `src/services/portfolioRepository.ts`, `src/types/api.ts`, `src/types/asset.ts`, `src/types/portfolio.ts`, `supabase/functions/_shared/quoteCurrency.ts`, `supabase/functions/daily-market-data/index.ts`, `supabase/functions/daily-market-data/providers.ts`, `supabase/functions/invite-news-editor/index.ts`, `supabase/migrations/20261007163808_architecture_hardening.sql`, `supabase/migrations/20261007163855_market_publication_hardening.sql`, `supabase/migrations/20261007163927_portfolio_delta_commands.sql`, `supabase/migrations/20261007164501_architecture_advisor_cleanup.sql`, `supabase/news-schema.sql`.
+
 ### 2026-10-07 - v6.0.11 - Cotizaciones y valoraciones diarias
 - Funcionalidad:
   - Automatiza las cotizaciones y valoraciones de carteras sincronizadas con fechas contables, fuentes identificadas y validación de precios, divisas y cobertura.

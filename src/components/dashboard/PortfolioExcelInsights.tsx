@@ -80,8 +80,8 @@ const tooltipTheme = {
     labelStyle: { color: 'var(--text-primary)' },
 };
 
-const benchmarkSeriesLabel = (name?: string) => name === 'portfolio' || name === 'Tu cartera'
-    ? 'Tu cartera'
+const benchmarkSeriesLabel = (name?: string, portfolioLabel = 'Tu cartera') => name === 'portfolio' || name === 'Tu cartera'
+    ? portfolioLabel
     : 'MSCI World';
 
 const formatAxisCurrency = (value: number) => value >= 1000
@@ -223,6 +223,9 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         benchmarkLine[0].date.slice(0, 10) !== selectedPeriod.performance.baseDate?.slice(0, 10)
         || benchmarkLine.at(-1)!.date.slice(0, 10) !== selectedPeriod.performance.endDate?.slice(0, 10));
     const benchmarkDifference = benchmarkReturn !== null && portfolioBenchmarkReturn !== null ? portfolioBenchmarkReturn - benchmarkReturn : null;
+    const benchmarkPortfolioLabel = benchmarkPartial
+        ? `Tu cartera hasta ${formatChartDate(benchmarkLine.at(-1)!.date)}`
+        : 'Tu cartera';
 
     const evolutionSeries = periodSeries;
     const selectedPeriodPerformance = selectedPeriod.performance;
@@ -404,12 +407,9 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                         <div className="portfolio-excel-insights__panel-heading">
                             <div>
                                 <h3><BarChart3 size={16} /> Comparativa automática</h3>
-                                <p>{benchmarkUsesWorkbook
-                                    ? 'Comparativa importada de tu hoja Comparativa, con ambos recorridos en los mismos cierres. La cobertura puede ser menor que el periodo solicitado.'
-                                    : `Tu cartera frente a ${BENCHMARK_NAME} (${BENCHMARK_ISIN}), con NAV en euros y las mismas fechas de comparación.`}</p>
+                                <p>{benchmarkUsesWorkbook ? 'Fuente: hoja Comparativa.' : `${BENCHMARK_NAME} (${BENCHMARK_ISIN}).`}</p>
                             </div>
                             <div className="portfolio-excel-insights__panel-actions">
-                                <strong>{benchmarkLine[0]?.date} — {benchmarkLine.at(-1)?.date} · {benchmarkLine.length} {benchmarkUsesWorkbook ? 'puntos comparables' : 'puntos coincidentes'}</strong>
                                 <div className="portfolio-excel-insights__periods" role="group" aria-label="Periodo de benchmark">
                                     {evolutionPeriods.map((period) => (
                                         <button
@@ -425,24 +425,28 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                 </div>
                             </div>
                         </div>
-                        <div className="portfolio-excel-insights__benchmark-kpis">
-                            <div><span>Tu cartera · {evolutionPeriod === 'YTD' ? 'YTD completo' : 'periodo seleccionado'}</span><strong>{percent(selectedPeriod.performance.returnPercent)}</strong></div>
-                            {benchmarkPartial && <div><span>Tu cartera · tramo comparable</span><strong>{percent(portfolioBenchmarkReturn)}</strong></div>}
-                            <div><span>{benchmarkPartial ? 'Fidelity MSCI World · tramo comparable' : 'Fidelity MSCI World'}</span><strong>{percent(benchmarkReturn)}</strong></div>
-                            <div><span>{benchmarkPartial ? 'Diferencia · tramo comparable' : 'Diferencia'}</span><strong className={benchmarkDifference === null ? '' : benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'}>{percent(benchmarkDifference)}</strong></div>
+                        <div className="portfolio-excel-insights__benchmark-portfolio">
+                            <span>Tu cartera · {evolutionPeriod === 'YTD' ? 'YTD' : 'periodo seleccionado'}</span>
+                            <strong>{percent(selectedPeriod.performance.returnPercent)}</strong>
                         </div>
-                        {benchmarkPartial && <p className="portfolio-excel-insights__chart-note" role="status">
-                            Cobertura parcial: esta comparación abarca del {benchmarkLine[0].date.slice(0, 10)} al {benchmarkLine.at(-1)!.date.slice(0, 10)}.
-                            {' '}La rentabilidad de tu cartera para todo el periodo seleccionado es {percent(selectedPeriod.performance.returnPercent)}, igual que en el resumen. No se prolonga el benchmark con datos inventados.
+                        {hasPortfolioBenchmark && <p className="portfolio-excel-insights__comparison-dates">
+                            Comparación del {formatChartDate(benchmarkLine[0].date)} al {formatChartDate(benchmarkLine.at(-1)!.date)}
                         </p>}
+                        {benchmarkPartial && <p className="portfolio-excel-insights__chart-note" role="status">
+                            El benchmark aún no cubre todo el periodo. El gráfico y la diferencia se limitan a estas fechas.
+                        </p>}
+                        <div className="portfolio-excel-insights__benchmark-kpis">
+                            <div><span>Fidelity MSCI World</span><strong>{percent(benchmarkReturn)}</strong></div>
+                            <div><span>Diferencia en estas fechas</span><strong className={benchmarkDifference === null ? '' : benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'}>{percent(benchmarkDifference).replace('%', ' pp')}</strong></div>
+                        </div>
                         {benchmarkLine.length > 1 ? (
                             <ResponsiveContainer width="100%" height={230}>
                                 <LineChart data={benchmarkLine} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
                                     <XAxis dataKey="date" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
                                     <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
-                                    <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined, name?: string) => [percent(Number(value || 0)), benchmarkSeriesLabel(name)]} />
-                                    <Legend formatter={(value) => benchmarkSeriesLabel(String(value))} />
+                                    <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined, name?: string) => [percent(Number(value || 0)), benchmarkSeriesLabel(name, benchmarkPortfolioLabel)]} />
+                                    <Legend formatter={(value) => benchmarkSeriesLabel(String(value), benchmarkPortfolioLabel)} />
                                     {hasPortfolioBenchmark && <Line type="monotone" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} connectNulls />}
                                     <Line type="monotone" dataKey="benchmark" name="Fidelity MSCI World" stroke="#3b82f6" strokeWidth={2} dot={false} />
                                 </LineChart>

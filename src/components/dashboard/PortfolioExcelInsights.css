@@ -8,7 +8,11 @@
 .portfolio-excel-insights__kpis .is-positive, .portfolio-excel-insights__control-row .is-ok { color: var(--color-positive); }
 .portfolio-excel-insights__kpis .is-negative, .portfolio-excel-insights__control-row .is-warn { color: var(--color-negative); }
 .portfolio-excel-insights__kpis .is-warning { color: var(--color-warning); }
-.portfolio-excel-insights__benchmark-kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: .65rem; margin: 1rem 0; }
+.portfolio-excel-insights__benchmark-portfolio { display: flex; justify-content: space-between; flex-wrap: wrap; gap: .5rem; margin: 1rem 0; padding: .85rem; border: 1px solid var(--border-primary); border-radius: 9px; background: var(--bg-secondary); }
+.portfolio-excel-insights__benchmark-portfolio span { color: var(--text-muted); font-size: .8rem; }
+.portfolio-excel-insights__benchmark-portfolio strong { color: var(--text-primary); }
+.portfolio-excel-insights__comparison-dates { margin: 1rem 0 .25rem; color: var(--text-primary); font-size: .8rem; }
+.portfolio-excel-insights__benchmark-kpis { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .65rem; margin: 1rem 0; }
 .portfolio-excel-insights__benchmark-kpis > div { display: grid; gap: .3rem; padding: .75rem; border: 1px solid var(--border-primary); border-radius: 9px; background: var(--bg-tertiary); }
 .portfolio-excel-insights__benchmark-kpis span { color: var(--text-muted); font-size: .72rem; }
 .portfolio-excel-insights__benchmark-kpis strong { color: var(--text-primary); font-size: .95rem; }

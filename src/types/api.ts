@@ -46,6 +46,7 @@ export interface StockQuote {
 }
 
 export interface SearchResult {
+    isin?: string;
     symbol: string;
     name: string;
     type: AssetType;

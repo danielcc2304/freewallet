@@ -53,6 +53,13 @@ try {
         const group=width<=640?'.live-plan__mobile-positions':'.live-plan__desktop-positions';
         const contributions=await page.$$eval(`${group} ${width<=640?'.live-plan__position-main > div:last-child strong':'tbody tr td:last-child'}`,nodes=>nodes.map(n=>Number((n.textContent??'').replace(/[^\d,.-]/g,'').replaceAll('.','').replace(',','.'))));
         assert.equal(Math.round(contributions.reduce((a,b)=>a+b,0)*100),100000);
+        assert.ok(contributions.every(value=>Number.isInteger(value)&&value%50===0));
+        assert.ok(await page.$$eval(`${group} ${width<=640?'.live-plan__position-main > div:last-child strong':'tbody tr td:last-child'}`,nodes=>nodes.every(n=>!n.textContent?.includes(','))),'Suggested contributions have no cents');
+        await page.$eval('.live-plan__budget input',n=>{const input=n as HTMLInputElement;Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value')!.set!.call(input,'1025');input.dispatchEvent(new Event('input',{bubbles:true}));});
+        await page.waitForFunction(()=>document.querySelector('.live-plan__budget')?.closest('.live-plan')?.textContent?.includes('sin asignar'));
+        assert.match(await page.$eval('.live-plan__budget',n=>n.closest('.live-plan')?.textContent||''),/Quedan 25\s*€ sin asignar/);
+        const roundedSum=await page.$$eval(`${group} ${width<=640?'.live-plan__position-main > div:last-child strong':'tbody tr td:last-child'}`,nodes=>nodes.reduce((sum,n)=>sum+Number((n.textContent??'').replace(/[^\d,.-]/g,'').replaceAll('.','').replace(',','.')),0));
+        assert.equal(roundedSum,1000,'A non-multiple budget does not push the plan over budget');
         if(width===390){await (await page.$('.live-plan__position details summary'))!.click();await (await page.$('.live-plan__position'))!.screenshot({path:join(tmpdir(),'freewallet-plan-mobile-quality.png')});await (await page.$('.portfolio-data-quality'))!.screenshot({path:join(tmpdir(),'freewallet-data-quality.png')});}
     }
     // A negative result in the best ranking must stay negative, too.

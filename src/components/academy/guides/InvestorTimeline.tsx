@@ -18,7 +18,7 @@ export function InvestorTimeline() {
     return (
         <div className="timeline">
             <AcademyPageHeader className="timeline__header" section="Aprender">
-                <h1 className="timeline__title">Tu Journey como Inversor</h1>
+                <h1 className="timeline__title">Tu viaje como inversor</h1>
                 <p className="timeline__description">
                     Una guía visual que te acompaña en cada etapa de tu camino como inversor.
                 </p>

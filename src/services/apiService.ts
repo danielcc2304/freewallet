@@ -775,6 +775,17 @@ async function searchChartInstrument(query: string, signal?: AbortSignal): Promi
         : await fetchFromFastestProxy(url, signal);
 }
 
+/** Preserve individual listings/classes for look-through details, without autocomplete deduplication. */
+export async function searchUnderlyingInstrument(query: string, signal?: AbortSignal): Promise<SearchResult[]> {
+    if(!isApiEnabled()) return [];
+    const data=asJsonRecord(await searchChartInstrument(query,signal));
+    return asJsonRecords(data.quotes).filter(r=>['EQUITY','ETF','MUTUALFUND'].includes(readString(r.quoteType))).map(r=>({
+        symbol:readString(r.symbol),name:readString(r.longname)||readString(r.shortname)||readString(r.symbol),
+        type:mapYahooType(readString(r.quoteType)),region:readString(r.region,'Global'),currency:readString(r.currency,'Unknown'),
+        isin:readString(r.isin)||undefined,
+    }));
+}
+
 async function getFundClassChartSymbols(isin: string, signal?: AbortSignal): Promise<string[]> {
     const key = 'fund-class::' + isin;
     const cached = CHART_SYMBOL_CACHE.get(key);

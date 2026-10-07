@@ -63,3 +63,11 @@ El 7 de octubre se comprobó el recorrido completo en Chromium, sin simular resp
 Se elimina la segunda tarjeta de rentabilidad de cartera llamada «tramo comparable». La rentabilidad principal conserva el periodo seleccionado y se separa visualmente de la comparación, cuyo encabezado identifica sus fechas. Cuando la cobertura es parcial, la leyenda y el tooltip identifican hasta qué fecha llega la serie de cartera del gráfico. La diferencia se muestra en puntos porcentuales y sigue calculándose entre ambas series sobre las mismas fechas; no se sustituye por la resta de rentabilidades de periodos diferentes.
 
 Verificación en Chromium con datos sintéticos: una rentabilidad completa de +8,94% y una serie que termina antes con +7,85%, frente al +15,53% del benchmark. Se comprueba una sola tarjeta de rentabilidad de cartera, diferencia de -7,68 pp, fechas y leyenda explícitas y ausencia de desbordamiento a 390 y 1280 px. `test-import-benchmark-coverage.ts`, TypeScript y ESLint siguen pasando. No cambia el cálculo ni se añaden precios o fechas al benchmark.
+
+## Aportaciones en bloques de 50 €
+
+El plan distribuye bloques completos de 50 € entre los instrumentos infraponderados, en proporción a sus desviaciones respecto a los objetivos. El redondeo reparte los bloques restantes por mayor resto, con desempate estable, y conserva una única propuesta por instrumento aunque tenga varios lotes. Las cifras «Aportar» se muestran sin céntimos tanto en móvil como en la tabla.
+
+Si el presupuesto no es múltiplo de 50 €, el sobrante queda sin asignar y se indica. Por ejemplo, 525 € permiten distribuir 500 € y dejan 25 €; no se eleva el reparto a 550 €. Con menos de 50 € se solicita una aportación de al menos 50 €. La desviación objetivo usa únicamente el importe que puede distribuirse. Los precios, costes, operaciones y pesos objetivo conservan su precisión.
+
+`test-dashboard-logic.ts` verifica importes mínimos, presupuestos no múltiplos y con céntimos, reconciliación entre propuesta y sobrante, distribución entre varios instrumentos, estabilidad al reordenar y agrupación de lotes. `test:dashboard-quality-ui` verifica cifras enteras múltiplos de 50 €, suma de 1.000 € y sobrante explícito para 1.025 €, en móvil y escritorio y en ambos temas. Las comprobaciones usan posiciones sintéticas locales, sin operaciones reales.

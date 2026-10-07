@@ -50,8 +50,22 @@ const targets = migratePlanTargets([a, b], {}, { 'old-a': 50, b: 50 });
 assert.equal(targets[planAssetKey({ ...a, id: 'new-a' } as Asset)], '50');
 const plan = calculateContributionPlan([a, b], targets, '100,01');
 assert.equal(plan.canCalculate, true);
-near(plan.rows.reduce((s, r) => s + r.contribution, 0), 100.01);
-assert.ok(plan.rows.every(r => r.contribution >= 0));
+near(plan.allocated, 100);
+near(plan.unallocated, .01);
+assert.deepEqual(plan.rows.map(r => r.contribution), [0, 100], 'Only the underweight position receives blocks');
+for (const budget of ['49,99', '50', '99,99', '149', '1000', '253,75']) {
+    const rounded = calculateContributionPlan([a, b], targets, budget);
+    assert.equal(rounded.canCalculate, parsePlanNumber(budget)! >= 50);
+    assert.ok(rounded.rows.every(r => Number.isInteger(r.contribution) && r.contribution >= 0 && r.contribution % 50 === 0));
+    near(rounded.allocated, Math.floor(parsePlanNumber(budget)! / 50) * 50);
+    near(rounded.allocated + rounded.unallocated, parsePlanNumber(budget)!);
+}
+const emptyPositions = [a, b, { ...a, id: 'c', symbol: 'TEST-C' }].map(asset => ({...asset,currentPrice:0}));
+const threeTargets = Object.fromEntries(emptyPositions.map((asset,index) => [planAssetKey(asset),String([50,30,20][index])]));
+const split = calculateContributionPlan(emptyPositions, threeTargets, '250');
+assert.deepEqual(split.rows.map(r => r.contribution), [150,50,50], 'Rounding assigns all complete blocks by proportional shortfall');
+const reversed = calculateContributionPlan([...emptyPositions].reverse(), threeTargets, '250');
+assert.deepEqual(Object.fromEntries(reversed.rows.map(r => [r.key,r.contribution])),Object.fromEntries(split.rows.map(r => [r.key,r.contribution])), 'Order of positions does not change rounded suggestions');
 assert.equal(calculateContributionPlan([a, b], {}, '100').canCalculate, false);
 assert.equal(calculateContributionPlan([a, b], targets, '').canCalculate, false);
 assert.equal(calculateContributionPlan([a, b], targets, '-1').canCalculate, false);
@@ -80,4 +94,4 @@ const ambiguous = performanceSeries([
     { date: '2026-01-02', value: 1000, invested: 1000 },
 ], [{ id: 'buy', assetId: 'a', assetName: 'Test', assetSymbol: 'A', assetType: 'stock', type: 'buy', date: '2026-01-02', total: 100, createdAt: '2026-01-02' }], [{ ...a, type: 'cash' }]);
 assert.equal(ambiguous[1].dailyReturn, null, 'Internal cash-account trading is not a verified external flow');
-console.log('Dashboard logic: full/partial YTD, risk parity, DCA drawdown, decimal targets, stable identities, exact budget, lots and composition reconciliation passed.');
+console.log('Dashboard logic: full/partial YTD, risk parity, DCA drawdown, decimal targets, stable identities, €50 contributions within budget, explicit remainder, lots and composition reconciliation passed.');

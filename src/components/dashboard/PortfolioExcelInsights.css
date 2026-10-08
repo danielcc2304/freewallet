@@ -16,6 +16,11 @@
 .portfolio-excel-insights__benchmark-kpis > div { display: grid; gap: .3rem; padding: .75rem; border: 1px solid var(--border-primary); border-radius: 9px; background: var(--bg-tertiary); }
 .portfolio-excel-insights__benchmark-kpis span { color: var(--text-muted); font-size: .72rem; }
 .portfolio-excel-insights__benchmark-kpis strong { color: var(--text-primary); font-size: .95rem; }
+.portfolio-excel-insights__benchmark-tooltip { box-sizing: border-box; width: min(260px, calc(100vw - 48px)); padding: .65rem .75rem; border: 1px solid var(--border-primary); border-radius: 8px; background: var(--bg-card); color: var(--text-primary); box-shadow: 0 8px 24px rgba(0,0,0,.32); font-size: .78rem; }
+.portfolio-excel-insights__benchmark-tooltip > strong { display: block; margin-bottom: .4rem; color: var(--text-primary); font-size: .8rem; }
+.portfolio-excel-insights__benchmark-tooltip-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: .5rem; padding: .2rem 0; color: var(--text-secondary); }
+.portfolio-excel-insights__benchmark-tooltip-row span { min-width: 0; overflow-wrap: anywhere; }
+.portfolio-excel-insights__benchmark-tooltip-row b { color: var(--text-primary); white-space: nowrap; }
 .portfolio-excel-insights__tabs { display: flex; flex-wrap: wrap; gap: .35rem; margin: 1rem 0; padding: .3rem; border-radius: 10px; background: var(--bg-tertiary); }
 .portfolio-excel-insights__tabs button { display: inline-flex; align-items: center; gap: .35rem; border: 0; border-radius: 7px; padding: .45rem .7rem; background: transparent; color: var(--text-muted); cursor: pointer; font-size: .76rem; }
 .portfolio-excel-insights__tabs button:hover, .portfolio-excel-insights__tabs button.is-active { background: var(--accent-primary); color: white; }

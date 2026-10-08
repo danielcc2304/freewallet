@@ -75,8 +75,10 @@ export function fundBenchmarkAllocation(fund: Pick<FinectFundRelevance, 'breakdo
 /** A valid fund ISIN is used to join assets to Finect's public class metadata. */
 export function benchmarkFundIsin(asset: Pick<Asset, 'type' | 'isin' | 'symbol'>): string | null {
     if (asset.type !== 'fund' && asset.type !== 'etf') return null;
-    const value = (asset.isin || asset.symbol || '').replace(/\s+/g, '').toUpperCase();
-    return ISIN_PATTERN.test(value) ? value : null;
+    const candidates = [asset.isin, asset.symbol]
+        .filter((value): value is string => typeof value === 'string')
+        .map(value => value.replace(/\s+/g, '').toUpperCase());
+    return candidates.find(value => ISIN_PATTERN.test(value)) ?? null;
 }
 
 /** Current weights use the same EUR market values as the dashboard allocation. */

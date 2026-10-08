@@ -113,7 +113,7 @@ try {
     const tooltip=await page.$eval('.recharts-tooltip-wrapper',el=>el.textContent || '');
     assert.match(tooltip,/7 oct 26/);
     assert.match(tooltip,/Tu cartera.*18,50?%/,'The endpoint agrees with the verified summary even when the NAV lags');
-    assert.match(tooltip,/Fidelity MSCI World.*[+-]?\\d+[,.]\\d+%.*6 oct 26/,'The latest NAV value and its date remain visible');
+    assert.match(tooltip,/Fidelity MSCI World.*[+-]?\d+[,.]\d+%.*6 oct 26/,'The latest NAV value and its date remain visible');
     assert.doesNotMatch(tooltip,/último disponible/,'The mobile tooltip omits the long latest-available label');
     assert.doesNotMatch(tooltip,/N\/D/);
     const tooltipBounds=await page.$eval('.recharts-tooltip-wrapper .recharts-default-tooltip',el=>{

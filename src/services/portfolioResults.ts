@@ -1,6 +1,6 @@
 import type { Asset, PortfolioTransaction } from '../types/types';
 import { assetValue } from './assetValuation';
-import { accountingDay, getTransactionEventDay, normalizePortfolioTransactions } from './portfolioPerformance';
+import { accountingDay, comparePortfolioTransactions, getTransactionEventDay, normalizePortfolioTransactions } from './portfolioPerformance';
 
 /** Moving average cost, matching the app's purchasePrice on each open lot.
  * Cash movements, corrections and deletions never manufacture sale proceeds.
@@ -16,8 +16,7 @@ export function calculatePortfolioResults(assets: Asset[], transactions: Portfol
     let resultUnavailableReason: string | undefined;
     const fail = (reason: string) => { resultUnavailableReason ??= reason; };
     const today = accountingDay(now);
-    const ledger = normalizePortfolioTransactions(assets, transactions).sort((a, b) =>
-        getTransactionEventDay(a).localeCompare(getTransactionEventDay(b)) || (a.createdAt || '').localeCompare(b.createdAt || '') || (a.id || '').localeCompare(b.id || ''));
+    const ledger = normalizePortfolioTransactions(assets, transactions).sort(comparePortfolioTransactions);
     for (const transaction of ledger) {
         const day = getTransactionEventDay(transaction);
         if (!day || !Number.isFinite(Date.parse(day)) || new Date(day).toISOString().slice(0, 10) !== day) {

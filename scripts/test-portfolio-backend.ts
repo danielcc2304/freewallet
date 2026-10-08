@@ -133,6 +133,8 @@ try {
     await db.exec(readFileSync(`supabase/migrations/${validation}`,'utf8'));
     const openingMigration=readdirSync('supabase/migrations').find(name=>name.endsWith('_portfolio_opening_basis.sql'));assert.ok(openingMigration);
     await db.exec(readFileSync(`supabase/migrations/${openingMigration}`,'utf8'));
+    const chronological=readdirSync('supabase/migrations').find(name=>name.endsWith('_portfolio_chronological_trades.sql'));assert.ok(chronological);
+    await db.exec(readFileSync(`supabase/migrations/${chronological}`,'utf8'));
     const C = '55555555-5555-4555-8555-555555555555';
     const session = '66666666-6666-4666-8666-666666666666';
     await db.query('insert into auth.users(id) values ($1)',[C]);

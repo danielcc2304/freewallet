@@ -1,11 +1,11 @@
-import { portfolioStorage } from '../../services/portfolioCloudStorage';
+import { usePortfolioHistoryArchive } from '../../hooks/usePortfolioHistoryArchive';
 import { useEffect, useMemo, useState } from 'react';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { getHistory, isApiEnabled } from '../../services/storageService';
 import { getAssetChartData } from '../../services/apiService';
-import { readWorkbookHistory } from '../../services/portfolioWorkbookHistory';
+import { historicalBundle, historyScopeMatches, linkPortfolioHistory } from '../../services/portfolioHistoryArchive';
 import { accountingDay, buildPortfolioAnalyticsHistory, createMarketPortfolioHistory, createQuoteSnapshot, normalizePortfolioTransactions, performanceSeries, portfolioMonthlyRows } from '../../services/portfolioPerformance';
-import { continueWorkbookHistory } from '../../services/dashboardHistory';
+import { continuePortfolioHistory } from '../../services/dashboardHistory';
 import type { HistoricalDataPoint } from '../../types/types';
 import { convertHistoryToCurrency } from '../../services/assetValuation';
 import { useLocalDataVersion, notifyLocalDataChange } from '../../hooks/useLocalDataVersion';
@@ -20,20 +20,13 @@ export function useDashboardAnalytics(now: number) {
     const apiEnabled = isApiEnabled();
     const dailyMarket = useDailyMarketData(lastPriceUpdate ? Math.floor(lastPriceUpdate.getTime()/PRICE_REFRESH_INTERVAL_MS) : null);
     const day = accountingDay(now);
-    const workbookHistory = useMemo(() => { void localRevision; void day; return readWorkbookHistory(); }, [localRevision, day]);
-    const usingWorkbookHistory = workbookHistory.points.length >= 2;
+    const {archive,error:historyError} = usePortfolioHistoryArchive(localRevision);
+    const historicalHistory = useMemo(() => { void day; return historicalBundle(archive,now); }, [archive,day,now]);
+    const hasArchivedHistory = historicalHistory.points.length >= 2;
     const portfolioTransactions = useMemo(() => normalizePortfolioTransactions(assets, transactions), [assets, transactions]);
-    const workbookLinked = useMemo(() => {
-        void localRevision;
-        try {
-            const link = JSON.parse(portfolioStorage.getItem('freewallet_workbook_link') || 'null');
-            return !!link && link.workbook === workbookHistory.identity && Array.isArray(link.ids)
-                && portfolioTransactions.some(t => link.ids.includes(t.assetId))
-                && assets.every(a => link.ids.includes(a.id) || transactions.some(t => t.assetId === a.id && t.type === 'buy' && t.provenance !== 'initial-position' && !/^(bootstrap|position)-/.test(t.id)));
-        } catch { return false; }
-    }, [assets, transactions, portfolioTransactions, workbookHistory, localRevision]);
-    const linkWorkbook = () => {
-        portfolioStorage.setItem('freewallet_workbook_link', JSON.stringify({ workbook: workbookHistory.identity, ids: [...new Set([...assets.map(a => a.id), ...transactions.map(t => t.assetId)])] }));
+    const historyLinked = useMemo(() => historyScopeMatches(archive,assets,portfolioTransactions),[archive,assets,portfolioTransactions]);
+    const linkHistory = () => {
+        linkPortfolioHistory([...assets.map(a=>a.id),...transactions.map(t=>t.assetId)]);
         notifyLocalDataChange();
     };
     const [marketCache, setMarket] = useState<Map<string, { symbol: string; prices: HistoricalDataPoint[] }>>(new Map());
@@ -46,7 +39,7 @@ export function useDashboardAnalytics(now: number) {
         return cached?.symbol === symbol ? [[id, cached.prices] as const] : [];
     })), [signature, marketCache]);
     useEffect(() => {
-        if (usingWorkbookHistory || !apiEnabled) return;
+        if (hasArchivedHistory || !apiEnabled) return;
         const controller = new AbortController();
         const entries = JSON.parse(signature) as [string, string][];
         // Bound concurrency and preserve successful histories if another provider fails.
@@ -80,13 +73,13 @@ export function useDashboardAnalytics(now: number) {
             });
         });
         return () => controller.abort();
-    }, [signature, usingWorkbookHistory, apiEnabled, lastPriceUpdate]);
+    }, [signature, hasArchivedHistory, apiEnabled, lastPriceUpdate]);
 
     const analytics = useMemo(() => {
         void localRevision;
         const quoteTimes = assets.map(a => Date.parse(a.quotedAt || a.lastQuoteAt || ''));
-        const workbookEnd = Date.parse(workbookHistory.endDate || '');
-        const quotesAlreadyImported = usingWorkbookHistory && quoteTimes.length > 0
+        const workbookEnd = Date.parse(historicalHistory.endDate || '');
+        const quotesAlreadyImported = hasArchivedHistory && quoteTimes.length > 0
             && quoteTimes.every(time => Number.isFinite(time) && time <= workbookEnd);
         // Opening the page must not turn yesterday's unchanged prices into a new valuation today.
         const currentSnapshot = quotesAlreadyImported ? null
@@ -105,17 +98,17 @@ export function useDashboardAnalytics(now: number) {
         const estimated = createMarketPortfolioHistory(assets, portfolioTransactions, datedMarket)
             .filter(p => !verifiedDays.has(accountingDay(p.date)) && Date.parse(p.date) <= now);
         const liveHistory = buildPortfolioAnalyticsHistory([...estimated, ...recorded], portfolioTransactions, undefined, assets, true);
-        const combined = usingWorkbookHistory
-            ? continueWorkbookHistory(workbookHistory, recorded, portfolioTransactions, now, workbookLinked)
+        const combined = hasArchivedHistory
+            ? continuePortfolioHistory(historicalHistory, recorded, portfolioTransactions, now, historyLinked)
             : { history: liveHistory, transactions: portfolioTransactions };
         const series = performanceSeries(combined.history, combined.transactions, assets, {
-            maxGapDays: usingWorkbookHistory ? 45 : 16,
+            maxGapDays: hasArchivedHistory ? 45 : 16,
         });
-        return { workbookHistory, usingWorkbookHistory, portfolioTransactions, history: combined.history, series,
+        return { historicalHistory, hasArchivedHistory, portfolioTransactions, history: combined.history, series,
             liveSeries: performanceSeries(recorded, portfolioTransactions, assets), monthly: portfolioMonthlyRows(series, now),
             hasEstimates: combined.history.some(p => p.source === 'market-estimate') };
-    }, [assets, portfolioTransactions, market, now, workbookHistory, usingWorkbookHistory, localRevision, workbookLinked, dailyMarket.data]);
-    return { ...analytics, localRevision, workbookLinked, linkWorkbook, dailyMarket };
+    }, [assets, portfolioTransactions, market, now, historicalHistory, hasArchivedHistory, localRevision, historyLinked, dailyMarket.data]);
+    return { ...analytics, archive, historyError, localRevision, historyLinked, linkHistory, dailyMarket };
 }
 
 export type DashboardAnalytics = ReturnType<typeof useDashboardAnalytics>;

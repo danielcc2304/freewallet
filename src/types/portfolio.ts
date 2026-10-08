@@ -26,6 +26,7 @@ export interface PortfolioMetrics {
 
 export interface PortfolioHistoryPoint {
     cadence?: 'daily' | 'monthly';
+    historyOrigin?: 'import' | 'agent';
     returnUnavailable?: boolean;
     date: string;
     value: number;

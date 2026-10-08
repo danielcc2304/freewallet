@@ -46,9 +46,9 @@ try {
     // Link the synthetic workbook using the production identity, then mount the
     // Dashboard with the unresolved live interval following its imported close.
     await page.evaluate(async () => {
-        const modulePath = '/src/services/portfolioWorkbookHistory.ts';
-        const { readWorkbookHistory } = await import(modulePath);
-        localStorage.setItem('freewallet_workbook_link', JSON.stringify({ workbook: readWorkbookHistory().identity, ids: ['first', 'second', 'removed'] }));
+        const modulePath = '/src/services/portfolioHistoryArchive.ts';
+        const { linkPortfolioHistory } = await import(modulePath);
+        linkPortfolioHistory(['first', 'second', 'removed']);
     });
     const before = await page.evaluate(() => localStorage.getItem('freewallet_portfolio_v1'));
     for (const width of [320, 390, 1280]) {

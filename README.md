@@ -41,13 +41,13 @@ Este README describe el código de la rama que estás consultando. Las funciones
 
 ### Importación de Excel y CSV
 
-La pantalla `/portfolio-csv` sigue disponible para importar y analizar hojas de cálculo. El Dashboard utiliza los datos importados y puede continuar su histórico con operaciones y valoraciones posteriores, según su cobertura y vinculación.
+La pantalla `/portfolio-csv` sigue disponible para importar y analizar hojas de cálculo. El Dashboard usa un histórico estructurado independiente del archivo y puede continuarlo con operaciones y valoraciones posteriores, según su cobertura y vinculación. Los datos antiguos se convierten una sola vez dentro de la sesión de su propietario.
 
 - Excel `.xlsx`: hojas `Cartera` y `Evolución`; admite información adicional de `Diario`, `Movimientos`, `Comparativa`, `Objetivos`, `Control` y `Datos diarios` según el formato de la plantilla.
 - CSV separados de cartera y evolución mensual.
 - Plantillas descargables, composición, aportaciones, rentabilidad, concentración y métricas de riesgo cuando las series lo permiten.
 
-El Excel proporciona posiciones, movimientos e histórico. La actualización diaria de precios de una cuenta configurada no requiere volver a subirlo.
+El Excel proporciona posiciones, movimientos e histórico inicial. Las carteras nuevas usan el mismo motor de resultados sin necesitar un archivo. En Supabase, las RPC autenticadas permiten añadir valoraciones, flujos y NAV del benchmark directamente; los agentes externos deben configurarse para llamarlas. Consulta el [modelo y la API de histórico](docs/portfolio-history.md).
 
 ### Academia y herramientas
 
@@ -201,6 +201,7 @@ La navegación principal está en [`src/App.tsx`](src/App.tsx); Academia y herra
 Las regresiones están agrupadas en scripts `test:*` de `package.json`, entre ellos:
 
 - Cartera y sincronización: `test:portfolio-backend`, `test:portfolio-sync`, `test:portfolio-ui`.
+- Histórico independiente: `test:history-archive`, `test:structured-history-backend`, `test:portfolio-periods-ui`, `test:ytd-verification-ui`.
 - Actualizaciones diarias: `test:daily-market`, `test:daily-market-ui`.
 - Dashboard: `test:dashboard-audit`, `test:dashboard-results`, `test:portfolio-periods`, `test:portfolio-composition`.
 - Fondos y acciones: `test:fund-chart-resolution`, `test:fund-breakdown`, `test:stock-fundamentals`, `test:underlying-resolution`.
@@ -248,6 +249,7 @@ El script también omite automáticamente el prerender al detectar `VERCEL`. `PU
 ## Documentación técnica
 
 - [Cartera con Supabase](docs/portfolio-supabase.md): importación, sincronización, permisos y MFA.
+- [Histórico independiente del Excel](docs/portfolio-history.md): migración, almacenamiento y API para agentes.
 - [Actualización diaria](docs/daily-market-data.md): batch, benchmark, histórico y diagnóstico.
 - [Revisión de lógica del Dashboard](docs/dashboard-logic-review.md).
 - [Revisión del Dashboard](docs/dashboard-review.md).

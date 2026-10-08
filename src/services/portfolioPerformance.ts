@@ -197,7 +197,7 @@ export function performanceSeries(history: PortfolioHistoryPoint[], transactions
         const flow = operations.reduce((sum, t) => sum + transactionFlow(t), 0);
         const gap = previous ? (Date.parse(date) - Date.parse(previous[0])) / DAY_MS : 0;
         const unexplainedCostChange = previous && !operations.length && Math.abs(point.invested - previous[1].invested) > 0.01;
-        const ambiguousCashFlow = includesCash && operations.some(t => t.assetId !== 'workbook-history' && (t.type === 'buy' || t.type === 'sell'));
+        const ambiguousCashFlow = includesCash && operations.some(t => !['workbook-history','historical-cash-flow'].includes(t.assetId) && (t.type === 'buy' || t.type === 'sell'));
         // ALL-period market candles are weekly; allow a holiday fortnight but
         // still reject monthly/unknown gaps that would fabricate a return.
         const intervalGap = point.cadence === 'daily' ? Math.min(maxGapDays, 8) : point.cadence === 'monthly' ? 45 : maxGapDays;

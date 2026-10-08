@@ -1,9 +1,10 @@
+import { migrateLegacyPortfolioHistory } from '../services/imports/portfolioHistoryImport';
 import { createContext, useContext, useReducer, useEffect, useCallback, useRef } from 'react';
 import type { ReactNode } from 'react';
 import type { Asset, PortfolioTransaction } from '../types/types';
 import { getAssets, getTransactions, savePortfolioState, updateAssets as updateAssetsInStorage, saveHistory, addHistoryPoint, isApiEnabled, generateId } from '../services/storageService';
 import { getPortfolioAssetQuote } from '../services/portfolioQuoteService';
-import { useLocalDataVersion } from '../hooks/useLocalDataVersion';
+import { useLocalDataVersion, notifyLocalDataChange } from '../hooks/useLocalDataVersion';
 import { LIVE_PRICE_REFRESH_INTERVAL_MS, PRICE_REFRESH_INTERVAL_MS } from '../constants/app';
 import { prefersBatchQuote } from '../services/market/marketSessions';
 import { priceRefreshInterval } from '../services/market/priceRefreshPolicy';
@@ -279,6 +280,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         if (state.initialized) return;
         try {
+        if(migrateLegacyPortfolioHistory())notifyLocalDataChange();
         const storedAssets = getAssets();
         dispatch({ type: 'SET_ASSETS', payload: storedAssets });
         dispatch({ type: 'SET_TRANSACTIONS', payload: getTransactions() });
@@ -324,7 +326,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
             }
         };
         window.addEventListener('storage', sync);
-        const localSync=()=>sync({key:null} as StorageEvent);
+        const localSync=()=>{try {if(migrateLegacyPortfolioHistory())notifyLocalDataChange();} catch (error) {dispatch({type:'SET_STORAGE_ERROR',payload:String(error)});}sync({key:null} as StorageEvent);};
         window.addEventListener('freewallet-data-change',localSync);
         return () => {window.removeEventListener('storage', sync);window.removeEventListener('freewallet-data-change',localSync);};
     }, []);

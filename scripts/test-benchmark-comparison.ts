@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { benchmarkChartCadence, extendImportedBenchmark } from '../src/services/benchmarkComparison';
+import { benchmarkChartCadence, benchmarkPeriodDifference, extendImportedBenchmark } from '../src/services/benchmarkComparison';
 import { alignedBenchmark, alignImportedBenchmark, chooseBenchmarkLine, performanceSeries, selectPortfolioPeriod } from '../src/services/portfolioPerformance';
 import type { HistoricalDataPoint } from '../src/types/types';
 
@@ -33,6 +33,12 @@ for (const period of ['3M','YTD','ALL'] as const) {
     assert.ok(Math.abs(sampled.at(-1)!.portfolio-selected.performance.returnPercent!)<1e-8);
 }
 assert.ok(Math.abs(selected.performance.returnPercent!-9.4)<1e-8,'The full portfolio return still includes October 8');
+const comparison=benchmarkPeriodDifference(line,selected.performance.baseDate);
+assert.equal(comparison?.endDate,'2026-10-07');
+assert.ok(Math.abs(comparison!.value-(line.at(-1)!.portfolio-line.at(-1)!.benchmark))<1e-10,'Difference uses the same two dates, not the newer portfolio return');
+assert.notEqual(comparison!.value,selected.performance.returnPercent!-line.at(-1)!.benchmark);
+assert.equal(benchmarkPeriodDifference(line,'2026-01-01'),null,'A missing requested baseline remains unavailable');
+assert.equal(benchmarkPeriodDifference([],null),null);
 for (const period of ['1D','7D','1M'] as const) assert.equal(benchmarkChartCadence(chart,period),chart);
 const missing = benchmarkChartCadence(chart.map(p=>p.date.startsWith('2026-10')?{...p,benchmark:null}:p),'YTD');
 assert.equal(missing.at(-1)?.date,'2026-10-08');

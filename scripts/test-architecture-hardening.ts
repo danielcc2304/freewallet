@@ -80,7 +80,7 @@ try {
         insert into auth.users(id,email) values('${A}','daniel230401@gmail.com'),('${B}','editor@example.test');insert into auth.sessions values('${S}','${A}'),('${T}','${B}');`);
     for(const name of ['portfolio_foundation.sql','portfolio_commands.sql','portfolio_mfa_guard.sql','portfolio_command_validation.sql','portfolio_opening_basis.sql','daily_market_data.sql','daily_market_accounting_calendar.sql']) await db.exec(migration(name));
     await db.exec(readFileSync('supabase/news-schema.sql','utf8').replace('create extension if not exists pgcrypto;',''));
-    for(const name of ['architecture_hardening.sql','market_publication_hardening.sql','portfolio_delta_commands.sql','architecture_advisor_cleanup.sql','market_snapshot_completeness.sql','market_half_hour_schedule.sql','fund_quote_sources.sql','portfolio_chronological_trades.sql']) await db.exec(migration(name));
+    for(const name of ['architecture_hardening.sql','market_publication_hardening.sql','portfolio_delta_commands.sql','architecture_advisor_cleanup.sql','market_snapshot_completeness.sql','market_half_hour_schedule.sql','fund_quote_sources.sql','portfolio_chronological_trades.sql','financial_times_fund_source.sql']) await db.exec(migration(name));
     const schedule=(await db.query<{schedule:string}>("select schedule from cron.job where jobname='freewallet-daily-market'")).rows;
     assert.deepEqual(schedule,[{schedule:'*/30 6-21 * * *'}],'Update the existing Cron job instead of installing a duplicate');
     assert.equal((await db.query<{schedule:string}>("select schedule from cron.job where jobname='freewallet-market-watchdog'")).rows[0].schedule,'*/5 * * * *');

@@ -25,7 +25,7 @@ Este README describe el código de la rama que estás consultando. Las funciones
 - Valor actual, coste de posiciones abiertas, resultado no realizado y rendimiento por periodo. El realizado y el total solo se muestran cuando los movimientos permiten calcularlos: borrar una posición no equivale a registrar su venta.
 - Las entradas eliminadas que se crearon por error pueden clasificarse desde «Ver motivo» del resumen. La corrección es reversible, conserva el libro de operaciones y no permite excluir registros con ventas o posiciones activas.
 - Evolución mensual importada y valoraciones diarias cuando existe cobertura suficiente. Los periodos sin datos fiables se identifican en la interfaz.
-- Comparación con Fidelity MSCI World ACC EUR, ISIN **IE00BYX5NX33**, utilizando las fechas comunes disponibles. No se completa el benchmark con precios inventados ni con otro instrumento.
+- Comparación con Fidelity MSCI World ACC EUR, ISIN **IE00BYX5NX33**, utilizando las fechas comunes disponibles y fechando la diferencia cuando el NAV termina antes que la cartera. No se completa el benchmark con precios inventados ni con otro instrumento.
 - Composición por activos y exposición consolidada: suma las posiciones directas y las participaciones conocidas dentro de los fondos. Identifica el resto sin desglosar y las coincidencias aproximadas.
 - Al activar «Desglosar fondos», el mapa de calor y los desgloses por fondo quedan cerrados por defecto y pueden abrirse individualmente.
 - Detalle de activos con gráficos históricos, una breve descripción de la empresa antes de las métricas y fundamentales disponibles, incluido EBITDA en acciones. La identidad de la clase del fondo, la divisa y la fecha del precio se conservan; un dato ausente no se sustituye por cero.
@@ -122,7 +122,7 @@ Las consultas del navegador contrastan Yahoo con **Google Finance para el mismo 
 | Proceso | Funcionamiento |
 | --- | --- |
 | Refresco del navegador | Acciones en sesión y criptos las 24 horas: cada minuto con el Dashboard visible y consultas habilitadas. Fondos, ETF, acciones fuera de sesión y otras pantallas conservan cinco minutos. La app oculta pausa las consultas. «Consultar precios ahora» permite reintentar manualmente. |
-| Actualización en Supabase | Edge Function `daily-market-data` cada 30 minutos, de **08:00 a 22:30 en España peninsular** (`Europe/Madrid`, con ajuste de verano/invierno). Utiliza las posiciones guardadas, actualiza instrumentos y benchmark y puede registrar valoraciones privadas completas. |
+| Actualización en Supabase | Edge Function `daily-market-data` cada 30 minutos, de **08:00 a 22:30 en España peninsular** (`Europe/Madrid`, con ajuste de verano/invierno). Utiliza las posiciones guardadas, actualiza instrumentos y benchmark y puede registrar valoraciones privadas completas. Los fondos contrastan NAV con Finect, VDOS/Quefondos, Financial Times, Yahoo y gestoras compatibles. |
 
 El proceso en Supabase requiere las migraciones, la función desplegada y el job configurado. Publicar el frontend no instala ni activa por sí solo ese proceso. Tampoco el hecho de que el batch esté activo actualiza el código de una web que aún no haya desplegado la integración.
 

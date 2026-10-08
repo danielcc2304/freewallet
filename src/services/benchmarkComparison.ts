@@ -39,3 +39,11 @@ export function benchmarkChartCadence<T extends { date: string; benchmark?: numb
     if (sampled[sampled.length - 1] !== latest) sampled.push(latest);
     return sampled;
 }
+
+/** Both returns share the line's base and endpoint. A later portfolio close
+ * must never be subtracted from an earlier benchmark close. */
+export function benchmarkPeriodDifference(line:Array<{date:string;portfolio:number;benchmark:number}>,baseDate:string|null) {
+    const last=line.at(-1);
+    if(line.length<2||accountingDay(line[0].date)!==baseDate||!last||!Number.isFinite(last.portfolio)||!Number.isFinite(last.benchmark))return null;
+    return {value:last.portfolio-last.benchmark,endDate:last.date};
+}

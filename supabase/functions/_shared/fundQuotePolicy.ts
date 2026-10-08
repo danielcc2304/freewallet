@@ -1,10 +1,11 @@
-export type FundSource = 'Finect' | 'Yahoo Finance' | 'VDOS/Quefondos' | 'Cobas AM' | 'Azvalor';
+export type FundSource = 'Finect' | 'Yahoo Finance' | 'VDOS/Quefondos' | 'Cobas AM' | 'Azvalor' | 'Financial Times';
 export interface FundObservation {
     isin: string; className: string; currency: string; price: number; at: string;
     previous: number | null; previousAt?: string; source: FundSource;
+    history?: Array<{at:string;price:number}>;
 }
 export function fundSourcePriority(source: string): number {
-    return source === 'Cobas AM' || source === 'Azvalor' ? 0 : source === 'VDOS/Quefondos' ? 10 : source === 'Yahoo Finance' ? 20 : 30;
+    return source === 'Cobas AM' || source === 'Azvalor' ? 0 : source === 'VDOS/Quefondos' ? 10 : source === 'Financial Times' ? 15 : source === 'Yahoo Finance' ? 20 : 30;
 }
 /** Keep all share-class tokens; only expand known fund-name abbreviations. */
 export function fundClassIdentity(name: string): string {

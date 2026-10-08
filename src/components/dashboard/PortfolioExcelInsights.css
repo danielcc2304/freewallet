@@ -83,3 +83,8 @@
 .portfolio-excel-insights__workbook-notice button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
 .portfolio-excel-insights__link-error { color: var(--color-negative); font-size: .8rem; }
 @media (max-width: 680px) { .portfolio-excel-insights__workbook-notice { flex-wrap: wrap; align-items: flex-start; } .portfolio-excel-insights__workbook-notice button { width: 100%; } }
+
+.portfolio-excel-insights__loading { display:flex; align-items:center; gap:8px; min-height:28px; margin:8px 0; color:var(--text-muted); font-size:0.85rem; }
+.portfolio-excel-insights__loading svg { flex-shrink:0; animation:insights-loading 1s linear infinite; }
+@keyframes insights-loading { to { transform:rotate(360deg); } }
+@media (prefers-reduced-motion:reduce) { .portfolio-excel-insights__loading svg { animation:none; } }

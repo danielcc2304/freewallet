@@ -375,11 +375,13 @@ export function alignImportedBenchmark(series: ReturnType<typeof performanceSeri
  */
 export function portfolioMonthlyRows(series: ReturnType<typeof performanceSeries>, now: number) {
     const groups = new Map<string, typeof series>();
-    series.forEach(p => groups.set(p.date.slice(0, 7), [...(groups.get(p.date.slice(0, 7)) ?? []), p]));
+    series.forEach(p => {const month=p.date.slice(0,7);const rows=groups.get(month);if(rows)rows.push(p);else groups.set(month,[p]);});
     let wealth = 1, peak = 1;
+    let previousEnd: (typeof series)[number]|undefined;
     return [...groups].map(([month, points]) => {
         const end = points.at(-1)!;
-        const base = series.filter(p => p.date.slice(0, 7) < month).at(-1);
+        const base = previousEnd;
+        previousEnd=end;
         const startDay = `${month}-01`;
         const lastDay = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0)).toISOString().slice(0, 10);
         const closed = month < accountingDay(now).slice(0, 7);
@@ -409,14 +411,17 @@ export function alignedBenchmark(series: ReturnType<typeof performanceSeries>, b
         .sort((left, right) => left.timestamp - right.timestamp);
     const latestMarketDay = market.at(-1)?.day;
     if (!latestMarketDay) return [];
+    const byDay=new Map(market.map(point=>[point.day,point]));
 
     const findMarketPoint = (portfolioTimestamp: number, portfolioDay: string, cadence?: 'daily' | 'monthly') => {
-        const sameDay = market.filter((candidate) => candidate.day === portfolioDay).at(-1);
+        const sameDay = byDay.get(portfolioDay);
         // Imported closes have an artificial 18:00 timestamp, not an intraday
         // valuation. Match their accounting day; real quote snapshots retain
         // the strict timestamp constraint against future market observations.
         if (sameDay && (cadence || sameDay.timestamp <= portfolioTimestamp)) return sameDay;
-        const preceding = market.filter((candidate) => candidate.timestamp <= portfolioTimestamp).at(-1);
+        let low=0,high=market.length;
+        while(low<high){const middle=(low+high)>>>1;if(market[middle].timestamp<=portfolioTimestamp)low=middle+1;else high=middle;}
+        const preceding = market[low-1];
         if (preceding && portfolioTimestamp - preceding.timestamp <= 4 * DAY_MS) return preceding;
         if (preceding) return undefined;
 

@@ -85,19 +85,24 @@ export function useDashboardAnalytics(now: number) {
         const currentSnapshot = quotesAlreadyImported ? null
             : createQuoteSnapshot(assets, portfolioTransactions, new Date(now).toISOString());
         const recorded = buildPortfolioAnalyticsHistory([...getHistory(), ...dailySnapshots(dailyMarket.data)], portfolioTransactions, currentSnapshot ?? undefined);
-        const verifiedDays = new Set(recorded.map(p => accountingDay(p.date)));
-        const datedMarket = new Map(market);
-        for (const asset of assets) {
-            const saved = dailyHistory(dailyMarket.data, asset.type === 'fund' ? asset.isin || asset.symbol : asset.symbol);
-            if (saved.length) {
-                const prices = new Map((datedMarket.get(asset.id) || []).map(p => [accountingDay(p.date), p]));
-                saved.forEach(p => prices.set(accountingDay(p.date), p));
-                datedMarket.set(asset.id, [...prices.values()].sort((a, b) => a.date.localeCompare(b.date)));
+        // Archived portfolios consume authoritative history + verified quotes.
+        // Reconstructing market estimates here was discarded by that branch.
+        let liveHistory = recorded;
+        if (!hasArchivedHistory) {
+            const verifiedDays = new Set(recorded.map(p => accountingDay(p.date)));
+            const datedMarket = new Map(market);
+            for (const asset of assets) {
+                const saved = dailyHistory(dailyMarket.data, asset.type === 'fund' ? asset.isin || asset.symbol : asset.symbol);
+                if (saved.length) {
+                    const prices = new Map((datedMarket.get(asset.id) || []).map(p => [accountingDay(p.date), p]));
+                    saved.forEach(p => prices.set(accountingDay(p.date), p));
+                    datedMarket.set(asset.id, [...prices.values()].sort((a, b) => a.date.localeCompare(b.date)));
+                }
             }
+            const estimated = createMarketPortfolioHistory(assets, portfolioTransactions, datedMarket)
+                .filter(p => !verifiedDays.has(accountingDay(p.date)) && Date.parse(p.date) <= now);
+            liveHistory = buildPortfolioAnalyticsHistory([...estimated, ...recorded], portfolioTransactions, undefined, assets, true);
         }
-        const estimated = createMarketPortfolioHistory(assets, portfolioTransactions, datedMarket)
-            .filter(p => !verifiedDays.has(accountingDay(p.date)) && Date.parse(p.date) <= now);
-        const liveHistory = buildPortfolioAnalyticsHistory([...estimated, ...recorded], portfolioTransactions, undefined, assets, true);
         const combined = hasArchivedHistory
             ? continuePortfolioHistory(historicalHistory, recorded, portfolioTransactions, now, historyLinked)
             : { history: liveHistory, transactions: portfolioTransactions };

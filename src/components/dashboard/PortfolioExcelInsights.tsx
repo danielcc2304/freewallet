@@ -1,4 +1,4 @@
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState, useTransition } from 'react';
 import type { ReactNode } from 'react';
 import {
     Activity,
@@ -16,6 +16,7 @@ import {
     Target,
     TrendingUp,
     WalletCards,
+    LoaderCircle,
 } from 'lucide-react';
 import {
     Area,
@@ -45,10 +46,10 @@ import { positionLotCounts } from '../../services/dashboardIntegrity';
 import { getAssetChartData } from '../../services/apiService';
 import { isApiEnabled } from '../../services/storageService';
 import { DashboardMarketHistoryCache } from '../../services/dashboardMarketHistory';
-import { benchmarkChartCadence, extendImportedBenchmark } from '../../services/benchmarkComparison';
+import { benchmarkChartCadence, benchmarkPeriodDifference, extendImportedBenchmark } from '../../services/benchmarkComparison';
 import type { HistoricalDataPoint } from '../../types/types';
 
-const benchmarkHistoryCache = new DashboardMarketHistoryCache(1);
+const benchmarkHistoryCache = new DashboardMarketHistoryCache(1,15*60*1000);
 
 function missingMetricReason(label: string, months: number) {
     if (label.startsWith('Rentabilidad no realizada')) return 'Falta un coste de posiciones abiertas mayor que cero para calcular el porcentaje.';
@@ -119,6 +120,13 @@ const evolutionPeriods: Array<{ value: EvolutionPeriod; label: string }> = [
 export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod, onPeriodChange: setEvolutionPeriod }: { now: number; analytics: DashboardAnalytics; period: EvolutionPeriod; onPeriodChange: (period: EvolutionPeriod) => void }) {
     const { state: { assets, transactions, lastPriceUpdate } } = usePortfolio();
     const [tab, setTab] = useState<InsightTab>('evolution');
+    const [changingPanel,startPanelTransition]=useTransition();
+    const [loadingBenchmark,setLoadingBenchmark]=useState(false);
+    const changeTab=(next:InsightTab)=>{
+        if (next === tab) return;
+        setLoadingBenchmark(next==='benchmark'&&benchmarkHistoryCache.needsRefresh(benchmarkCacheKey));
+        startPanelTransition(()=>setTab(next));
+    };
     const tabId = useId();
         const [linkError, setLinkError] = useState('');
     const { historicalHistory, hasArchivedHistory, portfolioTransactions, history, series, monthly, hasEstimates } = analytics;
@@ -128,16 +136,18 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const [benchmarkHistory, setBenchmarkHistory] = useState<HistoricalDataPoint[]>([]);
     const apiEnabled = isApiEnabled();
     const benchmarkHistoryStart = series[0]?.timestamp;
+    const benchmarkCacheKey=`${BENCHMARK_ISIN}::${benchmarkHistoryStart??'default'}`;
     useEffect(() => {
         if (tab !== 'benchmark' || !apiEnabled) return;
         const controller = new AbortController();
-        void benchmarkHistoryCache.load(BENCHMARK_ISIN, controller.signal,
-            (symbol, period, signal) => getAssetChartData(symbol, period, signal,
+        void benchmarkHistoryCache.load(benchmarkCacheKey, controller.signal,
+            (_symbol, period, signal) => getAssetChartData(BENCHMARK_ISIN, period, signal,
                 period === 'ALL' ? { startDate: benchmarkHistoryStart ?? now - 2 * 366 * 86400000 } : {}))
             .then(points => { if (!controller.signal.aborted) setBenchmarkHistory(points); })
-            .catch(() => { /* Keep imported and batch data on provider failure. */ });
+            .catch(() => { /* Keep imported and batch data on provider failure. */ })
+            .finally(()=>{if(!controller.signal.aborted)setLoadingBenchmark(false);});
         return () => controller.abort();
-    }, [tab, apiEnabled, lastPriceUpdate, benchmarkHistoryStart, now]);
+    }, [tab, apiEnabled, lastPriceUpdate, benchmarkHistoryStart, benchmarkCacheKey, now]);
     const riskFreeAnnual = analytics.archive.riskFreeAnnualPct ?? WORKBOOK_RISK_FREE_ANNUAL_PCT;
 
     const totalValue = useMemo(
@@ -245,9 +255,8 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const benchmarkPartial = hasPortfolioBenchmark && (
         benchmarkLine[0].date.slice(0, 10) !== selectedPeriod.performance.baseDate?.slice(0, 10)
         || benchmarkLine.at(-1)!.date.slice(0, 10) !== selectedPeriod.performance.endDate?.slice(0, 10));
-    const benchmarkDifference = hasPortfolioBenchmark && !benchmarkPartial && benchmarkReturn !== null
-        && selectedPeriod.performance.returnPercent !== null
-        ? selectedPeriod.performance.returnPercent - benchmarkReturn : null;
+    const comparison=benchmarkPeriodDifference(benchmarkLine,selectedPeriod.performance.baseDate);
+    const benchmarkDifference=comparison?.value??null;
     // The portfolio keeps the same full-period base/end as the summary. A
     // partial benchmark never truncates it or introduces a second current return.
     const benchmarkChart = useMemo(() => {
@@ -364,19 +373,20 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                 event.preventDefault();
                                 const index = tabs.findIndex(t => t.value === item.value);
                                 const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
-                                setTab(tabs[next].value);
+                                changeTab(tabs[next].value);
                                 document.getElementById(`${tabId}-${tabs[next].value}`)?.focus();
                             }}
                             aria-selected={tab === item.value}
                             className={tab === item.value ? 'is-active' : ''}
-                            onClick={() => setTab(item.value)}
+                            onClick={() => changeTab(item.value)}
                         >
                             {item.icon}{item.label}
                         </button>
                     ))}
                 </div>
 
-                <div role="tabpanel" id={`${tabId}-panel`} aria-labelledby={`${tabId}-${tab}`}>
+                {(changingPanel||(tab==='benchmark'&&apiEnabled&&loadingBenchmark))&&<div className="portfolio-excel-insights__loading" role="status"><LoaderCircle size={16} aria-hidden="true" />{changingPanel?'Cargando análisis…':'Consultando histórico del benchmark…'}</div>}
+                <div role="tabpanel" id={`${tabId}-panel`} aria-labelledby={`${tabId}-${tab}`} aria-busy={changingPanel||(tab==='benchmark'&&apiEnabled&&loadingBenchmark)}>
                 {tab === 'evolution' && (
                     <section className="portfolio-excel-insights__panel">
                         <div className="portfolio-excel-insights__panel-heading">
@@ -400,7 +410,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                             type="button"
                                             aria-pressed={evolutionPeriod === period.value}
                                             className={evolutionPeriod === period.value ? 'is-active' : ''}
-                                            onClick={() => setEvolutionPeriod(period.value)}
+                                            onClick={() => startPanelTransition(()=>setEvolutionPeriod(period.value))}
                                         >
                                             {period.label}
                                         </button>
@@ -423,7 +433,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                     <Tooltip {...tooltipTheme} labelFormatter={label => formatChartDate(Number(label))} formatter={(value: number | string | undefined, name?: string) => [currency(Number(value || 0)), name === 'value' ? 'Valor actual' : 'Capital invertido']} />
                                     <Legend formatter={(value) => value === 'value' ? 'Valor actual' : 'Capital invertido'} />
                                     <Area type="linear" isAnimationActive={false} dataKey="value" stroke="#10b981" fill="url(#liveValueFill)" strokeWidth={2} />
-                                    <Line type="monotone" dataKey="invested" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+                                    <Line isAnimationActive={false} type="monotone" dataKey="invested" stroke="#8b5cf6" strokeWidth={2} dot={false} />
                                 </ComposedChart>
                             </ResponsiveContainer>
                         ) : (
@@ -452,7 +462,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                             type="button"
                                             aria-pressed={evolutionPeriod === period.value}
                                             className={evolutionPeriod === period.value ? 'is-active' : ''}
-                                            onClick={() => setEvolutionPeriod(period.value)}
+                                            onClick={() => startPanelTransition(()=>setEvolutionPeriod(period.value))}
                                         >
                                             {period.label}
                                         </button>
@@ -470,7 +480,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                         </p>}
                         {benchmarkPartial && <p className="portfolio-excel-insights__chart-note" role="status">
                             {benchmarkHasPeriodBase
-                                ? 'Tu cartera incluye el último dato. Falta el cierre final del benchmark para calcular la diferencia.'
+                                ? `Tu cartera incluye el último dato. La diferencia se calcula hasta ${formatChartDate(benchmarkLine.at(-1)!.date)}.`
                                 : 'Falta el cierre inicial del benchmark para comparar este periodo. La gráfica muestra tu cartera.'}
                         </p>}
                         {!hasPortfolioBenchmark && <p className="portfolio-excel-insights__chart-note" role="status">Benchmark sin histórico suficiente para este periodo.</p>}
@@ -481,7 +491,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                         </p>}
                         <div className="portfolio-excel-insights__benchmark-kpis">
                             <div><span>Fidelity MSCI World{benchmarkPartial ? ' · datos disponibles' : ''}</span><strong>{percent(benchmarkReturn)}</strong></div>
-                            <div><span>Diferencia del periodo</span><strong className={benchmarkDifference === null ? '' : benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'}>{percent(benchmarkDifference).replace('%', ' pp')}</strong></div>
+                            <div><span>{comparison&&benchmarkPartial?`Diferencia hasta ${formatChartDate(comparison.endDate)}`:'Diferencia del periodo'}</span><strong className={benchmarkDifference === null ? '' : benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'}>{percent(benchmarkDifference).replace('%', ' pp')}</strong></div>
                         </div>
                         {benchmarkChart.length > 1 ? (
                             <ResponsiveContainer width="100%" height={230}>
@@ -491,8 +501,8 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                     <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
                                     <Tooltip {...tooltipTheme} filterNull={false} labelFormatter={label => typeof label === 'string' || typeof label === 'number' ? formatChartDate(label) : ''} formatter={(value: number | string | undefined, name?: string) => [percent(value == null ? null : Number(value)), benchmarkSeriesLabel(name)]} />
                                     <Legend formatter={(value) => benchmarkSeriesLabel(String(value))} />
-                                    <Line type="linear" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} />
-                                    {benchmarkHasPeriodBase && <Line type="linear" dataKey="benchmark" name="Fidelity MSCI World" stroke="#3b82f6" strokeWidth={2} dot={false} connectNulls />}
+                                    <Line isAnimationActive={false} type="linear" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} />
+                                    {benchmarkHasPeriodBase && <Line isAnimationActive={false} type="linear" dataKey="benchmark" name="Fidelity MSCI World" stroke="#3b82f6" strokeWidth={2} dot={false} connectNulls />}
                                 </LineChart>
                             </ResponsiveContainer>
                         ) : (
@@ -511,7 +521,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                     <XAxis type="number" tickFormatter={(value) => value + '%'} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
                                     <YAxis dataKey="name" type="category" width={90} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
                                     <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined) => percent(Number(value || 0))} />
-                                    <Bar dataKey="actual" name="Peso actual" fill="#10b981" radius={[0, 6, 6, 0]} />
+                                    <Bar isAnimationActive={false} dataKey="actual" name="Peso actual" fill="#10b981" radius={[0, 6, 6, 0]} />
                                 </BarChart>
                             </ResponsiveContainer>
                         </div>
@@ -544,8 +554,8 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                     <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
                                     <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined, name?: string) => [percent(Number(value || 0)), name || 'Valor']} />
                                     <Legend />
-                                    <Bar dataKey="monthlyReturn" name="Retorno mensual" fill="#10b981" radius={[5, 5, 0, 0]} />
-                                    <Line type="monotone" dataKey="drawdown" name="Drawdown" stroke="#ef4444" strokeWidth={2} dot={false} />
+                                    <Bar isAnimationActive={false} dataKey="monthlyReturn" name="Retorno mensual" fill="#10b981" radius={[5, 5, 0, 0]} />
+                                    <Line isAnimationActive={false} type="monotone" dataKey="drawdown" name="Drawdown" stroke="#ef4444" strokeWidth={2} dot={false} />
                                 </ComposedChart>
                             </ResponsiveContainer>
                         ) : (

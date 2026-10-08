@@ -1,6 +1,14 @@
 {
     "routes": [
         {
+            "src": "/__market/google/(.*)",
+            "dest": "https://www.google.com/$1"
+        },
+        {
+            "src": "/__market/coingecko/(.*)",
+            "dest": "https://api.coingecko.com/$1"
+        },
+        {
             "src": "/__holdings/ndq",
             "dest": "https://www.betashares.com.au/files/csv/NDQ_Portfolio_Holdings.csv"
         },

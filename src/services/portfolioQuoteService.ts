@@ -6,6 +6,37 @@ import { getFundRelevance } from './finect/finectService';
 import { prefersBatchQuote } from './market/marketSessions';
 import {freshFundQuote} from './funds/freshFundQuote';
 import {fundSourcePriority} from '../../supabase/functions/_shared/fundQuotePolicy';
+import { selectedStockQuoteMarket, googleListing } from './market/stockQuoteMarkets';
+import { alternativeQuote } from './market/alternativeQuotes';
+import { QUOTE_CACHE } from './market/marketCache';
+
+function freshEnough(quote: StockQuote | null, now = Date.now()) {
+    const at = Date.parse(quote?.quotedAt || '');
+    return Number.isFinite(at) && at <= now+300000 && now-at <= 10*60000;
+}
+
+async function activeMarketQuote(asset: Asset, signal?: AbortSignal, force = false, stored?: StockQuote): Promise<StockQuote | null> {
+    const market = asset.type==='stock' ? selectedStockQuoteMarket(asset) : undefined;
+    const quote = market?.id !== 'original' && market?.google
+        ? await alternativeQuote('stock',market.google,signal,force)
+        : await getQuote(asset.symbol,signal,true).catch(() => null);
+    signal?.throwIfAborted();
+    let candidate = quote;
+    if (!freshEnough(quote)) {
+        const listing = market?.google ?? googleListing(asset.symbol,quote?.exchange ?? QUOTE_CACHE.get(asset.symbol)?.data.exchange);
+        const alternative = asset.type==='crypto' ? await alternativeQuote('crypto',asset.symbol,signal,force)
+            : listing && market?.id==='original' ? await alternativeQuote('stock',listing,signal,force) : null;
+        if (alternative && (!candidate || !Number.isFinite(Date.parse(candidate.quotedAt || '')) || Date.parse(alternative.quotedAt!)>Date.parse(candidate.quotedAt || ''))) candidate=alternative;
+    }
+    if (candidate) {
+        const normalized = await normalizeQuoteToEuro(candidate,signal,force,asset.type);
+        const at = Date.parse(normalized.quotedAt || '');
+        const currentAt = Date.parse(asset.quotedAt || asset.lastQuoteAt || '');
+        if (normalized.currency==='EUR' && Number.isFinite(at) && at<=Date.now()+300000
+            && (!Number.isFinite(currentAt) || at>=currentAt)) return normalized;
+    }
+    return market?.id==='BME' ? null : stored ?? null;
+}
 
 const ISIN_PATTERN = /^[A-Z]{2}[A-Z0-9]{10}$/;
 
@@ -69,6 +100,9 @@ export async function getPortfolioAssetQuote(asset: Asset, signal?: AbortSignal,
     const currentAt = Date.parse(asset.quotedAt || asset.lastQuoteAt || '');
     const storedAt = Date.parse(storedQuote?.quotedAt || '');
     const canUseStored = !Number.isFinite(currentAt) || (Number.isFinite(storedAt) && storedAt >= currentAt);
+    const market = asset.type==='stock' ? selectedStockQuoteMarket(asset) : undefined;
+    if ((asset.type==='stock' || asset.type==='crypto') && (forceRefresh || !preferBatch || market?.id!=='original' && market))
+        return activeMarketQuote(asset,signal,forceRefresh,canUseStored ? storedQuote : undefined);
     if (!forceRefresh && storedQuote && preferBatch && canUseStored) return storedQuote;
     if (asset.type === 'cash') return { symbol: asset.symbol, name: asset.name, price: 1, previousClose: 1, change: 0, changePercent: 0, open: 1, high: 1, low: 1, volume: 0, currency: asset.currency || 'EUR', quotedAt: new Date().toISOString(), checkedAt: new Date().toISOString(), origin: 'provider', source: 'Saldo' };
     const isin = (asset.isin || (ISIN_PATTERN.test(asset.symbol) ? asset.symbol : '')).trim().toUpperCase();

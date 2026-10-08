@@ -15,6 +15,8 @@ const STORAGE_KEYS = {
 
 export interface AppSettings {
     apiEnabled: boolean;
+    /** Explicit quote-market choices; positions and their trade ledger stay unchanged. */
+    stockQuoteMarkets?: Record<string, string>;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {

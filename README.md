@@ -112,9 +112,11 @@ Los datos del navegador dependen del origen: cambiar dominio o puerto no compart
 
 Hay dos procesos distintos:
 
+Las consultas del navegador contrastan Yahoo con **Google Finance para el mismo mercado** cuando falta un precio reciente, y con **CoinGecko para criptos identificadas**. Nextil (`ES0126962069`) prioriza Madrid/BME; su ficha permite escoger el mercado del registro. Los precios conservan la fecha publicada y nunca se reemplazan por observaciones anteriores. La consulta cada minuto no garantiza un dato nuevo ni un feed bursátil en tiempo real.
+
 | Proceso | Funcionamiento |
 | --- | --- |
-| Refresco del navegador | Cada cinco minutos, con consultas habilitadas y la pestaña visible. Acciones y ETF consultan directamente durante su sesión; criptoactivos, las 24 horas. Fondos y activos fuera de sesión priorizan el batch disponible. El refresco manual consulta directamente. |
+| Refresco del navegador | Acciones en sesión y criptos las 24 horas: cada minuto con el Dashboard visible y consultas habilitadas. Fondos, ETF, acciones fuera de sesión y otras pantallas conservan cinco minutos. La app oculta pausa las consultas. «Consultar precios ahora» permite reintentar manualmente. |
 | Actualización en Supabase | Edge Function `daily-market-data` cada 30 minutos, de **08:00 a 22:30 en España peninsular** (`Europe/Madrid`, con ajuste de verano/invierno). Utiliza las posiciones guardadas, actualiza instrumentos y benchmark y puede registrar valoraciones privadas completas. |
 
 El proceso en Supabase requiere las migraciones, la función desplegada y el job configurado. Publicar el frontend no instala ni activa por sí solo ese proceso. Tampoco el hecho de que el batch esté activo actualiza el código de una web que aún no haya desplegado la integración.

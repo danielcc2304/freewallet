@@ -13,6 +13,8 @@ const transactions = [
 ];
 const evolution = 'Mes,Valor Total,Capital Inicial,Capital Aportado\n2025 Dic,1000,1000,0\n2026 Ene,1050,1000,0\n2026 Feb,1100,1000,0\n2026 Mar,1150,1000,0\n2026 Abr,1200,1000,0\n2026 May,1250,1000,0\n2026 Jun,1300,1000,0\n2026 Jul,1400,1000,0\n2026 Ago,1500,1000,0\n2026 Sept,1760,1000,200';
 const daily = 'Fecha,Valor portfolio,Flujo neto,Tipo de dato\n2026-10-04,1770,0,Diario\n2026-10-05,1780,0,Diario\n2026-10-06,1790,0,Diario';
+const comparison = 'Año,Mes,Periodo,Rentabilidad Cartera (%),Rentabilidad MSCI World (%),Cartera Acum (%),MSCI Acum (%)\n'
+    + ['2025,Dic,2025 Dic,0,0,0,0', ...['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sept'].map((month,i) => `2026,${month},2026 ${month},0,0,${i+1},${(i+1)*2}`)].join('\n');
 const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 const errors: string[] = [];
 try {
@@ -31,8 +33,9 @@ try {
         localStorage.setItem('freewallet-dashboard-notice-dismissed', '1');
         localStorage.setItem('freewallet_portfolio_csv_evolution_raw', data.evolution);
         localStorage.setItem('freewallet_portfolio_csv_daily_raw', data.daily);
+        localStorage.setItem('freewallet_portfolio_csv_comparison_raw', data.comparison);
         localStorage.setItem('freewallet_portfolio_csv_workbook_file', 'synthetic-monthly-history.xlsx');
-    }, { asset, transactions, evolution, daily, version });
+    }, { asset, transactions, evolution, daily, comparison, version });
     await page.setRequestInterception(true);
     page.on('request', request => { void (async () => {
         const url = new URL(request.url());
@@ -60,6 +63,21 @@ try {
     await page.click('.portfolio-summary__calculation summary');
     assert.match(await page.$eval('.portfolio-summary__calculation', el => el.textContent || ''), /Eliminar una posición no registra su venta/);
     assert.equal(await page.evaluate(() => localStorage.getItem('freewallet_portfolio_v1')), before, 'Changing period must not alter the ledger');
+    await page.$$eval('.portfolio-excel-insights__tabs button', buttons => (buttons.find(button => button.textContent?.includes('Benchmark')) as HTMLElement).click());
+    await page.$$eval('.portfolio-excel-insights__periods button', buttons => (buttons.find(button => button.textContent === 'YTD') as HTMLElement).click());
+    await page.waitForSelector('.portfolio-excel-insights__benchmark-portfolio');
+    assert.match(await page.$eval('.portfolio-excel-insights__panel', el => el.textContent || ''), /Cierres mensuales/);
+    assert.match(await page.$eval('.portfolio-excel-insights__benchmark-portfolio', el => el.textContent || ''), /58,66%/);
+    const path = await page.$eval('.portfolio-excel-insights__panel .recharts-line-curve', el => el.getAttribute('d') || '');
+    assert.equal((path.match(/L/g) || []).length, 10, 'Nine closed months and one provisional October point, instead of a daily October burst');
+    await page.$eval('.portfolio-excel-insights__panel', el => el.scrollIntoView({behavior:'instant',block:'center'}));
+    const bounds = await page.$eval('.portfolio-excel-insights__panel .recharts-xAxis .recharts-cartesian-axis-line', el => {
+        const r = el.getBoundingClientRect(); return {x:r.right-1,y:r.top-50};
+    });
+    await page.mouse.move(bounds.x,bounds.y);
+    await page.waitForFunction(() => document.querySelector('.recharts-tooltip-wrapper')?.textContent?.includes('N/D'));
+    assert.match(await page.$eval('.recharts-tooltip-wrapper', el => el.textContent || ''), /MSCI World.*N\/D/);
+    if (process.env.FREEWALLET_BENCHMARK_SCREENSHOT) await page.screenshot({path:process.env.FREEWALLET_BENCHMARK_SCREENSHOT});
     assert.deepEqual(errors, []);
     console.log('Portfolio periods UI passed: monthly and quarterly gains from imported closes, actual dates, available daily/weekly/YTD, independent missing realized results and unchanged ledger at mobile width.');
 } catch (error) {

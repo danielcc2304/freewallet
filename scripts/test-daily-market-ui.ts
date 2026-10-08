@@ -50,7 +50,7 @@ try {
         else await request.abort();
     })().catch(error=>errors.push(String(error)));});
     await page.goto(origin,{waitUntil:'networkidle2'});
-    await page.waitForFunction(()=>document.body.innerText.includes('Batch: completada'));
+    await page.waitForFunction(()=>document.querySelector('.dashboard__automatic-status')?.textContent?.includes('Consulta automática'));
     await page.waitForFunction(()=>document.querySelector('.assets-table')?.textContent?.includes('22,00'));
     await page.$$eval('.assets-table__table tbody tr',rows => (rows[0] as HTMLElement).click());
     await page.waitForSelector('.asset-detail');

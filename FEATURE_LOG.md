@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-08 - v6.1.1 - Cotizaciones en vivo y ajustes del dashboard
+- Funcionalidad:
+  - Actualiza las cotizaciones de acciones y cripto cada minuto y añade proveedores alternativos verificados para mantener datos disponibles.
+  - Mejora la comparación con benchmark, la consulta de histórico de fondos y la presentación del estado de actualización del dashboard.
+  - Retira una explicación redundante de resultados y documenta la política de refresco y las alternativas de cotización.
+- Resumen:
+  - La versión v6.1.1 hace más actuales las cotizaciones intradía y mejora la claridad del dashboard y de sus resultados comparativos.
+- Archivos:
+  - `README.md`, `docs/daily-market-data.md`, `package.json`, `package-lock.json`, `scripts/test-benchmark-comparison.ts`, `scripts/test-daily-market-ui.ts`, `scripts/test-live-market-quotes-ui.ts`, `scripts/test-live-market-quotes.ts`, `scripts/test-portfolio-periods-ui.ts`, `src/components/dashboard/AssetDetail.css`, `src/components/dashboard/AssetDetail.tsx`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`, `src/components/dashboard/useDashboardAnalytics.ts`, `src/constants/app.ts`, `src/context/PortfolioContext.tsx`, `src/pages/Dashboard/Dashboard.css`, `src/pages/Dashboard/Dashboard.tsx`, `src/services/apiService.ts`, `src/services/benchmarkComparison.ts`, `src/services/market/alternativeQuotes.ts`, `src/services/market/priceRefreshPolicy.ts`, `src/services/market/stockQuoteMarkets.ts`, `src/services/portfolioQuoteService.ts`, `src/services/storageService.ts`, `src/types/api.ts`, `src/types/asset.ts`, `vercel.json`, `vite.config.ts`.
+  
 ### 2026-10-08 - v6.1.0 - Operaciones retroactivas y calculadora salarial
 - Funcionalidad:
   - Reproduce las compras y ventas de cartera en orden cronológico y valida las ventas retroactivas frente al saldo disponible en esa fecha.

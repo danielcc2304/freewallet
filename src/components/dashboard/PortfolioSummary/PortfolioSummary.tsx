@@ -127,13 +127,10 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
                     icon={<BarChart3 size={20} />}
                 />
             </div>
-            <details className="portfolio-summary__calculation">
-                <summary>{metrics.resultUnavailableReason
-                    ? <><span role="status">Realizado y total no disponibles</span> · Ver motivo</>
-                    : 'Cómo se calculan los resultados'}</summary>
-                {metrics.resultUnavailableReason && <p>{metrics.resultUnavailableReason}</p>}
-                <p>Realizado: ventas menos coste medio, incluidos los cierres. No realizado: posiciones abiertas. Total: suma de ambos. Gastos e impuestos: solo los registrados.</p>
-            </details>
+            {metrics.resultUnavailableReason && <details className="portfolio-summary__calculation">
+                <summary><span role="status">Realizado y total no disponibles</span> · Ver motivo</summary>
+                <p>{metrics.resultUnavailableReason}</p>
+            </details>}
         </div>
     );
 }

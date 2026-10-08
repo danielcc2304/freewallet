@@ -10,6 +10,16 @@ export default defineConfig(({ mode }) => {
   plugins: [react()],
   server: {
     proxy: {
+      '/__market/google': {
+        agent: process.env.NODE_USE_ENV_PROXY === '1' ? globalAgent : undefined,
+        target: 'https://www.google.com', changeOrigin: true, secure: true,
+        rewrite: (path) => path.replace(/^\/__market\/google/, ''),
+      },
+      '/__market/coingecko': {
+        agent: process.env.NODE_USE_ENV_PROXY === '1' ? globalAgent : undefined,
+        target: 'https://api.coingecko.com', changeOrigin: true, secure: true,
+        rewrite: (path) => path.replace(/^\/__market\/coingecko/, ''),
+      },
       // Finect does not expose ACAO for the browser. These Vite-only routes
       // keep local development usable without adding an application backend.
       '/__finect/api': {

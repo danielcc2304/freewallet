@@ -31,7 +31,10 @@ import type { FinectFundRelevance } from '../../services/finect/finectService';
 import type { Asset, StockQuote, HistoricalDataPoint, TimePeriod } from '../../types/types';
 import { assetPrice, assetValue, formatQuantity, hasValidPrice } from '../../services/assetValuation';
 import { portfolioQuoteStatus, quoteDateLabel } from '../../services/portfolioQuoteStatus';
-import { isApiEnabled } from '../../services/storageService';
+import { getSettings, isApiEnabled, updateSettings } from '../../services/storageService';
+import { stockQuoteMarkets, selectedStockQuoteMarket } from '../../services/market/stockQuoteMarkets';
+import { portfolioStorage } from '../../services/portfolioCloudStorage';
+import { usePortfolio } from '../../context/PortfolioContext';
 import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
 import { Button } from '../ui';
 import { formatFundamentalMoney, formatFundamentalPercent, formatFundamentalRatio, hasFundamentals } from '../../services/market/fundamentals';
@@ -66,6 +69,22 @@ const periods: { label: string; value: TimePeriod }[] = [
  */
 export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: AssetDetailProps) {
     useLocalDataVersion();
+    const { refreshAssetPrices } = usePortfolio();
+    const [marketError,setMarketError] = useState('');
+    const [changingMarket,setChangingMarket] = useState(false);
+    const marketChoices = stockQuoteMarkets(asset);
+    const selectedMarket = selectedStockQuoteMarket(asset);
+    const changeMarket = async (id:string) => {
+        const epoch=portfolioStorage.epoch;
+        setChangingMarket(true);setMarketError('');
+        try {
+            updateSettings({stockQuoteMarkets:{...getSettings().stockQuoteMarkets,[asset.id]:id}});
+            await portfolioStorage.flush();
+            if(epoch!==portfolioStorage.epoch)return;
+            await refreshAssetPrices([asset.id]);
+        } catch { if(epoch===portfolioStorage.epoch)setMarketError('No se pudo guardar o consultar el mercado seleccionado.'); }
+        finally { if(epoch===portfolioStorage.epoch)setChangingMarket(false); }
+    };
     const apiEnabled = isApiEnabled() && asset.type !== 'cash';
     const [retry, setRetry] = useState(0);
     const [fundamentalRetry, setFundamentalRetry] = useState(0);
@@ -396,8 +415,19 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                 <div><span>Peso en cartera</span><strong>{portfolioWeight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong></div>
                 <div><span>Consulta al proveedor</span><strong>{quoteDateLabel(asset.lastCheckedAt)}</strong></div>
                 <div><span>Lectura en la app</span><strong>{quoteDateLabel(asset.lastReadAt)}</strong></div>
-                <div><span>Origen</span><strong>{asset.quoteSource || 'No disponible'}{asset.quoteOrigin === 'batch' ? ' · batch' : ''}</strong></div>
+                <div><span>Origen</span><strong>{asset.quoteSource || 'No disponible'}{asset.quoteSource==='Google Finance' && marketChoices.length>1 ? ' · Madrid/BME' : ''}{asset.quoteOrigin === 'batch' ? ' · batch' : ''}</strong></div>
                 <div><span>Fecha del precio</span><strong>{quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)}</strong></div>
+            </div>}
+            {!marketOnly && marketChoices.length>1 && <div className="asset-detail__quote-market">
+                <label htmlFor={`quote-market-${asset.id}`}>Mercado de cotización</label>
+                <select id={`quote-market-${asset.id}`} value={selectedMarket?.id ?? 'original'} disabled={changingMarket}
+                    onChange={event=>void changeMarket(event.target.value)}>
+                    {marketChoices.map(market=><option key={market.id} value={market.id}>{market.label}</option>)}
+                </select>
+                <p>Elige el mercado de tu compra. Las cotizaciones de otras bolsas pueden diferir.</p>
+                {changingMarket && <p role="status">Consultando el mercado seleccionado…</p>}
+                {selectedMarket?.id==='BME' && asset.quoteSource!=='Google Finance' && !changingMarket && <p role="status">Consulta de Madrid pendiente. El precio visible conserva su origen anterior.</p>}
+                {marketError && <p role="alert">{marketError}</p>}
             </div>}
             {!marketOnly && asset.originalCurrency && asset.originalCurrency!=='EUR' && <details className="dashboard__update-details">
                 <summary>Conversión a euros</summary>
@@ -539,7 +569,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                     <span className="asset-detail__chart-axis-hint">Eje vertical: {chartData[0]?.currency || asset.currency || 'EUR'} · Eje horizontal: fecha. {marketOnly ? 'Histórico en su divisa de origen.' : `Histórico en su divisa de origen; la posición se valora en ${asset.currency || 'EUR'}.`}</span>
                 </div>
                {!isFund && chartData[0]?.sourceSymbol && chartData[0].sourceSymbol !== asset.symbol && <p className="asset-detail__chart-source">
-                   Histórico de {chartData[0].sourceSymbol}, cotización alternativa de la misma empresa. El precio de tu posición corresponde a {asset.symbol}.
+                   Histórico de {chartData[0].sourceSymbol}, cotización alternativa de la misma empresa. El precio de tu posición se consulta en {selectedMarket?.label ?? asset.symbol}.
                </p>}
                {isFund && (
                    <p className="asset-detail__chart-source">

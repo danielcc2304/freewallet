@@ -33,6 +33,8 @@
     "test:fund-quotes": "tsx scripts/test-fund-quotes.ts",
     "test:fund-quotes-ui": "tsx scripts/test-fund-quotes-ui.ts",
     "test:daily-market": "tsx scripts/test-daily-market-data.ts",
+    "test:live-market-quotes": "tsx scripts/test-live-market-quotes.ts",
+    "test:live-market-quotes-ui": "tsx scripts/test-live-market-quotes-ui.ts",
     "test:daily-market-ui": "tsx scripts/test-daily-market-ui.ts",
     "test:crypto-variation-ui": "tsx scripts/test-crypto-variation-ui.ts",
     "test:portfolio-backend": "tsx scripts/test-portfolio-backend.ts",

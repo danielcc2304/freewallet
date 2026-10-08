@@ -560,11 +560,12 @@ async function getQuoteFinnhub(symbol: string, signal?: AbortSignal): Promise<St
 // ===== YAHOO FINANCE GET QUOTE =====
 async function getQuoteYahoo(symbol: string, signal?: AbortSignal): Promise<StockQuote | null> {
     let lastError: unknown;
+    let best: StockQuote | null = null;
     for (const baseUrl of [YAHOO_CHART_URL, YAHOO_CHART_FALLBACK_URL]) {
         try {
             // The one-day range supplies the previous session close. A
             // five-day chartPreviousClose may belong to the start of the range.
-            const url = `${baseUrl}/${encodeURIComponent(symbol)}?interval=1m&range=1d`;
+            const url = `${baseUrl}/${encodeURIComponent(symbol)}?interval=1m&range=1d&_cb=${Math.floor(Date.now()/60000)}`;
             const rawData: unknown = (await axios.get(url, { signal, timeout: 5000 })).data;
             const chart = asJsonRecord(asJsonRecord(rawData).chart);
             const meta = asJsonRecord((asJsonRecords(chart.result)[0] ?? {}).meta);
@@ -574,7 +575,7 @@ async function getQuoteYahoo(symbol: string, signal?: AbortSignal): Promise<Stoc
             const previousClose = [meta.regularMarketPreviousClose, meta.previousClose, meta.chartPreviousClose]
                 .map(readFiniteNumber).find(value => value !== undefined && value > 0) ?? NaN;
             const change = price - previousClose;
-            return {
+            const quote: StockQuote = {
                 quotedAt: readFiniteNumber(meta.regularMarketTime) ? new Date(readNumber(meta.regularMarketTime) * 1000).toISOString() : undefined,
                 symbol: readString(meta.symbol),
                 name: readString(meta.longName) || readString(meta.shortName) || symbol,
@@ -586,14 +587,20 @@ async function getQuoteYahoo(symbol: string, signal?: AbortSignal): Promise<Stoc
                 low: readFiniteNumber(meta.regularMarketDayLow) ?? price,
                 volume: readNumber(meta.regularMarketVolume),
                 currency: readString(meta.currency, 'Unknown'),
+                exchange: readString(meta.exchangeName),
                 fiftyTwoWeekHigh: readFiniteNumber(meta.fiftyTwoWeekHigh),
                 fiftyTwoWeekLow: readFiniteNumber(meta.fiftyTwoWeekLow),
             };
+            const at=Date.parse(quote.quotedAt || '');
+            if(Number.isFinite(at) && at>Date.now()+300000)continue;
+            if (!best || !Number.isFinite(Date.parse(best.quotedAt || '')) || at > Date.parse(best.quotedAt || '')) best = quote;
+            if (Number.isFinite(Date.parse(quote.quotedAt || '')) && Date.now()-Date.parse(quote.quotedAt!) <= 10*60000) return quote;
         } catch (error) {
             if (axios.isCancel(error) || signal?.aborted) throw error;
             lastError = error;
         }
     }
+    if (best) return best;
     if (lastError) throw lastError;
     return null;
 }

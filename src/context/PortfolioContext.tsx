@@ -4,7 +4,10 @@ import type { Asset, PortfolioTransaction } from '../types/types';
 import { getAssets, getTransactions, savePortfolioState, updateAssets as updateAssetsInStorage, saveHistory, addHistoryPoint, isApiEnabled, generateId } from '../services/storageService';
 import { getPortfolioAssetQuote } from '../services/portfolioQuoteService';
 import { useLocalDataVersion } from '../hooks/useLocalDataVersion';
-import { PRICE_REFRESH_INTERVAL_MS } from '../constants/app';
+import { LIVE_PRICE_REFRESH_INTERVAL_MS, PRICE_REFRESH_INTERVAL_MS } from '../constants/app';
+import { prefersBatchQuote } from '../services/market/marketSessions';
+import { priceRefreshInterval } from '../services/market/priceRefreshPolicy';
+import { selectedStockQuoteMarket } from '../services/market/stockQuoteMarkets';
 import { createQuoteSnapshot, normalizePortfolioTransactions, portfolioLedgerKey } from '../services/portfolioPerformance';
 import { applicableQuoteUpdates, applyPositionUpdate } from '../services/dashboardIntegrity';
 import { accountingDay } from '../services/portfolioCalendar';
@@ -22,8 +25,13 @@ function getLatestQuoteAt(assets: Asset[]): Date | null {
 }
 
 function shouldRefreshAssets(assets: Asset[]): boolean {
-    const latest = getLatestQuoteAt(assets);
-    return !latest || Date.now() - latest.getTime() >= PRICE_REFRESH_INTERVAL_MS;
+    return assets.some(asset => {
+        const latest = getLatestQuoteAt([asset]);
+        const onDashboard = ['/', '/dashboard'].includes(window.location.pathname) && document.visibilityState==='visible';
+        const marketAsset = selectedStockQuoteMarket(asset)?.id==='BME' ? {...asset,symbol:'NXT.MC'} : asset;
+        const interval = priceRefreshInterval(marketAsset,onDashboard);
+        return !latest || Date.now() - latest.getTime() >= interval;
+    });
 }
 
 // State interface
@@ -130,6 +138,7 @@ interface PortfolioContextValue {
     deleteAsset: (id: string) => Promise<void>;
     sellAsset: (id: string, quantity: number, price: number, date: string, conversionNote?: string) => Promise<void>;
     refreshPrices: () => Promise<void>;
+    refreshAssetPrices: (ids: string[]) => Promise<void>;
     loadDemoData: () => void;
 }
 
@@ -183,16 +192,21 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         const requested = forceRefresh ? assetsToUpdate : assetsToUpdate.filter(a => shouldRefreshAssets([a]));
         try {
             const initialLedgerKey = portfolioLedgerKey(normalizePortfolioTransactions(assetsToUpdate, getTransactions()), refreshDate);
-            const centralData = await readDailyMarketData().catch(() => null);
+            // Minute-by-minute requests should not download the entire batch
+            // history unless a stored quote or a closed market needs it.
+            const needsBatch = requested.some(asset => prefersBatchQuote(asset) || !asset.currentPrice || !asset.lastCheckedAt
+                || Date.now()-Date.parse(asset.lastCheckedAt || '') >= PRICE_REFRESH_INTERVAL_MS);
+            const centralData = needsBatch ? await readDailyMarketData().catch(() => null) : null;
             if (accountEpoch !== portfolioStorage.epoch) return;
             const quoteUpdates: Array<{ id: string; updates: Partial<Asset> }> = [];
+            const quoteMarkets = new Map(requested.map(asset=>[asset.id,selectedStockQuoteMarket(asset)?.id]));
             let nextIndex = 0;
             const updateNextAsset = async () => {
                 while (nextIndex < requested.length) {
                     if(accountEpoch!==portfolioStorage.epoch)return;
                     const asset = requested[nextIndex++];
                     const controller = new AbortController();
-                    const deadline = window.setTimeout(() => controller.abort(), forceRefresh&&asset.type==='fund'?35000:15000);
+                    const deadline = window.setTimeout(() => controller.abort(), forceRefresh&&asset.type==='fund'?35000:asset.type==='stock'||asset.type==='crypto'?20000:15000);
                     try {
                         const quote = await getPortfolioAssetQuote(asset, controller.signal, forceRefresh, dailyQuote(asset, centralData));
                         if (quote && Number.isFinite(quote.price) && quote.price >= 0 && quote.currency === 'EUR') {
@@ -234,7 +248,11 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
 
             // Publish one state update for the whole refresh. This prevents a
             // portfolio with many positions from rendering once per quote.
-            const applicable = applicableQuoteUpdates(requested, getAssets(), quoteUpdates);
+            const applicable = applicableQuoteUpdates(requested, getAssets(), quoteUpdates)
+                .filter(update => {
+                    const asset=requested.find(asset=>asset.id===update.id)!;
+                    return quoteMarkets.get(asset.id)===selectedStockQuoteMarket(asset)?.id;
+                });
             if (applicable.length > 0) {
                 updateAssetsInStorage(applicable);
                 dispatch({ type: 'UPDATE_ASSETS', payload: applicable });
@@ -284,7 +302,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                 if (shouldRefreshAssets(currentAssets)) void updatePricesInternal(currentAssets);
             } catch (error) { dispatch({ type: 'SET_STORAGE_ERROR', payload: String(error) }); }
         };
-        const intervalId = window.setInterval(refresh, PRICE_REFRESH_INTERVAL_MS);
+        const intervalId = window.setInterval(refresh, LIVE_PRICE_REFRESH_INTERVAL_MS);
         refresh();
         document.addEventListener('visibilitychange', refresh);
         return () => {
@@ -353,6 +371,10 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         await updatePricesInternal(state.assets, true);
     }, [state.assets, updatePricesInternal]);
 
+    const refreshAssetPrices = useCallback(async (ids: string[]) => {
+        if (isApiEnabled()) await updatePricesInternal(getAssets().filter(asset => ids.includes(asset.id)),true);
+    }, [updatePricesInternal]);
+
     const loadDemoData = useCallback(async () => {
         if(portfolioStorage.cloud){dispatch({type:'SET_STORAGE_ERROR',payload:'Los datos demo solo están disponibles sin una cuenta conectada.'});return;}
         const epoch=portfolioStorage.epoch;
@@ -390,6 +412,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         deleteAsset,
         sellAsset,
         refreshPrices,
+        refreshAssetPrices,
         loadDemoData,
     };
 

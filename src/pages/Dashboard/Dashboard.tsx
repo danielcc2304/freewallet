@@ -24,7 +24,6 @@ import type { ConsolidatedPortfolioExposure } from '../../services/portfolioComp
 import { resolveLiveUnderlyingSelection } from '../../services/portfolioComposition';
 import { portfolioQuoteStatus, quoteDateLabel } from '../../services/portfolioQuoteStatus';
 import './Dashboard.css';
-import { PRICE_REFRESH_INTERVAL_MS } from '../../constants/app';
 import { hasCurrentDayQuotes } from '../../services/dashboardIntegrity';
 import {useAccount} from '../../context/AccountContext';
 
@@ -44,51 +43,28 @@ function hasDismissedDashboardNotice(): boolean {
 function DashboardLiveStatus({
     apiEnabled,
     updatingPrices,
-    lastPriceUpdate,
     lastRefreshAttempt,
     lastReadAt,
     lastConsultedAt,
 }: {
     apiEnabled: boolean;
     updatingPrices: boolean;
-    lastPriceUpdate: Date | null;
     lastRefreshAttempt: Date | null;
     lastReadAt?: string;
     lastConsultedAt?: string;
 }) {
-    const [now, setNow] = useState(() => Date.now());
-
-    useEffect(() => {
-        const update = () => {
-            if (document.visibilityState === 'visible') setNow(Date.now());
-        };
-        const intervalId = window.setInterval(update, 1000);
-        document.addEventListener('visibilitychange', update);
-        return () => {
-            window.clearInterval(intervalId);
-            document.removeEventListener('visibilitychange', update);
-        };
-    }, []);
-
-    const nextRefreshSeconds = (lastRefreshAttempt || lastPriceUpdate)
-        ? Math.max(0, Math.ceil(((lastRefreshAttempt || lastPriceUpdate)!.getTime() + PRICE_REFRESH_INTERVAL_MS - now) / 1000))
-        : null;
-    const countdownLabel = nextRefreshSeconds === null
-        ? 'preparando…'
-        : `en ${String(Math.floor(nextRefreshSeconds / 60)).padStart(2, '0')}:${String(nextRefreshSeconds % 60).padStart(2, '0')}`;
-    const refreshIntervalMinutes = Math.max(1, Math.round(PRICE_REFRESH_INTERVAL_MS / 60000));
-
     return (
         <details className="dashboard__update-details">
             <summary>
                 <span className={`dashboard__live-status${apiEnabled || updatingPrices ? ' dashboard__live-status--active' : ''}`}>
                     <Radio size={13} aria-hidden="true" />
-                    {updatingPrices ? 'Actualizando…' : apiEnabled ? 'Actualización automática' : 'Actualización manual'}
+                    {updatingPrices ? 'Consultando…' : apiEnabled ? 'Seguimiento activo' : 'Consultas desactivadas'}
                 </span>
             </summary>
             <dl className="dashboard__update-info">
-                <dt>Consultas automáticas</dt><dd>{apiEnabled ? `Cada ${refreshIntervalMinutes} min` : 'Desactivadas'}</dd>
-                {apiEnabled && <><dt>Próxima consulta</dt><dd>{updatingPrices ? 'En curso' : nextRefreshSeconds === 0 ? 'Pendiente' : countdownLabel}</dd></>}
+                <dt>Acciones y criptos</dt><dd>{apiEnabled ? 'Cada minuto en esta pantalla · acciones en sesión' : 'Desactivadas'}</dd>
+                <dt>Fondos y otros activos</dt><dd>{apiEnabled ? 'Cada 5 min; según el último dato publicado' : 'Desactivadas'}</dd>
+                {lastRefreshAttempt && <><dt>Último intento de consulta</dt><dd>{quoteDateLabel(lastRefreshAttempt.toISOString())}</dd></>}
                 {lastReadAt && <><dt>Última lectura en la app</dt><dd>{quoteDateLabel(lastReadAt)}</dd></>}
                 {lastConsultedAt && <><dt>Última consulta al proveedor</dt><dd>{quoteDateLabel(lastConsultedAt)}</dd></>}
             </dl>
@@ -101,7 +77,7 @@ export function Dashboard() {
     const [dashboardPeriod, setDashboardPeriod] = useState<TimePeriod>('ALL');
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
     const account=useAccount();
-    const { assets, loading, updatingPrices, lastPriceUpdate, quoteFailures } = state;
+    const { assets, loading, updatingPrices, quoteFailures } = state;
     const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
     const [selectedHolding, setSelectedHolding] = useState<{
         holding: AssetHolding;
@@ -109,8 +85,7 @@ export function Dashboard() {
         exposure?: ConsolidatedPortfolioExposure;
     } | null>(null);
     const [showDashboardNotice, setShowDashboardNotice] = useState(() => !hasDismissedDashboardNotice());
-    // Expensive portfolio calculations do not need a one-second clock. Keep
-    // the live countdown isolated in DashboardLiveStatus below.
+    // Recalculate metrics independently of the quote consultation controls.
     const [calculationNow, setCalculationNow] = useState(() => Date.now());
     const navigate = useNavigate();
     const apiEnabled = isApiEnabled();
@@ -327,7 +302,6 @@ export function Dashboard() {
                     <DashboardLiveStatus
                         apiEnabled={apiEnabled}
                         updatingPrices={updatingPrices}
-                        lastPriceUpdate={lastPriceUpdate}
                         lastRefreshAttempt={state.lastRefreshAttempt}
                         lastReadAt={lastReadAt}
                         lastConsultedAt={lastConsultedAt}
@@ -344,12 +318,12 @@ export function Dashboard() {
 
             <PortfolioSummary metrics={metrics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} estimatedCount={assets.filter(a => !hasValidPrice(a)).length} />
             <PortfolioDataQuality assets={assets} now={calculationNow} quoteFailures={quoteFailures} />
-            {account.user && <p className="dashboard__empty-description" role="status">
+            {account.user && <p className="dashboard__automatic-status" role="status">
                 {analytics.dailyMarket.error || (analytics.dailyMarket.data?.lastRun
-                    ? `Batch: ${analytics.dailyMarket.data.lastRun.status === 'success' ? 'completada' : analytics.dailyMarket.data.lastRun.status === 'running' ? 'en curso' : 'con datos pendientes'} · ${new Date(analytics.dailyMarket.data.lastRun.finishedAt || analytics.dailyMarket.data.lastRun.startedAt).toLocaleString('es-ES')}.`
+                    ? `${analytics.dailyMarket.data.lastRun.status === 'success' ? 'Consulta automática' : analytics.dailyMarket.data.lastRun.status === 'running' ? 'Consulta automática en curso' : 'Consulta automática incompleta'} · ${new Date(analytics.dailyMarket.data.lastRun.finishedAt || analytics.dailyMarket.data.lastRun.startedAt).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
                     : 'El histórico diario comenzará con la primera actualización programada.')}
                 {!!analytics.dailyMarket.data?.lastRun?.failures.length && ` ${analytics.dailyMarket.data.lastRun.failures.length} consultas de cartera o benchmark pendientes.`}
-                {analytics.dailyMarket.data?.health?.attentionRequired && ' El batch requiere revisión; se conservan los últimos precios válidos.'}
+                {analytics.dailyMarket.data?.health?.attentionRequired && ' La actualización requiere revisión; se conservan los últimos precios válidos.'}
                 {analytics.dailyMarket.data?.snapshotStatus && !['captured','empty'].includes(analytics.dailyMarket.data.snapshotStatus) && ' La valoración diaria de esta cartera quedó pendiente.'}
             </p>}
             {account.user && !!analytics.dailyMarket.data?.snapshots.length && <details className="dashboard__update-details">
@@ -423,8 +397,8 @@ export function Dashboard() {
                     size="sm"
                     className="dashboard__floating-refresh"
                     disabled={updatingPrices || !apiEnabled}
-                    aria-label={!apiEnabled ? 'APIs desactivadas' : updatingPrices ? 'Actualizando precios' : 'Actualizar precios'}
-                    title={!apiEnabled ? 'APIs desactivadas' : updatingPrices ? 'Actualizando precios' : 'Actualizar precios'}
+                    aria-label={!apiEnabled ? 'Consultas desactivadas' : updatingPrices ? 'Consultando precios' : 'Consultar precios ahora'}
+                    title={!apiEnabled ? 'Consultas desactivadas' : updatingPrices ? 'Consultando precios' : 'Consultar precios ahora'}
                 />
                 <Link className="dashboard__floating-add" to="/add" aria-label="Añadir inversión" title="Añadir inversión">
                     <PlusCircle size={25} strokeWidth={2.4} />

@@ -12,7 +12,8 @@ export interface StockQuote {
     fxAt?: string | null;
     checkedAt?: string;
     origin?: 'batch' | 'provider';
-    source?: FundSource | 'Mercado' | 'Saldo';
+    source?: FundSource | 'Mercado' | 'Saldo' | 'Google Finance' | 'CoinGecko';
+    exchange?: string;
     symbol: string;
     name: string;
     price: number;

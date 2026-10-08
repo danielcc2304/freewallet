@@ -249,7 +249,19 @@ export function selectPortfolioPeriod(series: ReturnType<typeof performanceSerie
     const base = nearbyBase || (monthlyBase ? previous : undefined);
     const points = base ? available.filter(p => p.timestamp >= base.timestamp) : available.filter(p => cutoff === null || p.timestamp >= cutoff);
     const performance = calculatePeriodPerformance(available, base?.timestamp ?? cutoff ?? -Infinity, now, period === 'ALL' ? Infinity : 4 * DAY_MS);
-    return { points, performance, cutoff, monthlyBase: !!monthlyBase };
+    // A new unresolved operation must not erase the verified year-to-date
+    // history. Keep the same year-opening base, stop before the first unknown
+    // interval, and expose that date so callers label this as the latest known
+    // YTD, never as a return through the current valuation.
+    const firstUnknown = points.findIndex((point, index) => index > 0 && point.dailyReturn === null);
+    if (period === 'YTD' && base && performance.hasBase && performance.returnPercent === null && firstUnknown > 1) {
+        const verifiedPoints = points.slice(0, firstUnknown);
+        const verified = calculatePeriodPerformance(available, base.timestamp, verifiedPoints.at(-1)!.timestamp);
+        if (verified.returnPercent !== null) {
+            return { points: verifiedPoints, performance: verified, cutoff, monthlyBase: false, incompleteSince: points[firstUnknown].date };
+        }
+    }
+    return { points, performance, cutoff, monthlyBase: !!monthlyBase, incompleteSince: null };
 }
 
 export interface BenchmarkPeriodPerformance {

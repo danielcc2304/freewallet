@@ -46,4 +46,30 @@ assert.equal(nearClose.monthlyBase, false, 'The nearby real close remains prefer
 const oldClose = selectPortfolioPeriod(performanceSeries(points.slice(0, 3), []), '1M', Date.parse('2026-11-07T12:00:00Z'));
 assert.equal(oldClose.performance.returnPercent, null);
 assert.equal(oldClose.monthlyBase, false);
+const ytdPoints = [
+    { date: '2025-12-31T18:00:00Z', value: 1000, invested: 1000, cadence: 'monthly' as const },
+    ...Array.from({ length: 9 }, (_, index) => ({ date: new Date(Date.UTC(2026, index + 1, 0, 18)).toISOString(), value: 1010 + index * 10, invested: 1000, cadence: 'monthly' as const })),
+    { date: '2026-10-07T18:00:00Z', value: 1185, invested: 1000, cadence: 'daily' as const },
+    { date: '2026-10-08T12:00:00Z', value: 1205, invested: 1010, cadence: 'daily' as const },
+    { date: '2026-10-09T12:00:00Z', value: 1210, invested: 1010, cadence: 'daily' as const },
+];
+const registration = { id: 'new-record', assetId: 'test-record', assetSymbol: 'TEST', assetName: 'Test record', assetType: 'stock' as const, type: 'buy' as const, date: '2026-10-08', quantity: 1, price: 10, total: 10, createdAt: '2026-10-08T10:00:00Z' };
+const deletion = { ...registration, id: 'remove-record', type: 'delete' as const, createdAt: '2026-10-08T10:01:00Z' };
+const ytdNow = Date.parse('2026-10-09T15:00:00Z');
+const unresolved = performanceSeries(ytdPoints, [registration, deletion], [], { maxGapDays: 45 });
+const lastKnownYtd = selectPortfolioPeriod(unresolved, 'YTD', ytdNow);
+assert.ok(Math.abs(lastKnownYtd.performance.returnPercent! - 18.5) < 1e-8, 'An unresolved latest interval preserves the previously verified YTD');
+assert.equal(lastKnownYtd.performance.change, 185);
+assert.equal(lastKnownYtd.performance.baseDate, '2025-12-31', 'Never rebase YTD to a later segment');
+assert.equal(lastKnownYtd.performance.endDate, '2026-10-07');
+assert.equal(lastKnownYtd.incompleteSince, '2026-10-08');
+assert.equal(lastKnownYtd.points.at(-1)?.date, '2026-10-07', 'Charts and KPIs must end on the same verified day');
+assert.equal(selectPortfolioPeriod(unresolved, '7D', ytdNow).performance.returnPercent, null, 'Short periods retain their strict completeness rules');
+const noJanuary = performanceSeries(ytdPoints.slice(2), [registration, deletion], [], { maxGapDays: 45 });
+assert.equal(selectPortfolioPeriod(noJanuary, 'YTD', ytdNow).performance.returnPercent, null, 'A missing year-opening value must still show unavailable');
+const unknownAtOpening = performanceSeries(ytdPoints.map((point, index) => index === 1 ? { ...point, returnUnavailable: true } : point), [], [], { maxGapDays: 45 });
+assert.equal(selectPortfolioPeriod(unknownAtOpening, 'YTD', ytdNow).performance.returnPercent, null, 'Do not salvage a YTD without any verified interval from its opening');
+const reconciled = performanceSeries(ytdPoints, [registration], [], { maxGapDays: 45 });
+assert.equal(selectPortfolioPeriod(reconciled, 'YTD', ytdNow).incompleteSince, null, 'The cutoff disappears when the full return is verifiable');
+assert.equal(selectPortfolioPeriod(reconciled, 'YTD', ytdNow).performance.endDate, '2026-10-09');
 console.log('Portfolio periods passed: monthly and quarterly closes, explicit real dates, contribution-adjusted gains, strict daily/weekly windows and unavailable incomplete histories.');

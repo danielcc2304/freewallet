@@ -16,7 +16,7 @@ import { isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, PerformerData, Asset, AssetHolding, TimePeriod } from '../../types/types';
 import { calculatePreviousClosePerformance, selectPortfolioPeriod, accountingDay } from '../../services/portfolioPerformance';
 import { calculatePortfolioResults } from '../../services/portfolioResults';
-import { assetValue, hasValidPrice } from '../../services/assetValuation';
+import { hasValidPrice } from '../../services/assetValuation';
 import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
 import { useDashboardAnalytics } from '../../components/dashboard/useDashboardAnalytics';
 import type { performanceSeries } from '../../services/portfolioPerformance';
@@ -26,6 +26,7 @@ import { portfolioQuoteStatus, quoteDateLabel } from '../../services/portfolioQu
 import './Dashboard.css';
 import { hasCurrentDayQuotes } from '../../services/dashboardIntegrity';
 import {useAccount} from '../../context/AccountContext';
+import { portfolioPositionGroups } from '../../services/portfolioPositionGroups';
 
 const DASHBOARD_CALCULATION_TICK_MS = 60 * 1000;
 const DASHBOARD_NOTICE_STORAGE_KEY = 'freewallet-dashboard-notice-dismissed';
@@ -91,7 +92,9 @@ export function Dashboard() {
     const apiEnabled = isApiEnabled();
     const analytics = useDashboardAnalytics(calculationNow);
     const { series: historicalSeries, liveSeries } = analytics;
-    const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || null;
+    const positionGroups=useMemo(()=>portfolioPositionGroups(assets,calculationNow),[assets,calculationNow]);
+    const selectedGroup=positionGroups.find(group=>group.lots.length>1 && group.asset.id===selectedAssetId);
+    const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || selectedGroup?.asset || null;
     const quoteStatuses = useMemo(() => assets.map(asset => ({ asset, ...portfolioQuoteStatus(asset, calculationNow) })), [assets, calculationNow]);
     const consultationTimes = quoteStatuses.map(s => s.checkedAt).filter(t => Number.isFinite(t) && t <= calculationNow + 5 * 60000);
     const lastConsultedAt = consultationTimes.length ? new Date(Math.max(...consultationTimes)).toISOString() : undefined;
@@ -228,9 +231,8 @@ export function Dashboard() {
     }, [assets, calculationNow, historicalSeries, liveSeries, analytics.portfolioTransactions]);
 
     const performersData: PerformerData[] = useMemo(() => {
-        return assets.filter(asset => hasValidPrice(asset) && Number.isFinite(asset.purchasePrice) && asset.purchasePrice > 0 && asset.quantity > 0).map((asset) => {
-            const currentValue = assetValue(asset);
-            const investedValue = asset.purchasePrice * asset.quantity;
+        return positionGroups.filter(group=>group.estimatedCount===0 && group.investedValue>0 && group.asset.quantity>0).map((group) => {
+            const {asset,currentValue,investedValue}=group;
             const change = currentValue - investedValue;
             const changePercent = investedValue > 0 ? (change / investedValue) * 100 : 0;
 
@@ -243,7 +245,7 @@ export function Dashboard() {
                 value: currentValue,
             };
         });
-    }, [assets]);
+    }, [positionGroups]);
 
     if (loading) {
         return (
@@ -385,7 +387,7 @@ export function Dashboard() {
                         exposure={selectedHolding.exposure}
                     />
                 ) : selectedAsset ? (
-                    <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} />
+                    <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} positionLots={selectedGroup?.lots} />
                 ) : null}
             </Modal>
             {dashboardNoticeModal}

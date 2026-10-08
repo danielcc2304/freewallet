@@ -2,6 +2,13 @@
     width: 100%;
 }
 
+.assets-table__filters .assets-table__group-toggle { display: flex; align-items: center; gap: .6rem; min-height: 44px; margin: 0; cursor: pointer; }
+.assets-table__filters .assets-table__group-toggle input { width: 18px; height: 18px; min-height: 0; margin: 0; accent-color: var(--accent-primary); }
+.assets-table__lots-toggle { display: inline-flex; align-items: center; gap: .3rem; padding: .25rem 0; min-height: 32px; border: 0; background: none; color: var(--text-secondary); font: inherit; font-size: var(--font-size-xs); cursor: pointer; }
+.assets-table__lots-toggle:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
+.assets-table__lot-row { background: var(--bg-secondary); }
+.assets-table__lot-row .assets-table__asset { padding-left: .8rem; border-left: 2px solid var(--border-primary); }
+
 .assets-table__filters { display: flex; gap: 1rem; flex-wrap: wrap; align-items: end; margin-bottom: 1rem; }
 .assets-table__filters > div { flex: 1 1 160px; min-width: 0; }
 .assets-table__filters > div:first-child { flex-grow: 2; }

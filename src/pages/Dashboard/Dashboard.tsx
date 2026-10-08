@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio, Wrench, GraduationCap, Settings, FileSpreadsheet } from 'lucide-react';
 import { PortfolioSummary } from '../../components/dashboard/PortfolioSummary';
 import { PortfolioDataQuality } from '../../components/dashboard/PortfolioDataQuality';
 import { Performers } from '../../components/dashboard/Performers';
 import { AssetsTable } from '../../components/dashboard/AssetsTable';
+import type { AssetsTableViewState } from '../../components/dashboard/AssetsTable';
+import type { DashboardNavigationContext } from '../../components/layout/MainLayout/dashboardNavigation';
 import { PortfolioExcelInsights } from '../../components/dashboard/PortfolioExcelInsights';
 import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan';
 import { PortfolioComposition } from '../../components/dashboard/PortfolioComposition';
@@ -16,7 +18,7 @@ import { isApiEnabled } from '../../services/storageService';
 import type { PortfolioMetrics, PerformerData, Asset, AssetHolding, TimePeriod } from '../../types/types';
 import { calculatePreviousClosePerformance, selectPortfolioPeriod, accountingDay } from '../../services/portfolioPerformance';
 import { calculatePortfolioResults } from '../../services/portfolioResults';
-import { assetValue, hasValidPrice } from '../../services/assetValuation';
+import { hasValidPrice } from '../../services/assetValuation';
 import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
 import { useDashboardAnalytics } from '../../components/dashboard/useDashboardAnalytics';
 import type { performanceSeries } from '../../services/portfolioPerformance';
@@ -26,6 +28,7 @@ import { portfolioQuoteStatus, quoteDateLabel } from '../../services/portfolioQu
 import './Dashboard.css';
 import { hasCurrentDayQuotes } from '../../services/dashboardIntegrity';
 import {useAccount} from '../../context/AccountContext';
+import { portfolioPositionGroups } from '../../services/portfolioPositionGroups';
 
 const DASHBOARD_CALCULATION_TICK_MS = 60 * 1000;
 const DASHBOARD_NOTICE_STORAGE_KEY = 'freewallet-dashboard-notice-dismissed';
@@ -74,10 +77,22 @@ function DashboardLiveStatus({
 
 export function Dashboard() {
     useLocalDataVersion();
-    const [dashboardPeriod, setDashboardPeriod] = useState<TimePeriod>('ALL');
+    const location = useLocation();
+    const { dashboardReturn, setDashboardReturn } = useOutletContext<DashboardNavigationContext>();
+    const [returnSnapshot] = useState(() => dashboardReturn?.key === location.key ? dashboardReturn : null);
+    const [dashboardPeriod, setDashboardPeriod] = useState<TimePeriod>(returnSnapshot?.period ?? 'ALL');
+    const tableViewState = useRef(returnSnapshot?.table);
+    const scrollRestored = useRef(false);
+    const rememberTableView = useCallback((view: AssetsTableViewState) => { tableViewState.current = view; }, []);
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
     const account=useAccount();
     const { assets, loading, updatingPrices, quoteFailures } = state;
+    useLayoutEffect(() => {
+        if (loading || !returnSnapshot || scrollRestored.current) return;
+        // Restore after the actual table (including expanded records) has mounted.
+        window.scrollTo({ left: returnSnapshot.scrollX, top: returnSnapshot.scrollY, behavior: 'instant' });
+        scrollRestored.current = true;
+    }, [loading, returnSnapshot]);
     const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
     const [selectedHolding, setSelectedHolding] = useState<{
         holding: AssetHolding;
@@ -91,7 +106,9 @@ export function Dashboard() {
     const apiEnabled = isApiEnabled();
     const analytics = useDashboardAnalytics(calculationNow);
     const { series: historicalSeries, liveSeries } = analytics;
-    const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || null;
+    const positionGroups=useMemo(()=>portfolioPositionGroups(assets,calculationNow),[assets,calculationNow]);
+    const selectedGroup=positionGroups.find(group=>group.lots.length>1 && group.asset.id===selectedAssetId);
+    const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || selectedGroup?.asset || null;
     const quoteStatuses = useMemo(() => assets.map(asset => ({ asset, ...portfolioQuoteStatus(asset, calculationNow) })), [assets, calculationNow]);
     const consultationTimes = quoteStatuses.map(s => s.checkedAt).filter(t => Number.isFinite(t) && t <= calculationNow + 5 * 60000);
     const lastConsultedAt = consultationTimes.length ? new Date(Math.max(...consultationTimes)).toISOString() : undefined;
@@ -156,17 +173,22 @@ export function Dashboard() {
         };
     }, []);
 
+    const openOperation = useCallback((mode: 'editAsset' | 'dcaAsset' | 'sellAsset', asset: Asset) => {
+        setDashboardReturn({ key: location.key, scrollX: window.scrollX, scrollY: window.scrollY, period: dashboardPeriod, table: tableViewState.current });
+        navigate('/add', { state: { [mode]: asset, dashboardReturnKey: location.key } });
+    }, [navigate, setDashboardReturn, location.key, dashboardPeriod]);
+
     const handleEditAsset = useCallback((asset: Asset) => {
-        navigate('/add', { state: { editAsset: asset } });
-    }, [navigate]);
+        openOperation('editAsset', asset);
+    }, [openOperation]);
 
     const handleAddPurchase = useCallback((asset: Asset) => {
-        navigate('/add', { state: { dcaAsset: asset } });
-    }, [navigate]);
+        openOperation('dcaAsset', asset);
+    }, [openOperation]);
 
     const handleSell = useCallback((asset: Asset) => {
-        navigate('/add', { state: { sellAsset: asset } });
-    }, [navigate]);
+        openOperation('sellAsset', asset);
+    }, [openOperation]);
 
     const handleViewDetails = useCallback((asset: Asset) => {
         setSelectedHolding(null);
@@ -228,9 +250,8 @@ export function Dashboard() {
     }, [assets, calculationNow, historicalSeries, liveSeries, analytics.portfolioTransactions]);
 
     const performersData: PerformerData[] = useMemo(() => {
-        return assets.filter(asset => hasValidPrice(asset) && Number.isFinite(asset.purchasePrice) && asset.purchasePrice > 0 && asset.quantity > 0).map((asset) => {
-            const currentValue = assetValue(asset);
-            const investedValue = asset.purchasePrice * asset.quantity;
+        return positionGroups.filter(group=>group.estimatedCount===0 && group.investedValue>0 && group.asset.quantity>0).map((group) => {
+            const {asset,currentValue,investedValue}=group;
             const change = currentValue - investedValue;
             const changePercent = investedValue > 0 ? (change / investedValue) * 100 : 0;
 
@@ -243,7 +264,7 @@ export function Dashboard() {
                 value: currentValue,
             };
         });
-    }, [assets]);
+    }, [positionGroups]);
 
     if (loading) {
         return (
@@ -332,6 +353,8 @@ export function Dashboard() {
             </details>}
             <section className="dashboard__section">
                 <AssetsTable
+                    initialViewState={returnSnapshot?.table}
+                    onViewStateChange={rememberTableView}
                     now={calculationNow}
                     assets={assets}
                     onDelete={deleteAsset}
@@ -385,7 +408,7 @@ export function Dashboard() {
                         exposure={selectedHolding.exposure}
                     />
                 ) : selectedAsset ? (
-                    <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} />
+                    <AssetDetail asset={selectedAsset} portfolioValue={metrics.currentValue} positionLots={selectedGroup?.lots} />
                 ) : null}
             </Modal>
             {dashboardNoticeModal}

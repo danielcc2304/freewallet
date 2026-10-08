@@ -12,6 +12,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-08 - v6.1.2 - Agrupación de posiciones y retorno al dashboard
+- Funcionalidad:
+  - Agrupa por defecto las posiciones del mismo instrumento, muestra cantidades y valores agregados y conserva el desglose para operar sobre cada lote individual. La agrupación es solo una vista y no reescribe la cartera.
+  - Mantiene el estado previo del dashboard al cancelar o volver desde una edición, compra o venta, incluidos scroll, filtros, orden, periodo y lotes expandidos.
+- Resumen:
+  - Simplifica la consulta de carteras con compras repetidas y evita perder el contexto de navegación al descartar cambios.
+- Archivos:
+  - `README.md`, `package.json`, `package-lock.json`, `scripts/test-dashboard-edit-return-ui.ts`, `scripts/test-position-groups-ui.ts`, `scripts/test-position-groups.ts`, `src/components/dashboard/AssetDetail.tsx`, `src/components/dashboard/AssetsTable.css`, `src/components/dashboard/AssetsTable.tsx`, `src/components/layout/MainLayout/MainLayout.tsx`, `src/components/layout/MainLayout/dashboardNavigation.ts`, `src/pages/AddInvestment/AddInvestment.tsx`, `src/pages/Dashboard/Dashboard.tsx`, `src/services/portfolioPositionGroups.ts`.
+  
 ### 2026-10-08 - v6.1.1 - Cotizaciones en vivo y ajustes del dashboard
 - Funcionalidad:
   - Actualiza las cotizaciones de acciones y cripto cada minuto y añade proveedores alternativos verificados para mantener datos disponibles.

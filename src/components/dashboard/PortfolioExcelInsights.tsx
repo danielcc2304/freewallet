@@ -595,7 +595,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                 && ` Gráfico hasta ${formatChartDate(benchmarkChart.at(-1)?.date ?? '')}; tu rentabilidad superior incluye el ${formatChartDate(selectedPeriod.performance.endDate ?? '')}.`}
                         </p>}
                         <div className="portfolio-excel-insights__benchmark-kpis">
-                            <div><span>{benchmarkLabel}{benchmarkPartial ? ' · datos disponibles' : ''}</span><strong>{percent(benchmarkReturn)}</strong></div>
+                            <div><span>{benchmarkLabel}</span><strong>{percent(benchmarkReturn)}</strong></div>
                             <div><span>{comparison&&benchmarkPartial?`Diferencia hasta ${formatChartDate(comparison.endDate)}`:'Diferencia del periodo'}</span><strong className={benchmarkDifference === null ? '' : benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'}>{percent(benchmarkDifference).replace('%', ' pp')}</strong></div>
                         </div>
                         {benchmarkChart.length > 1 ? (
@@ -604,7 +604,39 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
                                     <XAxis dataKey="timestamp" type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatChartDate} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
                                     <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
-                                    <Tooltip {...tooltipTheme} filterNull={false} labelFormatter={label => typeof label === 'string' || typeof label === 'number' ? formatChartDate(label) : ''} formatter={(value: number | string | undefined, name?: string) => [percent(value == null ? null : Number(value)), benchmarkSeriesLabel(name, 'Tu cartera', benchmarkLabel)]} />
+                                    <Tooltip
+                                        {...tooltipTheme}
+                                        filterNull={false}
+                                        content={({ active, label }) => {
+                                            if (!active) return null;
+                                            const pointTime = (point: { date: string; timestamp?: number }) => point.timestamp ?? Date.parse(point.date);
+                                            const labelTime = Number(label);
+                                            const hoveredPoint = benchmarkChart.find(point =>
+                                                pointTime(point) === labelTime || point.date === String(label));
+                                            if (!hoveredPoint) return null;
+
+                                            const hoveredTime = pointTime(hoveredPoint);
+                                            const latestBenchmarkPoint = [...benchmarkChart].reverse().find(point =>
+                                                point.benchmark != null && Number.isFinite(point.benchmark)
+                                                && pointTime(point) <= hoveredTime);
+
+                                            return (
+                                                <div className="portfolio-excel-insights__benchmark-tooltip">
+                                                    <strong>{formatChartDate(hoveredPoint.timestamp ?? hoveredPoint.date)}</strong>
+                                                    {latestBenchmarkPoint && (
+                                                        <div className="portfolio-excel-insights__benchmark-tooltip-row">
+                                                            <span>{benchmarkLabel}</span>
+                                                            <b>{percent(latestBenchmarkPoint.benchmark)}</b>
+                                                        </div>
+                                                    )}
+                                                    <div className="portfolio-excel-insights__benchmark-tooltip-row">
+                                                        <span>Tu cartera</span>
+                                                        <b>{percent(hoveredPoint.portfolio)}</b>
+                                                    </div>
+                                                </div>
+                                            );
+                                        }}
+                                    />
                                     <Legend formatter={(value) => benchmarkSeriesLabel(String(value), 'Tu cartera', benchmarkLabel)} />
                                     <Line isAnimationActive={false} type="linear" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} />
                                     {benchmarkHasPeriodBase && <Line isAnimationActive={false} type="linear" dataKey="benchmark" name={benchmarkLabel} stroke="#3b82f6" strokeWidth={2} dot={false} connectNulls />}

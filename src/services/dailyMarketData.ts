@@ -2,12 +2,13 @@ import { getAppSupabaseClient, appBackendConfig } from './supabaseClient';
 import { portfolioStorage } from './portfolioCloudStorage';
 import type { Asset, PortfolioTransaction, HistoricalDataPoint, StockQuote } from '../types/types';
 import { createQuoteSnapshot } from './portfolioPerformance';
+import type {FundSource} from '../../supabase/functions/_shared/fundQuotePolicy';
 
 export const BENCHMARK_ISIN = 'IE00BYX5NX33';
 export const BENCHMARK_NAME = 'Fidelity MSCI World ACC EUR';
 export interface DailyPrice {
     instrument: string; quoted_at: string; checked_at: string; price_eur: number;
-    previous_close_eur: number | null; original_price?: number; original_currency?: string; original_unit?: string; unit_scale?: number; fx_rate?: number; fx_at?: string | null; source: 'Finect' | 'Yahoo Finance';
+    previous_close_eur: number | null; original_price?: number; original_currency?: string; original_unit?: string; unit_scale?: number; fx_rate?: number; fx_at?: string | null; source: FundSource;
 }
 export interface DailyMarketData {
     benchmark: { isin: string; name: string };
@@ -42,6 +43,9 @@ export function instrumentKey(asset: Pick<Asset, 'symbol' | 'isin' | 'type'>): s
 }
 export function dailyQuote(asset: Asset, data: DailyMarketData | null, now = Date.now()): StockQuote | undefined {
     const price = data?.prices.filter(p => p.instrument === instrumentKey(asset)).at(-1);
+    return dailyPriceQuote(asset,price,now);
+}
+export function dailyPriceQuote(asset:Asset,price:DailyPrice|undefined,now=Date.now()):StockQuote|undefined {
     if (!price || !Number.isFinite(price.price_eur) || price.price_eur <= 0) return undefined;
     const at = Date.parse(price.quoted_at), checked = Date.parse(price.checked_at);
     const maxAge = (asset.type === 'fund' ? 7 : asset.type === 'crypto' ? 2 : 4) * 86400000;

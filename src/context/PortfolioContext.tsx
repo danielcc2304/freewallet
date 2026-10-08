@@ -185,7 +185,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                     if(accountEpoch!==portfolioStorage.epoch)return;
                     const asset = requested[nextIndex++];
                     const controller = new AbortController();
-                    const deadline = window.setTimeout(() => controller.abort(), 15000);
+                    const deadline = window.setTimeout(() => controller.abort(), forceRefresh&&asset.type==='fund'?35000:15000);
                     try {
                         const quote = await getPortfolioAssetQuote(asset, controller.signal, forceRefresh, dailyQuote(asset, centralData));
                         if (quote && Number.isFinite(quote.price) && quote.price >= 0 && quote.currency === 'EUR') {

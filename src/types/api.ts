@@ -12,7 +12,7 @@ export interface StockQuote {
     fxAt?: string | null;
     checkedAt?: string;
     origin?: 'batch' | 'provider';
-    source?: 'Finect' | 'Yahoo Finance' | 'Mercado' | 'Saldo';
+    source?: FundSource | 'Mercado' | 'Saldo';
     symbol: string;
     name: string;
     price: number;
@@ -77,6 +77,7 @@ export interface HistoricalDataPoint {
     open: number;
     high: number;
     low: number;
+    /** Provider close without dividend reinvestment; used to value held units. */
     close: number;
     volume: number;
 }
@@ -90,3 +91,4 @@ export interface AddInvestmentForm {
     quantity: number;
     isin?: string;
 }
+import type {FundSource} from '../../supabase/functions/_shared/fundQuotePolicy';

@@ -1,10 +1,12 @@
 import { quoteCurrency, datedFx, marketSymbolMatches, previousCryptoClose } from '../_shared/quoteCurrency.ts';
+import {fetchFreshFund} from './fundSources.ts';
+import type {FundObservation,FundSource} from '../_shared/fundQuotePolicy.ts';
 
 /** Server-only providers. Dates are provider observations, never fetch dates. */
 export interface MarketPrice {
     instrument: string; quoted_at: string; price_eur: number; previous_close_eur: number | null;
     original_price: number; original_currency: string; original_unit: string; unit_scale: number; fx_rate: number; fx_at: string | null;
-    source: 'Finect' | 'Yahoo Finance'; checked_at: string;
+    source: FundSource; checked_at: string;
 }
 type RecordValue = Record<string, unknown>;
 const record = (value: unknown): RecordValue => value && typeof value === 'object' ? value as RecordValue : {};
@@ -18,12 +20,23 @@ const date = (value: unknown): string => {
     return new Date(timestamp).toISOString();
 };
 export async function providerJson(url: string, signal?: AbortSignal): Promise<unknown> {
+    return providerResponse(url,signal,false);
+}
+export async function providerText(url:string,signal?:AbortSignal):Promise<string> {
+    return await providerResponse(url,signal,true) as string;
+}
+async function providerResponse(url:string,signal:AbortSignal|undefined,text:boolean):Promise<unknown> {
     for (let attempt = 0; attempt < 3; attempt++) {
         signal?.throwIfAborted();
         try {
             const response = await fetch(url, { signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(8000)]) : AbortSignal.timeout(8000),
-                headers: { Accept: 'application/json', 'User-Agent': 'Mozilla/5.0' } });
-            if (response.ok) return await response.json();
+                headers: { Accept: text?'text/html,application/xml':'application/json', 'User-Agent': 'Mozilla/5.0' } });
+            if (response.ok) {
+                if(Number(response.headers.get('content-length'))>1500000){await response.body?.cancel();throw new Error('Proveedor HTTP: respuesta demasiado grande');}
+                const content=await response.text();
+                if(content.length>1500000)throw new Error('Proveedor HTTP: respuesta demasiado grande');
+                return text?content:JSON.parse(content);
+            }
             await response.body?.cancel();
             if (![429, 500, 502, 503, 504].includes(response.status) || attempt === 2) throw new Error(`Proveedor HTTP ${response.status}`);
             const retryAfter = Number(response.headers.get('retry-after'));
@@ -60,14 +73,21 @@ export function parseFund(payload: unknown, isin: string): RawQuote {
     const previous = typeof quote.change === 'number' && Number.isFinite(quote.change) && price - quote.change > 0 ? price - quote.change : null;
     return { price, previous, currency, at: date(quote.datetime), source: 'Finect' };
 }
-async function fund(isin: string, key: string, signal?: AbortSignal): Promise<RawQuote> {
+async function finectFund(isin: string, key: string, signal?: AbortSignal): Promise<FundObservation> {
     const params = new URLSearchParams({ key, limit: '50', q: isin, type: 'product' });
     const search = record(await providerJson(`https://api.finect.com/v4/search?${params}`, signal));
     const matches = Array.isArray(search.data) ? search.data.map(record) : [];
     const match = matches.find(m => m.type === 'fund' && record(m.entity).isin === isin);
     const alias = record(match?.entity).alias;
     if (typeof alias !== 'string') throw new Error('ISIN no encontrado en Finect');
-    return parseFund(await providerJson(`https://api.finect.com/v4/products/${encodeURIComponent(alias)}?${new URLSearchParams({ key })}`, signal), isin);
+    const payload=await providerJson(`https://api.finect.com/v4/products/${encodeURIComponent(alias)}?${new URLSearchParams({ key })}`, signal);
+    const root=record(record(payload).data),model=record(root.entity??root);
+    const quote=parseFund(payload,isin);
+    const classes=Array.isArray(model.classes)?model.classes.map(record):[];
+    const selected=classes.find(c=>c.isin===isin);
+    const className=selected?.name??record(model.class).name??model.name;
+    if(typeof className!=='string'||!className.trim())throw new Error('Nombre de clase no confirmado');
+    return {...quote,isin,className,source:'Finect'};
 }
 interface Candle { at: string; close: number }
 export function parseChart(payload: unknown, expectedSymbol?: string): { currency: string; candles: Candle[] } {
@@ -126,7 +146,7 @@ export async function fetchMarketPrice(input: MarketInstrument | string, finectK
     let raw: RawQuote;
     if (type === 'fund') {
         if (!isin || !/^[A-Z]{2}[A-Z0-9]{10}$/.test(isin)) throw new Error('ISIN de fondo inválido');
-        raw = await fund(isin, finectKey, signal);
+        raw = await fetchFreshFund(isin,()=>finectFund(isin,finectKey,signal),{json:providerJson,text:providerText},signal);
     } else {
         const data = await chart(symbol, signal);
         const last = data.candles.at(-1)!;

@@ -70,15 +70,51 @@ try {
         create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
         create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;
         create table vault.decrypted_secrets(name text,decrypted_secret text);insert into vault.decrypted_secrets values('daily_market_job_secret','fixture');
-        create function cron.schedule(text,text,text) returns bigint language sql as $$select 1::bigint$$;
+        create table cron.job(jobid bigint generated always as identity primary key,jobname text unique,schedule text,command text);
+        create function cron.schedule(job_name text,job_schedule text,job_command text) returns bigint language plpgsql as $$declare result bigint;begin
+            insert into cron.job(jobname,schedule,command) values(job_name,job_schedule,job_command)
+            on conflict(jobname) do update set schedule=excluded.schedule,command=excluded.command returning jobid into result;return result;end$$;
         create table net._http_response(id bigint,timed_out boolean,status_code integer,error_msg text);
         create table storage.buckets(id text primary key,name text,public boolean);create table storage.objects(id uuid,bucket_id text,owner_id text);alter table storage.objects enable row level security;
         grant usage on schema auth,public,storage to authenticated,anon,service_role;
         insert into auth.users(id,email) values('${A}','daniel230401@gmail.com'),('${B}','editor@example.test');insert into auth.sessions values('${S}','${A}'),('${T}','${B}');`);
     for(const name of ['portfolio_foundation.sql','portfolio_commands.sql','portfolio_mfa_guard.sql','portfolio_command_validation.sql','portfolio_opening_basis.sql','daily_market_data.sql','daily_market_accounting_calendar.sql']) await db.exec(migration(name));
     await db.exec(readFileSync('supabase/news-schema.sql','utf8').replace('create extension if not exists pgcrypto;',''));
-    for(const name of ['architecture_hardening.sql','market_publication_hardening.sql','portfolio_delta_commands.sql','architecture_advisor_cleanup.sql','market_snapshot_completeness.sql']) await db.exec(migration(name));
+    for(const name of ['architecture_hardening.sql','market_publication_hardening.sql','portfolio_delta_commands.sql','architecture_advisor_cleanup.sql','market_snapshot_completeness.sql','market_half_hour_schedule.sql','fund_quote_sources.sql']) await db.exec(migration(name));
+    const schedule=(await db.query<{schedule:string}>("select schedule from cron.job where jobname='freewallet-daily-market'")).rows;
+    assert.deepEqual(schedule,[{schedule:'*/30 6-21 * * *'}],'Update the existing Cron job instead of installing a duplicate');
+    assert.equal((await db.query<{schedule:string}>("select schedule from cron.job where jobname='freewallet-market-watchdog'")).rows[0].schedule,'*/5 * * * *');
+    for(const day of ['2026-01-15','2026-07-15','2026-03-29','2026-10-25']) {
+        const slots=(await db.query<{local:string}>(`select to_char(slot at time zone 'Europe/Madrid','HH24:MI') local
+            from generate_series($1::date::timestamp at time zone 'UTC',($1::date+1)::timestamp at time zone 'UTC'-interval '30 minutes',interval '30 minutes') slot
+            where extract(hour from slot at time zone 'UTC') between 6 and 21 and portfolio_private.market_refresh_slot_allowed(slot) order by slot`,[day])).rows.map(r=>r.local);
+        assert.equal(slots.length,30,`Exactly 30 runs on ${day}, including DST transition days`);
+        assert.equal(slots[0],'08:00');assert.equal(slots.at(-1),'22:30');
+        assert.ok(slots.includes('08:30')&&slots.includes('21:30'));
+    }
+    for(const [local,allowed] of [['07:30',false],['08:00',true],['08:15',false],['08:30',true],['22:30',true],['23:00',false]] as const)
+        assert.equal((await db.query<{v:boolean}>("select portfolio_private.market_refresh_slot_allowed($1::timestamp at time zone 'Europe/Madrid') v",[`2026-10-07 ${local}`])).rows[0].v,allowed);
+    const expectedSlot=async(checked:string,since:string)=>(await db.query<{v:string}>(`select to_char(portfolio_private.expected_market_refresh_slot(
+        $1::timestamp at time zone 'Europe/Madrid',$2::timestamp at time zone 'Europe/Madrid') at time zone 'Europe/Madrid','YYYY-MM-DD HH24:MI') v`,[checked,since])).rows[0].v;
+    assert.equal(await expectedSlot('2026-10-07 09:39','2026-10-06 00:00'),'2026-10-07 09:00','Allow ten minutes for a batch to start');
+    assert.equal(await expectedSlot('2026-10-07 09:40','2026-10-06 00:00'),'2026-10-07 09:30','Monitor half-hour slots as well as full hours');
+    assert.equal(await expectedSlot('2026-10-08 07:59','2026-10-06 00:00'),'2026-10-07 22:30','No expected overnight batches');
+    assert.equal(await expectedSlot('2026-10-07 15:25','2026-10-07 15:20'),'2026-10-07 14:00','Do not expect new slots before activation');
+    assert.equal(await expectedSlot('2026-10-07 15:40','2026-10-07 15:20'),'2026-10-07 15:30','Use the new cadence from its first scheduled slot');
+    assert.equal(await expectedSlot('2026-10-08 00:30','2026-10-08 00:20'),'2026-10-07 22:00','An overnight migration preserves the previous last expected run');
+    await db.exec("set time zone 'America/Los_Angeles'");
+    assert.equal(await expectedSlot('2026-10-07 09:40','2026-10-06 00:00'),'2026-10-07 09:30','Slot alignment must not depend on the DB session timezone');
+    await db.exec("set time zone 'UTC'");
+    for(const role of ['anon','authenticated','service_role']) {
+        assert.equal((await db.query<{v:boolean}>("select has_function_privilege($1,'portfolio_private.dispatch_market_refresh()','EXECUTE') v",[role])).rows[0].v,false);
+        assert.equal((await db.query<{v:boolean}>("select has_function_privilege($1,'portfolio_private.expected_market_refresh_slot(timestamptz,timestamptz)','EXECUTE') v",[role])).rows[0].v,false);
+    }
     await login(A,S);
+    const fundContext=(await db.query<{r:{allowed:boolean,name:string,cached:unknown}}>("select public.prepare_fund_quote('IE00BYX5NX33') r")).rows[0].r;
+    assert.equal(fundContext.allowed,true);assert.equal(fundContext.cached,null);
+    assert.equal((await db.query<{r:{allowed:boolean}}>("select public.prepare_fund_quote('IE00BYX5NX33') r")).rows[0].r.allowed,false,'Manual refreshes are throttled independently of the batch');
+    await assert.rejects(db.query("select public.prepare_fund_quote('ES0119199018')"),'A user cannot query an unowned fund through the manual endpoint');
+    await assert.rejects(db.query("select public.prepare_fund_quote('INVALID')"));
     assert.equal((await db.query<{v:boolean}>('select public.ensure_news_owner() v')).rows[0].v,true);
     const asset={id:'vod',symbol:'VOD.L',isin:'GB00BH4HKS39',name:'Vodafone',type:'stock',quantity:2,purchasePrice:1,purchaseDate:'2026-01-01',currency:'EUR'};
     const opening={id:'initial-buy',assetId:'vod',assetSymbol:'VOD.L',assetName:'Vodafone',assetType:'stock',type:'buy',quantity:2,price:1,total:2,date:'2026-01-01',createdAt:'2026-01-01T12:00:00Z',provenance:'trade'};
@@ -102,6 +138,13 @@ try {
     assert.equal(retry.id,prepared.id);assert.equal(retry.deliveryRequired,false,'In-flight invitation cannot mail twice');
     await db.exec(`reset role;insert into auth.users(id,email) values(gen_random_uuid(),'new@example.test');`);
     assert.equal((await db.query<{v:boolean}>('select public.complete_news_invitation($1,true) v',[prepared.id])).rows[0].v,true,'Recover after Auth registered the account but response was lost');
+    await db.query("insert into public.portfolio_positions(user_id,id,symbol,isin,name,asset_type,quantity,purchase_price_eur,purchase_date) values($1,'owned-fund-context','ES0119199018','ES0119199018','Owned fund fixture','fund',1,5,current_date)",[A]);
+    await login(A,S);
+    assert.equal((await db.query<{r:{allowed:boolean,name:string}}>("select public.prepare_fund_quote('ES0119199018') r")).rows[0].r.name,'Owned fund fixture');
+    await login(B,T);
+    await assert.rejects(db.query("select public.prepare_fund_quote('ES0119199018')"),'A different owner cannot refresh or read another portfolio fund');
+    await db.exec('reset role;');
+    await db.query("delete from public.portfolio_positions where user_id=$1 and id='owned-fund-context'",[A]);
     await login(B,T);assert.equal((await db.query<{v:boolean}>('select public.has_pending_news_invitation() v')).rows[0].v,true);
     assert.equal((await db.query<{v:boolean}>('select public.accept_news_editor_invitation() v')).rows[0].v,true);
     await db.query("insert into public.news_posts(slug,title,author_id) values('editor-article','Fixture',$1)",[B]);
@@ -111,10 +154,12 @@ try {
     assert.equal((await db.query("update public.news_posts set title='Own edit' where slug='editor-article' returning id")).rows.length,1);
     await db.exec(`reset role;insert into auth.mfa_factors values(gen_random_uuid(),'${B}','verified');set role authenticated;`);
     assert.equal((await db.query<{v:boolean}>('select public.is_news_admin() v')).rows[0].v,false);
+    await assert.rejects(db.query("select public.prepare_fund_quote('IE00BYX5NX33')"),'MFA is enforced even for cached fund quotes');
     assert.equal((await db.query("update public.news_posts set title='No MFA' where slug='editor-article' returning id")).rows.length,0);
     await login(B,T,'aal2');assert.equal((await db.query<{v:boolean}>('select public.is_news_admin() v')).rows[0].v,true);
     await db.exec(`reset role;delete from auth.sessions where id='${T}';set role authenticated;`);
     assert.equal((await db.query<{v:boolean}>('select public.is_news_admin() v')).rows[0].v,false);
+    await assert.rejects(db.query("select public.prepare_fund_quote('IE00BYX5NX33')"),'A revoked session cannot trigger a fund refresh');
     await db.exec('reset role;set role anon;');
     await assert.rejects(db.query('select public.is_news_admin()'));
     assert.equal((await db.query('select slug from public.news_posts')).rows.length,1,'Public published article remains readable');
@@ -125,6 +170,9 @@ try {
     await db.query('select public.finish_daily_market_refresh($1,$2,$3)',[run.id,JSON.stringify([price]),'[]']);
     assert.equal((await db.query<{n:number}>('select count(*)::int n from portfolio_private.daily_snapshots')).rows[0].n,0,'Publication does not capture or lock all portfolios');
     assert.equal((await db.query<{v:string}>('select public.capture_market_snapshot($1,$2) v',[run.id,A])).rows[0].v,'captured');
+    for(let repeat=0;repeat<30;repeat++) await db.query('select public.capture_market_snapshot($1,$2)',[run.id,A]);
+    assert.equal((await db.query<{n:number}>('select count(*)::int n from portfolio_private.daily_snapshots')).rows[0].n,1,'Thirty captures do not create thirty daily snapshots');
+    assert.equal((await db.query<{n:number}>('select count(*)::int n from portfolio_private.snapshot_ledger')).rows[0].n,1,'Repeated captures do not duplicate trades');
     const snapshots=(await db.query<{transactions:unknown[],valuation_kind:string}>('select transactions,valuation_kind from portfolio_private.daily_snapshots')).rows;
     assert.deepEqual(snapshots[0].transactions,[]);assert.equal(snapshots[0].valuation_kind,'mixed-observations');
     await login(A,S);
@@ -183,5 +231,5 @@ try {
     await db.query('select public.finish_daily_market_refresh($1,$2,$3)',[failedRun.id,'[]','[{"instrument":"VOD.L","reason":"fixture"}]']);
     await db.query('select portfolio_private.market_watchdog()');
     assert.equal((await db.query<{v:boolean}>("select exists(select 1 from portfolio_private.market_alerts where resolved_at is null) v")).rows[0].v,true);
-    console.log('Architecture: currencies, providers, editorial access/MFA, invitation recovery, patches, missing-price rejection, preserved daily snapshots/ledger, recovery, cash portfolios and worker health passed.');
+    console.log('Architecture: currencies, providers, editorial access/MFA, invitation recovery, patches, half-hour Cron/DST/activation grace, deduplicated captures, missing-price rejection, preserved daily snapshots/ledger, recovery, cash portfolios and worker health passed.');
 } finally {await db.close();}

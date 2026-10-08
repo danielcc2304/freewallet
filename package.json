@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "verify-funds": "tsx scripts/verify-funds.ts",
     "test:compound-interest": "tsx scripts/test-compound-interest.ts",
+    "test:salary-calculator": "tsx scripts/test-salary-calculator.ts",
+    "test:salary-calculator-ui": "tsx scripts/test-salary-calculator-ui.ts",
     "test:fund-breakdown": "tsx scripts/test-fund-breakdown.ts",
     "test:fund-chart-resolution": "tsx scripts/test-fund-chart-resolution.ts",
     "test:fund-chart-ui": "tsx scripts/test-fund-chart-ui.ts",

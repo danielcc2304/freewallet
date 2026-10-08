@@ -35,6 +35,7 @@ import { getSettings, isApiEnabled, updateSettings } from '../../services/storag
 import { stockQuoteMarkets, selectedStockQuoteMarket } from '../../services/market/stockQuoteMarkets';
 import { portfolioStorage } from '../../services/portfolioCloudStorage';
 import { usePortfolio } from '../../context/PortfolioContext';
+import { portfolioPositionGroups } from '../../services/portfolioPositionGroups';
 import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
 import { Button } from '../ui';
 import { formatFundamentalMoney, formatFundamentalPercent, formatFundamentalRatio, hasFundamentals } from '../../services/market/fundamentals';
@@ -45,6 +46,7 @@ interface AssetDetailProps {
     asset: Asset;
     portfolioValue?: number;
     marketOnly?: boolean;
+    positionLots?: Asset[];
 }
 
 interface ChartSelection {
@@ -67,21 +69,23 @@ const periods: { label: string; value: TimePeriod }[] = [
  * are not points of the same series and drawing them together produces the
  * large artificial spikes seen in the detail modal.
  */
-export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: AssetDetailProps) {
+export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, positionLots }: AssetDetailProps) {
     useLocalDataVersion();
     const { refreshAssetPrices } = usePortfolio();
     const [marketError,setMarketError] = useState('');
     const [changingMarket,setChangingMarket] = useState(false);
     const marketChoices = stockQuoteMarkets(asset);
-    const selectedMarket = selectedStockQuoteMarket(asset);
+    const selectedMarket = selectedStockQuoteMarket(positionLots?.[0] ?? asset);
+    const group = positionLots && positionLots.length>1 ? portfolioPositionGroups(positionLots)[0] : undefined;
     const changeMarket = async (id:string) => {
         const epoch=portfolioStorage.epoch;
         setChangingMarket(true);setMarketError('');
         try {
-            updateSettings({stockQuoteMarkets:{...getSettings().stockQuoteMarkets,[asset.id]:id}});
+            const ids=positionLots?.map(lot=>lot.id) ?? [asset.id];
+            updateSettings({stockQuoteMarkets:{...getSettings().stockQuoteMarkets,...Object.fromEntries(ids.map(assetId=>[assetId,id]))}});
             await portfolioStorage.flush();
             if(epoch!==portfolioStorage.epoch)return;
-            await refreshAssetPrices([asset.id]);
+            await refreshAssetPrices(ids);
         } catch { if(epoch===portfolioStorage.epoch)setMarketError('No se pudo guardar o consultar el mercado seleccionado.'); }
         finally { if(epoch===portfolioStorage.epoch)setChangingMarket(false); }
     };
@@ -212,7 +216,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
     const investedValue = asset.purchasePrice * asset.quantity;
     const currentValue = assetValue(asset);
     const positionGain = currentValue - investedValue;
-    const positionReturn = investedValue > 0 && hasValidPrice(asset) ? (positionGain / investedValue) * 100 : NaN;
+    const positionReturn = investedValue > 0 && hasValidPrice(asset) && !group?.estimatedCount ? (positionGain / investedValue) * 100 : NaN;
     const portfolioWeight = portfolioValue > 0 ? (currentValue / portfolioValue) * 100 : 0;
     const quoteStatus = portfolioQuoteStatus(asset, Date.now());
 
@@ -396,7 +400,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                 </div>
                 <div className="asset-detail__price-group">
                     <div className="asset-detail__price">
-                        {formatValue(marketOnly ? asset.currentPrice : assetPrice(asset), 'price')}
+                        {formatValue(group?.estimatedCount ? undefined : marketOnly ? asset.currentPrice : assetPrice(asset), 'price')}
                     </div>
                     <div className={`asset-detail__change ${hasPreviousClose ? priceChange >= 0 ? 'positive' : 'negative' : ''}`}>
                         {hasPreviousClose ? <>{priceChange >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
@@ -405,6 +409,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                 </div>
             </div>
 
+            {group && <p className="asset-detail__group-note">Posición agrupada · {group.lots.length} registros{group.estimatedCount?' · incluye valoraciones estimadas':group.mixedPrices?' · precio medio de valoración':''}.</p>}
             {!marketOnly && <div className="asset-detail__position-grid">
                 <div><span>Cantidad</span><strong>{formatQuantity(asset)}</strong></div>
                 <div><span>Precio medio</span><strong>{formatValue(asset.purchasePrice, 'price')}</strong></div>
@@ -416,7 +421,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                 <div><span>Consulta al proveedor</span><strong>{quoteDateLabel(asset.lastCheckedAt)}</strong></div>
                 <div><span>Lectura en la app</span><strong>{quoteDateLabel(asset.lastReadAt)}</strong></div>
                 <div><span>Origen</span><strong>{asset.quoteSource || 'No disponible'}{asset.quoteSource==='Google Finance' && marketChoices.length>1 ? ' · Madrid/BME' : ''}{asset.quoteOrigin === 'batch' ? ' · batch' : ''}</strong></div>
-                <div><span>Fecha del precio</span><strong>{quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)}</strong></div>
+                <div><span>{group?.mixedDates?'Fechas de valoración':'Fecha del precio'}</span><strong>{group?.mixedDates?'Ver registros individuales':quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)}</strong></div>
             </div>}
             {!marketOnly && marketChoices.length>1 && <div className="asset-detail__quote-market">
                 <label htmlFor={`quote-market-${asset.id}`}>Mercado de cotización</label>

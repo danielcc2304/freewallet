@@ -110,6 +110,8 @@ Los datos del navegador dependen del origen: cambiar dominio o puerto no compart
 
 ## Actualización de precios e histórico
 
+«Mis Activos» agrupa por defecto los registros del mismo instrumento: suma cantidades, costes y valoraciones y muestra el precio medio ponderado. El desglose conserva cada registro para añadir compras, editar, vender o eliminar de forma individual. Puede desactivarse «Agrupar por activo». La agrupación es una vista: no fusiona posiciones guardadas ni reescribe operaciones; mantiene separadas clases de fondos, monedas y mercados bursátiles distintos, y señala valoraciones estimadas o de varias fechas.
+
 Hay dos procesos distintos:
 
 Las consultas del navegador contrastan Yahoo con **Google Finance para el mismo mercado** cuando falta un precio reciente, y con **CoinGecko para criptos identificadas**. Nextil (`ES0126962069`) prioriza Madrid/BME; su ficha permite escoger el mercado del registro. Los precios conservan la fecha publicada y nunca se reemplazan por observaciones anteriores. La consulta cada minuto no garantiza un dato nuevo ni un feed bursátil en tiempo real.

@@ -34,15 +34,19 @@ try{
         assert.equal(cells.Cantidad,'400');assert.match(cells['Precio medio'] || '',/0,9/);
         assert.match(cells['Capital invertido'] || '',/360/);assert.match(cells['Valor actual'] || '',/440/);
         assert.match(cells.Resultado || '',/80/);
+        const purchases=await page.$$eval('.asset-detail__purchases tbody tr',rows=>rows.map(row=>[...row.querySelectorAll('td')].map(cell=>cell.textContent)));
+        assert.equal(purchases.length,3);
+        assert.match(purchases[1][1] || '',/200/);
+        assert.match(purchases[1][3] || '',/180/);
         await page.keyboard.press('Escape');
-        await page.click('.assets-table__group-toggle input');
-        assert.equal(await page.$$eval('.assets-table tbody tr',rows=>rows.length),4);
-        assert.equal(await page.$('tr[data-position-kind="group"]'),null);
-        await page.click('.assets-table__group-toggle input');
-        assert.equal(await page.$$eval('tr[data-position-kind="group"]',rows=>rows.length),1);
+        assert.equal(await page.$('.assets-table__group-toggle'),null,'Grouping is permanent; no view toggle is shown');
+        await page.click('tr[data-position-kind="group"] .assets-table__lots-toggle');
+        assert.equal(await page.$$eval('.assets-table tbody tr',rows=>rows.length),2,'Collapsing hides purchases without ungrouping the asset');
+        await page.click('tr[data-position-kind="group"] .assets-table__lots-toggle');
+        assert.equal(await page.$$eval('tr[data-position-kind="lot"]',rows=>rows.length),3);
         const ranks=await page.$$eval('.performers--best .performers__symbol',nodes=>nodes.map(n=>n.textContent));
         assert.equal(ranks.filter(s=>s==='NXTE.XD').length,1,'Rankings must consolidate repeated purchases too');
-        assert.equal(await page.evaluate(()=>localStorage.getItem('freewallet_portfolio_v1')),original,'View/group toggles do not rewrite any record');
+        assert.equal(await page.evaluate(()=>localStorage.getItem('freewallet_portfolio_v1')),original,'Expanding purchases does not rewrite any record');
         assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'Viewport must not overflow');
     }
     // Group-level management exposes real records; trade/edit targets never use synthetic IDs.
@@ -69,5 +73,5 @@ try{
     const ids=await page.evaluate(()=>JSON.parse(localStorage.getItem('freewallet_portfolio_v1')!).assets.map((a:{id:string})=>a.id));
     assert.deepEqual(ids,['first','second','other'],'Deleting one original record preserves the other purchases');
     assert.deepEqual(errors,[]);
-    console.log('PASS: grouped desktop/mobile rows, weighted detail, optional individual view, consolidated rankings, original edit/buy/sell IDs, one-record deletion and unchanged storage during grouping.');
+    console.log('PASS: grouped desktop/mobile rows, weighted detail, consolidated rankings, original edit/buy/sell IDs, one-record deletion and unchanged storage during grouping.');
 }finally{await browser.close();}

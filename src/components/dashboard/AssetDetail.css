@@ -569,3 +569,11 @@
     font: inherit;
 }
 .asset-detail__quote-market p { margin: 0; color: var(--text-muted); font-size: var(--font-size-sm); }
+
+.asset-detail__purchases { margin: 1rem 0; }
+.asset-detail__purchases h3 { font-size: var(--font-size-base); margin-bottom: .75rem; }
+.asset-detail__purchases-scroll { overflow-x: auto; }
+.asset-detail__purchases table { width: 100%; border-collapse: collapse; font-size: var(--font-size-sm); }
+.asset-detail__purchases th, .asset-detail__purchases td { padding: .65rem .5rem; text-align: right; white-space: nowrap; border-bottom: 1px solid var(--border-primary); }
+.asset-detail__purchases th { color: var(--text-secondary); font-weight: 500; }
+.asset-detail__purchases th:first-child, .asset-detail__purchases td:first-child { text-align: left; }

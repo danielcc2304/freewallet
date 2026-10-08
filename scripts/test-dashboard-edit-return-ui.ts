@@ -81,19 +81,6 @@ try {
             if (width < 768) assert.ok(await page.$('.assets-table__table--show-details'));
             assert.equal(await page.evaluate(() => localStorage.getItem('freewallet_portfolio_v1')), portfolio, 'Cancelled edits never change holdings or transactions');
         }
-
-        // The optional ungrouped view also survives editing and cancellation.
-        await page.click('.assets-table__group-toggle input');
-        await page.$$eval('tr[data-position-kind="asset"]', rows => {
-            const row = rows.find(row => row.textContent?.includes('200'))!;
-            window.scrollTo({ top: scrollY + row.getBoundingClientRect().top - 180, behavior: 'instant' });
-            (row.querySelector('button[aria-label="Editar NXTE.XD"]') as HTMLElement).click();
-        });
-        await page.waitForSelector('.add-investment');
-        await page.$$eval('button', buttons => (buttons.find(button => button.textContent?.trim() === 'Cancelar') as HTMLElement).click());
-        await page.waitForSelector('tr[data-position-kind="asset"]');
-        assert.equal(await page.$eval('.assets-table__group-toggle input', input => (input as HTMLInputElement).checked), false);
-        assert.equal(await page.$$eval('.assets-table tbody tr', rows => rows.length), 3);
     }
 
     // Directly opening /add has no Dashboard snapshot and must still cancel safely.
@@ -104,7 +91,7 @@ try {
     assert.equal(new URL(page.url()).pathname, '/');
     assert.equal(await page.evaluate(() => scrollY), 0);
     assert.deepEqual(errors, []);
-    console.log('PASS: cancel/top-back/browser-back restore original Dashboard scroll, history entry, period, filters, sorting, expanded lots and mobile controls; ungrouped view and direct /add fallback work; cancelled edits preserve portfolio data.');
+    console.log('PASS: cancel/top-back/browser-back restore original Dashboard scroll, history entry, period, filters, sorting, expanded lots and mobile controls; direct /add fallback works; cancelled edits preserve portfolio data.');
 } finally {
     await browser.close();
 }

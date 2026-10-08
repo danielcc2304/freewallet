@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-08 - v6.1.3 - Agrupación fija y compras por lote
+- Funcionalidad:
+  - Agrupa siempre en «Mis Activos» las posiciones del mismo instrumento y muestra el detalle de compras con fecha, cantidad, precio medio y coste.
+  - Conserva cada registro para operar sobre lotes individuales; la agrupación sigue siendo una vista y no modifica la cartera guardada.
+  - Retira el selector que permitía desactivar la agrupación.
+- Resumen:
+  - Simplifica la vista de cartera y expone la composición de cada posición agrupada con el historial de compras.
+- Archivos:
+  - `README.md`, `package.json`, `package-lock.json`, `scripts/test-dashboard-edit-return-ui.ts`, `scripts/test-position-groups-ui.ts`, `src/components/dashboard/AssetDetail.css`, `src/components/dashboard/AssetDetail.tsx`, `src/components/dashboard/AssetsTable.css`, `src/components/dashboard/AssetsTable.tsx`, `src/constants/app.ts`.
+  
 ### 2026-10-08 - v6.1.2 - Agrupación de posiciones y retorno al dashboard
 - Funcionalidad:
   - Agrupa por defecto las posiciones del mismo instrumento, muestra cantidades y valores agregados y conserva el desglose para operar sobre cada lote individual. La agrupación es solo una vista y no reescribe la cartera.

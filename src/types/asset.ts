@@ -35,5 +35,6 @@ export interface Asset {
     fxRate?: number;
     fxAt?: string | null;
     valuationBasis?: 'quote-date-fx';
-    quoteSource?: 'Finect' | 'Yahoo Finance' | 'Mercado' | 'Saldo';
+    quoteSource?: FundSource | 'Mercado' | 'Saldo';
 }
+import type {FundSource} from '../../supabase/functions/_shared/fundQuotePolicy';

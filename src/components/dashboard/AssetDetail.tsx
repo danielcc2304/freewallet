@@ -423,6 +423,20 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                 <div><span>Origen</span><strong>{asset.quoteSource || 'No disponible'}{asset.quoteSource==='Google Finance' && marketChoices.length>1 ? ' · Madrid/BME' : ''}{asset.quoteOrigin === 'batch' ? ' · batch' : ''}</strong></div>
                 <div><span>{group?.mixedDates?'Fechas de valoración':'Fecha del precio'}</span><strong>{group?.mixedDates?'Ver registros individuales':quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)}</strong></div>
             </div>}
+            {!marketOnly && group && <section className="asset-detail__purchases" aria-label="Registros de compra">
+                <h3>Tus compras · {group.lots.length} registros</h3>
+                <div className="asset-detail__purchases-scroll">
+                    <table>
+                        <thead><tr><th>Fecha</th><th>Cantidad</th><th>Precio medio</th><th>Coste</th></tr></thead>
+                        <tbody>{[...group.lots].sort((a,b)=>a.purchaseDate.localeCompare(b.purchaseDate)).map(lot=><tr key={lot.id}>
+                            <td>{lot.purchaseDate ? quoteDateLabel(`${lot.purchaseDate.slice(0,10)}T12:00:00`).split(',')[0] : 'Sin fecha'}</td>
+                            <td>{formatQuantity(lot)}</td>
+                            <td>{formatValue(lot.purchasePrice, 'price')}</td>
+                            <td>{formatValue(lot.quantity * lot.purchasePrice, 'currency')}</td>
+                        </tr>)}</tbody>
+                    </table>
+                </div>
+            </section>}
             {!marketOnly && marketChoices.length>1 && <div className="asset-detail__quote-market">
                 <label htmlFor={`quote-market-${asset.id}`}>Mercado de cotización</label>
                 <select id={`quote-market-${asset.id}`} value={selectedMarket?.id ?? 'original'} disabled={changingMarket}

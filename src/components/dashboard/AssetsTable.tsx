@@ -29,7 +29,6 @@ export interface AssetsTableViewState {
     sortDirection: SortDirection;
     showMobileDetails: boolean;
     showMobileActions: boolean;
-    grouped: boolean;
     expandedGroups: string[];
 }
 
@@ -55,11 +54,10 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
     const [deleting,setDeleting]=useState(false);
     const [showMobileDetails, setShowMobileDetails] = useState(initialViewState?.showMobileDetails ?? false);
     const [showMobileActions, setShowMobileActions] = useState(initialViewState?.showMobileActions ?? false);
-    const [grouped,setGrouped] = useState(initialViewState?.grouped ?? true);
     const [expandedGroups,setExpandedGroups] = useState<Set<string>>(() => new Set(initialViewState?.expandedGroups));
     useLayoutEffect(() => {
-        onViewStateChange?.({ query, assetType, sortKey, sortDirection, showMobileDetails, showMobileActions, grouped, expandedGroups: [...expandedGroups] });
-    }, [query, assetType, sortKey, sortDirection, showMobileDetails, showMobileActions, grouped, expandedGroups, onViewStateChange]);
+        onViewStateChange?.({ query, assetType, sortKey, sortDirection, showMobileDetails, showMobileActions, expandedGroups: [...expandedGroups] });
+    }, [query, assetType, sortKey, sortDirection, showMobileDetails, showMobileActions, expandedGroups, onViewStateChange]);
     const hasActionHandlers = Boolean(onDelete || onEdit || onAddPurchase || onSell);
 
     const totalValue = assets.reduce(
@@ -88,7 +86,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
         };
         return {grouped:groups.map(process),individual:assets.map(asset=>process(portfolioPositionGroups([asset],now)[0]))};
     }, [assets, groups, totalValue, now]);
-    const processedAssets=grouped?processed.grouped:processed.individual;
+    const processedAssets=processed.grouped;
     const toggleGroup=(id:string,manage=false)=>{
         setExpandedGroups(previous=>{const next=new Set(previous);if(manage || !next.has(id))next.add(id);else next.delete(id);return next;});
         if(manage)setShowMobileActions(true);
@@ -381,13 +379,9 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
                                 <option value="cash">Liquidez</option>
                             </select>
                         </div>
-                        <label className="assets-table__group-toggle">
-                            <input type="checkbox" checked={grouped} onChange={event=>setGrouped(event.target.checked)} />
-                            Agrupar por activo
-                        </label>
                         {(query || assetType !== 'all') && <Button variant="ghost" size="sm" onClick={() => { setQuery(''); setAssetType('all'); }}>Limpiar filtros</Button>}
                     </div>
-                    {(query || assetType !== 'all') && <p className="assets-table__filter-count" role="status">{sortedAssets.length} de {processedAssets.length} {grouped?'activos':'registros'} · Los pesos se calculan sobre toda tu cartera.</p>}
+                    {(query || assetType !== 'all') && <p className="assets-table__filter-count" role="status">{sortedAssets.length} de {processedAssets.length} activos · Los pesos se calculan sobre toda tu cartera.</p>}
                     {sortedAssets.length === 0 && <p className="assets-table__empty">No hay activos que coincidan con los filtros.</p>}
                     <div className="assets-table__wrapper">
                         <table className={`assets-table__table ${showMobileDetails ? 'assets-table__table--show-details' : ''} ${showMobileActions ? 'assets-table__table--show-actions' : ''}`}>

@@ -12,6 +12,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-08 - v6.0.14 - NAV verificados y cierres históricos
+- Funcionalidad:
+  - Actualiza el batch de cotizaciones a cada 30 minutos entre las 08:00 y las 22:30 de Madrid, con alertas que reconocen la fecha de activación del nuevo horario.
+  - Contrasta los NAV por ISIN y clase entre Finect, VDOS/Quefondos y Yahoo; añade NAV de gestoras para Cobas y Azvalor y refresco cloud a demanda autenticado, limitado por cuenta y fondo.
+  - Usa cierres cotizados de Yahoo en las valoraciones históricas, sin ajustes por dividendos, y distingue la variación del precio de la rentabilidad no realizada.
+  - Corrige la selección de NAV de Pictet y DWS y conserva el dato válido más fresco cuando falla una fuente.
+- Resumen:
+  - Mejora la frescura y trazabilidad de los NAV de fondos y la precisión de las valoraciones históricas.
+- Archivos:
+  - `README.md`, `docs/daily-market-data.md`, `docs/dashboard-review.md`, `package.json`, `package-lock.json`, `scripts/test-architecture-hardening.ts`, `scripts/test-dashboard-results-ui.ts`, `scripts/test-fund-quotes-ui.ts`, `scripts/test-fund-quotes.ts`, `scripts/test-historical-price-basis-ui.ts`, `src/components/dashboard/AssetDetail.tsx`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/context/PortfolioContext.tsx`, `src/constants/app.ts`, `src/services/apiService.ts`, `src/services/dailyMarketData.ts`, `src/services/funds/freshFundQuote.ts`, `src/services/portfolioQuoteService.ts`, `src/types/api.ts`, `src/types/asset.ts`, `supabase/functions/_shared/fundQuotePolicy.ts`, `supabase/functions/daily-market-data/deno.json`, `supabase/functions/daily-market-data/fundSources.ts`, `supabase/functions/daily-market-data/providers.ts`, `supabase/functions/fund-quote/deno.json`, `supabase/functions/fund-quote/handler.ts`, `supabase/functions/fund-quote/index.ts`, `supabase/migrations/20261007223048_market_half_hour_schedule.sql`, `supabase/migrations/20261007225631_fund_quote_sources.sql`, `FEATURE_LOG.md`.
+
 ### 2026-10-07 - v6.0.13 - Cierres cripto y sincronización de cartera
 - Funcionalidad:
   - Calcula la variación cripto con el cierre real del día anterior UTC y aplica el cambio de divisa fechado, tanto en el navegador como en el worker.

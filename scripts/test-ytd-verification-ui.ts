@@ -82,6 +82,25 @@ try {
         assert.equal(await page.evaluate(() => localStorage.getItem('freewallet_portfolio_v1')), before, 'Showing the last verified YTD never changes the ledger');
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     }
+    // A lagging benchmark must not silently remove the newer portfolio endpoint.
+    await page.evaluate(() => {
+        const archive=JSON.parse(localStorage.getItem('freewallet_history_archive_v1')!);
+        archive.benchmarkNavs=archive.benchmarkNavs.filter((p:{date:string})=>p.date!=='2026-10-07');
+        localStorage.setItem('freewallet_history_archive_v1',JSON.stringify(archive));
+    });
+    await page.reload({waitUntil:'networkidle2'});
+    await page.$$eval('.portfolio-excel-insights__tabs button',buttons=>(buttons.find(b=>b.textContent?.includes('Benchmark')) as HTMLElement).click());
+    await page.$$eval('.portfolio-excel-insights__periods button',buttons=>(buttons.find(b=>b.textContent==='YTD') as HTMLElement).click());
+    await page.$eval('.portfolio-excel-insights__panel',el=>el.scrollIntoView({behavior:'instant',block:'center'}));
+    const bounds=await page.$eval('.portfolio-excel-insights__panel .recharts-xAxis .recharts-cartesian-axis-line',el=>{
+        const r=el.getBoundingClientRect();return {x:r.right-1,y:r.top-50};
+    });
+    await page.mouse.move(bounds.x,bounds.y);
+    await page.waitForFunction(()=>document.querySelector('.recharts-tooltip-wrapper')?.textContent?.includes('N/D'));
+    const tooltip=await page.$eval('.recharts-tooltip-wrapper',el=>el.textContent || '');
+    assert.match(tooltip,/7 oct 26/);
+    assert.match(tooltip,/Tu cartera.*18,50?%/,'The endpoint agrees with the verified summary even when the NAV lags');
+    assert.match(tooltip,/MSCI World.*N\/D/,'The missing NAV is explicit instead of copied from October 6');
     // Classifying an erroneous record is explicit, reversible and never edits
     // the original ledger. The imported return remains on its verified date.
     await page.setViewport({width:390,height:1000});

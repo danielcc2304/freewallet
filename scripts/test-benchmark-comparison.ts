@@ -25,15 +25,19 @@ const lookup = new Map(line.map(p=>[p.date,p.benchmark]));
 const chart = selected.points.map(p=>({date:p.date,portfolio:(p.index/selected.points[0].index-1)*100,benchmark:lookup.get(p.date)??null}));
 for (const period of ['3M','YTD','ALL'] as const) {
     const sampled = benchmarkChartCadence(chart,period);
-    assert.equal(sampled.filter(p=>p.date.startsWith('2026-10')).length,1);
-    assert.equal(sampled.at(-1)?.date,'2026-10-07','Use the latest common observation in the provisional month');
-    assert.ok(Math.abs(sampled.at(-1)!.benchmark!-(1.18*206/200-1)*100)<1e-10);
+    assert.equal(sampled.filter(p=>p.date.startsWith('2026-10')).length,2,'Retain only the common close and the latest portfolio endpoint');
+    assert.equal(sampled.at(-2)?.date,'2026-10-07','Keep the real benchmark observation on its own date');
+    assert.ok(Math.abs(sampled.at(-2)!.benchmark!-(1.18*206/200-1)*100)<1e-10);
+    assert.equal(sampled.at(-1)?.date,'2026-10-08','The chart endpoint must match the portfolio summary');
+    assert.equal(sampled.at(-1)?.benchmark,null,'Never carry the previous NAV forward');
+    assert.ok(Math.abs(sampled.at(-1)!.portfolio-selected.performance.returnPercent!)<1e-8);
 }
 assert.ok(Math.abs(selected.performance.returnPercent!-9.4)<1e-8,'The full portfolio return still includes October 8');
 for (const period of ['1D','7D','1M'] as const) assert.equal(benchmarkChartCadence(chart,period),chart);
 const missing = benchmarkChartCadence(chart.map(p=>p.date.startsWith('2026-10')?{...p,benchmark:null}:p),'YTD');
 assert.equal(missing.at(-1)?.date,'2026-10-08');
 assert.equal(missing.at(-1)?.benchmark,null,'An unavailable current-month benchmark remains unavailable');
+assert.equal(missing.filter(p=>p.date.startsWith('2026-10')).length,1,'Do not add daily detail when there is no common current-month close');
 console.log('PASS: anchored October NAV, homogeneous monthly cadence, daily short ranges, missing observations and unchanged full-period return.');
 const unresolved=performanceSeries([
     ...dates.map((date,i)=>({date,value:1000+i*10,invested:1000,cadence:'monthly' as const})),

@@ -21,6 +21,9 @@ const comparison = 'Año,Mes,Periodo,Rentabilidad Cartera (%),Rentabilidad MSCI 
     + ['2025,Dic,2025 Dic,0,0,0,0', ...['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sept'].map((month, i) => `2026,${month},2026 ${month},0,0,${i + 1},${(i + 1) * 2}`)].join('\n');
 const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 const errors: string[] = [];
+let isolateProviders=false;
+let releaseProviders:()=>void=()=>{};
+const providerGate=new Promise<void>(resolve=>{releaseProviders=resolve;});
 try {
     const page = await browser.newPage();
     page.on('pageerror', error => errors.push(String(error)));
@@ -33,6 +36,7 @@ try {
         localStorage.setItem('freewallet_portfolio_v1', JSON.stringify({ version: 1, assets: data.assets, transactions: data.transactions }));
         localStorage.setItem('freewallet_history', JSON.stringify(data.history));
         localStorage.setItem('freewallet_settings', '{"apiEnabled":false}');
+        localStorage.setItem('freewallet_benchmark_mode_v1', 'msci');
         localStorage.setItem('freewallet_last_seen_version', data.version);
         localStorage.setItem('freewallet-dashboard-notice-dismissed', '1');
         localStorage.setItem('freewallet_portfolio_csv_evolution_raw', data.evolution);
@@ -41,7 +45,12 @@ try {
         localStorage.setItem('freewallet_portfolio_csv_workbook_file', 'synthetic-ytd.xlsx');
     }, { assets, transactions, history, evolution, daily, comparison, version });
     await page.setRequestInterception(true);
-    page.on('request', request => void (new URL(request.url()).origin === origin ? request.continue() : request.abort()));
+    page.on('request', request => void(async()=>{
+        const url=new URL(request.url());
+        if(isolateProviders&&/^\/__(market|finect)\//.test(url.pathname)){
+            await providerGate;await request.respond({status:503,body:'Synthetic unavailable provider'});
+        }else await(url.origin===origin?request.continue():request.abort());
+    })());
     await page.goto(origin, { waitUntil: 'networkidle2' });
     // Link the synthetic workbook using the production identity, then mount the
     // Dashboard with the unresolved live interval following its imported close.
@@ -82,6 +91,46 @@ try {
         assert.equal(await page.evaluate(() => localStorage.getItem('freewallet_portfolio_v1')), before, 'Showing the last verified YTD never changes the ledger');
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     }
+    // A lagging benchmark must not silently remove the newer portfolio endpoint.
+    await page.evaluate(() => {
+        const archive=JSON.parse(localStorage.getItem('freewallet_history_archive_v1')!);
+        archive.benchmarkNavs=archive.benchmarkNavs.filter((p:{date:string})=>p.date!=='2026-10-07');
+        localStorage.setItem('freewallet_history_archive_v1',JSON.stringify(archive));
+    });
+    const showYtdBenchmarkTooltip = async () => {
+        await page.$$eval('.portfolio-excel-insights__tabs button',buttons=>(buttons.find(b=>b.textContent?.includes('Benchmark')) as HTMLElement).click());
+        await page.$$eval('.portfolio-excel-insights__periods button',buttons=>(buttons.find(b=>b.textContent==='YTD') as HTMLElement).click());
+        await page.$eval('.portfolio-excel-insights__panel',el=>el.scrollIntoView({behavior:'instant',block:'center'}));
+        const bounds=await page.$eval('.portfolio-excel-insights__panel .recharts-xAxis .recharts-cartesian-axis-line',el=>{
+            const r=el.getBoundingClientRect();return {x:r.right-1,y:r.top-50};
+        });
+        await page.mouse.move(bounds.x,bounds.y);
+        await page.waitForFunction(()=>document.querySelector('.recharts-tooltip-wrapper')?.textContent?.includes('Fidelity MSCI World'));
+        return await page.$eval('.recharts-tooltip-wrapper',el=>el.textContent || '');
+    };
+    await page.setViewport({width:1280,height:1000});
+    await page.reload({waitUntil:'networkidle2'});
+    const tooltip=await showYtdBenchmarkTooltip();
+    assert.match(tooltip,/7 oct 26/);
+    assert.match(tooltip,/Tu cartera.*18,50?%/,'The endpoint agrees with the verified summary even when the NAV lags');
+    assert.match(tooltip,/Fidelity MSCI World.*[+-]?\d+[,.]\d+%.*6 oct 26/,'The latest NAV value and its date remain visible');
+    assert.doesNotMatch(tooltip,/último disponible/,'The tooltip uses a short benchmark label');
+    assert.doesNotMatch(tooltip,/N\/D/);
+
+    await page.setViewport({width:320,height:1000});
+    await page.reload({waitUntil:'networkidle2'});
+    const mobileTooltip=await showYtdBenchmarkTooltip();
+    assert.match(mobileTooltip,/Fidelity MSCI World.*[+-]?\d+[,.]\d+%/);
+    assert.doesNotMatch(mobileTooltip,/último disponible/);
+    const tooltipBounds=await page.$eval('.recharts-tooltip-wrapper .recharts-default-tooltip',el=>{
+        const rect=el.getBoundingClientRect();
+        return {right:rect.right,viewport:innerWidth,scrollWidth:el.scrollWidth,clientWidth:el.clientWidth};
+    });
+    assert.ok(tooltipBounds.right<=tooltipBounds.viewport,'Tooltip stays within the mobile viewport');
+    assert.ok(tooltipBounds.scrollWidth<=tooltipBounds.clientWidth,'Tooltip content is not horizontally clipped');
+    const datedDifference=await page.$eval('.portfolio-excel-insights__benchmark-kpis',el=>el.textContent || '');
+    assert.match(datedDifference,/Diferencia hasta 6 oct 26/);
+    assert.doesNotMatch(datedDifference,/N\/D/,'A verified common interval has a dated difference despite a missing final NAV');
     // Classifying an erroneous record is explicit, reversible and never edits
     // the original ledger. The imported return remains on its verified date.
     await page.setViewport({width:390,height:1000});
@@ -94,11 +143,25 @@ try {
     assert.match(correctedCards['Resultado realizado']!,/^0,00/);assert.match(correctedCards['Resultado total']!,/185,00/);
     assert.equal(await page.evaluate(()=>localStorage.getItem('freewallet_portfolio_v1')),before);
     await page.reload({waitUntil:'networkidle2'});
+    await page.waitForSelector('.portfolio-summary .metric-card__value');
+    await page.waitForSelector('.portfolio-summary__calculation summary::-p-text(Registros corregidos)');
     assert.equal(await page.$$eval('.portfolio-summary .metric-card__value',els=>els.filter(el=>el.textContent==='No disponible').length),0,'Correction survives reload');
     await page.click('.portfolio-summary__calculation summary::-p-text(Registros corregidos)');
     await page.click('button::-p-text(Deshacer corrección)');
     await page.waitForFunction(()=>[...document.querySelectorAll('.portfolio-summary .metric-card__value')].filter(el=>el.textContent==='No disponible').length===2);
     assert.equal(await page.evaluate(()=>localStorage.getItem('freewallet_portfolio_v1')),before);
+    isolateProviders=true;
+    await page.evaluate(()=>localStorage.setItem('freewallet_settings','{"apiEnabled":true}'));
+    await page.reload({waitUntil:'domcontentloaded'});
+    await page.waitForSelector('.portfolio-excel-insights__tabs');
+    await page.$$eval('.portfolio-excel-insights__tabs button',buttons=>(buttons.find(b=>b.textContent?.includes('Benchmark')) as HTMLElement).click());
+    await page.waitForFunction(()=>document.querySelector('.portfolio-excel-insights__loading')?.textContent?.includes('Consultando histórico'));
+    assert.match(await page.$eval('.portfolio-excel-insights__loading',el=>el.textContent || ''),/Consultando histórico/);
+    assert.equal(await page.$eval('[role="tabpanel"]',el=>el.getAttribute('aria-busy')),'true');
+    assert.ok(await page.$('.portfolio-excel-insights__panel .recharts-line-curve'),'Retain saved data during a provider request');
+    releaseProviders();
+    await page.waitForFunction(()=>!document.querySelector('.portfolio-excel-insights__loading'));
+    assert.ok(await page.$('.portfolio-excel-insights__panel .recharts-line-curve'),'A provider failure preserves the verified graph');
     assert.deepEqual(errors, []);
     console.log('PASS: unresolved buy/delete preserves the same explicitly dated YTD in summary and benchmark, with verified chart and unchanged ledger at mobile/desktop widths.');
 } finally { await browser.close(); }

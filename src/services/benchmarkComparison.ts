@@ -20,8 +20,8 @@ export function extendImportedBenchmark(imported: AccumulatedBenchmarkPoint[], h
         .map(([, p]) => ({ ...p, close: p.close * scale }))];
 }
 
-/** Use one observation per month for long ranges; retain the actual period
- * base and latest observation. Short ranges keep their daily observations. */
+/** Use monthly common observations for long ranges, plus the actual portfolio
+ * endpoint when its benchmark is missing. Short ranges keep daily observations. */
 export function benchmarkChartCadence<T extends { date: string; benchmark?: number | null }>(points: T[], period: TimePeriod): T[] {
     if (['1D', '7D', '1M'].includes(period) || points.length < 2) return points;
     const monthly = new Map<string, T>();
@@ -32,5 +32,28 @@ export function benchmarkChartCadence<T extends { date: string; benchmark?: numb
         // exists, retain a missing benchmark explicitly rather than copy it.
         if (!previous || p.benchmark != null || previous.benchmark == null) monthly.set(month, p);
     });
-    return [points[0], ...monthly.values()];
+    const sampled = [points[0], ...monthly.values()];
+    const latest = points[points.length - 1];
+    // A lagging NAV must not hide a newer verified portfolio return. Keep the
+    // common observation too, so its real benchmark date remains visible.
+    if (sampled[sampled.length - 1] !== latest) sampled.push(latest);
+    return sampled;
+}
+
+/** Both returns share the line's base and endpoint. A later portfolio close
+ * must never be subtracted from an earlier benchmark close. */
+export function benchmarkPeriodDifference(line:Array<{date:string;portfolio:number;benchmark:number}>,baseDate:string|null) {
+    const last=line.at(-1);
+    if(line.length<2||accountingDay(line[0].date)!==baseDate||!last||!Number.isFinite(last.portfolio)||!Number.isFinite(last.benchmark))return null;
+    return {value:last.portfolio-last.benchmark,endDate:last.date};
+}
+
+/** Tooltip fallback shows an explicitly dated observation, never a fabricated
+ * chart point or a return used in the period difference. */
+export function benchmarkTooltipObservation(date: string, value: number | null | undefined, line: Array<{date:string;benchmark:number}>) {
+    if (value != null && Number.isFinite(value)) return { value, date, latestAvailable: false };
+    const day = accountingDay(date);
+    const last = line.at(-1);
+    if (!last || !Number.isFinite(last.benchmark) || accountingDay(last.date) > day) return null;
+    return { value: last.benchmark, date: last.date, latestAvailable: true };
 }

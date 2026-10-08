@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { benchmarkChartCadence, extendImportedBenchmark } from '../src/services/benchmarkComparison';
+import { benchmarkChartCadence, benchmarkPeriodDifference, benchmarkTooltipObservation, extendImportedBenchmark } from '../src/services/benchmarkComparison';
 import { alignedBenchmark, alignImportedBenchmark, chooseBenchmarkLine, performanceSeries, selectPortfolioPeriod } from '../src/services/portfolioPerformance';
 import type { HistoricalDataPoint } from '../src/types/types';
 
@@ -25,15 +25,25 @@ const lookup = new Map(line.map(p=>[p.date,p.benchmark]));
 const chart = selected.points.map(p=>({date:p.date,portfolio:(p.index/selected.points[0].index-1)*100,benchmark:lookup.get(p.date)??null}));
 for (const period of ['3M','YTD','ALL'] as const) {
     const sampled = benchmarkChartCadence(chart,period);
-    assert.equal(sampled.filter(p=>p.date.startsWith('2026-10')).length,1);
-    assert.equal(sampled.at(-1)?.date,'2026-10-07','Use the latest common observation in the provisional month');
-    assert.ok(Math.abs(sampled.at(-1)!.benchmark!-(1.18*206/200-1)*100)<1e-10);
+    assert.equal(sampled.filter(p=>p.date.startsWith('2026-10')).length,2,'Retain only the common close and the latest portfolio endpoint');
+    assert.equal(sampled.at(-2)?.date,'2026-10-07','Keep the real benchmark observation on its own date');
+    assert.ok(Math.abs(sampled.at(-2)!.benchmark!-(1.18*206/200-1)*100)<1e-10);
+    assert.equal(sampled.at(-1)?.date,'2026-10-08','The chart endpoint must match the portfolio summary');
+    assert.equal(sampled.at(-1)?.benchmark,null,'Never carry the previous NAV forward');
+    assert.ok(Math.abs(sampled.at(-1)!.portfolio-selected.performance.returnPercent!)<1e-8);
 }
 assert.ok(Math.abs(selected.performance.returnPercent!-9.4)<1e-8,'The full portfolio return still includes October 8');
+const comparison=benchmarkPeriodDifference(line,selected.performance.baseDate);
+assert.equal(comparison?.endDate,'2026-10-07');
+assert.ok(Math.abs(comparison!.value-(line.at(-1)!.portfolio-line.at(-1)!.benchmark))<1e-10,'Difference uses the same two dates, not the newer portfolio return');
+assert.notEqual(comparison!.value,selected.performance.returnPercent!-line.at(-1)!.benchmark);
+assert.equal(benchmarkPeriodDifference(line,'2026-01-01'),null,'A missing requested baseline remains unavailable');
+assert.equal(benchmarkPeriodDifference([],null),null);
 for (const period of ['1D','7D','1M'] as const) assert.equal(benchmarkChartCadence(chart,period),chart);
 const missing = benchmarkChartCadence(chart.map(p=>p.date.startsWith('2026-10')?{...p,benchmark:null}:p),'YTD');
 assert.equal(missing.at(-1)?.date,'2026-10-08');
 assert.equal(missing.at(-1)?.benchmark,null,'An unavailable current-month benchmark remains unavailable');
+assert.equal(missing.filter(p=>p.date.startsWith('2026-10')).length,1,'Do not add daily detail when there is no common current-month close');
 console.log('PASS: anchored October NAV, homogeneous monthly cadence, daily short ranges, missing observations and unchanged full-period return.');
 const unresolved=performanceSeries([
     ...dates.map((date,i)=>({date,value:1000+i*10,invested:1000,cadence:'monthly' as const})),
@@ -58,3 +68,11 @@ for(const period of ['1M','3M','YTD','ALL'] as const){
     assert.equal(selection.incompleteSince,'2026-10-08');
     assert.ok(selection.points.every(p=>p.date<'2026-10-08'),'Never join indices across the unresolved interval');
 }
+
+const latestTooltip = benchmarkTooltipObservation('2026-10-08', null, line);
+assert.equal(latestTooltip?.value, line.at(-1)?.benchmark);
+assert.equal(latestTooltip?.date, '2026-10-07');
+assert.equal(latestTooltip?.latestAvailable, true);
+assert.equal(benchmarkTooltipObservation('2026-10-06', null, line), null, 'Never show a future observation');
+assert.equal(benchmarkTooltipObservation('2026-10-08', null, []), null);
+assert.deepEqual(benchmarkTooltipObservation('2026-10-07', 18, line), {value:18,date:'2026-10-07',latestAvailable:false});

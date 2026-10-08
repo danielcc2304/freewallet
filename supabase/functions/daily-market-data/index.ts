@@ -19,7 +19,16 @@ Deno.serve(async (request: Request) => {
     async function worker() {
         while (next < instruments.length) {
             const instrument = instruments[next++];
-            try { prices.push(await fetchMarketPrice(instrument, finectKey, fxCache, providerSignal)); }
+            try {
+                const observation = await fetchMarketPrice(instrument, finectKey, fxCache, providerSignal);
+                const { history, ...price } = observation;
+                // Recent benchmark closes anchor the imported index; exclude
+                // the latest day to avoid duplicate keys in the bulk upsert.
+                if (instrument.instrument === 'IE00BYX5NX33') {
+                    prices.push(...(history ?? []).filter(p => p.quoted_at.slice(0, 10) !== price.quoted_at.slice(0, 10)));
+                }
+                prices.push(price);
+            }
             catch (error) { failures.push({ instrument: instrument.instrument, reason: providerSignal.aborted ? 'Tiempo de ejecución agotado' : error instanceof Error ? error.message : 'Proveedor no disponible' }); }
         }
     }

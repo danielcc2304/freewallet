@@ -34,6 +34,8 @@ Las valoraciones importadas tienen prioridad hasta su último día. Después con
 
 Una cartera nueva necesita operaciones y valoraciones, no un archivo. La misma lógica calcula sus resultados desde que tiene cobertura. No puede reconstruir años anteriores ni mostrar un YTD completo si falta el inicio del año. Cuando un movimiento impide verificar el tramo reciente, se conserva el último resultado verificable y su fecha explícita.
 
+Actualizar Google Sheets no actualiza por sí solo el histórico de Supabase. Para revisar una discrepancia de YTD, compara primero la fecha final, la valoración y los flujos de ambas fuentes. Una valoración corregida se registra con la misma fecha que la anterior; un nuevo cierre se añade como otra observación mediante la API de histórico. Se conservan las operaciones y los flujos existentes, y se recalcula el porcentaje: no se guarda un YTD fijo ni se copia el porcentaje de una celda. Las observaciones registradas por la API prevalecen sobre una reimportación posterior.
+
 El selector del benchmark aplica esta protección también a diario, semanal, mensual, trimestral y todo el histórico cuando existe una base verificable. Diario/semanal pueden usar la ventana anterior reciente con sus fechas explícitas. Los huecos intermedios siguen sin producir una rentabilidad completa; no se rellena el NAV ausente del benchmark.
 
 Las eliminaciones ambiguas no se convierten automáticamente en ventas. El resumen permite confirmar que un registro sin ventas ni posiciones activas era una entrada errónea. La decisión reversible se guarda en `freewallet_settings.discardedPositionRecords`, referenciando el identificador de eliminación y el de posición; los movimientos originales permanecen inmutables. Solo afecta a realizado/total, no reescribe las valoraciones anteriores ni reconcilia el tramo pendiente. En cloud se utilizan únicamente las anotaciones confirmadas por la RPC existente, aisladas por cuenta. Deshacerlas devuelve el registro a revisión.
@@ -94,7 +96,7 @@ Aplicar `portfolio_structured_history` y `portfolio_history_event_dates` antes d
 
 - `npm run test:history-archive`: igualdad de periodos antes/después, precisión mensual, conversión única y continuidad tras eliminar todas las claves CSV.
 - `npm run test:structured-history-backend`: PostgreSQL local, aislamiento, MFA, permisos, validación atómica, correcciones por fecha y reintentos.
-- `npm run test:structured-history-ui`: lectura nativa con Auth simulado, caché condicional y aislamiento al cambiar de cuenta. Requiere Vite en `127.0.0.1:5228` con URL/clave publicables sintéticas y `VITE_PORTFOLIO_CLOUD_ENABLED=true`; intercepta todo el transporte externo. `FREEWALLET_TEST_URL` admite otro puerto local.
+- `npm run test:structured-history-ui`: lectura nativa con Auth simulado, caché condicional, actualización de ambos YTD tras corregir una valoración y añadir un cierre sin importar Excel, y aislamiento al cambiar de cuenta. Requiere Vite en `127.0.0.1:5228` con URL/clave publicables sintéticas y `VITE_PORTFOLIO_CLOUD_ENABLED=true`; intercepta todo el transporte externo. `FREEWALLET_TEST_URL` admite otro puerto local.
 - `npm run test:portfolio-periods-ui`: Dashboard móvil tras eliminar el CSV y cartera nueva sin archivo.
 - `npm run test:ytd-verification-ui`: conservación del YTD verificable en resumen y benchmark cuando hay operaciones recientes sin resolver.
 

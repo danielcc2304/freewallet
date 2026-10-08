@@ -22,7 +22,7 @@ const doc={
 const version=JSON.parse(readFileSync('package.json','utf8')).version;
 const browser=await puppeteer.launch({headless:true,args:['--no-sandbox']});
 const errors:string[]=[];let revision=0;const reads:Array<{known_updated_at:string|null}>=[];
-const updatedAt='2026-10-07T09:00:00+00:00';
+let updatedAt='2026-10-07T09:00:00+00:00';
 const page=await browser.newPage();
 try {
  page.on('pageerror',error=>errors.push(String(error)));
@@ -70,9 +70,24 @@ try {
  await page.waitForFunction(()=>document.querySelector('.portfolio-summary__grid .metric-card:last-child')?.textContent?.includes('590,00'));
  await page.waitForNetworkIdle();
  assert.ok(reads.some(r=>r.known_updated_at===updatedAt),'The next revision reuses the unchanged native archive');
+ // A corrected prior valuation and a new authoritative day must reach both
+ // YTD displays without uploading or parsing another spreadsheet.
+ const ledgerBefore=doc.freewallet_portfolio_v1;
+ archive.valuations=archive.valuations.map(p=>p.date.startsWith('2026-10-06')?{...p,value:1775,historyOrigin:'agent'}:p);
+ archive.valuations.push({...archive.valuations.at(-1)!,date:'2026-10-07T09:00:00Z',value:1770,historyOrigin:'agent'});
+ updatedAt='2026-10-07T10:00:00+00:00';revision++;
+ await page.evaluate(`window.fixtureHistoryStorage.hydrate({revision:${revision},data:null});`);
+ await page.waitForFunction(()=>document.querySelector('.portfolio-summary__grid .metric-card:last-child')?.textContent?.includes('570,00'));
+ await page.$$eval('.portfolio-summary__tab',buttons=>(buttons.find(b=>b.textContent==='YTD') as HTMLElement).click());
+ assert.match(await page.$eval('.portfolio-summary__grid .metric-card:last-child',el=>el.textContent || ''),/56[,.]89%/);
+ await page.$$eval('.portfolio-excel-insights__tabs button',buttons=>(buttons.find(b=>b.textContent?.includes('Benchmark')) as HTMLElement).click());
+ await page.$$eval('.portfolio-excel-insights__periods button',buttons=>(buttons.find(b=>b.textContent==='YTD') as HTMLElement).click());
+ assert.match(await page.$eval('.portfolio-excel-insights__benchmark-portfolio',el=>el.textContent || ''),/56,89%/);
+ assert.equal(doc.freewallet_portfolio_v1,ledgerBefore,'An authoritative history update leaves the portfolio ledger intact');
  // A different storage generation cannot render the first account's native data.
  const otherArchive={...archive,valuations:archive.valuations.map(p=>({...p,value:p.date.startsWith('2026-10') ? 1290 : p.value}))};
  const otherDoc={...doc,freewallet_history_archive_v1:JSON.stringify(otherArchive)};
+ await page.waitForNetworkIdle();
  await page.evaluate(`window.fixtureHistoryStorage.select('33333333-3333-4333-8333-333333333333');window.fixtureHistoryStorage.hydrate({revision:1,data:${JSON.stringify(otherDoc)}});`);
  await page.waitForFunction(()=>document.querySelector('.portfolio-summary__grid .metric-card:last-child')?.textContent?.includes('90,00'));
  assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));

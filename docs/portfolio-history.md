@@ -34,6 +34,10 @@ Las valoraciones importadas tienen prioridad hasta su último día. Después con
 
 Una cartera nueva necesita operaciones y valoraciones, no un archivo. La misma lógica calcula sus resultados desde que tiene cobertura. No puede reconstruir años anteriores ni mostrar un YTD completo si falta el inicio del año. Cuando un movimiento impide verificar el tramo reciente, se conserva el último resultado verificable y su fecha explícita.
 
+El selector del benchmark aplica esta protección también a diario, semanal, mensual, trimestral y todo el histórico cuando existe una base verificable. Diario/semanal pueden usar la ventana anterior reciente con sus fechas explícitas. Los huecos intermedios siguen sin producir una rentabilidad completa; no se rellena el NAV ausente del benchmark.
+
+Las eliminaciones ambiguas no se convierten automáticamente en ventas. El resumen permite confirmar que un registro sin ventas ni posiciones activas era una entrada errónea. La decisión reversible se guarda en `freewallet_settings.discardedPositionRecords`, referenciando el identificador de eliminación y el de posición; los movimientos originales permanecen inmutables. Solo afecta a realizado/total, no reescribe las valoraciones anteriores ni reconcilia el tramo pendiente. En cloud se utilizan únicamente las anotaciones confirmadas por la RPC existente, aisladas por cuenta. Deshacerlas devuelve el registro a revisión.
+
 ## API para agentes
 
 Las dos RPC son `POST /rest/v1/rpc/<nombre>` y requieren una cuenta confirmada, sesión activa y MFA cuando esté configurado. Derivan el propietario de Auth: no aceptan un `user_id`. Las tablas no conceden acceso directo a `anon` ni a `authenticated`.

@@ -11,6 +11,14 @@ local.set('freewallet_portfolio_v1',portfolio);local.set('freewallet_finnhub_key
 const backup=captureLocalPortfolio();assert.equal('freewallet_finnhub_key' in backup,false);assert.equal('freewallet-news-auth' in backup,false);
 assert.equal(JSON.parse(backup.freewallet_portfolio_v1).assets[0].currentPrice,undefined);
 const storage=new PortfolioCloudStorage();
+const annotations=new PortfolioCloudStorage();
+annotations.select('A',async(revision,_id,data)=>({revision:revision+1,data}));
+annotations.hydrate({revision:0,data:{freewallet_settings:'{"apiEnabled":false}'}});
+annotations.setItem('freewallet_settings','{"apiEnabled":false,"discardedPositionRecords":[{"assetId":"bad","deletionId":"deleted","confirmedAt":"2026-10-08"}]}');
+assert.equal(annotations.getConfirmedItem('freewallet_settings'),'{"apiEnabled":false}','Pending annotations must not alter displayed financial results');
+await annotations.flush();
+assert.match(annotations.getConfirmedItem('freewallet_settings')!,/discardedPositionRecords/);
+annotations.select('B');assert.equal(annotations.getConfirmedItem('freewallet_settings'),null,'Another account never inherits a correction');
 assert.equal(storage.getItem('freewallet_portfolio_v1'),portfolio);
 const saved: {id:string;revision:number;data:CloudData}[]=[];
 storage.select('A',async(revision,id,data)=>{saved.push({id,revision,data});return {revision:revision+1,data};});

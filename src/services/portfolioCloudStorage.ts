@@ -93,6 +93,10 @@ export class PortfolioCloudStorage {
         }
         return localStorage.getItem(key);
     }
+    /** Financial annotations affect displayed results only after acknowledgement. */
+    getConfirmedItem(key:string):string|null {
+        return this.cloud && allowed.has(key) ? this.confirmed[key] ?? null : this.getItem(key);
+    }
     private writable() {
         if(!['synced','saving'].includes(this.snapshot.status)) throw new Error(this.snapshot.error || 'Abre Mi cuenta para importar o recuperar tu cartera antes de editar.');
         if(typeof navigator !== 'undefined' && !navigator.onLine) throw new Error('Sin conexión: la cartera es de solo lectura.');

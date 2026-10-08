@@ -23,6 +23,7 @@ Este README describe el código de la rama que estás consultando. Las funciones
 
 - Registro y edición de posiciones, compras adicionales y ventas; libro de operaciones y respaldo JSON.
 - Valor actual, coste de posiciones abiertas, resultado no realizado y rendimiento por periodo. El realizado y el total solo se muestran cuando los movimientos permiten calcularlos: borrar una posición no equivale a registrar su venta.
+- Las entradas eliminadas que se crearon por error pueden clasificarse desde «Ver motivo» del resumen. La corrección es reversible, conserva el libro de operaciones y no permite excluir registros con ventas o posiciones activas.
 - Evolución mensual importada y valoraciones diarias cuando existe cobertura suficiente. Los periodos sin datos fiables se identifican en la interfaz.
 - Comparación con Fidelity MSCI World ACC EUR, ISIN **IE00BYX5NX33**, utilizando las fechas comunes disponibles. No se completa el benchmark con precios inventados ni con otro instrumento.
 - Composición por activos y exposición consolidada: suma las posiciones directas y las participaciones conocidas dentro de los fondos. Identifica el resto sin desglosar y las coincidencias aproximadas.
@@ -112,7 +113,7 @@ Los datos del navegador dependen del origen: cambiar dominio o puerto no compart
 
 «Mis Activos» agrupa los registros del mismo instrumento: suma cantidades, costes y valoraciones y muestra el precio medio ponderado. El desglose conserva cada registro para añadir compras, editar, vender o eliminar de forma individual. La agrupación es una vista: no fusiona posiciones guardadas ni reescribe operaciones; mantiene separadas clases de fondos, monedas y mercados bursátiles distintos, y señala valoraciones estimadas o de varias fechas.
 
-Si un movimiento reciente impide verificar la rentabilidad, el YTD conserva el último resultado calculable y muestra hasta qué fecha llega, tanto en el resumen como en la comparativa. El tramo pendiente no se incluye en el gráfico ni se considera reconciliado.
+Si un movimiento o hueco impide verificar un periodo completo, los periodos con cobertura suficiente conservan su tramo inicial verificable y muestran las fechas reales en el resumen y la comparativa. Los rangos diario/semanal solo recuperan ventanas recientes; no se rellenan huecos ni bases ausentes. El tramo pendiente queda fuera del gráfico.
 
 Hay dos procesos distintos:
 

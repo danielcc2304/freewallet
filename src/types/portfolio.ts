@@ -8,6 +8,7 @@ export interface PortfolioMetrics {
     percentageGain: number;
     unrealizedGain?: number;
     realizedGain?: number;
+    resultEstimated?: boolean;
     resultUnavailableReason?: string;
     deletionReviews?: Array<{id:string;assetId:string;name:string;canDiscard:boolean;discarded:boolean}>;
     dailyChange: number;
@@ -42,6 +43,8 @@ export interface PortfolioHistoryPoint {
 export type PortfolioTransactionType = 'buy' | 'sell' | 'edit' | 'delete';
 
 export interface PortfolioTransaction {
+    /** A user-authorized reconstruction, not a verified broker execution. */
+    estimated?: boolean;
     provenance?: 'initial-position' | 'trade';
     id: string;
     assetId: string;

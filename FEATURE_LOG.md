@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-08 - v6.1.0 - Operaciones retroactivas y calculadora salarial
+- Funcionalidad:
+  - Reproduce las compras y ventas de cartera en orden cronológico y valida las ventas retroactivas frente al saldo disponible en esa fecha.
+  - Añade una calculadora de salario neto y retención IRPF para 2026, con escenarios y exportación CSV.
+  - Documenta el alcance y las limitaciones del cálculo fiscal; no guarda los datos introducidos.
+- Resumen:
+  - La versión v6.1.0 incorpora el cálculo correcto de posiciones con operaciones fechadas y una herramienta de estimación salarial para España.
+- Archivos:
+  - `README.md`, `docs/dashboard-review.md`, `docs/salary-calculator.md`, `package.json`, `package-lock.json`, `scripts/generate-seo.js`, `scripts/prerender.js`, scripts de verificación de cartera y calculadora, `src/app/routes/academyRoutes.tsx`, `src/components/academy/calculators/Calculators.tsx`, `src/components/academy/calculators/SalaryCalculator.tsx`, `src/components/academy/calculators/SalaryCalculator.css`, `src/context/PortfolioContext.tsx`, `src/constants/app.ts`, `src/services/irpf/salaryCalculator.ts`, `src/services/irpf/taxData2026.ts`, `src/services/portfolioPerformance.ts`, `src/services/portfolioResults.ts`, `src/services/portfolioTradeReplay.ts`, `supabase/migrations/20261008102825_portfolio_chronological_trades.sql`.
+
 ### 2026-10-08 - v6.0.14 - NAV verificados y cierres históricos
 - Funcionalidad:
   - Actualiza el batch de cotizaciones a cada 30 minutos entre las 08:00 y las 22:30 de Madrid, con alertas que reconocen la fecha de activación del nuevo horario.

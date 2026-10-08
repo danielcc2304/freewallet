@@ -32,6 +32,21 @@ export function getTransactionEventDay(transaction: PortfolioTransaction): strin
     return /^\d{4}-\d{2}-\d{2}$/.test(transaction.date?.slice(0, 10)) ? transaction.date.slice(0, 10) : '';
 }
 
+/** Stable order shared with PostgreSQL's UTF-8 C collation, including ties. */
+export function comparePortfolioTransactions(a: PortfolioTransaction, b: PortfolioTransaction): number {
+    const compare = (left: string, right: string) => {
+        if (left === right) return 0;
+        const l = Array.from(left), r = Array.from(right);
+        for (let i = 0; i < Math.min(l.length, r.length); i++) {
+            const difference = l[i].codePointAt(0)! - r[i].codePointAt(0)!;
+            if (difference) return difference;
+        }
+        return l.length - r.length;
+    };
+    return compare(getTransactionEventDay(a), getTransactionEventDay(b))
+        || compare(a.createdAt || '', b.createdAt || '') || compare(a.id || '', b.id || '');
+}
+
 function transactionFlow(transaction: PortfolioTransaction): number {
     return transaction.type === 'buy' ? transaction.total ?? NaN : transaction.type === 'sell' ? -(transaction.total ?? NaN) : 0;
 }
@@ -114,7 +129,7 @@ export function createMarketPortfolioHistory(
     const ids = new Set([...assets.map(a => a.id), ...ledger.map(t => t.assetId)]);
     const positions = [...ids].map(id => ({
         isCash: assets.find(a => a.id === id)?.type === 'cash' || ledger.find(t => t.assetId === id)?.assetType === 'cash',
-        operations: ledger.filter(t => t.assetId === id).sort((a, b) => a.date.localeCompare(b.date) || a.createdAt.localeCompare(b.createdAt)),
+        operations: ledger.filter(t => t.assetId === id).sort(comparePortfolioTransactions),
         quotes: (assetHistory.get(id) || []).map(p => ({ ...p, day: accountingDay(p.date) })).filter(p => p.day).sort((a, b) => a.day.localeCompare(b.day)),
         operationIndex: 0, quoteIndex: -1, quantity: 0, cost: 0, invalid: false,
     }));

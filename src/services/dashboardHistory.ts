@@ -1,9 +1,9 @@
 import type { PortfolioHistoryPoint, PortfolioTransaction } from '../types/types';
-import type { WorkbookHistoryBundle } from './portfolioWorkbookHistory';
+import type { PortfolioHistoricalBundle } from './portfolioHistoryArchive';
 import { accountingDay, getTransactionEventDay } from './portfolioPerformance';
 
 /** The imported closing day owns all its flows; local operations take over afterwards. */
-export function continueWorkbookHistory(workbook: WorkbookHistoryBundle, live: PortfolioHistoryPoint[], ledger: PortfolioTransaction[], now: number, scopeVerified = false) {
+export function continuePortfolioHistory(workbook: PortfolioHistoricalBundle, live: PortfolioHistoryPoint[], ledger: PortfolioTransaction[], now: number, scopeVerified = false) {
     const imported = workbook.points.filter(p => Date.parse(p.date) <= now);
     const last = imported.at(-1);
     if (!last) return { history: live, transactions: ledger };
@@ -23,3 +23,6 @@ export function continueWorkbookHistory(workbook: WorkbookHistoryBundle, live: P
 }
 
 export { latestContinuousMonths } from './portfolioRisk';
+
+/** Legacy callers remain import adapters; analytics uses the neutral API. */
+export const continueWorkbookHistory = continuePortfolioHistory;

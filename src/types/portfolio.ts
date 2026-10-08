@@ -9,6 +9,7 @@ export interface PortfolioMetrics {
     unrealizedGain?: number;
     realizedGain?: number;
     resultUnavailableReason?: string;
+    deletionReviews?: Array<{id:string;assetId:string;name:string;canDiscard:boolean;discarded:boolean}>;
     dailyChange: number;
     dailyChangePercent: number;
     monthlyChange: number;
@@ -26,6 +27,7 @@ export interface PortfolioMetrics {
 
 export interface PortfolioHistoryPoint {
     cadence?: 'daily' | 'monthly';
+    historyOrigin?: 'import' | 'agent';
     returnUnavailable?: boolean;
     date: string;
     value: number;

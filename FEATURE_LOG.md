@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-08 - v6.1.5 - Historial estructurado e integridad del benchmark
+- Funcionalidad:
+  - Desacopla el histórico del dashboard de la importación de hojas de cálculo y conserva observaciones estructuradas de valoraciones, flujos y benchmark.
+  - Mantiene los periodos de benchmark verificados cuando hay movimientos recientes sin reconciliar y corrige la interpretación de registros eliminados.
+  - Normaliza las claves temporales del histórico para que las correcciones sustituyan el evento equivalente.
+- Resumen:
+  - Preserva la evolución histórica de la cartera y evita presentar como verificados los tramos de benchmark que aún requieren conciliación.
+- Archivos:
+  - `README.md`, `docs/daily-market-data.md`, `docs/portfolio-history.md`, `docs/portfolio-supabase.md`, `package.json`, `package-lock.json`, `scripts/test-benchmark-comparison.ts`, `scripts/test-dashboard-results.ts`, `scripts/test-history-archive.ts`, `scripts/test-portfolio-periods-ui.ts`, `scripts/test-portfolio-periods.ts`, `scripts/test-portfolio-sync.ts`, `scripts/test-structured-history-backend.ts`, `scripts/test-structured-history-ui.ts`, `scripts/test-ytd-verification-ui.ts`, `src/components/dashboard/AssetsTable.tsx`, `src/components/dashboard/LivePortfolioPlan.tsx`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/components/dashboard/PortfolioSummary/PortfolioSummary.css`, `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`, `src/components/dashboard/useDashboardAnalytics.ts`, `src/context/PortfolioContext.tsx`, `src/hooks/usePortfolioHistoryArchive.ts`, `src/pages/Dashboard/Dashboard.tsx`, `src/pages/PortfolioCsv/PortfolioCsv.tsx`, `src/pages/PortfolioCsv/portfolioCsvConstants.ts`, `src/pages/PortfolioCsv/portfolioCsvTypes.ts`, `src/pages/PortfolioCsv/portfolioCsvUtils.ts`, `src/services/dashboardHistory.ts`, `src/services/deletedRecordCorrections.ts`, `src/services/imports/portfolioCsvConstants.ts`, `src/services/imports/portfolioCsvTypes.ts`, `src/services/imports/portfolioCsvUtils.ts`, `src/services/imports/portfolioHistoryImport.ts`, `src/services/portfolioCloudStorage.ts`, `src/services/portfolioHistoryArchive.ts`, `src/services/portfolioPerformance.ts`, `src/services/portfolioResults.ts`, `src/services/portfolioWorkbookHistory.ts`, `src/services/storageService.ts`, `src/types/portfolio.ts`, `supabase/migrations/20261008175018_portfolio_structured_history.sql`, `supabase/migrations/20261008175952_portfolio_history_event_dates.sql`, `src/constants/app.ts`, `FEATURE_LOG.md`.
+  
 ### 2026-10-08 - v6.1.4 - YTD verificado con movimientos pendientes
 - Funcionalidad:
   - Conserva el último resultado YTD calculable cuando un movimiento reciente impide verificar el tramo más nuevo.

@@ -92,7 +92,7 @@ function LivePortfolioPlanEditor({ analytics, section = 'all' }: { analytics: Da
                     <div><span>Resultado abierto</span><strong>{money(currentResult)}</strong></div>
                 </div>
                 {Math.abs(ledgerDifference) > 0.01 && <p role="status">El flujo neto y el coste de las posiciones difieren en {money(Math.abs(ledgerDifference))}. Las ventas con ganancias o pérdidas pueden explicar esa diferencia; no se modifican los importes registrados.</p>}
-                {!assets.length && <p role="status">El Excel aporta el histórico, pero el plan necesita posiciones en el Dashboard. Añade tus activos para definir objetivos.</p>}
+                {!assets.length && <p role="status">El histórico está guardado, pero el plan necesita posiciones en el Dashboard. Añade tus activos para definir objetivos.</p>}
                 {assets.some(a => !hasValidPrice(a)) && <p role="status">La propuesta es orientativa: algunas posiciones se valoran al coste porque falta una cotización en euros.</p>}
                 {assets.length > 0 && <Button className="live-plan__use-weights" variant="secondary" type="button" onClick={useCurrentWeights} disabled={plan.total <= 0}>Usar pesos actuales como objetivos</Button>}
                 <label className="live-plan__budget">Próxima aportación (€)<input type="text" inputMode="decimal" value={budgetInput} onChange={e => setBudgetInput(e.target.value)} aria-invalid={!!budgetInput && parsePlanNumber(budgetInput) === null} /></label>
@@ -140,23 +140,23 @@ function LivePortfolioPlanEditor({ analytics, section = 'all' }: { analytics: Da
 }
 
 function LivePortfolioHistory({ analytics, section }: { analytics: DashboardAnalytics; section: LivePortfolioPlanSection }) {
-    const { workbookHistory, usingWorkbookHistory, portfolioTransactions, monthly: months } = analytics;
+    const { historicalHistory, hasArchivedHistory, portfolioTransactions, monthly: months } = analytics;
     const showMonthly = section === 'all' || section === 'monthly';
     const showRecent = section === 'all' || section === 'recent';
     const recentTransactions = useMemo(() => [...portfolioTransactions].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8), [portfolioTransactions]);
     return <div className="live-plan-stack">
         {showMonthly && <Card className="live-plan">
-             <CardHeader title="Resumen mensual" subtitle={usingWorkbookHistory
-                 ? 'Cierres mensuales y DCA importados desde la hoja Evolucion'
+             <CardHeader title="Resumen mensual" subtitle={hasArchivedHistory
+                 ? 'Cierres y movimientos registrados'
                  : 'Valor, capital y rentabilidad ajustada por las operaciones registradas'} />
             <CardContent>
                 <div className="live-plan__scroll"><table>
-                    <thead><tr><th>Mes</th><th>Último valor</th><th>{usingWorkbookHistory ? 'Capital de referencia' : 'Coste de posiciones'}</th><th>Rentabilidad observada*</th><th>Drawdown</th><th>Intervalos válidos</th></tr></thead>
+                    <thead><tr><th>Mes</th><th>Último valor</th><th>{hasArchivedHistory ? 'Capital de referencia' : 'Coste de posiciones'}</th><th>Rentabilidad observada*</th><th>Drawdown</th><th>Intervalos válidos</th></tr></thead>
                     <tbody>{[...months].reverse().map(m => <tr key={m.month}><th scope="row">{m.month}{!m.closed ? ' · provisional' : ''}</th><td>{money(m.value)}</td><td>{money(m.invested)}</td><td>{m.monthlyReturn !== null ? pct(m.monthlyReturn) : 'N/D'}</td><td>{m.drawdown !== null ? pct(m.drawdown) : 'N/D'}</td><td>{intervalLabel(m)}</td></tr>)}</tbody>
                 </table></div>
-                <p>Los intervalos cuentan comparaciones entre valoraciones, no días cubiertos. Un cierre mensual del Excel equivale a un intervalo mensual.</p>
-                 <p>*Retornos enlazados entre valoraciones, con flujos al final de cada intervalo. Con un único cierre mensual coincide con la fórmula del Excel. {usingWorkbookHistory
-                     ? `Se muestran ${workbookHistory.evolutionCount} cierres de Evolucion y sus ${workbookHistory.dcaCount} flujos.`
+                <p>Los intervalos cuentan comparaciones entre valoraciones, no días cubiertos. Un cierre mensual equivale a un intervalo mensual.</p>
+                 <p>*Retornos enlazados entre valoraciones, con flujos al final de cada intervalo. {hasArchivedHistory
+                     ? `Se muestran ${historicalHistory.points.length} valoraciones y sus ${historicalHistory.dcaCount} flujos.`
                      : 'N/D cuando falta una base verificable. El mes abierto es provisional.'}</p>
             </CardContent>
         </Card>}

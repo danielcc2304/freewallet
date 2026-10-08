@@ -27,6 +27,7 @@ try {
         get(target, key) { return key === 'now' ? function() { return ${now}; } : Reflect.get(target, key); }
     });`);
     await page.evaluateOnNewDocument((data) => {
+        if(localStorage.getItem('freewallet_portfolio_v1'))return;
         localStorage.setItem('freewallet_portfolio_v1', JSON.stringify({ version: 1, assets: [data.asset], transactions: data.transactions }));
         localStorage.setItem('freewallet_settings', '{"apiEnabled":false}');
         localStorage.setItem('freewallet_last_seen_version', data.version);
@@ -78,6 +79,36 @@ try {
     await page.waitForFunction(() => document.querySelector('.recharts-tooltip-wrapper')?.textContent?.includes('N/D'));
     assert.match(await page.$eval('.recharts-tooltip-wrapper', el => el.textContent || ''), /MSCI World.*N\/D/);
     if (process.env.FREEWALLET_BENCHMARK_SCREENSHOT) await page.screenshot({path:process.env.FREEWALLET_BENCHMARK_SCREENSHOT});
+    const archive=await page.evaluate(()=>localStorage.getItem('freewallet_history_archive_v1'));
+    assert.ok(archive,'Legacy import is converted to an independent archive');
+    await page.evaluate(()=>{for(const key of Object.keys(localStorage))if(key.startsWith('freewallet_portfolio_csv_') || key==='freewallet_workbook_link')localStorage.removeItem(key);});
+    await page.reload({waitUntil:'networkidle2'});
+    await page.$$eval('.portfolio-summary__tab',buttons=>(buttons.find(button=>button.textContent==='YTD') as HTMLElement).click());
+    assert.match(await page.$eval('.portfolio-summary__grid .metric-card:last-child',el=>el.textContent || ''),/590,00/);
+    await page.$$eval('.portfolio-excel-insights__tabs button',buttons=>(buttons.find(button=>button.textContent?.includes('Benchmark')) as HTMLElement).click());
+    await page.$$eval('.portfolio-excel-insights__periods button',buttons=>(buttons.find(button=>button.textContent==='YTD') as HTMLElement).click());
+    assert.match(await page.$eval('.portfolio-excel-insights__benchmark-portfolio',el=>el.textContent || ''),/58,66%/);
+    assert.equal(await page.evaluate(()=>localStorage.getItem('freewallet_history_archive_v1')),archive);
+    assert.equal(await page.evaluate(()=>localStorage.getItem('freewallet_portfolio_v1')),before);
+    assert.equal(await page.evaluate(()=>Object.keys(localStorage).some(key=>key.startsWith('freewallet_portfolio_csv_'))),false,'Dashboard does not recreate or read a spreadsheet');
+    // A new portfolio builds the same metrics from verified snapshots alone.
+    await page.evaluate(async data => {
+        const modulePath='/src/services/portfolioPerformance.ts';
+        const {normalizePortfolioTransactions,portfolioLedgerKey}=await import(modulePath);
+        const newAsset={...data.asset,purchaseDate:'2026-10-05',currentPrice:1100};
+        const ledger=normalizePortfolioTransactions([newAsset],[]);
+        localStorage.removeItem('freewallet_history_archive_v1');
+        localStorage.setItem('freewallet_portfolio_v1',JSON.stringify({version:1,assets:[newAsset],transactions:[]}));
+        localStorage.setItem('freewallet_history',JSON.stringify([
+            {date:'2026-10-05T18:00:00Z',value:1000,invested:1000},
+            {date:'2026-10-06T18:00:00Z',value:1100,invested:1000},
+        ].map(point=>({...point,source:'quotes-v2',ledgerKey:portfolioLedgerKey(ledger,point.date)}))));
+    },{asset});
+    await page.reload({waitUntil:'networkidle2'});
+    await page.$$eval('.portfolio-summary__tab',buttons=>(buttons.find(button=>button.textContent==='Todo') as HTMLElement).click());
+    assert.match(await page.$eval('.portfolio-summary__grid .metric-card:last-child',el=>el.textContent || ''),/100,00/);
+    assert.match(await page.$eval('.portfolio-summary__grid .metric-card:last-child',el=>el.textContent || ''),/10\.00%/);
+    assert.equal(await page.evaluate(()=>localStorage.getItem('freewallet_history_archive_v1')),null,'A new portfolio needs no imported archive');
     assert.deepEqual(errors, []);
     console.log('Portfolio periods UI passed: monthly and quarterly gains from imported closes, actual dates, available daily/weekly/YTD, independent missing realized results and unchanged ledger at mobile width.');
 } catch (error) {

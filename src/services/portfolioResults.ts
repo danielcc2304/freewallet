@@ -2,10 +2,21 @@ import type { Asset, PortfolioTransaction } from '../types/types';
 import { assetValue } from './assetValuation';
 import { accountingDay, comparePortfolioTransactions, getTransactionEventDay, normalizePortfolioTransactions } from './portfolioPerformance';
 
+export interface DiscardedPositionRecord { assetId:string; deletionId:string; confirmedAt:string }
+/** Only an explicitly rejected entry without any sales can be excluded. */
+export function deletedRecordReviews(assets:Asset[],transactions:PortfolioTransaction[],corrections:DiscardedPositionRecord[]=[]) {
+    return transactions.filter(t=>t.type==='delete' && (t.quantity ?? 0)>0).map(t=>{
+        const canDiscard=!assets.some(a=>a.id===t.assetId) && !transactions.some(other=>other.assetId===t.assetId && other.type==='sell')
+            && transactions.filter(other=>other.assetId===t.assetId && other.type==='delete').length===1;
+        return {id:t.id,assetId:t.assetId,name:t.assetName || t.assetSymbol,canDiscard,
+            discarded:canDiscard && Array.isArray(corrections) && corrections.some(c=>c && c.assetId===t.assetId && c.deletionId===t.id && Number.isFinite(Date.parse(c.confirmedAt)))};
+    });
+}
+
 /** Moving average cost, matching the app's purchasePrice on each open lot.
  * Cash movements, corrections and deletions never manufacture sale proceeds.
  */
-export function calculatePortfolioResults(assets: Asset[], transactions: PortfolioTransaction[], now = Date.now()) {
+export function calculatePortfolioResults(assets: Asset[], transactions: PortfolioTransaction[], now = Date.now(), corrections:DiscardedPositionRecord[]=[]) {
     const totalInvested = assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0);
     const currentValue = assets.reduce((sum, a) => sum + assetValue(a), 0);
     const unrealizedGain = currentValue - totalInvested;
@@ -17,7 +28,10 @@ export function calculatePortfolioResults(assets: Asset[], transactions: Portfol
     const fail = (reason: string) => { resultUnavailableReason ??= reason; };
     const today = accountingDay(now);
     const ledger = normalizePortfolioTransactions(assets, transactions).sort(comparePortfolioTransactions);
+    const deletionReviews=deletedRecordReviews(assets,ledger,corrections);
+    const discardedIds=new Set(deletionReviews.filter(r=>r.discarded).map(r=>r.assetId));
     for (const transaction of ledger) {
+        if(discardedIds.has(transaction.assetId))continue;
         const day = getTransactionEventDay(transaction);
         if (!day || !Number.isFinite(Date.parse(day)) || new Date(day).toISOString().slice(0, 10) !== day) {
             fail('Hay operaciones sin una fecha válida.'); continue;
@@ -66,5 +80,5 @@ export function calculatePortfolioResults(assets: Asset[], transactions: Portfol
     }
     if (!Number.isFinite(totalInvested) || totalInvested < 0 || !Number.isFinite(realized)) fail('Hay costes o resultados inválidos.');
     const realizedGain = resultUnavailableReason ? NaN : realized;
-    return { totalInvested, currentValue, unrealizedGain, realizedGain, totalGain: unrealizedGain + realizedGain, percentageGain, resultUnavailableReason };
+    return { totalInvested, currentValue, unrealizedGain, realizedGain, totalGain: unrealizedGain + realizedGain, percentageGain, resultUnavailableReason, deletionReviews };
 }

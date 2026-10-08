@@ -1,7 +1,7 @@
-import { DEFAULT_COMPARISON_CSV, DEFAULT_EVOLUTION_CSV, STORAGE_KEYS } from '../pages/PortfolioCsv/portfolioCsvConstants';
+import { DEFAULT_COMPARISON_CSV, DEFAULT_EVOLUTION_CSV, STORAGE_KEYS } from './imports/portfolioCsvConstants';
 import { readStoredValue } from '../pages/PortfolioCsv/portfolioCsvStorage';
-import { parseBenchmarkComparison, parseDailyData, parseDateLabel, parseEvolution, parseMovements, parsePeriodParts, resolveEvolutionPeriods } from '../pages/PortfolioCsv/portfolioCsvUtils';
-import type { BenchmarkComparisonPoint, DailyPortfolioPoint, EvolutionPoint } from '../pages/PortfolioCsv/portfolioCsvTypes';
+import { parseBenchmarkComparison, parseDailyData, parseDateLabel, parseEvolution, parseMovements, parsePeriodParts, resolveEvolutionPeriods } from './imports/portfolioCsvUtils';
+import type { BenchmarkComparisonPoint, DailyPortfolioPoint, EvolutionPoint } from './imports/portfolioCsvTypes';
 import type { PortfolioHistoryPoint, PortfolioTransaction } from '../types/portfolio';
 import { accountingDay } from './portfolioCalendar';
 

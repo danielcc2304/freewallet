@@ -54,4 +54,6 @@ Activado en `hocuefrnotspaejtmpsw` el 6 de octubre de 2026. Primera ejecución c
 
 `commit_portfolio` se conserva para importaciones y clientes anteriores. `patch_portfolio(expected_revision, request_id, changes, removed)` envía solo los campos modificados; las preferencias no ejecutan la validación financiera. Si cambian posiciones o transacciones se conserva la validación atómica original. Una respuesta perdida se reintenta con el mismo identificador y payload; un conflicto de revisión no se sobrescribe.
 
+El Dashboard utiliza `read_portfolio_history` para el histórico estructurado, con una copia compatible dentro del documento versionado. `upsert_portfolio_history` permite a agentes autenticados registrar valoraciones, flujos y NAV sin editar el Excel. Los datos importados se convierten una sola vez; el batch de precios y sus valoraciones diarias mantienen su funcionamiento. Consulta [histórico independiente del Excel](portfolio-history.md) para formatos, migración y configuración de agentes.
+
 La protección contra contraseñas filtradas de Supabase Auth se configura en [Password security](https://supabase.com/docs/guides/auth/password-security) y requiere Pro o superior. No se sustituye por una comprobación únicamente en el navegador ni se activa contratando un plan automáticamente.

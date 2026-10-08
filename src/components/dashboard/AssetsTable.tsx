@@ -432,7 +432,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
                 onConfirm={handleConfirmDelete}
                 title="¿Eliminar registro?"
                 message={assetToDelete
-                    ? `Eliminarás el registro de ${assetToDelete.name} (${assetToDelete.symbol}) con ${formatQuantity(assetToDelete)} unidades y precio medio ${formatPrice(assetToDelete.purchasePrice)}. Esta acción no registra una venta y no se puede deshacer.`
+                    ? `Eliminarás el registro de ${assetToDelete.name} (${assetToDelete.symbol}) con ${formatQuantity(assetToDelete)} unidades y precio medio ${formatPrice(assetToDelete.purchasePrice)}. Para una venta usa «Vender». Si era una entrada errónea, podrás clasificarla en «Ver motivo» del resumen. El registro eliminado no se recupera al deshacer esa clasificación.`
                     : '¿Estás seguro de que quieres eliminar este activo?'}
                 confirmText={deleting?'Eliminando…':'Eliminar'}
                 cancelText="Cancelar"

@@ -2,9 +2,9 @@
 
 ## Estado
 
-Implementación en `feature/portfolio-supabase`, desde `origin/dev` (4ebaa11, v5.3.13). La versión no cambia. No se ha publicado la rama ni desplegado la web.
+La implementación inicial partió de `origin/dev` y continuó en `feature/daily-market-data`. La rama contiene la sincronización de cartera, cotizaciones automáticas e histórico independiente del Excel. Publicar cambios en la rama y aplicar migraciones no despliega el frontend.
 
-Las cuatro migraciones están aplicadas en `hocuefrnotspaejtmpsw`, región `eu-central-1`, plan Free. Sus nombres locales coinciden con el historial remoto. No se han modificado Noticias, cuentas existentes ni SMTP. Con autorización del titular se añadieron tres redirects exactos de cuenta, conservando el editorial existente.
+El proyecto configurado es `hocuefrnotspaejtmpsw`, región `eu-central-1`, plan Free. El historial de migraciones versionadas está en `supabase/migrations`; debe contrastarse con el remoto antes de aplicar cambios. El histórico estructurado dispone de tablas privadas y RPC autenticadas: [modelo y API](portfolio-history.md).
 
 En local se activa mediante un `.env.local` ignorado por Git. El valor por defecto de `.env.example` mantiene desactivada la sincronización hasta verificar el acceso y correo del despliegue.
 
@@ -22,8 +22,8 @@ La copia local de origen permanece intacta. En móvil debe importarse desde el n
 
 - Una cartera por cuenta. EUR es la moneda contable. Se rechazan importaciones no EUR; no se convierten costes históricos suponiendo un cambio actual.
 - Posiciones y operaciones normalizadas, costes/cantidades en PostgreSQL `numeric` con doce decimales. Cantidades y precios de posiciones fuera de escala se rechazan en vez de redondearse silenciosamente. El histórico importado conserva sus importes originales en el documento; su representación normalizada usa esa escala decimal.
-- Documento privado, atómico y versionado para CSV del Excel, histórico, vínculo con el libro, objetivos, metas, watchlist y preferencias de apariencia/API. Solo se permite una lista cerrada de claves.
-- Las tablas de valoraciones, preferencias y objetivos de la base se reservan para una normalización posterior. En esta implementación esos apartados se sincronizan mediante el documento privado, no mediante escrituras directas a esas tablas.
+- Documento privado, atómico y versionado para respaldo estructurado, claves CSV antiguas, vínculos, objetivos, metas, watchlist y preferencias de apariencia/API. Solo se permite una lista cerrada de claves.
+- Histórico de valoraciones, flujos y benchmark normalizado en tablas privadas; los CSV se interpretan únicamente en la importación. Objetivos y preferencias siguen sincronizados mediante el documento privado. Las valoraciones del batch se almacenan por separado y continúan el histórico cuando la cobertura y las operaciones lo permiten.
 - Límite de 8 MiB por documento, 1.000 posiciones, 20.000 movimientos y 50.000 elementos por colección. Máximo 120 comandos/minuto por cartera.
 - El libro de operaciones es append-only. Las correcciones requieren una operación explícita. Activos vendidos/eliminados conservan sus movimientos.
 - El servidor calcula totales, cantidades restantes y precio medio de compras adicionales. Conserva la fecha inicial al hacer DCA.
@@ -52,7 +52,7 @@ RLS no equivale a cifrado de extremo a extremo. Administradores autorizados del 
 - Cambios pendientes interrumpidos por un cambio de sesión se conservan en memoria separados por propietario y solo pueden exportarse tras volver a esa cuenta. Cerrar la pestaña pierde esa caché: se avisa al salir y se ofrece exportación.
 - Cola serial, agrupación de preferencias y revisión esperada en cada comando. No se hace last-write-wins ni una fusión automática de decisiones financieras.
 - Comprobación de revisión cada 30 segundos, solo visible/online y sin ediciones pendientes. La misma revisión devuelve una respuesta pequeña sin el documento. No se remonta un formulario que esté siendo editado.
-- Los refrescos de precios siguen cada cinco minutos. Los precios son caché efímera, no cambios de costes/cantidades. Las observaciones completas pueden guardar histórico; un conflicto de ese guardado también se notifica, no se sobrescribe en silencio.
+- Acciones en sesión y criptos consultan cada minuto con el Dashboard visible; el resto conserva cinco minutos. El batch cloud se ejecuta cada 30 minutos dentro de su horario de Madrid. Las cotizaciones no cambian costes/cantidades. Las observaciones completas pueden guardar histórico; un conflicto de ese guardado también se notifica, no se sobrescribe en silencio.
 - RPC con timeout de 15 segundos; las respuestas de una sesión anterior no se aplican.
 - Las rutas siguen cargándose de forma inmediata. No se ha reintroducido carga diferida al navegar.
 - Demo y borrado local no pueden sustituir una cartera conectada. Exportación JSON disponible; la eliminación de cuenta/cartera se tramita por el contacto del titular y Supabase Auth, cuyo borrado elimina los datos dependientes.

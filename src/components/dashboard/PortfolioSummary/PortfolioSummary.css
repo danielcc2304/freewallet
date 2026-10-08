@@ -85,3 +85,7 @@
 .portfolio-summary__calculation summary { cursor: pointer; padding: .65rem 0; }
 .portfolio-summary__calculation summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; border-radius: var(--radius-sm); }
 .portfolio-summary__calculation p { margin: .25rem 0 .5rem; }
+.portfolio-summary__deletion-review { display:flex; flex-wrap:wrap; align-items:center; gap:.65rem; padding:.75rem 0; border-top:1px solid var(--border-color); }
+.portfolio-summary__deletion-review strong, .portfolio-summary__deletion-review span { overflow-wrap:anywhere; }
+.portfolio-summary__deletion-review p { flex-basis:100%; }
+.portfolio-summary__deletion-review .btn { white-space:normal; min-height:44px; }

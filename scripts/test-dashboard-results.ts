@@ -18,6 +18,15 @@ result = calculatePortfolioResults([{...asset,quantity:10,purchasePrice:20,curre
 assert.equal(result.realizedGain,50); assert.equal(result.unrealizedGain,0);
 // Importing a position supplies an opening cost, not invented earlier sales.
 assert.equal(calculatePortfolioResults([asset],[],now).realizedGain,0);
+const wrongBuy={...buy,assetId:'mistake'};
+const wrongDelete={...wrongBuy,id:'wrong-delete',type:'delete' as const,date:'2026-02-01'};
+const correction=[{assetId:'mistake',deletionId:'wrong-delete',confirmedAt:'2026-02-02T12:00:00Z'}];
+assert.ok(Number.isNaN(calculatePortfolioResults([asset],[wrongBuy,wrongDelete],now).realizedGain),'A deletion is unresolved until explicitly classified');
+const corrected=calculatePortfolioResults([asset],[wrongBuy,wrongDelete],now,correction);
+assert.equal(corrected.realizedGain,0);assert.equal(corrected.totalGain,0);assert.equal(corrected.deletionReviews[0].discarded,true);
+assert.ok(Number.isNaN(calculatePortfolioResults([asset],[wrongBuy,wrongDelete],now).totalGain),'Undo restores the unresolved state');
+assert.ok(Number.isNaN(calculatePortfolioResults([asset],[wrongBuy,{...sell,assetId:'mistake'},wrongDelete],now,correction).totalGain),'Sales cannot be hidden as an erroneous record');
+assert.ok(Number.isNaN(calculatePortfolioResults([asset],[wrongBuy,wrongDelete],now,[{...correction[0],deletionId:'another-deletion'}]).totalGain),'Corrections must identify the actual deletion');
 assert.equal(calculatePortfolioResults([{...asset,quantity:0}],[],now).realizedGain,0,'An imported empty position has no gain');
 const opening = normalizePortfolioTransactions([{...asset,quantity:10}],[]);
 assert.equal(calculatePortfolioResults([asset],[...opening,sell],now).totalGain,50);

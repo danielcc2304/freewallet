@@ -207,10 +207,11 @@ export function Dashboard() {
         const results = calculatePortfolioResults(assets, analytics.portfolioTransactions, calculationNow);
 
         const periodChange = (periodName: TimePeriod, source: ReturnType<typeof performanceSeries>) => {
-            const { performance: period, monthlyBase } = selectPortfolioPeriod(source, periodName, calculationNow);
+            const { performance: period, monthlyBase, incompleteSince } = selectPortfolioPeriod(source, periodName, calculationNow);
             return {
                 baseDate: period.baseDate, endDate: period.endDate,
                 monthlyBase,
+                incompleteSince,
                 hasBase: period.hasBase && period.returnPercent !== null,
                 change: period.returnPercent === null ? NaN : period.change ?? NaN,
                 percent: period.returnPercent ?? NaN,

@@ -56,7 +56,9 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
 
     const periodChange = getChangeForPeriod();
     const periodDates = metrics.periodDates?.[activeTab];
-    const changeTitle = periodDates?.monthlyBase && periodDates.baseDate
+    const changeTitle = periodDates?.incompleteSince && periodDates.endDate
+        ? `Cambio YTD hasta ${new Date(periodDates.endDate).toLocaleDateString('es-ES')}`
+        : periodDates?.monthlyBase && periodDates.baseDate
         ? `Cambio desde ${new Date(periodDates.baseDate).toLocaleDateString('es-ES')}`
         : `Cambio ${periodChange.label}`;
 
@@ -88,6 +90,10 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
                 </div>
             </div>
             {periodDates?.baseDate && <p className="portfolio-summary__dates">Periodo efectivo{periodDates.monthlyBase ? ' con cierre mensual' : ''}: {new Date(periodDates.baseDate).toLocaleDateString('es-ES')} — {periodDates.endDate ? new Date(periodDates.endDate).toLocaleDateString('es-ES') : 'sin cierre'}.</p>}
+            {periodDates?.incompleteSince && <details className="portfolio-summary__calculation">
+                <summary>YTD pendiente de completar</summary>
+                <p>Datos pendientes de verificar desde {new Date(periodDates.incompleteSince).toLocaleDateString('es-ES')}. Se conserva el último YTD calculable; eliminar un registro no registra una venta.</p>
+            </details>}
             {activeTab === '1D' && !Number.isFinite(periodChange.value) && <p className="portfolio-summary__dates">La variación diaria necesita valoraciones comparables o precios de hoy con cierre anterior. En Mis Activos puedes ver la última variación disponible y su fecha.</p>}
 
             <div className="portfolio-summary__grid">

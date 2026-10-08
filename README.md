@@ -112,6 +112,8 @@ Los datos del navegador dependen del origen: cambiar dominio o puerto no compart
 
 «Mis Activos» agrupa los registros del mismo instrumento: suma cantidades, costes y valoraciones y muestra el precio medio ponderado. El desglose conserva cada registro para añadir compras, editar, vender o eliminar de forma individual. La agrupación es una vista: no fusiona posiciones guardadas ni reescribe operaciones; mantiene separadas clases de fondos, monedas y mercados bursátiles distintos, y señala valoraciones estimadas o de varias fechas.
 
+Si un movimiento reciente impide verificar la rentabilidad, el YTD conserva el último resultado calculable y muestra hasta qué fecha llega, tanto en el resumen como en la comparativa. El tramo pendiente no se incluye en el gráfico ni se considera reconciliado.
+
 Hay dos procesos distintos:
 
 Las consultas del navegador contrastan Yahoo con **Google Finance para el mismo mercado** cuando falta un precio reciente, y con **CoinGecko para criptos identificadas**. Nextil (`ES0126962069`) prioriza Madrid/BME; su ficha permite escoger el mercado del registro. Los precios conservan la fecha publicada y nunca se reemplazan por observaciones anteriores. La consulta cada minuto no garantiza un dato nuevo ni un feed bursátil en tiempo real.

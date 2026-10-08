@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-08 - v6.1.4 - YTD verificado con movimientos pendientes
+- Funcionalidad:
+  - Conserva el último resultado YTD calculable cuando un movimiento reciente impide verificar el tramo más nuevo.
+  - Muestra hasta qué fecha llega el cálculo tanto en el resumen como en la comparación con benchmark y señala desde cuándo hay datos pendientes.
+  - Excluye del gráfico el tramo no verificado; no presenta una eliminación como una venta ni cambia el libro de operaciones.
+- Resumen:
+  - Mantiene visible la rentabilidad YTD respaldada por datos y comunica claramente el periodo aún pendiente de reconciliar.
+- Archivos:
+  - `README.md`, `package.json`, `package-lock.json`, `scripts/test-portfolio-periods.ts`, `scripts/test-ytd-verification-ui.ts`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`, `src/constants/app.ts`, `src/pages/Dashboard/Dashboard.tsx`, `src/services/portfolioPerformance.ts`, `src/types/portfolio.ts`.
+  
 ### 2026-10-08 - v6.1.3 - Agrupación fija y compras por lote
 - Funcionalidad:
   - Agrupa siempre en «Mis Activos» las posiciones del mismo instrumento y muestra el detalle de compras con fecha, cantidad, precio medio y coste.

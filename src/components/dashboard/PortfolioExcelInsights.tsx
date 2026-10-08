@@ -392,7 +392,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                 <div className="portfolio-excel-insights__period-summary">
                                     <span>Rentabilidad del periodo</span>
                                     <strong className={selectedPeriodPerformance.returnPercent !== null && selectedPeriodPerformance.returnPercent < 0 ? 'is-negative' : ''}>{percent(selectedPeriodPerformance.returnPercent)}</strong>
-                                    <small>{selectedPeriodPerformance.observations} intervalos válidos · base {formatHistoryDate(selectedPeriodPerformance.baseDate)}{selectedPeriodPerformance.missingIntervals > 0 && ` · ${selectedPeriodPerformance.missingIntervals} sin base verificable`}</small>
+                                    <small>{selectedPeriodPerformance.observations} intervalos válidos · base {formatHistoryDate(selectedPeriodPerformance.baseDate)}{selectedPeriodPerformance.missingIntervals > 0 && ` · ${selectedPeriodPerformance.missingIntervals} sin base verificable`}{selectedPeriod.incompleteSince && ` · hasta ${formatChartDate(selectedPeriodPerformance.endDate ?? '')}`}</small>
                                 </div>
                                 <strong>{evolutionSeries.length} observaciones</strong>
                                 <div className="portfolio-excel-insights__periods" role="group" aria-label="Periodo de evolución">
@@ -463,9 +463,10 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                             </div>
                         </div>
                         <div className="portfolio-excel-insights__benchmark-portfolio">
-                            <span>Tu cartera · {evolutionPeriod === 'YTD' ? 'YTD' : 'periodo seleccionado'}</span>
+                            <span>Tu cartera · {evolutionPeriod === 'YTD' ? 'YTD' : 'periodo seleccionado'}{selectedPeriod.incompleteSince && ` hasta ${formatChartDate(selectedPeriod.performance.endDate ?? '')}`}</span>
                             <strong>{percent(selectedPeriod.performance.returnPercent)}</strong>
                         </div>
+                        {selectedPeriod.incompleteSince && <p className="portfolio-excel-insights__chart-note" role="status">Datos pendientes de verificar desde {formatChartDate(selectedPeriod.incompleteSince)}.</p>}
                         {hasPortfolioBenchmark && <p className="portfolio-excel-insights__comparison-dates">
                             {benchmarkPartial ? 'Benchmark' : 'Comparación'} del {formatChartDate(benchmarkLine[0].date)} al {formatChartDate(benchmarkLine.at(-1)!.date)}
                         </p>}

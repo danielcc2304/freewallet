@@ -2,6 +2,7 @@ import {load} from 'cheerio/slim';
 import {quoteCurrency} from '../_shared/quoteCurrency.ts';
 import {fundClassIdentity,newestFundObservation} from '../_shared/fundQuotePolicy.ts';
 import type {FundObservation} from '../_shared/fundQuotePolicy.ts';
+import {fetchFinancialTimesFund} from './financialTimesFund.ts';
 
 type JsonRecord=Record<string,unknown>;
 const record=(value:unknown):JsonRecord=>value&&typeof value==='object'?value as JsonRecord:{};
@@ -81,9 +82,10 @@ export function parseYahooFund(payload:unknown,symbol:string,isin:string,classNa
     if(!last)throw new Error('Yahoo no devuelve una serie de NAV válida');
     return {isin,className,currency,...last,previous:previous?.price??null,previousAt:previous?.at,source:'Yahoo Finance'};
 }
-export interface FundTransport {json:(url:string,signal?:AbortSignal)=>Promise<unknown>;text:(url:string,signal?:AbortSignal)=>Promise<string>}
+export interface FundTransport {json:(url:string,signal?:AbortSignal)=>Promise<unknown>;text:(url:string,signal?:AbortSignal)=>Promise<string>;postJson?:(url:string,body:unknown,signal?:AbortSignal)=>Promise<unknown>}
 export async function fetchFreshFund(isin:string,finect:()=>Promise<FundObservation>,transport:FundTransport,signal?:AbortSignal):Promise<FundObservation> {
     const requests:Promise<FundObservation>[]=[finect(),transport.text(`https://www.quefondos.com/es/fondos/ficha/index.html?isin=${isin}`,signal).then(html=>parseQuefondos(html,isin))];
+    if(transport.postJson)requests.push(fetchFinancialTimesFund(isin,transport,signal));
     if(isin==='ES0119199018')requests.push(transport.text('https://www.cobasam.com/productos/inversion-libre/cobas_internacional/',signal).then(html=>parseCobas(html,isin)));
     if(isin==='ES0112611001')requests.push(Promise.all([transport.text('https://www.azvalor.com/fondos-de-inversion/azvalor-internacional/',signal),transport.text('https://areacliente.azvalor.com/api/product/international/prices?filename=international',signal)]).then(([page,xml])=>parseAzvalor(page,xml,isin)));
     const settled=await Promise.allSettled(requests),observations=settled.flatMap(result=>result.status==='fulfilled'?[result.value]:[]);
@@ -109,5 +111,8 @@ export async function fetchFreshFund(isin:string,finect:()=>Promise<FundObservat
         }
     }
     if(!observations.length)throw new Error('Ninguna fuente ha devuelto un NAV válido para el ISIN');
-    return newestFundObservation(observations);
+    const selected=newestFundObservation(observations);
+    const ft=observations.find(q=>q.source==='Financial Times'&&q.currency===selected.currency);
+    // Retain the verified recent series even if another source wins the last NAV.
+    return {...selected,history:ft?.history};
 }

@@ -10,13 +10,18 @@ type Entry = { points: HistoricalDataPoint[]; refreshed: number; attempted: numb
 export class DashboardMarketHistoryCache {
     private entries = new Map<string, Entry>();
     private capacity: number;
-    constructor(capacity = 64) { this.capacity = Math.max(1, capacity); }
+    private refreshMs:number;
+    constructor(capacity = 64,refreshMs=SIX_HOURS) { this.capacity = Math.max(1, capacity);this.refreshMs=refreshMs; }
+    needsRefresh(symbol:string,now=Date.now()) {
+        const entry=this.entries.get(symbol.trim().toUpperCase());
+        return !entry||(now-entry.refreshed>=this.refreshMs&&now-entry.attempted>=RETRY_DELAY);
+    }
 
     async load(symbol: string, signal: AbortSignal, loader: Loader, now = Date.now()): Promise<HistoricalDataPoint[]> {
         if (signal.aborted) throw new DOMException('Aborted', 'AbortError');
         const key = symbol.trim().toUpperCase();
         const existing = this.entries.get(key);
-        if (existing && (now - existing.refreshed < SIX_HOURS || now - existing.attempted < RETRY_DELAY)) return existing.points;
+        if (existing && (now - existing.refreshed < this.refreshMs || now - existing.attempted < RETRY_DELAY)) return existing.points;
         // Catch up only the recent window while it still overlaps the cache.
         const period = existing?.points.length && now - existing.refreshed < 25 * DAY ? '1M' : 'ALL';
         try {

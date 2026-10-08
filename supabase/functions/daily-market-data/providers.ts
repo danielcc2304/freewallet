@@ -7,6 +7,7 @@ export interface MarketPrice {
     instrument: string; quoted_at: string; price_eur: number; previous_close_eur: number | null;
     original_price: number; original_currency: string; original_unit: string; unit_scale: number; fx_rate: number; fx_at: string | null;
     source: FundSource; checked_at: string;
+    history?: MarketPrice[];
 }
 type RecordValue = Record<string, unknown>;
 const record = (value: unknown): RecordValue => value && typeof value === 'object' ? value as RecordValue : {};
@@ -25,12 +26,16 @@ export async function providerJson(url: string, signal?: AbortSignal): Promise<u
 export async function providerText(url:string,signal?:AbortSignal):Promise<string> {
     return await providerResponse(url,signal,true) as string;
 }
-async function providerResponse(url:string,signal:AbortSignal|undefined,text:boolean):Promise<unknown> {
+export async function providerPostJson(url:string,body:unknown,signal?:AbortSignal):Promise<unknown> {
+    return providerResponse(url,signal,false,body);
+}
+async function providerResponse(url:string,signal:AbortSignal|undefined,text:boolean,body?:unknown):Promise<unknown> {
     for (let attempt = 0; attempt < 3; attempt++) {
         signal?.throwIfAborted();
         try {
             const response = await fetch(url, { signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(8000)]) : AbortSignal.timeout(8000),
-                headers: { Accept: text?'text/html,application/xml':'application/json', 'User-Agent': 'Mozilla/5.0' } });
+                method:body===undefined?'GET':'POST',body:body===undefined?undefined:JSON.stringify(body),
+                headers: { Accept: text?'text/html,application/xml':'application/json', 'User-Agent': 'Mozilla/5.0',...(body===undefined?{}:{'Content-Type':'application/json'}) } });
             if (response.ok) {
                 if(Number(response.headers.get('content-length'))>1500000){await response.body?.cancel();throw new Error('Proveedor HTTP: respuesta demasiado grande');}
                 const content=await response.text();
@@ -57,7 +62,7 @@ function retryDelay(ms: number, signal?: AbortSignal): Promise<void> {
         if (signal?.aborted) cancel();
     });
 }
-interface RawQuote { price: number; previous: number | null; currency: string; at: string; source: MarketPrice['source']; previousAt?: string }
+interface RawQuote { price: number; previous: number | null; currency: string; at: string; source: MarketPrice['source']; previousAt?: string;history?:FundObservation['history'] }
 export function parseFund(payload: unknown, isin: string): RawQuote {
     const root = record(payload), data = record(root.data);
     const model = record(data.entity ?? data);
@@ -146,7 +151,7 @@ export async function fetchMarketPrice(input: MarketInstrument | string, finectK
     let raw: RawQuote;
     if (type === 'fund') {
         if (!isin || !/^[A-Z]{2}[A-Z0-9]{10}$/.test(isin)) throw new Error('ISIN de fondo inválido');
-        raw = await fetchFreshFund(isin,()=>finectFund(isin,finectKey,signal),{json:providerJson,text:providerText},signal);
+        raw = await fetchFreshFund(isin,()=>finectFund(isin,finectKey,signal),{json:providerJson,text:providerText,postJson:providerPostJson},signal);
     } else {
         const data = await chart(symbol, signal);
         const last = data.candles.at(-1)!;
@@ -178,8 +183,11 @@ export async function fetchMarketPrice(input: MarketInstrument | string, finectK
             previousRate = raw.previousAt ? fxAt(fx, raw.previousAt).close : NaN;
         } catch (error) { fxCache.delete(fxSymbol); throw error; }
     }
+    const checkedAt=new Date().toISOString();
+    const history=currency==='EUR'&&scale===1?raw.history?.map((p,i,rows)=>({instrument,quoted_at:p.at,price_eur:p.price,previous_close_eur:rows[i-1]?.price??null,
+        original_price:p.price,original_currency:'EUR',original_unit:'EUR',unit_scale:1,fx_rate:1,fx_at:null,source:'Financial Times' as const,checked_at:checkedAt})):undefined;
     return { instrument, quoted_at: raw.at, price_eur: positive(raw.price * scale * rate),
         previous_close_eur: raw.previous && Number.isFinite(previousRate) ? raw.previous * scale * previousRate : null,
         original_price: raw.price, original_currency: currency, original_unit: raw.currency, unit_scale: scale,
-        fx_rate: rate, fx_at: fxDate, source: raw.source, checked_at: new Date().toISOString() };
+        fx_rate: rate, fx_at: fxDate, source: raw.source, checked_at: checkedAt,history };
 }

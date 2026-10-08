@@ -101,3 +101,9 @@ Aplicar `portfolio_structured_history` y `portfolio_history_event_dates` antes d
 - `npm run test:ytd-verification-ui`: conservación del YTD verificable en resumen y benchmark cuando hay operaciones recientes sin resolver.
 
 Las fixtures del repositorio son sintéticas; no incluyen datos financieros ni sesiones de usuarios reales.
+
+## Comparación y carga de los paneles
+
+La rentabilidad superior de la cartera conserva su última fecha verificable. Si el benchmark termina antes, la diferencia compara ambas series desde la misma base hasta su última fecha común y se etiqueta con esa fecha. Si falta la base del periodo, sigue sin estar disponible. El tooltip no prolonga el benchmark a días sin NAV.
+
+El histórico externo del benchmark se reutiliza durante 15 minutos, con una clave que incluye su fecha inicial. Los errores conservan los datos cargados y evitan reintentos continuos. Un indicador distingue la consulta del histórico del cambio de panel; los cambios de panel y periodo se programan como transiciones. Las gráficas no esperan animaciones. Se reutiliza el formateador de fecha contable, se indexan los NAV y se evita reconstruir históricos de mercado que el archivo autorizado sustituye. Estas optimizaciones mantienen los mismos cálculos y precisión.

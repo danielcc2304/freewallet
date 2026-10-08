@@ -34,3 +34,8 @@ const bounded=new DashboardMarketHistoryCache(1);const before=calls.length;
 await bounded.load('A',signal,loader,start);await bounded.load('B',signal,loader,start);await bounded.load('A',signal,loader,start);
 assert.equal(calls.length-before,3,'Cache must evict old symbols');
 console.log('PASS: legitimate lots, duplicate IDs, six-hour history cache, incremental corrections, bounded retries, cancellation and eviction.');
+const benchmarkCache=new DashboardMarketHistoryCache(1,15*60000);
+assert.equal(benchmarkCache.needsRefresh('TEST',start),true);
+await benchmarkCache.load('TEST',signal,loader,start);
+assert.equal(benchmarkCache.needsRefresh('TEST',start+14*60000),false);
+assert.equal(benchmarkCache.needsRefresh('TEST',start+15*60000),true,'The benchmark refreshes its recent window after 15 minutes');

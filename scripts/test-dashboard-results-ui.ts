@@ -40,6 +40,10 @@ try {
     assert.match(cards['Resultado no realizado'],/^0,00/);
     assert.match(cards['Resultado total'],/50,00/);
     assert.match(cards['Coste de posiciones abiertas'],/50,00/);
+    const advanced=await page.$eval('.portfolio-excel-insights__kpis',el=>el.textContent || '');
+    assert.match(advanced,/Rentabilidad no realizada\+0%0/,'A profitable sale must not turn the open-position return into the total result');
+    assert.doesNotMatch(advanced,/Rentabilidad total/);
+    assert.match(advanced,/Coste de posiciones abiertas50/);
     for (const width of [320,390]) {
         await page.setViewport({width,height:900});
         assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth),'Summary must fit mobile');

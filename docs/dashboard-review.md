@@ -12,6 +12,14 @@ Verificación: `test:portfolio-composition` comprueba la suma exacta de Nextil y
 
 Los cambios permanecen en `feature/daily-market-data`, basada en `dev`, sin PR abierta.
 
+## Precios históricos y dividendos
+
+El gráfico y la reconstrucción de valoraciones usan `indicators.quote.close` de Yahoo, sin sustituirlo por `adjclose`. Este último incorpora ajustes por dividendos y no sirve para valorar las unidades del registro de operaciones. Si falta un cierre de cotización, el punto permanece no disponible aunque exista un cierre ajustado. Se conservan la divisa original, la escala de cotización y la conversión con el cambio de la fecha correspondiente.
+
+El detalle del activo indica «Variación del precio»: no implica reinversión de dividendos. No se infieren dividendos cobrados a partir del histórico del proveedor. Los cierres importados del Excel y las valoraciones verificadas del batch conservan su procedencia y prioridad.
+
+`test:historical-price-basis-ui` reproduce una acción cuyo precio baja de 100 a 99 tras un dividendo mientras su serie ajustada permanece en 99. Comprueba la valoración de diez acciones en EUR, la variación del -1 %, cierres ausentes, datos solo ajustados, peniques, divisas, criptos, NAV de fondos y el gráfico a 390/1280 px. Usa posiciones sintéticas y respuestas simuladas.
+
 ## Validez de valoraciones y resultados
 
 Una consulta reciente ya no permite guardar una valoración verificada con un precio sin fecha, futuro o caducado. Se aplican los mismos márgenes del batch: siete días para fondos, cuatro para acciones y ETF y dos para criptoactivos. La consulta al proveedor se exige por separado; la fecha del precio no la sustituye.

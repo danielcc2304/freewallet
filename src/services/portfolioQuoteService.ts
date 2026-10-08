@@ -4,6 +4,8 @@ import { quoteCurrency, datedFx, previousCryptoClose } from '../../supabase/func
 import type { FxObservation } from '../../supabase/functions/_shared/quoteCurrency';
 import { getFundRelevance } from './finect/finectService';
 import { prefersBatchQuote } from './market/marketSessions';
+import {freshFundQuote} from './funds/freshFundQuote';
+import {fundSourcePriority} from '../../supabase/functions/_shared/fundQuotePolicy';
 
 const ISIN_PATTERN = /^[A-Z]{2}[A-Z0-9]{10}$/;
 
@@ -72,6 +74,10 @@ export async function getPortfolioAssetQuote(asset: Asset, signal?: AbortSignal,
     const isin = (asset.isin || (ISIN_PATTERN.test(asset.symbol) ? asset.symbol : '')).trim().toUpperCase();
 
     if (asset.type === 'fund' && isin) {
+        if(forceRefresh)try {
+            const fresh=await freshFundQuote(asset,isin,signal);
+            if(fresh)return fresh;
+        }catch{if(signal?.aborted)return null;}
         try {
             // Automatic refreshes can reuse Finect's six-hour fund cache (NAVs
             // are generally daily). Manual refreshes can still bypass it.
@@ -95,7 +101,13 @@ export async function getPortfolioAssetQuote(asset: Asset, signal?: AbortSignal,
                     volume: 0,
                     currency: fund.currencyCode || asset.currency || 'EUR',
                 };
-                return normalizeQuoteToEuro(fundQuote, signal, forceRefresh);
+                const normalized=await normalizeQuoteToEuro(fundQuote, signal, forceRefresh);
+                // A fallback must not replace a fresher or better corroborated
+                // batch NAV when an on-demand source is unavailable.
+                if(storedQuote&&canUseStored&&(String(storedQuote.quotedAt).slice(0,10)>String(normalized.quotedAt).slice(0,10)
+                    ||String(storedQuote.quotedAt).slice(0,10)===String(normalized.quotedAt).slice(0,10)
+                    &&fundSourcePriority(storedQuote.source??'')<fundSourcePriority(normalized.source??'')))return storedQuote;
+                return normalized;
             }
         } catch (error) {
             console.warn(`[Portfolio] Finect no pudo actualizar ${isin}; se probarán proveedores de mercado.`, error);

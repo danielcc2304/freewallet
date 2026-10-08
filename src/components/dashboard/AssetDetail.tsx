@@ -429,7 +429,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false }: A
                     </div>
                 </div>
                 <div className="asset-detail__period-performance" aria-live="polite">
-                    <span>Rentabilidad {selectedPeriod === 'ALL' ? 'histórica' : selectedPeriod}</span>
+                    <span>Variación del precio {selectedPeriod === 'ALL' ? 'histórica' : selectedPeriod}</span>
                     <strong className={chartPeriodReturn !== null && chartPeriodReturn < 0 ? 'negative' : 'positive'}>
                         {canDrawChart && chartPeriodReturn !== null ? `${chartPeriodReturn >= 0 ? '+' : ''}${chartPeriodReturn.toFixed(2)}%` : 'N/D'}
                     </strong>

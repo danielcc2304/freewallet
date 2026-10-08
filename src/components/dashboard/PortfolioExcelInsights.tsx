@@ -47,7 +47,7 @@ import { WORKBOOK_RISK_FREE_ANNUAL_PCT } from '../../services/portfolioRisk';
 import { positionLotCounts } from '../../services/dashboardIntegrity';
 
 function missingMetricReason(label: string, months: number) {
-    if (label.startsWith('Rentabilidad total')) return 'Falta un capital invertido mayor que cero para calcular el porcentaje.';
+    if (label.startsWith('Rentabilidad no realizada')) return 'Falta un coste de posiciones abiertas mayor que cero para calcular el porcentaje.';
     if (label === 'Volatilidad anualizada' && months < 2) return 'Se necesitan al menos dos meses cerrados, válidos y consecutivos.';
     if (label === 'Ratio Sharpe') return months < 2
         ? 'Se necesitan al menos dos meses cerrados, válidos y consecutivos.'
@@ -144,7 +144,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const historyYears = recentMonthly.length ? recentMonthly.length / 12 : null;
     const estimatedCount = assets.filter(asset => !hasValidPrice(asset)).length;
     const positiveDays = validMonthly.length ? validMonthly.filter(row => row.monthlyReturn > 0).length / validMonthly.length * 100 : null;
-    const currentReturn = investedValue > 0 ? (totalValue / investedValue - 1) * 100 : NaN;
+    const unrealizedReturn = investedValue > 0 ? (totalValue / investedValue - 1) * 100 : NaN;
     const bestMonth = validMonthly.length
         ? validMonthly.reduce((best, row) => row.monthlyReturn > best.monthlyReturn ? row : best)
         : null;
@@ -260,8 +260,8 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     ];
     const kpis: Array<{ label: string; value: string; detail?: string; icon: ReactNode; tone?: string }> = [
         { label: 'Valor actual', value: currency(totalValue), detail: `${assets.length} posiciones${estimatedCount ? ` · ${estimatedCount} estimadas al coste` : ''}`, icon: <WalletCards size={17} /> },
-        { label: 'Capital invertido', value: currency(investedValue), detail: `${transactions.length} operaciones`, icon: <Coins size={17} /> },
-        { label: estimatedCount ? 'Rentabilidad total (estimada)' : 'Rentabilidad total', value: percent(currentReturn), detail: currency(totalValue - investedValue), icon: <ArrowUpRight size={17} />, tone: currentReturn >= 0 ? 'is-positive' : 'is-negative' },
+        { label: 'Coste de posiciones abiertas', value: currency(investedValue), detail: `${assets.length} posiciones`, icon: <Coins size={17} /> },
+        { label: estimatedCount ? 'Rentabilidad no realizada (estimada)' : 'Rentabilidad no realizada', value: percent(unrealizedReturn), detail: currency(totalValue - investedValue), icon: <ArrowUpRight size={17} />, tone: unrealizedReturn >= 0 ? 'is-positive' : 'is-negative' },
         { label: 'Rentabilidad anualizada', value: percent(annualized), detail: historyYears === null ? 'Sin meses cerrados' : `${recentMonthly.length} meses cerrados`, icon: <Gauge size={17} /> },
         { label: 'Volatilidad anualizada', value: plainPercent(volatility), detail: 'Riesgo estimado', icon: <BarChart3 size={17} /> },
         { label: 'Máximo drawdown', value: plainPercent(maxDrawdown), detail: 'Entre cierres mensuales', icon: <ArrowDownRight size={17} />, tone: maxDrawdown !== null && maxDrawdown < 0 ? 'is-negative' : undefined },

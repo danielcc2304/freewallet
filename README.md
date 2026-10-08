@@ -114,11 +114,13 @@ Hay dos procesos distintos:
 | Proceso | Funcionamiento |
 | --- | --- |
 | Refresco del navegador | Cada cinco minutos, con consultas habilitadas y la pestaña visible. Acciones y ETF consultan directamente durante su sesión; criptoactivos, las 24 horas. Fondos y activos fuera de sesión priorizan el batch disponible. El refresco manual consulta directamente. |
-| Actualización en Supabase | Edge Function `daily-market-data` cada dos horas, de **08:00 a 22:00 en España peninsular** (`Europe/Madrid`, con ajuste de verano/invierno). Utiliza las posiciones guardadas, actualiza instrumentos y benchmark y puede registrar valoraciones privadas completas. |
+| Actualización en Supabase | Edge Function `daily-market-data` cada 30 minutos, de **08:00 a 22:30 en España peninsular** (`Europe/Madrid`, con ajuste de verano/invierno). Utiliza las posiciones guardadas, actualiza instrumentos y benchmark y puede registrar valoraciones privadas completas. |
 
 El proceso en Supabase requiere las migraciones, la función desplegada y el job configurado. Publicar el frontend no instala ni activa por sí solo ese proceso. Tampoco el hecho de que el batch esté activo actualiza el código de una web que aún no haya desplegado la integración.
 
-Los proveedores principales son **Yahoo Finance** para instrumentos negociados y **Finect** para fondos identificados por ISIN; existen fallbacks con Alpha Vantage y Finnhub según disponibilidad. Los gráficos y fundamentales dependen de la cobertura del instrumento y proveedor.
+Los instrumentos negociados usan **Yahoo Finance**. Los fondos contrastan **Finect, VDOS/Quefondos y series NAV de Yahoo** por ISIN y clase; Cobas Internacional D y Azvalor Internacional consultan además sus gestoras. Se escoge la fecha de NAV más reciente y se prioriza la fuente más fiable para la misma fecha. Las cotizaciones bursátiles de un fondo no se usan como su NAV. Los gráficos y fundamentales tienen su propia cobertura y pueden recurrir a Alpha Vantage y Finnhub.
+
+El refresco manual de fondos de una cuenta cloud utiliza la Edge Function autenticada `fund-quote`, con la misma selección de fuentes del batch. Puede ejecutarse fuera del horario automático; comprueba sesión activa, MFA y acceso al fondo, y limita las consultas repetidas. Si una fuente falla o devuelve un NAV anterior, conserva el dato válido disponible. La cartera local conserva su consulta directa a Finect.
 
 El proceso conserva precio y unidad originales (incluidos GBp), divisa, proveedor, fecha de cotización y fecha de consulta. El cliente y el batch usan el cambio correspondiente al día del precio y guardan su fecha. Convierte las valoraciones a EUR según las observaciones de cambio admitidas. Un fallo parcial conserva los datos disponibles y registra errores, sin publicar una valoración total incompleta. No modifica cantidades, costes ni el libro de operaciones.
 

@@ -102,3 +102,10 @@
 .portfolio-excel-insights__block progress::-webkit-progress-bar { background: var(--bg-secondary); }
 .portfolio-excel-insights__block progress::-webkit-progress-value { background: #10b981; }
 .portfolio-excel-insights__block progress::-moz-progress-bar { background: #10b981; }
+
+.portfolio-excel-insights__block-toggle { display: flex; align-items: center; gap: 10px; margin: 16px 0; cursor: pointer; }
+.portfolio-excel-insights__block-toggle input { width: 20px; height: 20px; accent-color: #10b981; }
+.portfolio-excel-insights__block-categories { margin-bottom: 20px; }
+.portfolio-excel-insights__block-categories summary { cursor: pointer; margin-bottom: 12px; }
+.portfolio-excel-insights__block-categories label { display: grid; gap: 6px; margin: 12px 0; }
+.portfolio-excel-insights__block-categories select { width: 100%; min-width: 0; max-width: 100%; padding: 10px; color: var(--text-primary); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; }

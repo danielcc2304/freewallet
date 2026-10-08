@@ -3,9 +3,9 @@ import type { FinectFundRelevance } from './finect/finectService';
 import { assetValue } from './assetValuation';
 import { benchmarkFundIsin } from './portfolioBenchmark';
 
-const names = ['Renta variable', 'Renta fija', 'Cripto', 'Liquidez', 'Otros'] as const;
-export type BlockAllocation = Record<(typeof names)[number], number>;
-const empty = (): BlockAllocation => Object.fromEntries(names.map(name => [name, 0])) as BlockAllocation;
+export const blockNames = ['Renta variable', 'Renta fija', 'Cripto', 'Liquidez', 'Otros'] as const;
+export type BlockAllocation = Record<(typeof blockNames)[number], number>;
+const empty = (): BlockAllocation => Object.fromEntries(blockNames.map(name => [name, 0])) as BlockAllocation;
 const labelBlock = (label: string): keyof BlockAllocation => {
     const text = label.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
     const matches: Array<keyof BlockAllocation> = [];
@@ -26,7 +26,8 @@ export function fundBlockAllocation(fund: Pick<FinectFundRelevance, 'breakdowns'
     } else result[labelBlock(fund.category || fund.categoryDescription || '')] = 100;
     return result;
 }
-export function portfolioBlocks(assets: readonly Asset[], funds: Readonly<Record<string, BlockAllocation | null>>) {
+export function blockFundKey(asset: Asset) { return benchmarkFundIsin(asset) ?? `asset:${asset.id}`; }
+export function portfolioBlocks(assets: readonly Asset[], funds: Readonly<Record<string, BlockAllocation | null>>, options?: { lookThrough: boolean; categories: Record<string, string>; wholeFunds: Readonly<Record<string, BlockAllocation | null>> }) {
     const values = empty();
     let unclassifiedValue = 0;
     for (const asset of assets) {
@@ -36,11 +37,16 @@ export function portfolioBlocks(assets: readonly Asset[], funds: Readonly<Record
         else if (asset.type === 'crypto') values.Cripto += value;
         else if (asset.type === 'cash') values.Liquidez += value;
         else {
-            const isin = benchmarkFundIsin(asset), allocation = isin ? funds[isin] : null;
-            if (allocation) names.forEach(name => { values[name] += value * allocation[name] / 100; });
+            const isin = benchmarkFundIsin(asset);
+            const override = options?.categories[blockFundKey(asset)];
+            const whole = options && !options.lookThrough;
+            const selected = whole ? options.wholeFunds : funds;
+            const allocation = isin ? selected[isin] : null;
+            if (whole && blockNames.some(name => name === override)) { values[override as keyof BlockAllocation] += value; continue; }
+            if (allocation) blockNames.forEach(name => { values[name] += value * allocation[name] / 100; });
             else { values.Otros += value; unclassifiedValue += value; }
         }
     }
     const total = Object.values(values).reduce((sum, value) => sum + value, 0);
-    return { rows: names.map(name => ({ name, value: values[name], weight: total > 0 ? values[name] / total * 100 : 0 })), total, unclassifiedValue };
+    return { rows: blockNames.map(name => ({ name, value: values[name], weight: total > 0 ? values[name] / total * 100 : 0 })), total, unclassifiedValue };
 }

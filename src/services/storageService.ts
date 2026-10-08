@@ -15,6 +15,7 @@ const STORAGE_KEYS = {
 
 export interface AppSettings {
     apiEnabled: boolean;
+    allocationBlocks?: { lookThrough: boolean; categories: Record<string, string> };
     /** Explicit quote-market choices; positions and their trade ledger stay unchanged. */
     stockQuoteMarkets?: Record<string, string>;
     discardedPositionRecords?: import('./portfolioResults').DiscardedPositionRecord[];

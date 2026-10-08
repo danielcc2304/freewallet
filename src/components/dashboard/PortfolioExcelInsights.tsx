@@ -595,7 +595,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                 && ` Gráfico hasta ${formatChartDate(benchmarkChart.at(-1)?.date ?? '')}; tu rentabilidad superior incluye el ${formatChartDate(selectedPeriod.performance.endDate ?? '')}.`}
                         </p>}
                         <div className="portfolio-excel-insights__benchmark-kpis">
-                            <div><span>{benchmarkLabel}{benchmarkPartial ? ' · datos disponibles' : ''}</span><strong>{percent(benchmarkReturn)}</strong></div>
+                            <div><span>{benchmarkLabel}</span><strong>{percent(benchmarkReturn)}</strong></div>
                             <div><span>{comparison&&benchmarkPartial?`Diferencia hasta ${formatChartDate(comparison.endDate)}`:'Diferencia del periodo'}</span><strong className={benchmarkDifference === null ? '' : benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'}>{percent(benchmarkDifference).replace('%', ' pp')}</strong></div>
                         </div>
                         {benchmarkChart.length > 1 ? (
@@ -604,12 +604,19 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
                                     <XAxis dataKey="timestamp" type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatChartDate} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
                                     <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
-                                    <Tooltip {...tooltipTheme} filterNull={false} labelFormatter={label => typeof label === 'string' || typeof label === 'number' ? formatChartDate(label) : ''} formatter={(value, name, item) => {
-                                        const isPortfolio = name === 'portfolio' || name === 'Tu cartera';
-                                        const observation = isPortfolio ? null : benchmarkTooltipObservation(item.payload?.date ?? '', value == null ? null : Number(value), benchmarkLine);
-                                        return [observation ? `${percent(observation.value)}${observation.latestAvailable ? ` (${formatChartDate(observation.date)})` : ''}` : percent(value == null ? null : Number(value)),
-                                            `${benchmarkSeriesLabel(String(name), 'Tu cartera', benchmarkLabel)}${observation?.latestAvailable ? ' · último disponible' : ''}`];
-                                    }} />
+                                    <Tooltip
+                                        {...tooltipTheme}
+                                        wrapperStyle={{ maxWidth: 'calc(100vw - 48px)' }}
+                                        contentStyle={{ ...tooltipTheme.contentStyle, maxWidth: 'calc(100vw - 48px)', whiteSpace: 'normal' }}
+                                        filterNull={false}
+                                        labelFormatter={label => typeof label === 'string' || typeof label === 'number' ? formatChartDate(label) : ''}
+                                        formatter={(value, name, item) => {
+                                            const isPortfolio = name === 'portfolio' || name === 'Tu cartera';
+                                            const observation = isPortfolio ? null : benchmarkTooltipObservation(item.payload?.date ?? '', value == null ? null : Number(value), benchmarkLine);
+                                            return [observation ? `${percent(observation.value)}${observation.latestAvailable ? ` (${formatChartDate(observation.date)})` : ''}` : percent(value == null ? null : Number(value)),
+                                                benchmarkSeriesLabel(String(name), 'Tu cartera', benchmarkLabel)];
+                                        }}
+                                    />
                                     <Legend formatter={(value) => benchmarkSeriesLabel(String(value), 'Tu cartera', benchmarkLabel)} />
                                     <Line isAnimationActive={false} type="linear" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} />
                                     {benchmarkHasPeriodBase && <Line isAnimationActive={false} type="linear" dataKey="benchmark" name={benchmarkLabel} stroke="#3b82f6" strokeWidth={2} dot={false} connectNulls />}

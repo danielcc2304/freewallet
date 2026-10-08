@@ -21,7 +21,7 @@ export interface PortfolioMetrics {
     weeklyChangePercent?: number;
     historyChange?: number;
     historyChangePercent?: number;
-    periodDates?: Partial<Record<TimePeriod, { baseDate: string | null; endDate: string | null; monthlyBase?: boolean }>>;
+    periodDates?: Partial<Record<TimePeriod, { baseDate: string | null; endDate: string | null; monthlyBase?: boolean; incompleteSince?: string | null }>>;
 }
 
 export interface PortfolioHistoryPoint {

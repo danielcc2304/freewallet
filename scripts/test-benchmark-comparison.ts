@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { benchmarkChartCadence, benchmarkPeriodDifference, extendImportedBenchmark } from '../src/services/benchmarkComparison';
+import { benchmarkChartCadence, benchmarkPeriodDifference, benchmarkTooltipObservation, extendImportedBenchmark } from '../src/services/benchmarkComparison';
 import { alignedBenchmark, alignImportedBenchmark, chooseBenchmarkLine, performanceSeries, selectPortfolioPeriod } from '../src/services/portfolioPerformance';
 import type { HistoricalDataPoint } from '../src/types/types';
 
@@ -68,3 +68,11 @@ for(const period of ['1M','3M','YTD','ALL'] as const){
     assert.equal(selection.incompleteSince,'2026-10-08');
     assert.ok(selection.points.every(p=>p.date<'2026-10-08'),'Never join indices across the unresolved interval');
 }
+
+const latestTooltip = benchmarkTooltipObservation('2026-10-08', null, line);
+assert.equal(latestTooltip?.value, line.at(-1)?.benchmark);
+assert.equal(latestTooltip?.date, '2026-10-07');
+assert.equal(latestTooltip?.latestAvailable, true);
+assert.equal(benchmarkTooltipObservation('2026-10-06', null, line), null, 'Never show a future observation');
+assert.equal(benchmarkTooltipObservation('2026-10-08', null, []), null);
+assert.deepEqual(benchmarkTooltipObservation('2026-10-07', 18, line), {value:18,date:'2026-10-07',latestAvailable:false});

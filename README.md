@@ -30,6 +30,7 @@ Este README describe el código de la rama que estás consultando. Las funciones
 - Al activar «Desglosar fondos», el mapa de calor y los desgloses por fondo quedan cerrados por defecto y pueden abrirse individualmente.
 - Detalle de activos con gráficos históricos, una breve descripción de la empresa antes de las métricas y fundamentales disponibles, incluido EBITDA en acciones. La identidad de la clase del fondo, la divisa y la fecha del precio se conservan; un dato ausente no se sustituye por cero.
 - Plan y control de cartera, con sugerencias de aportaciones en bloques de **50 €**, sin céntimos.
+- Las cuentas de liquidez admiten una TAE opcional y editable, incluido 0 %. Se guarda con la cuenta y se muestra en su ficha; no incrementa automáticamente el saldo.
 - Cabecera compacta: fechas de lectura, consulta al proveedor y próxima consulta dentro de un desplegable.
 
 ### Cuenta y sincronización

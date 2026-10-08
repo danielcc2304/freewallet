@@ -38,6 +38,7 @@
     "test:position-groups": "tsx scripts/test-position-groups.ts",
     "test:position-groups-ui": "tsx scripts/test-position-groups-ui.ts",
     "test:dashboard-edit-return-ui": "tsx scripts/test-dashboard-edit-return-ui.ts",
+    "test:cash-account-ui": "tsx scripts/test-cash-account-ui.ts",
     "test:architecture": "tsx scripts/test-architecture-hardening.ts",
     "test:financial-times-funds": "tsx scripts/test-financial-times-funds.ts",
     "test:fund-quotes": "tsx scripts/test-fund-quotes.ts",

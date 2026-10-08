@@ -119,3 +119,9 @@ assert.equal(bWrites,0,'Account switch during pre-operation flush must not send 
 assert.equal(JSON.parse(portfolioStorage.getItem('freewallet_portfolio_v1')!).assets.length,0);
 portfolioStorage.select(null);
 console.log('Sync passed: whitelist, guest isolation, quotes, queued edits/deletions, unrelated remote updates, exact retry, concurrent-field conflicts, export/discard, offline mode and late-session responses.');
+
+const cashRecord = (rate: number | undefined) => JSON.stringify({version:1,assets:[{...position,type:'cash',cashTae:rate}],transactions:[]});
+assert.equal(JSON.parse(canonicalPortfolio(cashRecord(2.5))).assets[0].cashTae,2.5);
+assert.equal(JSON.parse(canonicalPortfolio(cashRecord(0))).assets[0].cashTae,0);
+assert.notEqual(canonicalPortfolio(cashRecord(2.5)),canonicalPortfolio(cashRecord(3)), 'A TAE change must be a persisted portfolio mutation');
+assert.equal(JSON.parse(canonicalPortfolio(cashRecord(undefined))).assets[0].cashTae,undefined);

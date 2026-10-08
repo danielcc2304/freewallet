@@ -22,6 +22,7 @@ interface FormData {
     purchaseDate: string;
     quantity: string;
     isin: string;
+    cashTae: string;
 }
 
 interface FormErrors {
@@ -31,6 +32,7 @@ interface FormErrors {
     purchasePrice?: string;
     purchaseDate?: string;
     quantity?: string;
+    cashTae?: string;
 }
 
 const COMMON_ASSETS: SearchResult[] = [
@@ -86,11 +88,12 @@ export function AddInvestment() {
         name: targetAsset?.name || '',
         type: targetAsset?.type || 'stock',
         // In DCA mode, start empty to ask for NEW purchase price. In Edit mode, show OLD price.
-        purchasePrice: isEditMode ? targetAsset?.purchasePrice.toString() || '' : (isSellMode ? String(targetAsset?.currentPrice || targetAsset?.purchasePrice || '') : ''),
+        purchasePrice: targetAsset?.type === 'cash' ? '1' : isEditMode ? targetAsset?.purchasePrice.toString() || '' : (isSellMode ? String(targetAsset?.currentPrice || targetAsset?.purchasePrice || '') : ''),
         purchaseDate: isEditMode ? targetAsset!.purchaseDate.slice(0, 10) : accountingDay(Date.now()),
         // In DCA mode, start empty. In Edit mode, show OLD quantity.
         quantity: isEditMode ? targetAsset?.quantity.toString() || '' : '',
         isin: targetAsset?.isin || '',
+        cashTae: targetAsset?.cashTae === undefined ? '' : String(targetAsset.cashTae),
     });
 
     const [errors, setErrors] = useState<FormErrors>({});
@@ -261,6 +264,7 @@ export function AddInvestment() {
             purchasePrice: '',
             purchaseDate: isEditMode ? targetAsset!.purchaseDate.slice(0, 10) : accountingDay(Date.now()),
             quantity: '',
+            cashTae: '',
             isin: isISIN(result.symbol) ? result.symbol : ''
         });
         setSearchQuery(result.symbol);
@@ -389,6 +393,10 @@ export function AddInvestment() {
             newErrors.purchasePrice = 'Introduce un precio válido mayor que 0';
         }
 
+        if (formData.type === 'cash' && formData.cashTae.trim() && (!Number.isFinite(Number(formData.cashTae)) || Number(formData.cashTae) < 0)) {
+            newErrors.cashTae = 'Introduce una TAE válida igual o mayor que 0';
+        }
+
         const day = Date.parse(`${formData.purchaseDate}T00:00:00Z`);
         if (!Number.isFinite(day) || new Date(day).toISOString().slice(0, 10) !== formData.purchaseDate || formData.purchaseDate > accountingDay(Date.now())) {
             newErrors.purchaseDate = 'Introduce una fecha válida que no sea futura';
@@ -431,6 +439,7 @@ export function AddInvestment() {
                     purchaseDate: formData.purchaseDate,
                     quantity: parseFloat(formData.quantity),
                     isin: formData.isin || undefined,
+                    cashTae: formData.type === 'cash' && formData.cashTae.trim() ? Number(formData.cashTae) : undefined,
                     currency: 'EUR',
                 }, {
                     assetId: editAsset.id,
@@ -483,6 +492,7 @@ export function AddInvestment() {
                     purchaseDate: formData.purchaseDate,
                     quantity: parseFloat(formData.quantity),
                     isin: formData.isin || undefined,
+                    cashTae: formData.type === 'cash' && formData.cashTae.trim() ? Number(formData.cashTae) : undefined,
                     currentPrice: formData.type === 'cash' ? 1 : undefined,
                     previousClose: formData.type === 'cash' ? 1 : undefined,
                     currency: 'EUR',
@@ -657,11 +667,11 @@ export function AddInvestment() {
                                     <div className="search-loading"><Loader2 size={16} className="search-loading__spinner" /> Buscando coincidencias…</div>
                                 )}
                                 {/* No results found - show manual entry option */}
-                                {noResultsFound && !isSearching && searchQuery.trim().length >= 1 && !targetAsset && (
+                                {!manualMode && !isSearching && searchQuery.trim().length >= 1 && !targetAsset && (
                                     <div className="no-results">
                                         <AlertCircle size={18} />
                                         <div className="no-results__text">
-                                            <p>No se encontró "{searchQuery}"</p>
+                                            <p>{noResultsFound ? `No se encontró "${searchQuery}"` : '¿Quieres registrar un activo o una cuenta manualmente?'}</p>
                                             <span>
                                                 {isISIN(searchQuery)
                                                     ? 'ISIN no encontrado en la base de datos, pero puedes añadirlo manualmente.'
@@ -708,6 +718,14 @@ export function AddInvestment() {
                                 />
                             </div>
                         )}
+
+                        {manualMode && <div className="form-group">
+                            <label className="form-label" htmlFor="asset-type">Tipo de activo</label>
+                            <select id="asset-type" className="input" value={formData.type} disabled={isDcaMode || isSellMode}
+                                onChange={event => handleInputChange('type', event.target.value)}>
+                                {assetTypes.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
+                            </select>
+                        </div>}
 
                         {/* Current Price Display */}
                         {(currentPrice !== null || loadingPrice) && !manualMode && (
@@ -778,6 +796,12 @@ export function AddInvestment() {
                                 />
                             </div>
                         </div>
+
+                        {formData.type === 'cash' && !isSellMode && !isDcaMode && <div className="form-group">
+                            <Input label="TAE de la cuenta (%)" type="number" min="0" step="any" placeholder="Ej. 2,5" value={formData.cashTae}
+                                onChange={event => handleInputChange('cashTae', event.target.value)} error={errors.cashTae} />
+                            <p className="form-hint">Opcional. Indica 0 % si no está remunerada. El saldo cambia cuando registres los intereses abonados.</p>
+                        </div>}
 
                         {currency !== 'EUR' && (
                             <div className="form-group">

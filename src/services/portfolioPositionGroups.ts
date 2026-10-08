@@ -39,6 +39,7 @@ export function portfolioPositionGroups(assets: Asset[], now = Date.now()) {
         const dates=lots.map(a=>a.quotedAt || a.lastQuoteAt).filter((date):date is string=>!!date && Number.isFinite(Date.parse(date)))
             .sort((a,b)=>Date.parse(a)-Date.parse(b));
         const asset:Asset={...lots[0],isin:lots.find(a=>a.isin)?.isin,id:`position-group:${key}`,quantity,purchasePrice:quantity>0?investedValue/quantity:0,
+            cashTae:lots.every(lot=>lot.cashTae===lots[0].cashTae)?lots[0].cashTae:undefined,
             currentPrice:quantity>0?currentValue/quantity:0,previousClose:validVariation&&quantity>0?previousValue/quantity:undefined,
             quotedAt:dates.length===lots.length?dates[0]:undefined,lastQuoteAt:dates.length===lots.length?dates[0]:undefined,
             purchaseDate:[...lots].sort((a,b)=>a.purchaseDate.localeCompare(b.purchaseDate))[0].purchaseDate};

@@ -12,15 +12,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-08 - v6.1.6 - Extremo de cartera verificado ante retrasos del benchmark
+### 2026-10-08 - v6.1.6 - NAV de fondos actualizado y benchmark con fechas explícitas
 - Funcionalidad:
-  - Conserva en el gráfico el último extremo verificado de la cartera aunque el NAV del benchmark aún no esté disponible para esa fecha.
-  - Mantiene visible la observación común previa y deja explícito el dato de benchmark ausente; no arrastra el NAV anterior.
-  - Amplía la documentación y las pruebas para comprobar la fecha y el rendimiento de cartera mostrados.
+  - Conserva en el gráfico el último extremo verificado de la cartera aunque el NAV del benchmark aún no esté disponible para esa fecha, sin arrastrar cotizaciones anteriores.
+  - Añade Financial Times como fuente diaria de NAV para fondos, validando el ISIN y la clase antes de aceptar la observación.
+  - Mejora las diferencias de benchmark por fecha y agiliza el análisis del dashboard; amplía las pruebas y la documentación.
 - Resumen:
-  - El gráfico llega hasta el último rendimiento confirmado de la cartera sin presentar como actual una cotización atrasada del benchmark.
+  - Muestra el rendimiento de cartera hasta la última fecha confirmada, deja explícitos los datos de benchmark ausentes y añade una fuente fresca para NAV de fondos.
 - Archivos:
-  - `docs/portfolio-history.md`, `scripts/test-benchmark-comparison.ts`, `scripts/test-history-archive.ts`, `scripts/test-structured-history-ui.ts`, `scripts/test-ytd-verification-ui.ts`, `src/services/benchmarkComparison.ts`, `package.json`, `package-lock.json`, `src/constants/app.ts`, `FEATURE_LOG.md`.
+  - `README.md`, `docs/daily-market-data.md`, `docs/portfolio-history.md`, `package.json`, `package-lock.json`, `scripts/test-architecture-hardening.ts`, `scripts/test-benchmark-comparison.ts`, `scripts/test-dashboard-quality.ts`, `scripts/test-financial-times-funds.ts`, `scripts/test-history-archive.ts`, `scripts/test-structured-history-ui.ts`, `scripts/test-ytd-verification-ui.ts`, `src/components/dashboard/PortfolioExcelInsights.css`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/components/dashboard/useDashboardAnalytics.ts`, `src/constants/app.ts`, `src/services/benchmarkComparison.ts`, `src/services/dashboardMarketHistory.ts`, `src/services/portfolioCalendar.ts`, `src/services/portfolioPerformance.ts`, `supabase/functions/_shared/fundQuotePolicy.ts`, `supabase/functions/daily-market-data/financialTimesFund.ts`, `supabase/functions/daily-market-data/fundSources.ts`, `supabase/functions/daily-market-data/index.ts`, `supabase/functions/daily-market-data/providers.ts`, `supabase/migrations/20261008205147_financial_times_fund_source.sql`, `FEATURE_LOG.md`.
   
 ### 2026-10-08 - v6.1.5 - Historial estructurado e integridad del benchmark
 - Funcionalidad:

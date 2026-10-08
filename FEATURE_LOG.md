@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-08 - v6.1.6 - Extremo de cartera verificado ante retrasos del benchmark
+- Funcionalidad:
+  - Conserva en el gráfico el último extremo verificado de la cartera aunque el NAV del benchmark aún no esté disponible para esa fecha.
+  - Mantiene visible la observación común previa y deja explícito el dato de benchmark ausente; no arrastra el NAV anterior.
+  - Amplía la documentación y las pruebas para comprobar la fecha y el rendimiento de cartera mostrados.
+- Resumen:
+  - El gráfico llega hasta el último rendimiento confirmado de la cartera sin presentar como actual una cotización atrasada del benchmark.
+- Archivos:
+  - `docs/portfolio-history.md`, `scripts/test-benchmark-comparison.ts`, `scripts/test-history-archive.ts`, `scripts/test-structured-history-ui.ts`, `scripts/test-ytd-verification-ui.ts`, `src/services/benchmarkComparison.ts`, `package.json`, `package-lock.json`, `src/constants/app.ts`, `FEATURE_LOG.md`.
+  
 ### 2026-10-08 - v6.1.5 - Historial estructurado e integridad del benchmark
 - Funcionalidad:
   - Desacopla el histórico del dashboard de la importación de hojas de cálculo y conserva observaciones estructuradas de valoraciones, flujos y benchmark.

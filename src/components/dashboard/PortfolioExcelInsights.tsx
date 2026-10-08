@@ -1,4 +1,4 @@
-import { useId, useMemo, useState } from 'react';
+import { useEffect, useId, useMemo, useState } from 'react';
 import type { ReactNode } from 'react';
 import {
     Activity,
@@ -45,6 +45,13 @@ import { readStoredValue } from '../../pages/PortfolioCsv/portfolioCsvStorage';
 import { STORAGE_KEYS } from '../../pages/PortfolioCsv/portfolioCsvConstants';
 import { WORKBOOK_RISK_FREE_ANNUAL_PCT } from '../../services/portfolioRisk';
 import { positionLotCounts } from '../../services/dashboardIntegrity';
+import { getAssetChartData } from '../../services/apiService';
+import { isApiEnabled } from '../../services/storageService';
+import { DashboardMarketHistoryCache } from '../../services/dashboardMarketHistory';
+import { benchmarkChartCadence, extendImportedBenchmark } from '../../services/benchmarkComparison';
+import type { HistoricalDataPoint } from '../../types/types';
+
+const benchmarkHistoryCache = new DashboardMarketHistoryCache(1);
 
 function missingMetricReason(label: string, months: number) {
     if (label.startsWith('Rentabilidad no realizada')) return 'Falta un coste de posiciones abiertas mayor que cero para calcular el porcentaje.';
@@ -119,6 +126,19 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         const [linkError, setLinkError] = useState('');
     const { workbookHistory, usingWorkbookHistory, portfolioTransactions, history, series, monthly, hasEstimates } = analytics;
     const workbookBenchmarkHistory = useMemo(() => { void analytics.localRevision; return readWorkbookBenchmarkHistory(); }, [analytics.localRevision]);
+    const [benchmarkHistory, setBenchmarkHistory] = useState<HistoricalDataPoint[]>([]);
+    const apiEnabled = isApiEnabled();
+    const benchmarkHistoryStart = series[0]?.timestamp;
+    useEffect(() => {
+        if (tab !== 'benchmark' || !apiEnabled) return;
+        const controller = new AbortController();
+        void benchmarkHistoryCache.load(BENCHMARK_ISIN, controller.signal,
+            (symbol, period, signal) => getAssetChartData(symbol, period, signal,
+                period === 'ALL' ? { startDate: benchmarkHistoryStart ?? now - 2 * 366 * 86400000 } : {}))
+            .then(points => { if (!controller.signal.aborted) setBenchmarkHistory(points); })
+            .catch(() => { /* Keep imported and batch data on provider failure. */ });
+        return () => controller.abort();
+    }, [tab, apiEnabled, lastPriceUpdate, benchmarkHistoryStart, now]);
     const advancedRaw = readStoredValue(STORAGE_KEYS.advancedRaw, '');
     const riskFreeAnnual = useMemo(() => parseAdvancedStats(advancedRaw).riskFreeAnnualPct ?? WORKBOOK_RISK_FREE_ANNUAL_PCT, [advancedRaw]);
 
@@ -212,10 +232,14 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const workbookBenchmarkLine = useMemo(() => {
         return alignImportedBenchmark(periodSeries, workbookBenchmarkHistory);
     }, [periodSeries, workbookBenchmarkHistory]);
-    const benchmark = useMemo(() => dailyHistory(analytics.dailyMarket.data, BENCHMARK_ISIN), [analytics.dailyMarket.data]);
+    const benchmark = useMemo(() => [...benchmarkHistory, ...dailyHistory(analytics.dailyMarket.data, BENCHMARK_ISIN)]
+        .filter(point => (point.timestamp ?? Date.parse(point.date)) <= now && (!point.currency || point.currency === 'EUR')), [benchmarkHistory, analytics.dailyMarket.data, now]);
     const automaticLine = useMemo(() => alignedBenchmark(periodSeries, benchmark), [periodSeries, benchmark]);
-    const benchmarkLine = useMemo(() => chooseBenchmarkLine(periodSeries, automaticLine, workbookBenchmarkLine), [periodSeries, automaticLine, workbookBenchmarkLine]);
+    const extendedLine = useMemo(() => alignedBenchmark(periodSeries, extendImportedBenchmark(workbookBenchmarkHistory, benchmark)), [periodSeries, workbookBenchmarkHistory, benchmark]);
+    const benchmarkLine = useMemo(() => chooseBenchmarkLine(periodSeries, automaticLine,
+        chooseBenchmarkLine(periodSeries, extendedLine, workbookBenchmarkLine)), [periodSeries, automaticLine, extendedLine, workbookBenchmarkLine]);
     const benchmarkUsesWorkbook = benchmarkLine.length > 1 && benchmarkLine === workbookBenchmarkLine;
+    const benchmarkUsesExtension = benchmarkLine.length > 1 && benchmarkLine === extendedLine;
     const benchmarkReturn = benchmarkLine.at(-1)?.benchmark ?? null;
     const hasPortfolioBenchmark = benchmarkLine.length > 1;
     const benchmarkHasPeriodBase = hasPortfolioBenchmark
@@ -232,13 +256,13 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         const base = periodSeries[0];
         if (!base || base.index <= 0 || !Number.isFinite(selectedPeriod.performance.returnPercent)) return [];
         const benchmarkByDate = new Map(benchmarkLine.map(point => [point.date, point.benchmark]));
-        return periodSeries.map(point => ({
+        return benchmarkChartCadence(periodSeries.map(point => ({
             date: point.date,
             timestamp: point.timestamp,
             portfolio: (point.index / base.index - 1) * 100,
             benchmark: benchmarkHasPeriodBase ? benchmarkByDate.get(point.date) ?? null : null,
-        }));
-    }, [periodSeries, selectedPeriod.performance.returnPercent, benchmarkLine, benchmarkHasPeriodBase]);
+        })), evolutionPeriod);
+    }, [periodSeries, selectedPeriod.performance.returnPercent, benchmarkLine, benchmarkHasPeriodBase, evolutionPeriod]);
 
     const evolutionSeries = periodSeries;
     const selectedPeriodPerformance = selectedPeriod.performance;
@@ -420,7 +444,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                         <div className="portfolio-excel-insights__panel-heading">
                             <div>
                                 <h3><BarChart3 size={16} /> Comparativa automática</h3>
-                                <p>{benchmarkUsesWorkbook ? 'Fuente: hoja Comparativa.' : `${BENCHMARK_NAME} (${BENCHMARK_ISIN}).`}</p>
+                                <p>{benchmarkUsesWorkbook ? 'Fuente: hoja Comparativa.' : benchmarkUsesExtension ? 'Fuente: Comparativa y valores liquidativos del fondo.' : `${BENCHMARK_NAME} (${BENCHMARK_ISIN}).`}</p>
                             </div>
                             <div className="portfolio-excel-insights__panel-actions">
                                 <div className="portfolio-excel-insights__periods" role="group" aria-label="Periodo de benchmark">
@@ -451,6 +475,11 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                 : 'Falta el cierre inicial del benchmark para comparar este periodo. La gráfica muestra tu cartera.'}
                         </p>}
                         {!hasPortfolioBenchmark && <p className="portfolio-excel-insights__chart-note" role="status">Benchmark sin histórico suficiente para este periodo.</p>}
+                        {['3M', 'YTD', 'ALL'].includes(evolutionPeriod) && <p className="portfolio-excel-insights__chart-note">
+                            Cierres mensuales · mes en curso provisional.
+                            {benchmarkChart.at(-1)?.date.slice(0, 10) !== selectedPeriod.performance.endDate?.slice(0, 10)
+                                && ` Gráfico hasta ${formatChartDate(benchmarkChart.at(-1)?.date ?? '')}; tu rentabilidad superior incluye el ${formatChartDate(selectedPeriod.performance.endDate ?? '')}.`}
+                        </p>}
                         <div className="portfolio-excel-insights__benchmark-kpis">
                             <div><span>Fidelity MSCI World{benchmarkPartial ? ' · datos disponibles' : ''}</span><strong>{percent(benchmarkReturn)}</strong></div>
                             <div><span>Diferencia del periodo</span><strong className={benchmarkDifference === null ? '' : benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'}>{percent(benchmarkDifference).replace('%', ' pp')}</strong></div>
@@ -461,7 +490,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
                                     <XAxis dataKey="timestamp" type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatChartDate} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
                                     <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
-                                    <Tooltip {...tooltipTheme} labelFormatter={label => typeof label === 'string' || typeof label === 'number' ? formatChartDate(label) : ''} formatter={(value: number | string | undefined, name?: string) => [percent(value == null ? null : Number(value)), benchmarkSeriesLabel(name)]} />
+                                    <Tooltip {...tooltipTheme} filterNull={false} labelFormatter={label => typeof label === 'string' || typeof label === 'number' ? formatChartDate(label) : ''} formatter={(value: number | string | undefined, name?: string) => [percent(value == null ? null : Number(value)), benchmarkSeriesLabel(name)]} />
                                     <Legend formatter={(value) => benchmarkSeriesLabel(String(value))} />
                                     <Line type="linear" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} />
                                     {benchmarkHasPeriodBase && <Line type="linear" dataKey="benchmark" name="Fidelity MSCI World" stroke="#3b82f6" strokeWidth={2} dot={false} connectNulls />}

@@ -12,7 +12,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-08 - v6.1.6 - NAV de fondos actualizado y benchmark con fechas explícitas
+### 2026-10-08 - v6.1.7 - NAV de fondos actualizado y benchmark con fechas explícitas
 - Funcionalidad:
   - Conserva en el gráfico el último extremo verificado de la cartera aunque el NAV del benchmark aún no esté disponible para esa fecha, sin arrastrar cotizaciones anteriores.
   - Añade Financial Times como fuente diaria de NAV para fondos, validando el ISIN y la clase antes de aceptar la observación.

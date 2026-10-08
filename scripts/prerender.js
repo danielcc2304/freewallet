@@ -27,6 +27,7 @@ const routes = [
     '/academy/tax',
     '/academy/strategies',
     '/academy/calculators',
+    '/academy/salary-calculator',
     '/academy/risk',
     '/academy/resources',
     '/academy/glossary',

@@ -11,6 +11,7 @@ import { accountingDay } from '../services/portfolioCalendar';
 import {portfolioStorage} from '../services/portfolioCloudStorage';
 import {commitPortfolioState} from '../services/storageService';
 import { readDailyMarketData, dailyQuote } from '../services/dailyMarketData';
+import { reconcileTradePosition } from '../services/portfolioTradeReplay';
 
 function getLatestQuoteAt(assets: Asset[]): Date | null {
     const timestamps = assets
@@ -150,11 +151,17 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
         commitInFlight.current=true;
         try {
             // Capture an imported position before its first sale/edit changes the basis.
+            const previous = getAssets();
             const ledger = transaction
-                ? normalizePortfolioTransactions(getAssets().filter(a => a.id === transaction.assetId), getTransactions())
+                ? normalizePortfolioTransactions(previous.filter(a => a.id === transaction.assetId), getTransactions())
                 : getTransactions();
-            if (transaction) ledger.unshift({ ...transaction, provenance:transaction.provenance??'trade', id: generateId(), createdAt: new Date().toISOString() });
-            await commitPortfolioState(assets, ledger);
+            let nextAssets = assets;
+            if (transaction) {
+                const operation = { ...transaction, provenance:transaction.provenance??'trade', id: generateId(), createdAt: new Date().toISOString() };
+                ledger.unshift(operation);
+                nextAssets = reconcileTradePosition(previous, assets, ledger, operation);
+            }
+            await commitPortfolioState(nextAssets, ledger);
             dispatch({ type: 'SET_ASSETS', payload: getAssets() });
             dispatch({ type: 'SET_TRANSACTIONS', payload: getTransactions() });
             dispatch({ type: 'SET_STORAGE_ERROR', payload: null });

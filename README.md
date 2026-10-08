@@ -55,6 +55,7 @@ El Excel proporciona posiciones, movimientos e histórico. La actualización dia
 - Guías de acciones, bonos, efectivo, REITs y criptoactivos.
 - Perfil inversor, carteras modelo, asignación de activos, escenarios de crisis y radar/ficha de fondos.
 - Calculadoras de interés compuesto, FIRE, jubilación, fondo de emergencia, bonos, impuestos e inflación.
+- Calculadora de IRPF y sueldo neto 2026: nómina en 12/14 pagas, Seguridad Social, circunstancias familiares, estimación individual de renta por comunidad y comparación de escenarios. Consulta el [alcance del cálculo](docs/salary-calculator.md).
 - **Reto: Market Timing vs DCA**: tres rondas de 30 segundos, compras y ventas parciales, órdenes con demora y límite de operaciones. Ambas estrategias incluyen efectivo y costes; se requieren dos rondas ganadas y al menos 100 € de ventaja acumulada. Son mercados simulados, no una predicción de resultados reales.
 
 ### Noticias

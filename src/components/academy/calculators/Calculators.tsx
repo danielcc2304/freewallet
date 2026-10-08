@@ -14,11 +14,17 @@ export function Calculators() {
             </AcademyPageHeader>
 
             <div className="calculators__disclaimer">
-                ⚠️ <strong>Importante:</strong> Estas calculadoras asumen rentabilidades constantes, lo cual no refleja
-                la realidad del mercado. Úsalas solo como herramientas educativas y orientativas.
+                Las simulaciones son orientativas. En las proyecciones de inversión se asumen rentabilidades constantes;
+                cada herramienta detalla sus reglas y alcance.
             </div>
 
             <div className="calculators__grid">
+                <Link to="/academy/salary-calculator" className="calculators__card calculators__card--available">
+                    <div className="calculators__card-icon calculators__card-icon--blue"><Receipt size={32} /></div>
+                    <h3 className="calculators__card-title">IRPF y Sueldo Neto</h3>
+                    <p className="calculators__card-description">Calcula cuánto recibes a partir de tu bruto y tu situación familiar.</p>
+                    <ul className="calculators__card-features"><li>✓ Neto en 12 y 14 pagas</li><li>✓ IRPF y Seguridad Social</li><li>✓ Estimación de renta por comunidad</li><li>✓ Comparación de escenarios</li></ul>
+                </Link>
                 {/* Compound Interest - IMPLEMENTED */}
                 <Link to="/academy/compound-interest" className="calculators__card calculators__card--available">
                     <div className="calculators__card-icon calculators__card-icon--green">

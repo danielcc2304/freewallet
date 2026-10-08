@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useState, useEffect, useLayoutEffect, useRef } from 'react';
+import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
+import type { DashboardNavigationContext } from '../../components/layout/MainLayout/dashboardNavigation';
 import axios from 'axios';
 import { Search, Coins, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp, Wrench, Loader2 } from 'lucide-react';
 import { Card, CardHeader, CardContent, Input, Button } from '../../components/ui';
@@ -57,6 +58,16 @@ function getLocalPredictions(query: string): SearchResult[] {
 export function AddInvestment() {
     const navigate = useNavigate();
     const location = useLocation();
+    const { dashboardReturn } = useOutletContext<DashboardNavigationContext>();
+    const returnToDashboard = () => {
+        if (dashboardReturn && location.state?.dashboardReturnKey === dashboardReturn.key) {
+            navigate(-1);
+        } else {
+            window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+            navigate('/', { replace: true });
+        }
+    };
+    useLayoutEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }, []);
     const { addAsset, updateAsset, sellAsset } = usePortfolio();
 
     // Check modes
@@ -493,7 +504,7 @@ export function AddInvestment() {
             setSubmitSuccess(true);
 
             setTimeout(() => {
-                navigate('/');
+                returnToDashboard();
             }, 1500);
         } catch (error) {
             setErrors(prev => ({ ...prev, save: error instanceof Error ? error.message : 'No se pudieron guardar los cambios.' }));
@@ -553,7 +564,7 @@ export function AddInvestment() {
             <div className="add-investment__header">
                 <Button
                     variant="ghost"
-                    onClick={() => navigate('/')}
+                    onClick={returnToDashboard}
                     icon={<ArrowLeft size={18} />}
                 >
                     Volver
@@ -793,7 +804,7 @@ export function AddInvestment() {
                             <Button
                                 type="button"
                                 variant="secondary"
-                                onClick={() => navigate('/')}
+                                onClick={returnToDashboard}
                             >
                                 Cancelar
                             </Button>

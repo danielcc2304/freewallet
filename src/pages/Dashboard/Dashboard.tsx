@@ -1,10 +1,12 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio, Wrench, GraduationCap, Settings, FileSpreadsheet } from 'lucide-react';
 import { PortfolioSummary } from '../../components/dashboard/PortfolioSummary';
 import { PortfolioDataQuality } from '../../components/dashboard/PortfolioDataQuality';
 import { Performers } from '../../components/dashboard/Performers';
 import { AssetsTable } from '../../components/dashboard/AssetsTable';
+import type { AssetsTableViewState } from '../../components/dashboard/AssetsTable';
+import type { DashboardNavigationContext } from '../../components/layout/MainLayout/dashboardNavigation';
 import { PortfolioExcelInsights } from '../../components/dashboard/PortfolioExcelInsights';
 import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan';
 import { PortfolioComposition } from '../../components/dashboard/PortfolioComposition';
@@ -75,10 +77,22 @@ function DashboardLiveStatus({
 
 export function Dashboard() {
     useLocalDataVersion();
-    const [dashboardPeriod, setDashboardPeriod] = useState<TimePeriod>('ALL');
+    const location = useLocation();
+    const { dashboardReturn, setDashboardReturn } = useOutletContext<DashboardNavigationContext>();
+    const [returnSnapshot] = useState(() => dashboardReturn?.key === location.key ? dashboardReturn : null);
+    const [dashboardPeriod, setDashboardPeriod] = useState<TimePeriod>(returnSnapshot?.period ?? 'ALL');
+    const tableViewState = useRef(returnSnapshot?.table);
+    const scrollRestored = useRef(false);
+    const rememberTableView = useCallback((view: AssetsTableViewState) => { tableViewState.current = view; }, []);
     const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
     const account=useAccount();
     const { assets, loading, updatingPrices, quoteFailures } = state;
+    useLayoutEffect(() => {
+        if (loading || !returnSnapshot || scrollRestored.current) return;
+        // Restore after the actual table (including expanded records) has mounted.
+        window.scrollTo({ left: returnSnapshot.scrollX, top: returnSnapshot.scrollY, behavior: 'instant' });
+        scrollRestored.current = true;
+    }, [loading, returnSnapshot]);
     const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
     const [selectedHolding, setSelectedHolding] = useState<{
         holding: AssetHolding;
@@ -159,17 +173,22 @@ export function Dashboard() {
         };
     }, []);
 
+    const openOperation = useCallback((mode: 'editAsset' | 'dcaAsset' | 'sellAsset', asset: Asset) => {
+        setDashboardReturn({ key: location.key, scrollX: window.scrollX, scrollY: window.scrollY, period: dashboardPeriod, table: tableViewState.current });
+        navigate('/add', { state: { [mode]: asset, dashboardReturnKey: location.key } });
+    }, [navigate, setDashboardReturn, location.key, dashboardPeriod]);
+
     const handleEditAsset = useCallback((asset: Asset) => {
-        navigate('/add', { state: { editAsset: asset } });
-    }, [navigate]);
+        openOperation('editAsset', asset);
+    }, [openOperation]);
 
     const handleAddPurchase = useCallback((asset: Asset) => {
-        navigate('/add', { state: { dcaAsset: asset } });
-    }, [navigate]);
+        openOperation('dcaAsset', asset);
+    }, [openOperation]);
 
     const handleSell = useCallback((asset: Asset) => {
-        navigate('/add', { state: { sellAsset: asset } });
-    }, [navigate]);
+        openOperation('sellAsset', asset);
+    }, [openOperation]);
 
     const handleViewDetails = useCallback((asset: Asset) => {
         setSelectedHolding(null);
@@ -334,6 +353,8 @@ export function Dashboard() {
             </details>}
             <section className="dashboard__section">
                 <AssetsTable
+                    initialViewState={returnSnapshot?.table}
+                    onViewStateChange={rememberTableView}
                     now={calculationNow}
                     assets={assets}
                     onDelete={deleteAsset}

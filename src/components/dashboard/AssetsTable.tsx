@@ -1,4 +1,4 @@
-import { Fragment, memo, useId, useState, useMemo } from 'react';
+import { Fragment, memo, useId, useState, useMemo, useLayoutEffect } from 'react';
 import { ArrowUpDown, Trash2, ChevronUp, ChevronDown, Eye, EyeOff, Pencil, PencilOff, PlusCircle, MinusCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../ui';
 import type { Asset } from '../../types/types';
@@ -15,10 +15,23 @@ interface AssetsTableProps {
     onAddPurchase?: (asset: Asset) => void;
     onSell?: (asset: Asset) => void;
     onViewDetails?: (asset: Asset) => void;
+    initialViewState?: AssetsTableViewState;
+    onViewStateChange?: (state: AssetsTableViewState) => void;
 }
 
 type SortKey = 'symbol' | 'value' | 'change' | 'weight' | 'today';
 type SortDirection = 'asc' | 'desc';
+
+export interface AssetsTableViewState {
+    query: string;
+    assetType: Asset['type'] | 'all';
+    sortKey: SortKey;
+    sortDirection: SortDirection;
+    showMobileDetails: boolean;
+    showMobileActions: boolean;
+    grouped: boolean;
+    expandedGroups: string[];
+}
 
 function SortIcon({ column, sortKey, sortDirection }: { column: SortKey; sortKey: SortKey; sortDirection: SortDirection }) {
     if (sortKey !== column) {
@@ -31,19 +44,22 @@ function SortIcon({ column, sortKey, sortDirection }: { column: SortKey; sortKey
     );
 }
 
-export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(), onDelete, onEdit, onAddPurchase, onSell, onViewDetails }: AssetsTableProps) {
+export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(), onDelete, onEdit, onAddPurchase, onSell, onViewDetails, initialViewState, onViewStateChange }: AssetsTableProps) {
     const filterId = useId();
-    const [query, setQuery] = useState('');
-    const [assetType, setAssetType] = useState<Asset['type'] | 'all'>('all');
-    const [sortKey, setSortKey] = useState<SortKey>('value');
-    const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
+    const [query, setQuery] = useState(initialViewState?.query ?? '');
+    const [assetType, setAssetType] = useState<Asset['type'] | 'all'>(initialViewState?.assetType ?? 'all');
+    const [sortKey, setSortKey] = useState<SortKey>(initialViewState?.sortKey ?? 'value');
+    const [sortDirection, setSortDirection] = useState<SortDirection>(initialViewState?.sortDirection ?? 'desc');
     const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
     const [deleteError,setDeleteError]=useState('');
     const [deleting,setDeleting]=useState(false);
-    const [showMobileDetails, setShowMobileDetails] = useState(false);
-    const [showMobileActions, setShowMobileActions] = useState(false);
-    const [grouped,setGrouped] = useState(true);
-    const [expandedGroups,setExpandedGroups] = useState<Set<string>>(new Set());
+    const [showMobileDetails, setShowMobileDetails] = useState(initialViewState?.showMobileDetails ?? false);
+    const [showMobileActions, setShowMobileActions] = useState(initialViewState?.showMobileActions ?? false);
+    const [grouped,setGrouped] = useState(initialViewState?.grouped ?? true);
+    const [expandedGroups,setExpandedGroups] = useState<Set<string>>(() => new Set(initialViewState?.expandedGroups));
+    useLayoutEffect(() => {
+        onViewStateChange?.({ query, assetType, sortKey, sortDirection, showMobileDetails, showMobileActions, grouped, expandedGroups: [...expandedGroups] });
+    }, [query, assetType, sortKey, sortDirection, showMobileDetails, showMobileActions, grouped, expandedGroups, onViewStateChange]);
     const hasActionHandlers = Boolean(onDelete || onEdit || onAddPurchase || onSell);
 
     const totalValue = assets.reduce(

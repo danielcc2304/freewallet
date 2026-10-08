@@ -26,7 +26,8 @@ try {
     const block = (name:string)=>page.$$eval('.portfolio-excel-insights__blocks .portfolio-excel-insights__leader-row',(rows,name)=>rows.find(row=>row.querySelector('strong')?.textContent===name)?.textContent || '',name);
     await page.goto(origin,{waitUntil:'networkidle2'});
     await openAllocation();
-    assert.equal(await page.$eval('[role="switch"]',el=>(el as HTMLInputElement).checked),false);
+    assert.equal(await page.$eval('[role="switch"]',el=>(el as HTMLInputElement).checked),true);
+    await page.click('[role="switch"]');
     const ledger=await page.evaluate(()=>localStorage.getItem('freewallet_portfolio_v1'));
     await page.click('.portfolio-excel-insights__block-categories summary');
     await page.select('select[aria-label="Categoría de Fondo mixto de prueba"]','Renta fija');
@@ -41,7 +42,13 @@ try {
     await openAllocation();
     assert.equal(await page.$eval('[role="switch"]',el=>(el as HTMLInputElement).checked),false);
     assert.match(await block('Renta fija'),/100%1\.?000/);
+    await page.$$eval('.portfolio-excel-insights__tabs button',buttons=>(buttons.find(b=>b.textContent?.includes('Benchmark')) as HTMLElement).click());
+    await page.waitForSelector('[role="switch"]');
+    assert.equal(await page.$eval('[role="switch"]',el=>(el as HTMLInputElement).checked),false);
+    await page.click('[role="switch"]');
+    await openAllocation();
+    assert.equal(await page.$eval('[role="switch"]',el=>(el as HTMLInputElement).checked),true);
     assert.equal(await page.evaluate(()=>localStorage.getItem('freewallet_portfolio_v1')),ledger);
     assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
-    console.log('PASS: default whole-fund mode, manual 100% RF, toggle, preference persistence, unchanged positions and mobile layout.');
+    console.log('PASS: default breakdown, shared benchmark/allocation switch, manual 100% RF, toggle, preference persistence, unchanged positions and mobile layout.');
 } finally {await browser.close();}

@@ -142,11 +142,15 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const [benchmarkHistoryByIsin, setBenchmarkHistoryByIsin] = useState<Record<string, HistoricalDataPoint[]>>({});
     const [wholeFundBlocksByIsin, setWholeFundBlocksByIsin] = useState<Record<string, BlockAllocation | null>>({});
     const [blockSettingsError, setBlockSettingsError] = useState('');
-    const blockSettings = useMemo(() => { void analytics.localRevision; return getSettings().allocationBlocks ?? { lookThrough: false, categories: {} }; }, [analytics.localRevision]);
+    const blockSettings = useMemo(() => { void analytics.localRevision; return getSettings().allocationBlocks ?? { lookThrough: true, categories: {} }; }, [analytics.localRevision]);
     const changeBlockSettings = (next: typeof blockSettings) => {
         try { updateSettings({ allocationBlocks: next }); setBlockSettingsError(''); }
         catch (error) { setBlockSettingsError(error instanceof Error ? error.message : 'No se pudo guardar.'); }
     };
+    const fundBreakdownSwitch = (subtle = false) => <label className={`portfolio-excel-insights__block-toggle${subtle ? ' is-subtle' : ''}`}>
+        <input type="checkbox" role="switch" checked={blockSettings.lookThrough} onChange={event => changeBlockSettings({ ...blockSettings, lookThrough: event.target.checked })} />
+        <span className="portfolio-excel-insights__switch-track" aria-hidden="true"><span /></span><span>Desglosar fondos</span>
+    </label>;
     const [fundBlocksByIsin, setFundBlocksByIsin] = useState<Record<string, BlockAllocation | null>>({});
     const [fundAllocationsByIsin, setFundAllocationsByIsin] = useState<Record<string, FundBenchmarkAllocation | null>>({});
     const changeTab=(next:InsightTab)=>{
@@ -171,7 +175,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         const isin = benchmarkFundIsin(asset);
         return isin ? [isin] : [];
     }))].sort());
-    const benchmarkWeights = useMemo(() => portfolioBenchmarkWeights(assets, fundAllocationsByIsin), [assets, fundAllocationsByIsin]);
+    const benchmarkWeights = useMemo(() => portfolioBenchmarkWeights(assets, fundAllocationsByIsin, { ...blockSettings, wholeFunds: wholeFundBlocksByIsin }), [assets, fundAllocationsByIsin, blockSettings, wholeFundBlocksByIsin]);
     const pendingFundIsins = (JSON.parse(fundIsinSignature) as string[])
         .filter(isin => !Object.prototype.hasOwnProperty.call(fundAllocationsByIsin, isin));
     const benchmarkClassificationPending = tab === 'benchmark' && benchmarkMode === 'allocation'
@@ -581,6 +585,8 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                 </div>
                             </div>
                         </div>
+                        {benchmarkMode === 'allocation' && fundBreakdownSwitch(true)}
+                        {benchmarkMode === 'allocation' && blockSettingsError && <p role="alert">{blockSettingsError}</p>}
                         {benchmarkMode === 'allocation' && <p className="portfolio-excel-insights__chart-note">
                             Pesos de la composición actual. El tramo Groupama incluye renta fija y liquidez.
                             {benchmarkClassificationPending
@@ -639,7 +645,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                     <section className="portfolio-excel-insights__allocation">
                         <div className="portfolio-excel-insights__mini-chart portfolio-excel-insights__blocks">
                             <h3><Layers3 size={16} /> Asignación por bloques</h3>
-                            <label className="portfolio-excel-insights__block-toggle"><input type="checkbox" role="switch" checked={blockSettings.lookThrough} onChange={event => changeBlockSettings({ ...blockSettings, lookThrough: event.target.checked })} /> Desglosar fondos</label>
+                            {fundBreakdownSwitch()}
                             {!blockSettings.lookThrough && assets.some(asset => asset.type === 'fund' || asset.type === 'etf') && <details className="portfolio-excel-insights__block-categories">
                                 <summary>Categorizar fondos</summary>
                                 {[...new Map(assets.filter(asset => asset.type === 'fund' || asset.type === 'etf').map(asset => [blockFundKey(asset), asset])).values()].map(asset => <label key={blockFundKey(asset)}>

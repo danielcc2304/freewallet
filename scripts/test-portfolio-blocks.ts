@@ -1,3 +1,4 @@
+import { portfolioBenchmarkWeights } from '../src/services/portfolioBenchmark';
 import assert from 'node:assert/strict';
 import { fundBlockAllocation, portfolioBlocks } from '../src/services/portfolioBlocks';
 import type { Asset } from '../src/types/types';
@@ -36,3 +37,8 @@ const detailed = portfolioBlocks(assets, {'IE00BYX5NX33':fund}, {...manual,lookT
 assert.equal(detailed.rows.find(row=>row.name==='Renta fija')?.value,30);
 assert.equal(detailed.rows.find(row=>row.name==='Renta variable')?.value,160);
 assert.equal(detailed.total,overridden.total);
+
+const mixedBenchmark = {'IE00BYX5NX33':{equityPercent:60,unclassifiedPercent:5,source:'breakdown' as const}};
+assert.equal(portfolioBenchmarkWeights(assets,mixedBenchmark,{...manual,lookThrough:true}).equityPercent,32);
+assert.equal(portfolioBenchmarkWeights(assets,mixedBenchmark,manual).equityPercent,20);
+assert.equal(portfolioBenchmarkWeights(assets,mixedBenchmark,{...manual,categories:{'IE00BYX5NX33':'Renta variable'}}).equityPercent,40);

@@ -14,7 +14,8 @@ import { AssetDetail } from '../../components/dashboard/AssetDetail';
 import { UnderlyingAssetDetail } from '../../components/dashboard/UnderlyingAssetDetail';
 import { Button, Card, CardContent, Modal, PageHeader } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
-import { isApiEnabled } from '../../services/storageService';
+import { isApiEnabled, getConfirmedRecordCorrections } from '../../services/storageService';
+import {correctDeletedRecord} from '../../services/deletedRecordCorrections';
 import type { PortfolioMetrics, PerformerData, Asset, AssetHolding, TimePeriod } from '../../types/types';
 import { calculatePreviousClosePerformance, selectPortfolioPeriod, accountingDay } from '../../services/portfolioPerformance';
 import { calculatePortfolioResults } from '../../services/portfolioResults';
@@ -204,7 +205,8 @@ export function Dashboard() {
     }, [assets]);
 
     const metrics: PortfolioMetrics = useMemo(() => {
-        const results = calculatePortfolioResults(assets, analytics.portfolioTransactions, calculationNow);
+        void analytics.localRevision;
+        const results = calculatePortfolioResults(assets, analytics.portfolioTransactions, calculationNow,getConfirmedRecordCorrections());
 
         const periodChange = (periodName: TimePeriod, source: ReturnType<typeof performanceSeries>) => {
             const { performance: period, monthlyBase, incompleteSince } = selectPortfolioPeriod(source, periodName, calculationNow);
@@ -248,7 +250,7 @@ export function Dashboard() {
             historyChange: all.change, historyChangePercent: all.percent,
             periodDates: { '1D': historicalDay, '7D': week, '1M': month, '3M': quarter, YTD: ytd, ALL: all },
         };
-    }, [assets, calculationNow, historicalSeries, liveSeries, analytics.portfolioTransactions]);
+    }, [assets, calculationNow, historicalSeries, liveSeries, analytics.portfolioTransactions,analytics.localRevision]);
 
     const performersData: PerformerData[] = useMemo(() => {
         return positionGroups.filter(group=>group.estimatedCount===0 && group.investedValue>0 && group.asset.quantity>0).map((group) => {
@@ -338,10 +340,10 @@ export function Dashboard() {
                 </div>
             )}
 
-            <PortfolioSummary metrics={metrics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} estimatedCount={assets.filter(a => !hasValidPrice(a)).length} />
+            <PortfolioSummary metrics={metrics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} estimatedCount={assets.filter(a => !hasValidPrice(a)).length} onCorrectDeletion={correctDeletedRecord} />
             <PortfolioDataQuality assets={assets} now={calculationNow} quoteFailures={quoteFailures} />
             {account.user && <p className="dashboard__automatic-status" role="status">
-                {analytics.dailyMarket.error || (analytics.dailyMarket.data?.lastRun
+                {analytics.historyError || analytics.dailyMarket.error || (analytics.dailyMarket.data?.lastRun
                     ? `${analytics.dailyMarket.data.lastRun.status === 'success' ? 'Consulta automática' : analytics.dailyMarket.data.lastRun.status === 'running' ? 'Consulta automática en curso' : 'Consulta automática incompleta'} · ${new Date(analytics.dailyMarket.data.lastRun.finishedAt || analytics.dailyMarket.data.lastRun.startedAt).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
                     : 'El histórico diario comenzará con la primera actualización programada.')}
                 {!!analytics.dailyMarket.data?.lastRun?.failures.length && ` ${analytics.dailyMarket.data.lastRun.failures.length} consultas de cartera o benchmark pendientes.`}

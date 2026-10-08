@@ -17,6 +17,7 @@ export interface AppSettings {
     apiEnabled: boolean;
     /** Explicit quote-market choices; positions and their trade ledger stay unchanged. */
     stockQuoteMarkets?: Record<string, string>;
+    discardedPositionRecords?: import('./portfolioResults').DiscardedPositionRecord[];
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
@@ -134,6 +135,11 @@ export function getSettings(): AppSettings {
         console.error('Error reading settings from localStorage');
         return DEFAULT_SETTINGS;
     }
+}
+
+export function getConfirmedRecordCorrections():NonNullable<AppSettings['discardedPositionRecords']> {
+    try {const settings=JSON.parse(portfolioStorage.getConfirmedItem(STORAGE_KEYS.SETTINGS) || '{}');return Array.isArray(settings.discardedPositionRecords) ? settings.discardedPositionRecords : [];}
+    catch {return [];}
 }
 
 function buildBootstrapTransactions(assets: Asset[]): PortfolioTransaction[] {
@@ -322,7 +328,7 @@ export function getPortfolio(): Portfolio {
     const assets = getAssets();
     const history = getHistory();
 
-    const results = calculatePortfolioResults(assets, getTransactions());
+    const results = calculatePortfolioResults(assets, getTransactions(),Date.now(),getConfirmedRecordCorrections());
 
     const daily = calculatePreviousClosePerformance(assets);
     const series = performanceSeries(history, normalizePortfolioTransactions(assets, getTransactions()), assets);

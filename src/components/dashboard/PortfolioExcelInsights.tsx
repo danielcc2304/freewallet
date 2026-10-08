@@ -36,13 +36,10 @@ import { usePortfolio } from '../../context/PortfolioContext';
 import { BENCHMARK_ISIN, BENCHMARK_NAME, dailyHistory } from '../../services/dailyMarketData';
 import { alignedBenchmark, alignImportedBenchmark, chooseBenchmarkLine, selectPortfolioPeriod, workbookRiskStats } from '../../services/portfolioPerformance';
 import { assetValue, hasValidPrice } from '../../services/assetValuation';
-import { readWorkbookBenchmarkHistory } from '../../services/portfolioWorkbookHistory';
+import { archiveBenchmarkHistory } from '../../services/portfolioHistoryArchive';
 import './PortfolioExcelInsights.css';
 import type { DashboardAnalytics } from './useDashboardAnalytics';
 import { latestContinuousMonths } from '../../services/dashboardHistory';
-import { parseAdvancedStats } from '../../pages/PortfolioCsv/portfolioCsvUtils';
-import { readStoredValue } from '../../pages/PortfolioCsv/portfolioCsvStorage';
-import { STORAGE_KEYS } from '../../pages/PortfolioCsv/portfolioCsvConstants';
 import { WORKBOOK_RISK_FREE_ANNUAL_PCT } from '../../services/portfolioRisk';
 import { positionLotCounts } from '../../services/dashboardIntegrity';
 import { getAssetChartData } from '../../services/apiService';
@@ -124,8 +121,10 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const [tab, setTab] = useState<InsightTab>('evolution');
     const tabId = useId();
         const [linkError, setLinkError] = useState('');
-    const { workbookHistory, usingWorkbookHistory, portfolioTransactions, history, series, monthly, hasEstimates } = analytics;
-    const workbookBenchmarkHistory = useMemo(() => { void analytics.localRevision; return readWorkbookBenchmarkHistory(); }, [analytics.localRevision]);
+    const { historicalHistory, hasArchivedHistory, portfolioTransactions, history, series, monthly, hasEstimates } = analytics;
+    const historicalMonthlyCount=historicalHistory.points.filter(p=>p.cadence==='monthly').length;
+    const historicalDailyCount=historicalHistory.points.filter(p=>p.cadence==='daily').length;
+    const workbookBenchmarkHistory = analytics.archive.benchmarkReturns;
     const [benchmarkHistory, setBenchmarkHistory] = useState<HistoricalDataPoint[]>([]);
     const apiEnabled = isApiEnabled();
     const benchmarkHistoryStart = series[0]?.timestamp;
@@ -139,8 +138,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
             .catch(() => { /* Keep imported and batch data on provider failure. */ });
         return () => controller.abort();
     }, [tab, apiEnabled, lastPriceUpdate, benchmarkHistoryStart, now]);
-    const advancedRaw = readStoredValue(STORAGE_KEYS.advancedRaw, '');
-    const riskFreeAnnual = useMemo(() => parseAdvancedStats(advancedRaw).riskFreeAnnualPct ?? WORKBOOK_RISK_FREE_ANNUAL_PCT, [advancedRaw]);
+    const riskFreeAnnual = analytics.archive.riskFreeAnnualPct ?? WORKBOOK_RISK_FREE_ANNUAL_PCT;
 
     const totalValue = useMemo(
         () => assets.reduce((sum, asset) => sum + assetValue(asset), 0),
@@ -232,8 +230,8 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const workbookBenchmarkLine = useMemo(() => {
         return alignImportedBenchmark(periodSeries, workbookBenchmarkHistory);
     }, [periodSeries, workbookBenchmarkHistory]);
-    const benchmark = useMemo(() => [...benchmarkHistory, ...dailyHistory(analytics.dailyMarket.data, BENCHMARK_ISIN)]
-        .filter(point => (point.timestamp ?? Date.parse(point.date)) <= now && (!point.currency || point.currency === 'EUR')), [benchmarkHistory, analytics.dailyMarket.data, now]);
+    const benchmark = useMemo(() => [...benchmarkHistory, ...archiveBenchmarkHistory(analytics.archive,BENCHMARK_ISIN), ...dailyHistory(analytics.dailyMarket.data, BENCHMARK_ISIN)]
+        .filter(point => (point.timestamp ?? Date.parse(point.date)) <= now && (!point.currency || point.currency === 'EUR')), [benchmarkHistory, analytics.archive, analytics.dailyMarket.data, now]);
     const automaticLine = useMemo(() => alignedBenchmark(periodSeries, benchmark), [periodSeries, benchmark]);
     const extendedLine = useMemo(() => alignedBenchmark(periodSeries, extendImportedBenchmark(workbookBenchmarkHistory, benchmark)), [periodSeries, workbookBenchmarkHistory, benchmark]);
     const benchmarkLine = useMemo(() => chooseBenchmarkLine(periodSeries, automaticLine,
@@ -307,8 +305,8 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         { label: 'Registros con identificador duplicado', value: lots.duplicateIds, ok: lots.duplicateIds === 0 },
         { label: 'Cantidades o precios inválidos', value: invalidPositions, ok: invalidPositions === 0 },
         { label: 'Consultas pendientes', value: stale, ok: stale === 0 },
-        { label: 'Histórico utilizado', value: usingWorkbookHistory
-            ? `${workbookHistory.evolutionCount} cierres · ${workbookHistory.dcaCount} flujos Excel`
+        { label: 'Histórico utilizado', value: hasArchivedHistory
+            ? `${historicalHistory.points.length} valoraciones · ${historicalHistory.dcaCount} flujos registrados`
             : `${history.length} registros${hasEstimates ? ' · incluye estimaciones' : ' verificados'}`, ok: history.length >= 2 },
         { label: 'Snapshots en vivo', value: `${history.filter(p => p.source === 'quotes-v2').length}`, ok: history.filter(p => p.source === 'quotes-v2').length >= 2 },
         { label: 'Operaciones registradas', value: transactions.length, ok: transactions.length > 0 },
@@ -317,27 +315,27 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
 
     return (
         <Card className="portfolio-excel-insights">
-            <CardHeader title="Análisis avanzado" subtitle={usingWorkbookHistory
-                ? 'Cartera actual e histórico del Excel'
+            <CardHeader title="Análisis avanzado" subtitle={hasArchivedHistory
+                ? 'Cartera actual e histórico guardado'
                 : hasEstimates ? 'Incluye histórico estimado' : 'Histórico verificado'} />
             <CardContent>
-                {usingWorkbookHistory && !analytics.workbookLinked && <div className="portfolio-excel-insights__workbook-notice" role="status">
+                {hasArchivedHistory && !analytics.historyLinked && <div className="portfolio-excel-insights__workbook-notice" role="status">
                     <AlertTriangle size={20} aria-hidden="true" />
-                    <div><strong>Vincular el histórico del Excel</strong><p>Confirma que el histórico importado pertenece a estas posiciones para continuar su evolución con las valoraciones diarias.</p></div>
-                    <button type="button" onClick={() => { try { analytics.linkWorkbook(); setLinkError(''); } catch { setLinkError('No se ha podido guardar la vinculación del histórico.'); } }}>Usar este histórico</button>
+                    <div><strong>Vincular el histórico</strong><p>Confirma que el histórico importado pertenece a estas posiciones para continuar su evolución con las valoraciones diarias.</p></div>
+                    <button type="button" onClick={() => { try { analytics.linkHistory(); setLinkError(''); } catch { setLinkError('No se ha podido guardar la vinculación del histórico.'); } }}>Usar este histórico</button>
                 </div>}
                 {linkError && <p className="portfolio-excel-insights__link-error" role="alert">{linkError}</p>}
                 <p className="portfolio-excel-insights__chart-note" role="status">
-                    {usingWorkbookHistory
-                        ? `Excel · ${workbookHistory.evolutionCount} cierres mensuales · ${formatHistoryDate(workbookHistory.startDate)}–${formatHistoryDate(workbookHistory.endDate)}`
+                    {hasArchivedHistory
+                        ? `Histórico · ${historicalMonthlyCount ? `${historicalMonthlyCount} cierres mensuales` : `${historicalDailyCount} valoraciones diarias`} · ${formatHistoryDate(historicalHistory.startDate)}–${formatHistoryDate(historicalHistory.endDate)}`
                         : history.length
                             ? `Seguimiento verificado desde ${formatHistoryDate(series[0]?.date)}.`
                             : 'Pendiente de una actualización completa de cotizaciones.'}
                 </p>
-                {(usingWorkbookHistory || history.length > 0) && <details className="portfolio-excel-insights__history-details">
+                {(hasArchivedHistory || history.length > 0) && <details className="portfolio-excel-insights__history-details">
                     <summary>Detalles del histórico</summary>
-                    <p>{usingWorkbookHistory
-                        ? `${workbookHistory.dailyCount} registros diarios · ${workbookHistory.dcaCount} flujos sin duplicar. Los datos sin fecha exacta se conservan como resúmenes mensuales.`
+                    <p>{hasArchivedHistory
+                        ? `${historicalDailyCount} valoraciones diarias · ${historicalHistory.dcaCount} flujos sin duplicar. Los datos sin fecha exacta se conservan como resúmenes mensuales.`
                         : 'El histórico antiguo se conserva. Solo las valoraciones con posiciones y origen identificados se usan para calcular retornos.'}</p>
                 </details>}
                 <div className="portfolio-excel-insights__kpis">
@@ -384,8 +382,8 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                         <div className="portfolio-excel-insights__panel-heading">
                             <div>
                                 <h3><CalendarClock size={16} /> Evolución registrada de la cartera</h3>
-                                <p>{usingWorkbookHistory
-                                    ? 'Cierres mensuales y continuación diaria del Excel. Los movimientos con fecha exacta se aplican ese día; los resúmenes mensuales, al cierre.'
+                                <p>{hasArchivedHistory
+                                    ? 'Cierres mensuales y valoraciones diarias. Los movimientos con fecha exacta se aplican ese día; los resúmenes mensuales, al cierre.'
                                     : 'Valoraciones completas guardadas con tus cotizaciones y operaciones.'}</p>
                             </div>
                             <div className="portfolio-excel-insights__panel-actions">
@@ -444,7 +442,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                         <div className="portfolio-excel-insights__panel-heading">
                             <div>
                                 <h3><BarChart3 size={16} /> Comparativa automática</h3>
-                                <p>{benchmarkUsesWorkbook ? 'Fuente: hoja Comparativa.' : benchmarkUsesExtension ? 'Fuente: Comparativa y valores liquidativos del fondo.' : `${BENCHMARK_NAME} (${BENCHMARK_ISIN}).`}</p>
+                                <p>{benchmarkUsesWorkbook ? 'Fuente: histórico importado.' : benchmarkUsesExtension ? 'Fuente: histórico y valores liquidativos del fondo.' : `${BENCHMARK_NAME} (${BENCHMARK_ISIN}).`}</p>
                             </div>
                             <div className="portfolio-excel-insights__panel-actions">
                                 <div className="portfolio-excel-insights__periods" role="group" aria-label="Periodo de benchmark">

@@ -1,3 +1,4 @@
+import { migrateLegacyPortfolioHistory } from '../../services/imports/portfolioHistoryImport';
 import { portfolioStorage } from '../../services/portfolioCloudStorage';
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -310,6 +311,7 @@ export function PortfolioCsv() {
             portfolioStorage.setItem(STORAGE_KEYS.updatedAt, updatedAt);
             portfolioStorage.setItem(STORAGE_KEYS.categoryOverrides, JSON.stringify(categoryOverrides));
             portfolioStorage.setItem(STORAGE_KEYS.bucketTargets, JSON.stringify(bucketTargets));
+            migrateLegacyPortfolioHistory(true);
             window.dispatchEvent(new Event('freewallet-data-change'));
         } catch {
             // localStorage puede fallar en modo privado o por limites de cuota.

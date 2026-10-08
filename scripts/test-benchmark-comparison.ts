@@ -35,3 +35,26 @@ const missing = benchmarkChartCadence(chart.map(p=>p.date.startsWith('2026-10')?
 assert.equal(missing.at(-1)?.date,'2026-10-08');
 assert.equal(missing.at(-1)?.benchmark,null,'An unavailable current-month benchmark remains unavailable');
 console.log('PASS: anchored October NAV, homogeneous monthly cadence, daily short ranges, missing observations and unchanged full-period return.');
+const unresolved=performanceSeries([
+    ...dates.map((date,i)=>({date,value:1000+i*10,invested:1000,cadence:'monthly' as const})),
+    ...['2026-10-05','2026-10-06','2026-10-07','2026-10-08'].map((date,i)=>({date,value:1091+i,invested:1000,cadence:'daily' as const,returnUnavailable:i===3})),
+],[],[],{maxGapDays:45});
+for(const period of ['1D','7D','1M','3M','YTD','ALL'] as const){
+    const verified=selectPortfolioPeriod(unresolved,period,Date.parse('2026-10-08T21:00:00Z'));
+    assert.notEqual(verified.performance.returnPercent,null,period+' retains a real verified interval');
+    assert.equal(verified.performance.endDate,'2026-10-07');
+    assert.equal(verified.incompleteSince,'2026-10-08');
+    assert.ok(verified.points.length>=2,period+' remains drawable');
+    assert.equal(verified.points.at(-1)?.date,'2026-10-07');
+}
+console.log('PASS: all six benchmark periods preserve verified, explicitly dated intervals after an unresolved close.');
+const resumed=performanceSeries([
+    ...dates.map((date,i)=>({date,value:1000+i*10,invested:1000,cadence:'monthly' as const})),
+    ...['2026-10-05','2026-10-06','2026-10-07','2026-10-08','2026-10-09'].map((date,i)=>({date,value:1091+i,invested:1000,cadence:'daily' as const,returnUnavailable:i===3})),
+],[],[],{maxGapDays:45});
+for(const period of ['1M','3M','YTD','ALL'] as const){
+    const selection=selectPortfolioPeriod(resumed,period,Date.parse('2026-10-09T21:00:00Z'));
+    assert.equal(selection.performance.endDate,'2026-10-07',period+' remains available when subsequent valid observations resume');
+    assert.equal(selection.incompleteSince,'2026-10-08');
+    assert.ok(selection.points.every(p=>p.date<'2026-10-08'),'Never join indices across the unresolved interval');
+}

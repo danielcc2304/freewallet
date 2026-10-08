@@ -197,7 +197,7 @@ export function performanceSeries(history: PortfolioHistoryPoint[], transactions
         const flow = operations.reduce((sum, t) => sum + transactionFlow(t), 0);
         const gap = previous ? (Date.parse(date) - Date.parse(previous[0])) / DAY_MS : 0;
         const unexplainedCostChange = previous && !operations.length && Math.abs(point.invested - previous[1].invested) > 0.01;
-        const ambiguousCashFlow = includesCash && operations.some(t => t.assetId !== 'workbook-history' && (t.type === 'buy' || t.type === 'sell'));
+        const ambiguousCashFlow = includesCash && operations.some(t => !['workbook-history','historical-cash-flow'].includes(t.assetId) && (t.type === 'buy' || t.type === 'sell'));
         // ALL-period market candles are weekly; allow a holiday fortnight but
         // still reject monthly/unknown gaps that would fabricate a return.
         const intervalGap = point.cadence === 'daily' ? Math.min(maxGapDays, 8) : point.cadence === 'monthly' ? 45 : maxGapDays;
@@ -234,7 +234,8 @@ export function calculatePeriodPerformance(series: ReturnType<typeof performance
 }
 
 /** Shared real base and coverage for summary, evolution and benchmark. */
-export function selectPortfolioPeriod(series: ReturnType<typeof performanceSeries>, period: TimePeriod, now: number) {
+interface PortfolioPeriodSelection {points:ReturnType<typeof performanceSeries>;performance:ReturnType<typeof calculatePeriodPerformance>;cutoff:number|null;monthlyBase:boolean;incompleteSince:string|null}
+export function selectPortfolioPeriod(series: ReturnType<typeof performanceSeries>, period: TimePeriod, now: number):PortfolioPeriodSelection {
     const cutoff = getPeriodCutoff(period, now);
     const available = series.filter(p => p.timestamp <= now);
     const previous = cutoff === null ? available[0] : available.filter(p => p.timestamp <= cutoff).at(-1);
@@ -249,16 +250,28 @@ export function selectPortfolioPeriod(series: ReturnType<typeof performanceSerie
     const base = nearbyBase || (monthlyBase ? previous : undefined);
     const points = base ? available.filter(p => p.timestamp >= base.timestamp) : available.filter(p => cutoff === null || p.timestamp >= cutoff);
     const performance = calculatePeriodPerformance(available, base?.timestamp ?? cutoff ?? -Infinity, now, period === 'ALL' ? Infinity : 4 * DAY_MS);
-    // A new unresolved operation must not erase the verified year-to-date
-    // history. Keep the same year-opening base, stop before the first unknown
-    // interval, and expose that date so callers label this as the latest known
-    // YTD, never as a return through the current valuation.
+    // An unresolved operation must not erase the verified part of a period.
+    // Keep its real base, stop before the first unknown interval, and expose
+    // that date rather than imply a return through the current valuation.
     const firstUnknown = points.findIndex((point, index) => index > 0 && point.dailyReturn === null);
-    if (period === 'YTD' && base && performance.hasBase && performance.returnPercent === null && firstUnknown > 1) {
+    const recentUnresolvedTail=firstUnknown>0 && now-points[firstUnknown].timestamp<=4*DAY_MS
+        && points.slice(firstUnknown).every(p=>p.dailyReturn===null);
+    if (base && performance.hasBase && performance.returnPercent === null && firstUnknown > 1) {
         const verifiedPoints = points.slice(0, firstUnknown);
         const verified = calculatePeriodPerformance(available, base.timestamp, verifiedPoints.at(-1)!.timestamp);
-        if (verified.returnPercent !== null) {
-            return { points: verifiedPoints, performance: verified, cutoff, monthlyBase: false, incompleteSince: points[firstUnknown].date };
+        const recentEnough=!['1D','7D'].includes(period) || now-verifiedPoints.at(-1)!.timestamp<=4*DAY_MS;
+        if (verified.returnPercent !== null && recentEnough) {
+            return { points: verifiedPoints, performance: verified, cutoff, monthlyBase: !!monthlyBase, incompleteSince: points[firstUnknown].date };
+        }
+    }
+    // For a daily/weekly window starting immediately before an unresolved
+    // close, use the preceding verified window, explicitly dated by callers.
+    if ((period==='1D' || period==='7D') && recentUnresolvedTail && base && performance.hasBase && performance.returnPercent===null && firstUnknown===1) {
+        const prior=available.filter(p=>p.timestamp<points[1].timestamp && (period!=='1D' || now-p.timestamp<=4*DAY_MS));
+        const last=prior.at(-1);
+        if(last && now-last.timestamp<=4*DAY_MS){
+            const verified=selectPortfolioPeriod(prior,period,last.timestamp);
+            if(verified.performance.returnPercent!==null && now-Date.parse(verified.performance.endDate ?? '')<=4*DAY_MS)return {...verified,cutoff,incompleteSince:points[1].date};
         }
     }
     return { points, performance, cutoff, monthlyBase: !!monthlyBase, incompleteSince: null };

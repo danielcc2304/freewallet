@@ -4,7 +4,7 @@ export const PRIVATE_KEYS = [
     'freewallet_portfolio_v1','freewallet_assets','freewallet_transactions',
     'freewallet_history','freewallet_goals','freewallet_watchlist','freewallet_settings',
     'freewallet_theme_mode','freewallet_appearance_mode','freewallet_live_targets_v2','freewallet_live_targets',
-    'freewallet_workbook_link',
+    'freewallet_workbook_link','freewallet_history_archive_v1',
     ...['holdings_raw','evolution_raw','comparison_raw','advanced_raw','daily_raw','movements_raw','objectives_raw',
         'control_raw','workbook_file','updated_at','category_overrides','bucket_targets'].map(key => `freewallet_portfolio_csv_${key}`),
 ] as const;
@@ -92,6 +92,10 @@ export class PortfolioCloudStorage {
             return this.values[key] ?? null;
         }
         return localStorage.getItem(key);
+    }
+    /** Financial annotations affect displayed results only after acknowledgement. */
+    getConfirmedItem(key:string):string|null {
+        return this.cloud && allowed.has(key) ? this.confirmed[key] ?? null : this.getItem(key);
     }
     private writable() {
         if(!['synced','saving'].includes(this.snapshot.status)) throw new Error(this.snapshot.error || 'Abre Mi cuenta para importar o recuperar tu cartera antes de editar.');

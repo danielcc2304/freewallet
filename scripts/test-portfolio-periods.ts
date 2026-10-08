@@ -37,9 +37,12 @@ const dailyOnly = selectPortfolioPeriod(performanceSeries(points.map(p => ({ ...
 assert.equal(dailyOnly.performance.returnPercent, null, 'Sparse daily data cannot masquerade as monthly closes');
 assert.equal(dailyOnly.monthlyBase, false);
 const missingMonth = selectPortfolioPeriod(performanceSeries(points.filter(p => !p.date.startsWith('2026-08')), flows), '3M', now);
-assert.equal(missingMonth.performance.returnPercent, null, 'Monthly selection must preserve unknown intervals');
+assert.equal(missingMonth.performance.endDate,'2026-07-31','A missing month stops the verified result before the gap');
+assert.equal(missingMonth.incompleteSince,'2026-09-30','The gap must remain explicit instead of joining returns across it');
+assert.equal(missingMonth.points.at(-1)?.date,'2026-07-31');
 const uncertainFlow = selectPortfolioPeriod(performanceSeries(points.map(p => p.date.startsWith('2026-10-04') ? { ...p, returnUnavailable: true } : p), flows), '1M', now);
-assert.equal(uncertainFlow.performance.returnPercent, null);
+assert.equal(uncertainFlow.performance.endDate,'2026-09-30');
+assert.equal(uncertainFlow.incompleteSince,'2026-10-04','Uncertain flows are not included in the verified result');
 const nearClose = selectPortfolioPeriod(series, '1M', Date.parse('2026-10-29T12:00:00Z'));
 assert.equal(nearClose.performance.baseDate, '2026-09-30');
 assert.equal(nearClose.monthlyBase, false, 'The nearby real close remains preferable to extending the range by a month');
@@ -64,7 +67,9 @@ assert.equal(lastKnownYtd.performance.baseDate, '2025-12-31', 'Never rebase YTD 
 assert.equal(lastKnownYtd.performance.endDate, '2026-10-07');
 assert.equal(lastKnownYtd.incompleteSince, '2026-10-08');
 assert.equal(lastKnownYtd.points.at(-1)?.date, '2026-10-07', 'Charts and KPIs must end on the same verified day');
-assert.equal(selectPortfolioPeriod(unresolved, '7D', ytdNow).performance.returnPercent, null, 'Short periods retain their strict completeness rules');
+const lastKnownWeek=selectPortfolioPeriod(unresolved,'7D',ytdNow);
+assert.equal(lastKnownWeek.performance.endDate,'2026-10-07');
+assert.equal(lastKnownWeek.incompleteSince,'2026-10-08','A partial recent weekly window is explicitly dated');
 const noJanuary = performanceSeries(ytdPoints.slice(2), [registration, deletion], [], { maxGapDays: 45 });
 assert.equal(selectPortfolioPeriod(noJanuary, 'YTD', ytdNow).performance.returnPercent, null, 'A missing year-opening value must still show unavailable');
 const unknownAtOpening = performanceSeries(ytdPoints.map((point, index) => index === 1 ? { ...point, returnUnavailable: true } : point), [], [], { maxGapDays: 45 });

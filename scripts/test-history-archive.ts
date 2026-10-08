@@ -37,6 +37,24 @@ assert.equal(store.get(HISTORY_ARCHIVE_KEY),saved,'Removing legacy CSV leaves th
 assert.equal(readPortfolioHistoryArchive().valuations.length,archive.valuations.length);
 const continued=continuePortfolioHistory(canonical,[{date:'2026-10-08T12:00:00Z',value:1800,invested:1000}],[],now,true);
 assert.equal(continued.history.at(-1)?.value,1800);assert.equal(continued.history.at(-1)?.invested,1200);
+// An authoritative new valuation must replace a stale verified endpoint even
+// when the local day's ledger contains an unresolved deletion. No return is
+// hardcoded, and the deleted record remains in the original ledger.
+const deletion={id:'pending-delete',assetId:'removed',assetSymbol:'SYNTHETIC',assetName:'Synthetic',assetType:'stock' as const,type:'delete' as const,date:'2026-10-08',quantity:1,total:10,createdAt:'2026-10-08T10:00:00Z'};
+const oldEndpoint=continuePortfolioHistory(canonical,[{date:'2026-10-08T12:00:00Z',value:1800,invested:1000}],[deletion],now,true);
+const oldSelection=selectPortfolioPeriod(performanceSeries(oldEndpoint.history,oldEndpoint.transactions,[],{maxGapDays:45}),'YTD',now);
+assert.equal(oldSelection.performance.endDate,'2026-10-07');
+assert.equal(oldSelection.incompleteSince,'2026-10-08');
+const reconciled={...archive,valuations:[...archive.valuations.map(p=>p.date.startsWith('2026-10-07')?{...p,value:1795,historyOrigin:'agent' as const}:p),{...archive.valuations.at(-1)!,date:'2026-10-08T18:00:00Z',value:1760,historyOrigin:'agent' as const}]};
+validateHistoryArchive(reconciled);
+const ledgerBefore=JSON.stringify([deletion]);
+const latest=continuePortfolioHistory(historicalBundle(reconciled,now),[{date:'2026-10-08T19:00:00Z',value:1800,invested:1000}],[deletion],now,true);
+const latestSelection=selectPortfolioPeriod(performanceSeries(latest.history,latest.transactions,[],{maxGapDays:45}),'YTD',now);
+assert.equal(latestSelection.performance.endDate,'2026-10-08');
+assert.equal(latestSelection.incompleteSince,null);
+assert.equal(latest.history.at(-1)?.value,1760,'A stale local quote must not override the authoritative daily valuation');
+assert.ok(Math.abs(latestSelection.performance.returnPercent!-56)<1e-8);
+assert.equal(JSON.stringify([deletion]),ledgerBefore,'Reconciliation never erases a ledger operation');
 const newPortfolio=continuePortfolioHistory(historicalBundle(emptyHistoryArchive(),now),[{date:'2026-10-07',value:1000,invested:1000},{date:'2026-10-08',value:1010,invested:1000}],[],now,true);
 assert.ok(Math.abs(selectPortfolioPeriod(performanceSeries(newPortfolio.history,[]),'ALL',now).performance.returnPercent!-1)<1e-8,'A portfolio without an import uses the same performance engine');
 assert.throws(()=>validateHistoryArchive({...archive,cashFlows:[...archive.cashFlows,...archive.cashFlows]}));

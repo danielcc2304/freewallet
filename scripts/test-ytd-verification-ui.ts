@@ -99,8 +99,8 @@ try {
     });
     await page.setViewport({width:320,height:1000});
     await page.reload({waitUntil:'networkidle2'});
-    await page.$eval('.portfolio-excel-insights__tabs button',buttons=>(buttons.find(b=>b.textContent?.includes('Benchmark')) as HTMLElement).click());
-    await page.$eval('.portfolio-excel-insights__periods button',buttons=>(buttons.find(b=>b.textContent==='YTD') as HTMLElement).click());
+    await page.$$eval('.portfolio-excel-insights__tabs button',buttons=>(buttons.find(b=>b.textContent?.includes('Benchmark')) as HTMLElement).click());
+    await page.$$eval('.portfolio-excel-insights__periods button',buttons=>(buttons.find(b=>b.textContent==='YTD') as HTMLElement).click());
     await page.$eval('.portfolio-excel-insights__panel',el=>el.scrollIntoView({behavior:'instant',block:'center'}));
     const bounds=await page.$eval('.portfolio-excel-insights__panel .recharts-xAxis .recharts-cartesian-axis-line',el=>{
         const r=el.getBoundingClientRect();return {x:r.right-1,y:r.top-50};

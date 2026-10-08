@@ -97,20 +97,31 @@ try {
         archive.benchmarkNavs=archive.benchmarkNavs.filter((p:{date:string})=>p.date!=='2026-10-07');
         localStorage.setItem('freewallet_history_archive_v1',JSON.stringify(archive));
     });
+    await page.setViewport({width:320,height:1000});
     await page.reload({waitUntil:'networkidle2'});
-    await page.$$eval('.portfolio-excel-insights__tabs button',buttons=>(buttons.find(b=>b.textContent?.includes('Benchmark')) as HTMLElement).click());
-    await page.$$eval('.portfolio-excel-insights__periods button',buttons=>(buttons.find(b=>b.textContent==='YTD') as HTMLElement).click());
+    await page.$eval('.portfolio-excel-insights__tabs button',buttons=>(buttons.find(b=>b.textContent?.includes('Benchmark')) as HTMLElement).click());
+    await page.$eval('.portfolio-excel-insights__periods button',buttons=>(buttons.find(b=>b.textContent==='YTD') as HTMLElement).click());
     await page.$eval('.portfolio-excel-insights__panel',el=>el.scrollIntoView({behavior:'instant',block:'center'}));
     const bounds=await page.$eval('.portfolio-excel-insights__panel .recharts-xAxis .recharts-cartesian-axis-line',el=>{
         const r=el.getBoundingClientRect();return {x:r.right-1,y:r.top-50};
     });
     await page.mouse.move(bounds.x,bounds.y);
-    await page.waitForFunction(()=>document.querySelector('.recharts-tooltip-wrapper')?.textContent?.includes('último disponible'));
+    await page.waitForFunction(()=>{
+        const tooltip=document.querySelector('.recharts-tooltip-wrapper')?.textContent || '';
+        return tooltip.includes('Fidelity MSCI World') && tooltip.includes('6 oct 26');
+    });
     const tooltip=await page.$eval('.recharts-tooltip-wrapper',el=>el.textContent || '');
     assert.match(tooltip,/7 oct 26/);
     assert.match(tooltip,/Tu cartera.*18,50?%/,'The endpoint agrees with the verified summary even when the NAV lags');
-    assert.match(tooltip,/último disponible.*6 oct 26/,'The last NAV is explicitly dated in the tooltip');
+    assert.match(tooltip,/Fidelity MSCI World.*[+-]?\\d+[,.]\\d+%.*6 oct 26/,'The latest NAV value and its date remain visible');
+    assert.doesNotMatch(tooltip,/último disponible/,'The mobile tooltip omits the long latest-available label');
     assert.doesNotMatch(tooltip,/N\/D/);
+    const tooltipBounds=await page.$eval('.recharts-tooltip-wrapper .recharts-default-tooltip',el=>{
+        const rect=el.getBoundingClientRect();
+        return {right:rect.right,viewport:innerWidth,scrollWidth:el.scrollWidth,clientWidth:el.clientWidth};
+    });
+    assert.ok(tooltipBounds.right<=tooltipBounds.viewport,'Tooltip stays within the mobile viewport');
+    assert.ok(tooltipBounds.scrollWidth<=tooltipBounds.clientWidth,'Tooltip content is not horizontally clipped');
     const datedDifference=await page.$eval('.portfolio-excel-insights__benchmark-kpis',el=>el.textContent || '');
     assert.match(datedDifference,/Diferencia hasta 6 oct 26/);
     assert.doesNotMatch(datedDifference,/N\/D/,'A verified common interval has a dated difference despite a missing final NAV');

@@ -60,7 +60,7 @@ import { positionLotCounts } from '../../services/dashboardIntegrity';
 import { getAssetChartData } from '../../services/apiService';
 import { isApiEnabled } from '../../services/storageService';
 import { DashboardMarketHistoryCache } from '../../services/dashboardMarketHistory';
-import { benchmarkChartCadence, benchmarkPeriodDifference, extendImportedBenchmark } from '../../services/benchmarkComparison';
+import { benchmarkChartCadence, benchmarkPeriodDifference, benchmarkTooltipObservation, extendImportedBenchmark } from '../../services/benchmarkComparison';
 import type { HistoricalDataPoint } from '../../types/types';
 
 const benchmarkHistoryCache = new DashboardMarketHistoryCache(2,15*60*1000);
@@ -604,7 +604,12 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                     <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
                                     <XAxis dataKey="timestamp" type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatChartDate} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
                                     <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
-                                    <Tooltip {...tooltipTheme} filterNull={false} labelFormatter={label => typeof label === 'string' || typeof label === 'number' ? formatChartDate(label) : ''} formatter={(value: number | string | undefined, name?: string) => [percent(value == null ? null : Number(value)), benchmarkSeriesLabel(name, 'Tu cartera', benchmarkLabel)]} />
+                                    <Tooltip {...tooltipTheme} filterNull={false} labelFormatter={label => typeof label === 'string' || typeof label === 'number' ? formatChartDate(label) : ''} formatter={(value, name, item) => {
+                                        const isPortfolio = name === 'portfolio' || name === 'Tu cartera';
+                                        const observation = isPortfolio ? null : benchmarkTooltipObservation(item.payload?.date ?? '', value == null ? null : Number(value), benchmarkLine);
+                                        return [observation ? `${percent(observation.value)}${observation.latestAvailable ? ` (${formatChartDate(observation.date)})` : ''}` : percent(value == null ? null : Number(value)),
+                                            `${benchmarkSeriesLabel(String(name), 'Tu cartera', benchmarkLabel)}${observation?.latestAvailable ? ' · último disponible' : ''}`];
+                                    }} />
                                     <Legend formatter={(value) => benchmarkSeriesLabel(String(value), 'Tu cartera', benchmarkLabel)} />
                                     <Line isAnimationActive={false} type="linear" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} />
                                     {benchmarkHasPeriodBase && <Line isAnimationActive={false} type="linear" dataKey="benchmark" name={benchmarkLabel} stroke="#3b82f6" strokeWidth={2} dot={false} connectNulls />}

@@ -36,6 +36,7 @@ try {
         localStorage.setItem('freewallet_portfolio_v1', JSON.stringify({ version: 1, assets: data.assets, transactions: data.transactions }));
         localStorage.setItem('freewallet_history', JSON.stringify(data.history));
         localStorage.setItem('freewallet_settings', '{"apiEnabled":false}');
+        localStorage.setItem('freewallet_benchmark_mode_v1', 'msci');
         localStorage.setItem('freewallet_last_seen_version', data.version);
         localStorage.setItem('freewallet-dashboard-notice-dismissed', '1');
         localStorage.setItem('freewallet_portfolio_csv_evolution_raw', data.evolution);
@@ -104,11 +105,12 @@ try {
         const r=el.getBoundingClientRect();return {x:r.right-1,y:r.top-50};
     });
     await page.mouse.move(bounds.x,bounds.y);
-    await page.waitForFunction(()=>document.querySelector('.recharts-tooltip-wrapper')?.textContent?.includes('N/D'));
+    await page.waitForFunction(()=>document.querySelector('.recharts-tooltip-wrapper')?.textContent?.includes('último disponible'));
     const tooltip=await page.$eval('.recharts-tooltip-wrapper',el=>el.textContent || '');
     assert.match(tooltip,/7 oct 26/);
     assert.match(tooltip,/Tu cartera.*18,50?%/,'The endpoint agrees with the verified summary even when the NAV lags');
-    assert.match(tooltip,/MSCI World.*N\/D/,'The missing NAV is explicit instead of copied from October 6');
+    assert.match(tooltip,/último disponible.*6 oct 26/,'The last NAV is explicitly dated in the tooltip');
+    assert.doesNotMatch(tooltip,/N\/D/);
     const datedDifference=await page.$eval('.portfolio-excel-insights__benchmark-kpis',el=>el.textContent || '');
     assert.match(datedDifference,/Diferencia hasta 6 oct 26/);
     assert.doesNotMatch(datedDifference,/N\/D/,'A verified common interval has a dated difference despite a missing final NAV');

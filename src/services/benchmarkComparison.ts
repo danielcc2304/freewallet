@@ -47,3 +47,13 @@ export function benchmarkPeriodDifference(line:Array<{date:string;portfolio:numb
     if(line.length<2||accountingDay(line[0].date)!==baseDate||!last||!Number.isFinite(last.portfolio)||!Number.isFinite(last.benchmark))return null;
     return {value:last.portfolio-last.benchmark,endDate:last.date};
 }
+
+/** Tooltip fallback shows an explicitly dated observation, never a fabricated
+ * chart point or a return used in the period difference. */
+export function benchmarkTooltipObservation(date: string, value: number | null | undefined, line: Array<{date:string;benchmark:number}>) {
+    if (value != null && Number.isFinite(value)) return { value, date, latestAvailable: false };
+    const day = accountingDay(date);
+    const last = line.at(-1);
+    if (!last || !Number.isFinite(last.benchmark) || accountingDay(last.date) > day) return null;
+    return { value: last.benchmark, date: last.date, latestAvailable: true };
+}

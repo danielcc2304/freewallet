@@ -12,12 +12,13 @@ import { useLocalDataVersion, notifyLocalDataChange } from '../../hooks/useLocal
 import { useDailyMarketData } from '../../hooks/useDailyMarketData';
 import { dailyHistory, dailySnapshots } from '../../services/dailyMarketData';
 import { dashboardMarketHistory } from '../../services/dashboardMarketHistory';
+import { PRICE_REFRESH_INTERVAL_MS } from '../../constants/app';
 
 export function useDashboardAnalytics(now: number) {
     const { state: { assets, transactions, lastPriceUpdate } } = usePortfolio();
     const localRevision = useLocalDataVersion();
     const apiEnabled = isApiEnabled();
-    const dailyMarket = useDailyMarketData(lastPriceUpdate?.toISOString() ?? null);
+    const dailyMarket = useDailyMarketData(lastPriceUpdate ? Math.floor(lastPriceUpdate.getTime()/PRICE_REFRESH_INTERVAL_MS) : null);
     const day = accountingDay(now);
     const workbookHistory = useMemo(() => { void localRevision; void day; return readWorkbookHistory(); }, [localRevision, day]);
     const usingWorkbookHistory = workbookHistory.points.length >= 2;

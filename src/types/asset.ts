@@ -35,6 +35,6 @@ export interface Asset {
     fxRate?: number;
     fxAt?: string | null;
     valuationBasis?: 'quote-date-fx';
-    quoteSource?: FundSource | 'Mercado' | 'Saldo';
+    quoteSource?: FundSource | 'Mercado' | 'Saldo' | 'Google Finance' | 'CoinGecko';
 }
 import type {FundSource} from '../../supabase/functions/_shared/fundQuotePolicy';

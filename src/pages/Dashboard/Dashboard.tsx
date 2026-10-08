@@ -344,12 +344,12 @@ export function Dashboard() {
 
             <PortfolioSummary metrics={metrics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} estimatedCount={assets.filter(a => !hasValidPrice(a)).length} />
             <PortfolioDataQuality assets={assets} now={calculationNow} quoteFailures={quoteFailures} />
-            {account.user && <p className="dashboard__empty-description" role="status">
+            {account.user && <p className="dashboard__automatic-status" role="status">
                 {analytics.dailyMarket.error || (analytics.dailyMarket.data?.lastRun
-                    ? `Batch: ${analytics.dailyMarket.data.lastRun.status === 'success' ? 'completada' : analytics.dailyMarket.data.lastRun.status === 'running' ? 'en curso' : 'con datos pendientes'} · ${new Date(analytics.dailyMarket.data.lastRun.finishedAt || analytics.dailyMarket.data.lastRun.startedAt).toLocaleString('es-ES')}.`
+                    ? `${analytics.dailyMarket.data.lastRun.status === 'success' ? 'Consulta automática' : analytics.dailyMarket.data.lastRun.status === 'running' ? 'Consulta automática en curso' : 'Consulta automática incompleta'} · ${new Date(analytics.dailyMarket.data.lastRun.finishedAt || analytics.dailyMarket.data.lastRun.startedAt).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
                     : 'El histórico diario comenzará con la primera actualización programada.')}
                 {!!analytics.dailyMarket.data?.lastRun?.failures.length && ` ${analytics.dailyMarket.data.lastRun.failures.length} consultas de cartera o benchmark pendientes.`}
-                {analytics.dailyMarket.data?.health?.attentionRequired && ' El batch requiere revisión; se conservan los últimos precios válidos.'}
+                {analytics.dailyMarket.data?.health?.attentionRequired && ' La actualización requiere revisión; se conservan los últimos precios válidos.'}
                 {analytics.dailyMarket.data?.snapshotStatus && !['captured','empty'].includes(analytics.dailyMarket.data.snapshotStatus) && ' La valoración diaria de esta cartera quedó pendiente.'}
             </p>}
             {account.user && !!analytics.dailyMarket.data?.snapshots.length && <details className="dashboard__update-details">

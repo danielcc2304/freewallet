@@ -1,3 +1,4 @@
+import { fundBlockAllocation, portfolioBlocks, type BlockAllocation } from '../../services/portfolioBlocks';
 import { useEffect, useId, useMemo, useState, useTransition } from 'react';
 import type { ReactNode } from 'react';
 import {
@@ -139,6 +140,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const [loadingBenchmark,setLoadingBenchmark]=useState(false);
     const [benchmarkMode, setBenchmarkMode] = useState<PortfolioBenchmarkMode>(readPortfolioBenchmarkMode);
     const [benchmarkHistoryByIsin, setBenchmarkHistoryByIsin] = useState<Record<string, HistoricalDataPoint[]>>({});
+    const [fundBlocksByIsin, setFundBlocksByIsin] = useState<Record<string, BlockAllocation | null>>({});
     const [fundAllocationsByIsin, setFundAllocationsByIsin] = useState<Record<string, FundBenchmarkAllocation | null>>({});
     const changeTab=(next:InsightTab)=>{
         if (next === tab) return;
@@ -195,7 +197,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     }, [tab, apiEnabled, benchmarkMode, lastPriceUpdate, benchmarkHistoryStart, now]);
 
     useEffect(() => {
-        if (tab !== 'benchmark' || benchmarkMode !== 'allocation' || !apiEnabled) return;
+        if (!apiEnabled || (tab !== 'allocation' && (tab !== 'benchmark' || benchmarkMode !== 'allocation'))) return;
         const pending = (JSON.parse(fundIsinSignature) as string[])
             .filter(isin => !Object.prototype.hasOwnProperty.call(fundAllocationsByIsin, isin));
         if (!pending.length) return;
@@ -208,9 +210,12 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                 const isin = pending[next++];
                 try {
                     const fund = await getFundRelevance(isin, controller.signal);
-                    if (!disposed) setFundAllocationsByIsin(previous => ({ ...previous, [isin]: fundBenchmarkAllocation(fund) }));
+                    if (!disposed) {
+                        setFundAllocationsByIsin(previous => ({ ...previous, [isin]: fundBenchmarkAllocation(fund) }));
+                        setFundBlocksByIsin(previous => ({ ...previous, [isin]: fundBlockAllocation(fund) }));
+                    }
                 } catch {
-                    if (!disposed) setFundAllocationsByIsin(previous => ({ ...previous, [isin]: null }));
+                    if (!disposed) { setFundAllocationsByIsin(previous => ({ ...previous, [isin]: null })); setFundBlocksByIsin(previous => ({ ...previous, [isin]: null })); }
                 }
             }
         };
@@ -290,6 +295,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         [portfolioTransactions],
     );
 
+    const blocks = useMemo(() => portfolioBlocks(assets, fundBlocksByIsin), [assets, fundBlocksByIsin]);
     const allocations = useMemo(() => {
         const values = new Map<string, number>();
         assets.forEach((asset) => values.set(
@@ -623,6 +629,15 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
 
                 {tab === 'allocation' && (
                     <section className="portfolio-excel-insights__allocation">
+                        <div className="portfolio-excel-insights__mini-chart portfolio-excel-insights__blocks">
+                            <h3><Layers3 size={16} /> Asignación por bloques</h3>
+                            {blocks.rows.map(row => <div className="portfolio-excel-insights__block" key={row.name}>
+                                <div className="portfolio-excel-insights__leader-row"><span><strong>{row.name}</strong><small>{plainPercent(row.weight)}</small></span><b>{currency(row.value)}</b></div>
+                                <progress max={100} value={row.weight} aria-label={`${row.name}: ${plainPercent(row.weight)}`} />
+                            </div>)}
+                            {apiEnabled && pendingFundIsins.length > 0 && <p role="status" className="portfolio-excel-insights__chart-note"><LoaderCircle size={14} /> Consultando composición de fondos…</p>}
+                            {blocks.unclassifiedValue > 0 && <p className="portfolio-excel-insights__chart-note">Otros incluye {currency(blocks.unclassifiedValue)} sin clasificación disponible.</p>}
+                        </div>
                         <div className="portfolio-excel-insights__mini-chart">
                             <h3><Layers3 size={16} /> Distribución por tipo</h3>
                             <ResponsiveContainer width="100%" height={230}>

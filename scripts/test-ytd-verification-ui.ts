@@ -88,6 +88,12 @@ try {
             const benchmarkValues=await page.$eval('.portfolio-excel-insights__benchmark-kpis',el=>el.textContent || '');
             assert.doesNotMatch(benchmarkValues,/N\/D/,label+' compares real NAVs at the same verified endpoints');
         }
+        await page.$$eval('.portfolio-excel-insights__tabs button', buttons => (buttons.find(button => button.textContent?.includes('Asignación')) as HTMLElement).click());
+        await page.waitForSelector('.portfolio-excel-insights__blocks');
+        const blockText = await page.$eval('.portfolio-excel-insights__blocks', el => el.textContent || '');
+        for (const name of ['Renta variable', 'Renta fija', 'Cripto', 'Liquidez', 'Otros']) assert.ok(blockText.includes(name));
+        assert.match(blockText, /1\.?185(?:,00)?/);
+        assert.equal(await page.$$eval('.portfolio-excel-insights__blocks .portfolio-excel-insights__leader-row', els => els.length), 5);
         assert.equal(await page.evaluate(() => localStorage.getItem('freewallet_portfolio_v1')), before, 'Showing the last verified YTD never changes the ledger');
         assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
     }

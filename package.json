@@ -32,6 +32,7 @@
     "test:dashboard-results": "tsx scripts/test-dashboard-results.ts",
     "test:dashboard-results-ui": "tsx scripts/test-dashboard-results-ui.ts",
     "test:dashboard-review": "tsx scripts/test-dashboard-review.ts",
+    "test:portfolio-blocks": "tsx scripts/test-portfolio-blocks.ts",
     "test:portfolio-composition": "tsx scripts/test-portfolio-composition.ts",
     "test:position-groups": "tsx scripts/test-position-groups.ts",
     "test:position-groups-ui": "tsx scripts/test-position-groups-ui.ts",

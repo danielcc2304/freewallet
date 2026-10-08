@@ -12,6 +12,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-08 - v6.2.0 - Asignación de cartera por bloques
+- Funcionalidad:
+  - Añade bloques de renta variable, renta fija, cripto, liquidez y otros con importe y peso sobre la valoración actual.
+  - Distribuye fondos y ETF según su composición disponible y deja visible el importe de posiciones sin clasificación.
+- Resumen:
+  - Desglosa la cartera por exposición económica y conserva las posiciones que aún no pueden clasificarse dentro de «Otros».
+- Archivos:
+  - `docs/portfolio-history.md`, `package.json`, `package-lock.json`, `scripts/test-portfolio-blocks.ts`, `scripts/test-ytd-verification-ui.ts`, `src/components/dashboard/PortfolioExcelInsights.css`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/constants/app.ts`, `src/services/portfolioBlocks.ts`, `FEATURE_LOG.md`.
+
 ### 2026-10-08 - v6.1.6 - NAV de fondos actualizado y benchmark con fechas explícitas
 - Funcionalidad:
   - Conserva en el gráfico el último extremo verificado de la cartera aunque el NAV del benchmark aún no esté disponible para esa fecha, sin arrastrar cotizaciones anteriores.

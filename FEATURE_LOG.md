@@ -12,14 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-08 - v6.2.0 - Asignación de cartera por bloques
+### 2026-10-09 - v6.2.0 - Asignación de cartera, cuentas remuneradas y resultados estimados
 - Funcionalidad:
-  - Añade bloques de renta variable, renta fija, cripto, liquidez y otros con importe y peso sobre la valoración actual.
-  - Distribuye fondos y ETF según su composición disponible y deja visible el importe de posiciones sin clasificación.
+  - Desglosa fondos y ETF por exposición económica, con un interruptor compartido entre Asignación y Benchmark; permite fijar categorías manuales y sincroniza las preferencias de cartera.
+  - Añade una TAE opcional y editable a las cuentas de liquidez, visible en el detalle. El saldo solo cambia al registrar intereses abonados.
+  - Identifica como estimados los resultados realizados y totales que incluyen operaciones reconstruidas autorizadas.
 - Resumen:
-  - Desglosa la cartera por exposición económica y conserva las posiciones que aún no pueden clasificarse dentro de «Otros».
+  - Amplía el análisis de la cartera y el registro de cuentas de liquidez, y señala claramente cuándo los resultados incluyen operaciones estimadas.
 - Archivos:
-  - `docs/portfolio-history.md`, `package.json`, `package-lock.json`, `scripts/test-portfolio-blocks.ts`, `scripts/test-ytd-verification-ui.ts`, `src/components/dashboard/PortfolioExcelInsights.css`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/constants/app.ts`, `src/services/portfolioBlocks.ts`, `FEATURE_LOG.md`.
+  - `README.md`, `docs/portfolio-history.md`, `package.json`, `package-lock.json`, `scripts/test-cash-account-ui.ts`, `scripts/test-dashboard-results.ts`, `scripts/test-portfolio-blocks-ui.ts`, `scripts/test-portfolio-blocks.ts`, `scripts/test-portfolio-sync.ts`, `scripts/test-ytd-verification-ui.ts`, `src/app/routes/academyRoutes.tsx`, `src/components/academy/calculators/Calculators.tsx`, `src/components/dashboard/AssetDetail.tsx`, `src/components/dashboard/PortfolioExcelInsights.css`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`, `src/constants/app.ts`, `src/pages/AddInvestment/AddInvestment.tsx`, `src/services/portfolioBenchmark.ts`, `src/services/portfolioBlocks.ts`, `src/services/portfolioCloudStorage.ts`, `src/services/portfolioPositionGroups.ts`, `src/services/portfolioResults.ts`, `src/services/storageService.ts`, `src/types/asset.ts`, `src/types/portfolio.ts`, `FEATURE_LOG.md`.
+
 
 ### 2026-10-08 - v6.1.6 - NAV de fondos actualizado y benchmark con fechas explícitas
 - Funcionalidad:

@@ -12,6 +12,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-09 - v6.3.0 - Planificador de gastos y presupuesto
+- Funcionalidad:
+  - Añade un libro de gastos independiente de las inversiones, con cuentas, movimientos, importación CSV, presupuestos, recurrencias y objetivos.
+  - Ofrece almacenamiento local o sincronización privada por cuenta; la carga remota usa RPC autenticadas y control de revisiones.
+  - Incorpora adaptación Liquid Glass con soporte para temas y preferencias de movimiento y transparencia.
+- Resumen:
+  - Permite registrar ingresos y gastos, planificar presupuestos y guardar el libro privado en Supabase sin conectar con bancos ni mover dinero.
+- Archivos:
+  - `.gitignore`, `README.md`, `docs/expense-planner.md`, `FEATURE_LOG.md`, `package.json`, `package-lock.json`, `scripts/test-expense-backend.ts`, `scripts/test-expense-planner.ts`, `scripts/test-expense-sync.ts`, `scripts/test-expense-ui.ts`, `src/app/routes/academyRoutes.tsx`, `src/components/expenses/ExpenseEditors.tsx`, `src/components/expenses/ExpenseImportDialog.tsx`, `src/components/expenses/ExpenseManager.css`, `src/components/expenses/ExpenseManager.tsx`, `src/components/expenses/useExpenseBook.ts`, `src/context/AccountContext.tsx`, `src/context/AppearanceContext.tsx`, `src/services/expenseImport.ts`, `src/services/expensePlanner.ts`, `src/services/expenseRepository.ts`, `src/services/expenseStore.ts`, `src/types/expenses.ts`, `supabase/migrations/20261009000900_expense_books.sql`.
+
+
 ### 2026-10-09 - v6.2.0 - Asignación de cartera, cuentas remuneradas y resultados estimados
 - Funcionalidad:
   - Desglosa fondos y ETF por exposición económica, con un interruptor compartido entre Asignación y Benchmark; permite fijar categorías manuales y sincroniza las preferencias de cartera.

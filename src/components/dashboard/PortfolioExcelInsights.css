@@ -102,3 +102,17 @@
 .portfolio-excel-insights__block progress::-webkit-progress-bar { background: var(--bg-secondary); }
 .portfolio-excel-insights__block progress::-webkit-progress-value { background: #10b981; }
 .portfolio-excel-insights__block progress::-moz-progress-bar { background: #10b981; }
+
+.portfolio-excel-insights__block-toggle { position: relative; display: flex; align-items: center; gap: 10px; min-height: 44px; margin: 8px 0; cursor: pointer; }
+.portfolio-excel-insights__block-toggle input { position: absolute; width: 36px; height: 20px; opacity: 0; }
+.portfolio-excel-insights__switch-track { display: inline-flex; align-items: center; width: 36px; height: 20px; flex-shrink: 0; padding: 3px; box-sizing: border-box; border-radius: 20px; background: #64748b; transition: background 150ms; }
+.portfolio-excel-insights__switch-track > span { width: 14px; height: 14px; border-radius: 50%; background: white; box-shadow: 0 1px 3px #0003; transition: transform 150ms; }
+.portfolio-excel-insights__block-toggle input:checked + .portfolio-excel-insights__switch-track { background: #10b981; }
+.portfolio-excel-insights__block-toggle input:checked + .portfolio-excel-insights__switch-track > span { transform: translateX(16px); }
+.portfolio-excel-insights__block-toggle input:focus-visible + .portfolio-excel-insights__switch-track { outline: 2px solid var(--text-primary); outline-offset: 3px; }
+.portfolio-excel-insights__block-toggle.is-subtle { font-size: 12px; color: var(--text-muted); margin: 0; }
+@media (prefers-reduced-motion: reduce) { .portfolio-excel-insights__switch-track, .portfolio-excel-insights__switch-track > span { transition: none; } }
+.portfolio-excel-insights__block-categories { margin-bottom: 20px; }
+.portfolio-excel-insights__block-categories summary { cursor: pointer; margin-bottom: 12px; }
+.portfolio-excel-insights__block-categories label { display: grid; gap: 6px; margin: 12px 0; }
+.portfolio-excel-insights__block-categories select { width: 100%; min-width: 0; max-width: 100%; padding: 10px; color: var(--text-primary); background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 8px; }

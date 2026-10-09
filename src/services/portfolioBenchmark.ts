@@ -1,3 +1,4 @@
+import type { BlockAllocation } from './portfolioBlocks';
 import type { Asset, HistoricalDataPoint } from '../types/types';
 import { assetValue } from './assetValuation';
 import { accountingDay } from './portfolioCalendar';
@@ -85,6 +86,7 @@ export function benchmarkFundIsin(asset: Pick<Asset, 'type' | 'isin' | 'symbol'>
 export function portfolioBenchmarkWeights(
     assets: readonly Asset[],
     fundAllocations: Readonly<Record<string, FundBenchmarkAllocation | null>>,
+    options?: { lookThrough: boolean; categories: Record<string, string>; wholeFunds: Readonly<Record<string, BlockAllocation | null>> },
 ): PortfolioBenchmarkWeights {
     const values = assets.map(asset => ({ asset, value: assetValue(asset) }))
         .filter(item => Number.isFinite(item.value) && item.value > 0);
@@ -100,7 +102,15 @@ export function portfolioBenchmarkWeights(
         }
         if (asset.type === 'fund' || asset.type === 'etf') {
             const isin = benchmarkFundIsin(asset);
-            const allocation = isin ? fundAllocations[isin] : undefined;
+            let allocation = isin ? fundAllocations[isin] : undefined;
+            if (options && !options.lookThrough) {
+                const category = options.categories[isin ?? `asset:${asset.id}`];
+                const whole = isin ? options.wholeFunds[isin] : null;
+                if (['Renta variable', 'Renta fija', 'Cripto', 'Liquidez', 'Otros'].includes(category)) {
+                    allocation = { equityPercent: category === 'Renta variable' ? 100 : 0,
+                        unclassifiedPercent: category === 'Otros' || category === 'Cripto' ? 100 : 0, source: 'category' };
+                } else allocation = whole ? { equityPercent: whole['Renta variable'], unclassifiedPercent: whole.Otros + whole.Cripto, source: 'category' } : undefined;
+            }
             if (!allocation) {
                 unclassifiedValue += value;
                 continue;

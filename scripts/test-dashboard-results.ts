@@ -57,3 +57,10 @@ assert.ok(portfolioQuoteStatus(batch,now).blockers.length);
 assert.equal(createQuoteSnapshot([batch],[],new Date(now).toISOString()),null,'Reading yesterday’s batch cannot fabricate today’s snapshot');
 assert.ok(createQuoteSnapshot([{...asset,type:'cash',currentPrice:1,quotedAt:undefined,lastCheckedAt:undefined}],[],new Date(now).toISOString()));
 console.log('Dashboard results passed: realized and unrealized gains, closed positions, average cost, incomplete ledgers, quote-date limits and batch freshness.');
+
+const reconstructed = calculatePortfolioResults([asset], [buy, { ...sell, estimated: true }], now);
+assert.equal(reconstructed.resultEstimated, true);
+assert.equal(reconstructed.realizedGain, 50);
+assert.equal(reconstructed.totalGain, 50);
+assert.equal(calculatePortfolioResults([asset], [buy, sell], now).resultEstimated, false);
+assert.equal(calculatePortfolioResults([{...asset,quantity:10}], [buy, { ...sell, estimated:true,date:'2027-01-01' }], now).resultEstimated, false);

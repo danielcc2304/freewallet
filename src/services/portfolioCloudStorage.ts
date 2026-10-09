@@ -19,6 +19,7 @@ export function canonicalPortfolio(raw: string): string {
     return JSON.stringify({version:1,assets:state.assets.map((asset: Asset) => ({
         id:asset.id,symbol:asset.symbol,name:asset.name,type:asset.type,quantity:asset.quantity,
         purchasePrice:asset.purchasePrice,purchaseDate:asset.purchaseDate,currency:asset.currency,isin:asset.isin,
+        ...(asset.type === 'cash' && asset.cashTae !== undefined ? { cashTae: asset.cashTae } : {}),
     })),transactions:state.transactions});
 }
 function normalized(data:CloudData):CloudData {

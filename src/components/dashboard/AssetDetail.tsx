@@ -412,6 +412,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
             {group && <p className="asset-detail__group-note">Posición agrupada · {group.lots.length} registros{group.estimatedCount?' · incluye valoraciones estimadas':group.mixedPrices?' · precio medio de valoración':''}.</p>}
             {!marketOnly && <div className="asset-detail__position-grid">
                 <div><span>Cantidad</span><strong>{formatQuantity(asset)}</strong></div>
+                {asset.type === 'cash' && asset.cashTae !== undefined && <div><span>TAE de la cuenta</span><strong>{asset.cashTae.toLocaleString('es-ES', { maximumFractionDigits: 4 })} %</strong></div>}
                 <div><span>Precio medio</span><strong>{formatValue(asset.purchasePrice, 'price')}</strong></div>
                 <div><span>Capital invertido</span><strong>{formatValue(investedValue, 'currency')}</strong></div>
                 <div><span>Valor actual</span><strong>{formatValue(currentValue, 'currency')}</strong></div>
@@ -427,12 +428,13 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                 <h3>Tus compras · {group.lots.length} registros</h3>
                 <div className="asset-detail__purchases-scroll">
                     <table>
-                        <thead><tr><th>Fecha</th><th>Cantidad</th><th>Precio medio</th><th>Coste</th></tr></thead>
+                        <thead><tr><th>Fecha</th><th>Cantidad</th><th>Precio medio</th><th>Coste</th>{asset.type === 'cash' && <th>TAE</th>}</tr></thead>
                         <tbody>{[...group.lots].sort((a,b)=>a.purchaseDate.localeCompare(b.purchaseDate)).map(lot=><tr key={lot.id}>
                             <td>{lot.purchaseDate ? quoteDateLabel(`${lot.purchaseDate.slice(0,10)}T12:00:00`).split(',')[0] : 'Sin fecha'}</td>
                             <td>{formatQuantity(lot)}</td>
                             <td>{formatValue(lot.purchasePrice, 'price')}</td>
                             <td>{formatValue(lot.quantity * lot.purchasePrice, 'currency')}</td>
+                            {asset.type === 'cash' && <td>{lot.cashTae === undefined ? 'Sin indicar' : `${lot.cashTae.toLocaleString('es-ES', { maximumFractionDigits: 4 })} %`}</td>}
                         </tr>)}</tbody>
                     </table>
                 </div>

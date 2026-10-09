@@ -1,4 +1,4 @@
-import { fundBlockAllocation, portfolioBlocks, type BlockAllocation } from '../../services/portfolioBlocks';
+import { fundBlockAllocation, portfolioBlocks, blockFundKey, blockNames, type BlockAllocation } from '../../services/portfolioBlocks';
 import { useEffect, useId, useMemo, useState, useTransition } from 'react';
 import type { ReactNode } from 'react';
 import {
@@ -59,7 +59,7 @@ import { latestContinuousMonths } from '../../services/dashboardHistory';
 import { WORKBOOK_RISK_FREE_ANNUAL_PCT } from '../../services/portfolioRisk';
 import { positionLotCounts } from '../../services/dashboardIntegrity';
 import { getAssetChartData } from '../../services/apiService';
-import { isApiEnabled } from '../../services/storageService';
+import { getSettings, updateSettings, isApiEnabled } from '../../services/storageService';
 import { DashboardMarketHistoryCache } from '../../services/dashboardMarketHistory';
 import { benchmarkChartCadence, benchmarkPeriodDifference, benchmarkTooltipObservation, extendImportedBenchmark } from '../../services/benchmarkComparison';
 import type { HistoricalDataPoint } from '../../types/types';
@@ -140,6 +140,17 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const [loadingBenchmark,setLoadingBenchmark]=useState(false);
     const [benchmarkMode, setBenchmarkMode] = useState<PortfolioBenchmarkMode>(readPortfolioBenchmarkMode);
     const [benchmarkHistoryByIsin, setBenchmarkHistoryByIsin] = useState<Record<string, HistoricalDataPoint[]>>({});
+    const [wholeFundBlocksByIsin, setWholeFundBlocksByIsin] = useState<Record<string, BlockAllocation | null>>({});
+    const [blockSettingsError, setBlockSettingsError] = useState('');
+    const blockSettings = useMemo(() => { void analytics.localRevision; return getSettings().allocationBlocks ?? { lookThrough: true, categories: {} }; }, [analytics.localRevision]);
+    const changeBlockSettings = (next: typeof blockSettings) => {
+        try { updateSettings({ allocationBlocks: next }); setBlockSettingsError(''); }
+        catch (error) { setBlockSettingsError(error instanceof Error ? error.message : 'No se pudo guardar.'); }
+    };
+    const fundBreakdownSwitch = (subtle = false) => <label className={`portfolio-excel-insights__block-toggle${subtle ? ' is-subtle' : ''}`}>
+        <input type="checkbox" role="switch" checked={blockSettings.lookThrough} onChange={event => changeBlockSettings({ ...blockSettings, lookThrough: event.target.checked })} />
+        <span className="portfolio-excel-insights__switch-track" aria-hidden="true"><span /></span><span>Desglosar fondos</span>
+    </label>;
     const [fundBlocksByIsin, setFundBlocksByIsin] = useState<Record<string, BlockAllocation | null>>({});
     const [fundAllocationsByIsin, setFundAllocationsByIsin] = useState<Record<string, FundBenchmarkAllocation | null>>({});
     const changeTab=(next:InsightTab)=>{
@@ -164,7 +175,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         const isin = benchmarkFundIsin(asset);
         return isin ? [isin] : [];
     }))].sort());
-    const benchmarkWeights = useMemo(() => portfolioBenchmarkWeights(assets, fundAllocationsByIsin), [assets, fundAllocationsByIsin]);
+    const benchmarkWeights = useMemo(() => portfolioBenchmarkWeights(assets, fundAllocationsByIsin, { ...blockSettings, wholeFunds: wholeFundBlocksByIsin }), [assets, fundAllocationsByIsin, blockSettings, wholeFundBlocksByIsin]);
     const pendingFundIsins = (JSON.parse(fundIsinSignature) as string[])
         .filter(isin => !Object.prototype.hasOwnProperty.call(fundAllocationsByIsin, isin));
     const benchmarkClassificationPending = tab === 'benchmark' && benchmarkMode === 'allocation'
@@ -213,6 +224,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                     if (!disposed) {
                         setFundAllocationsByIsin(previous => ({ ...previous, [isin]: fundBenchmarkAllocation(fund) }));
                         setFundBlocksByIsin(previous => ({ ...previous, [isin]: fundBlockAllocation(fund) }));
+                        setWholeFundBlocksByIsin(previous => ({ ...previous, [isin]: fundBlockAllocation({ ...fund, breakdowns: [] }) }));
                     }
                 } catch {
                     if (!disposed) { setFundAllocationsByIsin(previous => ({ ...previous, [isin]: null })); setFundBlocksByIsin(previous => ({ ...previous, [isin]: null })); }
@@ -295,7 +307,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         [portfolioTransactions],
     );
 
-    const blocks = useMemo(() => portfolioBlocks(assets, fundBlocksByIsin), [assets, fundBlocksByIsin]);
+    const blocks = useMemo(() => portfolioBlocks(assets, fundBlocksByIsin, { ...blockSettings, wholeFunds: wholeFundBlocksByIsin }), [assets, fundBlocksByIsin, blockSettings, wholeFundBlocksByIsin]);
     const allocations = useMemo(() => {
         const values = new Map<string, number>();
         assets.forEach((asset) => values.set(
@@ -573,6 +585,8 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                 </div>
                             </div>
                         </div>
+                        {benchmarkMode === 'allocation' && fundBreakdownSwitch(true)}
+                        {benchmarkMode === 'allocation' && blockSettingsError && <p role="alert">{blockSettingsError}</p>}
                         {benchmarkMode === 'allocation' && <p className="portfolio-excel-insights__chart-note">
                             Pesos de la composición actual. El tramo Groupama incluye renta fija y liquidez.
                             {benchmarkClassificationPending
@@ -638,6 +652,19 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                     <section className="portfolio-excel-insights__allocation">
                         <div className="portfolio-excel-insights__mini-chart portfolio-excel-insights__blocks">
                             <h3><Layers3 size={16} /> Asignación por bloques</h3>
+                            {fundBreakdownSwitch()}
+                            {!blockSettings.lookThrough && assets.some(asset => asset.type === 'fund' || asset.type === 'etf') && <details className="portfolio-excel-insights__block-categories">
+                                <summary>Categorizar fondos</summary>
+                                {[...new Map(assets.filter(asset => asset.type === 'fund' || asset.type === 'etf').map(asset => [blockFundKey(asset), asset])).values()].map(asset => <label key={blockFundKey(asset)}>
+                                    <span>{asset.name || asset.symbol}</span>
+                                    <select aria-label={`Categoría de ${asset.name || asset.symbol}`} value={blockSettings.categories[blockFundKey(asset)] ?? ''} onChange={event => {
+                                        const categories = { ...blockSettings.categories };
+                                        if (event.target.value) categories[blockFundKey(asset)] = event.target.value; else delete categories[blockFundKey(asset)];
+                                        changeBlockSettings({ ...blockSettings, categories });
+                                    }}><option value="">Automática (categoría del fondo)</option>{blockNames.map(name => <option key={name} value={name}>{name}</option>)}</select>
+                                </label>)}
+                            </details>}
+                            {blockSettingsError && <p role="alert">{blockSettingsError}</p>}
                             {blocks.rows.map(row => <div className="portfolio-excel-insights__block" key={row.name}>
                                 <div className="portfolio-excel-insights__leader-row"><span><strong>{row.name}</strong><small>{plainPercent(row.weight)}</small></span><b>{currency(row.value)}</b></div>
                                 <progress max={100} value={row.weight} aria-label={`${row.name}: ${plainPercent(row.weight)}`} />

@@ -1,3 +1,4 @@
+import { portfolioBenchmarkWeights } from '../src/services/portfolioBenchmark';
 import assert from 'node:assert/strict';
 import { fundBlockAllocation, portfolioBlocks } from '../src/services/portfolioBlocks';
 import type { Asset } from '../src/types/types';
@@ -24,3 +25,20 @@ assert.equal(normalized['Renta fija'],50);
 assert.equal(normalized.Otros,0);
 assert.equal(fundBlockAllocation({category:'Money market',categoryDescription:'',breakdowns:[]}).Liquidez,100);
 assert.equal(fundBlockAllocation({category:'Fixed income',categoryDescription:'',breakdowns:[]})['Renta fija'],100);
+const wholeFunds = {'IE00BYX5NX33': fundBlockAllocation({category:'Fixed income',categoryDescription:'',breakdowns:[]})};
+const whole = portfolioBlocks(assets, {'IE00BYX5NX33':fund}, {lookThrough:false,categories:{},wholeFunds});
+assert.equal(whole.rows.find(row=>row.name==='Renta fija')?.value,100);
+const manual = {lookThrough:false,categories:{'IE00BYX5NX33':'Renta fija','asset:unknown':'Liquidez'},wholeFunds:{}};
+const overridden = portfolioBlocks(assets, {'IE00BYX5NX33':fund}, manual);
+assert.equal(overridden.rows.find(row=>row.name==='Renta fija')?.value,100);
+assert.equal(overridden.rows.find(row=>row.name==='Liquidez')?.value,200);
+assert.equal(overridden.unclassifiedValue,0);
+const detailed = portfolioBlocks(assets, {'IE00BYX5NX33':fund}, {...manual,lookThrough:true});
+assert.equal(detailed.rows.find(row=>row.name==='Renta fija')?.value,30);
+assert.equal(detailed.rows.find(row=>row.name==='Renta variable')?.value,160);
+assert.equal(detailed.total,overridden.total);
+
+const mixedBenchmark = {'IE00BYX5NX33':{equityPercent:60,unclassifiedPercent:5,source:'breakdown' as const}};
+assert.equal(portfolioBenchmarkWeights(assets,mixedBenchmark,{...manual,lookThrough:true}).equityPercent,32);
+assert.equal(portfolioBenchmarkWeights(assets,mixedBenchmark,manual).equityPercent,20);
+assert.equal(portfolioBenchmarkWeights(assets,mixedBenchmark,{...manual,categories:{'IE00BYX5NX33':'Renta variable'}}).equityPercent,40);

@@ -24,6 +24,7 @@ export function calculatePortfolioResults(assets: Asset[], transactions: Portfol
     const positions = new Map<string, { quantity: number; cost: number; corrected: boolean }>();
     const ids = new Set<string>();
     let realized = 0;
+    let resultEstimated = false;
     let resultUnavailableReason: string | undefined;
     const fail = (reason: string) => { resultUnavailableReason ??= reason; };
     const today = accountingDay(now);
@@ -37,6 +38,7 @@ export function calculatePortfolioResults(assets: Asset[], transactions: Portfol
             fail('Hay operaciones sin una fecha válida.'); continue;
         }
         if (day > today) continue;
+        if (transaction.estimated && (transaction.type === 'buy' || transaction.type === 'sell')) resultEstimated = true;
         if (!transaction.id || !transaction.assetId) { fail('Hay operaciones sin identificar en el registro.'); continue; }
         if (ids.has(transaction.id)) { fail('Hay operaciones duplicadas en el registro.'); continue; }
         ids.add(transaction.id);
@@ -80,5 +82,5 @@ export function calculatePortfolioResults(assets: Asset[], transactions: Portfol
     }
     if (!Number.isFinite(totalInvested) || totalInvested < 0 || !Number.isFinite(realized)) fail('Hay costes o resultados inválidos.');
     const realizedGain = resultUnavailableReason ? NaN : realized;
-    return { totalInvested, currentValue, unrealizedGain, realizedGain, totalGain: unrealizedGain + realizedGain, percentageGain, resultUnavailableReason, deletionReviews };
+    return { totalInvested, currentValue, unrealizedGain, realizedGain, totalGain: unrealizedGain + realizedGain, percentageGain, resultUnavailableReason, resultEstimated, deletionReviews };
 }

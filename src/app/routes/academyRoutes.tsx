@@ -87,7 +87,7 @@ export const academyRouteDefinitions: AcademyRouteDefinition[] = [
     { path: 'strategies', label: 'Estrategias', element: <Strategies />, icon: Target, group: 'Construir', includeInSidebar: true },
 
     { path: 'calculators', label: 'Calculadoras', element: <Calculators />, icon: Calculator, group: 'Herramientas', includeInSidebar: true },
-    { path: 'salary-calculator', label: 'IRPF y sueldo neto', element: <SalaryCalculator />, icon: Receipt, group: 'Herramientas', includeInSidebar: true },
+    { path: 'salary-calculator', label: 'IRPF y sueldo neto', element: <SalaryCalculator />, icon: Receipt, group: 'Herramientas', includeInSidebar: false },
     { path: 'expenses', label: 'Gastos y presupuesto', element: <Suspense fallback={<p role="status" style={{ padding: '2rem' }}>Cargando gastos…</p>}><ExpenseManager /></Suspense>, icon: WalletCards, group: 'Herramientas', includeInSidebar: true },
     { path: 'fund-information', label: 'Ficha de fondos', element: <FundInformationCalculator />, icon: FileSearch, group: 'Herramientas', includeInSidebar: true },
     { path: 'fund-radar', label: 'Radar de fondos', element: <FundRadar />, icon: Award, group: 'Herramientas', includeInSidebar: true },

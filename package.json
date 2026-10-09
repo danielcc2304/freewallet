@@ -1,7 +1,7 @@
 {
   "name": "freewallet",
   "private": true,
-  "version": "6.1.6",
+  "version": "6.2.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -32,10 +32,13 @@
     "test:dashboard-results": "tsx scripts/test-dashboard-results.ts",
     "test:dashboard-results-ui": "tsx scripts/test-dashboard-results-ui.ts",
     "test:dashboard-review": "tsx scripts/test-dashboard-review.ts",
+    "test:portfolio-blocks-ui": "tsx scripts/test-portfolio-blocks-ui.ts",
+    "test:portfolio-blocks": "tsx scripts/test-portfolio-blocks.ts",
     "test:portfolio-composition": "tsx scripts/test-portfolio-composition.ts",
     "test:position-groups": "tsx scripts/test-position-groups.ts",
     "test:position-groups-ui": "tsx scripts/test-position-groups-ui.ts",
     "test:dashboard-edit-return-ui": "tsx scripts/test-dashboard-edit-return-ui.ts",
+    "test:cash-account-ui": "tsx scripts/test-cash-account-ui.ts",
     "test:architecture": "tsx scripts/test-architecture-hardening.ts",
     "test:financial-times-funds": "tsx scripts/test-financial-times-funds.ts",
     "test:fund-quotes": "tsx scripts/test-fund-quotes.ts",

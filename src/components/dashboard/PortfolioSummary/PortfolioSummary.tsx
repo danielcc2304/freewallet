@@ -130,12 +130,12 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
                     icon={<TrendingUp size={20} />}
                 />
                 <MetricCard
-                    title="Resultado realizado"
+                    title={metrics.resultEstimated ? 'Resultado realizado (estimado)' : 'Resultado realizado'}
                     value={Number.isFinite(metrics.realizedGain) ? formatCurrency(metrics.realizedGain!) : 'No disponible'}
                     icon={<TrendingUp size={20} />}
                 />
                 <MetricCard
-                    title={estimatedCount ? 'Resultado total (estimado)' : 'Resultado total'}
+                    title={estimatedCount || metrics.resultEstimated ? 'Resultado total (estimado)' : 'Resultado total'}
                     value={Number.isFinite(metrics.totalGain) ? formatCurrency(metrics.totalGain) : 'No disponible'}
                     icon={<TrendingUp size={20} />}
                 />

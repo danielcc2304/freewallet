@@ -23,6 +23,7 @@ Este README describe el código de la rama que estás consultando. Las funciones
 
 - Registro y edición de posiciones, compras adicionales y ventas; libro de operaciones y respaldo JSON.
 - Valor actual, coste de posiciones abiertas, resultado no realizado y rendimiento por periodo. El realizado y el total solo se muestran cuando los movimientos permiten calcularlos: borrar una posición no equivale a registrar su venta.
+- Los reembolsos reconstruidos con aproximaciones autorizadas se identifican en sus notas y marcan el realizado y el total como estimados; no son justificantes fiscales.
 - Las entradas eliminadas que se crearon por error pueden clasificarse desde «Ver motivo» del resumen. La corrección es reversible, conserva el libro de operaciones y no permite excluir registros con ventas o posiciones activas.
 - Evolución mensual importada y valoraciones diarias cuando existe cobertura suficiente. Los periodos sin datos fiables se identifican en la interfaz.
 - Comparación con Fidelity MSCI World ACC EUR, ISIN **IE00BYX5NX33**, utilizando las fechas comunes disponibles y fechando la diferencia cuando el NAV termina antes que la cartera. No se completa el benchmark con precios inventados ni con otro instrumento.
@@ -30,6 +31,7 @@ Este README describe el código de la rama que estás consultando. Las funciones
 - Al activar «Desglosar fondos», el mapa de calor y los desgloses por fondo quedan cerrados por defecto y pueden abrirse individualmente.
 - Detalle de activos con gráficos históricos, una breve descripción de la empresa antes de las métricas y fundamentales disponibles, incluido EBITDA en acciones. La identidad de la clase del fondo, la divisa y la fecha del precio se conservan; un dato ausente no se sustituye por cero.
 - Plan y control de cartera, con sugerencias de aportaciones en bloques de **50 €**, sin céntimos.
+- Las cuentas de liquidez admiten una TAE opcional y editable, incluido 0 %. Se guarda con la cuenta y se muestra en su ficha; no incrementa automáticamente el saldo.
 - Cabecera compacta: fechas de lectura, consulta al proveedor y próxima consulta dentro de un desplegable.
 
 ### Cuenta y sincronización

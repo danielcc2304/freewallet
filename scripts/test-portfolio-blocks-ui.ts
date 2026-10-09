@@ -1,0 +1,54 @@
+import assert from 'node:assert/strict';
+import puppeteer from 'puppeteer';
+import {readFileSync} from 'node:fs';
+const origin = process.env.FREEWALLET_TEST_URL || 'http://127.0.0.1:5240';
+assert.match(origin,/^http:\/\/(localhost|127\.0\.0\.1):\d+$/);
+const version = JSON.parse(readFileSync('package.json','utf8')).version;
+const browser = await puppeteer.launch({headless:true,args:['--no-sandbox']});
+try {
+    const page = await browser.newPage();
+    await page.setViewport({width:390,height:1000});
+    await page.setRequestInterception(true);
+    page.on('request',request=>void(new URL(request.url()).origin===origin?request.continue():request.abort()));
+    await page.evaluateOnNewDocument(version=>{
+        if(localStorage.getItem('freewallet_portfolio_v1'))return;
+        const asset={id:'mixed',symbol:'SYNTHETIC',name:'Fondo mixto de prueba',type:'fund',quantity:1,purchasePrice:1000,currentPrice:1000,currency:'EUR',purchaseDate:'2026-01-01'};
+        localStorage.setItem('freewallet_portfolio_v1',JSON.stringify({version:1,assets:[asset],transactions:[]}));
+        localStorage.setItem('freewallet_settings','{"apiEnabled":false}');
+        localStorage.setItem('freewallet_last_seen_version',version);
+        localStorage.setItem('freewallet-dashboard-notice-dismissed','1');
+    },version);
+    const openAllocation = async()=>{
+        await page.waitForSelector('.portfolio-excel-insights__tabs');
+        await page.$$eval('.portfolio-excel-insights__tabs button',buttons=>(buttons.find(b=>b.textContent?.includes('Asignación')) as HTMLElement).click());
+        await page.waitForSelector('.portfolio-excel-insights__blocks');
+    };
+    const block = (name:string)=>page.$$eval('.portfolio-excel-insights__blocks .portfolio-excel-insights__leader-row',(rows,name)=>rows.find(row=>row.querySelector('strong')?.textContent===name)?.textContent || '',name);
+    await page.goto(origin,{waitUntil:'networkidle2'});
+    await openAllocation();
+    assert.equal(await page.$eval('[role="switch"]',el=>(el as HTMLInputElement).checked),true);
+    await page.click('[role="switch"]');
+    const ledger=await page.evaluate(()=>localStorage.getItem('freewallet_portfolio_v1'));
+    await page.click('.portfolio-excel-insights__block-categories summary');
+    await page.select('select[aria-label="Categoría de Fondo mixto de prueba"]','Renta fija');
+    await page.waitForFunction(()=>document.querySelector('.portfolio-excel-insights__blocks')?.textContent?.includes('Renta fija100%'));
+    assert.match(await block('Renta fija'),/100%1\.?000/);
+    await page.click('[role="switch"]');
+    await page.waitForFunction(()=>!(document.querySelector('.portfolio-excel-insights__block-categories')));
+    assert.match(await block('Otros'),/100%1\.?000/);
+    await page.click('[role="switch"]');
+    await page.waitForFunction(()=>document.querySelector('.portfolio-excel-insights__blocks')?.textContent?.includes('Renta fija100%'));
+    await page.reload({waitUntil:'networkidle2'});
+    await openAllocation();
+    assert.equal(await page.$eval('[role="switch"]',el=>(el as HTMLInputElement).checked),false);
+    assert.match(await block('Renta fija'),/100%1\.?000/);
+    await page.$$eval('.portfolio-excel-insights__tabs button',buttons=>(buttons.find(b=>b.textContent?.includes('Benchmark')) as HTMLElement).click());
+    await page.waitForSelector('[role="switch"]');
+    assert.equal(await page.$eval('[role="switch"]',el=>(el as HTMLInputElement).checked),false);
+    await page.click('[role="switch"]');
+    await openAllocation();
+    assert.equal(await page.$eval('[role="switch"]',el=>(el as HTMLInputElement).checked),true);
+    assert.equal(await page.evaluate(()=>localStorage.getItem('freewallet_portfolio_v1')),ledger);
+    assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
+    console.log('PASS: default breakdown, shared benchmark/allocation switch, manual 100% RF, toggle, preference persistence, unchanged positions and mobile layout.');
+} finally {await browser.close();}

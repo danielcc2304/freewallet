@@ -1,0 +1,44 @@
+import { portfolioBenchmarkWeights } from '../src/services/portfolioBenchmark';
+import assert from 'node:assert/strict';
+import { fundBlockAllocation, portfolioBlocks } from '../src/services/portfolioBlocks';
+import type { Asset } from '../src/types/types';
+const fund = fundBlockAllocation({category:'Mixed',categoryDescription:'',breakdowns:[{type:'asset-allocation',items:[{label:'Equity',value:60},{label:'Bonds',value:30},{label:'Cash',value:5}]}] } as Parameters<typeof fundBlockAllocation>[0]);
+assert.deepEqual(fund, {'Renta variable':60,'Renta fija':30,Cripto:0,Liquidez:5,Otros:5});
+const base = {id:'test',symbol:'TEST',name:'Synthetic',quantity:1,purchasePrice:100,currentPrice:100,currency:'EUR',purchaseDate:'2026-01-01'};
+const assets: Asset[] = [{...base,type:'stock'}, {...base,id:'crypto',type:'crypto'}, {...base,id:'fund',type:'fund',isin:'IE00BYX5NX33'}, {...base,id:'unknown',type:'fund',symbol:'UNKNOWN'}, {...base,id:'cash',type:'cash'}];
+const blocks = portfolioBlocks(assets, {'IE00BYX5NX33':fund});
+assert.equal(blocks.total,500);
+assert.equal(blocks.unclassifiedValue,100);
+assert.equal(blocks.rows.reduce((sum,row)=>sum+row.weight,0),100);
+assert.equal(blocks.rows.find(row=>row.name==='Renta variable')?.value,160);
+assert.equal(blocks.rows.find(row=>row.name==='Renta fija')?.value,30);
+assert.equal(blocks.rows.find(row=>row.name==='Cripto')?.value,100);
+assert.equal(blocks.rows.find(row=>row.name==='Otros')?.value,105);
+assert.equal(portfolioBlocks([],{}).total,0);
+console.log('PASS: mixed funds split by actual composition, crypto and cash separated, unknown funds retained, totals and weights reconciled.');
+
+assert.equal(fundBlockAllocation({category:'Equity and bonds',categoryDescription:'',breakdowns:[]}).Otros,100);
+
+const normalized = fundBlockAllocation({category:'Mixed',categoryDescription:'',breakdowns:[{type:'asset-allocation',items:[{label:'Equity',value:55},{label:'Bonds',value:55}]}]} as Parameters<typeof fundBlockAllocation>[0]);
+assert.equal(normalized['Renta variable'],50);
+assert.equal(normalized['Renta fija'],50);
+assert.equal(normalized.Otros,0);
+assert.equal(fundBlockAllocation({category:'Money market',categoryDescription:'',breakdowns:[]}).Liquidez,100);
+assert.equal(fundBlockAllocation({category:'Fixed income',categoryDescription:'',breakdowns:[]})['Renta fija'],100);
+const wholeFunds = {'IE00BYX5NX33': fundBlockAllocation({category:'Fixed income',categoryDescription:'',breakdowns:[]})};
+const whole = portfolioBlocks(assets, {'IE00BYX5NX33':fund}, {lookThrough:false,categories:{},wholeFunds});
+assert.equal(whole.rows.find(row=>row.name==='Renta fija')?.value,100);
+const manual = {lookThrough:false,categories:{'IE00BYX5NX33':'Renta fija','asset:unknown':'Liquidez'},wholeFunds:{}};
+const overridden = portfolioBlocks(assets, {'IE00BYX5NX33':fund}, manual);
+assert.equal(overridden.rows.find(row=>row.name==='Renta fija')?.value,100);
+assert.equal(overridden.rows.find(row=>row.name==='Liquidez')?.value,200);
+assert.equal(overridden.unclassifiedValue,0);
+const detailed = portfolioBlocks(assets, {'IE00BYX5NX33':fund}, {...manual,lookThrough:true});
+assert.equal(detailed.rows.find(row=>row.name==='Renta fija')?.value,30);
+assert.equal(detailed.rows.find(row=>row.name==='Renta variable')?.value,160);
+assert.equal(detailed.total,overridden.total);
+
+const mixedBenchmark = {'IE00BYX5NX33':{equityPercent:60,unclassifiedPercent:5,source:'breakdown' as const}};
+assert.equal(portfolioBenchmarkWeights(assets,mixedBenchmark,{...manual,lookThrough:true}).equityPercent,32);
+assert.equal(portfolioBenchmarkWeights(assets,mixedBenchmark,manual).equityPercent,20);
+assert.equal(portfolioBenchmarkWeights(assets,mixedBenchmark,{...manual,categories:{'IE00BYX5NX33':'Renta variable'}}).equityPercent,40);

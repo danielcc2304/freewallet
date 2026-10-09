@@ -17,6 +17,8 @@ export interface Asset {
     purchasePrice: number;
     purchaseDate: string;
     quantity: number;
+    /** Declared annual equivalent rate (%) for a cash account. */
+    cashTae?: number;
     currentPrice?: number;
     previousClose?: number;
     currency?: string;

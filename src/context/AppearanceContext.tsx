@@ -51,6 +51,10 @@ const LIQUID_GLASS_POINTER_TARGETS = [
     '.fundamentos__card',
     '.fundamentos__button',
     '.fundamentos__next-link',
+    '.expense-tabs button',
+    '.expense-segmented button',
+    '.expense-month',
+    '.expense-btn',
 ].join(',');
 
 // Keep the selection animation at the interaction layer so every segmented
@@ -81,6 +85,8 @@ const LIQUID_GLASS_SELECTION_TARGETS = [
     '.rich-text-editor__button',
     '.period-btn',
     '.filter-chip',
+    'html[data-appearance="liquid-glass"] .expense-tabs button',
+    'html[data-appearance="liquid-glass"] .expense-segmented button',
 ].join(',');
 
 const LIQUID_GLASS_SELECTION_CLASS = 'liquid-glass-selection--pulse';

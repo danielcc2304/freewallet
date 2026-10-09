@@ -12,7 +12,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-09 - v6.2.0 - Asignación de cartera, cuentas remuneradas y resultados estimados
+### 2026-10-09 - v6.2.1 - Asignación de cartera, cuentas remuneradas y resultados estimados
 - Funcionalidad:
   - Desglosa fondos y ETF por exposición económica, con un interruptor compartido entre Asignación y Benchmark; permite fijar categorías manuales y sincroniza las preferencias de cartera.
   - Añade una TAE opcional y editable a las cuentas de liquidez, visible en el detalle. El saldo solo cambia al registrar intereses abonados.

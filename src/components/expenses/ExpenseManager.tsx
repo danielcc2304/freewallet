@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
     ArrowDownLeft,
     ArrowRightLeft,
@@ -49,6 +49,8 @@ import {
     exportExpenseCsv,
     readExpenseCsv,
 } from '../../services/expenseImport';
+import type { ExpenseImportDocument } from '../../services/expenseImport';
+import { readExpenseWorkbook } from '../../services/expenseWorkbook';
 import { ExpenseEditors } from './ExpenseEditors';
 import type { ExpenseEditor } from './ExpenseEditors';
 import { ExpenseImportDialog } from './ExpenseImportDialog';
@@ -136,7 +138,14 @@ function Empty({
     );
 }
 export default function ExpenseManager() {
-    const { book, status, cloud, error: syncError, store } = useExpenseBook();
+    const {
+        book,
+        status,
+        cloud,
+        owner,
+        error: syncError,
+        store,
+    } = useExpenseBook();
     const [month, setMonth] = useState(() => todayLocal().slice(0, 7));
     const [tab, setTab] = useState<Tab>('overview');
     const [editor, setEditor] = useState<ExpenseEditor | null>(null);
@@ -148,7 +157,17 @@ export default function ExpenseManager() {
         next?: ExpenseBook;
         reload?: boolean;
     } | null>(null);
-    const [csvRows, setCsvRows] = useState<string[][] | null>(null);
+    const [importDocument, setImportDocument] =
+        useState<ExpenseImportDocument | null>(null);
+    const [readingFile, setReadingFile] = useState(false);
+    const fileTask = useRef(0);
+    useEffect(() => {
+        setImportDocument(null);
+        setEditor(null);
+        setConfirmation(null);
+        setReadingFile(false);
+        fileTask.current++;
+    }, [owner]);
     const fileRef = useRef<HTMLInputElement>(null);
     const [query, setQuery] = useState('');
     const [kindFilter, setKindFilter] = useState('all');
@@ -260,28 +279,52 @@ export default function ExpenseManager() {
         setError('');
         if (!editable && !file.name.toLowerCase().endsWith('.json')) {
             setError(
-                'Recupera el registro con una copia JSON válida antes de importar CSV.',
+                'Recupera el registro con una copia JSON válida antes de importar movimientos.',
             );
             return;
         }
+        const task = ++fileTask.current;
+        setReadingFile(true);
         try {
             if (file.size > EXPENSE_LIMIT_BYTES)
                 throw new Error('El archivo supera los 2 MB.');
-            const raw = await file.text();
-            if (file.name.toLowerCase().endsWith('.json')) {
+            const name = file.name.toLowerCase();
+            if (/\.xlsx?$/.test(name)) {
+                const document = await readExpenseWorkbook(
+                    await file.arrayBuffer(),
+                );
+                if (task === fileTask.current) setImportDocument(document);
+            } else if (name.endsWith('.json')) {
+                const raw = await file.text();
+                if (task !== fileTask.current) return;
                 const next = parseExpenseBook(raw);
                 setConfirmation({
                     title: 'Restaurar copia de gastos',
                     message: `La copia sustituirá tus ${book.entries.length} movimientos por ${next.entries.length} y reemplazará cuentas, presupuestos y objetivos. Exporta antes tu copia actual si quieres conservarla.`,
                     next,
                 });
-            } else setCsvRows(readExpenseCsv(raw));
+            } else if (name.endsWith('.csv')) {
+                const raw = await file.text();
+                if (task === fileTask.current)
+                    setImportDocument({
+                        format: 'csv',
+                        sheets: [
+                            { name: file.name, rows: readExpenseCsv(raw) },
+                        ],
+                    });
+            } else
+                throw new Error(
+                    'Selecciona un archivo CSV, Excel (.xlsx o .xls) o una copia JSON.',
+                );
         } catch (err) {
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : 'No se pudo leer el archivo.',
-            );
+            if (task === fileTask.current)
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : 'No se pudo leer el archivo.',
+                );
+        } finally {
+            if (task === fileTask.current) setReadingFile(false);
         }
     };
     const newMovement = (kind: ExpenseKind = 'expense') =>
@@ -381,11 +424,12 @@ export default function ExpenseManager() {
                         </button>
                         <button
                             disabled={
-                                !editable && (cloud || status !== 'error')
+                                readingFile ||
+                                (!editable && (cloud || status !== 'error'))
                             }
                             onClick={() => fileRef.current?.click()}
                         >
-                            Importar CSV o copia JSON
+                            Importar CSV, Excel o copia JSON
                         </button>
                         <button
                             onClick={() =>
@@ -599,10 +643,16 @@ export default function ExpenseManager() {
                 </span>
             </AcademyPageHeader>
             {toolbar}
+            {readingFile && (
+                <p className="expense-notice" role="status">
+                    <LoaderCircle className="expense-spinner" size={16} />
+                    Leyendo archivo…
+                </p>
+            )}
             <input
                 ref={fileRef}
                 type="file"
-                accept=".csv,.json,text/csv,application/json"
+                accept=".csv,.xlsx,.xls,.json,text/csv,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
                 hidden
                 onChange={(e) => {
                     void readFile(e.target.files?.[0]);
@@ -2208,20 +2258,20 @@ export default function ExpenseManager() {
                 )}
             </Modal>
             <Modal
-                isOpen={!!csvRows}
+                isOpen={!!importDocument}
                 onClose={() => {
-                    if (!saving) setCsvRows(null);
+                    if (!saving) setImportDocument(null);
                 }}
                 title="Importar movimientos"
                 size="lg"
             >
-                {csvRows && (
+                {importDocument && (
                     <ExpenseImportDialog
                         book={book}
-                        rows={csvRows}
+                        document={importDocument}
                         saving={saving}
                         onSave={save}
-                        onClose={() => setCsvRows(null)}
+                        onClose={() => setImportDocument(null)}
                     />
                 )}
             </Modal>

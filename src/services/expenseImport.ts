@@ -25,6 +25,17 @@ export interface ExpenseImportRow {
     error?: string;
     duplicate: boolean;
 }
+export interface ExpenseImportSheet {
+    name: string;
+    rows: string[][];
+    sourceLines?: number[];
+    bank?: 'bbva';
+    cardColumn?: number;
+}
+export interface ExpenseImportDocument {
+    format: 'csv' | 'excel';
+    sheets: ExpenseImportSheet[];
+}
 /** RFC 4180 quoting, including delimiters and line breaks inside quoted fields. */
 export function readExpenseCsv(raw: string): string[][] {
     if (new TextEncoder().encode(raw).length > EXPENSE_LIMIT_BYTES)
@@ -99,8 +110,24 @@ const normalized = (s: string) =>
         .replace(/^'(?=[=+\-@\t\r])/, '');
 export function guessCsvMapping(headers: string[]): CsvMapping {
     const names: Record<CsvField, string[]> = {
-        date: ['fecha', 'date', 'fecha operacion'],
-        description: ['concepto', 'descripcion', 'description', 'comercio'],
+        date: [
+            'fecha',
+            'date',
+            'fecha operacion',
+            'fecha de operacion',
+            'fecha contable',
+            'fecha movimiento',
+            'f. operacion',
+            'f.operacion',
+        ],
+        description: [
+            'concepto',
+            'descripcion',
+            'description',
+            'comercio',
+            'detalle',
+            'descripcion del movimiento',
+        ],
         amount: ['importe', 'amount', 'cantidad'],
         kind: ['tipo', 'kind', 'type'],
         category: ['categoria', 'category'],
@@ -139,10 +166,20 @@ export function previewExpenseImport(
     rows: string[][],
     mapping: CsvMapping,
     defaultAccount: string,
+    options: { sourceLines?: number[]; sourceLabel?: 'CSV' | 'Excel' } = {},
 ): ExpenseImportRow[] {
     const existing = new Set(book.entries.map(fingerprint));
+    const currencyColumn = rows[0].findIndex((h) =>
+        ['divisa', 'currency', 'moneda'].includes(normalized(h)),
+    );
     return rows.slice(1).map((row, index) => {
+        const line = options.sourceLines?.[index + 1] ?? index + 2;
         try {
+            if (
+                currencyColumn >= 0 &&
+                (row[currencyColumn] ?? '').trim().toUpperCase() !== 'EUR'
+            )
+                throw new Error('Solo se admiten movimientos en EUR.');
             const field = (key: CsvField) =>
                 mapping[key] >= 0 ? (row[mapping[key]] ?? '').trim() : '';
             const rawAmount = parseExpenseAmount(field('amount'), true);
@@ -206,16 +243,16 @@ export function previewExpenseImport(
                     .split('|')
                     .map((t) => t.trim())
                     .filter(Boolean),
-                note: 'Importado desde CSV.',
+                note: `Importado desde ${options.sourceLabel ?? 'CSV'}.`,
             };
             validateExpenseBook({ ...book, entries: [entry] });
             const key = fingerprint(entry),
                 duplicate = existing.has(key);
             existing.add(key);
-            return { line: index + 2, entry, duplicate };
+            return { line, entry, duplicate };
         } catch (error) {
             return {
-                line: index + 2,
+                line,
                 error:
                     error instanceof Error ? error.message : 'Fila no válida.',
                 duplicate: false,

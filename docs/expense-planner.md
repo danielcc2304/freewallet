@@ -7,10 +7,10 @@ La apariencia Liquid Glass usa las variables compartidas: material suave en tarj
 ## Cómo usarlo
 
 1. En Cuentas y objetivos, indica el saldo inicial de tu cuenta antes del primer movimiento que vas a registrar. La cuenta inicial sin saldo permite empezar con un extracto histórico.
-2. Añade gastos e ingresos o importa el CSV del banco. El asistente permite asociar columnas; acepta fechas ISO o DD/MM/AAAA, euros con coma o punto decimal, CSV con coma o punto y coma y campos entrecomillados. Revisa filas inválidas y coincidencias antes de confirmar.
+2. Añade gastos e ingresos o importa el CSV o Excel (.xlsx/.xls) del banco. El asistente permite asociar columnas y seleccionar hoja; acepta fechas ISO o DD/MM/AAAA, fechas numéricas de Excel, euros con coma o punto decimal, CSV con coma o punto y coma y campos entrecomillados. Revisa filas inválidas y coincidencias antes de confirmar. En BBVA se detecta la tabla bajo los títulos, se usa «Fecha» en vez de «Fecha valor», se añade el detalle de Bizum/transferencias al concepto y los abonos de tarjeta se tratan como reembolsos. «Solo pagos de tarjeta» permite filtrar el extracto. Las transferencias internas necesitan revisión; no se infiere su cuenta de destino.
 3. Define un presupuesto mensual y límites opcionales por categoría. Puedes usar una base para meses sin presupuesto propio. Los grupos Necesidades, Deseos y Ahorro e inversión son editables.
 4. Añade recurrentes para tus cobros y pagos habituales. Registra cada vencimiento cuando ocurra y corrige fecha e importe en el formulario. Pausar no borra movimientos anteriores; omitir descarta solo ese vencimiento. Borrar un pago registrado vuelve a dejar su vencimiento pendiente.
-5. Exporta una copia JSON para conservar cuentas, categorías, movimientos, reglas, presupuestos y objetivos. El CSV contiene movimientos y se importa sobre las cuentas y categorías existentes. Restaurar JSON reemplaza el libro completo y exige confirmación.
+5. Exporta una copia JSON para conservar cuentas, categorías, movimientos, reglas, presupuestos y objetivos. CSV y Excel se importan sobre las cuentas y categorías existentes. Restaurar JSON reemplaza el libro completo y exige confirmación.
 
 ## Cálculos
 
@@ -27,7 +27,7 @@ La apariencia Liquid Glass usa las variables compartidas: material suave en tarj
 
 ## Guardado y API
 
-En modo local se usa `freewallet_expenses_v1`; los datos malformados no se sustituyen por un libro vacío. El límite es 2 MB, 10.000 movimientos, 30 cuentas, 100 categorías, 240 presupuestos, 200 reglas y 100 objetivos. El CSV admite hasta 100 columnas para mantener acotada la vista previa.
+En modo local se usa `freewallet_expenses_v1`; los datos malformados no se sustituyen por un libro vacío. El límite es 2 MB, 10.000 movimientos, 30 cuentas, 100 categorías, 240 presupuestos, 200 reglas y 100 objetivos. CSV y Excel admiten hasta 100 columnas para mantener acotada la vista previa. Excel admite hasta 20 hojas y 10.101 filas por hoja, incluidos títulos y cabeceras; las hojas vacías se omiten. Se rechazan movimientos de otras divisas. El lector Excel se carga bajo demanda en el navegador y utiliza los valores guardados, sin ejecutar fórmulas.
 
 El modo de cuenta sigue `VITE_PORTFOLIO_CLOUD_ENABLED` y la sesión compartida de FreeWallet, pero **no usa la cartera, el CSV ni sus revisiones**. El libro privado se guarda en `expense_private.books`, referenciado a Auth, y sus recibos de idempotencia en `expense_private.receipts`. Las tablas tienen RLS y ningún acceso directo para `anon` o `authenticated`. Las funciones privadas verifican cuenta confirmada, sesión activa y MFA mediante la guardia de identidad ya existente; no dependen de tener posiciones de inversión.
 
@@ -45,6 +45,7 @@ Migración: `supabase/migrations/20261009000900_expense_books.sql`. En un proyec
 ## Verificación
 
 - `test:expense-planner`: cálculos en céntimos, presupuestos, transferencias, reembolsos, fechas, vencimientos y CSV, incluidas comillas, duplicados y neutralización de fórmulas.
+- `test:expense-excel`: BBVA .xlsx/.xls, títulos y desplazamiento de tabla, fechas de movimiento/valor, reembolsos, duplicados entre formatos, fechas numéricas/1904, importes formateados, varias hojas, divisas y límites.
 - `test:expense-backend`: PostgreSQL local ejecuta la migración real; pruebas de aislamiento, permisos, sesión, MFA, revisiones, idempotencia y cascada. No utiliza cuentas ni sesiones reales.
 - `test:expense-sync`: almacenamiento local/cloud, recuperación de errores, conflictos, cambio de cuenta y respuestas tardías con transporte simulado.
 - `test:expense-ui`: navegador Chromium, recorridos de creación/edición/cancelación/borrado, recurrentes, presupuesto, cuentas, objetivos, importación y adaptación a 320/390/768 px. Capturas con datos sintéticos en `artifacts/expenses`.

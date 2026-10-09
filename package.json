@@ -58,7 +58,11 @@
     "test:dashboard-market-polish": "tsx scripts/test-dashboard-market-polish.ts",
     "test:dashboard-quality": "tsx scripts/test-dashboard-quality.ts",
     "test:dashboard-quality-ui": "tsx scripts/test-dashboard-quality-ui.ts",
-    "test:calculator-dashboard-usability": "tsx scripts/test-calculator-dashboard-usability.ts"
+    "test:calculator-dashboard-usability": "tsx scripts/test-calculator-dashboard-usability.ts",
+    "test:expense-planner": "tsx scripts/test-expense-planner.ts",
+    "test:expense-backend": "tsx scripts/test-expense-backend.ts",
+    "test:expense-sync": "tsx scripts/test-expense-sync.ts",
+    "test:expense-ui": "tsx scripts/test-expense-ui.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

@@ -40,6 +40,20 @@ Este README describe el código de la rama que estás consultando. Las funciones
 - La importación de una cartera local a la cuenta requiere confirmación expresa. No reemplaza automáticamente una cartera remota existente.
 - Las modificaciones de una cartera conectada requieren conexión; la vista ya cargada puede consultarse sin red en esa pestaña.
 
+### Gastos y presupuesto
+
+Nueva sección de Herramientas en `/academy/expenses`, independiente de la cartera:
+
+- Gastos, ingresos, reembolsos y transferencias entre cuentas; etiquetas, notas, filtros, edición y borrado con confirmación.
+- Cuentas bancarias, efectivo y tarjetas con saldo inicial, historial y archivo reversible.
+- Presupuestos por mes y categoría, base mensual, alertas de exceso y referencia 50/30/20.
+- Recurrentes semanales, mensuales y anuales, vencimientos, pausa y omisión; cada pago o cobro se confirma antes de contarlo.
+- Resumen de ingresos, gasto neto, balance y ahorro; categorías, seis meses de evolución, calendario y previstos pendientes.
+- Objetivos de ahorro con reservas y aportación mensual orientativa.
+- CSV bancario con asignación de columnas, vista previa y revisión de coincidencias. Copia completa JSON para exportar y restaurar.
+
+Funciona en EUR y guarda importes en céntimos enteros. En local conserva el registro en este navegador; con una cuenta conectada usa un libro de gastos privado en Supabase, incluso sin cartera de inversiones. No conecta con bancos ni mueve dinero. [Modelo, API y validación](docs/expense-planner.md).
+
 ### Importación de Excel y CSV
 
 La pantalla `/portfolio-csv` sigue disponible para importar y analizar hojas de cálculo. El Dashboard usa un histórico estructurado independiente del archivo y puede continuarlo con operaciones y valoraciones posteriores, según su cobertura y vinculación. Los datos antiguos se convierten una sola vez dentro de la sesión de su propietario.

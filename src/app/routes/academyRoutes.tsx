@@ -14,13 +14,16 @@ import {
     PanelsTopLeft,
     PieChart,
     Receipt,
+    WalletCards,
     Scale,
     Shield,
     Sparkles,
     Target,
     TrendingUp,
 } from 'lucide-react';
+import { lazy, Suspense } from 'react';
 import type { ReactNode } from 'react';
+const ExpenseManager = lazy(() => import('../../components/expenses/ExpenseManager'));
 import { Navigate } from 'react-router-dom';
 import { AssetBonds } from '../../components/academy/assets/AssetBonds';
 import { AssetCash } from '../../components/academy/assets/AssetCash';
@@ -85,6 +88,7 @@ export const academyRouteDefinitions: AcademyRouteDefinition[] = [
 
     { path: 'calculators', label: 'Calculadoras', element: <Calculators />, icon: Calculator, group: 'Herramientas', includeInSidebar: true },
     { path: 'salary-calculator', label: 'IRPF y sueldo neto', element: <SalaryCalculator />, icon: Receipt, group: 'Herramientas', includeInSidebar: true },
+    { path: 'expenses', label: 'Gastos y presupuesto', element: <Suspense fallback={<p role="status" style={{ padding: '2rem' }}>Cargando gastos…</p>}><ExpenseManager /></Suspense>, icon: WalletCards, group: 'Herramientas', includeInSidebar: true },
     { path: 'fund-information', label: 'Ficha de fondos', element: <FundInformationCalculator />, icon: FileSearch, group: 'Herramientas', includeInSidebar: true },
     { path: 'fund-radar', label: 'Radar de fondos', element: <FundRadar />, icon: Award, group: 'Herramientas', includeInSidebar: true },
     { path: 'valuation', label: 'Valoración', element: <ValuationGuide />, icon: LineChart, group: 'Herramientas', includeInSidebar: true },

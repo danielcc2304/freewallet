@@ -74,6 +74,7 @@ export function AccountProvider({children}:{children:ReactNode}) {
         if(!user)return;
         const check=()=>{
             const editing=window.location.pathname==='/add' || window.location.pathname==='/portfolio-csv'
+                || !!document.querySelector('[role=dialog]')
                 || document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
             if(!editing && document.visibilityState==='visible' && navigator.onLine && ['synced','empty'].includes(portfolioStorage.getSnapshot().status))void refresh().catch(()=>{});
         };

@@ -10,6 +10,9 @@ import type { ExpenseEntry } from '../src/types/expenses';
 const origin = process.env.FREEWALLET_TEST_URL || 'http://127.0.0.1:5255';
 assert.match(origin, /^http:\/\/(localhost|127\.0\.0\.1):\d+$/);
 const version = JSON.parse(readFileSync('package.json', 'utf8')).version;
+const appearance = process.env.FREEWALLET_TEST_APPEARANCE || 'standard';
+assert.ok(['standard', 'liquid-glass'].includes(appearance));
+const capturePrefix = appearance === 'liquid-glass' ? 'glass-' : '';
 const browser = await puppeteer.launch({
     headless: true,
     args: ['--no-sandbox'],
@@ -23,13 +26,16 @@ try {
     ]);
     page.on('pageerror', (e) => errors.push(String(e)));
     await page.setViewport({ width: 1440, height: 1100 });
-    await page.evaluateOnNewDocument((version) => {
-        localStorage.setItem('freewallet_settings', '{"apiEnabled":false}');
-        localStorage.setItem('freewallet_last_seen_version', version);
-        if (!localStorage.getItem('freewallet_theme_mode'))
-            localStorage.setItem('freewallet_theme_mode', 'dark');
-        localStorage.setItem('freewallet_appearance_mode', 'standard');
-    }, version);
+    await page.evaluateOnNewDocument(
+        ({ version, appearance }) => {
+            localStorage.setItem('freewallet_settings', '{"apiEnabled":false}');
+            localStorage.setItem('freewallet_last_seen_version', version);
+            if (!localStorage.getItem('freewallet_theme_mode'))
+                localStorage.setItem('freewallet_theme_mode', 'dark');
+            localStorage.setItem('freewallet_appearance_mode', appearance);
+        },
+        { version, appearance },
+    );
     await page.setRequestInterception(true);
     page.on('request', (r) => {
         const url = new URL(r.url());
@@ -378,8 +384,18 @@ try {
     await page.setViewport({ width: 1440, height: 1120 });
     await page.reload({ waitUntil: 'networkidle2' });
     await page.waitForSelector('.expense-donut');
+    if (appearance === 'liquid-glass') {
+        assert.equal(
+            await page.evaluate(
+                () => document.documentElement.dataset.appearance,
+            ),
+            'liquid-glass',
+        );
+    }
     await page.evaluate(() => window.scrollTo(0, 0));
-    await page.screenshot({ path: 'artifacts/expenses/escritorio.png' });
+    await page.screenshot({
+        path: `artifacts/expenses/${capturePrefix}escritorio.png`,
+    });
     await page.setViewport({ width: 390, height: 950 });
     await page.waitForFunction(
         () =>
@@ -390,12 +406,12 @@ try {
     );
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.screenshot({
-        path: 'artifacts/expenses/movil.png',
+        path: `artifacts/expenses/${capturePrefix}movil.png`,
         fullPage: true,
     });
     await click('Presupuestos', '.expense-tabs button');
     await page.screenshot({
-        path: 'artifacts/expenses/presupuestos.png',
+        path: `artifacts/expenses/${capturePrefix}presupuestos.png`,
         fullPage: true,
     });
     await page.evaluate(() =>
@@ -410,10 +426,28 @@ try {
         ),
         'light',
     );
-    await page.screenshot({ path: 'artifacts/expenses/tema-claro.png' });
+    await page.screenshot({
+        path: `artifacts/expenses/${capturePrefix}tema-claro.png`,
+    });
+    if (appearance === 'liquid-glass') {
+        await page.setViewport({ width: 390, height: 950 });
+        await page.waitForFunction(
+            () =>
+                parseFloat(
+                    getComputedStyle(document.querySelector('.layout__main')!)
+                        .marginLeft,
+                ) < 1,
+        );
+        await click('Añadir movimiento');
+        await page.waitForSelector('.expense-form');
+        await page.screenshot({
+            path: 'artifacts/expenses/glass-formulario-movil.png',
+        });
+        await click('Cancelar', '.expense-form button');
+    }
     assert.deepEqual(errors, []);
     console.log(
-        'PASS: create/edit/cancel/delete, transfer/refund/income summaries, budgets, recurring confirmation/dedup, goals, CSV preview/import, persistence, mobile 320/390/768 layouts, light/dark captures.',
+        `PASS (${appearance}): create/edit/cancel/delete, transfer/refund/income summaries, budgets, recurring confirmation/dedup, goals, CSV preview/import, persistence, mobile 320/390/768 layouts, light/dark captures.`,
     );
 } finally {
     await browser.close();

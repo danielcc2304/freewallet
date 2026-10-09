@@ -2,6 +2,8 @@
 
 Ruta `/academy/expenses`, acceso directo en Herramientas. Implementación cargada de forma diferida para no añadir el módulo a la carga inicial del Dashboard.
 
+La apariencia Liquid Glass usa las variables compartidas: material suave en tarjetas, controles translúcidos y reflejos de selección/puntero. Incluye paletas clara y oscura, movimiento y transparencia reducidos y fondos sólidos si el navegador no admite desenfoque. El modo estándar conserva sus estilos.
+
 ## Cómo usarlo
 
 1. En Cuentas y objetivos, indica el saldo inicial de tu cuenta antes del primer movimiento que vas a registrar. La cuenta inicial sin saldo permite empezar con un extracto histórico.
@@ -48,3 +50,5 @@ Migración: `supabase/migrations/20261009000900_expense_books.sql`. En un proyec
 - `test:expense-ui`: navegador Chromium, recorridos de creación/edición/cancelación/borrado, recurrentes, presupuesto, cuentas, objetivos, importación y adaptación a 320/390/768 px. Capturas con datos sintéticos en `artifacts/expenses`.
 
 Para las pruebas de interfaz arranca Vite con backend desactivado en `127.0.0.1:5255`, o indica otro servidor local mediante `FREEWALLET_TEST_URL`; configura `PUPPETEER_EXECUTABLE_PATH` si Chromium está instalado fuera de Puppeteer.
+
+Para verificar Liquid Glass, ejecuta `FREEWALLET_TEST_APPEARANCE=liquid-glass npm run test:expense-ui`. Las capturas de ese modo usan el prefijo `glass-`, incluida una del formulario en móvil.

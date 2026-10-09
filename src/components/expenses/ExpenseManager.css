@@ -167,3 +167,118 @@
 .expense-mobile-entry .expense-row > strong { flex-shrink:0; }
 .expense-mobile-entry > small { color:var(--text-secondary); font-size:.72rem; }
 @media(max-width:600px) { .expense-mobile-entries { display:block; } .expense-entry-table { display:none; } }
+
+/* Match the shared Liquid Glass hierarchy: quiet content, brighter controls.
+   Keep inner cards free of stacked blur and retain horizontal tab scrolling. */
+html[data-appearance='liquid-glass'] .expense-manager :is(.expense-stat,.expense-panel,.expense-start) {
+    border-color:var(--border-primary);
+    background:linear-gradient(145deg,rgba(255,255,255,.035),transparent 34%),var(--glass-content);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.08);
+    backdrop-filter:blur(var(--glass-content-blur)) saturate(120%);
+    -webkit-backdrop-filter:blur(var(--glass-content-blur)) saturate(120%);
+}
+html[data-appearance='liquid-glass'] .expense-manager :is(.expense-account,.expense-goal,.expense-category-card) {
+    border-color:var(--glass-edge-soft);
+    background:linear-gradient(145deg,rgba(255,255,255,.055),transparent 45%),var(--glass-clear);
+    box-shadow:inset 0 1px 0 var(--glass-edge-soft);
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+}
+html[data-appearance='liquid-glass'] .expense-manager .expense-stat--hero {
+    border-color:var(--border-accent);
+    background:radial-gradient(300px circle at 0% 0%,rgba(var(--accent-rgb),.18),transparent 75%),linear-gradient(145deg,rgba(255,255,255,.07),transparent 45%),var(--glass-content);
+}
+html[data-appearance='liquid-glass'] :is(.expense-tabs,.expense-month,.expense-segmented,.expense-search) {
+    border:1px solid var(--glass-edge-soft);
+    background:linear-gradient(150deg,rgba(255,255,255,.09),transparent 45%),var(--glass-regular);
+    box-shadow:0 8px 22px rgba(0,0,0,.1),inset 0 1px 0 var(--glass-edge-bright);
+    backdrop-filter:blur(var(--glass-control-blur)) saturate(145%);
+    -webkit-backdrop-filter:blur(var(--glass-control-blur)) saturate(145%);
+}
+html[data-appearance='liquid-glass'] :is(.expense-tabs,.expense-segmented) button {
+    position:relative;
+    isolation:isolate;
+    transition:background .18s,box-shadow .18s;
+}
+html[data-appearance='liquid-glass'] :is(.expense-tabs,.expense-segmented) button:hover:not([aria-pressed='true']) {
+    background:var(--glass-clear);
+    color:var(--text-primary);
+}
+html[data-appearance='liquid-glass'] :is(.expense-tabs,.expense-segmented) button[aria-pressed='true'] {
+    color:var(--text-primary);
+    background:radial-gradient(160px circle at var(--glass-pointer-x) var(--glass-pointer-y),var(--glass-specular),transparent 72%),linear-gradient(145deg,rgba(255,255,255,.12),transparent 48%),rgba(var(--accent-rgb),.2);
+    box-shadow:inset 0 1px 0 var(--glass-edge-bright),inset 0 0 0 1px var(--border-accent);
+}
+html[data-appearance='liquid-glass'] .expense-btn {
+    position:relative;
+    border-color:rgba(255,255,255,.3);
+    background:radial-gradient(140px circle at var(--glass-pointer-x) var(--glass-pointer-y),rgba(255,255,255,.2),transparent 72%),linear-gradient(145deg,rgba(255,255,255,.12),transparent 46%),linear-gradient(135deg,rgba(6,95,70,.98),rgba(29,78,216,.98));
+    color:#fff;
+    box-shadow:0 8px 22px rgba(16,185,129,.18),inset 0 1px 0 rgba(255,255,255,.44);
+}
+html[data-appearance='liquid-glass'] .expense-btn--secondary {
+    border-color:var(--glass-edge-soft);
+    background:radial-gradient(140px circle at var(--glass-pointer-x) var(--glass-pointer-y),var(--glass-specular),transparent 72%),var(--glass-clear);
+    color:var(--text-primary);
+    box-shadow:inset 0 1px 0 var(--glass-edge-bright);
+}
+html[data-appearance='liquid-glass'] .expense-btn--quiet {
+    border-color:transparent;
+    background:transparent;
+    color:var(--text-secondary);
+    box-shadow:none;
+}
+html[data-appearance='liquid-glass'] .expense-manager :is(.expense-month button,.expense-row-actions button,.expense-icon-btn,.expense-export-menu button):hover:not(:disabled) {
+    background:var(--glass-clear);
+    box-shadow:inset 0 1px 0 var(--glass-edge-soft);
+}
+html[data-appearance='liquid-glass'] :is(.expense-field input,.expense-field select,.expense-field textarea) {
+    border-color:var(--glass-edge-soft);
+    background:var(--glass-clear);
+    box-shadow:inset 0 1px 0 var(--glass-edge-soft);
+    /* The parent dialog/panel already supplies the optical blur. */
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+}
+html[data-appearance='liquid-glass'] :is(.expense-field input,.expense-field select,.expense-field textarea):focus {
+    border-color:var(--border-accent);
+    box-shadow:0 0 0 3px rgba(var(--accent-rgb),.12),inset 0 1px 0 var(--glass-edge-soft);
+}
+html[data-appearance='liquid-glass'] :is(.expense-search input,.expense-month input) {
+    background:transparent;
+    box-shadow:none;
+    backdrop-filter:none;
+    -webkit-backdrop-filter:none;
+}
+html[data-appearance='liquid-glass'] :is(.expense-month input,.expense-field input,.expense-field select,.expense-field textarea) { color-scheme:dark; }
+html[data-theme='light'][data-appearance='liquid-glass'] :is(.expense-month input,.expense-field input,.expense-field select,.expense-field textarea) { color-scheme:light; }
+html[data-appearance='liquid-glass'] .expense-field select option { background:#0f1a29; color:#f1f5f9; }
+html[data-theme='light'][data-appearance='liquid-glass'] .expense-field select option { background:#f8fcff; color:#10202d; }
+html[data-appearance='liquid-glass'] .expense-export-menu > div {
+    border-color:var(--glass-edge-soft);
+    background:var(--glass-regular-strong);
+    box-shadow:var(--shadow-md);
+    backdrop-filter:blur(var(--glass-overlay-blur)) saturate(145%);
+    -webkit-backdrop-filter:blur(var(--glass-overlay-blur)) saturate(145%);
+}
+html[data-theme='light'][data-appearance='liquid-glass'] .expense-export-menu > div { background:rgba(247,251,255,.97); }
+html[data-theme='light'][data-appearance='liquid-glass'] :is(.expense-tabs,.expense-month,.expense-segmented,.expense-search) {
+    box-shadow:0 6px 18px rgba(54,83,105,.07),inset 0 1px 0 var(--glass-edge-bright);
+}
+html[data-theme='light'][data-appearance='liquid-glass'] .expense-negative { color:#be123c !important; }
+html[data-theme='light'][data-appearance='liquid-glass'] .expense-progress--over > span { background:#be123c !important; }
+/* Solid surfaces also serve reduced-transparency preferences. */
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))) {
+    html[data-appearance='liquid-glass'] :is(.expense-stat,.expense-panel,.expense-start,.expense-account,.expense-goal,.expense-category-card,.expense-tabs,.expense-month,.expense-segmented,.expense-search,.expense-export-menu > div) { background:var(--bg-primary); }
+}
+@media(prefers-reduced-transparency:reduce) {
+    html[data-appearance='liquid-glass'] .expense-manager :is(.expense-stat,.expense-panel,.expense-start,.expense-account,.expense-goal,.expense-category-card),
+    html[data-appearance='liquid-glass'] :is(.expense-tabs,.expense-month,.expense-segmented,.expense-search,.expense-export-menu > div) {
+        background:var(--bg-primary);
+        backdrop-filter:none;
+        -webkit-backdrop-filter:none;
+    }
+}
+@media(prefers-reduced-motion:reduce) {
+    html[data-appearance='liquid-glass'] :is(.expense-tabs,.expense-segmented) button { transition:none; }
+}

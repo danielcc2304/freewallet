@@ -174,6 +174,13 @@ export default function ExpenseManager() {
         fileTask.current++;
     }, [owner]);
     const fileRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+        const input = fileRef.current;
+        if (!input) return;
+        const handleCancel: EventListener = () => finishNativeFilePicker();
+        input.addEventListener('cancel', handleCancel);
+        return () => input.removeEventListener('cancel', handleCancel);
+    }, []);
     const [query, setQuery] = useState('');
     const [kindFilter, setKindFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
@@ -670,7 +677,6 @@ export default function ExpenseManager() {
                 type="file"
                 accept=".csv,.xlsx,.xls,.json,text/csv,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
                 hidden
-                onCancel={() => finishNativeFilePicker()}
                 onChange={(e) => {
                     void readFile(e.target.files?.[0]);
                     e.target.value = '';

@@ -63,6 +63,7 @@
     "test:dashboard-quality-ui": "tsx scripts/test-dashboard-quality-ui.ts",
     "test:calculator-dashboard-usability": "tsx scripts/test-calculator-dashboard-usability.ts",
     "test:expense-planner": "tsx scripts/test-expense-planner.ts",
+    "test:expense-excel": "tsx scripts/test-expense-excel.ts",
     "test:expense-backend": "tsx scripts/test-expense-backend.ts",
     "test:expense-sync": "tsx scripts/test-expense-sync.ts",
     "test:expense-ui": "tsx scripts/test-expense-ui.ts"

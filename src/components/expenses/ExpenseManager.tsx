@@ -51,6 +51,7 @@ import {
 } from '../../services/expenseImport';
 import type { ExpenseImportDocument } from '../../services/expenseImport';
 import { readExpenseWorkbook } from '../../services/expenseWorkbook';
+import { finishNativeFilePicker, markNativeFilePickerOpen } from '../../services/nativeFilePicker';
 import { ExpenseEditors } from './ExpenseEditors';
 import type { ExpenseEditor } from './ExpenseEditors';
 import { ExpenseImportDialog } from './ExpenseImportDialog';
@@ -162,6 +163,7 @@ export default function ExpenseManager() {
     const [readingFile, setReadingFile] = useState(false);
     const fileTask = useRef(0);
     useEffect(() => {
+        finishNativeFilePicker();
         setImportDocument(null);
         setEditor(null);
         setConfirmation(null);
@@ -275,12 +277,16 @@ export default function ExpenseManager() {
             );
     };
     const readFile = async (file?: File) => {
-        if (!file || !book) return;
+        if (!file || !book) {
+            finishNativeFilePicker();
+            return;
+        }
         setError('');
         if (!editable && !file.name.toLowerCase().endsWith('.json')) {
             setError(
                 'Recupera el registro con una copia JSON válida antes de importar movimientos.',
             );
+            finishNativeFilePicker();
             return;
         }
         const task = ++fileTask.current;
@@ -324,7 +330,10 @@ export default function ExpenseManager() {
                         : 'No se pudo leer el archivo.',
                 );
         } finally {
-            if (task === fileTask.current) setReadingFile(false);
+            if (task === fileTask.current) {
+                setReadingFile(false);
+                finishNativeFilePicker();
+            }
         }
     };
     const newMovement = (kind: ExpenseKind = 'expense') =>
@@ -427,7 +436,11 @@ export default function ExpenseManager() {
                                 readingFile ||
                                 (!editable && (cloud || status !== 'error'))
                             }
-                            onClick={() => fileRef.current?.click()}
+                            onClick={() => {
+                                if (!fileRef.current) return;
+                                markNativeFilePickerOpen();
+                                fileRef.current.click();
+                            }}
                         >
                             Importar CSV, Excel o copia JSON
                         </button>
@@ -654,6 +667,7 @@ export default function ExpenseManager() {
                 type="file"
                 accept=".csv,.xlsx,.xls,.json,text/csv,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
                 hidden
+                onCancel={() => finishNativeFilePicker()}
                 onChange={(e) => {
                     void readFile(e.target.files?.[0]);
                     e.target.value = '';

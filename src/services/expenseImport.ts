@@ -30,6 +30,7 @@ export interface ExpenseImportSheet {
     rows: string[][];
     sourceLines?: number[];
     bank?: 'bbva';
+    movementColumn?: number;
     cardColumn?: number;
 }
 export interface ExpenseImportDocument {
@@ -108,6 +109,155 @@ const normalized = (s: string) =>
         .normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '')
         .replace(/^'(?=[=+\-@\t\r])/, '');
+const normalizedPhrase = (s: string) =>
+    normalized(s)
+        .replace(/[^a-z0-9]+/g, ' ')
+        .trim()
+        .replace(/\s+/g, ' ');
+const includesPhrase = (normalizedText: string, phrase: string) => {
+    const normalizedMatch = normalizedPhrase(phrase);
+    return Boolean(
+        normalizedMatch && ` ${normalizedText} `.includes(` ${normalizedMatch} `),
+    );
+};
+
+const BBVA_CATEGORY_KEYWORDS: { categoryId: string; terms: string[] }[] = [
+    {
+        categoryId: 'home',
+        terms: [
+            'vivienda', 'alquiler', 'hipoteca', 'luz', 'electricidad',
+            'recibo luz', 'agua', 'recibo agua', 'agua potable', 'basura',
+            'basuras', 'tasa basura', 'residuos', 'tasa residuos',
+            'recogida residuos', 'alcantarillado', 'saneamiento', 'gas natural',
+            'gas propano', 'bombona de butano', 'suministros',
+            'comunidad de propietarios', 'comunidad vecinos', 'cuota comunidad',
+            'reparacion hogar', 'mantenimiento vivienda', 'fontanero',
+            'calefaccion', 'internet', 'telefono', 'fibra', 'telecom', 'energia',
+            'digi', 'movistar', 'vodafone', 'orange', 'jazztel', 'masmovil',
+            'yoigo', 'lowi', 'pepephone', 'endesa', 'iberdrola', 'naturgy',
+            'octopus energy', 'totalenergies', 'edp', 'aqualia', 'emasesa',
+            'canal isabel ii', 'agbar', 'veolia',
+        ],
+    },
+    {
+        categoryId: 'food',
+        terms: [
+            'alimentacion', 'comida', 'cena', 'desayuno', 'almuerzo',
+            'merienda', 'restaurante', 'cafeteria', 'panaderia', 'fruteria',
+            'carniceria', 'pescaderia', 'supermercado', 'mercadona',
+            'dia', 'lidl', 'aldi', 'carrefour', 'eroski', 'consum', 'ahorramas',
+            'alcampo', 'al campo', 'hipercor', 'hiperdino', 'bonpreu', 'bonarea',
+            'caprabo', 'gadis', 'froiz', 'spar', 'coviran', 'makro', 'masymas',
+            'supercor', 'condis', 'veritas', 'unide', 'hiperber', 'superdumbo',
+            'el jamon', 'la sirena', 'bm supermercados', 'sanchez romero',
+            'glovo', 'just eat', 'uber eats', 'deliveroo', 'mcdonalds',
+            'burger king', 'kfc', 'subway', 'dominos', 'telepizza', 'starbucks',
+            'vips', '100 montaditos', 'pans company', 'goiko', 'food truck',
+            'pizzeria', 'sushi',
+        ],
+    },
+    {
+        categoryId: 'transport',
+        terms: [
+            'transporte', 'taxi', 'uber', 'cabify', 'bolt', 'metro', 'autobus',
+            'bus', 'tren', 'renfe', 'cercanias', 'emt', 'tmb', 'alsa', 'avanza',
+            'gasolina', 'gasolinera', 'diesel', 'combustible', 'parking',
+            'aparcamiento', 'peaje', 'repsol', 'cepsa', 'petroprix', 'plenoil',
+            'ballenoil', 'shell', 'galp', 'bp', 'easypark', 'telpark', 'saba',
+        ],
+    },
+    {
+        categoryId: 'health',
+        terms: [
+            'salud', 'farmacia', 'parafarmacia', 'medico', 'hospital',
+            'dentista', 'clinica', 'optica', 'fisioterapia', 'analisis clinicos',
+            'sanitas', 'adeslas', 'asisa', 'dkv', 'veterinario', 'veterinaria',
+        ],
+    },
+    {
+        categoryId: 'leisure',
+        terms: [
+            'ocio', 'cine', 'cinema', 'cinesa', 'yelmo', 'kinepolis', 'ocine',
+            'teatro', 'concierto', 'ticketmaster', 'entradas', 'festival',
+            'museo', 'parque tematico', 'escape room', 'juego', 'deporte',
+            'gimnasio', 'steam', 'playstation', 'xbox', 'nintendo',
+            'parque de atracciones',
+        ],
+    },
+    {
+        categoryId: 'shopping',
+        terms: [
+            'compras', 'ropa', 'electronica', 'zara', 'h m', 'mango', 'primark',
+            'decathlon', 'mediamarkt', 'media markt', 'fnac', 'ikea',
+            'leroy merlin', 'el corte ingles', 'amazon', 'shein', 'temu',
+            'zalando', 'pull and bear', 'bershka', 'stradivarius', 'lefties',
+            'c and a', 'carrefour online', 'pccomponentes', 'apple store',
+        ],
+    },
+    {
+        categoryId: 'subscriptions',
+        terms: [
+            'suscripcion', 'netflix', 'spotify', 'disney plus', 'disney+',
+            'hbo', 'hbo max', 'max', 'prime video', 'amazon prime', 'icloud',
+            'youtube premium', 'google one', 'microsoft 365',
+            'apple music', 'apple tv', 'adobe', 'dropbox', 'filmin', 'skyshowtime',
+            'deezer', 'tidal', 'crunchyroll',
+        ],
+    },
+    {
+        categoryId: 'education',
+        terms: [
+            'formacion', 'educacion', 'curso', 'academia', 'universidad',
+            'matricula', 'colegio', 'escuela',
+        ],
+    },
+];
+
+/** Suggest only an unambiguous BBVA category; keep uncertain rows editable in the import preview. */
+export function suggestBbvaExpenseCategory(
+    categories: ExpenseBook['categories'],
+    text: string,
+): string | undefined {
+    const normalizedText = normalizedPhrase(text);
+    const homeCategoryId = categories.find((category) => category.id === 'home')?.id;
+    const categoryIds = new Set(
+        categories
+            .filter((category) =>
+                includesPhrase(normalizedText, category.name),
+            )
+            .map((category) =>
+                (category.id === 'bills' ||
+                    normalizedPhrase(category.name) === 'suministros') &&
+                homeCategoryId
+                    ? homeCategoryId
+                    : category.id,
+            ),
+    );
+    const isUberEats = includesPhrase(normalizedText, 'uber eats');
+    const isAmazonPrime =
+        includesPhrase(normalizedText, 'amazon prime') ||
+        includesPhrase(normalizedText, 'prime video');
+    for (const rule of BBVA_CATEGORY_KEYWORDS) {
+        if (!categories.some((category) => category.id === rule.categoryId))
+            continue;
+        if (
+            rule.terms.some((term) => {
+                if (isUberEats && rule.categoryId === 'transport' && term === 'uber')
+                    return false;
+                if (
+                    isAmazonPrime &&
+                    rule.categoryId === 'shopping' &&
+                    term === 'amazon'
+                )
+                    return false;
+                return includesPhrase(normalizedText, term);
+            })
+        )
+            categoryIds.add(rule.categoryId);
+    }
+    return categoryIds.size === 1 ? [...categoryIds][0] : undefined;
+}
+
 export function guessCsvMapping(headers: string[]): CsvMapping {
     const names: Record<CsvField, string[]> = {
         date: [

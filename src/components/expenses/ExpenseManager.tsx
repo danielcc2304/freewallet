@@ -51,7 +51,10 @@ import {
 } from '../../services/expenseImport';
 import type { ExpenseImportDocument } from '../../services/expenseImport';
 import { readExpenseWorkbook } from '../../services/expenseWorkbook';
-import { finishNativeFilePicker, markNativeFilePickerOpen } from '../../services/nativeFilePicker';
+import {
+    finishNativeFilePicker,
+    markNativeFilePickerOpen,
+} from '../../services/nativeFilePicker';
 import { ExpenseEditors } from './ExpenseEditors';
 import type { ExpenseEditor } from './ExpenseEditors';
 import { ExpenseImportDialog } from './ExpenseImportDialog';

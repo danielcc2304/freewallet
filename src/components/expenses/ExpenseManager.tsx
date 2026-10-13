@@ -158,8 +158,10 @@ export default function ExpenseManager() {
     const [confirmation, setConfirmation] = useState<{
         title: string;
         message: string;
+        confirmText?: string;
         next?: ExpenseBook;
         reload?: boolean;
+        resetEntryFilters?: boolean;
     } | null>(null);
     const [importDocument, setImportDocument] =
         useState<ExpenseImportDocument | null>(null);
@@ -1189,7 +1191,26 @@ export default function ExpenseManager() {
                 <section className="expense-panel">
                     <div className="expense-panel-title">
                         <h2>Movimientos</h2>
-                        <span>{filtered.length} registros</span>
+                        <div className="expense-panel-title-actions">
+                            <span>{filtered.length} registros</span>
+                            <button
+                                type="button"
+                                className="expense-btn expense-btn--danger"
+                                disabled={!editable || !book.entries.length}
+                                onClick={() =>
+                                    setConfirmation({
+                                        title: 'Borrar todos los movimientos',
+                                        message: `Se eliminarán los ${book.entries.length} movimientos de todas las fechas. Se conservarán las cuentas, categorías, presupuestos y reglas recurrentes; los vencimientos recurrentes volverán a quedar pendientes. Esta acción no se puede deshacer.`,
+                                        confirmText: 'Borrar movimientos',
+                                        resetEntryFilters: true,
+                                        next: { ...book, entries: [] },
+                                    })
+                                }
+                            >
+                                <Trash2 size={16} />
+                                Borrar todos
+                            </button>
+                        </div>
                     </div>
                     <div className="expense-filters">
                         <label className="expense-search">
@@ -2306,9 +2327,10 @@ export default function ExpenseManager() {
                 title={confirmation?.title ?? ''}
                 message={confirmation?.message ?? ''}
                 confirmText={
-                    confirmation?.reload
+                    confirmation?.confirmText ??
+                    (confirmation?.reload
                         ? 'Cargar versión guardada'
-                        : 'Confirmar'
+                        : 'Confirmar')
                 }
                 loading={saving}
                 onConfirm={() => {
@@ -2323,7 +2345,18 @@ export default function ExpenseManager() {
                         }
                     };
                     void run()
-                        .then(() => setConfirmation(null))
+                        .then(() => {
+                            if (confirmation.resetEntryFilters) {
+                                setQuery('');
+                                setKindFilter('all');
+                                setCategoryFilter('all');
+                                setAccountFilter('all');
+                                setTagFilter('');
+                                setAllDates(true);
+                                setPage(0);
+                            }
+                            setConfirmation(null);
+                        })
                         .catch((err) =>
                             setError(
                                 err instanceof Error

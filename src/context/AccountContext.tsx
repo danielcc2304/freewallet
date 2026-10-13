@@ -6,6 +6,7 @@ import {portfolioStorage} from '../services/portfolioCloudStorage';
 import type {CloudData} from '../services/portfolioCloudStorage';
 import {readCloudPortfolio,writeCloudPortfolio} from '../services/portfolioRepository';
 import {AccountScope} from '../services/accountScope';
+import {isNativeFilePickerOpen} from '../services/nativeFilePicker';
 import {AccountConnectionState} from '../components/ui/AccountConnectionState';
 
 const portfolioCloudEnabled=isAppBackendConfigured && import.meta.env.VITE_PORTFOLIO_CLOUD_ENABLED==='true';
@@ -74,7 +75,7 @@ export function AccountProvider({children}:{children:ReactNode}) {
         if(!user)return;
         const check=()=>{
             const editing=window.location.pathname==='/add' || window.location.pathname==='/portfolio-csv'
-                || !!document.querySelector('[role=dialog]')
+                || !!document.querySelector('[role=dialog]') || isNativeFilePickerOpen()
                 || document.activeElement?.matches('input,textarea,select,[contenteditable="true"]');
             if(!editing && document.visibilityState==='visible' && navigator.onLine && ['synced','empty'].includes(portfolioStorage.getSnapshot().status))void refresh().catch(()=>{});
         };

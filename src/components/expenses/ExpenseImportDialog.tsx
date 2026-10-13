@@ -1,9 +1,10 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import type { ExpenseBook } from '../../types/expenses';
 import {
     CSV_FIELDS,
     guessCsvMapping,
     previewExpenseImport,
+    suggestBbvaExpenseCategory,
 } from '../../services/expenseImport';
 import type {
     CsvMapping,
@@ -44,6 +45,15 @@ export function ExpenseImportDialog({
     );
     const [skipDuplicates, setSkipDuplicates] = useState(true);
     const [error, setError] = useState('');
+    const [categoryOverrides, setCategoryOverrides] = useState<
+        Record<number, string>
+    >({});
+    const [previewPage, setPreviewPage] = useState(0);
+    useEffect(() => {
+        setCategoryOverrides({});
+        setPreviewPage(0);
+    }, [document, sheetIndex]);
+    useEffect(() => setPreviewPage(0), [onlyCards]);
     const selected = useMemo(() => {
         const indices = sheet.rows
             .map((_, i) => i)
@@ -63,13 +73,80 @@ export function ExpenseImportDialog({
         };
     }, [sheet, onlyCards]);
     const rows = selected.rows;
-    const preview = useMemo(
+    const basePreview = useMemo(
         () =>
             previewExpenseImport(book, rows, mapping, account, {
                 sourceLines: selected.sourceLines,
                 sourceLabel: document.format === 'excel' ? 'Excel' : 'CSV',
             }),
         [book, rows, mapping, account, selected.sourceLines, document.format],
+    );
+    const reviewBbvaCategories =
+        sheet.bank === 'bbva' &&
+        sheet.movementColumn !== undefined &&
+        mapping.category < 0;
+    const categorySuggestions = useMemo(() => {
+        const suggestions = new Map<number, string>();
+        if (!reviewBbvaCategories || sheet.movementColumn === undefined)
+            return suggestions;
+        for (let rowIndex = 1; rowIndex < rows.length; rowIndex++) {
+            const line = selected.sourceLines?.[rowIndex] ?? rowIndex + 1;
+            const description =
+                mapping.description >= 0
+                    ? (rows[rowIndex][mapping.description] ?? '')
+                    : '';
+            const movement = rows[rowIndex][sheet.movementColumn] ?? '';
+            const categoryId = suggestBbvaExpenseCategory(
+                book.categories,
+                `${movement} ${description}`,
+            );
+            if (categoryId) suggestions.set(line, categoryId);
+        }
+        return suggestions;
+    }, [
+        book.categories,
+        mapping.description,
+        reviewBbvaCategories,
+        rows,
+        selected.sourceLines,
+        sheet.movementColumn,
+    ]);
+    const preview = useMemo(
+        () =>
+            basePreview.map((row) => {
+                if (
+                    !row.entry ||
+                    (row.entry.kind !== 'expense' && row.entry.kind !== 'refund')
+                )
+                    return row;
+                const categoryId = reviewBbvaCategories
+                    ? categoryOverrides[row.line] ??
+                      categorySuggestions.get(row.line) ??
+                      row.entry.categoryId
+                    : row.entry.categoryId;
+                if (!categoryId || categoryId === row.entry.categoryId)
+                    return row;
+                return { ...row, entry: { ...row.entry, categoryId } };
+            }),
+        [
+            basePreview,
+            categoryOverrides,
+            categorySuggestions,
+            reviewBbvaCategories,
+        ],
+    );
+    const previewPageSize = 50;
+    const previewPageCount = Math.max(
+        1,
+        Math.ceil(preview.length / previewPageSize),
+    );
+    const activePreviewPage = Math.min(previewPage, previewPageCount - 1);
+    const previewStart = reviewBbvaCategories
+        ? activePreviewPage * previewPageSize
+        : 0;
+    const visiblePreview = preview.slice(
+        previewStart,
+        previewStart + previewPageSize,
     );
     const valid = preview.filter(
         (row) => row.entry && (!skipDuplicates || !row.duplicate),
@@ -126,6 +203,14 @@ export function ExpenseImportDialog({
                         los abonos de tarjeta se consideran reembolsos. Revisa
                         las transferencias entre tus propias cuentas.
                     </p>
+                    {reviewBbvaCategories && (
+                        <p className="expense-hint">
+                            Se proponen categorías según palabras del movimiento
+                            y del concepto. Revisa o cambia cada propuesta antes
+                            de importar; las filas ambiguas o sin coincidencia
+                            mantienen la categoría por defecto.
+                        </p>
+                    )}
                     <label className="expense-check">
                         <input
                             type="checkbox"
@@ -208,10 +293,11 @@ export function ExpenseImportDialog({
                             <th>Concepto / error</th>
                             <th>Tipo</th>
                             <th>Importe</th>
+                            {reviewBbvaCategories && <th>Categoría</th>}
                         </tr>
                     </thead>
                     <tbody>
-                        {preview.slice(0, 50).map((row) => (
+                        {visiblePreview.map((row) => (
                             <tr key={row.line}>
                                 <td>{row.line}</td>
                                 <td>
@@ -235,12 +321,91 @@ export function ExpenseImportDialog({
                                         ? money(row.entry.amountCents)
                                         : '—'}
                                 </td>
+                                {reviewBbvaCategories && (
+                                    <td className="expense-import__category-cell">
+                                        {row.entry?.categoryId ? (
+                                            <>
+                                                <select
+                                                    className="expense-import__category-select"
+                                                    aria-label={`Categoría para la fila ${row.line}`}
+                                                    value={row.entry.categoryId}
+                                                    onChange={(event) =>
+                                                        setCategoryOverrides(
+                                                            (current) => ({
+                                                                ...current,
+                                                                [row.line]:
+                                                                    event.target
+                                                                        .value,
+                                                            }),
+                                                        )
+                                                    }
+                                                >
+                                                    {book.categories.map(
+                                                        (category) => (
+                                                            <option
+                                                                key={category.id}
+                                                                value={category.id}
+                                                            >
+                                                                {category.name}
+                                                            </option>
+                                                        ),
+                                                    )}
+                                                </select>
+                                                <small>
+                                                    {categoryOverrides[row.line]
+                                                        ? 'Revisada'
+                                                        : categorySuggestions.has(
+                                                                row.line,
+                                                            )
+                                                          ? 'Sugerida'
+                                                          : 'Sin sugerencia'}
+                                                </small>
+                                            </>
+                                        ) : (
+                                            '—'
+                                        )}
+                                    </td>
+                                )}
                             </tr>
                         ))}
                     </tbody>
                 </table>
             </div>
-            {preview.length > 50 && (
+            {reviewBbvaCategories && preview.length > previewPageSize && (
+                <div
+                    className="expense-import__pagination"
+                    aria-label="Páginas de la importación"
+                >
+                    <span>
+                        {previewStart + 1}–
+                        {Math.min(previewStart + previewPageSize, preview.length)}{' '}
+                        de {preview.length}
+                    </span>
+                    <button
+                        type="button"
+                        className="expense-btn expense-btn--secondary"
+                        disabled={activePreviewPage === 0}
+                        onClick={() =>
+                            setPreviewPage((page) => Math.max(0, page - 1))
+                        }
+                    >
+                        Anterior
+                    </button>
+                    <button
+                        type="button"
+                        className="expense-btn expense-btn--secondary"
+                        disabled={activePreviewPage >= previewPageCount - 1}
+                        onClick={() =>
+                            setPreviewPage((page) =>
+                                Math.min(previewPageCount - 1, page + 1),
+                            )
+                        }
+                    >
+                        Siguiente
+                    </button>
+                </div>
+            )}
+            {!reviewBbvaCategories && preview.length > previewPageSize && (
                 <p className="expense-hint">
                     Vista previa de las primeras 50 filas de {preview.length}.
                 </p>

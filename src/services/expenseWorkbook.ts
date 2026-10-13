@@ -166,6 +166,7 @@ export async function readExpenseWorkbook(
             rows,
             sourceLines,
             bank: isBbva ? 'bbva' : undefined,
+            movementColumn: isBbva ? movementColumn : undefined,
             cardColumn: isBbva ? movementColumn : undefined,
         });
     }

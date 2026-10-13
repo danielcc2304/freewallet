@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import puppeteer from 'puppeteer';
+import * as XLSX from 'xlsx';
 import {
     emptyExpenseBook,
     todayLocal,
@@ -199,7 +200,7 @@ try {
     await page.$eval('.expense-export-menu', (e) => {
         (e as HTMLDetailsElement).open = true;
     });
-    await click('Importar CSV o copia JSON');
+    await click('Importar CSV, Excel o copia JSON');
     await page
         .$('input[type=file]')
         .then((input) => input!.uploadFile('/tmp/freewallet-expense-test.csv'));
@@ -218,12 +219,127 @@ try {
         ).length,
         1,
     );
+    const workbook = XLSX.utils.book_new();
+    const excelSheet = XLSX.utils.aoa_to_sheet([
+        ['Movimientos'],
+        ['Fecha de generación del informe'],
+        [
+            'Fecha valor',
+            'Fecha',
+            'Concepto',
+            'Movimiento',
+            'Importe',
+            'Divisa',
+            'Disponible',
+            'Divisa',
+        ],
+        [
+            today,
+            today,
+            'Tarjeta Excel',
+            'Pago con tarjeta',
+            -42.5,
+            'EUR',
+            100,
+            'EUR',
+        ],
+        [
+            today,
+            today,
+            'Reembolso Excel',
+            'Pago con tarjeta',
+            5,
+            'EUR',
+            142.5,
+            'EUR',
+        ],
+        [
+            today,
+            today,
+            'Nómina Excel',
+            'Empresa Ejemplo',
+            400,
+            'EUR',
+            137.5,
+            'EUR',
+        ],
+    ]);
+    XLSX.utils.book_append_sheet(workbook, excelSheet, 'Informe BBVA');
+    XLSX.utils.book_append_sheet(
+        workbook,
+        XLSX.utils.aoa_to_sheet([
+            ['Date', 'Description', 'Amount'],
+            [today, 'Otra hoja', -3],
+        ]),
+        'Otra cuenta',
+    );
+    writeFileSync(
+        '/tmp/freewallet-expense-test.xlsx',
+        XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }),
+    );
+    await click('Importar CSV, Excel o copia JSON');
+    await page
+        .$('input[type=file]')
+        .then((input) =>
+            input!.uploadFile('/tmp/freewallet-expense-test.xlsx'),
+        );
+    await page.waitForSelector('.expense-import');
+    await page.select('.expense-import select', '1');
+    assert.match(
+        await page.$eval('.expense-import-summary', (n) => n.textContent!),
+        /1 para importar/,
+    );
+    await page.select('.expense-import select', '0');
+    assert.match(
+        await page.$eval('.expense-import-summary', (n) => n.textContent!),
+        /3 para importar/,
+    );
+    await page.click('.expense-import input[type=checkbox]'); // BBVA card-only selection.
+    assert.match(
+        await page.$eval('.expense-import-summary', (n) => n.textContent!),
+        /2 para importar/,
+    );
+    assert.match(
+        await page.$eval('.expense-import table', (n) => n.textContent!),
+        /Reembolso/,
+    );
+    mkdirSync('artifacts/expenses', { recursive: true });
+    await page.screenshot({ path: 'artifacts/expenses/excel-preview.png' });
+    await click('Importar 2 movimientos', '.expense-import button');
+    await page.waitForFunction(
+        () => !document.querySelector('.expense-import'),
+    );
+    assert.equal(
+        (await data()).entries.find(
+            (e: ExpenseEntry) => e.description === 'Reembolso Excel',
+        ).kind,
+        'refund',
+    );
+    assert.ok(
+        !(await data()).entries.some((e: ExpenseEntry) =>
+            e.description.includes('Nómina Excel'),
+        ),
+    );
+    // Reimporting the same spreadsheet preserves the duplicate review.
+    await click('Importar CSV, Excel o copia JSON');
+    await page
+        .$('input[type=file]')
+        .then((input) =>
+            input!.uploadFile('/tmp/freewallet-expense-test.xlsx'),
+        );
+    await page.waitForSelector('.expense-import');
+    await page.click('.expense-import input[type=checkbox]');
+    assert.match(
+        await page.$eval('.expense-import-summary', (n) => n.textContent!),
+        /0 para importar/,
+    );
+    await click('Cancelar', '.expense-import button');
     await page.reload({ waitUntil: 'networkidle2' });
     await page.waitForSelector('.expense-manager h1');
-    assert.equal((await data()).entries.length, 5);
+    assert.equal((await data()).entries.length, 7);
     assert.match(
         await page.$eval('[data-testid=expense-spent]', (n) => n.textContent!),
-        /152,50/,
+        /190,00/,
     );
     // Check all sections and dialogs fit narrow viewports in both themes.
     for (const width of [320, 390, 768]) {

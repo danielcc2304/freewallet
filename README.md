@@ -52,7 +52,7 @@ Nueva sección de Herramientas en `/academy/expenses`, independiente de la carte
 - Recurrentes semanales, mensuales y anuales, vencimientos, pausa y omisión; cada pago o cobro se confirma antes de contarlo.
 - Resumen de ingresos, gasto neto, balance y ahorro; categorías, seis meses de evolución, calendario y previstos pendientes.
 - Objetivos de ahorro con reservas y aportación mensual orientativa.
-- CSV bancario con asignación de columnas, vista previa y revisión de coincidencias. Copia completa JSON para exportar y restaurar.
+- CSV y Excel bancarios (.xlsx/.xls) con asignación de columnas, selección de hoja, vista previa y revisión de coincidencias. Detección del extracto BBVA y opción de importar solo pagos de tarjeta. Copia completa JSON para exportar y restaurar.
 
 Funciona en EUR y guarda importes en céntimos enteros. En local conserva el registro en este navegador; con una cuenta conectada usa un libro de gastos privado en Supabase, incluso sin cartera de inversiones. No conecta con bancos ni mueve dinero. [Modelo, API y validación](docs/expense-planner.md).
 

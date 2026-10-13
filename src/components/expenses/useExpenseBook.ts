@@ -1,6 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { useAccount } from '../../context/AccountContext';
 import { expenseStore } from '../../services/expenseStore';
+import { isNativeFilePickerOpen } from '../../services/nativeFilePicker';
 export function useExpenseBook() {
     const { user, enabled } = useAccount();
     const owner = enabled ? (user?.id ?? null) : null;
@@ -19,6 +20,7 @@ export function useExpenseBook() {
                 navigator.onLine &&
                 !document.activeElement?.matches('input,select,textarea') &&
                 !document.querySelector('[role=dialog]') &&
+                !isNativeFilePickerOpen() &&
                 expenseStore.getSnapshot().status === 'ready'
             )
                 void expenseStore.load();

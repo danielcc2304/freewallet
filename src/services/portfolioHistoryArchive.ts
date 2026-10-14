@@ -103,8 +103,10 @@ export function archiveBenchmarkHistory(archive: PortfolioHistoryArchive, isin: 
     return archive.benchmarkNavs.filter(p => p.isin === isin).map(p => ({ date:p.date,close:p.nav,open:p.nav,high:p.nav,low:p.nav,volume:0,currency:p.currency }));
 }
 export function historyScopeMatches(archive: PortfolioHistoryArchive, assets: Array<{id:string}>, transactions: PortfolioTransaction[]): boolean {
-    return archive.linkedAssetIds.length > 0 && transactions.some(t => archive.linkedAssetIds.includes(t.assetId))
-        && assets.every(a => archive.linkedAssetIds.includes(a.id) || transactions.some(t => t.assetId === a.id && t.type === 'buy' && t.provenance !== 'initial-position' && !/^(bootstrap|position)-/.test(t.id)));
+    return archive.linkedAssetIds.length > 0 && transactions.some(t => archive.linkedAssetIds.includes(t.assetId)
+        || (t.type === 'transfer' && !!t.transferToAssetId && archive.linkedAssetIds.includes(t.transferToAssetId)))
+        && assets.every(a => archive.linkedAssetIds.includes(a.id) || transactions.some(t => (t.assetId === a.id && t.type === 'buy' && t.provenance !== 'initial-position' && !/^(bootstrap|position)-/.test(t.id))
+            || (t.type === 'transfer' && t.transferToAssetId === a.id)));
 }
 export function linkPortfolioHistory(assetIds: string[]): void {
     const archive = readPortfolioHistoryArchive();

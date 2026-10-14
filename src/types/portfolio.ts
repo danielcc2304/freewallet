@@ -40,7 +40,7 @@ export interface PortfolioHistoryPoint {
     ledgerKey?: string;
 }
 
-export type PortfolioTransactionType = 'buy' | 'sell' | 'edit' | 'delete';
+export type PortfolioTransactionType = 'buy' | 'sell' | 'transfer' | 'edit' | 'delete';
 
 export interface PortfolioTransaction {
     /** A user-authorized reconstruction, not a verified broker execution. */
@@ -56,6 +56,14 @@ export interface PortfolioTransaction {
     quantity?: number;
     price?: number;
     total?: number;
+    /** Destination fields for a fund transfer. `quantity` is source units. */
+    transferToAssetId?: string;
+    transferToAssetSymbol?: string;
+    transferToAssetName?: string;
+    transferToAssetType?: Asset['type'];
+    transferQuantity?: number;
+    /** Acquisition cost carried to the destination without realizing a gain. */
+    transferBasis?: number;
     notes?: string;
     createdAt: string;
 }

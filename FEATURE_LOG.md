@@ -12,14 +12,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-14 - v6.3.2 - Importación de gastos más clara y categorías mejoradas
+### 2026-10-14 - v6.3.2 - Importación, categorías y traspasos entre fondos
 - Funcionalidad:
   - Añade ayuda contextual al importador y aclara columnas obligatorias, duplicados y vista previa.
   - Refina las sugerencias BBVA: separa Ropa de Compras, clasifica comida rápida como Ocio y añade Ropa a libros existentes.
+  - Registra traspasos parciales o completos entre fondos, estima las participaciones con las últimas valoraciones y conserva el coste de adquisición.
 - Resumen:
-  - Facilita revisar importaciones y mejora la categorización sin reemplazar las categorías personalizadas del usuario.
+  - Facilita revisar importaciones, mejora la categorización sin reemplazar las categorías personalizadas y representa los traspasos como movimientos internos sin ejecutar órdenes en la entidad.
 - Archivos:
-  - `FEATURE_LOG.md`, `package.json`, `package-lock.json`, `src/constants/app.ts`, `src/components/expenses/ExpenseImportDialog.tsx`, `src/components/expenses/ExpenseManager.css`, `src/components/expenses/ExpenseManager.tsx`, `src/services/expenseImport.ts`, `src/services/expensePlanner.ts`, `src/services/expenseStore.ts`.
+  - `FEATURE_LOG.md`, `package.json`, `package-lock.json`, `src/constants/app.ts`, `src/components/expenses/ExpenseImportDialog.tsx`, `src/components/expenses/ExpenseManager.css`, `src/components/expenses/ExpenseManager.tsx`, `src/services/expenseImport.ts`, `src/services/expensePlanner.ts`, `src/services/expenseStore.ts`, `src/components/dashboard/AssetsTable.tsx`, `src/components/dashboard/FundTransferDialog.css`, `src/components/dashboard/FundTransferDialog.tsx`, `src/components/dashboard/LivePortfolioPlan.tsx`, `src/context/PortfolioContext.tsx`, `src/pages/Dashboard/Dashboard.tsx`, `src/pages/Transactions/Transactions.css`, `src/pages/Transactions/Transactions.tsx`, `src/services/portfolioHistoryArchive.ts`, `src/services/portfolioPerformance.ts`, `src/services/portfolioResults.ts`, `src/services/portfolioTradeReplay.ts`, `src/services/portfolioWorkbookHistory.ts`, `src/types/portfolio.ts`.
 
 ### 2026-10-14 - v6.3.1 - Importación y gestión de movimientos del planificador
 - Funcionalidad:

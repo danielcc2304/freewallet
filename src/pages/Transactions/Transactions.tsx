@@ -210,17 +210,25 @@ export function Transactions() {
                                                 <strong>{transaction.quantity ?? '-'}</strong>
                                             </div>
                                             {transaction.type === 'transfer' && <div>
-                                                <span>Participaciones destino</span>
+                                                <span>Participaciones compradas</span>
                                                 <strong>{transaction.transferQuantity ?? '-'}</strong>
                                             </div>}
                                             <div>
-                                                <span>{transaction.type === 'transfer' ? 'Precio origen' : 'Precio'}</span>
+                                                <span>{transaction.type === 'transfer' ? 'Precio de venta' : 'Precio'}</span>
                                                 <strong>{formatPrice(transaction.price)}</strong>
                                             </div>
+                                            {transaction.type === 'transfer' && <div>
+                                                <span>Precio de compra</span>
+                                                <strong>{formatPrice(transaction.transferToPrice)}</strong>
+                                            </div>}
                                             <div>
-                                                <span>{transaction.type === 'transfer' ? 'Importe estimado' : 'Total'}</span>
+                                                <span>{transaction.type === 'transfer' ? transaction.estimated ? 'Venta estimada' : 'Importe de venta' : 'Total'}</span>
                                                 <strong>{formatCurrency(transaction.total)}</strong>
                                             </div>
+                                            {transaction.type === 'transfer' && transaction.transferQuantity !== undefined && transaction.transferToPrice !== undefined && <div>
+                                                <span>{transaction.estimated ? 'Compra estimada' : 'Importe de compra'}</span>
+                                                <strong>{formatCurrency(transaction.transferQuantity * transaction.transferToPrice)}</strong>
+                                            </div>}
                                         </div>
                                     </article>
                                 );

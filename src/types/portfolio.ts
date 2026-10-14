@@ -43,7 +43,7 @@ export interface PortfolioHistoryPoint {
 export type PortfolioTransactionType = 'buy' | 'sell' | 'transfer' | 'edit' | 'delete';
 
 export interface PortfolioTransaction {
-    /** A user-authorized reconstruction, not a verified broker execution. */
+    /** One or more prices were estimated from quotes instead of entered from execution data. */
     estimated?: boolean;
     provenance?: 'initial-position' | 'trade';
     id: string;
@@ -62,6 +62,8 @@ export interface PortfolioTransaction {
     transferToAssetName?: string;
     transferToAssetType?: Asset['type'];
     transferQuantity?: number;
+    /** Execution price per destination unit; older transfers may omit it. */
+    transferToPrice?: number;
     /** Acquisition cost carried to the destination without realizing a gain. */
     transferBasis?: number;
     notes?: string;

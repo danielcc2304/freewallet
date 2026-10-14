@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "verify-funds": "tsx scripts/verify-funds.ts",
     "test:compound-interest": "tsx scripts/test-compound-interest.ts",
+    "test:bond-calculator": "python scripts/verify-coreweave-bond.py --check && tsx scripts/test-bond-calculator.ts",
+    "test:bond-calculator-ui": "tsx scripts/test-bond-calculator-ui.ts",
     "test:salary-calculator": "tsx scripts/test-salary-calculator.ts",
     "test:salary-calculator-ui": "tsx scripts/test-salary-calculator-ui.ts",
     "test:fund-breakdown": "tsx scripts/test-fund-breakdown.ts",

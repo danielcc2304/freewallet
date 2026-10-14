@@ -28,6 +28,11 @@ async function request(name:string, args:Record<string,unknown>, userId:string, 
             ['22023','23514','23502','23505','22003','22007'].includes(error.code)?'Los datos no son compatibles. Revisa identificadores, fechas, importes y el máximo de doce decimales.':'No se pudo confirmar la conexión con tu cartera.';
         throw Object.assign(new Error(message),{code:error.code});
     }
+    // Optimistic concurrency conflicts are returned as data by the RPC so
+    // Postgres does not log each ordinary stale-revision write as an ERROR.
+    if(data && typeof data==='object' && !Array.isArray(data)
+        && (data as Record<string,unknown>).conflict===true)
+        throw Object.assign(new Error('La cartera cambió en otro dispositivo.'),{code:'40001'});
     if(data===null) return null;
     if(!Number.isSafeInteger(data.revision) || data.revision<0 || (data.data!==null && (typeof data.data!=='object' || Array.isArray(data.data) || Object.values(data.data).some(value=>typeof value!=='string')))) throw new Error('Respuesta de cartera no válida.');
     return data as CloudRecord;

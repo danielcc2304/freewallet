@@ -1,7 +1,7 @@
 {
   "name": "freewallet",
   "private": true,
-  "version": "6.3.0",
+  "version": "6.3.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -40,6 +40,7 @@
     "test:dashboard-edit-return-ui": "tsx scripts/test-dashboard-edit-return-ui.ts",
     "test:cash-account-ui": "tsx scripts/test-cash-account-ui.ts",
     "test:architecture": "tsx scripts/test-architecture-hardening.ts",
+    "test:market-refresh-cadence": "tsx scripts/test-market-refresh-cadence.ts",
     "test:financial-times-funds": "tsx scripts/test-financial-times-funds.ts",
     "test:fund-quotes": "tsx scripts/test-fund-quotes.ts",
     "test:fund-quotes-ui": "tsx scripts/test-fund-quotes-ui.ts",
@@ -63,6 +64,7 @@
     "test:dashboard-quality-ui": "tsx scripts/test-dashboard-quality-ui.ts",
     "test:calculator-dashboard-usability": "tsx scripts/test-calculator-dashboard-usability.ts",
     "test:expense-planner": "tsx scripts/test-expense-planner.ts",
+    "test:expense-excel": "tsx scripts/test-expense-excel.ts",
     "test:expense-backend": "tsx scripts/test-expense-backend.ts",
     "test:expense-sync": "tsx scripts/test-expense-sync.ts",
     "test:expense-ui": "tsx scripts/test-expense-ui.ts"

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
     ArrowDownLeft,
     ArrowRightLeft,
@@ -49,6 +49,12 @@ import {
     exportExpenseCsv,
     readExpenseCsv,
 } from '../../services/expenseImport';
+import type { ExpenseImportDocument } from '../../services/expenseImport';
+import { readExpenseWorkbook } from '../../services/expenseWorkbook';
+import {
+    finishNativeFilePicker,
+    markNativeFilePickerOpen,
+} from '../../services/nativeFilePicker';
 import { ExpenseEditors } from './ExpenseEditors';
 import type { ExpenseEditor } from './ExpenseEditors';
 import { ExpenseImportDialog } from './ExpenseImportDialog';
@@ -136,7 +142,14 @@ function Empty({
     );
 }
 export default function ExpenseManager() {
-    const { book, status, cloud, error: syncError, store } = useExpenseBook();
+    const {
+        book,
+        status,
+        cloud,
+        owner,
+        error: syncError,
+        store,
+    } = useExpenseBook();
     const [month, setMonth] = useState(() => todayLocal().slice(0, 7));
     const [tab, setTab] = useState<Tab>('overview');
     const [editor, setEditor] = useState<ExpenseEditor | null>(null);
@@ -145,11 +158,31 @@ export default function ExpenseManager() {
     const [confirmation, setConfirmation] = useState<{
         title: string;
         message: string;
+        confirmText?: string;
         next?: ExpenseBook;
         reload?: boolean;
+        resetEntryFilters?: boolean;
     } | null>(null);
-    const [csvRows, setCsvRows] = useState<string[][] | null>(null);
+    const [importDocument, setImportDocument] =
+        useState<ExpenseImportDocument | null>(null);
+    const [readingFile, setReadingFile] = useState(false);
+    const fileTask = useRef(0);
+    useEffect(() => {
+        finishNativeFilePicker();
+        setImportDocument(null);
+        setEditor(null);
+        setConfirmation(null);
+        setReadingFile(false);
+        fileTask.current++;
+    }, [owner]);
     const fileRef = useRef<HTMLInputElement>(null);
+    useEffect(() => {
+        const input = fileRef.current;
+        if (!input) return;
+        const handleCancel: EventListener = () => finishNativeFilePicker();
+        input.addEventListener('cancel', handleCancel);
+        return () => input.removeEventListener('cancel', handleCancel);
+    }, []);
     const [query, setQuery] = useState('');
     const [kindFilter, setKindFilter] = useState('all');
     const [categoryFilter, setCategoryFilter] = useState('all');
@@ -256,32 +289,63 @@ export default function ExpenseManager() {
             );
     };
     const readFile = async (file?: File) => {
-        if (!file || !book) return;
+        if (!file || !book) {
+            finishNativeFilePicker();
+            return;
+        }
         setError('');
         if (!editable && !file.name.toLowerCase().endsWith('.json')) {
             setError(
-                'Recupera el registro con una copia JSON válida antes de importar CSV.',
+                'Recupera el registro con una copia JSON válida antes de importar movimientos.',
             );
+            finishNativeFilePicker();
             return;
         }
+        const task = ++fileTask.current;
+        setReadingFile(true);
         try {
             if (file.size > EXPENSE_LIMIT_BYTES)
                 throw new Error('El archivo supera los 2 MB.');
-            const raw = await file.text();
-            if (file.name.toLowerCase().endsWith('.json')) {
+            const name = file.name.toLowerCase();
+            if (/\.xlsx?$/.test(name)) {
+                const document = await readExpenseWorkbook(
+                    await file.arrayBuffer(),
+                );
+                if (task === fileTask.current) setImportDocument(document);
+            } else if (name.endsWith('.json')) {
+                const raw = await file.text();
+                if (task !== fileTask.current) return;
                 const next = parseExpenseBook(raw);
                 setConfirmation({
                     title: 'Restaurar copia de gastos',
                     message: `La copia sustituirá tus ${book.entries.length} movimientos por ${next.entries.length} y reemplazará cuentas, presupuestos y objetivos. Exporta antes tu copia actual si quieres conservarla.`,
                     next,
                 });
-            } else setCsvRows(readExpenseCsv(raw));
+            } else if (name.endsWith('.csv')) {
+                const raw = await file.text();
+                if (task === fileTask.current)
+                    setImportDocument({
+                        format: 'csv',
+                        sheets: [
+                            { name: file.name, rows: readExpenseCsv(raw) },
+                        ],
+                    });
+            } else
+                throw new Error(
+                    'Selecciona un archivo CSV, Excel (.xlsx o .xls) o una copia JSON.',
+                );
         } catch (err) {
-            setError(
-                err instanceof Error
-                    ? err.message
-                    : 'No se pudo leer el archivo.',
-            );
+            if (task === fileTask.current)
+                setError(
+                    err instanceof Error
+                        ? err.message
+                        : 'No se pudo leer el archivo.',
+                );
+        } finally {
+            if (task === fileTask.current) {
+                setReadingFile(false);
+                finishNativeFilePicker();
+            }
         }
     };
     const newMovement = (kind: ExpenseKind = 'expense') =>
@@ -381,11 +445,16 @@ export default function ExpenseManager() {
                         </button>
                         <button
                             disabled={
-                                !editable && (cloud || status !== 'error')
+                                readingFile ||
+                                (!editable && (cloud || status !== 'error'))
                             }
-                            onClick={() => fileRef.current?.click()}
+                            onClick={() => {
+                                if (!fileRef.current) return;
+                                markNativeFilePickerOpen();
+                                fileRef.current.click();
+                            }}
                         >
-                            Importar CSV o copia JSON
+                            Importar CSV, Excel o copia JSON
                         </button>
                         <button
                             onClick={() =>
@@ -599,10 +668,16 @@ export default function ExpenseManager() {
                 </span>
             </AcademyPageHeader>
             {toolbar}
+            {readingFile && (
+                <p className="expense-notice" role="status">
+                    <LoaderCircle className="expense-spinner" size={16} />
+                    Leyendo archivo…
+                </p>
+            )}
             <input
                 ref={fileRef}
                 type="file"
-                accept=".csv,.json,text/csv,application/json"
+                accept=".csv,.xlsx,.xls,.json,text/csv,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
                 hidden
                 onChange={(e) => {
                     void readFile(e.target.files?.[0]);
@@ -1116,7 +1191,26 @@ export default function ExpenseManager() {
                 <section className="expense-panel">
                     <div className="expense-panel-title">
                         <h2>Movimientos</h2>
-                        <span>{filtered.length} registros</span>
+                        <div className="expense-panel-title-actions">
+                            <span>{filtered.length} registros</span>
+                            <button
+                                type="button"
+                                className="expense-btn expense-btn--danger"
+                                disabled={!editable || !book.entries.length}
+                                onClick={() =>
+                                    setConfirmation({
+                                        title: 'Borrar todos los movimientos',
+                                        message: `Se eliminarán los ${book.entries.length} movimientos de todas las fechas. Se conservarán las cuentas, categorías, presupuestos y reglas recurrentes; los vencimientos recurrentes volverán a quedar pendientes. Esta acción no se puede deshacer.`,
+                                        confirmText: 'Borrar movimientos',
+                                        resetEntryFilters: true,
+                                        next: { ...book, entries: [] },
+                                    })
+                                }
+                            >
+                                <Trash2 size={16} />
+                                Borrar todos
+                            </button>
+                        </div>
                     </div>
                     <div className="expense-filters">
                         <label className="expense-search">
@@ -2208,20 +2302,20 @@ export default function ExpenseManager() {
                 )}
             </Modal>
             <Modal
-                isOpen={!!csvRows}
+                isOpen={!!importDocument}
                 onClose={() => {
-                    if (!saving) setCsvRows(null);
+                    if (!saving) setImportDocument(null);
                 }}
                 title="Importar movimientos"
                 size="lg"
             >
-                {csvRows && (
+                {importDocument && (
                     <ExpenseImportDialog
                         book={book}
-                        rows={csvRows}
+                        document={importDocument}
                         saving={saving}
                         onSave={save}
-                        onClose={() => setCsvRows(null)}
+                        onClose={() => setImportDocument(null)}
                     />
                 )}
             </Modal>
@@ -2233,9 +2327,10 @@ export default function ExpenseManager() {
                 title={confirmation?.title ?? ''}
                 message={confirmation?.message ?? ''}
                 confirmText={
-                    confirmation?.reload
+                    confirmation?.confirmText ??
+                    (confirmation?.reload
                         ? 'Cargar versión guardada'
-                        : 'Confirmar'
+                        : 'Confirmar')
                 }
                 loading={saving}
                 onConfirm={() => {
@@ -2250,7 +2345,18 @@ export default function ExpenseManager() {
                         }
                     };
                     void run()
-                        .then(() => setConfirmation(null))
+                        .then(() => {
+                            if (confirmation.resetEntryFilters) {
+                                setQuery('');
+                                setKindFilter('all');
+                                setCategoryFilter('all');
+                                setAccountFilter('all');
+                                setTagFilter('');
+                                setAllDates(true);
+                                setPage(0);
+                            }
+                            setConfirmation(null);
+                        })
                         .catch((err) =>
                             setError(
                                 err instanceof Error

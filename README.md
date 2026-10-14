@@ -52,7 +52,7 @@ Nueva sección de Herramientas en `/academy/expenses`, independiente de la carte
 - Recurrentes semanales, mensuales y anuales, vencimientos, pausa y omisión; cada pago o cobro se confirma antes de contarlo.
 - Resumen de ingresos, gasto neto, balance y ahorro; categorías, seis meses de evolución, calendario y previstos pendientes.
 - Objetivos de ahorro con reservas y aportación mensual orientativa.
-- CSV bancario con asignación de columnas, vista previa y revisión de coincidencias. Copia completa JSON para exportar y restaurar.
+- CSV y Excel bancarios (.xlsx/.xls) con asignación de columnas, selección de hoja, vista previa y revisión de coincidencias. Detección del extracto BBVA y opción de importar solo pagos de tarjeta. Copia completa JSON para exportar y restaurar.
 
 Funciona en EUR y guarda importes en céntimos enteros. En local conserva el registro en este navegador; con una cuenta conectada usa un libro de gastos privado en Supabase, incluso sin cartera de inversiones. No conecta con bancos ni mueve dinero. [Modelo, API y validación](docs/expense-planner.md).
 
@@ -138,7 +138,7 @@ Las consultas del navegador contrastan Yahoo con **Google Finance para el mismo 
 | Proceso | Funcionamiento |
 | --- | --- |
 | Refresco del navegador | Acciones en sesión y criptos las 24 horas: cada minuto con el Dashboard visible y consultas habilitadas. Fondos, ETF, acciones fuera de sesión y otras pantallas conservan cinco minutos. La app oculta pausa las consultas. «Consultar precios ahora» permite reintentar manualmente. |
-| Actualización en Supabase | Edge Function `daily-market-data` cada 30 minutos, de **08:00 a 22:30 en España peninsular** (`Europe/Madrid`, con ajuste de verano/invierno). Utiliza las posiciones guardadas, actualiza instrumentos y benchmark y puede registrar valoraciones privadas completas. Los fondos contrastan NAV con Finect, VDOS/Quefondos, Financial Times, Yahoo y gestoras compatibles. |
+| Actualización en Supabase | Edge Function `daily-market-data` cada 30 minutos, de **08:00 a 22:30 en España peninsular** (`Europe/Madrid`, con ajuste de verano/invierno). Acciones, ETF y criptos mantienen esa frecuencia; fondos y benchmark se consultan a las **08:00, 12:00, 16:00 y 22:00**, con consultas adicionales para nuevos fondos, NAV caducados y reintentos tras fallos. Las valoraciones reutilizan únicamente NAV vigentes comprobados desde el último punto de control. Los fondos contrastan Finect, VDOS/Quefondos, Financial Times, Yahoo y gestoras compatibles. |
 
 El proceso en Supabase requiere las migraciones, la función desplegada y el job configurado. Publicar el frontend no instala ni activa por sí solo ese proceso. Tampoco el hecho de que el batch esté activo actualiza el código de una web que aún no haya desplegado la integración.
 

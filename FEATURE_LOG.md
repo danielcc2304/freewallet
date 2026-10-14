@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-14 - v6.3.2 - Precisión en la calculadora de bonos
+- Funcionalidad:
+  - Ancla el calendario de cupones al vencimiento, conserva fin de mes y permite definir periodos iniciales y finales irregulares.
+  - Distingue precios limpios y sucios, e incorpora Actual/365 fijo, Actual/360, 30E/360 y 30/360 US.
+  - Calcula TIR nominal y efectiva con un solver que verifica la convergencia y el error de precio.
+- Resumen:
+  - Corrige fechas de pago, descuentos entre cupones, escala por nominal y flujos de cupones irregulares. Separa el motor financiero de la interfaz y documenta el modelo y sus límites.
+- Archivos:
+  - `FEATURE_LOG.md`, `docs/bond-calculator-audit.md`, `package.json`, `scripts/fixtures/coreweave-bond-reference.json`, `scripts/test-bond-calculator.ts`, `scripts/test-bond-calculator-ui.ts`, `scripts/verify-coreweave-bond.py`, `src/components/academy/calculators/BondCalculator.css`, `src/components/academy/calculators/BondCalculator.tsx`, `src/services/bondCalculator.ts`.
+
 ### 2026-10-14 - v6.3.2 - Importación, traspasos y valoración por lotes
 - Funcionalidad:
   - Añade ayuda contextual al importador y aclara columnas obligatorias, duplicados y vista previa.

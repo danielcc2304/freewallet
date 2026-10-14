@@ -38,7 +38,7 @@ export function calculatePortfolioResults(assets: Asset[], transactions: Portfol
             fail('Hay operaciones sin una fecha válida.'); continue;
         }
         if (day > today) continue;
-        if (transaction.estimated && (transaction.type === 'buy' || transaction.type === 'sell')) resultEstimated = true;
+        if (transaction.estimated && (transaction.type === 'buy' || transaction.type === 'sell' || transaction.type === 'transfer')) resultEstimated = true;
         if (!transaction.id || !transaction.assetId) { fail('Hay operaciones sin identificar en el registro.'); continue; }
         if (ids.has(transaction.id)) { fail('Hay operaciones duplicadas en el registro.'); continue; }
         ids.add(transaction.id);
@@ -60,6 +60,7 @@ export function calculatePortfolioResults(assets: Asset[], transactions: Portfol
                 || !Number.isFinite(sourceQuantity) || sourceQuantity <= 0 || !Number.isFinite(destinationQuantity) || destinationQuantity <= 0
                 || !Number.isFinite(basis) || basis < 0 || !Number.isFinite(transaction.total) || transaction.total! <= 0
                 || !Number.isFinite(transaction.price) || transaction.price! <= 0
+                || (transaction.transferToPrice !== undefined && (!Number.isFinite(transaction.transferToPrice) || transaction.transferToPrice <= 0))
                 || position.corrected || !destination || destination.corrected || position.quantity <= 0
                 || sourceQuantity > position.quantity + 1e-8 || basis > position.cost + Math.max(.01, position.cost * 1e-7)) {
                 fail('Hay un traspaso incompleto o sin participaciones y coste suficientes.'); continue;

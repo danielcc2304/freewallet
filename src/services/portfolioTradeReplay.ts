@@ -23,6 +23,7 @@ function replay(trades: PortfolioTransaction[], assetId: string) {
             if ((!transferOut && !transferIn) || !Number.isFinite(transferUnits) || transferUnits! <= 0
                 || !Number.isFinite(basis) || basis! < 0 || !Number.isFinite(trade.total) || trade.total! <= 0
                 || !Number.isFinite(trade.price) || trade.price! <= 0 || !trade.transferToAssetId
+                || (trade.transferToPrice !== undefined && (!Number.isFinite(trade.transferToPrice) || trade.transferToPrice <= 0))
                 || !Number.isFinite(trade.quantity) || trade.quantity! <= 0 || !Number.isFinite(trade.transferQuantity) || trade.transferQuantity! <= 0
                 || trade.assetType !== 'fund' || trade.transferToAssetType !== 'fund') return null;
             if (transferOut) {

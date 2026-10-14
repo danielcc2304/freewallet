@@ -53,6 +53,7 @@ function transactionFlow(transaction: PortfolioTransaction): number {
     if (transaction.type === 'transfer' && (!transaction.transferToAssetId || transaction.assetType !== 'fund' || transaction.transferToAssetType !== 'fund'
         || !Number.isFinite(transaction.quantity) || transaction.quantity! <= 0 || !Number.isFinite(transaction.transferQuantity) || transaction.transferQuantity! <= 0
         || !Number.isFinite(transaction.total) || transaction.total! <= 0 || !Number.isFinite(transaction.price) || transaction.price! <= 0
+        || (transaction.transferToPrice !== undefined && (!Number.isFinite(transaction.transferToPrice) || transaction.transferToPrice <= 0))
         || !Number.isFinite(transaction.transferBasis) || transaction.transferBasis! < 0)) return NaN;
     return 0;
 }
@@ -74,7 +75,7 @@ export function portfolioLedgerKey(transactions: PortfolioTransaction[], date: s
     const day = accountingDay(date);
     const canonical = JSON.stringify(transactions.filter(t => !getTransactionEventDay(t) || getTransactionEventDay(t) <= day)
         .map(t => [t.id, t.assetId, t.assetSymbol, t.type, t.date, t.quantity, t.price, t.total,
-            ...(t.type === 'transfer' ? [t.transferToAssetId, t.transferToAssetSymbol, t.transferQuantity, t.transferBasis] : [])])
+            ...(t.type === 'transfer' ? [t.transferToAssetId, t.transferToAssetSymbol, t.transferQuantity, t.transferToPrice, t.transferBasis] : [])])
         .sort((a, b) => String(a[0]).localeCompare(String(b[0]))));
     // Two independent 32-bit checksums keep minute snapshots small enough for
     // localStorage. This is a change detector, not an authentication token.

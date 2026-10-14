@@ -48,16 +48,46 @@
     line-height: 1.45;
 }
 
+.fund-transfer__execution-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: .75rem;
+}
+
 .fund-transfer__full {
     display: flex;
     align-items: flex-start;
     gap: .6rem;
     color: var(--text-primary);
+    line-height: 1.45;
+    cursor: pointer;
 }
 
-.fund-transfer__full input {
-    margin-top: .2rem;
+.fund-transfer__full input[type="checkbox"] {
+    flex: 0 0 1.125rem;
+    width: 1.125rem;
+    min-width: 1.125rem;
+    height: 1.125rem;
+    margin: .15rem 0 0;
+    padding: 0;
+    border: 0;
+    border-radius: .2rem;
+    background: transparent;
+    box-shadow: none;
     accent-color: var(--accent-primary);
+}
+
+.fund-transfer__full input[type="checkbox"]:focus-visible {
+    outline: 2px solid var(--accent-primary);
+    outline-offset: 2px;
+}
+
+html[data-appearance="liquid-glass"] .fund-transfer__full input[type="checkbox"] {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 
 .fund-transfer__preview {
@@ -100,4 +130,10 @@
     justify-content: flex-end;
     gap: .75rem;
     padding-top: .25rem;
+}
+
+@media (max-width: 560px) {
+    .fund-transfer__execution-grid {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }

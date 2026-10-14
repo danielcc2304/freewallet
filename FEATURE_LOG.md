@@ -17,9 +17,9 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Importa extractos BBVA desde Excel y sugiere categorías para movimientos reconocibles.
   - Permite borrar todos los movimientos con confirmación; conserva cuentas, categorías, presupuestos y reglas recurrentes.
 - Resumen:
-  - Agiliza la importación de gastos y permite empezar de nuevo el registro de movimientos sin perder la configuración del libro.
+  - Agiliza la importación de gastos, permite empezar de nuevo sin perder la configuración del libro y reduce los errores de base de datos registrados por conflictos normales de sincronización.
 - Archivos:
-  - `FEATURE_LOG.md`, `package.json`, `package-lock.json`, `src/components/expenses/ExpenseImportDialog.tsx`, `src/components/expenses/ExpenseManager.css`, `src/components/expenses/ExpenseManager.tsx`, `src/services/expenseImport.ts`, `src/services/expenseWorkbook.ts`, `src/constants/app.ts`.
+  - `FEATURE_LOG.md`, `package.json`, `package-lock.json`, `src/components/expenses/ExpenseImportDialog.tsx`, `src/components/expenses/ExpenseManager.css`, `src/components/expenses/ExpenseManager.tsx`, `src/services/expenseImport.ts`, `src/services/expenseWorkbook.ts`, `src/constants/app.ts`, `src/services/portfolioRepository.ts`, `supabase/migrations/20261014190000_expected_portfolio_conflicts.sql`.
 
 ### 2026-10-09 - v6.3.0 - Planificador de gastos y presupuesto
 - Funcionalidad:

@@ -96,6 +96,19 @@ export function createQuoteSnapshot(assets: Asset[], transactions: PortfolioTran
         source: 'quotes-v2', ledgerKey: portfolioLedgerKey(normalizePortfolioTransactions(assets, transactions), date) };
 }
 
+/** Read a server-captured valuation at its original collection time. Cached
+ * fund consultations are valid here; they must never create a live valuation. */
+export function readBatchSnapshot(assets: Asset[], transactions: PortfolioTransaction[], date: string): PortfolioHistoryPoint | null {
+    const collectedAt = Date.parse(date);
+    if (!assets.length || !Number.isFinite(collectedAt)
+        || assets.some(asset => portfolioQuoteStatus({ ...asset, quoteOrigin: 'batch' }, collectedAt).valuationBlockers.length > 0)) return null;
+    const value = assets.reduce((sum, asset) => sum + asset.currentPrice! * asset.quantity, 0);
+    const invested = assets.reduce((sum, asset) => sum + asset.purchasePrice * asset.quantity, 0);
+    if (!Number.isFinite(value) || !Number.isFinite(invested)) return null;
+    return { date, value, invested, source: 'quotes-v2',
+        ledgerKey: portfolioLedgerKey(normalizePortfolioTransactions(assets, transactions), date) };
+}
+
 /**
  * Uses each holding's latest quote against its previous market close. This is
  * the reliable fallback when there is not yet a complete portfolio history for

@@ -212,8 +212,8 @@ export function Dashboard() {
         setFundTransferSourceId(asset.id);
     }, []);
 
-    const submitFundTransfer = useCallback(async (sourceId: string, destinationId: string, amount: number, transferAll: boolean) => {
-        await transferFund(sourceId, destinationId, amount, transferAll);
+    const submitFundTransfer = useCallback(async (sourceId: string, destinationId: string, amount: number, transferAll: boolean, executionPrices: { sourcePrice?: number; destinationPrice?: number }) => {
+        await transferFund(sourceId, destinationId, amount, transferAll, executionPrices);
         setFundTransferSourceId(null);
         setCalculationNow(Date.now());
     }, [transferFund]);

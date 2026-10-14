@@ -9,6 +9,7 @@ import './Transactions.css';
 const TYPE_META: Record<PortfolioTransactionType, { label: string; icon: typeof ShoppingCart; className: string }> = {
     buy: { label: 'Compra', icon: ShoppingCart, className: 'transactions__badge--buy' },
     sell: { label: 'Venta', icon: MinusCircle, className: 'transactions__badge--sell' },
+    transfer: { label: 'Traspaso', icon: ArrowRightLeft, className: 'transactions__badge--transfer' },
     edit: { label: 'Edicion', icon: Pencil, className: 'transactions__badge--edit' },
     delete: { label: 'Eliminacion', icon: Trash2, className: 'transactions__badge--delete' },
 };
@@ -62,6 +63,8 @@ export function Transactions() {
             const matchesSearch = normalizedSearch.length === 0
                 || transaction.assetSymbol.toLowerCase().includes(normalizedSearch)
                 || transaction.assetName.toLowerCase().includes(normalizedSearch)
+                || (transaction.transferToAssetSymbol || '').toLowerCase().includes(normalizedSearch)
+                || (transaction.transferToAssetName || '').toLowerCase().includes(normalizedSearch)
                 || (transaction.notes || '').toLowerCase().includes(normalizedSearch);
             return matchesType && matchesSearch;
         });
@@ -70,9 +73,10 @@ export function Transactions() {
     const summary = useMemo(() => {
         const purchases = state.transactions.filter((transaction) => transaction.type === 'buy').length;
         const sales = state.transactions.filter((transaction) => transaction.type === 'sell').length;
+        const transfers = state.transactions.filter((transaction) => transaction.type === 'transfer').length;
         const edits = state.transactions.filter((transaction) => transaction.type === 'edit').length;
         const deletions = state.transactions.filter((transaction) => transaction.type === 'delete').length;
-        return { purchases, sales, edits, deletions };
+        return { purchases, sales, transfers, edits, deletions };
     }, [state.transactions]);
 
     return (
@@ -81,7 +85,7 @@ export function Transactions() {
                 <div>
                     <h1 className="transactions-page__title">Historial de operaciones</h1>
                     <p className="transactions-page__subtitle">
-                        Registro separado de compras, ventas, ediciones y eliminaciones de tu cartera.
+                        Registro separado de compras, ventas, traspasos, ediciones y eliminaciones de tu cartera.
                     </p>
                 </div>
                 <Link to="/add">
@@ -106,6 +110,12 @@ export function Transactions() {
                     <CardContent className="transactions-page__summary-card">
                         <span className="transactions-page__summary-label">Ventas</span>
                         <strong>{summary.sales}</strong>
+                    </CardContent>
+                </Card>
+                <Card>
+                    <CardContent className="transactions-page__summary-card">
+                        <span className="transactions-page__summary-label">Traspasos</span>
+                        <strong>{summary.transfers}</strong>
                     </CardContent>
                 </Card>
                 <Card>
@@ -139,6 +149,7 @@ export function Transactions() {
                             { value: 'all', label: 'Todas' },
                             { value: 'buy', label: 'Compras' },
                             { value: 'sell', label: 'Ventas' },
+                            { value: 'transfer', label: 'Traspasos' },
                             { value: 'edit', label: 'Ediciones' },
                             { value: 'delete', label: 'Eliminaciones' },
                         ].map((option) => (
@@ -182,6 +193,7 @@ export function Transactions() {
                                                 <h3 className="transactions-item__title">
                                                     {transaction.assetSymbol}
                                                     <span>{transaction.assetName}</span>
+                                                    {transaction.type === 'transfer' && <span>→ {transaction.transferToAssetSymbol || transaction.transferToAssetName || 'Fondo destino'}</span>}
                                                 </h3>
                                                 <p className="transactions-item__notes">
                                                     {transaction.notes || 'Sin notas'}
@@ -197,12 +209,16 @@ export function Transactions() {
                                                 <span>Cantidad</span>
                                                 <strong>{transaction.quantity ?? '-'}</strong>
                                             </div>
+                                            {transaction.type === 'transfer' && <div>
+                                                <span>Participaciones destino</span>
+                                                <strong>{transaction.transferQuantity ?? '-'}</strong>
+                                            </div>}
                                             <div>
-                                                <span>Precio</span>
+                                                <span>{transaction.type === 'transfer' ? 'Precio origen' : 'Precio'}</span>
                                                 <strong>{formatPrice(transaction.price)}</strong>
                                             </div>
                                             <div>
-                                                <span>Total</span>
+                                                <span>{transaction.type === 'transfer' ? 'Importe estimado' : 'Total'}</span>
                                                 <strong>{formatCurrency(transaction.total)}</strong>
                                             </div>
                                         </div>

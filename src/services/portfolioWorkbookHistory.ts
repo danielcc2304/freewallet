@@ -192,7 +192,7 @@ export function buildWorkbookHistory(evolutionRaw: string, dailyRaw: string, mov
             date: parseDateLabel(m.date)!, type: m.amount >= 0 ? 'buy' as const : 'sell' as const,
             total: Math.abs(m.amount), notes: m.concept || 'Movimiento importado con fecha exacta' }));
     });
-    const totalFlow = flowTransactions.reduce((sum, transaction) => sum + (transaction.type === 'buy' ? transaction.total || 0 : -(transaction.total || 0)), 0);
+    const totalFlow = flowTransactions.reduce((sum, transaction) => sum + (transaction.type === 'buy' ? transaction.total || 0 : transaction.type === 'sell' ? -(transaction.total || 0) : 0), 0);
 
     return {
         points: uniquePoints,

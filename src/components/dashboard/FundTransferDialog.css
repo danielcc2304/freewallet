@@ -1,0 +1,103 @@
+.fund-transfer {
+    display: grid;
+    gap: 1rem;
+}
+
+.fund-transfer__notice,
+.fund-transfer__disclaimer,
+.fund-transfer__source {
+    margin: 0;
+    color: var(--text-secondary);
+    line-height: 1.5;
+}
+
+.fund-transfer__notice {
+    padding: .75rem;
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
+}
+
+.fund-transfer__field {
+    display: grid;
+    gap: .4rem;
+    color: var(--text-primary);
+    font-weight: 600;
+}
+
+.fund-transfer__field input,
+.fund-transfer__field select {
+    width: 100%;
+    min-height: 2.75rem;
+    padding: .65rem .75rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+    font: inherit;
+    font-weight: 400;
+}
+
+.fund-transfer__field input:disabled {
+    opacity: .65;
+}
+
+.fund-transfer__field small {
+    color: var(--text-secondary);
+    font-size: .8rem;
+    font-weight: 400;
+    line-height: 1.45;
+}
+
+.fund-transfer__full {
+    display: flex;
+    align-items: flex-start;
+    gap: .6rem;
+    color: var(--text-primary);
+}
+
+.fund-transfer__full input {
+    margin-top: .2rem;
+    accent-color: var(--accent-primary);
+}
+
+.fund-transfer__preview {
+    display: grid;
+    gap: .65rem;
+    margin: 0;
+    padding: .9rem;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+}
+
+.fund-transfer__preview div {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.fund-transfer__preview dt {
+    color: var(--text-secondary);
+}
+
+.fund-transfer__preview dd {
+    margin: 0;
+    color: var(--text-primary);
+    font-weight: 600;
+    text-align: right;
+}
+
+.fund-transfer__disclaimer {
+    font-size: .85rem;
+}
+
+.fund-transfer__error {
+    margin: 0;
+    color: var(--color-negative);
+}
+
+.fund-transfer__actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: .75rem;
+    padding-top: .25rem;
+}

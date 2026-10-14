@@ -1,5 +1,5 @@
 import { Fragment, memo, useId, useState, useMemo, useLayoutEffect } from 'react';
-import { ArrowUpDown, Trash2, ChevronUp, ChevronDown, Eye, EyeOff, Pencil, PencilOff, PlusCircle, MinusCircle } from 'lucide-react';
+import { ArrowLeftRight, ArrowUpDown, Trash2, ChevronUp, ChevronDown, Eye, EyeOff, Pencil, PencilOff, PlusCircle, MinusCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../ui';
 import type { Asset } from '../../types/types';
 import { assetPrice, assetValue, formatQuantity } from '../../services/assetValuation';
@@ -14,6 +14,8 @@ interface AssetsTableProps {
     onEdit?: (asset: Asset) => void;
     onAddPurchase?: (asset: Asset) => void;
     onSell?: (asset: Asset) => void;
+    onTransfer?: (asset: Asset) => void;
+    canTransfer?: (asset: Asset) => boolean;
     onViewDetails?: (asset: Asset) => void;
     initialViewState?: AssetsTableViewState;
     onViewStateChange?: (state: AssetsTableViewState) => void;
@@ -43,7 +45,7 @@ function SortIcon({ column, sortKey, sortDirection }: { column: SortKey; sortKey
     );
 }
 
-export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(), onDelete, onEdit, onAddPurchase, onSell, onViewDetails, initialViewState, onViewStateChange }: AssetsTableProps) {
+export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(), onDelete, onEdit, onAddPurchase, onSell, onTransfer, canTransfer, onViewDetails, initialViewState, onViewStateChange }: AssetsTableProps) {
     const filterId = useId();
     const [query, setQuery] = useState(initialViewState?.query ?? '');
     const [assetType, setAssetType] = useState<Asset['type'] | 'all'>(initialViewState?.assetType ?? 'all');
@@ -58,7 +60,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
     useLayoutEffect(() => {
         onViewStateChange?.({ query, assetType, sortKey, sortDirection, showMobileDetails, showMobileActions, expandedGroups: [...expandedGroups] });
     }, [query, assetType, sortKey, sortDirection, showMobileDetails, showMobileActions, expandedGroups, onViewStateChange]);
-    const hasActionHandlers = Boolean(onDelete || onEdit || onAddPurchase || onSell);
+    const hasActionHandlers = Boolean(onDelete || onEdit || onAddPurchase || onSell || onTransfer);
 
     const totalValue = assets.reduce(
         (sum, a) => sum + assetValue(a),
@@ -286,6 +288,16 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
                                 icon={<MinusCircle size={16} />}
                                 aria-label={`Registrar venta de ${asset.symbol}`}
                                 title="Registrar venta"
+                            />
+                        )}
+                        {onTransfer && asset.type === 'fund' && (canTransfer?.(asset) ?? true) && (
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={(event) => { event.stopPropagation(); onTransfer(asset); }}
+                                icon={<ArrowLeftRight size={16} />}
+                                aria-label={`Traspasar ${asset.symbol}`}
+                                title="Traspasar a otro fondo"
                             />
                         )}
                         {onEdit && (

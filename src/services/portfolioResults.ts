@@ -6,7 +6,7 @@ export interface DiscardedPositionRecord { assetId:string; deletionId:string; co
 /** Only an explicitly rejected entry without any sales can be excluded. */
 export function deletedRecordReviews(assets:Asset[],transactions:PortfolioTransaction[],corrections:DiscardedPositionRecord[]=[]) {
     return transactions.filter(t=>t.type==='delete' && (t.quantity ?? 0)>0).map(t=>{
-        const canDiscard=!assets.some(a=>a.id===t.assetId) && !transactions.some(other=>other.assetId===t.assetId && other.type==='sell')
+        const canDiscard=!assets.some(a=>a.id===t.assetId) && !transactions.some(other=>other.assetId===t.assetId && (other.type==='sell' || other.type==='transfer'))
             && transactions.filter(other=>other.assetId===t.assetId && other.type==='delete').length===1;
         return {id:t.id,assetId:t.assetId,name:t.assetName || t.assetSymbol,canDiscard,
             discarded:canDiscard && Array.isArray(corrections) && corrections.some(c=>c && c.assetId===t.assetId && c.deletionId===t.id && Number.isFinite(Date.parse(c.confirmedAt)))};
@@ -38,7 +38,7 @@ export function calculatePortfolioResults(assets: Asset[], transactions: Portfol
             fail('Hay operaciones sin una fecha válida.'); continue;
         }
         if (day > today) continue;
-        if (transaction.estimated && (transaction.type === 'buy' || transaction.type === 'sell')) resultEstimated = true;
+        if (transaction.estimated && (transaction.type === 'buy' || transaction.type === 'sell' || transaction.type === 'transfer')) resultEstimated = true;
         if (!transaction.id || !transaction.assetId) { fail('Hay operaciones sin identificar en el registro.'); continue; }
         if (ids.has(transaction.id)) { fail('Hay operaciones duplicadas en el registro.'); continue; }
         ids.add(transaction.id);
@@ -49,6 +49,29 @@ export function calculatePortfolioResults(assets: Asset[], transactions: Portfol
         if (transaction.type === 'delete') {
             if (position.quantity > 1e-8 || (transaction.quantity ?? 0) > 0) fail('Eliminar una posición no registra su venta.');
             position.quantity = 0; position.cost = 0; continue;
+        }
+        if (transaction.type === 'transfer') {
+            const destinationId = transaction.transferToAssetId;
+            const destinationQuantity = transaction.transferQuantity ?? NaN;
+            const basis = transaction.transferBasis ?? NaN;
+            const sourceQuantity = transaction.quantity ?? NaN;
+            const destination = destinationId ? positions.get(destinationId) ?? { quantity: 0, cost: 0, corrected: false } : null;
+            if (transaction.assetType !== 'fund' || transaction.transferToAssetType !== 'fund' || !destinationId || destinationId === transaction.assetId
+                || !Number.isFinite(sourceQuantity) || sourceQuantity <= 0 || !Number.isFinite(destinationQuantity) || destinationQuantity <= 0
+                || !Number.isFinite(basis) || basis < 0 || !Number.isFinite(transaction.total) || transaction.total! <= 0
+                || !Number.isFinite(transaction.price) || transaction.price! <= 0
+                || (transaction.transferToPrice !== undefined && (!Number.isFinite(transaction.transferToPrice) || transaction.transferToPrice <= 0))
+                || position.corrected || !destination || destination.corrected || position.quantity <= 0
+                || sourceQuantity > position.quantity + 1e-8 || basis > position.cost + Math.max(.01, position.cost * 1e-7)) {
+                fail('Hay un traspaso incompleto o sin participaciones y coste suficientes.'); continue;
+            }
+            const movedCost = Math.min(position.cost, basis);
+            position.quantity = Math.max(0, position.quantity - sourceQuantity);
+            position.cost = Math.max(0, position.cost - movedCost);
+            destination.quantity += destinationQuantity;
+            destination.cost += movedCost;
+            positions.set(destinationId, destination);
+            continue;
         }
         const quantity = transaction.quantity ?? NaN;
         const amount = transaction.total ?? quantity * (transaction.price ?? NaN);

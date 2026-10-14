@@ -10,6 +10,7 @@ import type { DashboardNavigationContext } from '../../components/layout/MainLay
 import { PortfolioExcelInsights } from '../../components/dashboard/PortfolioExcelInsights';
 import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan';
 import { PortfolioComposition } from '../../components/dashboard/PortfolioComposition';
+import { FundTransferDialog } from '../../components/dashboard/FundTransferDialog';
 import { AssetDetail } from '../../components/dashboard/AssetDetail';
 import { UnderlyingAssetDetail } from '../../components/dashboard/UnderlyingAssetDetail';
 import { Button, Card, CardContent, Modal, PageHeader } from '../../components/ui';
@@ -85,7 +86,7 @@ export function Dashboard() {
     const tableViewState = useRef(returnSnapshot?.table);
     const scrollRestored = useRef(false);
     const rememberTableView = useCallback((view: AssetsTableViewState) => { tableViewState.current = view; }, []);
-    const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
+    const { state, refreshPrices, deleteAsset, transferFund, loadDemoData } = usePortfolio();
     const account=useAccount();
     const { assets, loading, updatingPrices, quoteFailures } = state;
     useLayoutEffect(() => {
@@ -95,6 +96,7 @@ export function Dashboard() {
         scrollRestored.current = true;
     }, [loading, returnSnapshot]);
     const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+    const [fundTransferSourceId, setFundTransferSourceId] = useState<string | null>(null);
     const [selectedHolding, setSelectedHolding] = useState<{
         holding: AssetHolding;
         parentAsset: Asset;
@@ -110,6 +112,21 @@ export function Dashboard() {
     const positionGroups=useMemo(()=>portfolioPositionGroups(assets,calculationNow),[assets,calculationNow]);
     const selectedGroup=positionGroups.find(group=>group.lots.length>1 && group.asset.id===selectedAssetId);
     const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || selectedGroup?.asset || null;
+    const fundTransferSource = assets.find(asset => asset.id === fundTransferSourceId) ?? null;
+    const canTransferBetweenFunds = useCallback((source: Asset, destination: Asset) => {
+        if (source.id === destination.id || source.type !== 'fund' || destination.type !== 'fund'
+            || !hasValidPrice(source) || !hasValidPrice(destination) || (source.currentPrice ?? 0) <= 0 || (destination.currentPrice ?? 0) <= 0) return false;
+        const sourceIsin = source.isin?.replace(/\s/g, '').toUpperCase();
+        const destinationIsin = destination.isin?.replace(/\s/g, '').toUpperCase();
+        return sourceIsin && destinationIsin
+            ? sourceIsin !== destinationIsin
+            : source.symbol.toUpperCase() !== destination.symbol.toUpperCase();
+    }, []);
+    const canTransferFrom = useCallback((source: Asset) => source.quantity > 0
+        && assets.some(destination => canTransferBetweenFunds(source, destination)), [assets, canTransferBetweenFunds]);
+    const fundTransferDestinations = useMemo(() => fundTransferSource
+        ? assets.filter(destination => canTransferBetweenFunds(fundTransferSource, destination)) : [],
+    [assets, canTransferBetweenFunds, fundTransferSource]);
     const quoteStatuses = useMemo(() => assets.map(asset => ({ asset, ...portfolioQuoteStatus(asset, calculationNow) })), [assets, calculationNow]);
     const consultationTimes = quoteStatuses.map(s => s.checkedAt).filter(t => Number.isFinite(t) && t <= calculationNow + 5 * 60000);
     const lastConsultedAt = consultationTimes.length ? new Date(Math.max(...consultationTimes)).toISOString() : undefined;
@@ -190,6 +207,16 @@ export function Dashboard() {
     const handleSell = useCallback((asset: Asset) => {
         openOperation('sellAsset', asset);
     }, [openOperation]);
+
+    const handleFundTransfer = useCallback((asset: Asset) => {
+        setFundTransferSourceId(asset.id);
+    }, []);
+
+    const submitFundTransfer = useCallback(async (sourceId: string, destinationId: string, amount: number, transferAll: boolean, executionPrices: { sourcePrice?: number; destinationPrice?: number }) => {
+        await transferFund(sourceId, destinationId, amount, transferAll, executionPrices);
+        setFundTransferSourceId(null);
+        setCalculationNow(Date.now());
+    }, [transferFund]);
 
     const handleViewDetails = useCallback((asset: Asset) => {
         setSelectedHolding(null);
@@ -364,6 +391,8 @@ export function Dashboard() {
                     onEdit={handleEditAsset}
                     onAddPurchase={handleAddPurchase}
                     onSell={handleSell}
+                    onTransfer={handleFundTransfer}
+                    canTransfer={canTransferFrom}
                     onViewDetails={handleViewDetails}
                 />
             </section>
@@ -395,6 +424,12 @@ export function Dashboard() {
                 <LivePortfolioPlan analytics={analytics} section="plan" />
             </section>
 
+            {fundTransferSource && <FundTransferDialog
+                source={fundTransferSource}
+                destinations={fundTransferDestinations}
+                onClose={() => setFundTransferSourceId(null)}
+                onSubmit={submitFundTransfer}
+            />}
             <Modal
                 isOpen={selectedAsset !== null || selectedHolding !== null}
                 onClose={() => {

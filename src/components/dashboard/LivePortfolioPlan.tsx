@@ -25,7 +25,7 @@ function readTargets(assets: Asset[]): Record<string, string> {
         ? Object.fromEntries(Object.entries(stored).filter(([, v]) => typeof v === 'string' || typeof v === 'number').map(([k, v]) => [k, String(v)])) : {};
     return migratePlanTargets(assets, current, legacy && typeof legacy === 'object' ? legacy : {});
 }
-const operationName = { buy: 'Compra', sell: 'Venta', edit: 'Corrección', delete: 'Eliminación' } as const;
+const operationName = { buy: 'Compra', sell: 'Venta', transfer: 'Traspaso', edit: 'Corrección', delete: 'Eliminación' } as const;
 
 type LivePortfolioPlanSection = 'all' | 'plan' | 'monthly' | 'recent';
 
@@ -162,11 +162,11 @@ function LivePortfolioHistory({ analytics, section }: { analytics: DashboardAnal
         </Card>}
 
         {showRecent && <Card className="live-plan">
-            <CardHeader title="Últimos movimientos" subtitle="Compras, ventas y correcciones que explican los cambios de la cartera" />
+            <CardHeader title="Últimos movimientos" subtitle="Compras, ventas, traspasos y correcciones que explican los cambios de la cartera" />
             <CardContent>
                 {recentTransactions.length ? <div className="live-plan__scroll"><table>
                     <thead><tr><th>Fecha</th><th>Operación</th><th>Activo</th><th>Cantidad</th><th>Precio</th><th>Importe</th></tr></thead>
-                    <tbody>{recentTransactions.map(t => <tr key={t.id}><td>{t.date?.slice(0, 10) || 'Fecha no registrada'}</td><td>{t.provenance === 'initial-position' || /^(position|bootstrap)-/.test(t.id) ? 'Posición inicial importada' : operationName[t.type]}</td><th scope="row">{t.assetName}<small>{t.assetSymbol}</small></th><td>{t.quantity !== undefined ? formatQuantity({quantity: t.quantity, type: t.assetType}) : '—'}</td><td>{t.price !== undefined ? money(t.price) : '—'}</td><td>{money(t.total || 0)}</td></tr>)}</tbody>
+                    <tbody>{recentTransactions.map(t => <tr key={t.id}><td>{t.date?.slice(0, 10) || 'Fecha no registrada'}</td><td>{t.provenance === 'initial-position' || /^(position|bootstrap)-/.test(t.id) ? 'Posición inicial importada' : operationName[t.type]}</td><th scope="row">{t.assetName}<small>{t.assetSymbol}{t.type === 'transfer' ? ` → ${t.transferToAssetName || t.transferToAssetSymbol || 'Fondo destino'}` : ''}</small></th><td>{t.quantity !== undefined ? formatQuantity({quantity: t.quantity, type: t.assetType}) : '—'}{t.type === 'transfer' && t.transferQuantity !== undefined && <small>Destino: {formatQuantity({quantity:t.transferQuantity,type:t.transferToAssetType || 'fund'})}</small>}</td><td>{t.price !== undefined ? money(t.price) : '—'}{t.type === 'transfer' && t.transferToPrice !== undefined && <small>Precio destino: {money(t.transferToPrice)}</small>}</td><td>{money(t.total || 0)}</td></tr>)}</tbody>
                 </table></div> : <p>No hay operaciones registradas todavía.</p>}
             </CardContent>
         </Card>}

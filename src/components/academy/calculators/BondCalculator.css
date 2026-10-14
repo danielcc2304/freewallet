@@ -132,7 +132,9 @@
     cursor: pointer;
 }
 
-.bond-calc__advanced-grid .calc__input-wrapper input[type="date"]::-webkit-calendar-picker-indicator {
+.bond-calc__advanced-grid
+    .calc__input-wrapper
+    input[type="date"]::-webkit-calendar-picker-indicator {
     cursor: pointer;
     opacity: 0.9;
 }
@@ -169,11 +171,11 @@
 }
 
 /* The shared glass material replaces the gradient; use its matching text palette. */
-html[data-appearance='liquid-glass'] .bond-calc .result-main-card {
+html[data-appearance="liquid-glass"] .bond-calc .result-main-card {
     color: var(--text-primary);
 }
 
-html[data-appearance='liquid-glass'] .bond-calc .result-main-card__subtext {
+html[data-appearance="liquid-glass"] .bond-calc .result-main-card__subtext {
     color: var(--text-secondary);
     text-shadow: none;
 }
@@ -291,6 +293,38 @@ html[data-appearance='liquid-glass'] .bond-calc .result-main-card__subtext {
     line-height: 1.6;
     color: var(--text-secondary);
     margin: 0;
+}
+
+.bond-calc__calculation-details {
+    margin-top: 1rem;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 16px;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+.bond-calc__calculation-details summary {
+    cursor: pointer;
+    font-weight: 600;
+}
+.bond-calc__calculation-details dl {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.6rem 1rem;
+    margin: 1rem 0;
+}
+.bond-calc__calculation-details dt {
+    color: var(--text-secondary);
+}
+.bond-calc__calculation-details dd {
+    margin: 0;
+    text-align: right;
+    overflow-wrap: anywhere;
+}
+.bond-calc__calculation-details p {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.5;
 }
 
 @media (max-width: 850px) {

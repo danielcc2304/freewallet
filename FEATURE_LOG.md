@@ -12,27 +12,22 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-14 - v6.3.2 - Precisión en la calculadora de bonos
+### 2026-10-14 - v6.3.2 - Gastos, análisis de cartera y calculadora de bonos
 - Funcionalidad:
   - Ancla el calendario de cupones al vencimiento, conserva fin de mes y permite definir periodos iniciales y finales irregulares.
   - Distingue precios limpios y sucios, e incorpora Actual/365 fijo, Actual/360, 30E/360 y 30/360 US.
   - Calcula TIR nominal y efectiva con un solver que verifica la convergencia y el error de precio.
-- Resumen:
-  - Corrige fechas de pago, descuentos entre cupones, escala por nominal y flujos de cupones irregulares. Separa el motor financiero de la interfaz y documenta el modelo y sus límites.
-- Archivos:
-  - `FEATURE_LOG.md`, `docs/bond-calculator-audit.md`, `package.json`, `scripts/fixtures/coreweave-bond-reference.json`, `scripts/test-bond-calculator.ts`, `scripts/test-bond-calculator-ui.ts`, `scripts/verify-coreweave-bond.py`, `src/components/academy/calculators/BondCalculator.css`, `src/components/academy/calculators/BondCalculator.tsx`, `src/services/bondCalculator.ts`.
-
-### 2026-10-14 - v6.3.2 - Importación, traspasos y valoración por lotes
-- Funcionalidad:
   - Añade ayuda contextual al importador y aclara columnas obligatorias, duplicados y vista previa.
   - Refina las sugerencias BBVA: separa Ropa de Compras, clasifica comida rápida como Ocio y añade Ropa a libros existentes.
   - Registra traspasos parciales o completos entre fondos, estima las participaciones con las últimas valoraciones y conserva tanto el coste de adquisición como el precio de ejecución del fondo de destino.
   - Conserva las valoraciones guardadas por lotes con consultas de fondos cacheadas, sin usar esas consultas para crear nuevas valoraciones en vivo.
   - Guarda la membresía exacta de movimientos en cada snapshot y en sus reparaciones para no recuperar operaciones retiradas; muestra el último NAV real del benchmark y calcula diferencias solo en fechas comunes.
 - Resumen:
+  - Corrige fechas de pago, descuentos entre cupones, escala por nominal y flujos de cupones irregulares. Separa el motor financiero de la interfaz y documenta el modelo y sus límites.
   - Facilita revisar importaciones, mejora la categorización sin reemplazar las categorías personalizadas, mantiene snapshots fieles al ledger vigente, extiende el benchmark a su último NAV real y respeta las fechas comparables y la fecha original de las valoraciones guardadas por lotes.
 - Archivos:
-  - `FEATURE_LOG.md`, `package.json`, `package-lock.json`, `src/constants/app.ts`, `src/components/expenses/ExpenseImportDialog.tsx`, `src/components/expenses/ExpenseManager.css`, `src/components/expenses/ExpenseManager.tsx`, `src/services/expenseImport.ts`, `src/services/expensePlanner.ts`, `src/services/expenseStore.ts`, `src/components/dashboard/AssetsTable.tsx`, `src/components/dashboard/FundTransferDialog.css`, `src/components/dashboard/FundTransferDialog.tsx`, `src/components/dashboard/LivePortfolioPlan.tsx`, `src/context/PortfolioContext.tsx`, `src/pages/Dashboard/Dashboard.tsx`, `src/pages/Transactions/Transactions.css`, `src/pages/Transactions/Transactions.tsx`, `src/services/portfolioHistoryArchive.ts`, `src/services/portfolioPerformance.ts`, `src/services/portfolioResults.ts`, `src/services/portfolioTradeReplay.ts`, `src/services/portfolioWorkbookHistory.ts`, `src/types/portfolio.ts`, `scripts/test-batch-history.ts`, `src/services/dailyMarketData.ts`, `supabase/migrations/20261014192131_portfolio_fund_transfer_execution_prices.sql`, `scripts/test-architecture-hardening.ts`, `scripts/test-batch-benchmark-ui.ts`, `scripts/test-benchmark-comparison.ts`, `scripts/test-market-refresh-cadence.ts`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/services/benchmarkComparison.ts`, `supabase/migrations/20261014194446_snapshot_ledger_membership.sql`.
+  - `FEATURE_LOG.md`, `docs/bond-calculator-audit.md`, `scripts/fixtures/coreweave-bond-reference.json`, `scripts/test-bond-calculator.ts`, `scripts/test-bond-calculator-ui.ts`, `scripts/verify-coreweave-bond.py`, `src/components/academy/calculators/BondCalculator.css`, `src/components/academy/calculators/BondCalculator.tsx`, `src/services/bondCalculator.ts`, `src/constants/app.ts`, `src/components/expenses/ExpenseImportDialog.tsx`, `src/components/expenses/ExpenseManager.css`, `src/components/expenses/ExpenseManager.tsx`, `src/services/expenseImport.ts`, `src/services/expensePlanner.ts`, `src/services/expenseStore.ts`, `src/components/dashboard/AssetsTable.tsx`, `src/components/dashboard/FundTransferDialog.css`, `src/components/dashboard/FundTransferDialog.tsx`, `src/components/dashboard/LivePortfolioPlan.tsx`, `src/context/PortfolioContext.tsx`, `src/pages/Dashboard/Dashboard.tsx`, `src/pages/Transactions/Transactions.css`, `src/pages/Transactions/Transactions.tsx`, `src/services/portfolioHistoryArchive.ts`, `src/services/portfolioPerformance.ts`, `src/services/portfolioResults.ts`, `src/services/portfolioTradeReplay.ts`, `src/services/portfolioWorkbookHistory.ts`, `src/types/portfolio.ts`, `scripts/test-batch-history.ts`, `src/services/dailyMarketData.ts`, `supabase/migrations/20261014192131_portfolio_fund_transfer_execution_prices.sql`, `scripts/test-architecture-hardening.ts`, `scripts/test-batch-benchmark-ui.ts`, `scripts/test-benchmark-comparison.ts`, `scripts/test-market-refresh-cadence.ts`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/services/benchmarkComparison.ts`, `supabase/migrations/20261014194446_snapshot_ledger_membership.sql`.
+
 
 ### 2026-10-14 - v6.3.1 - Importación y gestión de movimientos del planificador
 - Funcionalidad:

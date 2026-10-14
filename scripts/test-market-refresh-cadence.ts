@@ -48,6 +48,7 @@ try {
         'fund_quote_sources.sql',
         'financial_times_fund_source.sql',
         'market_refresh_cadence.sql',
+        'snapshot_ledger_membership.sql',
     ])
         await db.exec(migration(suffix));
     for (const day of [
@@ -386,6 +387,33 @@ try {
         ).rows[0].v,
         true,
     );
+    // A removed operation stays in the immutable ledger, but cannot leak into
+    // new snapshots or a repair of the current revision.
+    const active = {id:'active',assetId:'stock',assetSymbol:'AAA',assetName:'fixture',assetType:'stock',type:'buy',date:'2026-01-01',quantity:2,price:5,total:10};
+    await db.query('insert into portfolio_private.snapshot_ledger(user_id,transaction_id,payload) values($1,$2,$3)',[A,'retired',JSON.stringify({...active,id:'retired'})]);
+    await db.query('update portfolio_private.documents set data=$2 where user_id=$1',[A,JSON.stringify({freewallet_portfolio_v1:JSON.stringify({version:1,assets,transactions:[active]})})]);
+    run=await begin(); await finish(run.id,true);
+    assert.equal((await db.query<{v:string}>('select portfolio_private.capture_snapshot($1,$2) v',[run.id,A])).rows[0].v,'captured');
+    assert.deepEqual((await db.query<{ids:string[]}>('select legacy_ledger_ids ids from portfolio_private.daily_snapshots where user_id=$1 and snapshot_date=current_date',[A])).rows[0].ids,['active']);
+    await db.query(`insert into portfolio_private.daily_snapshots(user_id,snapshot_date,revision,collected_at,assets,transactions,ledger_version)
+        select user_id,current_date-1,revision,collected_at-interval '1 day',assets,transactions,ledger_version from portfolio_private.daily_snapshots where user_id=$1 and snapshot_date=current_date`,[A]);
+    await db.query('update public.user_portfolios set revision=1 where user_id=$1',[A]);
+    await db.query('update portfolio_private.daily_snapshots set revision=1,legacy_ledger_ids=null where user_id=$1 and snapshot_date=current_date',[A]);
+    const repair=migration('snapshot_ledger_membership.sql').split('update portfolio_private.daily_snapshots s')[1].split('revoke all')[0];
+    await db.exec('update portfolio_private.daily_snapshots s'+repair);
+    const repaired=(await db.query<{snapshot_date:string;ids:string[]|null}>('select snapshot_date,legacy_ledger_ids ids from portfolio_private.daily_snapshots where user_id=$1 order by snapshot_date desc',[A])).rows;
+    assert.deepEqual(repaired[0].ids,['active']);
+    assert.equal(repaired[1].ids,null,'Never infer earlier revisions from the current ledger');
+    const session='33333333-3333-4333-8333-333333333333';
+    await db.query('insert into auth.sessions values($1,$2)',[session,A]);
+    await db.exec(`set role authenticated;select set_config('request.jwt.claim.sub','${A}',false);select set_config('request.jwt.claims','{"session_id":"${session}","aal":"aal1"}',false);`);
+    const legacy=(await db.query<{r:{snapshots:Array<{transactions:Array<{id:string}>}>}}>('select public.read_daily_market_data() r')).rows[0].r;
+    assert.deepEqual(legacy.snapshots.at(-1)!.transactions.map(t=>t.id),['active']);
+    await db.exec('reset role');
+    await db.query("update portfolio_private.daily_snapshots set legacy_ledger_ids='[]' where user_id=$1 and snapshot_date=current_date",[A]);
+    await db.exec('set role authenticated');
+    assert.deepEqual((await db.query<{r:{snapshots:Array<{transactions:unknown[]}>}}>('select public.read_daily_market_data() r')).rows[0].r.snapshots.at(-1)!.transactions,[],'Empty membership must never fall back to all entries');
+    await db.exec('reset role');
     console.log(
         'PASS: four fund checkpoints including DST, stock/crypto half-hour selection, new funds, retry after failure, cached NAV snapshots, missing/stale quote rejection and privileged access.',
     );

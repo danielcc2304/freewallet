@@ -121,6 +121,16 @@ const includesPhrase = (normalizedText: string, phrase: string) => {
     );
 };
 
+const FAST_FOOD_TERMS = [
+    'mcdonalds', 'mc donalds', 'mc donald s', 'mcdonald s',
+    'burger king', 'kfc', 'kentucky fried chicken', 'subway',
+    'dominos', 'domino s', 'telepizza', 'pans company',
+    '100 montaditos', 'vips', 'goiko', 'starbucks', 'five guys',
+    'taco bell', 'popeyes', 'pizza hut', 'papa johns', 'papa john s',
+    'fosters hollywood', 'foster s hollywood', 'the good burger', 'tgb',
+    'rodilla', 'little caesars', 'tim hortons', 'wendys', 'wendy s',
+];
+
 const BBVA_CATEGORY_KEYWORDS: { categoryId: string; terms: string[] }[] = [
     {
         categoryId: 'home',
@@ -150,9 +160,7 @@ const BBVA_CATEGORY_KEYWORDS: { categoryId: string; terms: string[] }[] = [
             'caprabo', 'gadis', 'froiz', 'spar', 'coviran', 'makro', 'masymas',
             'supercor', 'condis', 'veritas', 'unide', 'hiperber', 'superdumbo',
             'el jamon', 'la sirena', 'bm supermercados', 'sanchez romero',
-            'glovo', 'just eat', 'uber eats', 'deliveroo', 'mcdonalds',
-            'burger king', 'kfc', 'subway', 'dominos', 'telepizza', 'starbucks',
-            'vips', '100 montaditos', 'pans company', 'goiko', 'food truck',
+            'glovo', 'just eat', 'uber eats', 'deliveroo', 'food truck',
             'pizzeria', 'sushi',
         ],
     },
@@ -177,6 +185,7 @@ const BBVA_CATEGORY_KEYWORDS: { categoryId: string; terms: string[] }[] = [
     {
         categoryId: 'leisure',
         terms: [
+            ...FAST_FOOD_TERMS,
             'ocio', 'cine', 'cinema', 'cinesa', 'yelmo', 'kinepolis', 'ocine',
             'teatro', 'concierto', 'ticketmaster', 'entradas', 'festival',
             'museo', 'parque tematico', 'escape room', 'juego', 'deporte',
@@ -185,13 +194,22 @@ const BBVA_CATEGORY_KEYWORDS: { categoryId: string; terms: string[] }[] = [
         ],
     },
     {
+        categoryId: 'clothing',
+        terms: [
+            'ropa', 'vestimenta', 'prendas', 'calzado', 'zapateria', 'zara',
+            'h m', 'mango', 'primark', 'shein', 'zalando', 'pull and bear',
+            'bershka', 'stradivarius', 'lefties', 'c and a', 'kiabi',
+            'springfield', 'cortefiel', 'massimo dutti', 'uniqlo',
+            'foot locker', 'jd sports',
+        ],
+    },
+    {
         categoryId: 'shopping',
         terms: [
-            'compras', 'ropa', 'electronica', 'zara', 'h m', 'mango', 'primark',
+            'compras', 'electronica',
             'decathlon', 'mediamarkt', 'media markt', 'fnac', 'ikea',
-            'leroy merlin', 'el corte ingles', 'amazon', 'shein', 'temu',
-            'zalando', 'pull and bear', 'bershka', 'stradivarius', 'lefties',
-            'c and a', 'carrefour online', 'pccomponentes', 'apple store',
+            'leroy merlin', 'el corte ingles', 'amazon', 'temu',
+            'carrefour online', 'pccomponentes', 'apple store',
         ],
     },
     {
@@ -219,11 +237,16 @@ export function suggestBbvaExpenseCategory(
     text: string,
 ): string | undefined {
     const normalizedText = normalizedPhrase(text);
+    const isFastFood = FAST_FOOD_TERMS.some((term) =>
+        includesPhrase(normalizedText, term),
+    );
     const homeCategoryId = categories.find((category) => category.id === 'home')?.id;
     const categoryIds = new Set(
         categories
-            .filter((category) =>
-                includesPhrase(normalizedText, category.name),
+            .filter(
+                (category) =>
+                    !(isFastFood && category.id === 'food') &&
+                    includesPhrase(normalizedText, category.name),
             )
             .map((category) =>
                 (category.id === 'bills' ||
@@ -238,6 +261,7 @@ export function suggestBbvaExpenseCategory(
         includesPhrase(normalizedText, 'amazon prime') ||
         includesPhrase(normalizedText, 'prime video');
     for (const rule of BBVA_CATEGORY_KEYWORDS) {
+        if (isFastFood && rule.categoryId === 'food') continue;
         if (!categories.some((category) => category.id === rule.categoryId))
             continue;
         if (

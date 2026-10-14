@@ -1,6 +1,7 @@
 import type { ExpenseBook } from '../types/expenses';
 import {
     emptyExpenseBook,
+    ensureDefaultExpenseCategories,
     EXPENSE_KEY,
     parseExpenseBook,
     validateExpenseBook,
@@ -169,7 +170,9 @@ export class ExpenseStore {
             if (result) validateExpenseBook(result.book);
             this.revision = result?.revision ?? -1;
             this.emit({
-                book: result?.book ?? emptyExpenseBook(),
+                book: ensureDefaultExpenseCategories(
+                    result?.book ?? emptyExpenseBook(),
+                ),
                 status: 'ready',
             });
         } catch (error) {
@@ -187,6 +190,7 @@ export class ExpenseStore {
         if (this.snapshot.cloud || this.snapshot.status !== 'error')
             throw new Error('La recuperación local no está disponible.');
         validateExpenseBook(book);
+        book = ensureDefaultExpenseCategories(book);
         const raw = JSON.stringify(book);
         localStorage.setItem(EXPENSE_KEY, raw);
         this.localBaseline = raw;
@@ -195,6 +199,7 @@ export class ExpenseStore {
     }
     async save(book: ExpenseBook) {
         validateExpenseBook(book);
+        book = ensureDefaultExpenseCategories(book);
         if (this.snapshot.status !== 'ready' || this.pending)
             throw new Error(
                 'Espera al guardado o resuelve los cambios pendientes.',
@@ -263,7 +268,10 @@ export class ExpenseStore {
             this.revision = record.revision;
             this.pending = undefined;
             if (this.snapshot.owner) this.backups.delete(this.snapshot.owner);
-            this.emit({ book: record.book, status: 'ready' });
+            this.emit({
+                book: ensureDefaultExpenseCategories(record.book),
+                status: 'ready',
+            });
         } catch (error) {
             if (epoch !== this.epoch || controller.signal.aborted) return;
             const conflict =

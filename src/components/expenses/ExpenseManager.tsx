@@ -421,10 +421,31 @@ export default function ExpenseManager() {
                 </button>
             </div>
             <div className="expense-toolbar-actions">
-                <details className="expense-export-menu">
+                <button
+                    type="button"
+                    className="expense-btn expense-btn--secondary"
+                    disabled={
+                        readingFile || (!editable && (cloud || status !== 'error'))
+                    }
+                    onClick={() => {
+                        if (!fileRef.current) return;
+                        markNativeFilePickerOpen();
+                        fileRef.current.click();
+                    }}
+                >
+                    <FileUp size={16} />
+                    Importar
+                </button>
+                <details
+                    className="expense-export-menu"
+                    onClick={(event) => {
+                        if ((event.target as Element).closest('button'))
+                            event.currentTarget.open = false;
+                    }}
+                >
                     <summary>
                         <Download size={16} />
-                        Datos
+                        Exportar
                     </summary>
                     <div>
                         <button onClick={exportBackup}>
@@ -442,19 +463,6 @@ export default function ExpenseManager() {
                             }
                         >
                             Exportar movimientos (CSV)
-                        </button>
-                        <button
-                            disabled={
-                                readingFile ||
-                                (!editable && (cloud || status !== 'error'))
-                            }
-                            onClick={() => {
-                                if (!fileRef.current) return;
-                                markNativeFilePickerOpen();
-                                fileRef.current.click();
-                            }}
-                        >
-                            Importar CSV, Excel o copia JSON
                         </button>
                         <button
                             onClick={() =>

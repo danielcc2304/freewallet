@@ -193,8 +193,8 @@ export function ExpenseImportDialog({
                 </label>
             )}
             <p className="expense-hint">
-                Asocia las columnas de tu banco. Sin columna de tipo, los
-                importes negativos son gastos y los positivos ingresos.
+                Asocia cada columna con su dato. Fecha, Concepto e Importe son
+                obligatorios.
             </p>
             {sheet.bank === 'bbva' && (
                 <>
@@ -208,7 +208,9 @@ export function ExpenseImportDialog({
                             Se proponen categorías según palabras del movimiento
                             y del concepto. Revisa o cambia cada propuesta antes
                             de importar; las filas ambiguas o sin coincidencia
-                            mantienen la categoría por defecto.
+                            mantienen la categoría por defecto. McDonald’s,
+                            Burger King, KFC y otras cadenas rápidas se asignan
+                            a Ocio.
                         </p>
                     )}
                     <label className="expense-check">
@@ -264,18 +266,111 @@ export function ExpenseImportDialog({
                     </select>
                 </label>
             </div>
+            <details className="expense-import-help">
+                <summary>¿Qué significa cada dato de esta pantalla?</summary>
+                <div className="expense-import-help__content">
+                    {document.format === 'excel' && (
+                        <p>
+                            <strong>Hoja del Excel:</strong> elige la pestaña
+                            que contiene los movimientos si el archivo tiene
+                            varias.
+                        </p>
+                    )}
+                    <p>
+                        <strong>Columnas:</strong> cada selector indica de qué
+                        columna leer ese dato; la selección se propone a partir
+                        de los encabezados y puedes cambiarla. Fecha, Concepto e
+                        Importe son obligatorios; las demás se pueden dejar en
+                        «Sin columna».
+                    </p>
+                    <ul>
+                        <li>
+                            <strong>Fecha, Concepto e Importe:</strong> son el
+                            día, la descripción del movimiento y su cantidad.
+                            La fecha debe ser AAAA-MM-DD o DD/MM/AAAA.
+                        </li>
+                        <li>
+                            <strong>Tipo e Importe:</strong> si asignas Tipo,
+                            acepta Gasto, Ingreso, Transferencia o Reembolso y
+                            ese tipo determina el movimiento. Si no hay columna
+                            de Tipo, un importe negativo es gasto y uno positivo
+                            es ingreso. La vista previa muestra el importe sin
+                            signo; el Tipo indica su sentido.
+                        </li>
+                        <li>
+                            <strong>Categoría:</strong> debe coincidir con una
+                            categoría de tu cuenta. Si falta o no coincide, se
+                            usa «Otros» (o la primera categoría disponible si
+                            no existe «Otros»). En archivos BBVA, si no asignas
+                            esta columna, se sugieren categorías que puedes
+                            revisar en la tabla: «Sugerida» es automática,
+                            «Revisada» la cambiaste tú y «Sin sugerencia» deja
+                            la categoría por defecto.
+                        </li>
+                        <li>
+                            <strong>Cuenta:</strong> si el archivo no indica
+                            una, se usa la cuenta seleccionada en «Cuenta si no
+                            consta en el archivo». Una cuenta escrita que no
+                            exista genera un error en esa fila. Cuenta destino
+                            solo se usa en transferencias y debe coincidir con
+                            una cuenta existente.
+                        </li>
+                        <li>
+                            <strong>Etiquetas:</strong> puedes separar varias
+                            con el símbolo |. Solo se guardan como etiquetas,
+                            no como categorías.
+                        </li>
+                    </ul>
+                    {sheet.bank === 'bbva' && (
+                        <p>
+                            <strong>Solo pagos de tarjeta:</strong> deja solo
+                            las filas cuyo movimiento sea «Pago con tarjeta».
+                            En esas filas BBVA clasifica los importes positivos
+                            como reembolsos y los negativos como gastos. Las
+                            sugerencias de categoría se pueden cambiar antes de
+                            importar.
+                        </p>
+                    )}
+                    <p>
+                        <strong>Moneda:</strong> si hay una columna cuyo
+                        encabezado sea Divisa, Currency o Moneda, solo se
+                        aceptan filas en EUR.
+                    </p>
+                    <p>
+                        <strong>Resumen:</strong> «para importar» cuenta las
+                        filas válidas, descontando las coincidencias si está
+                        activado «Omitir». «Filas inválidas» indica filas que
+                        no se pueden guardar y muestra el motivo en la tabla.
+                        Las coincidencias comparan fecha, tipo, importe,
+                        concepto y cuentas de origen/destino; se ignoran
+                        mayúsculas y tildes en el concepto. Se buscan tanto en
+                        los movimientos guardados como dentro del archivo.
+                        Puedes desmarcar «Omitir» para incluirlas.
+                    </p>
+                    <p>
+                        <strong>Vista previa:</strong> Fila indica la posición
+                        del movimiento; «Concepto / error» muestra el concepto o
+                        por qué no se importará; «Coincidencia» marca un posible
+                        duplicado. Normalmente se muestran las primeras 50
+                        filas; si revisas categorías BBVA puedes recorrer el
+                        archivo en páginas de 50. Aún no se guarda nada hasta
+                        pulsar
+                        «Importar movimientos».
+                    </p>
+                </div>
+            </details>
             <label className="expense-check">
                 <input
                     type="checkbox"
                     checked={skipDuplicates}
                     onChange={(e) => setSkipDuplicates(e.target.checked)}
                 />
-                Omitir coincidencias de fecha, concepto, importe y cuenta (
-                {duplicates.length})
+                Omitir duplicados ({duplicates.length})
             </label>
             <p className="expense-hint">
-                Si son compras distintas pero iguales, desmarca esta opción para
-                incluirlas.
+                Se comparan fecha, tipo, importe, concepto y cuentas de origen y
+                destino. Desmarca esta opción para incluir movimientos distintos
+                con esos mismos datos.
             </p>
             <div className="expense-import-summary">
                 <strong>{valid.length} para importar</strong>

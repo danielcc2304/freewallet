@@ -19,7 +19,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 - Resumen:
   - Agiliza la importación de gastos y permite empezar de nuevo el registro de movimientos sin perder la configuración del libro.
 - Archivos:
-  - `FEATURE_LOG.md`, `package.json`, `package-lock.json`, `src/components/expenses/ExpenseImportDialog.tsx`, `src/components/expenses/ExpenseManager.css`, `src/components/expenses/ExpenseManager.tsx`, `src/services/expenseImport.ts`, `src/services/expenseWorkbook.ts`.
+  - `FEATURE_LOG.md`, `package.json`, `package-lock.json`, `src/components/expenses/ExpenseImportDialog.tsx`, `src/components/expenses/ExpenseManager.css`, `src/components/expenses/ExpenseManager.tsx`, `src/services/expenseImport.ts`, `src/services/expenseWorkbook.ts`, `src/constants/app.ts`.
 
 ### 2026-10-09 - v6.3.0 - Planificador de gastos y presupuesto
 - Funcionalidad:

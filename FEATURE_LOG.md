@@ -12,6 +12,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-14 - v6.3.1 - Importación y gestión de movimientos del planificador
+- Funcionalidad:
+  - Importa extractos BBVA desde Excel y sugiere categorías para movimientos reconocibles.
+  - Permite borrar todos los movimientos con confirmación; conserva cuentas, categorías, presupuestos y reglas recurrentes.
+- Resumen:
+  - Agiliza la importación de gastos y permite empezar de nuevo el registro de movimientos sin perder la configuración del libro.
+- Archivos:
+  - `FEATURE_LOG.md`, `package.json`, `package-lock.json`, `src/components/expenses/ExpenseImportDialog.tsx`, `src/components/expenses/ExpenseManager.css`, `src/components/expenses/ExpenseManager.tsx`, `src/services/expenseImport.ts`, `src/services/expenseWorkbook.ts`.
+
 ### 2026-10-09 - v6.3.0 - Planificador de gastos y presupuesto
 - Funcionalidad:
   - Añade un libro de gastos independiente de las inversiones, con cuentas, movimientos, importación CSV, presupuestos, recurrencias y objetivos.

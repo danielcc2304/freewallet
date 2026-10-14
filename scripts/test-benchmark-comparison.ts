@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { benchmarkChartCadence, benchmarkPeriodDifference, benchmarkTooltipObservation, extendImportedBenchmark } from '../src/services/benchmarkComparison';
+import { benchmarkChartCadence, benchmarkPeriodDifference, benchmarkTooltipObservation, extendImportedBenchmark, extendBenchmarkObservations } from '../src/services/benchmarkComparison';
 import { alignedBenchmark, alignImportedBenchmark, chooseBenchmarkLine, performanceSeries, selectPortfolioPeriod } from '../src/services/portfolioPerformance';
 import type { HistoricalDataPoint } from '../src/types/types';
 
@@ -76,3 +76,15 @@ assert.equal(latestTooltip?.latestAvailable, true);
 assert.equal(benchmarkTooltipObservation('2026-10-06', null, line), null, 'Never show a future observation');
 assert.equal(benchmarkTooltipObservation('2026-10-08', null, []), null);
 assert.deepEqual(benchmarkTooltipObservation('2026-10-07', 18, line), {value:18,date:'2026-10-07',latestAvailable:false});
+
+// A rejected portfolio snapshot must not hide a real newer benchmark NAV.
+const common = [{date:'2026-10-01',portfolio:0,benchmark:0},{date:'2026-10-11',portfolio:3,benchmark:5}];
+const quotes = [nav('2026-10-11',100),nav('2026-10-12',102),nav('2026-10-13',101)];
+const visible = extendBenchmarkObservations(common, quotes, '2026-10-14');
+assert.equal(visible.at(-1)?.date,'2026-10-13');
+assert.ok(Math.abs(visible.at(-1)!.benchmark-6.05)<1e-8);
+assert.equal(benchmarkPeriodDifference(common,'2026-10-01')?.endDate,'2026-10-11','Difference uses the last common observation');
+assert.equal(benchmarkTooltipObservation('2026-10-14',null,visible)?.date,'2026-10-13');
+assert.equal(extendBenchmarkObservations(common,quotes.slice(1),'2026-10-14'),common,'No fabricated anchor when its NAV is missing');
+assert.equal(extendBenchmarkObservations(common,quotes,'2026-10-11'),common,'Do not extend past the selected period');
+assert.equal(extendBenchmarkObservations(common,quotes.map(p=>({...p,currency:'USD'})),'2026-10-14'),common);

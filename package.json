@@ -42,6 +42,7 @@
     "test:architecture": "tsx scripts/test-architecture-hardening.ts",
     "test:market-refresh-cadence": "tsx scripts/test-market-refresh-cadence.ts",
     "test:batch-history": "tsx scripts/test-batch-history.ts",
+    "test:batch-benchmark-ui": "tsx scripts/test-batch-benchmark-ui.ts",
     "test:financial-times-funds": "tsx scripts/test-financial-times-funds.ts",
     "test:fund-quotes": "tsx scripts/test-fund-quotes.ts",
     "test:fund-quotes-ui": "tsx scripts/test-fund-quotes-ui.ts",

@@ -57,3 +57,20 @@ export function benchmarkTooltipObservation(date: string, value: number | null |
     if (!last || !Number.isFinite(last.benchmark) || accountingDay(last.date) > day) return null;
     return { value: last.benchmark, date: last.date, latestAvailable: true };
 }
+
+/** Show later real NAVs even when the portfolio has no comparable observation.
+ * Anchor to a real close; these extra points never enter the period difference. */
+export function extendBenchmarkObservations(line: Array<{date:string;benchmark:number}>, history: HistoricalDataPoint[], endDate: string | null) {
+    const last = line.at(-1);
+    if (!last || !endDate) return line;
+    const byDay = new Map<string, HistoricalDataPoint>();
+    [...history].sort((a,b) => (a.timestamp ?? Date.parse(a.date)) - (b.timestamp ?? Date.parse(b.date)))
+        .filter(p => Number.isFinite(p.close) && p.close > 0 && (!p.currency || p.currency === 'EUR'))
+        .forEach(p => { const day = accountingDay(p.timestamp ?? p.date); if (day) byDay.set(day,p); });
+    const lastDay = accountingDay(last.date), endDay = accountingDay(endDate);
+    const anchor = [...byDay.entries()].filter(([day]) => day <= lastDay).at(-1);
+    if (!anchor || Date.parse(lastDay)-Date.parse(anchor[0]) > 4*86400000) return line;
+    const tail = [...byDay.entries()].filter(([day]) => day > lastDay && day <= endDay)
+        .map(([day,p]) => ({date:day,benchmark:((1+last.benchmark/100)*p.close/anchor[1].close-1)*100}));
+    return tail.length ? [...line,...tail] : line;
+}

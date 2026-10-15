@@ -76,6 +76,8 @@
     "test:mfa-disable-ui": "tsx scripts/test-mfa-disable-ui.ts",
     "test:account-usernames": "tsx scripts/test-account-usernames.ts",
     "test:account-usernames-ui": "tsx scripts/test-account-usernames-ui.ts",
+    "test:strategy-portfolio": "tsx scripts/test-strategy-portfolio.ts",
+    "test:strategy-portfolio-ui": "tsx scripts/test-strategy-portfolio-ui.ts",
     "test:news-images": "tsx scripts/test-news-images.ts",
     "test:news-comments": "tsx scripts/test-news-comments.ts",
     "test:news-layout-comments-ui": "tsx scripts/test-news-layout-comments-ui.ts"

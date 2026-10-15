@@ -34,6 +34,7 @@ import {
     YAxis,
 } from 'recharts';
 import { Card, CardContent, CardHeader } from '../ui';
+import {DashboardInfo} from './DashboardInfo';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { BENCHMARK_ISIN, BENCHMARK_NAME, dailyHistory } from '../../services/dailyMarketData';
 import { getFundRelevance } from '../../services/finect/finectService';
@@ -450,26 +451,26 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                     <button type="button" onClick={() => { try { analytics.linkHistory(); setLinkError(''); } catch { setLinkError('No se ha podido guardar la vinculación del histórico.'); } }}>Usar este histórico</button>
                 </div>}
                 {linkError && <p className="portfolio-excel-insights__link-error" role="alert">{linkError}</p>}
-                <p className="portfolio-excel-insights__chart-note" role="status">
+                <div className="portfolio-excel-insights__history-line"><p className="portfolio-excel-insights__chart-note" role="status">
                     {hasArchivedHistory
                         ? `Histórico · ${historicalMonthlyCount ? `${historicalMonthlyCount} cierres mensuales` : `${historicalDailyCount} valoraciones diarias`} · ${formatHistoryDate(historicalHistory.startDate)}–${formatHistoryDate(historicalHistory.endDate)}`
                         : history.length
                             ? `Seguimiento verificado desde ${formatHistoryDate(series[0]?.date)}.`
                             : 'Pendiente de una actualización completa de cotizaciones.'}
                 </p>
-                {(hasArchivedHistory || history.length > 0) && <details className="portfolio-excel-insights__history-details">
-                    <summary>Detalles del histórico</summary>
+                {(hasArchivedHistory || history.length > 0) && <DashboardInfo title="Detalles del histórico">
                     <p>{hasArchivedHistory
                         ? `${historicalDailyCount} valoraciones diarias · ${historicalHistory.dcaCount} flujos sin duplicar. Los datos sin fecha exacta se conservan como resúmenes mensuales.`
                         : 'El histórico antiguo se conserva. Solo las valoraciones con posiciones y origen identificados se usan para calcular retornos.'}</p>
-                </details>}
+                </DashboardInfo>}
+                </div>
                 <div className="portfolio-excel-insights__kpis">
                     {kpis.map((kpi) => (
                         <div key={kpi.label}>
                             <span className="portfolio-excel-insights__kpi-icon">{kpi.icon}</span>
                             <span>{kpi.label}</span>
                             <strong className={kpi.tone}>{kpi.value}</strong>
-                            {kpi.value === 'N/D' ? <details className="portfolio-excel-insights__missing"><summary>¿Por qué no hay dato?</summary><p>{missingMetricReason(kpi.label, recentMonthly.length)}</p></details> : kpi.detail && <small>{kpi.detail}</small>}
+                            {kpi.value === 'N/D' ? <DashboardInfo className="portfolio-excel-insights__missing" title={`${kpi.label}: dato no disponible`}><p>{missingMetricReason(kpi.label, recentMonthly.length)}</p></DashboardInfo> : kpi.detail && <small>{kpi.detail}</small>}
                         </div>
                     ))}
                 </div>
@@ -735,7 +736,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                             <span>Observaciones <strong>{history.length}</strong></span>
                             <span>Pendientes de consulta <strong>{stale}</strong></span>
                         </div>
-                        {(sharpe === null || sortino === null) && <details className="portfolio-excel-insights__missing"><summary>¿Por qué hay ratios sin dato?</summary>{sharpe === null && <p>Sharpe: {missingMetricReason('Ratio Sharpe', recentMonthly.length)}</p>}{sortino === null && <p>Sortino: {missingMetricReason('Ratio Sortino', recentMonthly.length)}</p>}</details>}
+                        {(sharpe === null || sortino === null) && <DashboardInfo title="Ratios no disponibles" label="Ver motivo">{sharpe === null && <p>Sharpe: {missingMetricReason('Ratio Sharpe', recentMonthly.length)}</p>}{sortino === null && <p>Sortino: {missingMetricReason('Ratio Sortino', recentMonthly.length)}</p>}</DashboardInfo>}
                     </section>
                 )}
 

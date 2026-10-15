@@ -1,3 +1,4 @@
+import {DashboardInfo} from '../DashboardInfo';
 import { MetricCard } from '../../ui/MetricCard';
 import {Button,ConfirmDialog} from '../../ui';
 import {useState} from 'react';
@@ -103,10 +104,9 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
                 </div>
             </div>
             {periodDates?.baseDate && <p className="portfolio-summary__dates">Periodo efectivo{periodDates.monthlyBase ? ' con cierre mensual' : ''}: {new Date(periodDates.baseDate).toLocaleDateString('es-ES')} — {periodDates.endDate ? new Date(periodDates.endDate).toLocaleDateString('es-ES') : 'sin cierre'}.</p>}
-            {periodDates?.incompleteSince && <details className="portfolio-summary__calculation">
-                <summary>{activeTab==='YTD' ? 'YTD' : 'Periodo'} pendiente de completar</summary>
+            {periodDates?.incompleteSince && <div className="portfolio-summary__calculation"><DashboardInfo title="Periodo pendiente de completar" label={`${activeTab==='YTD' ? 'YTD' : 'Periodo'} pendiente de completar`}>
                 <p>Datos pendientes de verificar desde {new Date(periodDates.incompleteSince).toLocaleDateString('es-ES')}. Se conserva el último tramo calculable.</p>
-            </details>}
+            </DashboardInfo></div>}
             {activeTab === '1D' && !Number.isFinite(periodChange.value) && <p className="portfolio-summary__dates">La variación diaria necesita valoraciones comparables o precios de hoy con cierre anterior. En Mis Activos puedes ver la última variación disponible y su fecha.</p>}
 
             <div className="portfolio-summary__grid">
@@ -146,8 +146,7 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
                     icon={<BarChart3 size={20} />}
                 />
             </div>
-            {metrics.resultUnavailableReason && <details className="portfolio-summary__calculation">
-                <summary><span role="status">Realizado y total no disponibles</span> · Ver motivo</summary>
+            {metrics.resultUnavailableReason && <div className="portfolio-summary__calculation"><DashboardInfo title="Resultados no disponibles" label="Realizado y total: ver motivo">
                 <p>{metrics.resultUnavailableReason}</p>
                 {metrics.deletionReviews?.filter(r=>!r.discarded).map(r=><div key={r.id} className="portfolio-summary__deletion-review">
                     <strong>{r.name}</strong>
@@ -155,7 +154,7 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
                     : <p>Este registro necesita revisar sus compras y ventas.</p>}
                     <p>Si lo vendiste, hace falta registrar la venta real con su fecha e importe.</p>
                 </div>)}
-            </details>}
+            </DashboardInfo></div>}
             {metrics.deletionReviews?.some(r=>r.discarded) && <details className="portfolio-summary__calculation"><summary>Registros corregidos</summary>
                 {metrics.deletionReviews.filter(r=>r.discarded).map(r=><div key={r.id} className="portfolio-summary__deletion-review"><span>{r.name} · excluido del cálculo</span>
                     {onCorrectDeletion && <Button variant="secondary" disabled={saving} onClick={()=>void correct(r.id,false)}>Deshacer corrección</Button>}

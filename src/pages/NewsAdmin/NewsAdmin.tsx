@@ -119,6 +119,7 @@ export function NewsAdmin() {
     const [password, setPassword] = useState('');
     const [inviteEmail, setInviteEmail] = useState('');
     const [pendingInvitation, setPendingInvitation] = useState(false);
+    const [accessDenied,setAccessDenied]=useState(false);
     const [loading, setLoading] = useState(true);
     const [loginLoading, setLoginLoading] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -189,8 +190,7 @@ export function NewsAdmin() {
                             setSession(currentSession);
                             setPendingInvitation(true);
                         } else {
-                            await signOutNewsAdmin();
-                            setError('Esta cuenta no tiene permisos de edición.');
+                            setSession(currentSession);setAccessDenied(true);
                         }
                     } else {
                         const currentUserIsOwner = ownerBootstrap || await isCurrentUserNewsOwner();
@@ -238,8 +238,7 @@ export function NewsAdmin() {
                     return;
                 }
 
-                await signOutNewsAdmin();
-                throw new NewsServiceError('La cuenta ha iniciado sesión, pero no tiene permisos de edición.');
+                setSession(nextSession);setAccessDenied(true);setPassword('');return;
             }
 
             const currentUserIsOwner = ownerBootstrap || await isCurrentUserNewsOwner();
@@ -261,7 +260,7 @@ export function NewsAdmin() {
 
     const handleLogout = async () => {
         await signOutNewsAdmin();
-        setSession(null);
+        setSession(null);setAccessDenied(false);
         setPosts([]);
         setIsOwner(false);
         setAdminMembers([]);
@@ -452,6 +451,13 @@ export function NewsAdmin() {
         return <NewsAdminInviteAcceptance onAccepted={() => void handleInvitationAccepted()} />;
     }
 
+    if(accessDenied)return <div className="news-admin news-admin--login"><Card className="news-admin__login-card"><CardContent>
+        <div className="news-admin__login-icon"><LockKeyhole size={28}/></div><h1>Acceso editorial restringido</h1>
+        <p className="news-admin__login-copy">Tu sesión sigue activa. Esta cuenta puede leer noticias y participar en los comentarios, pero no tiene permisos de edición.</p>
+        <Link className="news-admin__public-link" to="/news">Ir a noticias</Link>
+        <Button type="button" variant="secondary" onClick={()=>void handleLogout()}>Cambiar de cuenta</Button>
+    </CardContent></Card></div>;
+
     if (!session) {
         return (
             <div className="news-admin news-admin--login">
@@ -463,7 +469,7 @@ export function NewsAdmin() {
                         <p className="news-admin__eyebrow">Área privada</p>
                         <h1>Panel editorial</h1>
                         <p className="news-admin__login-copy">
-                            Inicia sesión con tu cuenta de administrador para crear y publicar noticias.
+                            Accede con una cuenta autorizada para crear y publicar noticias.
                         </p>
 
                         {error && <NewsToast tone="error">{error}</NewsToast>}
@@ -635,6 +641,14 @@ export function NewsAdmin() {
                                 }}
                                 placeholder="analisis-ciclo-macro"
                             />
+                            <Input
+                                label="Imagen de portada (opcional)"
+                                hint="Pega una URL https://."
+                                type="url"
+                                value={draft.coverImageUrl}
+                                onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, coverImageUrl: event.target.value }))}
+                                placeholder="https://…"
+                            />
                             <div className="news-admin__field news-admin__field--wide">
                                 <label className="news-admin__label" htmlFor="news-excerpt">Extracto</label>
                                 <textarea
@@ -647,14 +661,6 @@ export function NewsAdmin() {
                                 />
                                 <span className="news-admin__hint">{draft.excerpt.length}/500 caracteres</span>
                             </div>
-                            <Input
-                                label="Imagen de portada (opcional)"
-                                hint="Pega una URL https://."
-                                type="url"
-                                value={draft.coverImageUrl}
-                                onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, coverImageUrl: event.target.value }))}
-                                placeholder="https://…"
-                            />
                         </div>
 
                         <div className="news-admin__editor-field">

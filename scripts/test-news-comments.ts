@@ -1,0 +1,82 @@
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import {PGlite} from '@electric-sql/pglite';
+
+const db=new PGlite();
+const ids=Array.from({length:8},(_,i)=>`${String(i+1).repeat(8)}-${String(i+1).repeat(4)}-4${String(i+1).repeat(3)}-8${String(i+1).repeat(3)}-${String(i+1).repeat(12)}`);
+const [reader,other,editor,owner,unconfirmed,revoked,article,draft]=ids;
+const session=(id:string)=>id.replace(/^./,'a');
+const comment='99999999-9999-4999-8999-999999999999';
+try{
+    await db.exec(`create role anon;create role authenticated;create role service_role bypassrls;
+        create schema auth;create schema portfolio_private;
+        create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb default '{}',created_at timestamptz default now(),email_confirmed_at timestamptz default now(),is_anonymous boolean default false);
+        create table auth.sessions(id uuid primary key,user_id uuid references auth.users(id) on delete cascade);
+        create table auth.mfa_factors(id uuid primary key,user_id uuid,status text);
+        create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;
+        create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;
+        grant usage on schema auth,public to anon,authenticated,service_role;
+        create table public.news_posts(id uuid primary key,author_id uuid references auth.users(id),status text);
+        create table public.news_admins(user_id uuid primary key,status text,role text);
+    `);
+    for(const [i,id] of ids.slice(0,6).entries()){
+        await db.query('insert into auth.users(id,email) values($1,$2)',[id,`fixture${i}@example.invalid`]);
+        await db.query('insert into auth.sessions(id,user_id) values($1,$2)',[session(id),id]);
+    }
+    await db.exec(`update auth.users set email_confirmed_at=null where id='${unconfirmed}';
+        insert into public.news_admins values('${editor}','active','editor'),('${owner}','active','owner'),('${revoked}','revoked','editor');
+        insert into public.news_posts values('${article}','${editor}','published'),('${draft}','${editor}','draft');`);
+    await db.exec(readFileSync('supabase/migrations/20261001234107_portfolio_mfa_guard.sql','utf8'));
+    await db.exec(readFileSync('supabase/migrations/20261015115626_account_usernames.sql','utf8'));
+    const hardening=readFileSync('supabase/migrations/20261007163808_architecture_hardening.sql','utf8');
+    await db.exec(hardening.slice(hardening.indexOf('create function portfolio_private.news_access'),hardening.indexOf('create or replace function public.is_news_owner')));
+    await db.exec(readFileSync('supabase/migrations/20261015131909_news_comments.sql','utf8'));
+    const login=async(id:string,aal='aal1')=>{
+        await db.exec(`reset role;set request.jwt.claim.sub='${id}';set request.jwt.claims='${JSON.stringify({role:'authenticated',session_id:session(id),aal})}';set role authenticated;`);
+    };
+    type Entry={id:string;body:string;username:string;createdAt:string;updatedAt:string;canEdit:boolean;canDelete:boolean};
+    const list=async(post=article,cursor?:{id:string;createdAt:string})=>(await db.query<{page:{items:Entry[];nextCursor:{id:string;createdAt:string}|null}}>('select public.list_news_comments($1,$2,$3) as page',[post,cursor?.createdAt??null,cursor?.id??null])).rows[0].page;
+    const create=(post=article,id=comment,body='Comentario de prueba',expected=reader)=>db.query<{item:Entry}>('select public.create_news_comment($1,$2,$3,$4) as item',[post,id,body,expected]);
+    const edit=(entry:Entry,body:string,expected=reader)=>db.query<{item:Entry}>('select public.edit_news_comment($1,$2,$3,$4,$5) as item',[article,entry.id,body,entry.updatedAt,expected]);
+    const remove=(entry:Entry,expected:string)=>db.query('select public.delete_news_comment($1,$2,$3,$4)',[article,entry.id,entry.updatedAt,expected]);
+    await db.exec('set role anon');assert.deepEqual((await list()).items,[]);
+    await assert.rejects(db.exec('select * from news_private.comments'),/permission denied/);
+    await assert.rejects(create(),/permission denied/);
+    await login(unconfirmed);await assert.rejects(create(article,comment,'test',unconfirmed),/Confirmed account/);
+    await login(reader);
+    await assert.rejects(create(article,comment,'test',other),/Account changed/);
+    await assert.rejects(create(draft),/Article unavailable/);
+    await assert.rejects(create(article,comment,' '.repeat(4)),/Invalid comment/);
+    await assert.rejects(create(article,comment,'\n\t'),/Invalid comment/);
+    await assert.rejects(create(article,comment,'x'.repeat(2001)),/Invalid comment/);
+    let entry=(await create()).rows[0].item;assert.equal(entry.canEdit,true);assert.equal(entry.canDelete,true);assert.equal(entry.username,'fixture0');
+    assert.equal((await create()).rows[0].item.id,entry.id,'Retrying the same UUID does not duplicate a comment');
+    await assert.rejects(create(article,'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'),/rate limit/);
+    const old=entry;entry=(await edit(entry,'<img src=x onerror=alert(1)>')).rows[0].item;
+    assert.equal(entry.body,'<img src=x onerror=alert(1)>','HTML remains text; the UI never renders comment HTML');
+    await assert.rejects(edit(old,'stale edit'),/Comment changed/);
+    await login(other);assert.equal((await list()).items[0].canEdit,false);await assert.rejects(edit(entry,'hijack',other),/Comment unavailable/);await assert.rejects(remove(entry,other),/Comment unavailable/);
+    await login(revoked);await assert.rejects(remove(entry,revoked),/Comment unavailable/);
+    await login(editor);assert.equal((await list()).items[0].canDelete,true);assert.equal((await list()).items[0].canEdit,false);
+    await assert.rejects(edit(entry,'editor rewriting reader',editor),/Comment unavailable/);
+    await remove(entry,editor);assert.equal((await list()).items.length,0);
+    await login(reader);await assert.rejects(create(article,'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'),/rate limit/,'Deleting a comment does not reset the anti-spam counter');
+    await db.exec(`reset role;update news_private.comment_limits set last_post_at=now()-interval '21 seconds' where user_id='${reader}';insert into auth.mfa_factors values('${comment}','${reader}','verified');`);
+    await login(reader);await assert.rejects(create(),/Second factor/);
+    await login(reader,'aal2');entry=(await create()).rows[0].item;
+    await db.exec(`reset role;update public.news_posts set status='draft' where id='${article}'`);
+    await login(owner);assert.deepEqual((await list()).items,[]);await assert.rejects(remove(entry,owner),/Article unavailable/);
+    await db.exec(`reset role;update public.news_posts set status='published' where id='${article}'`);
+    await login(owner);await remove(entry,owner);
+    // Exercise keyset pagination, including identical timestamps.
+    await db.exec('reset role');
+    for(let i=0;i<25;i++)await db.query('insert into news_private.comments(id,post_id,author_id,body,created_at) values($1,$2,$3,$4,$5)',[`cccccccc-cccc-4ccc-8ccc-${String(i).padStart(12,'0')}`,article,reader,`Page comment ${i}`,'2026-10-01T12:00:00Z']);
+    await db.exec(`set request.jwt.claim.sub='';set request.jwt.claims='{}';set role anon`);
+    const first=await list();assert.equal(first.items.length,20);assert.ok(first.nextCursor);assert.ok(first.items.every(item=>!item.canEdit&&!item.canDelete));
+    const second=await list(article,first.nextCursor);assert.equal(second.items.length,5);assert.equal(second.nextCursor,null);
+    assert.equal(new Set([...first.items,...second.items].map(item=>item.id)).size,25);
+    assert.ok(!JSON.stringify(first).includes('@example.invalid'));assert.ok(!JSON.stringify(first).includes(reader),'Public responses contain neither emails nor author UUIDs');
+    await db.exec(`reset role;delete from auth.users where id='${reader}'`);const orphan=await list();assert.equal(orphan.items[0].username,'Cuenta eliminada');
+    await db.exec(`delete from public.news_posts where id='${article}'`);assert.deepEqual((await list()).items,[]);
+    console.log('PASS: comment publication, ownership, moderator scope, immutable authorship, MFA, revoked/unconfirmed access, anti-spam, retries, stale edits, pagination, privacy and cascades.');
+}finally{await db.close();}

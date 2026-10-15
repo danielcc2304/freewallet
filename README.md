@@ -77,7 +77,7 @@ El Excel proporciona posiciones, movimientos e histórico inicial. Las carteras 
 
 ### Noticias
 
-Análisis públicos en `/news` y editor privado en `/admin/news`, con borradores, publicación, invitaciones y revocación de editores. El autor con acceso editorial activo puede abrir la edición de su artículo desde un lápiz flotante en la vista de lectura.
+Análisis públicos en `/news` y editor privado en `/admin/news`, con borradores, publicación, invitaciones y revocación de editores. El autor con acceso editorial activo puede abrir la edición de su artículo desde un lápiz flotante en la vista de lectura. Los artículos incluyen comentarios públicos con edición y borrado propios, moderación editorial y límites de uso. [Permisos, API y pruebas de comentarios](docs/news-comments.md).
 
 ## Instalación local
 

@@ -17,7 +17,7 @@ const errors:string[]=[];
 const calls:string[]=[];
 let rejectDeletion=true;
 try{
-    const page=await browser.newPage();page.setDefaultTimeout(30000);await page.setViewport({width:390,height:844});
+    const page=await browser.newPage();page.setDefaultNavigationTimeout(60000);page.setDefaultTimeout(30000);await page.setViewport({width:390,height:844});
     page.on('pageerror',error=>errors.push(String(error)));
     await page.evaluateOnNewDocument((auth,v)=>{
         localStorage.setItem('freewallet-news-auth',JSON.stringify(auth));

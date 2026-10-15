@@ -12,6 +12,7 @@ import {
 import { getNewsTextExcerpt, getSafeNewsImageUrl, sanitizeNewsHtml } from '../../utils/newsContent';
 import { useNewsEditorId } from '../../hooks/useNewsEditorId';
 import './News.css';
+import {NewsComments} from '../../components/news/NewsComments';
 
 const dateFormatter = new Intl.DateTimeFormat('es-ES', {
     dateStyle: 'long',
@@ -215,6 +216,7 @@ export function NewsArticle() {
     const [post, setPost] = useState<NewsPost | null>(null);
     const [loading, setLoading] = useState(isNewsBackendConfigured);
     const [error, setError] = useState<string | null>(null);
+    const [loadedSlug,setLoadedSlug]=useState<string|null>(null);
 
     useEffect(() => {
         if (!slug || !isNewsBackendConfigured) {
@@ -225,7 +227,7 @@ export function NewsArticle() {
         getPublishedNewsBySlug(slug)
             .then((nextPost) => {
                 if (active) {
-                    setPost(nextPost);
+                    setPost(nextPost);setError(null);
                     if (nextPost) {
                         document.title = `${nextPost.title} | FreeWallet`;
                     }
@@ -233,12 +235,12 @@ export function NewsArticle() {
             })
             .catch((requestError: unknown) => {
                 if (active) {
-                    setError(getErrorMessage(requestError));
+                    setError(getErrorMessage(requestError));setPost(null);
                 }
             })
             .finally(() => {
                 if (active) {
-                    setLoading(false);
+                    setLoading(false);setLoadedSlug(slug);
                 }
             });
 
@@ -274,7 +276,7 @@ export function NewsArticle() {
         );
     }
 
-    if (loading) {
+    if (loading||loadedSlug!==slug) {
         return (
             <div className="news-page__state" role="status">
                 <Loader2 className="news-page__spinner" size={24} />
@@ -328,6 +330,7 @@ export function NewsArticle() {
                     <span>Contenido informativo. No constituye asesoramiento financiero personalizado.</span>
                 </footer>
             </article>
+            <NewsComments key={post.id} postId={post.id}/>
             {editorId && editorId === post.authorId && (
                 <Link className="news-article__edit" to={`/admin/news?edit=${encodeURIComponent(post.id)}`}
                     aria-label="Editar noticia" title="Editar noticia">

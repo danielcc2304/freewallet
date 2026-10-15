@@ -30,7 +30,7 @@ RPC públicas `SECURITY INVOKER` que delegan en funciones privadas con `search_p
 
 Las mutaciones comprueban la cuenta, la sesión, MFA, el propietario esperado y la publicación de la noticia. El token se fija antes de enviar la petición para evitar que un cambio de cuenta reasigne una operación pendiente. Los bloqueos de fila coordinan cambios de publicación, comentarios y límites de uso.
 
-El texto debe contener entre 1 y 2000 caracteres no vacíos. Se representa mediante nodos de texto de React, nunca con `dangerouslySetInnerHTML`. Los envíos están limitados a uno cada 20 segundos y 20 por hora por cuenta. Estos límites se verifican en Postgres; no dependen del reloj ni del JavaScript del navegador.
+El texto debe contener entre 1 y 10000 caracteres no vacíos. Se representa mediante nodos de texto de React, nunca con `dangerouslySetInnerHTML`. Los envíos están limitados a uno cada 20 segundos y 20 por hora por cuenta. Estos límites se verifican en Postgres; no dependen del reloj ni del JavaScript del navegador.
 
 ## Interfaz y validación
 

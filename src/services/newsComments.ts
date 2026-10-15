@@ -16,7 +16,7 @@ async function request<T>(name:string,args:Record<string,unknown>,userId?:string
         if(error.code==='54000')throw new Error('Espera 20 segundos entre comentarios. El límite es de 20 comentarios por hora.');
         if(error.code==='40001')throw new Error('El comentario ha cambiado. Actualiza los comentarios antes de continuar.');
         if(error.code==='42501')throw new Error('No se pudo autorizar la acción. Comprueba tu sesión, el autenticador y que la noticia siga publicada.');
-        if(error.code==='22023'||error.code==='23514')throw new Error('El comentario debe tener entre 1 y 2000 caracteres.');
+        if(error.code==='22023'||error.code==='23514')throw new Error('El comentario debe tener entre 1 y 10000 caracteres.');
         throw new Error('No se pudieron guardar o cargar los comentarios. Inténtalo de nuevo.');
     }
     if((name==='list_news_comments'||name==='list_news_comment_replies')&&(!data||!Array.isArray(data.items)))throw new Error('No se pudieron cargar los comentarios. Inténtalo de nuevo.');

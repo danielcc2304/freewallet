@@ -32,6 +32,7 @@ try{
     await db.exec(hardening.slice(hardening.indexOf('create function portfolio_private.news_access'),hardening.indexOf('create or replace function public.is_news_owner')));
     await db.exec(readFileSync('supabase/migrations/20261015131909_news_comments.sql','utf8'));
     await db.exec(readFileSync('supabase/migrations/20261015140450_news_comment_replies.sql','utf8'));
+    await db.exec(readFileSync('supabase/migrations/20261015145327_news_comment_length.sql','utf8'));
     const login=async(id:string,aal='aal1')=>{
         await db.exec(`reset role;set request.jwt.claim.sub='${id}';set request.jwt.claims='${JSON.stringify({role:'authenticated',session_id:session(id),aal})}';set role authenticated;`);
     };
@@ -49,10 +50,12 @@ try{
     await assert.rejects(create(draft),/Article unavailable/);
     await assert.rejects(create(article,comment,' '.repeat(4)),/Invalid comment/);
     await assert.rejects(create(article,comment,'\n\t'),/Invalid comment/);
-    await assert.rejects(create(article,comment,'x'.repeat(2001)),/Invalid comment/);
+    await assert.rejects(create(article,comment,'x'.repeat(10001)),/Invalid comment/);
     let entry=(await create()).rows[0].item;assert.equal(entry.canEdit,true);assert.equal(entry.canDelete,true);assert.equal(entry.username,'fixture0');
     assert.equal((await create()).rows[0].item.id,entry.id,'Retrying the same UUID does not duplicate a comment');
     await assert.rejects(create(article,'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'),/rate limit/);
+    entry=(await edit(entry,'x'.repeat(10000))).rows[0].item;assert.equal(entry.body.length,10000);
+    await assert.rejects(edit(entry,'x'.repeat(10001)),/Invalid comment/);
     const old=entry;entry=(await edit(entry,'<img src=x onerror=alert(1)>')).rows[0].item;
     assert.equal(entry.body,'<img src=x onerror=alert(1)>','HTML remains text; the UI never renders comment HTML');
     await assert.rejects(edit(old,'stale edit'),/Comment changed/);
@@ -73,13 +76,13 @@ try{
     const root='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
     const replyId='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
     const nestedId='ffffffff-ffff-4fff-8fff-ffffffffffff';
-    const reply=(target:string,id:string,who=other)=>db.query<{item:Entry}>('select public.create_news_reply($1,$2,$3,$4,$5) as item',[article,id,'Respuesta de prueba',who,target]);
+    const reply=(target:string,id:string,who=other)=>db.query<{item:Entry}>('select public.create_news_reply($1,$2,$3,$4,$5) as item',[article,id,'Respuesta de prueba'.padEnd(10000,'x'),who,target]);
     const replies=async(rootId=root,cursor?:{id:string;createdAt:string})=>(await db.query<{page:{items:Entry[];nextCursor:{id:string;createdAt:string}|null}}>('select public.list_news_comment_replies($1,$2,$3,$4) as page',[article,rootId,cursor?.createdAt??null,cursor?.id??null])).rows[0].page;
-    await login(other);const rootEntry=(await create(article,root,'Texto del padre',other)).rows[0].item;
+    await login(other);const rootEntry=(await create(article,root,'Texto del padre'.padEnd(10000,'x'),other)).rows[0].item;
     await assert.rejects(reply(root,replyId),/rate limit/);
     await db.exec(`reset role;update news_private.comment_limits set last_post_at=now()-interval '21 seconds'`);
     await login(other);const replyEntry=(await reply(root,replyId)).rows[0].item;
-    assert.equal(replyEntry.parentId,root);assert.equal(replyEntry.replyToId,root);
+    assert.equal(rootEntry.body.length,10000);assert.equal(replyEntry.body.length,10000);assert.equal(replyEntry.parentId,root);assert.equal(replyEntry.replyToId,root);
     assert.equal((await reply(root,replyId)).rows[0].item.id,replyId,'Reply retry is idempotent');
     await login(owner);const nested=(await reply(replyId,nestedId,owner)).rows[0].item;
     assert.equal(nested.parentId,root,'Replies to replies stay in the same readable thread');assert.equal(nested.replyToId,replyId);

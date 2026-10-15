@@ -16,10 +16,12 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 - Funcionalidad:
   - Dashboard: resume los avisos sobre datos y cotizaciones para que ocupen menos espacio; puedes abrir la ayuda cuando necesites más detalles.
   - Dashboard: muestra el motivo de los resultados no disponibles al abrir su explicación.
+  - Cuenta: permite quitar el autenticador después de confirmar la operación con su código actual.
 - Resumen:
   - El Dashboard queda más despejado y conserva a mano las explicaciones sobre precios, datos y resultados.
+  - También puedes quitar el autenticador de la cuenta cuando tengas acceso a su código de verificación.
 - Archivos:
-  - `FEATURE_LOG.md`, `package.json`, `package-lock.json`, `src/constants/app.ts`, `scripts/test-dashboard-quality-ui.ts`, `scripts/test-dashboard-results-ui.ts`, `scripts/test-portfolio-periods-ui.ts`, `scripts/test-ytd-verification-ui.ts`, `src/components/dashboard/DashboardInfo.css`, `src/components/dashboard/DashboardInfo.tsx`, `src/components/dashboard/PortfolioDataQuality.css`, `src/components/dashboard/PortfolioDataQuality.tsx`, `src/components/dashboard/PortfolioExcelInsights.css`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`, `src/pages/Dashboard/Dashboard.css`, `src/pages/Dashboard/Dashboard.tsx`.
+  - `FEATURE_LOG.md`, `package.json`, `package-lock.json`, `src/constants/app.ts`, `scripts/test-dashboard-quality-ui.ts`, `scripts/test-dashboard-results-ui.ts`, `scripts/test-portfolio-periods-ui.ts`, `scripts/test-ytd-verification-ui.ts`, `src/components/dashboard/DashboardInfo.css`, `src/components/dashboard/DashboardInfo.tsx`, `src/components/dashboard/PortfolioDataQuality.css`, `src/components/dashboard/PortfolioDataQuality.tsx`, `src/components/dashboard/PortfolioExcelInsights.css`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`, `src/pages/Dashboard/Dashboard.css`, `src/pages/Dashboard/Dashboard.tsx`, `scripts/test-mfa-disable-ui.ts`, `scripts/test-mfa-management.ts`, `src/pages/Account/AccountMfa.tsx`, `src/services/mfaManagement.ts`.
 
 ### 2026-10-14 - v6.3.2 - Gastos, análisis de cartera y calculadora de bonos
 - Funcionalidad:

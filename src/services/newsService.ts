@@ -1,3 +1,4 @@
+import {signInWithIdentifier} from './accountProfile';
 import type {
     Session,
     SupabaseClient,
@@ -166,10 +167,7 @@ export async function requiresNewsMfa(): Promise<boolean> {
 
 export async function signInNewsAdmin(email: string, password: string): Promise<NewsSession> {
     const client = await requireClient();
-    const { data, error } = await client.auth.signInWithPassword({
-        email: email.trim(),
-        password,
-    });
+    const { data, error } = await signInWithIdentifier(client,email,password);
 
     if (error) {
         throw new NewsServiceError(getSupabaseErrorMessage(error, 'Credenciales no válidas.'));

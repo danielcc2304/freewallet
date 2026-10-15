@@ -73,7 +73,11 @@ try {
     });
     await page.reload({waitUntil:'networkidle2'});
     const unavailable=await page.$eval('.portfolio-summary',el=>el.textContent || '');
-    assert.match(unavailable,/Realizado y total no disponibles/);assert.match(unavailable,/coste de compra/);
+    assert.match(unavailable,/Realizado y total: ver motivo/);
+    await page.click('.portfolio-summary__calculation button');
+    await page.waitForSelector('[role=dialog]');
+    assert.match(await page.$eval('[role=dialog]',el=>el.textContent??''),/coste de compra/);
+    await page.keyboard.press('Escape');
     assert.equal(await page.$$eval('.portfolio-summary .metric-card__value',els=>els.filter(el=>el.textContent==='No disponible').length),2);
     assert.deepEqual(errors,[]);
     console.log('Dashboard results UI passed: first sale from import, persisted basis, realized/unrealized/total summary, incomplete ledger and 320/390 px layouts.');

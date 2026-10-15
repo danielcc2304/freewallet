@@ -1,545 +1,122 @@
-import { useMemo, useState } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import {
-    TrendingUp,
-    Shield,
-    Wallet,
-    Building2,
-    Coins,
-    PieChart as PieChartIcon,
-    ArrowRight,
-    Scale,
-    Landmark,
-    Target,
-    Lightbulb,
-    TrendingDown
-} from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
+import {useEffect,useState,type CSSProperties} from 'react';
+import {ArrowRight,Check,ChevronDown,Coins,Landmark,PieChart as PieChartIcon,RotateCcw,Scale,Shield,TrendingUp,Wallet} from 'lucide-react';
+import {Link,useSearchParams} from 'react-router-dom';
+import {AcademyPageHeader} from '../layout/AcademyPageHeader';
+import {ASSET_CLASSES,ASSET_KEYS,CATEGORIES,HORIZON_FILTERS,MODEL_PORTFOLIOS,RISK_FILTERS,STYLE_FILTERS,type Allocation,type PortfolioModel} from '../../../data/academy/portfolioModels';
+import {allocationQuery,modelAllocation,normalizeAllocation,readAllocationQuery,validAllocation} from '../../../utils/strategyPortfolio';
 import './PortfolioBuilder.css';
 
-type CategoryId = 'classic' | 'strategic' | 'objective';
-type Horizon = 'short' | 'medium' | 'long';
-type Style = 'balanced' | 'index' | 'macro' | 'asymmetric' | 'income' | 'sustainable';
-type RiskAppetite = 'conservative' | 'moderate' | 'aggressive';
+const STORAGE_KEY='freewallet_strategy_preferences_v1';
+const money=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:2});
+const percent=(value:number)=>`${new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(value)}%`;
+const icons={stocks:TrendingUp,bonds:Landmark,cash:Wallet,crypto:Coins,gold:Shield,commodities:Scale,reits:Landmark};
+function savedPreferences():URLSearchParams {
+    try {const saved=localStorage.getItem(STORAGE_KEY);return new URLSearchParams(saved&&saved.length<5000?saved:'');}catch{return new URLSearchParams();}
+}
+function initialState(query:URLSearchParams){
+    const params=savedPreferences();query.forEach((value,key)=>params.set(key,value));const parsed=readAllocationQuery(params);
+    const filter=(name:string,options:readonly {value:string}[])=>options.some(option=>option.value===params.get(name))?params.get(name)!:'all';
+    return {...parsed,model:parsed.model??MODEL_PORTFOLIOS[0],horizon:filter('horizon',HORIZON_FILTERS),style:filter('style',STYLE_FILTERS),risk:filter('risk',RISK_FILTERS)};
+}
+function scrollTo(id:string){requestAnimationFrame(()=>document.getElementById(id)?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'}));}
+function AllocationBar({allocation}:{allocation:Allocation}){
+    return <div className="strategy-bar" role="img" aria-label={ASSET_CLASSES.filter(asset=>allocation[asset.key]>0).map(asset=>`${asset.name}: ${percent(allocation[asset.key])}`).join(', ')}>
+        {ASSET_CLASSES.filter(asset=>allocation[asset.key]>0).map(asset=><span key={asset.key} style={{width:`${allocation[asset.key]}%`,background:asset.color}}/>)}</div>;
+}
 
-type PortfolioModel = {
-    category: CategoryId;
-    title: string;
-    desc: string;
-    data: Array<{ name: string; value: number; color: string }>;
-    highlight?: string;
-    horizons: Horizon[];
-    styles: Style[];
-    risk: RiskAppetite[];
-};
+export function PortfolioBuilder(){
+    const [params,setParams]=useSearchParams();const [initial]=useState(()=>initialState(params));
+    const [horizon,setHorizon]=useState(initial.horizon);const [style,setStyle]=useState(initial.style);const [risk,setRisk]=useState(initial.risk);
+    const [selected,setSelected]=useState(initial.model.id);const [planState,setPlanState]=useState(()=>({draft:Object.fromEntries(ASSET_KEYS.map(key=>[key,String(initial.allocation[key])])),confirmed:initial.allocation}));
+    const plan=planState.draft;
+    const setPlan=(update:Record<string,string>|((current:Record<string,string>)=>Record<string,string>))=>setPlanState(current=>{
+        const draft=typeof update==='function'?update(current.draft):update;
+        const candidate=Object.fromEntries(ASSET_KEYS.map(key=>[key,draft[key].trim()===''?NaN:Number(draft[key])])) as Allocation;
+        return {draft,confirmed:validAllocation(candidate)?candidate:current.confirmed};
+    });
+    const [capital,setCapital]=useState(String(initial.capital));const [lastCapital,setLastCapital]=useState(initial.capital);const [compared,setCompared]=useState<string[]>([]);const [showAll,setShowAll]=useState(false);
+    const [notice,setNotice]=useState(initial.error??'');
+    const model=MODEL_PORTFOLIOS.find(model=>model.id===selected)!;
+    const allocation=Object.fromEntries(ASSET_KEYS.map(key=>[key,plan[key].trim()===''?NaN:Number(plan[key])])) as Allocation;
+    const total=ASSET_KEYS.reduce((sum,key)=>sum+(Number.isFinite(allocation[key])?allocation[key]:0),0);
+    const valid=validAllocation(allocation);const amount=Number(capital);const amountValid=capital.trim()!==''&&Number.isFinite(amount)&&amount>0&&amount<=1e12;
+    const filtered=MODEL_PORTFOLIOS.filter(model=>(horizon==='all'||model.horizons.includes(horizon as typeof model.horizons[number]))&&(style==='all'||model.styles.includes(style as typeof model.styles[number]))&&(risk==='all'||model.risk===risk));
+    const visible=showAll?filtered:filtered.slice(0,6);const comparison=MODEL_PORTFOLIOS.filter(model=>compared.includes(model.id));
+    const customized=ASSET_KEYS.some(key=>allocation[key]!==modelAllocation(model)[key]);
+    const persistedAllocation=planState.confirmed;
+    const persistence=allocationQuery(persistedAllocation,amountValid?amount:lastCapital,selected)+`&horizon=${horizon}&style=${style}&risk=${risk}`;
+    useEffect(()=>{
+        if(params.toString()!==persistence)setParams(new URLSearchParams(persistence),{replace:true,preventScrollReset:true});
+        try{localStorage.setItem(STORAGE_KEY,persistence);}catch{/* The URL still preserves valid choices when storage is unavailable. */}
+    },[persistence,params,setParams]);
 
-const HORIZON_FILTERS: Array<{ value: 'all' | Horizon; label: string }> = [
-    { value: 'all', label: 'Cualquiera' },
-    { value: 'short', label: 'Corto (0-3 años)' },
-    { value: 'medium', label: 'Medio (3-10 años)' },
-    { value: 'long', label: 'Largo (+10 años)' }
-];
+    const choose=(next:PortfolioModel)=>{
+        if(next.id!==selected){setSelected(next.id);setPlan(Object.fromEntries(ASSET_KEYS.map(key=>[key,String(modelAllocation(next)[key])])));}
+        setNotice('');scrollTo('strategy-plan');
+    };
+    const filterChanged=(setter:(value:string)=>void,value:string)=>{setter(value);setShowAll(false);};
+    const normalize=()=>{const next=normalizeAllocation(allocation);if(next)setPlan(Object.fromEntries(ASSET_KEYS.map(key=>[key,String(next[key])])));};
+    const clearFilters=()=>{setHorizon('all');setStyle('all');setRisk('all');setShowAll(false);};
 
-const STYLE_FILTERS: Array<{ value: 'all' | Style; label: string }> = [
-    { value: 'all', label: 'Cualquiera' },
-    { value: 'balanced', label: 'Balanceada' },
-    { value: 'index', label: 'Indexada' },
-    { value: 'macro', label: 'Macro/Defensiva' },
-    { value: 'asymmetric', label: 'Asimétrica' },
-    { value: 'income', label: 'Rentas/Dividendos' },
-    { value: 'sustainable', label: 'Sostenible (ESG)' }
-];
-
-const RISK_FILTERS: Array<{ value: 'all' | RiskAppetite; label: string }> = [
-    { value: 'all', label: 'Cualquiera' },
-    { value: 'conservative', label: 'Conservador' },
-    { value: 'moderate', label: 'Moderado' },
-    { value: 'aggressive', label: 'Agresivo' }
-];
-
-const ASSET_CLASSES = [
-    {
-        name: 'Renta Variable (Acciones)',
-        icon: TrendingUp,
-        color: '#3b82f6',
-        desc: 'Representan la propiedad de una empresa. Ofrecen el mayor potencial de crecimiento a largo plazo, pero con mayor volatilidad.',
-        risk: 'Alto',
-        return: '7-10% (histórico)',
-        path: '/academy/assets/equities'
-    },
-    {
-        name: 'Renta Fija (Bonos)',
-        icon: Landmark,
-        color: '#10b981',
-        desc: 'Préstamos a gobiernos o empresas. Actúan como el "seguro" de tu cartera, reduciendo la volatilidad y aportando estabilidad.',
-        risk: 'Bajo/Medio',
-        return: '2-6% (histórico)',
-        path: '/academy/assets/bonds'
-    },
-    {
-        name: 'Liquidez (Cash)',
-        icon: Wallet,
-        color: '#64748b',
-        desc: 'Efectivo, cuentas remuneradas o fondos monetarios. Máxima seguridad y disponibilidad, pero riesgo de perder poder adquisitivo por inflación.',
-        risk: 'Muy Bajo',
-        return: '0-2%',
-        path: '/academy/assets/cash'
-    },
-    {
-        name: 'Real Estate (REITs)',
-        icon: Building2,
-        color: '#8b5cf6',
-        desc: 'Inversión en bienes inmuebles a través de fondos cotizados. Gran protección contra la inflación y rentas periódicas.',
-        risk: 'Medio/Alto',
-        return: '6-8%',
-        path: '/academy/assets/reits'
-    },
-    {
-        name: 'Criptoactivos',
-        icon: Coins,
-        color: '#f59e0b',
-        desc: 'Activos digitales descentralizados. Altísima volatilidad y riesgo, pero descorrelacionados con el mercado tradicional.',
-        risk: 'Muy Alto',
-        return: 'Incierto',
-        path: '/academy/assets/crypto'
-    }
-];
-
-const CATEGORIES = [
-    { id: 'classic', name: 'Clásicas', color: '#3b82f6', icon: Landmark },
-    { id: 'strategic', name: 'Estratégicas', color: '#8b5cf6', icon: Target },
-    { id: 'objective', name: 'Por Objetivo', color: '#10b981', icon: PieChartIcon }
-] as const;
-
-const MODEL_PORTFOLIOS: PortfolioModel[] = [
-    // CLÁSICAS
-    {
-        category: 'classic',
-        title: 'Cartera 60/40 Clásica',
-        desc: 'Balance directo para perfil moderado: acciones para crecer y bonos para amortiguar caídas.',
-        data: [
-            { name: 'Acciones', value: 60, color: '#3b82f6' },
-            { name: 'Bonos', value: 40, color: '#10b981' }
-        ],
-        horizons: ['medium', 'long'],
-        styles: ['balanced'],
-        risk: ['moderate']
-    },
-    {
-        category: 'classic',
-        title: 'Cartera Permanente',
-        desc: 'Cuatro bloques al 25% para resistir distintos escenarios sin necesidad de acertar el ciclo.',
-        data: [
-            { name: 'Acciones', value: 25, color: '#3b82f6' },
-            { name: 'Bonos', value: 25, color: '#10b981' },
-            { name: 'Oro', value: 25, color: '#f59e0b' },
-            { name: 'Efectivo', value: 25, color: '#64748b' }
-        ],
-        horizons: ['short', 'medium', 'long'],
-        styles: ['macro', 'balanced'],
-        risk: ['conservative', 'moderate']
-    },
-    {
-        category: 'classic',
-        title: 'Bogleheads 3-Fund',
-        desc: 'Indexación global en 3 fondos (USA + internacional + bonos) con foco en diversificación y comisiones bajas.',
-        data: [
-            { name: 'RV USA', value: 40, color: '#3b82f6' },
-            { name: 'RV Int', value: 40, color: '#8b5cf6' },
-            { name: 'Bonos', value: 20, color: '#10b981' }
-        ],
-        horizons: ['medium', 'long'],
-        styles: ['index', 'balanced'],
-        risk: ['moderate']
-    },
-
-    // ESTRATÉGICAS
-    {
-        category: 'strategic',
-        title: 'Cartera Barbell (Estrategia Asimétrica)',
-        desc: 'Mucho ultra-seguro y una parte pequeña muy agresiva para buscar opcionalidad sin arriesgar el conjunto.',
-        data: [
-            { name: 'Seguro (Monet/Bonos)', value: 85, color: '#10b981' },
-            { name: 'Agresivo (Cripto/Growth)', value: 15, color: '#ef4444' }
-        ],
-        highlight: 'Funciona si respetas el tamaño de las apuestas.',
-        horizons: ['medium', 'long'],
-        styles: ['asymmetric'],
-        risk: ['aggressive']
-    },
-    {
-        category: 'strategic',
-        title: 'All-Weather (Ray Dalio)',
-        desc: 'Diversificación macro con más piezas y más peso en bonos; busca estabilidad entre regímenes.',
-        data: [
-            { name: 'Acciones', value: 30, color: '#3b82f6' },
-            { name: 'Bonos LP', value: 40, color: '#10b981' },
-            { name: 'Bonos MP', value: 15, color: '#6366f1' },
-            { name: 'Oro', value: 7.5, color: '#f59e0b' },
-            { name: 'Materias Primas', value: 7.5, color: '#8b5cf6' }
-        ],
-        horizons: ['short', 'medium', 'long'],
-        styles: ['macro', 'balanced'],
-        risk: ['conservative', 'moderate']
-    },
-    {
-        category: 'strategic',
-        title: 'Core-Satellite',
-        desc: 'Núcleo indexado y satélites acotados: personalización sin perder el control del riesgo total.',
-        data: [
-            { name: 'Núcleo Indexado', value: 80, color: '#3b82f6' },
-            { name: 'Small Caps', value: 10, color: '#8b5cf6' },
-            { name: 'Satélites (Value/Cripto)', value: 10, color: '#f59e0b' }
-        ],
-        horizons: ['medium', 'long'],
-        styles: ['index', 'asymmetric'],
-        risk: ['moderate', 'aggressive']
-    },
-    {
-        category: 'strategic',
-        title: 'Risk Parity',
-        desc: 'Asigna por contribución al riesgo, no por capital. El objetivo es equilibrar volatilidad entre bloques.',
-        data: [
-            { name: 'Bonos', value: 60, color: '#10b981' },
-            { name: 'Acciones', value: 20, color: '#3b82f6' },
-            { name: 'Mat. Primas', value: 10, color: '#8b5cf6' },
-            { name: 'Oro', value: 10, color: '#f59e0b' }
-        ],
-        horizons: ['medium', 'long'],
-        styles: ['macro'],
-        risk: ['conservative', 'moderate']
-    },
-    {
-        category: 'strategic',
-        title: 'Cartera ESG',
-        desc: 'Similar a una indexada global, pero filtrada por criterios ESG (ambiental, social y gobernanza).',
-        data: [
-            { name: 'Acciones ESG World', value: 80, color: '#10b981' },
-            { name: 'Bonos Verdes', value: 20, color: '#8b5cf6' }
-        ],
-        horizons: ['medium', 'long'],
-        styles: ['index', 'sustainable'],
-        risk: ['moderate']
-    },
-
-    // POR OBJETIVO
-    {
-        category: 'objective',
-        title: '100% Indexada Global',
-        desc: 'Solo renta variable global (desarrollados + emergentes). Para horizontes largos y tolerancia alta a caídas.',
-        data: [
-            { name: 'RV Desarrollada', value: 85, color: '#3b82f6' },
-            { name: 'RV Emergente', value: 15, color: '#8b5cf6' }
-        ],
-        horizons: ['long'],
-        styles: ['index'],
-        risk: ['aggressive']
-    },
-    {
-        category: 'objective',
-        title: 'Dividend Growth',
-        desc: 'Prioriza flujo de caja y dividendos crecientes; suele sacrificar algo de crecimiento por estabilidad.',
-        data: [
-            { name: 'Acciones Dividendo', value: 75, color: '#3b82f6' },
-            { name: 'REITs (Inmuebles)', value: 15, color: '#8b5cf6' },
-            { name: 'Cash', value: 10, color: '#64748b' }
-        ],
-        horizons: ['medium', 'long'],
-        styles: ['income'],
-        risk: ['moderate']
-    },
-    {
-        category: 'objective',
-        title: 'Cartera Bucket (Cubos)',
-        desc: 'Separa por horizontes (corto/medio/largo) para evitar vender en mal momento y tener liquidez cuando toca.',
-        data: [
-            { name: 'Liquidez (1-3 años)', value: 20, color: '#64748b' },
-            { name: 'Medio Plazo (Bonos)', value: 30, color: '#10b981' },
-            { name: 'Largo Plazo (Acciones)', value: 50, color: '#3b82f6' }
-        ],
-        horizons: ['short', 'medium', 'long'],
-        styles: ['balanced'],
-        risk: ['conservative', 'moderate']
-    }
-];
-
-export function PortfolioBuilder() {
-    const [horizonFilter, setHorizonFilter] = useState<'all' | Horizon>('all');
-    const [styleFilter, setStyleFilter] = useState<'all' | Style>('all');
-    const [riskFilter, setRiskFilter] = useState<'all' | RiskAppetite>('all');
-
-    const hasActiveFilters = horizonFilter !== 'all' || styleFilter !== 'all' || riskFilter !== 'all';
-
-    const filteredModels = useMemo(
-        () => MODEL_PORTFOLIOS.filter((model) => {
-            const horizonMatch = horizonFilter === 'all' || model.horizons.includes(horizonFilter);
-            const styleMatch = styleFilter === 'all' || model.styles.includes(styleFilter);
-            const riskMatch = riskFilter === 'all' || model.risk.includes(riskFilter);
-            return horizonMatch && styleMatch && riskMatch;
-        }),
-        [horizonFilter, styleFilter, riskFilter]
-    );
-
-    const categoriesWithModels = useMemo(
-        () => CATEGORIES.map((category) => ({
-            ...category,
-            models: filteredModels.filter((model) => model.category === category.id)
-        })).filter((category) => category.models.length > 0),
-        [filteredModels]
-    );
-
-    return (
-        <div className="portfolio-builder">
-            <AcademyPageHeader className="portfolio-builder__header" section="Construir">
-                <h1 className="portfolio-builder__title">Construir tu Cartera</h1>
-                <p className="portfolio-builder__subtitle">
-                    La <strong>Asset Allocation</strong> (asignación de activos) es responsable del 90% de la variabilidad
-                    de los retornos de tu cartera. Aprende a diseñar la tuya.
-                </p>
-            </AcademyPageHeader>
-
-            <section className="portfolio-builder__intro">
-                <h2 className="portfolio-builder__section-title">1. Los Ladrillos: Tipos de Activos</h2>
-                <p className="portfolio-builder__section-hint">Pulsa en cada activo para profundizar en su funcionamiento</p>
-                <div className="portfolio-builder__assets-grid">
-                    {ASSET_CLASSES.map((asset) => (
-                        <Link
-                            key={asset.name}
-                            to={asset.path}
-                            className="asset-card asset-card--link"
-                            style={{ '--asset-color': asset.color } as React.CSSProperties}
-                        >
-                            <div className="asset-card__clickable">
-                                <div className="asset-card__header">
-                                    <div className="asset-card__icon" style={{ backgroundColor: asset.color }}>
-                                        <asset.icon size={24} />
-                                    </div>
-                                    <h3 className="asset-card__name">{asset.name}</h3>
-                                    <ArrowRight size={20} className="asset-card__arrow-icon" />
-                                </div>
-                                <p className="asset-card__desc">{asset.desc}</p>
-                                <div className="asset-card__stats">
-                                    <div className="stat-item">
-                                        <span className="stat-label">Riesgo</span>
-                                        <span className="stat-value">{asset.risk}</span>
-                                    </div>
-                                    <div className="stat-item">
-                                        <span className="stat-label">Retorno</span>
-                                        <span className="stat-value">{asset.return}</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </Link>
-                    ))}
-                </div>
-            </section>
-
-            <section className="risk-guide">
-                <h2 className="portfolio-builder__section-title">2. Alineación con tu Perfil</h2>
-                <p>Tu cartera debe reflejar tu capacidad emocional y financiera para soportar caídas.</p>
-                <div className="risk-guide__grid">
-                    <div className="risk-item">
-                        <Shield className="risk-item__icon" size={48} />
-                        <h3 className="risk-item__name">Conservador</h3>
-                        <p className="risk-item__allocation">20% RV / 80% RF</p>
-                    </div>
-                    <div className="risk-item">
-                        <Scale className="risk-item__icon" size={48} />
-                        <h3 className="risk-item__name">Moderado</h3>
-                        <p className="risk-item__allocation">60% RV / 40% RF</p>
-                    </div>
-                    <div className="risk-item">
-                        <TrendingDown className="risk-item__icon" size={48} />
-                        <h3 className="risk-item__name">Agresivo</h3>
-                        <p className="risk-item__allocation">100% RV / 0% RF</p>
-                    </div>
-                </div>
-            </section>
-
-            <section className="portfolio-builder__models-section">
-                <h2 className="portfolio-builder__section-title">3. Modelos de Cartera</h2>
-                <div className="portfolio-builder__filters">
-                    <div className="portfolio-builder__filters-head">
-                        <p>Filtra por perfil para ver las carteras más adecuadas para tu caso.</p>
-                        <span>{filteredModels.length} de {MODEL_PORTFOLIOS.length} carteras visibles</span>
-                    </div>
-
-                    <div className="portfolio-builder__filter-row">
-                        <span className="portfolio-builder__filter-label">Horizonte</span>
-                        <div className="portfolio-builder__filter-options">
-                            {HORIZON_FILTERS.map((option) => (
-                                <button
-                                    key={option.value}
-                                    type="button"
-                                    className={`portfolio-builder__filter-chip ${horizonFilter === option.value ? 'portfolio-builder__filter-chip--active' : ''}`}
-                                    onClick={() => setHorizonFilter(option.value)}
-                                >
-                                    {option.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="portfolio-builder__filter-row">
-                        <span className="portfolio-builder__filter-label">Estilo</span>
-                        <div className="portfolio-builder__filter-options">
-                            {STYLE_FILTERS.map((option) => (
-                                <button
-                                    key={option.value}
-                                    type="button"
-                                    className={`portfolio-builder__filter-chip ${styleFilter === option.value ? 'portfolio-builder__filter-chip--active' : ''}`}
-                                    onClick={() => setStyleFilter(option.value)}
-                                >
-                                    {option.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    <div className="portfolio-builder__filter-row">
-                        <span className="portfolio-builder__filter-label">Riesgo</span>
-                        <div className="portfolio-builder__filter-options">
-                            {RISK_FILTERS.map((option) => (
-                                <button
-                                    key={option.value}
-                                    type="button"
-                                    className={`portfolio-builder__filter-chip ${riskFilter === option.value ? 'portfolio-builder__filter-chip--active' : ''}`}
-                                    onClick={() => setRiskFilter(option.value)}
-                                >
-                                    {option.label}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-
-                    {hasActiveFilters && (
-                        <button
-                            type="button"
-                            className="portfolio-builder__filters-reset"
-                            onClick={() => {
-                                setHorizonFilter('all');
-                                setStyleFilter('all');
-                                setRiskFilter('all');
-                            }}
-                        >
-                            Limpiar filtros
-                        </button>
-                    )}
-                </div>
-
-                {categoriesWithModels.map(category => (
-                    <div key={category.id} className="category-block">
-                        <div className="category-header" style={{ borderColor: category.color }}>
-                            <category.icon size={22} color={category.color} />
-                            <h3 className="category-title" style={{ color: category.color }}>{category.name}</h3>
-                        </div>
-
-                        <div className="portfolio-builder__models">
-                            {category.models.map((model) => (
-                                <div key={model.title} className="model-card">
-                                    <div className="model-card__content">
-                                        <div className="model-card__header">
-                                            <h3 className="model-card__title">{model.title}</h3>
-                                            <p className="model-card__desc">{model.desc}</p>
-                                        </div>
-
-                                        <div className="model-card__chart">
-                                            <ResponsiveContainer width="100%" height="100%">
-                                                <PieChart>
-                                                    <Pie
-                                                        data={model.data}
-                                                        innerRadius={55}
-                                                        outerRadius={75}
-                                                        paddingAngle={5}
-                                                        dataKey="value"
-                                                    >
-                                                        {model.data.map((entry, index) => (
-                                                            <Cell key={`cell-${index}`} fill={entry.color} />
-                                                        ))}
-                                                    </Pie>
-                                                    <Tooltip
-                                                        contentStyle={{
-                                                            backgroundColor: 'var(--bg-card)',
-                                                            border: '1px solid var(--border-primary)',
-                                                            borderRadius: '10px',
-                                                            boxShadow: 'var(--shadow-md)',
-                                                            color: 'var(--text-primary)'
-                                                        }}
-                                                        itemStyle={{ color: 'var(--text-primary)' }}
-                                                    />
-                                                </PieChart>
-                                            </ResponsiveContainer>
-                                        </div>
-
-                                        <div className="model-card__allocation">
-                                            {model.data.map((item) => (
-                                                <div key={item.name} className="alloc-row">
-                                                    <span className="alloc-label">
-                                                        <div className="alloc-dot" style={{ backgroundColor: item.color }} />
-                                                        {item.name}
-                                                    </span>
-                                                    <span className="alloc-val">{item.value}%</span>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        {model.highlight && (
-                                            <div className="model-card__highlight">
-                                                <Lightbulb size={16} />
-                                                <p>{model.highlight}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ))}
-                        </div>
-                    </div>
-                ))}
-
-                {filteredModels.length === 0 && (
-                    <div className="portfolio-builder__empty">
-                        <h3>No hay carteras para ese perfil</h3>
-                        <p>Ajusta horizonte, estilo o nivel de riesgo para ampliar resultados.</p>
-                    </div>
-                )}
-            </section>
-
-            <section className="portfolio-builder__cta">
-                <PieChartIcon className="risk-item__icon" size={48} />
-                <h2 className="cta__title">¿Listo para simular la tuya?</h2>
-                <p className="cta__desc">
-                    Utiliza nuestro simulador avanzado para ver cómo se comportaría tu asignación ideal
-                    históricamente y bajo diferentes escenarios de crisis.
-                </p>
-                <Link to="/academy/asset-allocation" className="cta__button">
-                    Ir al Simulador
-                </Link>
-            </section>
-            <section className="portfolio-builder__next-steps">
-                <div className="portfolio-builder__next-header">
-                    <h2>Después de definir cartera</h2>
-                    <p>Estas piezas te ayudan a validar si esa distribución encaja con tu perfil, tus fondos y tu tolerancia a la caída.</p>
-                </div>
-
-                <div className="portfolio-builder__next-grid">
-                    <Link to="/academy/investor-profile-test" className="portfolio-builder__next-card">
-                        <span className="portfolio-builder__next-kicker">Antes de ejecutarla</span>
-                        <strong>Perfil inversor</strong>
-                        <p>Comprueba si la cartera que te gusta coincide con la que realmente puedes soportar.</p>
-                    </Link>
-                    <Link to="/academy/fund-radar" className="portfolio-builder__next-card">
-                        <span className="portfolio-builder__next-kicker">Al elegir vehículos</span>
-                        <strong>Radar de fondos</strong>
-                        <p>Usa el ranking para aterrizar la asignación en fondos concretos.</p>
-                    </Link>
-                    <Link to="/academy/risk" className="portfolio-builder__next-card">
-                        <span className="portfolio-builder__next-kicker">Al revisar la mezcla</span>
-                        <strong>Gestión del riesgo</strong>
-                        <p>Evalúa drawdown, correlación y riesgo de divisa antes de comprometerte.</p>
-                    </Link>
-                </div>
-            </section>
-        </div>
-    );
+    return <div className="portfolio-builder strategy-page">
+        <AcademyPageHeader className="portfolio-builder__header" section="Construir">
+            <h1 className="portfolio-builder__title">Estrategia y cartera</h1>
+            <p className="portfolio-builder__subtitle">Explora modelos, ajusta tu distribución y comprueba cómo responde a distintas hipótesis.</p>
+        </AcademyPageHeader>
+        <nav className="strategy-nav" aria-label="Secciones de estrategia y cartera">
+            {[['strategy-models','Modelos'],['strategy-plan','Mi distribución'],['strategy-assets','Activos'],['strategy-profile','Perfil']].map(([id,label])=><a key={id} href={`#${id}`} onClick={event=>{event.preventDefault();scrollTo(id);}}>{label}</a>)}
+        </nav>
+        <section id="strategy-models" className="portfolio-builder__models-section">
+            <div className="strategy-section-heading"><div><h2 className="portfolio-builder__section-title">Modelos como punto de partida</h2><p>Pesos ilustrativos, sin apalancamiento. El riesgo depende también de los instrumentos, la duración y la divisa.</p></div><span>{filtered.length} modelos</span></div>
+            <div className="portfolio-builder__filters">
+                <p className="strategy-filter-note">El horizonte se refiere al conjunto de la cartera, no solo a su reserva líquida.</p>
+                {[
+                    {label:'Horizonte',value:horizon,options:HORIZON_FILTERS,setter:setHorizon},
+                    {label:'Estilo',value:style,options:STYLE_FILTERS,setter:setStyle},
+                    {label:'Riesgo orientativo',value:risk,options:RISK_FILTERS,setter:setRisk},
+                ].map(group=><fieldset className="strategy-filter-group" key={group.label}><legend>{group.label}</legend><div className="portfolio-builder__filter-options">{group.options.map(option=><button key={option.value} type="button" aria-pressed={group.value===option.value} className={`portfolio-builder__filter-chip${group.value===option.value?' portfolio-builder__filter-chip--active':''}`} onClick={()=>filterChanged(group.setter,option.value)}>{option.label}</button>)}</div></fieldset>)}
+                {(horizon!=='all'||style!=='all'||risk!=='all')&&<button type="button" className="portfolio-builder__filters-reset" onClick={clearFilters}>Limpiar filtros</button>}
+            </div>
+            {!filtered.length&&<div className="portfolio-builder__empty" role="status"><h3>No hay modelos con esta combinación</h3><p>Amplía los filtros. Un horizonte corto limita las opciones con riesgo de pérdida de capital.</p></div>}
+            <div className="strategy-model-grid">{visible.map(item=>{
+                const weights=modelAllocation(item);const checked=compared.includes(item.id);
+                return <article className={`strategy-model${selected===item.id?' strategy-model--selected':''}`} key={item.id}>
+                    <div className="strategy-model__meta"><span>{CATEGORIES.find(category=>category.id===item.category)?.name}</span><span>{RISK_FILTERS.find(filter=>filter.value===item.risk)?.label}</span></div>
+                    <h3>{item.title}</h3><p>{item.desc}</p><p className="strategy-model__mix">Plazo del modelo: {item.horizons.map(value=>HORIZON_FILTERS.find(filter=>filter.value===value)?.label).join(' / ')}</p><AllocationBar allocation={weights}/>
+                    <p className="strategy-model__mix">{ASSET_CLASSES.filter(asset=>weights[asset.key]>0).map(asset=>`${asset.name} ${percent(weights[asset.key])}`).join(' · ')}</p>
+                    <div className="strategy-model__actions"><button type="button" className="strategy-button" onClick={()=>choose(item)}>{selected===item.id?<Check size={16}/>:<PieChartIcon size={16}/>}Personalizar</button><button type="button" className="strategy-button strategy-button--secondary" aria-pressed={checked} aria-label={`Comparar ${item.title}`} disabled={!checked&&compared.length>=3} onClick={()=>setCompared(current=>current.includes(item.id)?current.filter(id=>id!==item.id):current.length<3?[...current,item.id]:current)}>{checked?'Quitar de comparación':'Comparar'}</button></div>
+                </article>;
+            })}</div>
+            {filtered.length>6&&<button type="button" className="strategy-button strategy-show-more" aria-expanded={showAll} onClick={()=>setShowAll(value=>!value)}><ChevronDown size={17}/>{showAll?'Mostrar menos':`Ver los ${filtered.length} modelos`}</button>}
+            <p className="strategy-help">Puedes comparar hasta tres modelos. Los filtros y tu última distribución válida se conservan en este navegador y en el enlace.</p>
+        </section>
+        {comparison.length>0&&<section className="strategy-comparison" aria-labelledby="strategy-comparison-title"><div className="strategy-section-heading"><div><h2 id="strategy-comparison-title">Comparar modelos</h2><p>Pesos originales de los modelos; tu distribución personalizada se muestra más abajo.</p></div><button className="strategy-button strategy-button--secondary" onClick={()=>setCompared([])}>Limpiar comparación</button></div>
+            <div className="strategy-table-scroll" role="region" aria-label="Tabla de comparación, desplazable horizontalmente" tabIndex={0}><table><thead><tr><th scope="col">Bloque</th>{comparison.map(item=><th key={item.id} scope="col">{item.title}</th>)}</tr></thead><tbody>
+                <tr><th scope="row">Riesgo orientativo</th>{comparison.map(item=><td key={item.id}>{RISK_FILTERS.find(filter=>filter.value===item.risk)?.label}</td>)}</tr>
+                <tr><th scope="row">Horizonte</th>{comparison.map(item=><td key={item.id}>{item.horizons.map(h=>HORIZON_FILTERS.find(filter=>filter.value===h)?.label).join(' / ')}</td>)}</tr>
+                {ASSET_CLASSES.map(asset=><tr key={asset.key}><th scope="row">{asset.name}</th>{comparison.map(item=><td key={item.id}>{percent(modelAllocation(item)[asset.key])}</td>)}</tr>)}
+            </tbody></table></div>
+        </section>}
+        <section id="strategy-plan" className="strategy-plan" aria-labelledby="strategy-plan-title">
+            <div className="strategy-section-heading"><div><h2 id="strategy-plan-title">Mi distribución</h2><p>{model.title}{customized?' · personalizada':''}</p></div><button className="strategy-button strategy-button--secondary" onClick={()=>{const weights=modelAllocation(model);setPlan(Object.fromEntries(ASSET_KEYS.map(key=>[key,String(weights[key])])));}}><RotateCcw size={16}/>Restaurar modelo</button></div>
+            <p className="strategy-model-note"><strong>Sobre el modelo original: </strong>{model.note}{customized&&' Las etiquetas de plazo y riesgo del catálogo describen el modelo original; no evalúan tu nueva distribución.'}</p>
+            {notice&&<p role="alert" className="strategy-error">{notice}</p>}
+            <label className="strategy-capital" htmlFor="strategy-capital">Importe para distribuir (€)<input id="strategy-capital" type="number" min="0.01" max="1000000000000" step="any" value={capital} onChange={event=>{const raw=event.target.value;setCapital(raw);const value=Number(raw);if(raw.trim()&&Number.isFinite(value)&&value>0&&value<=1e12)setLastCapital(value);}} aria-invalid={!amountValid}/></label>
+            {!amountValid&&<p className="strategy-error" role="alert">Introduce un importe mayor que cero y hasta un billón de euros.</p>}
+            <div className="strategy-weight-grid">{ASSET_CLASSES.map(asset=><div className="strategy-weight" key={asset.key} style={{'--asset-color':asset.color} as CSSProperties}>
+                <label htmlFor={`strategy-${asset.key}`}>{asset.name}</label><div><input id={`strategy-${asset.key}`} type="number" min="0" max="100" step="any" value={plan[asset.key]} onChange={event=>setPlan(current=>({...current,[asset.key]:event.target.value}))} aria-invalid={!Number.isFinite(allocation[asset.key])||allocation[asset.key]<0||allocation[asset.key]>100}/><span>%</span></div>
+                <small>{amountValid&&Number.isFinite(allocation[asset.key])&&allocation[asset.key]>=0&&allocation[asset.key]<=100?money.format(amount*allocation[asset.key]/100):'—'}</small>
+            </div>)}</div>
+            <div className="strategy-plan__total"><strong>Total: {percent(total)}</strong><button className="strategy-button strategy-button--secondary" type="button" disabled={!normalizeAllocation(allocation)} onClick={normalize}>Ajustar proporcionalmente al 100%</button></div>
+            {!valid&&<p className="strategy-error" role="alert">Los pesos deben estar entre 0% y 100% y sumar exactamente 100%. Completa los campos para continuar.</p>}
+            {valid&&<AllocationBar allocation={allocation}/>}
+            <p className="strategy-help">Edición por bloques: los subtipos del modelo se agrupan. El simulador no distingue regiones, duración ni fondos concretos. Tus cambios no modifican tu cartera del Dashboard.</p>
+            {valid&&amountValid?<Link className="strategy-button strategy-button--primary" to={`/academy/asset-allocation?${allocationQuery(allocation,amount,selected)}`}>Simular esta distribución<ArrowRight size={18}/></Link>:<button className="strategy-button strategy-button--primary" disabled>Simular esta distribución</button>}
+        </section>
+        <section id="strategy-assets" className="strategy-assets"><h2 className="portfolio-builder__section-title">Qué aporta cada bloque</h2><div className="strategy-asset-grid">{ASSET_CLASSES.map(asset=>{const Icon=icons[asset.key];const content=<><div><Icon size={22}/><h3>{asset.name}</h3></div><p>{asset.desc}</p><small>Riesgo: {asset.risk}</small>{asset.path&&<span>Conocer este activo <ArrowRight size={16}/></span>}</>;return asset.path?<Link key={asset.key} className="strategy-asset" to={asset.path}>{content}</Link>:<article key={asset.key} className="strategy-asset">{content}</article>;})}</div></section>
+        <section id="strategy-profile" className="strategy-profile"><h2 className="portfolio-builder__section-title">Antes de elegir una distribución</h2><p>El plazo, la necesidad de retirar dinero y la capacidad de soportar pérdidas importan tanto como la tolerancia emocional. Un perfil no determina un porcentaje único de acciones y bonos.</p>
+            <div className="strategy-profile__grid"><article><h3>Conservador</h3><p>Prioriza disponibilidad y pérdidas limitadas. Distingue entre dinero que necesitas pronto y capital que puedes mantener invertido.</p></article><article><h3>Moderado</h3><p>Acepta fluctuaciones y combina fuentes de riesgo. Los bonos no aseguran compensar las caídas de la bolsa.</p></article><article><h3>Agresivo</h3><p>Puede soportar caídas importantes y periodos prolongados de recuperación, sin depender de ese dinero a corto plazo.</p></article></div>
+            <div className="strategy-links"><Link to="/academy/investor-profile-test">Revisar mi perfil <ArrowRight size={16}/></Link><Link to="/academy/risk">Gestión del riesgo <ArrowRight size={16}/></Link><Link to="/academy/fund-radar">Explorar fondos <ArrowRight size={16}/></Link></div>
+        </section>
+    </div>;
 }

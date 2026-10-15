@@ -96,7 +96,8 @@
 
 .news-card__cover {
     width: 100%;
-    height: 190px;
+    height: auto;
+    aspect-ratio: 16 / 9;
     display: block;
     flex-shrink: 0;
     object-fit: contain;
@@ -427,10 +428,6 @@ html[data-appearance='liquid-glass'] .news-article__edit {
     .news-page__admin-link {
         position: static;
         margin-top: var(--spacing-md);
-    }
-
-    .news-card__cover {
-        height: 170px;
     }
 
     .news-article__footer {

@@ -1,9 +1,10 @@
 import {Button} from '../../components/ui/Button';
-import {useEffect,useState} from 'react';
+import {useEffect,useRef,useState} from 'react';
 import {getAppSupabaseClient} from '../../services/supabaseClient';
 import {useAccount} from '../../context/AccountContext';
 import type {FeedbackTone} from '../../components/ui/FeedbackToast';
 import {createMfaQrImage} from '../../services/mfaQr';
+import {disableAuthenticator} from '../../services/mfaManagement';
 import './Account.css';
 
 export function AccountMfa({notify,onVerified}:{notify:(text:string,tone?:FeedbackTone)=>void;onVerified?:()=>void}){
@@ -13,20 +14,24 @@ export function AccountMfa({notify,onVerified}:{notify:(text:string,tone?:Feedba
     const [pendingFactor,setPendingFactor]=useState('');
     const [secret,setSecret]=useState('');const [showSecret,setShowSecret]=useState(false);
     const [code,setCode]=useState('');const [busy,setBusy]=useState(false);
+    const [removing,setRemoving]=useState(false);
+    const generation=useRef(0);
     useEffect(()=>{
+        const ticket=++generation.current;
         let disposed=false;
         void getAppSupabaseClient().then(async(client)=>{
             const {data,error}=await client.auth.mfa.getAuthenticatorAssuranceLevel();
             if(error)throw error;
             const factors=await client.auth.mfa.listFactors();if(factors.error)throw factors.error;
             if(disposed)return;
+            setRemoving(false);setCode('');setSecret('');setQr('');setShowSecret(false);setBusy(false);
             const verified=factors.data.totp.find(item=>item.status==='verified');setFactor(verified?.id??'');setEnabled(!!verified);
             setPendingFactor(factors.data.all.find(f=>f.factor_type==='totp'&&f.status==='unverified'&&f.friendly_name==='FreeWallet')?.id??'');
             setRequired(data.nextLevel==='aal2'&&data.currentLevel!=='aal2');
             if(data.nextLevel==='aal2'&&!verified)notify('Esta cuenta usa un segundo factor distinto de TOTP. Utiliza tu método habitual de acceso; no desactives la protección.','info');
         }).catch(()=>{if(!disposed)notify('No se pudo comprobar la verificación en dos pasos.','error');});
-        return()=>{disposed=true;};
-    },[notify]);
+        return()=>{disposed=true;generation.current=ticket+1;};
+    },[notify,account.user?.id]);
     const enroll=async()=>{
         if(busy)return;setBusy(true);
         try{
@@ -53,8 +58,43 @@ export function AccountMfa({notify,onVerified}:{notify:(text:string,tone?:Feedba
         }catch(error){notify(error instanceof Error?error.message:'El código no es válido o ha caducado.','error');}
         finally{setBusy(false);}
     };
+    const remove=async(event:React.FormEvent)=>{
+        event.preventDefault();if(busy||!account.user)return;
+        const ticket=generation.current;
+        const isCurrent=()=>ticket===generation.current;
+        const userId=account.user.id;
+        setBusy(true);
+        try{
+            const client=await getAppSupabaseClient();
+            await disableAuthenticator(client.auth,{factorId:factor,code,userId,isCurrent});
+            if(!isCurrent())return;
+            setRemoving(false);setCode('');setRequired(false);setEnabled(false);setFactor('');
+            notify('Autenticador eliminado.');
+            // Deletion has already succeeded, even if refreshing the session fails.
+            try{
+                const refreshed=await client.auth.refreshSession();if(refreshed.error)throw refreshed.error;
+                if(!isCurrent())return;
+                const factors=await client.auth.mfa.listFactors();if(factors.error)throw factors.error;
+                if(!isCurrent())return;
+                const remaining=factors.data.totp.find(item=>item.status==='verified');
+                setEnabled(!!remaining);setFactor(remaining?.id??'');
+                const assurance=await client.auth.mfa.getAuthenticatorAssuranceLevel();
+                if(assurance.error)throw assurance.error;
+                if(!isCurrent())return;
+                setRequired(assurance.data.nextLevel==='aal2'&&assurance.data.currentLevel!=='aal2');
+                if(factors.data.all.some(item=>item.status==='verified'))notify('Se ha eliminado este autenticador. Los demás factores siguen activos.','info');
+                await account.refresh();
+            }catch{
+                if(isCurrent())notify('Autenticador eliminado. Vuelve a iniciar sesión para actualizar el estado de la cuenta.','info');
+            }
+        }catch(error){
+            if(isCurrent())notify(error instanceof Error?error.message:'No se pudo desactivar el autenticador. Comprueba el código e inténtalo de nuevo.','error');
+        }finally{if(isCurrent())setBusy(false);}
+    };
     return <div className="card account-page__form"><h2>Verificación en dos pasos</h2>
         <p>{enabled?'Tu cuenta tiene un autenticador configurado.':'Puedes proteger el acceso a tu cartera con una aplicación de autenticación.'}</p>
+        {enabled&&!removing && <Button type="button" variant="secondary" disabled={busy||account.sync.status==='saving'||account.sync.status==='conflict'} onClick={()=>{setCode('');setRemoving(true);}}>Desactivar autenticador</Button>}
+        {removing && <p>Dejarás de usar este autenticador para acceder. Confirma con su código actual de 6 cifras.</p>}
         {!enabled&&!secret && <><p>Al confirmar el autenticador se cerrarán las otras sesiones. Completa o exporta los cambios pendientes en tus dispositivos antes de activarlo.</p>
             {pendingFactor ? <Button variant="secondary" disabled={busy} onClick={()=>{
                 if(!window.confirm('¿Eliminar la configuración de autenticador que quedó sin confirmar? No se eliminará un factor ya verificado.'))return;
@@ -70,9 +110,10 @@ export function AccountMfa({notify,onVerified}:{notify:(text:string,tone?:Feedba
             </div>}
             <p className="account-page__help">No compartas el QR ni la clave. Después introduce aquí el código de 6 cifras que muestra el autenticador. Si no se acepta, comprueba que la fecha y hora del móvil sean automáticas.</p>
         </div>}
-        {required&&factor && <form className="account-page__form" onSubmit={event=>void verify(event)}>
+        {(required||removing)&&factor && <form className="account-page__form" onSubmit={event=>void (removing?remove(event):verify(event))}>
             <label>Código del autenticador<input value={code} onChange={event=>setCode(event.target.value.replace(/\D/g,''))} inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required/></label>
-            <Button disabled={busy||code.length!==6}>{busy?'Verificando…':'Verificar código'}</Button>
+            <Button disabled={busy||code.length!==6}>{busy?'Verificando…':removing?'Confirmar desactivación':'Verificar código'}</Button>
+            {removing && <Button type="button" variant="secondary" disabled={busy} onClick={()=>{setRemoving(false);setCode('');}}>Cancelar</Button>}
         </form>}
     </div>;
 }

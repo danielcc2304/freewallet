@@ -86,7 +86,7 @@ export function NewsComments({postId}:{postId:string}){
     };
     const publish=(event:FormEvent,isReply=false)=>{
         event.preventDefault();const value=isReply?replyBody:body;const target=isReply?replying:null;
-        if(!value.trim()||value.length>2000||(isReply&&!target)|| (target&&threads[target.parentId??target.id]?.loading))return;
+        if(!value.trim()||value.length>10000||(isReply&&!target)|| (target&&threads[target.parentId??target.id]?.loading))return;
         const text=value.trim();const targetId=target?.id??null;
         const pendingKey=targetId??'root';
         if(pending.current[pendingKey]?.body!==text)pending.current[pendingKey]={id:crypto.randomUUID(),body:text};
@@ -105,7 +105,7 @@ export function NewsComments({postId}:{postId:string}){
         });
     };
     const saveEdit=(event:FormEvent)=>{
-        event.preventDefault();if(!editing||!editBody.trim()||editBody.length>2000)return;
+        event.preventDefault();if(!editing||!editBody.trim()||editBody.length>10000)return;
         const selected=editing;const ticket=generation.current;
         void mutate(async userId=>{const item=await editNewsComment(postId,selected,editBody,userId);if(ticket!==generation.current)return;
             if(item.parentId)setThreads(all=>({...all,[item.parentId!]:{...all[item.parentId!],items:all[item.parentId!].items.map(old=>old.id===item.id?item:old)}}));
@@ -136,13 +136,13 @@ export function NewsComments({postId}:{postId:string}){
             </div>}
         </header>
         {item.deleted?<p className="news-comments__hint">Este comentario se ha eliminado.</p>:editing?.id===item.id?<form className="news-comments__form" onSubmit={saveEdit}>
-            <label htmlFor={`edit-comment-${item.id}`}>Editar comentario</label><textarea id={`edit-comment-${item.id}`} value={editBody} onChange={event=>setEditBody(event.target.value)} rows={4} maxLength={2000} required disabled={busy}/>
+            <label htmlFor={`edit-comment-${item.id}`}>Editar comentario</label><textarea id={`edit-comment-${item.id}`} value={editBody} onChange={event=>setEditBody(event.target.value)} rows={4} maxLength={10000} required disabled={busy}/>
             <div className="news-comments__edit-actions"><Button type="submit" loading={busy} disabled={busy||!editBody.trim()}>Guardar cambios</Button><Button type="button" variant="ghost" disabled={busy} onClick={()=>setEditing(null)}>Cancelar</Button></div>
         </form>:<>{item.replyToUsername&&<span className="news-comments__reply-target">En respuesta a @{item.replyToUsername}</span>}<p className="news-comments__body">{item.body}</p></>}
         {replying?.id===item.id&&<form className="news-comments__form news-comments__reply-form" onSubmit={event=>publish(event,true)}>
             <div className="news-comments__reply-label"><label htmlFor="news-reply-body">Responder a @{item.username}</label><Button type="button" variant="ghost" size="sm" icon={<X size={16}/>} aria-label="Cancelar respuesta" disabled={busy} onClick={()=>setReplying(null)}>Cancelar</Button></div>
-            <textarea ref={replyInput} id="news-reply-body" value={replyBody} onChange={event=>setReplyBody(event.target.value)} maxLength={2000} rows={3} required disabled={busy}/>
-            <div className="news-comments__form-footer"><small>{replyBody.length}/2000</small><Button type="submit" icon={<Send size={16}/>} loading={busy} disabled={busy||!replyBody.trim()||threads[item.parentId??item.id]?.loading}>Publicar respuesta</Button></div>
+            <textarea ref={replyInput} id="news-reply-body" value={replyBody} onChange={event=>setReplyBody(event.target.value)} maxLength={10000} rows={3} required disabled={busy}/>
+            <div className="news-comments__form-footer"><small>{replyBody.length}/10000</small><Button type="submit" icon={<Send size={16}/>} loading={busy} disabled={busy||!replyBody.trim()||threads[item.parentId??item.id]?.loading}>Publicar respuesta</Button></div>
         </form>}
     </article>;
 
@@ -152,8 +152,8 @@ export function NewsComments({postId}:{postId:string}){
         </header>
         {identity.loading?<p role="status" className="news-comments__hint">Comprobando sesión…</p>:canWrite?<form className="news-comments__form" onSubmit={event=>publish(event)}>
             <label htmlFor="news-comment-body">Comparte tu opinión</label>
-            <textarea id="news-comment-body" value={body} onChange={event=>setBody(event.target.value)} maxLength={2000} rows={4} placeholder="¿Qué opinas del análisis?" required aria-describedby="news-comment-help" disabled={busy}/>
-            <div className="news-comments__form-footer"><small id="news-comment-help">Tu comentario y tu usuario serán públicos. {body.length}/2000</small><Button type="submit" icon={<Send size={16}/>} loading={busy&&!editing&&!deleting&&!replying} disabled={busy||!body.trim()}>Publicar comentario</Button></div>
+            <textarea id="news-comment-body" value={body} onChange={event=>setBody(event.target.value)} maxLength={10000} rows={4} placeholder="¿Qué opinas del análisis?" required aria-describedby="news-comment-help" disabled={busy}/>
+            <div className="news-comments__form-footer"><small id="news-comment-help">Tu comentario y tu usuario serán públicos. {body.length}/10000</small><Button type="submit" icon={<Send size={16}/>} loading={busy&&!editing&&!deleting&&!replying} disabled={busy||!body.trim()}>Publicar comentario</Button></div>
         </form>:<div className="news-comments__login"><p>{identity.mfaRequired?'Completa la verificación en dos pasos para comentar.':identity.userId?'Confirma tu correo para participar.':'Inicia sesión para participar en la conversación.'}</p><Link to="/account">{identity.mfaRequired?'Verificar mi cuenta':'Ir a Mi cuenta'}</Link></div>}
         {error&&<p className="news-comments__error" role="alert">{error}<Button type="button" variant="ghost" size="sm" disabled={busy} onClick={()=>setReload(value=>value+1)}>Reintentar carga</Button></p>}
         {notice&&<p className="news-comments__notice" role="status">{notice}</p>}

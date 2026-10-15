@@ -1,21 +1,22 @@
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
 import puppeteer from 'puppeteer';
 
 const origin = process.env.FREEWALLET_TEST_URL ?? 'http://127.0.0.1:5176';
 assert.match(origin, /^http:\/\/(localhost|127\.0\.0\.1):\d+$/);
-const browser = await puppeteer.launch({ headless: true });
+const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 try {
-    const page = await browser.newPage();
+    const page = await browser.newPage();page.setDefaultNavigationTimeout(60000);
     const errors: string[] = [];
     page.on('pageerror', error => errors.push(String(error)));
     let recoveryError = false;
     let holdUser = false;
     let requests = 0;
-    await page.evaluateOnNewDocument(() => {
+    await page.evaluateOnNewDocument(version => {
         localStorage.clear();
-        localStorage.setItem('freewallet_last_seen_version', '5.3.13');
+        localStorage.setItem('freewallet_last_seen_version', version);
         localStorage.setItem('freewallet_settings', '{"apiEnabled":false}');
-    });
+    },JSON.parse(readFileSync('package.json','utf8')).version);
     await page.setRequestInterception(true);
     page.on('request', request => { void (async () => {
         const url = new URL(request.url());
@@ -36,7 +37,7 @@ try {
     })().catch(error => errors.push(String(error))); });
     await page.setViewport({ width: 390, height: 844 });
     await page.goto(`${origin}/account`, { waitUntil: 'networkidle2' });
-    await page.type('input[type="email"]', 'test@example.invalid');
+    await page.type('#account-login', 'test@example.invalid');
     await page.type('input[type="password"]', 'synthetic-password');
     await page.click('.account-page__form button[type="submit"], .account-page__form button:not([type])');
     await page.waitForSelector('.feedback-toast--error');
@@ -79,7 +80,7 @@ try {
         const r = e.getBoundingClientRect();
         return e.getAttribute('role') === 'status' && r.left >= 0 && r.right <= innerWidth;
     }));
-    await page.screenshot({ path: 'C:/Users/danie/AppData/Local/Temp/freewallet-account-loading-review.png' });
+    await page.screenshot({ path: '/tmp/freewallet-account-loading-review.png' });
     assert.deepEqual(errors, []);
     console.log('Account feedback: invalid credentials, recovery success/error, form reset, accessible roles, responsive toast and connection card OK. No real email sent.');
 } finally { await browser.close(); }

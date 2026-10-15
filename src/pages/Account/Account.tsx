@@ -8,6 +8,10 @@ import type {CloudData} from '../../services/portfolioCloudStorage';
 import './Account.css';
 import {AccountMfa} from './AccountMfa';
 import {localPortfolioSummary} from '../../services/localPortfolioSummary';
+import {AccountIdentity} from './AccountIdentity';
+import {PageHeader} from '../../components/ui';
+import {Cloud,LogOut,ShieldCheck} from 'lucide-react';
+import {normalizeUsername,validUsername,usernameHint,signInWithIdentifier} from '../../services/accountProfile';
 
 function download(data:CloudData){
     const url=URL.createObjectURL(new Blob([JSON.stringify({format:'freewallet-private-backup',version:1,data},null,2)],{type:'application/json'}));
@@ -16,7 +20,7 @@ function download(data:CloudData){
 export function Account(){
     const account=useAccount();
     const [mode,setMode]=useState<'login'|'register'|'recover'>('login');
-    const [email,setEmail]=useState('');const [password,setPassword]=useState('');
+    const [email,setEmail]=useState('');const [password,setPassword]=useState('');const [username,setUsername]=useState('');
     const [busy,setBusy]=useState(false);
     const {notify,clearNotice}=useFeedbackNotice();
     useEffect(()=>{if(account.sync.error)notify(account.sync.error,'error');},[account.sync.error,notify]);
@@ -34,12 +38,12 @@ export function Account(){
         const redirectTo=`${window.location.origin}/account`;
         if(account.recovery){const {error}=await client.auth.updateUser({password});if(error)throw error;setPassword('');notify('Contraseña actualizada.');return;}
         if(mode==='recover'){const {error}=await client.auth.resetPasswordForEmail(email,{redirectTo});if(error)throw error;notify('Si existe una cuenta para ese correo, recibirás las instrucciones de recuperación.');return;}
-        if(mode==='register'){const {error}=await client.auth.signUp({email,password,options:{emailRedirectTo:redirectTo}});if(error)throw error;setPassword('');notify('Revisa tu correo para confirmar la cuenta antes de importar tu cartera.');return;}
-        const {error}=await client.auth.signInWithPassword({email,password});if(error)throw error;setPassword('');notify('Sesión iniciada.');
+        if(mode==='register'){if(!validUsername(username))throw new Error(usernameHint);const {error}=await client.auth.signUp({email:email.trim(),password,options:{emailRedirectTo:redirectTo,data:{username:normalizeUsername(username)}}});if(error)throw new Error(error.code==='unexpected_failure'?'No se pudo crear la cuenta. Revisa los datos; el nombre de usuario podría estar ocupado.':error.message);setPassword('');notify('Revisa tu correo para confirmar la cuenta antes de importar tu cartera.');return;}
+        const {error}=await signInWithIdentifier(client,email,password);if(error)throw error;setPassword('');notify('Sesión iniciada.');
     });};
     const summary=preview?JSON.parse(preview.freewallet_portfolio_v1):null;
     return <section className="account-page">
-        <header><h1>Mi cuenta</h1><p>Tu cartera en tus dispositivos, sin perder la copia local.</p></header>
+        <PageHeader eyebrow="Cuenta"><h1>Mi cuenta</h1><p>Tu perfil, tu acceso y tu cartera, en un solo lugar.</p></PageHeader>
         {needsImport && <div className="card account-page__welcome">
             <span className="account-page__step">Primer paso · Conecta tu cartera</span>
             <h2>{local.found?'Tu cartera está aquí. Falta guardarla en tu cuenta.':'Tu cuenta está lista. Ahora añade tu cartera.'}</h2>
@@ -52,23 +56,26 @@ export function Account(){
             <p className="account-page__help">Importar un Excel en Portfolio no conecta por sí solo la cartera a tu cuenta. Primero completa este paso; después, los cambios compatibles se guardarán en tu cuenta mientras estés conectado.</p>
         </div>}
         {!account.enabled && <div className="card"><p>La sincronización todavía no está activada en este entorno. Tu cartera continúa guardándose solo en este navegador.</p><p>La activación requiere verificar la configuración de acceso y correo de Supabase.</p></div>}
-        {account.enabled && (!account.user || account.recovery) && <form className="card account-page__form" onSubmit={submit}>
-            <h2>{account.recovery?'Nueva contraseña':mode==='login'?'Entrar':mode==='register'?'Crear cuenta':'Recuperar acceso'}</h2>
-            {!account.recovery && <label>Correo electrónico<input type="email" autoComplete="email" value={email} onChange={event=>setEmail(event.target.value)} required maxLength={254}/></label>}
+        {account.enabled && (!account.user || account.recovery) && <form className="card account-page__form account-page__auth" onSubmit={submit}>
+            <div className="account-page__section-heading"><ShieldCheck size={22} aria-hidden="true"/><h2>{account.recovery?'Nueva contraseña':mode==='login'?'Bienvenido de nuevo':mode==='register'?'Crea tu cuenta':'Recupera tu acceso'}</h2></div>
+            {!account.recovery&&<p className="account-page__help">{mode==='login'?'Entra para consultar y sincronizar tu cartera.':mode==='register'?'Elige tu usuario y confirma tu correo para empezar.':'Te enviaremos un enlace para recuperar tu contraseña.'}</p>}
+            {!account.recovery && <label htmlFor="account-login">{mode==='login'?'Usuario o correo electrónico':'Correo electrónico'}<input id="account-login" type={mode==='login'?'text':'email'} autoComplete={mode==='login'?'username':'email'} autoCapitalize="none" spellCheck={false} value={email} onChange={event=>setEmail(event.target.value)} required maxLength={254}/></label>}
+            {!account.recovery&&mode==='register'&&<label htmlFor="account-register-username">Nombre de usuario<input id="account-register-username" autoComplete="username" autoCapitalize="none" spellCheck={false} value={username} onChange={event=>setUsername(event.target.value)} minLength={3} maxLength={32} required aria-describedby="account-register-username-help"/><small id="account-register-username-help" className="account-page__help">{usernameHint}</small></label>}
             {(mode!=='recover'||account.recovery) && <label>Contraseña<input type="password" autoComplete={mode==='login'&&!account.recovery?'current-password':'new-password'} value={password} onChange={event=>setPassword(event.target.value)} required minLength={mode==='login'&&!account.recovery?1:12} maxLength={128}/></label>}
             <Button loading={busy} aria-busy={busy}>{account.recovery?'Guardar contraseña':mode==='login'?'Entrar':mode==='register'?'Crear cuenta':'Enviar instrucciones'}</Button>
             {!account.recovery && <div className="account-page__actions">{(['login','register','recover'] as const).filter(item=>item!==mode).map(item=><Button type="button" variant="secondary" key={item} onClick={()=>{setMode(item);clearNotice();setPassword('');}}>{item==='login'?'Entrar':item==='register'?'Crear cuenta':'Olvidé mi contraseña'}</Button>)}</div>}
         </form>}
         {account.user && <div className="card">
-            <h2>Tu cuenta</h2><p className="account-page__email">{account.user.email}</p><p>Estado: {account.sync.status==='synced'?'Guardado en tu cuenta':account.sync.status==='empty'?'Sin cartera importada':account.sync.status==='saving'?'Guardando…':account.sync.status==='conflict'?'Conflicto entre dispositivos':'No se pudo confirmar la conexión'}</p>
+            <AccountIdentity key={account.user.id} user={account.user} notify={notify}/>
+            <div className="account-page__sync-section"><div className="account-page__section-heading"><Cloud size={21} aria-hidden="true"/><h2>Tu cartera</h2></div><p className="account-page__sync-status" role="status">{account.sync.status==='synced'?'Guardado en tu cuenta':account.sync.status==='empty'?'Sin cartera importada':account.sync.status==='saving'?'Guardando…':account.sync.status==='conflict'?'Conflicto entre dispositivos':'No se pudo confirmar la conexión'}</p>
             {account.sync.recovered && <div role="alert"><p>Una sesión anterior de esta cuenta dejó cambios sin confirmar. Puedes exportarlos y compararlos con la versión del servidor; no se aplicarán automáticamente.</p><Button variant="secondary" onClick={()=>download(portfolioStorage.recoveredData()!)}>Exportar cambios de la sesión anterior</Button></div>}
             <div className="account-page__actions">
                 <Button variant="secondary" disabled={busy||account.sync.status==='saving'} onClick={()=>void action(async()=>{portfolioStorage.discard();await account.refresh();setPreview(null);if(portfolioStorage.getSnapshot().status==='synced')notify('Cartera actualizada desde el servidor.');})}>{account.sync.status==='error'||account.sync.status==='conflict'?'Descartar cambios pendientes y cargar servidor':'Cargar versión del servidor'}</Button>
                 {account.sync.status==='error' && portfolioStorage.currentRevision>=0 && <Button disabled={busy} onClick={()=>void action(()=>portfolioStorage.flush())}>Reintentar guardado</Button>}
                 {portfolioStorage.currentRevision>=0 && <Button variant="secondary" onClick={()=>download(portfolioStorage.exportData())}>Exportar copia privada{account.sync.status==='synced'?'':' con cambios pendientes'}</Button>}
-                <Button variant="secondary" disabled={busy||account.sync.status==='saving'} onClick={()=>void action(async()=>{await account.logout();notify('Sesión cerrada en este dispositivo.');})}>Cerrar sesión en este dispositivo</Button>
+                <Button variant="ghost" icon={<LogOut size={17}/>} disabled={busy||account.sync.status==='saving'} onClick={()=>void action(async()=>{await account.logout();notify('Sesión cerrada en este dispositivo.');})}>Cerrar sesión en este dispositivo</Button>
             </div>
-            <p>Sin conexión puedes consultar la cartera ya cargada, pero no editarla. No compartas tu sesión ni tu copia exportada.</p>
+            <p className="account-page__help">Sin conexión puedes consultar la cartera guardada. No compartas tu sesión ni tu copia privada.</p></div>
         </div>}
         {needsImport && <div className="card">
             <h2 ref={importHeading} tabIndex={-1}>{preview?'Revisa los datos antes de guardar':'Elige cómo empezar'}</h2><p>No se subirá nada sin tu confirmación. La copia de este navegador permanece intacta.</p>

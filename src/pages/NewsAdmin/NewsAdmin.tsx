@@ -471,9 +471,9 @@ export function NewsAdmin() {
 
                         <form className="news-admin__login-form" onSubmit={handleLogin}>
                             <Input
-                                label="Correo electrónico"
-                                type="email"
-                                autoComplete="email"
+                                label="Usuario o correo electrónico"
+                                type="text"
+                                autoComplete="username"
                                 value={email}
                                 onChange={(event) => setEmail(event.target.value)}
                                 required

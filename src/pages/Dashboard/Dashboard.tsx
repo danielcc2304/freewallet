@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { Link, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio, Wrench, GraduationCap, Settings, FileSpreadsheet } from 'lucide-react';
 import { PortfolioSummary } from '../../components/dashboard/PortfolioSummary';
+import { DashboardInfo } from '../../components/dashboard/DashboardInfo';
 import { PortfolioDataQuality } from '../../components/dashboard/PortfolioDataQuality';
 import { Performers } from '../../components/dashboard/Performers';
 import { AssetsTable } from '../../components/dashboard/AssetsTable';
@@ -59,21 +60,22 @@ function DashboardLiveStatus({
     lastConsultedAt?: string;
 }) {
     return (
-        <details className="dashboard__update-details">
-            <summary>
-                <span className={`dashboard__live-status${apiEnabled || updatingPrices ? ' dashboard__live-status--active' : ''}`}>
-                    <Radio size={13} aria-hidden="true" />
-                    {updatingPrices ? 'Consultando…' : apiEnabled ? 'Seguimiento activo' : 'Consultas desactivadas'}
-                </span>
-            </summary>
-            <dl className="dashboard__update-info">
-                <dt>Acciones y criptos</dt><dd>{apiEnabled ? 'Cada minuto en esta pantalla · acciones en sesión' : 'Desactivadas'}</dd>
-                <dt>Fondos y otros activos</dt><dd>{apiEnabled ? 'Cada 5 min; según el último dato publicado' : 'Desactivadas'}</dd>
-                {lastRefreshAttempt && <><dt>Último intento de consulta</dt><dd>{quoteDateLabel(lastRefreshAttempt.toISOString())}</dd></>}
-                {lastReadAt && <><dt>Última lectura en la app</dt><dd>{quoteDateLabel(lastReadAt)}</dd></>}
-                {lastConsultedAt && <><dt>Última consulta al proveedor</dt><dd>{quoteDateLabel(lastConsultedAt)}</dd></>}
-            </dl>
-        </details>
+        <div className="dashboard__status-row">
+            <span className={`dashboard__live-status${apiEnabled || updatingPrices ? ' dashboard__live-status--active' : ''}`}>
+                <Radio size={13} aria-hidden="true" />
+                {updatingPrices ? 'Consultando…' : apiEnabled ? 'Seguimiento activo' : 'Consultas desactivadas'}
+            </span>
+            <DashboardInfo title="Actualización de precios">
+                <dl className="dashboard__update-info">
+                    <dt>Acciones y criptos</dt><dd>{apiEnabled ? 'Cada minuto en esta pantalla · acciones en sesión' : 'Desactivadas'}</dd>
+                    <dt>Fondos y otros activos</dt><dd>{apiEnabled ? 'Cada 5 min; según el último dato publicado' : 'Desactivadas'}</dd>
+                    {lastRefreshAttempt && <><dt>Último intento de consulta</dt><dd>{quoteDateLabel(lastRefreshAttempt.toISOString())}</dd></>}
+                    {lastReadAt && <><dt>Última lectura en la app</dt><dd>{quoteDateLabel(lastReadAt)}</dd></>}
+                    {lastConsultedAt && <><dt>Última consulta al proveedor</dt><dd>{quoteDateLabel(lastConsultedAt)}</dd></>}
+                </dl>
+                <p>Las valoraciones usan el último precio publicado de cada activo; no equivalen a un cierre oficial de mercado.</p>
+            </DashboardInfo>
+        </div>
     );
 }
 
@@ -369,7 +371,7 @@ export function Dashboard() {
 
             <PortfolioSummary metrics={metrics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} estimatedCount={assets.filter(a => !hasValidPrice(a)).length} onCorrectDeletion={correctDeletedRecord} />
             <PortfolioDataQuality assets={assets} now={calculationNow} quoteFailures={quoteFailures} />
-            {account.user && <p className="dashboard__automatic-status" role="status">
+            {account.user && (analytics.historyError || analytics.dailyMarket.error || analytics.dailyMarket.data?.health?.attentionRequired || (analytics.dailyMarket.data?.lastRun && !['success','running'].includes(analytics.dailyMarket.data.lastRun.status)) || !!analytics.dailyMarket.data?.lastRun?.failures.length || (analytics.dailyMarket.data?.snapshotStatus && !['captured','empty'].includes(analytics.dailyMarket.data.snapshotStatus))) && <p className="dashboard__automatic-status" role="status">
                 {analytics.historyError || analytics.dailyMarket.error || (analytics.dailyMarket.data?.lastRun
                     ? `${analytics.dailyMarket.data.lastRun.status === 'success' ? 'Consulta automática' : analytics.dailyMarket.data.lastRun.status === 'running' ? 'Consulta automática en curso' : 'Consulta automática incompleta'} · ${new Date(analytics.dailyMarket.data.lastRun.finishedAt || analytics.dailyMarket.data.lastRun.startedAt).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
                     : 'El histórico diario comenzará con la primera actualización programada.')}
@@ -377,10 +379,6 @@ export function Dashboard() {
                 {analytics.dailyMarket.data?.health?.attentionRequired && ' La actualización requiere revisión; se conservan los últimos precios válidos.'}
                 {analytics.dailyMarket.data?.snapshotStatus && !['captured','empty'].includes(analytics.dailyMarket.data.snapshotStatus) && ' La valoración diaria de esta cartera quedó pendiente.'}
             </p>}
-            {account.user && !!analytics.dailyMarket.data?.snapshots.length && <details className="dashboard__update-details">
-                <summary>Sobre las valoraciones diarias</summary>
-                <p>Última valoración disponible del día, con precios y NAV de distintas fechas. No representa un cierre oficial de mercado.</p>
-            </details>}
             <section className="dashboard__section">
                 <AssetsTable
                     initialViewState={returnSnapshot?.table}

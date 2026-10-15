@@ -30,6 +30,7 @@ try {
         if(localStorage.getItem('freewallet_portfolio_v1'))return;
         localStorage.setItem('freewallet_portfolio_v1', JSON.stringify({ version: 1, assets: [data.asset], transactions: data.transactions }));
         localStorage.setItem('freewallet_settings', '{"apiEnabled":false}');
+        localStorage.setItem('freewallet_benchmark_mode_v1', 'msci');
         localStorage.setItem('freewallet_last_seen_version', data.version);
         localStorage.setItem('freewallet-dashboard-notice-dismissed', '1');
         localStorage.setItem('freewallet_portfolio_csv_evolution_raw', data.evolution);
@@ -61,8 +62,10 @@ try {
         }
         assert.ok(await page.$eval('.portfolio-summary', el => el.scrollWidth <= el.clientWidth));
     }
-    await page.click('.portfolio-summary__calculation summary');
-    assert.match(await page.$eval('.portfolio-summary__calculation', el => el.textContent || ''), /Eliminar una posición no registra su venta/);
+    await page.click('.portfolio-summary__calculation button');
+    await page.waitForSelector('[role=dialog]');
+    assert.match(await page.$eval('[role=dialog]', el => el.textContent || ''), /Eliminar una posición no registra su venta/);
+    await page.keyboard.press('Escape');
     assert.equal(await page.evaluate(() => localStorage.getItem('freewallet_portfolio_v1')), before, 'Changing period must not alter the ledger');
     await page.$$eval('.portfolio-excel-insights__tabs button', buttons => (buttons.find(button => button.textContent?.includes('Benchmark')) as HTMLElement).click());
     await page.$$eval('.portfolio-excel-insights__periods button', buttons => (buttons.find(button => button.textContent === 'YTD') as HTMLElement).click());
@@ -76,8 +79,8 @@ try {
         const r = el.getBoundingClientRect(); return {x:r.right-1,y:r.top-50};
     });
     await page.mouse.move(bounds.x,bounds.y);
-    await page.waitForFunction(() => document.querySelector('.recharts-tooltip-wrapper')?.textContent?.includes('N/D'));
-    assert.match(await page.$eval('.recharts-tooltip-wrapper', el => el.textContent || ''), /MSCI World.*N\/D/);
+    await page.waitForFunction(() => document.querySelector('.portfolio-excel-insights__panel .recharts-tooltip-wrapper')?.textContent?.includes('MSCI World'));
+    assert.match(await page.$eval('.portfolio-excel-insights__panel .recharts-tooltip-wrapper', el => el.textContent || ''), /MSCI World.*18%/,'Tooltip carries the last available benchmark instead of an artificial N/D');
     if (process.env.FREEWALLET_BENCHMARK_SCREENSHOT) await page.screenshot({path:process.env.FREEWALLET_BENCHMARK_SCREENSHOT});
     const archive=await page.evaluate(()=>localStorage.getItem('freewallet_history_archive_v1'));
     assert.ok(archive,'Legacy import is converted to an independent archive');

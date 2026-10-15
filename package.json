@@ -71,7 +71,9 @@
     "test:expense-excel": "tsx scripts/test-expense-excel.ts",
     "test:expense-backend": "tsx scripts/test-expense-backend.ts",
     "test:expense-sync": "tsx scripts/test-expense-sync.ts",
-    "test:expense-ui": "tsx scripts/test-expense-ui.ts"
+    "test:expense-ui": "tsx scripts/test-expense-ui.ts",
+    "test:mfa-management": "tsx scripts/test-mfa-management.ts",
+    "test:mfa-disable-ui": "tsx scripts/test-mfa-disable-ui.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

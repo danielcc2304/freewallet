@@ -8,7 +8,7 @@ Las noticias publicadas tienen una conversación pública, en texto plano. Se us
 - Cuenta confirmada y sesión vigente: crear, editar y borrar comentarios propios. Si tiene MFA configurado, también debe completar ese desafío.
 - Editor activo: borrar comentarios en sus artículos, sin modificar el texto de otras personas.
 - Propietario editorial: borrar comentarios en cualquier artículo publicado.
-- Un artículo despublicado oculta su conversación; al eliminarlo se eliminan sus comentarios. Una cuenta eliminada pierde la atribución y muestra «Cuenta eliminada».
+- Un artículo despublicado oculta su conversación; al eliminarlo se eliminan sus comentarios. Las respuestas se agrupan bajo el comentario original, también al responder a otra respuesta. Se cargan bajo demanda, en páginas de 20, por orden cronológico; la lista principal mantiene su orden por más reciente. Borrar un comentario elimina su texto y conserva sus respuestas con un marcador; los hilos eliminados sin respuestas desaparecen. Una cuenta eliminada pierde la atribución y muestra «Cuenta eliminada».
 
 Acceder al panel editorial sin permisos muestra una pantalla específica y conserva la sesión general de la cuenta. Cambiar de cuenta o cerrar sesión requiere una acción explícita.
 
@@ -22,6 +22,8 @@ Tablas privadas con RLS y sin permisos directos de `anon` o `authenticated`:
 RPC públicas `SECURITY INVOKER` que delegan en funciones privadas con `search_path=''`:
 
 - `list_news_comments(article_id, before_at, before_id)`: lectura pública solo si el artículo está publicado. Paginación por fecha y UUID; devuelve `items` y `nextCursor`.
+- `list_news_comment_replies(article_id, root_id, after_at, after_id)`: respuestas del hilo, solo para noticias publicadas.
+- `create_news_reply(article_id, comment_id, comment_body, expected_user_id, reply_to_id)`: valida que el destino exista, no esté borrado y pertenezca a la misma noticia. Comparte los límites e idempotencia de los comentarios.
 - `create_news_comment(article_id, comment_id, comment_body, expected_user_id)`: UUID generado por el cliente para que reintentar el mismo envío no duplique el comentario.
 - `edit_news_comment(article_id, comment_id, comment_body, expected_updated_at, expected_user_id)`: solo el autor, con control de versión.
 - `delete_news_comment(article_id, comment_id, expected_updated_at, expected_user_id)`: autor o moderador autorizado, con confirmación en la interfaz y control de versión.
@@ -37,3 +39,13 @@ Las rejillas editoriales usan el ancho disponible después del sidebar mediante 
 - `npm run test:news-comments`: migración real en PGlite; permisos, aislamiento, moderación, MFA, estado de publicación, límites, concurrencia por versión, privacidad, paginación y cascadas.
 - `npm run test:news-layout-comments-ui`: listado, artículo, acceso y editor para visitantes/lectores/editores/propietario; 320, 390, 768, 1280 y 1920 px, temas claro/oscuro y apariencia estándar/Liquid Glass; publicación, edición, borrado, errores y carga adicional.
 - `npm run test:news-article-editor-ui`: acceso directo a edición, permisos y segundo factor existentes.
+
+## Portadas y Google Fotos
+
+Un enlace `photos.app.goo.gl` o `photos.google.com/share/…` es una página HTML. El campo de portada ofrece **Importar de Google Fotos**: la Edge Function `import-news-image` extrae `og:image`, obtiene una versión de hasta 1920 px sin el recorte de la tarjeta social y guarda una copia pública en el bucket existente `news-images`. La URL estable sustituye al enlace compartido; después se guarda/publica la noticia. Los enlaces antiguos ya publicados se corrigen importando su portada y volviendo a guardar la noticia.
+
+La importación exige JWT válido, cuenta editorial activa, sesión vigente y MFA cuando corresponda. No usa credenciales administrativas: Storage aplica las políticas RLS existentes con el JWT del editor. Solo se siguen redirecciones HTTPS entre los hosts de Google Fotos autorizados; los bytes de la foto solo se descargan de `lhN.googleusercontent.com`. Se limita HTML a 2 MB, foto a 8 MB y se valida la firma de JPG/PNG/WebP/GIF. Si el enlace deja de ser público, la importación falla con una explicación y permite subir el archivo desde el dispositivo. No se importan álbumes completos: se usa la imagen de portada pública del enlace, visible antes de publicar.
+
+**Subir imagen** permite cargar estos mismos formatos desde el dispositivo. Las portadas son públicas; al cambiar o descartar una portada no se borra automáticamente el archivo anterior, pues puede estar usado en otra noticia. No hay sincronización posterior con Google Fotos: retirar el enlace de Google no elimina la copia ya importada.
+
+- `npm run test:news-images`: resolución y validación de imágenes, redirecciones, límites, rechazo de URLs internas/ajenas y autenticación. Con `FREEWALLET_TEST_GOOGLE_PHOTO` hace además una descarga real de solo lectura, sin crear archivos en Storage.

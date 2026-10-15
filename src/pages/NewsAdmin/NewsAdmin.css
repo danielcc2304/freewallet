@@ -675,3 +675,8 @@
 
 
 .news-admin__preview-content img {max-width:100%;height:auto;border-radius:var(--radius-md);}
+.news-admin__cover-field {display:grid;align-content:start;gap:.65rem;min-width:0;}
+.news-admin__cover-actions {display:flex;flex-wrap:wrap;gap:.5rem;}
+.news-admin__cover-field small {font-size:.8rem;color:var(--text-muted);overflow-wrap:anywhere;}
+.news-admin__cover-field .news-admin__cover-error {color:var(--color-negative);}
+.news-admin__cover-thumbnail {max-width:100%;width:160px;max-height:110px;object-fit:contain;border-radius:var(--radius-md);border:1px solid var(--border-primary);}

@@ -31,10 +31,11 @@ try{
     const hardening=readFileSync('supabase/migrations/20261007163808_architecture_hardening.sql','utf8');
     await db.exec(hardening.slice(hardening.indexOf('create function portfolio_private.news_access'),hardening.indexOf('create or replace function public.is_news_owner')));
     await db.exec(readFileSync('supabase/migrations/20261015131909_news_comments.sql','utf8'));
+    await db.exec(readFileSync('supabase/migrations/20261015140450_news_comment_replies.sql','utf8'));
     const login=async(id:string,aal='aal1')=>{
         await db.exec(`reset role;set request.jwt.claim.sub='${id}';set request.jwt.claims='${JSON.stringify({role:'authenticated',session_id:session(id),aal})}';set role authenticated;`);
     };
-    type Entry={id:string;body:string;username:string;createdAt:string;updatedAt:string;canEdit:boolean;canDelete:boolean};
+    type Entry={id:string;body:string;username:string;createdAt:string;updatedAt:string;canEdit:boolean;canDelete:boolean;parentId:string|null;replyToId:string|null;replyCount:number;deleted:boolean};
     const list=async(post=article,cursor?:{id:string;createdAt:string})=>(await db.query<{page:{items:Entry[];nextCursor:{id:string;createdAt:string}|null}}>('select public.list_news_comments($1,$2,$3) as page',[post,cursor?.createdAt??null,cursor?.id??null])).rows[0].page;
     const create=(post=article,id=comment,body='Comentario de prueba',expected=reader)=>db.query<{item:Entry}>('select public.create_news_comment($1,$2,$3,$4) as item',[post,id,body,expected]);
     const edit=(entry:Entry,body:string,expected=reader)=>db.query<{item:Entry}>('select public.edit_news_comment($1,$2,$3,$4,$5) as item',[article,entry.id,body,entry.updatedAt,expected]);
@@ -63,11 +64,45 @@ try{
     await login(reader);await assert.rejects(create(article,'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb'),/rate limit/,'Deleting a comment does not reset the anti-spam counter');
     await db.exec(`reset role;update news_private.comment_limits set last_post_at=now()-interval '21 seconds' where user_id='${reader}';insert into auth.mfa_factors values('${comment}','${reader}','verified');`);
     await login(reader);await assert.rejects(create(),/Second factor/);
-    await login(reader,'aal2');entry=(await create()).rows[0].item;
+    await login(reader,'aal2');entry=(await create(article,'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb')).rows[0].item;
     await db.exec(`reset role;update public.news_posts set status='draft' where id='${article}'`);
     await login(owner);assert.deepEqual((await list()).items,[]);await assert.rejects(remove(entry,owner),/Article unavailable/);
     await db.exec(`reset role;update public.news_posts set status='published' where id='${article}'`);
     await login(owner);await remove(entry,owner);
+    // Replies keep the same permissions and global anti-spam counter as comments.
+    const root='dddddddd-dddd-4ddd-8ddd-dddddddddddd';
+    const replyId='eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee';
+    const nestedId='ffffffff-ffff-4fff-8fff-ffffffffffff';
+    const reply=(target:string,id:string,who=other)=>db.query<{item:Entry}>('select public.create_news_reply($1,$2,$3,$4,$5) as item',[article,id,'Respuesta de prueba',who,target]);
+    const replies=async(rootId=root,cursor?:{id:string;createdAt:string})=>(await db.query<{page:{items:Entry[];nextCursor:{id:string;createdAt:string}|null}}>('select public.list_news_comment_replies($1,$2,$3,$4) as page',[article,rootId,cursor?.createdAt??null,cursor?.id??null])).rows[0].page;
+    await login(other);const rootEntry=(await create(article,root,'Texto del padre',other)).rows[0].item;
+    await assert.rejects(reply(root,replyId),/rate limit/);
+    await db.exec(`reset role;update news_private.comment_limits set last_post_at=now()-interval '21 seconds'`);
+    await login(other);const replyEntry=(await reply(root,replyId)).rows[0].item;
+    assert.equal(replyEntry.parentId,root);assert.equal(replyEntry.replyToId,root);
+    assert.equal((await reply(root,replyId)).rows[0].item.id,replyId,'Reply retry is idempotent');
+    await login(owner);const nested=(await reply(replyId,nestedId,owner)).rows[0].item;
+    assert.equal(nested.parentId,root,'Replies to replies stay in the same readable thread');assert.equal(nested.replyToId,replyId);
+    assert.equal((await list()).items.find(item=>item.id===root)?.replyCount,2);
+    assert.equal((await replies()).items.length,2);assert.equal((await list()).items.length,1,'Replies do not leak into top-level pagination');
+    await assert.rejects(reply(draft,'abababab-abab-4bab-8bab-abababababab',owner),/Reply target unavailable/);
+    await db.exec(`reset role;insert into public.news_posts values('acacacac-acac-4cac-8cac-acacacacacac','${editor}','published')`);
+    await login(owner);await assert.rejects(db.query('select public.create_news_reply($1,$2,$3,$4,$5)',['acacacac-acac-4cac-8cac-acacacacacac','abababab-abab-4bab-8bab-abababababab','cross article',owner,root]),/Reply target unavailable/);
+    await remove(rootEntry,owner);
+    const tombstone=(await list()).items[0];assert.equal(tombstone.deleted,true);assert.equal(tombstone.body,'');assert.equal(tombstone.canEdit,false);assert.equal((await replies()).items.length,2);
+    await login(other);await assert.rejects(edit(rootEntry,'resurrect',other),/Comment unavailable/);await login(owner);
+    await assert.rejects(reply(root,'abababab-abab-4bab-8bab-abababababab',owner),/Reply target unavailable/);
+    await db.exec(`reset role;update public.news_posts set status='draft' where id='${article}'`);await login(owner);assert.deepEqual((await replies()).items,[]);
+    await db.exec(`reset role;update public.news_posts set status='published' where id='${article}'`);await login(owner);
+    await remove(replyEntry,owner);await remove(nested,owner);assert.deepEqual((await list()).items,[],'Empty deleted threads disappear');
+    // Reply pages are chronological, including identical timestamps.
+    await db.exec('reset role');
+    await db.query('insert into news_private.comments(id,post_id,author_id,body) values($1,$2,$3,$4)',['abababab-abab-4bab-8bab-abababababab',article,reader,'Pagination root']);
+    for(let i=0;i<25;i++)await db.query('insert into news_private.comments(id,post_id,author_id,body,parent_id,reply_to_id,created_at) values($1,$2,$3,$4,$5,$5,$6)',[`bcbcbcbc-bcbc-4cbc-8cbc-${String(i).padStart(12,'0')}`,article,other,`Reply ${i}`,'abababab-abab-4bab-8bab-abababababab','2026-10-01T12:00:00Z']);
+    const replyPage1=await replies('abababab-abab-4bab-8bab-abababababab');assert.equal(replyPage1.items.length,20);assert.ok(replyPage1.nextCursor);
+    const replyPage2=await replies('abababab-abab-4bab-8bab-abababababab',replyPage1.nextCursor);assert.equal(replyPage2.items.length,5);assert.equal(replyPage2.nextCursor,null);
+    assert.equal(new Set([...replyPage1.items,...replyPage2.items].map(item=>item.id)).size,25);
+    await db.exec("delete from news_private.comments where id='abababab-abab-4bab-8bab-abababababab'");
     // Exercise keyset pagination, including identical timestamps.
     await db.exec('reset role');
     for(let i=0;i<25;i++)await db.query('insert into news_private.comments(id,post_id,author_id,body,created_at) values($1,$2,$3,$4,$5)',[`cccccccc-cccc-4ccc-8ccc-${String(i).padStart(12,'0')}`,article,reader,`Page comment ${i}`,'2026-10-01T12:00:00Z']);
@@ -78,5 +113,5 @@ try{
     assert.ok(!JSON.stringify(first).includes('@example.invalid'));assert.ok(!JSON.stringify(first).includes(reader),'Public responses contain neither emails nor author UUIDs');
     await db.exec(`reset role;delete from auth.users where id='${reader}'`);const orphan=await list();assert.equal(orphan.items[0].username,'Cuenta eliminada');
     await db.exec(`delete from public.news_posts where id='${article}'`);assert.deepEqual((await list()).items,[]);
-    console.log('PASS: comment publication, ownership, moderator scope, immutable authorship, MFA, revoked/unconfirmed access, anti-spam, retries, stale edits, pagination, privacy and cascades.');
+    console.log('PASS: threaded replies, tombstones, reply pagination, comment publication, ownership, moderator scope, immutable authorship, MFA, revoked/unconfirmed access, anti-spam, retries, stale edits, pagination, privacy and cascades.');
 }finally{await db.close();}

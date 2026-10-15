@@ -1,7 +1,7 @@
 import { getAppSupabaseClient, appBackendConfig } from './supabaseClient';
 import { portfolioStorage } from './portfolioCloudStorage';
 import type { Asset, PortfolioTransaction, HistoricalDataPoint, StockQuote } from '../types/types';
-import { createQuoteSnapshot } from './portfolioPerformance';
+import { readBatchSnapshot } from './portfolioPerformance';
 import type {FundSource} from '../../supabase/functions/_shared/fundQuotePolicy';
 
 export const BENCHMARK_ISIN = 'IE00BYX5NX33';
@@ -62,7 +62,7 @@ export function dailyHistory(data: DailyMarketData | null, instrument: string): 
 }
 export function dailySnapshots(data: DailyMarketData | null) {
     return (data?.snapshots ?? []).flatMap(snapshot => {
-        const point = createQuoteSnapshot(snapshot.assets, snapshot.transactions, snapshot.at);
+        const point = readBatchSnapshot(snapshot.assets, snapshot.transactions, snapshot.at);
         return point ? [{...point,valuationKind:snapshot.valuationKind,observationFrom:snapshot.observationFrom,observationTo:snapshot.observationTo}] : [];
     });
 }

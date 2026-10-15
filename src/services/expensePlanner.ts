@@ -99,6 +99,7 @@ export function emptyExpenseBook(): ExpenseBook {
             },
             { id: 'health', name: 'Salud', color: '#fb7185', group: 'needs' },
             { id: 'leisure', name: 'Ocio', color: '#c084fc', group: 'wants' },
+            { id: 'clothing', name: 'Ropa', color: '#f472b6', group: 'wants' },
             {
                 id: 'shopping',
                 name: 'Compras',
@@ -123,6 +124,28 @@ export function emptyExpenseBook(): ExpenseBook {
         budgets: [],
         recurring: [],
         goals: [],
+    };
+}
+/** Adds newly introduced built-in categories to older books without replacing user categories. */
+export function ensureDefaultExpenseCategories(
+    book: ExpenseBook,
+): ExpenseBook {
+    const hasClothing = book.categories.some(
+        (category) =>
+            category.id === 'clothing' ||
+            category.name
+                .trim()
+                .toLocaleLowerCase('es')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '') === 'ropa',
+    );
+    if (hasClothing || book.categories.length >= 100) return book;
+    return {
+        ...book,
+        categories: [
+            ...book.categories,
+            { id: 'clothing', name: 'Ropa', color: '#f472b6', group: 'wants' },
+        ],
     };
 }
 /** Validate files and remote documents before rendering; invalid data never becomes an empty book. */
@@ -311,7 +334,7 @@ export function parseExpenseBook(raw: string): ExpenseBook {
         throw new Error('La copia supera los 2 MB.');
     const value: unknown = JSON.parse(raw);
     validateExpenseBook(value);
-    return value;
+    return ensureDefaultExpenseCategories(value);
 }
 export function accountBalance(
     book: ExpenseBook,

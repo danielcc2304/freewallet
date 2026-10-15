@@ -37,7 +37,7 @@ Este README describe el código de la rama que estás consultando. Las funciones
 ### Cuenta y sincronización
 
 - Modo local sin backend obligatorio, con persistencia en el navegador.
-- Con Supabase configurado: acceso, registro con confirmación de correo, recuperación de contraseña y verificación en dos pasos mediante TOTP, QR o clave manual.
+- Con Supabase configurado: registro con nombre de usuario único, acceso con usuario o correo, confirmación de correo, recuperación de contraseña y verificación en dos pasos mediante TOTP, QR o clave manual. El nombre se puede cambiar desde Mi cuenta. [Modelo y API de usuarios](docs/account-usernames.md).
 - Una cartera por cuenta, sincronización entre dispositivos y control de revisiones, conflictos y peticiones repetidas. Los guardados posteriores a la importación envían cambios y borrados de campos, con respuesta incremental.
 - La importación de una cartera local a la cuenta requiere confirmación expresa. No reemplaza automáticamente una cartera remota existente.
 - Las modificaciones de una cartera conectada requieren conexión; la vista ya cargada puede consultarse sin red en esa pestaña.
@@ -77,7 +77,7 @@ El Excel proporciona posiciones, movimientos e histórico inicial. Las carteras 
 
 ### Noticias
 
-Análisis públicos en `/news` y editor privado en `/admin/news`, con borradores, publicación, invitaciones y revocación de editores. El autor con acceso editorial activo puede abrir la edición de su artículo desde un lápiz flotante en la vista de lectura.
+Análisis públicos en `/news` y editor privado en `/admin/news`, con borradores, publicación, invitaciones y revocación de editores. El autor con acceso editorial activo puede abrir la edición de su artículo desde un lápiz flotante en la vista de lectura. Los artículos incluyen comentarios públicos con edición y borrado propios, moderación editorial y límites de uso. [Permisos, API y pruebas de comentarios](docs/news-comments.md).
 
 ## Instalación local
 

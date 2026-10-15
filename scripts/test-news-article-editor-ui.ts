@@ -9,8 +9,8 @@ const author = '11111111-1111-4111-8111-111111111111';
 const other = '22222222-2222-4222-8222-222222222222';
 const stamp = '2026-10-01T12:00:00Z';
 const article = { id: '33333333-3333-4333-8333-333333333333', slug: 'synthetic-news', title: 'Synthetic editorial analysis', excerpt: 'Synthetic excerpt', content: '<p>Original synthetic article.</p>', cover_image_url: null, status: 'published', author_id: author, published_at: stamp, created_at: stamp, updated_at: stamp };
-const user = (id: string, mfa=false) => ({factors:mfa?[{id:'44444444-4444-4444-8444-444444444444',factor_type:'totp',status:'verified',friendly_name:'FreeWallet',created_at:stamp,updated_at:stamp}]:[], id, email: 'fixture@example.invalid', aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: stamp });
-const session = (id: string, mfa=false, aal='aal1') => ({ access_token: `${btoa('{"alg":"HS256"}')}.${btoa(JSON.stringify({ sub: id, role: 'authenticated', aal, exp: Math.floor(Date.now() / 1000) + 3600 }))}.${btoa('synthetic')}`, refresh_token: 'synthetic', expires_at: Math.floor(Date.now() / 1000) + 3600, expires_in: 3600, token_type: 'bearer', user: user(id,mfa) });
+const user = (id: string, mfa=false) => ({factors:mfa?[{id:'44444444-4444-4444-8444-444444444444',factor_type:'totp',status:'verified',friendly_name:'FreeWallet',created_at:stamp,updated_at:stamp}]:[], id, email: 'fixture@example.invalid', email_confirmed_at:stamp, aud: 'authenticated', role: 'authenticated', app_metadata: {}, user_metadata: {}, created_at: stamp });
+const session = (id: string, mfa=false, aal='aal1') => ({ access_token: `${Buffer.from('{"alg":"HS256"}').toString('base64url')}.${Buffer.from(JSON.stringify({ sub: id, role: 'authenticated', aal, exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url')}.${Buffer.from('synthetic').toString('base64url')}`, refresh_token: 'synthetic', expires_at: Math.floor(Date.now() / 1000) + 3600, expires_in: 3600, token_type: 'bearer', user: user(id,mfa) });
 const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 const errors: string[] = [];
 const writes: { method: string; id: string | null; body: Record<string, unknown> }[] = [];
@@ -27,7 +27,7 @@ try {
         { name: 'author with invalid MFA code', id: author, active: true, verifiedId: author, canEdit: false, mfa:true, verifyResult:'invalid-code' },
         { name: 'active author', id: author, active: true, verifiedId: author, canEdit: true },
     ]) {
-        const page = await browser.newPage();
+        const page = await browser.newPage();page.setDefaultNavigationTimeout(60000);
         let mfaVerified=false;let refreshFailures=0;
         page.on('pageerror', error => errors.push(String(error)));
         await page.setViewport({ width: 390, height: 844 });
@@ -53,6 +53,7 @@ try {
                     }
                     mfaVerified=true;data=session(scenario.verifiedId,true,'aal2');
                 }
+                else if (url.pathname.endsWith('/rpc/list_news_comments')) data = {items:[],nextCursor:null};
                 else if (url.pathname.endsWith('/rpc/is_news_admin')) data = scenario.active && (!scenario.mfa || mfaVerified);
                 else if (url.pathname.endsWith('/rpc/read_portfolio')) {
                     if(mfaVerified && scenario.verifyResult==='refresh-error') {

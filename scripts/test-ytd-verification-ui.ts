@@ -140,11 +140,13 @@ try {
     // Classifying an erroneous record is explicit, reversible and never edits
     // the original ledger. The imported return remains on its verified date.
     await page.setViewport({width:390,height:1000});
-    await page.$$eval('.portfolio-summary__calculation summary',summaries=>(summaries.find(s=>s.textContent?.includes('Ver motivo')) as HTMLElement).click());
+    await page.click('.portfolio-summary__calculation button::-p-text(ver motivo)');
+    await page.waitForSelector('[role=dialog]');
     await page.click('button::-p-text(Era un registro erróneo)');
     await page.waitForSelector('.confirm-dialog');
     await page.click('button::-p-text(Confirmar corrección)');
     await page.waitForFunction(()=>[...document.querySelectorAll('.portfolio-summary .metric-card__value')].filter(el=>el.textContent==='No disponible').length===0);
+    await page.keyboard.press('Escape');
     const correctedCards=await page.$$eval('.portfolio-summary .metric-card',cards=>Object.fromEntries(cards.map(c=>[c.querySelector('.metric-card__title')?.textContent,c.querySelector('.metric-card__value')?.textContent])));
     assert.match(correctedCards['Resultado realizado']!,/^0,00/);assert.match(correctedCards['Resultado total']!,/185,00/);
     assert.equal(await page.evaluate(()=>localStorage.getItem('freewallet_portfolio_v1')),before);

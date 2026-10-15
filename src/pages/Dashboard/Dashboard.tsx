@@ -2,6 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import { Link, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio, Wrench, GraduationCap, Settings, FileSpreadsheet } from 'lucide-react';
 import { PortfolioSummary } from '../../components/dashboard/PortfolioSummary';
+import { DashboardInfo } from '../../components/dashboard/DashboardInfo';
 import { PortfolioDataQuality } from '../../components/dashboard/PortfolioDataQuality';
 import { Performers } from '../../components/dashboard/Performers';
 import { AssetsTable } from '../../components/dashboard/AssetsTable';
@@ -10,6 +11,7 @@ import type { DashboardNavigationContext } from '../../components/layout/MainLay
 import { PortfolioExcelInsights } from '../../components/dashboard/PortfolioExcelInsights';
 import { LivePortfolioPlan } from '../../components/dashboard/LivePortfolioPlan';
 import { PortfolioComposition } from '../../components/dashboard/PortfolioComposition';
+import { FundTransferDialog } from '../../components/dashboard/FundTransferDialog';
 import { AssetDetail } from '../../components/dashboard/AssetDetail';
 import { UnderlyingAssetDetail } from '../../components/dashboard/UnderlyingAssetDetail';
 import { Button, Card, CardContent, Modal, PageHeader } from '../../components/ui';
@@ -58,21 +60,22 @@ function DashboardLiveStatus({
     lastConsultedAt?: string;
 }) {
     return (
-        <details className="dashboard__update-details">
-            <summary>
-                <span className={`dashboard__live-status${apiEnabled || updatingPrices ? ' dashboard__live-status--active' : ''}`}>
-                    <Radio size={13} aria-hidden="true" />
-                    {updatingPrices ? 'Consultando…' : apiEnabled ? 'Seguimiento activo' : 'Consultas desactivadas'}
-                </span>
-            </summary>
-            <dl className="dashboard__update-info">
-                <dt>Acciones y criptos</dt><dd>{apiEnabled ? 'Cada minuto en esta pantalla · acciones en sesión' : 'Desactivadas'}</dd>
-                <dt>Fondos y otros activos</dt><dd>{apiEnabled ? 'Cada 5 min; según el último dato publicado' : 'Desactivadas'}</dd>
-                {lastRefreshAttempt && <><dt>Último intento de consulta</dt><dd>{quoteDateLabel(lastRefreshAttempt.toISOString())}</dd></>}
-                {lastReadAt && <><dt>Última lectura en la app</dt><dd>{quoteDateLabel(lastReadAt)}</dd></>}
-                {lastConsultedAt && <><dt>Última consulta al proveedor</dt><dd>{quoteDateLabel(lastConsultedAt)}</dd></>}
-            </dl>
-        </details>
+        <div className="dashboard__status-row">
+            <span className={`dashboard__live-status${apiEnabled || updatingPrices ? ' dashboard__live-status--active' : ''}`}>
+                <Radio size={13} aria-hidden="true" />
+                {updatingPrices ? 'Consultando…' : apiEnabled ? 'Seguimiento activo' : 'Consultas desactivadas'}
+            </span>
+            <DashboardInfo title="Actualización de precios">
+                <dl className="dashboard__update-info">
+                    <dt>Acciones y criptos</dt><dd>{apiEnabled ? 'Cada minuto en esta pantalla · acciones en sesión' : 'Desactivadas'}</dd>
+                    <dt>Fondos y otros activos</dt><dd>{apiEnabled ? 'Cada 5 min; según el último dato publicado' : 'Desactivadas'}</dd>
+                    {lastRefreshAttempt && <><dt>Último intento de consulta</dt><dd>{quoteDateLabel(lastRefreshAttempt.toISOString())}</dd></>}
+                    {lastReadAt && <><dt>Última lectura en la app</dt><dd>{quoteDateLabel(lastReadAt)}</dd></>}
+                    {lastConsultedAt && <><dt>Última consulta al proveedor</dt><dd>{quoteDateLabel(lastConsultedAt)}</dd></>}
+                </dl>
+                <p>Las valoraciones usan el último precio publicado de cada activo; no equivalen a un cierre oficial de mercado.</p>
+            </DashboardInfo>
+        </div>
     );
 }
 
@@ -85,7 +88,7 @@ export function Dashboard() {
     const tableViewState = useRef(returnSnapshot?.table);
     const scrollRestored = useRef(false);
     const rememberTableView = useCallback((view: AssetsTableViewState) => { tableViewState.current = view; }, []);
-    const { state, refreshPrices, deleteAsset, loadDemoData } = usePortfolio();
+    const { state, refreshPrices, deleteAsset, transferFund, loadDemoData } = usePortfolio();
     const account=useAccount();
     const { assets, loading, updatingPrices, quoteFailures } = state;
     useLayoutEffect(() => {
@@ -95,6 +98,7 @@ export function Dashboard() {
         scrollRestored.current = true;
     }, [loading, returnSnapshot]);
     const [selectedAssetId, setSelectedAssetId] = useState<string | null>(null);
+    const [fundTransferSourceId, setFundTransferSourceId] = useState<string | null>(null);
     const [selectedHolding, setSelectedHolding] = useState<{
         holding: AssetHolding;
         parentAsset: Asset;
@@ -110,6 +114,21 @@ export function Dashboard() {
     const positionGroups=useMemo(()=>portfolioPositionGroups(assets,calculationNow),[assets,calculationNow]);
     const selectedGroup=positionGroups.find(group=>group.lots.length>1 && group.asset.id===selectedAssetId);
     const selectedAsset = assets.find((asset) => asset.id === selectedAssetId) || selectedGroup?.asset || null;
+    const fundTransferSource = assets.find(asset => asset.id === fundTransferSourceId) ?? null;
+    const canTransferBetweenFunds = useCallback((source: Asset, destination: Asset) => {
+        if (source.id === destination.id || source.type !== 'fund' || destination.type !== 'fund'
+            || !hasValidPrice(source) || !hasValidPrice(destination) || (source.currentPrice ?? 0) <= 0 || (destination.currentPrice ?? 0) <= 0) return false;
+        const sourceIsin = source.isin?.replace(/\s/g, '').toUpperCase();
+        const destinationIsin = destination.isin?.replace(/\s/g, '').toUpperCase();
+        return sourceIsin && destinationIsin
+            ? sourceIsin !== destinationIsin
+            : source.symbol.toUpperCase() !== destination.symbol.toUpperCase();
+    }, []);
+    const canTransferFrom = useCallback((source: Asset) => source.quantity > 0
+        && assets.some(destination => canTransferBetweenFunds(source, destination)), [assets, canTransferBetweenFunds]);
+    const fundTransferDestinations = useMemo(() => fundTransferSource
+        ? assets.filter(destination => canTransferBetweenFunds(fundTransferSource, destination)) : [],
+    [assets, canTransferBetweenFunds, fundTransferSource]);
     const quoteStatuses = useMemo(() => assets.map(asset => ({ asset, ...portfolioQuoteStatus(asset, calculationNow) })), [assets, calculationNow]);
     const consultationTimes = quoteStatuses.map(s => s.checkedAt).filter(t => Number.isFinite(t) && t <= calculationNow + 5 * 60000);
     const lastConsultedAt = consultationTimes.length ? new Date(Math.max(...consultationTimes)).toISOString() : undefined;
@@ -190,6 +209,16 @@ export function Dashboard() {
     const handleSell = useCallback((asset: Asset) => {
         openOperation('sellAsset', asset);
     }, [openOperation]);
+
+    const handleFundTransfer = useCallback((asset: Asset) => {
+        setFundTransferSourceId(asset.id);
+    }, []);
+
+    const submitFundTransfer = useCallback(async (sourceId: string, destinationId: string, amount: number, transferAll: boolean, executionPrices: { sourcePrice?: number; destinationPrice?: number }) => {
+        await transferFund(sourceId, destinationId, amount, transferAll, executionPrices);
+        setFundTransferSourceId(null);
+        setCalculationNow(Date.now());
+    }, [transferFund]);
 
     const handleViewDetails = useCallback((asset: Asset) => {
         setSelectedHolding(null);
@@ -342,7 +371,7 @@ export function Dashboard() {
 
             <PortfolioSummary metrics={metrics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} estimatedCount={assets.filter(a => !hasValidPrice(a)).length} onCorrectDeletion={correctDeletedRecord} />
             <PortfolioDataQuality assets={assets} now={calculationNow} quoteFailures={quoteFailures} />
-            {account.user && <p className="dashboard__automatic-status" role="status">
+            {account.user && (analytics.historyError || analytics.dailyMarket.error || analytics.dailyMarket.data?.health?.attentionRequired || (analytics.dailyMarket.data?.lastRun && !['success','running'].includes(analytics.dailyMarket.data.lastRun.status)) || !!analytics.dailyMarket.data?.lastRun?.failures.length || (analytics.dailyMarket.data?.snapshotStatus && !['captured','empty'].includes(analytics.dailyMarket.data.snapshotStatus))) && <p className="dashboard__automatic-status" role="status">
                 {analytics.historyError || analytics.dailyMarket.error || (analytics.dailyMarket.data?.lastRun
                     ? `${analytics.dailyMarket.data.lastRun.status === 'success' ? 'Consulta automática' : analytics.dailyMarket.data.lastRun.status === 'running' ? 'Consulta automática en curso' : 'Consulta automática incompleta'} · ${new Date(analytics.dailyMarket.data.lastRun.finishedAt || analytics.dailyMarket.data.lastRun.startedAt).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
                     : 'El histórico diario comenzará con la primera actualización programada.')}
@@ -350,10 +379,6 @@ export function Dashboard() {
                 {analytics.dailyMarket.data?.health?.attentionRequired && ' La actualización requiere revisión; se conservan los últimos precios válidos.'}
                 {analytics.dailyMarket.data?.snapshotStatus && !['captured','empty'].includes(analytics.dailyMarket.data.snapshotStatus) && ' La valoración diaria de esta cartera quedó pendiente.'}
             </p>}
-            {account.user && !!analytics.dailyMarket.data?.snapshots.length && <details className="dashboard__update-details">
-                <summary>Sobre las valoraciones diarias</summary>
-                <p>Última valoración disponible del día, con precios y NAV de distintas fechas. No representa un cierre oficial de mercado.</p>
-            </details>}
             <section className="dashboard__section">
                 <AssetsTable
                     initialViewState={returnSnapshot?.table}
@@ -364,6 +389,8 @@ export function Dashboard() {
                     onEdit={handleEditAsset}
                     onAddPurchase={handleAddPurchase}
                     onSell={handleSell}
+                    onTransfer={handleFundTransfer}
+                    canTransfer={canTransferFrom}
                     onViewDetails={handleViewDetails}
                 />
             </section>
@@ -395,6 +422,12 @@ export function Dashboard() {
                 <LivePortfolioPlan analytics={analytics} section="plan" />
             </section>
 
+            {fundTransferSource && <FundTransferDialog
+                source={fundTransferSource}
+                destinations={fundTransferDestinations}
+                onClose={() => setFundTransferSourceId(null)}
+                onSubmit={submitFundTransfer}
+            />}
             <Modal
                 isOpen={selectedAsset !== null || selectedHolding !== null}
                 onClose={() => {

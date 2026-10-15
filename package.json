@@ -1,7 +1,7 @@
 {
   "name": "freewallet",
   "private": true,
-  "version": "6.3.1",
+  "version": "6.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "verify-funds": "tsx scripts/verify-funds.ts",
     "test:compound-interest": "tsx scripts/test-compound-interest.ts",
+    "test:bond-calculator": "python scripts/verify-coreweave-bond.py --check && tsx scripts/test-bond-calculator.ts",
+    "test:bond-calculator-ui": "tsx scripts/test-bond-calculator-ui.ts",
     "test:salary-calculator": "tsx scripts/test-salary-calculator.ts",
     "test:salary-calculator-ui": "tsx scripts/test-salary-calculator-ui.ts",
     "test:fund-breakdown": "tsx scripts/test-fund-breakdown.ts",
@@ -41,6 +43,8 @@
     "test:cash-account-ui": "tsx scripts/test-cash-account-ui.ts",
     "test:architecture": "tsx scripts/test-architecture-hardening.ts",
     "test:market-refresh-cadence": "tsx scripts/test-market-refresh-cadence.ts",
+    "test:batch-history": "tsx scripts/test-batch-history.ts",
+    "test:batch-benchmark-ui": "tsx scripts/test-batch-benchmark-ui.ts",
     "test:financial-times-funds": "tsx scripts/test-financial-times-funds.ts",
     "test:fund-quotes": "tsx scripts/test-fund-quotes.ts",
     "test:fund-quotes-ui": "tsx scripts/test-fund-quotes-ui.ts",
@@ -67,7 +71,14 @@
     "test:expense-excel": "tsx scripts/test-expense-excel.ts",
     "test:expense-backend": "tsx scripts/test-expense-backend.ts",
     "test:expense-sync": "tsx scripts/test-expense-sync.ts",
-    "test:expense-ui": "tsx scripts/test-expense-ui.ts"
+    "test:expense-ui": "tsx scripts/test-expense-ui.ts",
+    "test:mfa-management": "tsx scripts/test-mfa-management.ts",
+    "test:mfa-disable-ui": "tsx scripts/test-mfa-disable-ui.ts",
+    "test:account-usernames": "tsx scripts/test-account-usernames.ts",
+    "test:account-usernames-ui": "tsx scripts/test-account-usernames-ui.ts",
+    "test:news-images": "tsx scripts/test-news-images.ts",
+    "test:news-comments": "tsx scripts/test-news-comments.ts",
+    "test:news-layout-comments-ui": "tsx scripts/test-news-layout-comments-ui.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

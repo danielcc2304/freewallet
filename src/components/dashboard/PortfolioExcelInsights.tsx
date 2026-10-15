@@ -34,6 +34,7 @@ import {
     YAxis,
 } from 'recharts';
 import { Card, CardContent, CardHeader } from '../ui';
+import {DashboardInfo} from './DashboardInfo';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { BENCHMARK_ISIN, BENCHMARK_NAME, dailyHistory } from '../../services/dailyMarketData';
 import { getFundRelevance } from '../../services/finect/finectService';
@@ -61,7 +62,7 @@ import { positionLotCounts } from '../../services/dashboardIntegrity';
 import { getAssetChartData } from '../../services/apiService';
 import { getSettings, updateSettings, isApiEnabled } from '../../services/storageService';
 import { DashboardMarketHistoryCache } from '../../services/dashboardMarketHistory';
-import { benchmarkChartCadence, benchmarkPeriodDifference, benchmarkTooltipObservation, extendImportedBenchmark } from '../../services/benchmarkComparison';
+import { benchmarkChartCadence, benchmarkPeriodDifference, benchmarkTooltipObservation, extendImportedBenchmark, extendBenchmarkObservations } from '../../services/benchmarkComparison';
 import type { HistoricalDataPoint } from '../../types/types';
 
 const benchmarkHistoryCache = new DashboardMarketHistoryCache(2,15*60*1000);
@@ -348,13 +349,15 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const extendedLine = useMemo(() => benchmarkMode === 'msci'
         ? alignedBenchmark(periodSeries, extendImportedBenchmark(workbookBenchmarkHistory, fidelityHistory))
         : [], [benchmarkMode, periodSeries, workbookBenchmarkHistory, fidelityHistory]);
-    const benchmarkLine = useMemo(() => benchmarkMode === 'allocation'
+    const comparisonLine = useMemo(() => benchmarkMode === 'allocation'
         ? automaticLine
         : chooseBenchmarkLine(periodSeries, automaticLine,
             chooseBenchmarkLine(periodSeries, extendedLine, workbookBenchmarkLine)),
     [benchmarkMode, periodSeries, automaticLine, extendedLine, workbookBenchmarkLine]);
-    const benchmarkUsesWorkbook = benchmarkLine.length > 1 && benchmarkLine === workbookBenchmarkLine;
-    const benchmarkUsesExtension = benchmarkLine.length > 1 && benchmarkLine === extendedLine;
+    const benchmarkLine = useMemo(() => extendBenchmarkObservations(comparisonLine, benchmark, selectedPeriod.performance.endDate),
+        [comparisonLine, benchmark, selectedPeriod.performance.endDate]);
+    const benchmarkUsesWorkbook = comparisonLine.length > 1 && comparisonLine === workbookBenchmarkLine;
+    const benchmarkUsesExtension = comparisonLine.length > 1 && comparisonLine === extendedLine;
     const benchmarkReturn = benchmarkLine.at(-1)?.benchmark ?? null;
     const benchmarkLabel = benchmarkMode === 'allocation' ? 'Benchmark según cartera' : EQUITY_BENCHMARK_NAME;
     const benchmarkAllocationLabel = `${plainPercent(benchmarkWeights.equityPercent)} ${EQUITY_BENCHMARK_NAME} + ${plainPercent(benchmarkWeights.groupamaPercent)} ${DEFENSIVE_BENCHMARK_NAME}`;
@@ -364,7 +367,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     const benchmarkPartial = hasPortfolioBenchmark && (
         benchmarkLine[0].date.slice(0, 10) !== selectedPeriod.performance.baseDate?.slice(0, 10)
         || benchmarkLine.at(-1)!.date.slice(0, 10) !== selectedPeriod.performance.endDate?.slice(0, 10));
-    const comparison=benchmarkPeriodDifference(benchmarkLine,selectedPeriod.performance.baseDate);
+    const comparison=benchmarkPeriodDifference(comparisonLine,selectedPeriod.performance.baseDate);
     const benchmarkDifference=comparison?.value??null;
     // The portfolio keeps the same full-period base/end as the summary. A
     // partial benchmark never truncates it or introduces a second current return.
@@ -372,12 +375,17 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         const base = periodSeries[0];
         if (!base || base.index <= 0 || !Number.isFinite(selectedPeriod.performance.returnPercent)) return [];
         const benchmarkByDate = new Map(benchmarkLine.map(point => [point.date, point.benchmark]));
-        return benchmarkChartCadence(periodSeries.map(point => ({
+        const points: Array<{date:string;timestamp:number;portfolio:number|null;benchmark:number|null}> = periodSeries.map(point => ({
             date: point.date,
             timestamp: point.timestamp,
             portfolio: (point.index / base.index - 1) * 100,
             benchmark: benchmarkHasPeriodBase ? benchmarkByDate.get(point.date) ?? null : null,
-        })), evolutionPeriod);
+        }));
+        if (benchmarkHasPeriodBase) {
+            const portfolioDays = new Set(points.map(p => p.date));
+            benchmarkLine.filter(p => !portfolioDays.has(p.date)).forEach(p => points.push({date:p.date,timestamp:Date.parse(p.date),portfolio:null,benchmark:p.benchmark}));
+        }
+        return benchmarkChartCadence(points.sort((a,b) => a.timestamp-b.timestamp), evolutionPeriod);
     }, [periodSeries, selectedPeriod.performance.returnPercent, benchmarkLine, benchmarkHasPeriodBase, evolutionPeriod]);
 
     const evolutionSeries = periodSeries;
@@ -443,26 +451,26 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                     <button type="button" onClick={() => { try { analytics.linkHistory(); setLinkError(''); } catch { setLinkError('No se ha podido guardar la vinculación del histórico.'); } }}>Usar este histórico</button>
                 </div>}
                 {linkError && <p className="portfolio-excel-insights__link-error" role="alert">{linkError}</p>}
-                <p className="portfolio-excel-insights__chart-note" role="status">
+                <div className="portfolio-excel-insights__history-line"><p className="portfolio-excel-insights__chart-note" role="status">
                     {hasArchivedHistory
                         ? `Histórico · ${historicalMonthlyCount ? `${historicalMonthlyCount} cierres mensuales` : `${historicalDailyCount} valoraciones diarias`} · ${formatHistoryDate(historicalHistory.startDate)}–${formatHistoryDate(historicalHistory.endDate)}`
                         : history.length
                             ? `Seguimiento verificado desde ${formatHistoryDate(series[0]?.date)}.`
                             : 'Pendiente de una actualización completa de cotizaciones.'}
                 </p>
-                {(hasArchivedHistory || history.length > 0) && <details className="portfolio-excel-insights__history-details">
-                    <summary>Detalles del histórico</summary>
+                {(hasArchivedHistory || history.length > 0) && <DashboardInfo title="Detalles del histórico">
                     <p>{hasArchivedHistory
                         ? `${historicalDailyCount} valoraciones diarias · ${historicalHistory.dcaCount} flujos sin duplicar. Los datos sin fecha exacta se conservan como resúmenes mensuales.`
                         : 'El histórico antiguo se conserva. Solo las valoraciones con posiciones y origen identificados se usan para calcular retornos.'}</p>
-                </details>}
+                </DashboardInfo>}
+                </div>
                 <div className="portfolio-excel-insights__kpis">
                     {kpis.map((kpi) => (
                         <div key={kpi.label}>
                             <span className="portfolio-excel-insights__kpi-icon">{kpi.icon}</span>
                             <span>{kpi.label}</span>
                             <strong className={kpi.tone}>{kpi.value}</strong>
-                            {kpi.value === 'N/D' ? <details className="portfolio-excel-insights__missing"><summary>¿Por qué no hay dato?</summary><p>{missingMetricReason(kpi.label, recentMonthly.length)}</p></details> : kpi.detail && <small>{kpi.detail}</small>}
+                            {kpi.value === 'N/D' ? <DashboardInfo className="portfolio-excel-insights__missing" title={`${kpi.label}: dato no disponible`}><p>{missingMetricReason(kpi.label, recentMonthly.length)}</p></DashboardInfo> : kpi.detail && <small>{kpi.detail}</small>}
                         </div>
                     ))}
                 </div>
@@ -605,7 +613,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                         </p>}
                         {benchmarkPartial && <p className="portfolio-excel-insights__chart-note" role="status">
                             {benchmarkHasPeriodBase
-                                ? `Tu cartera incluye el último dato. La diferencia se calcula hasta ${formatChartDate(benchmarkLine.at(-1)!.date)}.`
+                                ? comparison ? `Tu cartera incluye el último dato. La diferencia se calcula hasta ${formatChartDate(comparison.endDate)}.` : 'Tu cartera incluye el último dato. No hay fechas comparables suficientes para calcular la diferencia.'
                                 : 'Falta el cierre inicial del benchmark para comparar este periodo. La gráfica muestra tu cartera.'}
                         </p>}
                         {!hasPortfolioBenchmark && !benchmarkClassificationPending && !loadingBenchmark && <p className="portfolio-excel-insights__chart-note" role="status">Benchmark sin histórico suficiente para este periodo.</p>}
@@ -638,7 +646,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                         }}
                                     />
                                     <Legend formatter={(value) => benchmarkSeriesLabel(String(value), 'Tu cartera', benchmarkLabel)} />
-                                    <Line isAnimationActive={false} type="linear" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} />
+                                    <Line isAnimationActive={false} type="linear" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} connectNulls />
                                     {benchmarkHasPeriodBase && <Line isAnimationActive={false} type="linear" dataKey="benchmark" name={benchmarkLabel} stroke="#3b82f6" strokeWidth={2} dot={false} connectNulls />}
                                 </LineChart>
                             </ResponsiveContainer>
@@ -728,7 +736,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                             <span>Observaciones <strong>{history.length}</strong></span>
                             <span>Pendientes de consulta <strong>{stale}</strong></span>
                         </div>
-                        {(sharpe === null || sortino === null) && <details className="portfolio-excel-insights__missing"><summary>¿Por qué hay ratios sin dato?</summary>{sharpe === null && <p>Sharpe: {missingMetricReason('Ratio Sharpe', recentMonthly.length)}</p>}{sortino === null && <p>Sortino: {missingMetricReason('Ratio Sortino', recentMonthly.length)}</p>}</details>}
+                        {(sharpe === null || sortino === null) && <DashboardInfo title="Ratios no disponibles" label="Ver motivo">{sharpe === null && <p>Sharpe: {missingMetricReason('Ratio Sharpe', recentMonthly.length)}</p>}{sortino === null && <p>Sortino: {missingMetricReason('Ratio Sortino', recentMonthly.length)}</p>}</DashboardInfo>}
                     </section>
                 )}
 

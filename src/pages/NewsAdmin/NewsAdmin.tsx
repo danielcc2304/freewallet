@@ -50,6 +50,8 @@ import { getNewsTextExcerpt, getSafeNewsImageUrl, sanitizeNewsHtml, slugifyNewsT
 import {AccountMfa} from '../Account/AccountMfa';
 import type {FeedbackTone} from '../../components/ui/FeedbackToast';
 import './NewsAdmin.css';
+import {NewsCoverField} from '../../components/news/NewsCoverField';
+import {isGooglePhotoShare} from '../../services/newsImages';
 
 interface NewsDraft {
     id?: string;
@@ -119,6 +121,8 @@ export function NewsAdmin() {
     const [password, setPassword] = useState('');
     const [inviteEmail, setInviteEmail] = useState('');
     const [pendingInvitation, setPendingInvitation] = useState(false);
+    const [accessDenied,setAccessDenied]=useState(false);
+    const [preparingImage,setPreparingImage]=useState(false);
     const [loading, setLoading] = useState(true);
     const [loginLoading, setLoginLoading] = useState(false);
     const [saving, setSaving] = useState(false);
@@ -189,8 +193,7 @@ export function NewsAdmin() {
                             setSession(currentSession);
                             setPendingInvitation(true);
                         } else {
-                            await signOutNewsAdmin();
-                            setError('Esta cuenta no tiene permisos de edición.');
+                            setSession(currentSession);setAccessDenied(true);
                         }
                     } else {
                         const currentUserIsOwner = ownerBootstrap || await isCurrentUserNewsOwner();
@@ -238,8 +241,7 @@ export function NewsAdmin() {
                     return;
                 }
 
-                await signOutNewsAdmin();
-                throw new NewsServiceError('La cuenta ha iniciado sesión, pero no tiene permisos de edición.');
+                setSession(nextSession);setAccessDenied(true);setPassword('');return;
             }
 
             const currentUserIsOwner = ownerBootstrap || await isCurrentUserNewsOwner();
@@ -261,7 +263,7 @@ export function NewsAdmin() {
 
     const handleLogout = async () => {
         await signOutNewsAdmin();
-        setSession(null);
+        setSession(null);setAccessDenied(false);
         setPosts([]);
         setIsOwner(false);
         setAdminMembers([]);
@@ -337,6 +339,7 @@ export function NewsAdmin() {
     };
 
     const startNewPost = () => {
+        if(preparingImage)return;
         setDraft({ ...EMPTY_DRAFT });
         setSlugEdited(false);
         setPreviewOpen(false);
@@ -345,6 +348,7 @@ export function NewsAdmin() {
     };
 
     const editPost = (post: NewsPost) => {
+        if(preparingImage)return;
         if(!isOwner && post.authorId!==session?.user.id)return;
         setDraft(draftFromPost(post));
         setSlugEdited(true);
@@ -370,6 +374,8 @@ export function NewsAdmin() {
             return;
         }
 
+        if(preparingImage){setError('Espera a que termine de prepararse la imagen.');return;}
+        if(isGooglePhotoShare(draft.coverImageUrl)){setError('Pulsa «Importar de Google Fotos» para guardar la foto como portada.');return;}
         const coverImageUrl = getSafeNewsImageUrl(draft.coverImageUrl);
         if (draft.coverImageUrl.trim() && !coverImageUrl) {
             setError('La imagen de portada debe usar una URL http(s) válida.');
@@ -452,6 +458,13 @@ export function NewsAdmin() {
         return <NewsAdminInviteAcceptance onAccepted={() => void handleInvitationAccepted()} />;
     }
 
+    if(accessDenied)return <div className="news-admin news-admin--login"><Card className="news-admin__login-card"><CardContent>
+        <div className="news-admin__login-icon"><LockKeyhole size={28}/></div><h1>Acceso editorial restringido</h1>
+        <p className="news-admin__login-copy">Tu sesión sigue activa. Esta cuenta puede leer noticias y participar en los comentarios, pero no tiene permisos de edición.</p>
+        <Link className="news-admin__public-link" to="/news">Ir a noticias</Link>
+        <Button type="button" variant="secondary" onClick={()=>void handleLogout()}>Cambiar de cuenta</Button>
+    </CardContent></Card></div>;
+
     if (!session) {
         return (
             <div className="news-admin news-admin--login">
@@ -463,7 +476,7 @@ export function NewsAdmin() {
                         <p className="news-admin__eyebrow">Área privada</p>
                         <h1>Panel editorial</h1>
                         <p className="news-admin__login-copy">
-                            Inicia sesión con tu cuenta de administrador para crear y publicar noticias.
+                            Accede con una cuenta autorizada para crear y publicar noticias.
                         </p>
 
                         {error && <NewsToast tone="error">{error}</NewsToast>}
@@ -471,9 +484,9 @@ export function NewsAdmin() {
 
                         <form className="news-admin__login-form" onSubmit={handleLogin}>
                             <Input
-                                label="Correo electrónico"
-                                type="email"
-                                autoComplete="email"
+                                label="Usuario o correo electrónico"
+                                type="text"
+                                autoComplete="username"
                                 value={email}
                                 onChange={(event) => setEmail(event.target.value)}
                                 required
@@ -536,7 +549,7 @@ export function NewsAdmin() {
                                 <Button variant="ghost" size="sm" icon={<RefreshCw size={15} />} onClick={() => void handleRefresh()}>
                                     Actualizar
                                 </Button>
-                                <Button size="sm" icon={<Plus size={16} />} onClick={startNewPost}>
+                                <Button size="sm" icon={<Plus size={16} />} disabled={preparingImage} onClick={startNewPost}>
                                     Nueva
                                 </Button>
                             </div>
@@ -547,7 +560,7 @@ export function NewsAdmin() {
                                 <div className="news-admin__empty-list">
                                     <FileText size={26} />
                                     <p>Aún no hay noticias editoriales.</p>
-                                    <Button variant="secondary" size="sm" onClick={startNewPost}>
+                                    <Button variant="secondary" size="sm" disabled={preparingImage} onClick={startNewPost}>
                                         Crear primer borrador
                                     </Button>
                                 </div>
@@ -557,7 +570,7 @@ export function NewsAdmin() {
                                     className={`news-admin__post-row ${draft.id === post.id ? 'news-admin__post-row--selected' : ''}`}
                                     key={post.id}
                                 >
-                                    <button type="button" disabled={!isOwner && post.authorId!==session?.user.id} className="news-admin__post-select" onClick={() => editPost(post)}>
+                                    <button type="button" disabled={preparingImage || (!isOwner && post.authorId!==session?.user.id)} className="news-admin__post-select" onClick={() => editPost(post)}>
                                         <span className={`news-admin__status news-admin__status--${post.status}`}>
                                             {post.status === 'published' ? 'Publicada' : 'Borrador'}
                                         </span>
@@ -570,7 +583,7 @@ export function NewsAdmin() {
                                             size="sm"
                                             icon={<Edit3 size={15} />}
                                             aria-label={`Editar ${post.title}`}
-                                            disabled={!isOwner && post.authorId!==session?.user.id}
+                                            disabled={preparingImage || (!isOwner && post.authorId!==session?.user.id)}
                                             onClick={() => editPost(post)}
                                         >
                                             Editar
@@ -600,7 +613,7 @@ export function NewsAdmin() {
                                 <h2>{draft.id ? draft.title || 'Sin título' : 'Escribe tu análisis'}</h2>
                             </div>
                             {draft.id && (
-                                <Button variant="ghost" size="sm" icon={<Edit3 size={15} />} onClick={startNewPost}>
+                                <Button variant="ghost" size="sm" icon={<Edit3 size={15} />} disabled={preparingImage} onClick={startNewPost}>
                                     Nueva
                                 </Button>
                             )}
@@ -635,6 +648,7 @@ export function NewsAdmin() {
                                 }}
                                 placeholder="analisis-ciclo-macro"
                             />
+                            <NewsCoverField key={draft.id??'new'} value={draft.coverImageUrl} onChange={url=>setDraft(current=>({...current,coverImageUrl:url}))} disabled={saving} onBusyChange={setPreparingImage}/>
                             <div className="news-admin__field news-admin__field--wide">
                                 <label className="news-admin__label" htmlFor="news-excerpt">Extracto</label>
                                 <textarea
@@ -647,14 +661,6 @@ export function NewsAdmin() {
                                 />
                                 <span className="news-admin__hint">{draft.excerpt.length}/500 caracteres</span>
                             </div>
-                            <Input
-                                label="Imagen de portada (opcional)"
-                                hint="Pega una URL https://."
-                                type="url"
-                                value={draft.coverImageUrl}
-                                onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, coverImageUrl: event.target.value }))}
-                                placeholder="https://…"
-                            />
                         </div>
 
                         <div className="news-admin__editor-field">
@@ -680,7 +686,7 @@ export function NewsAdmin() {
                                 variant="secondary"
                                 icon={<FileText size={16} />}
                                 loading={savingStatus === 'draft'}
-                                disabled={saving}
+                                disabled={saving||preparingImage}
                                 onClick={() => void handleSave('draft')}
                             >
                                 Guardar borrador
@@ -688,7 +694,7 @@ export function NewsAdmin() {
                             <Button
                                 icon={<Send size={16} />}
                                 loading={savingStatus === 'published'}
-                                disabled={saving}
+                                disabled={saving||preparingImage}
                                 onClick={() => void handleSave('published')}
                             >
                                 {draft.id && draft.status === 'published' ? 'Actualizar publicación' : 'Publicar'}

@@ -12,6 +12,44 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-15 - v6.4.0 - Cuenta y comentarios en Noticias
+- Funcionalidad:
+  - Cuenta: puedes elegir un nombre de usuario único e iniciar sesión con ese nombre o con tu correo.
+  - Noticias: puedes comentar y responder con textos de hasta 10.000 caracteres, editar o borrar tus comentarios y ver las portadas completas.
+  - Noticias: los editores pueden importar portadas desde enlaces compartidos de Google Fotos.
+- Resumen:
+  - Hace más fácil acceder a tu cuenta y participar en las conversaciones de Noticias.
+- Archivos:
+  - `docs/account-usernames.md`, `docs/news-comments.md`, `FEATURE_LOG.md`, `package-lock.json`, `package.json`, `README.md`, `scripts/test-account-feedback.ts`, `scripts/test-account-usernames-ui.ts`, `scripts/test-account-usernames.ts`, `scripts/test-mfa-disable-ui.ts`, `scripts/test-news-article-editor-ui.ts`, `scripts/test-news-comments.ts`, `scripts/test-news-images.ts`, `scripts/test-news-layout-comments-ui.ts`, `src/components/news/NewsComments.css`, `src/components/news/NewsComments.tsx`, `src/components/news/NewsCoverField.tsx`, `src/components/news/RichTextEditor/RichTextEditor.css`, `src/constants/app.ts`, `src/hooks/useNewsCommentIdentity.ts`, `src/pages/Account/Account.css`, `src/pages/Account/Account.tsx`, `src/pages/Account/AccountIdentity.tsx`, `src/pages/News/News.css`, `src/pages/News/News.tsx`, `src/pages/NewsAdmin/NewsAdmin.css`, `src/pages/NewsAdmin/NewsAdmin.tsx`, `src/services/accountProfile.ts`, `src/services/newsComments.ts`, `src/services/newsImages.ts`, `src/services/newsService.ts`, `supabase/functions/import-news-image/deno.json`, `supabase/functions/import-news-image/handler.ts`, `supabase/functions/import-news-image/index.ts`, `supabase/functions/username-login/deno.json`, `supabase/functions/username-login/handler.ts`, `supabase/functions/username-login/index.ts`, `supabase/migrations/20261015115626_account_usernames.sql`, `supabase/migrations/20261015131909_news_comments.sql`, `supabase/migrations/20261015140450_news_comment_replies.sql`, `supabase/migrations/20261015145327_news_comment_length.sql`
+
+### 2026-10-15 - v6.3.3 - Dashboard más claro
+- Funcionalidad:
+  - Dashboard: resume los avisos sobre datos y cotizaciones para que ocupen menos espacio; puedes abrir la ayuda cuando necesites más detalles.
+  - Dashboard: muestra el motivo de los resultados no disponibles al abrir su explicación.
+  - Cuenta: permite quitar el autenticador después de confirmar la operación con su código actual.
+- Resumen:
+  - El Dashboard queda más despejado y conserva a mano las explicaciones sobre precios, datos y resultados.
+  - También puedes quitar el autenticador de la cuenta cuando tengas acceso a su código de verificación.
+- Archivos:
+  - `FEATURE_LOG.md`, `package.json`, `package-lock.json`, `src/constants/app.ts`, `scripts/test-dashboard-quality-ui.ts`, `scripts/test-dashboard-results-ui.ts`, `scripts/test-portfolio-periods-ui.ts`, `scripts/test-ytd-verification-ui.ts`, `src/components/dashboard/DashboardInfo.css`, `src/components/dashboard/DashboardInfo.tsx`, `src/components/dashboard/PortfolioDataQuality.css`, `src/components/dashboard/PortfolioDataQuality.tsx`, `src/components/dashboard/PortfolioExcelInsights.css`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/components/dashboard/PortfolioSummary/PortfolioSummary.tsx`, `src/pages/Dashboard/Dashboard.css`, `src/pages/Dashboard/Dashboard.tsx`, `scripts/test-mfa-disable-ui.ts`, `scripts/test-mfa-management.ts`, `src/pages/Account/AccountMfa.tsx`, `src/services/mfaManagement.ts`.
+
+### 2026-10-14 - v6.3.2 - Gastos, análisis de cartera y calculadora de bonos
+- Funcionalidad:
+  - Ancla el calendario de cupones al vencimiento, conserva fin de mes y permite definir periodos iniciales y finales irregulares.
+  - Distingue precios limpios y sucios, e incorpora Actual/365 fijo, Actual/360, 30E/360 y 30/360 US.
+  - Calcula TIR nominal y efectiva con un solver que verifica la convergencia y el error de precio.
+  - Añade ayuda contextual al importador y aclara columnas obligatorias, duplicados y vista previa.
+  - Refina las sugerencias BBVA: separa Ropa de Compras, clasifica comida rápida como Ocio y añade Ropa a libros existentes.
+  - Registra traspasos parciales o completos entre fondos, estima las participaciones con las últimas valoraciones y conserva tanto el coste de adquisición como el precio de ejecución del fondo de destino.
+  - Conserva las valoraciones guardadas por lotes con consultas de fondos cacheadas, sin usar esas consultas para crear nuevas valoraciones en vivo.
+  - Guarda la membresía exacta de movimientos en cada snapshot y en sus reparaciones para no recuperar operaciones retiradas; muestra el último NAV real del benchmark y calcula diferencias solo en fechas comunes.
+- Resumen:
+  - Corrige fechas de pago, descuentos entre cupones, escala por nominal y flujos de cupones irregulares. Separa el motor financiero de la interfaz y documenta el modelo y sus límites.
+  - Facilita revisar importaciones, mejora la categorización sin reemplazar las categorías personalizadas, mantiene snapshots fieles al ledger vigente, extiende el benchmark a su último NAV real y respeta las fechas comparables y la fecha original de las valoraciones guardadas por lotes.
+- Archivos:
+  - `FEATURE_LOG.md`, `docs/bond-calculator-audit.md`, `scripts/fixtures/coreweave-bond-reference.json`, `scripts/test-bond-calculator.ts`, `scripts/test-bond-calculator-ui.ts`, `scripts/verify-coreweave-bond.py`, `src/components/academy/calculators/BondCalculator.css`, `src/components/academy/calculators/BondCalculator.tsx`, `src/services/bondCalculator.ts`, `src/constants/app.ts`, `src/components/expenses/ExpenseImportDialog.tsx`, `src/components/expenses/ExpenseManager.css`, `src/components/expenses/ExpenseManager.tsx`, `src/services/expenseImport.ts`, `src/services/expensePlanner.ts`, `src/services/expenseStore.ts`, `src/components/dashboard/AssetsTable.tsx`, `src/components/dashboard/FundTransferDialog.css`, `src/components/dashboard/FundTransferDialog.tsx`, `src/components/dashboard/LivePortfolioPlan.tsx`, `src/context/PortfolioContext.tsx`, `src/pages/Dashboard/Dashboard.tsx`, `src/pages/Transactions/Transactions.css`, `src/pages/Transactions/Transactions.tsx`, `src/services/portfolioHistoryArchive.ts`, `src/services/portfolioPerformance.ts`, `src/services/portfolioResults.ts`, `src/services/portfolioTradeReplay.ts`, `src/services/portfolioWorkbookHistory.ts`, `src/types/portfolio.ts`, `scripts/test-batch-history.ts`, `src/services/dailyMarketData.ts`, `supabase/migrations/20261014192131_portfolio_fund_transfer_execution_prices.sql`, `scripts/test-architecture-hardening.ts`, `scripts/test-batch-benchmark-ui.ts`, `scripts/test-benchmark-comparison.ts`, `scripts/test-market-refresh-cadence.ts`, `src/components/dashboard/PortfolioExcelInsights.tsx`, `src/services/benchmarkComparison.ts`, `supabase/migrations/20261014194446_snapshot_ledger_membership.sql`.
+
+
 ### 2026-10-14 - v6.3.1 - Importación y gestión de movimientos del planificador
 - Funcionalidad:
   - Importa extractos BBVA desde Excel y sugiere categorías para movimientos reconocibles.

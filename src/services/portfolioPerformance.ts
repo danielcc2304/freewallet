@@ -48,7 +48,14 @@ export function comparePortfolioTransactions(a: PortfolioTransaction, b: Portfol
 }
 
 function transactionFlow(transaction: PortfolioTransaction): number {
-    return transaction.type === 'buy' ? transaction.total ?? NaN : transaction.type === 'sell' ? -(transaction.total ?? NaN) : 0;
+    if (transaction.type === 'buy') return transaction.total ?? NaN;
+    if (transaction.type === 'sell') return -(transaction.total ?? NaN);
+    if (transaction.type === 'transfer' && (!transaction.transferToAssetId || transaction.assetType !== 'fund' || transaction.transferToAssetType !== 'fund'
+        || !Number.isFinite(transaction.quantity) || transaction.quantity! <= 0 || !Number.isFinite(transaction.transferQuantity) || transaction.transferQuantity! <= 0
+        || !Number.isFinite(transaction.total) || transaction.total! <= 0 || !Number.isFinite(transaction.price) || transaction.price! <= 0
+        || (transaction.transferToPrice !== undefined && (!Number.isFinite(transaction.transferToPrice) || transaction.transferToPrice <= 0))
+        || !Number.isFinite(transaction.transferBasis) || transaction.transferBasis! < 0)) return NaN;
+    return 0;
 }
 
 /** Preserve the user's ledger, including sold positions and correction records. */
@@ -67,7 +74,8 @@ export function normalizePortfolioTransactions(assets: Asset[], transactions: Po
 export function portfolioLedgerKey(transactions: PortfolioTransaction[], date: string): string {
     const day = accountingDay(date);
     const canonical = JSON.stringify(transactions.filter(t => !getTransactionEventDay(t) || getTransactionEventDay(t) <= day)
-        .map(t => [t.id, t.assetId, t.assetSymbol, t.type, t.date, t.quantity, t.price, t.total])
+        .map(t => [t.id, t.assetId, t.assetSymbol, t.type, t.date, t.quantity, t.price, t.total,
+            ...(t.type === 'transfer' ? [t.transferToAssetId, t.transferToAssetSymbol, t.transferQuantity, t.transferToPrice, t.transferBasis] : [])])
         .sort((a, b) => String(a[0]).localeCompare(String(b[0]))));
     // Two independent 32-bit checksums keep minute snapshots small enough for
     // localStorage. This is a change detector, not an authentication token.
@@ -87,6 +95,19 @@ export function createQuoteSnapshot(assets: Asset[], transactions: PortfolioTran
     return { date, value: assets.reduce((sum, a) => sum + a.currentPrice! * a.quantity, 0),
         invested: assets.reduce((sum, a) => sum + a.purchasePrice * a.quantity, 0),
         source: 'quotes-v2', ledgerKey: portfolioLedgerKey(normalizePortfolioTransactions(assets, transactions), date) };
+}
+
+/** Read a server-captured valuation at its original collection time. Cached
+ * fund consultations are valid here; they must never create a live valuation. */
+export function readBatchSnapshot(assets: Asset[], transactions: PortfolioTransaction[], date: string): PortfolioHistoryPoint | null {
+    const collectedAt = Date.parse(date);
+    if (!assets.length || !Number.isFinite(collectedAt)
+        || assets.some(asset => portfolioQuoteStatus({ ...asset, quoteOrigin: 'batch' }, collectedAt).valuationBlockers.length > 0)) return null;
+    const value = assets.reduce((sum, asset) => sum + asset.currentPrice! * asset.quantity, 0);
+    const invested = assets.reduce((sum, asset) => sum + asset.purchasePrice * asset.quantity, 0);
+    if (!Number.isFinite(value) || !Number.isFinite(invested)) return null;
+    return { date, value, invested, source: 'quotes-v2',
+        ledgerKey: portfolioLedgerKey(normalizePortfolioTransactions(assets, transactions), date) };
 }
 
 /**
@@ -126,10 +147,11 @@ export function createMarketPortfolioHistory(
 ): PortfolioHistoryPoint[] {
     const ledger = normalizePortfolioTransactions(assets, transactions);
     if (ledger.some(t => !getTransactionEventDay(t))) return [];
-    const ids = new Set([...assets.map(a => a.id), ...ledger.map(t => t.assetId)]);
+    const ids = new Set([...assets.map(a => a.id), ...ledger.flatMap(t => [t.assetId, ...(t.type === 'transfer' && t.transferToAssetId ? [t.transferToAssetId] : [])])]);
     const positions = [...ids].map(id => ({
-        isCash: assets.find(a => a.id === id)?.type === 'cash' || ledger.find(t => t.assetId === id)?.assetType === 'cash',
-        operations: ledger.filter(t => t.assetId === id).sort(comparePortfolioTransactions),
+        id,
+        isCash: assets.find(a => a.id === id)?.type === 'cash' || ledger.find(t => t.assetId === id || (t.type === 'transfer' && t.transferToAssetId === id))?.assetType === 'cash',
+        operations: ledger.filter(t => t.assetId === id || (t.type === 'transfer' && t.transferToAssetId === id)).sort(comparePortfolioTransactions),
         quotes: (assetHistory.get(id) || []).map(p => ({ ...p, day: accountingDay(p.date) })).filter(p => p.day).sort((a, b) => a.day.localeCompare(b.day)),
         operationIndex: 0, quoteIndex: -1, quantity: 0, cost: 0, invalid: false,
     }));
@@ -140,6 +162,20 @@ export function createMarketPortfolioHistory(
         for (const position of positions) {
             while (position.operationIndex < position.operations.length && getTransactionEventDay(position.operations[position.operationIndex]) <= day) {
                 const op = position.operations[position.operationIndex++];
+                if (op.type === 'transfer') {
+                    const outgoing = op.assetId === position.id;
+                    const quantity = outgoing ? op.quantity : op.transferQuantity;
+                    const basis = op.transferBasis;
+                    if (!op.transferToAssetId || op.assetType !== 'fund' || op.transferToAssetType !== 'fund'
+                        || !Number.isFinite(op.quantity) || op.quantity! <= 0 || !Number.isFinite(op.transferQuantity) || op.transferQuantity! <= 0
+                        || !Number.isFinite(op.total) || op.total! <= 0 || !Number.isFinite(op.price) || op.price! <= 0
+                        || !Number.isFinite(quantity) || quantity! <= 0 || !Number.isFinite(basis) || basis! < 0) { position.invalid = true; continue; }
+                    if (outgoing) {
+                        if (quantity! > position.quantity + 1e-8 || basis! > position.cost + Math.max(.01, position.cost * 1e-7) || position.quantity <= 0) position.invalid = true;
+                        else { position.quantity = Math.max(0, position.quantity - quantity!); position.cost = Math.max(0, position.cost - basis!); }
+                    } else { position.quantity += quantity!; position.cost += basis!; }
+                    continue;
+                }
                 if (!['buy', 'sell'].includes(op.type) || !Number.isFinite(op.quantity) || op.quantity! <= 0 || !Number.isFinite(op.total)) { position.invalid = true; continue; }
                 if (op.type === 'buy') { position.quantity += op.quantity!; position.cost += op.total!; }
                 else if (op.quantity! > position.quantity + 1e-8 || position.quantity <= 0) position.invalid = true;

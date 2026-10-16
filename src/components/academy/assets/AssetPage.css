@@ -1840,3 +1840,179 @@
         align-items: center;
     }
 }
+
+/* Asset guides: shared reading rhythm, scoped to avoid changing other lessons. */
+.asset-page {
+    --guide-surface: var(--bg-secondary);
+    --guide-tint: color-mix(in srgb, var(--asset-color) 7%, var(--guide-surface));
+    --academy-space-section: clamp(2rem, 4vw, 3rem);
+    container-type: inline-size;
+    overflow-wrap: anywhere;
+}
+
+.asset-page .asset-page__back {
+    min-height: 44px;
+    margin-bottom: .75rem;
+    font-weight: 600;
+}
+
+.academy__content > .asset-page > .asset-page__hero {
+    padding: 1.5rem;
+    text-align: left;
+    border-top: 3px solid var(--asset-color);
+    background: linear-gradient(125deg, var(--guide-tint), var(--guide-surface));
+}
+
+.asset-page .asset-page__hero .page-header__eyebrow {
+    position: static;
+    margin-bottom: 1rem;
+}
+
+.asset-page .asset-page__hero-icon {
+    width: 52px;
+    height: 52px;
+    margin: .75rem 0 1rem;
+    border-radius: 15px;
+    background: var(--guide-surface);
+    border: 1px solid var(--border-color);
+    box-shadow: none;
+}
+
+.asset-page .asset-page__hero-icon svg { width: 28px; height: 28px; }
+.academy__content > .asset-page > .asset-page__hero h1 { font-size: clamp(1.55rem, 3vw, 2.25rem); }
+.academy__content > .asset-page > .asset-page__hero .asset-page__hero-sub { max-width: 70ch; }
+
+.asset-page .asset-page__hero-stats {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: .75rem;
+    margin-top: 1.5rem;
+}
+
+.asset-page .hero-stat {
+    min-width: 0;
+    text-align: left;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    background: var(--guide-surface);
+    justify-content: center;
+}
+
+.asset-page .hero-stat__value { font-size: clamp(1rem, 2.5vw, 1.4rem); color: var(--text-primary); }
+.asset-page .hero-stat__label { font-size: .78rem; text-transform: none; letter-spacing: 0; line-height: 1.4; color: var(--text-secondary); }
+
+.asset-guide-nav {
+    padding: 1rem 0 1.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.asset-guide-nav__label { display: block; font-size: .8rem; font-weight: 700; color: var(--text-secondary); margin-bottom: .65rem; }
+.asset-guide-nav__links { display: flex; flex-wrap: wrap; gap: .5rem; }
+.asset-guide-nav a {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    padding: .5rem .85rem;
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-primary);
+    background: var(--guide-surface);
+    font-size: .85rem;
+    line-height: 1.4;
+    text-decoration: none;
+}
+.asset-guide-nav a:hover { background: var(--guide-tint); border-color: var(--asset-color); }
+.asset-page :is(a, button, input):focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 4px; }
+.asset-page section[id] { scroll-margin-top: 1.5rem; }
+.asset-page .asset-page__section h2 {
+    font-size: clamp(1.2rem, 2.4vw, 1.55rem);
+    line-height: 1.35;
+    margin: 0 0 1.25rem;
+    align-items: flex-start;
+}
+.asset-page .asset-page__section h2 svg { flex: 0 0 22px; margin-top: .12em; }
+.asset-page .asset-page__text-block { font-size: 1rem; line-height: 1.75; gap: .8rem; }
+.asset-page .asset-page__text-block p { margin: 0; }
+
+.asset-page :is(.asset-page__subtype-grid, .asset-page__steps, .yield-curves, .bond-type-block__subtypes) {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 1rem;
+}
+.asset-page :is(.credit-spreads-grid, .bond-checklist-grid, .bond-ladder, .bond-duration-calc__inputs, .bond-duration-calc__summary, .bond-mistakes-grid) {
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+    gap: 1rem;
+}
+.asset-page :is(.subtype-card, .step-card, .pc-column, .versus-card, .metric-explainer, .bond-type-block, .yield-curve-card) {
+    padding: clamp(1rem, 2.5vw, 1.5rem);
+    border-radius: 16px;
+    min-width: 0;
+}
+.asset-page .subtype-card { display: flex; flex-direction: column; }
+.asset-page .subtype-card:hover { transform: none; }
+.asset-page .subtype-card__header { align-items: flex-start; }
+.asset-page .subtype-card__header svg { flex-shrink: 0; }
+.asset-page .subtype-card__dot { flex: 0 0 8px; margin-top: .5rem; }
+.asset-page .subtype-card__desc { line-height: 1.65; }
+.asset-page .subtype-card__footer { margin-top: auto; flex-wrap: wrap; gap: .5rem; }
+.asset-page .subtype-card__examples { margin-top: auto; }
+.asset-page .asset-page__pros-cons { gap: 1rem; }
+.asset-page .versus-card__badge { position: static; transform: none; display: block; width: fit-content; margin: 1rem auto 0; text-align: center; }
+.asset-page .pc-column h3 { margin: 0 0 1rem; font-size: 1.1rem; }
+.asset-page .pc-column li { line-height: 1.65; }
+.asset-page .step-card { text-align: left; display: flex; flex-direction: column; align-items: flex-start; }
+.asset-page .step-card__number { margin: 0 0 1rem; flex-shrink: 0; }
+.asset-page .step-card h4 { margin: 0 0 .5rem; font-size: 1rem; }
+.asset-page .step-card p { margin: 0 0 .75rem; line-height: 1.65; }
+.asset-page .step-card__badge { position: static; margin-top: auto; text-transform: none; font-size: .75rem; }
+.asset-page .asset-page__callout { margin-top: 1.25rem; padding: 1rem; border-radius: 12px; gap: .75rem; }
+.asset-page .asset-page__callout > div { min-width: 0; }
+.asset-page .asset-page__callout p { line-height: 1.65; }
+.asset-page .asset-page__final-tip { margin-top: 2rem; padding: 1.5rem; gap: 1rem; text-align: left; align-items: flex-start; background: var(--guide-tint); }
+.asset-page .asset-page__final-tip > svg { flex: 0 0 28px; }
+.asset-page .asset-page__final-tip h3 { margin: 0 0 .5rem; }
+.asset-page .asset-page__final-tip p { margin: 0; line-height: 1.7; }
+.asset-page .cta-box { padding: 1.5rem; }
+.asset-page .cta-box__button { max-width: 100%; box-sizing: border-box; line-height: 1.5; text-align: center; }
+
+/* Renta fija: the experiments remain visible and controls are touch friendly. */
+.asset-page .bond-type-block { margin-bottom: 1.25rem; border-left-width: 3px; }
+.asset-page .bond-type-block__emoji { width: 48px; height: 48px; flex: 0 0 48px; }
+.asset-page .bond-type-block__header { gap: 1rem; }
+.asset-page .bond-type-block__header h3 { font-size: 1.2rem; }
+.asset-page .bond-subtype__header { gap: .75rem; flex-wrap: wrap; align-items: flex-start; }
+.asset-page .bond-subtype__risk { flex-shrink: 0; }
+.asset-page :is(.spread-sim, .bond-duration-calc, .rating-scale, .inflation-visual) { padding: clamp(1rem, 2.5vw, 1.5rem); border: 1px solid var(--border-color); border-radius: 16px; }
+.asset-page .spread-sim button { min-height: 44px; font-size: .85rem; line-height: 1.4; }
+.asset-page input[type='range'] { min-height: 44px; accent-color: var(--accent-primary); }
+.asset-page .spread-sim__stress-btn { background: var(--bg-tertiary); color: var(--text-primary); border-color: var(--border-color); }
+.asset-page .spread-sim__stress-btn.is-active { background: var(--text-primary); color: var(--bg-primary); }
+.asset-page .bond-ladder__hint { background: var(--guide-tint); color: var(--text-primary); }
+.asset-page .convexity-chart { min-width: 0; }
+.asset-page .rating-row__badge { flex: 0 0 60px; }
+.asset-page .rating-row__bar-container { min-width: 40px; background: var(--bg-secondary); }
+
+html[data-appearance='liquid-glass'] .asset-page {
+    --guide-surface: color-mix(in srgb, var(--bg-secondary) 80%, transparent);
+}
+
+@container (max-width: 620px) {
+    .asset-page .asset-page__hero-stats { grid-template-columns: 1fr; gap: .5rem; }
+    .asset-page .hero-stat { flex-direction: row; justify-content: space-between; align-items: center; gap: .75rem; padding: .75rem; }
+    .asset-page .hero-stat__label { text-align: right; max-width: 50%; }
+    .asset-page .asset-page__hero-icon { display: none; }
+    .asset-page .asset-page__pros-cons { grid-template-columns: 1fr; }
+    .asset-page .asset-page__versus { flex-direction: column; gap: .75rem; }
+    .asset-page .asset-page__metrics-grid { grid-template-columns: 1fr; }
+    .asset-page .spread-sim__controls { grid-template-columns: 1fr; }
+    .asset-page .rating-row { gap: .5rem; flex-wrap: wrap; }
+    .asset-page .rating-row__info { width: auto; flex: 1 1 100%; }
+    .asset-page .rating-scale__divider { gap: .75rem; flex-wrap: wrap; }
+    .asset-page .asset-page__final-tip { flex-direction: row; padding: 1rem; }
+}
+
+@media (max-width: 1024px) {
+    /* Leave room for the fixed mobile menu when following a section link. */
+    .asset-page section[id] { scroll-margin-top: 5rem; }
+}

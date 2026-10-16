@@ -5,6 +5,7 @@ import {
     Lightbulb, BarChart3, Clock, Shield, TrendingDown, TrendingUp, ArrowUpDown
 } from 'lucide-react';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
+import { AssetGuideNav } from './AssetGuideNav';
 import './AssetPage.css';
 
 const BOND_TYPES = [
@@ -209,9 +210,9 @@ export function AssetBonds() {
     const normalizedLong = portfolioWeightTotal > 0 ? (weightLong / portfolioWeightTotal) * 100 : 0;
 
     return (
-        <div className="asset-page">
+        <div className="asset-page asset-page--bonds" style={{ '--asset-color': '#10b981' } as React.CSSProperties}>
             <Link to="/academy/portfolio" className="asset-page__back">
-                <ArrowLeft size={18} /> Volver a Carteras
+                <ArrowLeft size={18} /> Estrategia y cartera
             </Link>
 
             <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#10b981' } as React.CSSProperties}>
@@ -239,8 +240,24 @@ export function AssetBonds() {
                 </div>
             </AcademyPageHeader>
 
+            <AssetGuideNav sections={[
+                { id: 'section-1', label: 'Conceptos' },
+                { id: 'section-2', label: 'Precio y rentabilidad' },
+                { id: 'section-3', label: 'Duración y convexidad' },
+                { id: 'section-4', label: 'Curva de tipos' },
+                { id: 'section-5', label: 'Tipos de bonos' },
+                { id: 'section-6', label: 'Ratings' },
+                { id: 'section-7', label: 'Spreads y simulador' },
+                { id: 'section-8', label: 'Antes de comprar' },
+                { id: 'section-9', label: 'Escalera de vencimientos' },
+                { id: 'section-10', label: 'Duración de cartera' },
+                { id: 'section-11', label: 'Errores frecuentes' },
+                { id: 'section-12', label: 'Ventajas y riesgos' },
+                { id: 'section-13', label: 'Cómo invertir' },
+            ]} />
+
             {/* What is it */}
-            <section className="asset-page__section">
+            <section id="section-1" className="asset-page__section">
                 <h2><Globe size={22} /> ¿Qué es un Bono?</h2>
                 <div className="asset-page__text-block">
                     <p>
@@ -294,7 +311,7 @@ export function AssetBonds() {
             </section>
 
             {/* Inverse relationship */}
-            <section className="asset-page__section">
+            <section id="section-2" className="asset-page__section">
                 <h2><ArrowUpDown size={22} /> La Regla de Oro: Precio vs Yield</h2>
                 <div className="asset-page__text-block">
                     <p>
@@ -332,7 +349,7 @@ export function AssetBonds() {
             </section>
 
             {/* Duration & Convexity */}
-            <section className="asset-page__section">
+            <section id="section-3" className="asset-page__section">
                 <h2><BarChart3 size={22} /> Duración y Convexidad</h2>
                 <div className="asset-page__text-block">
                     <p>
@@ -401,7 +418,7 @@ export function AssetBonds() {
             </section>
 
             {/* Yield Curve */}
-            <section className="asset-page__section">
+            <section id="section-4" className="asset-page__section">
                 <h2><TrendingUp size={22} /> La Curva de Tipos</h2>
                 <div className="asset-page__text-block">
                     <p>
@@ -449,7 +466,7 @@ export function AssetBonds() {
             </section>
 
             {/* Bond types deep dive */}
-            <section className="asset-page__section">
+            <section id="section-5" className="asset-page__section">
                 <h2><Shield size={22} /> Tipos de Bonos en Detalle</h2>
                 <p className="asset-page__section-desc">
                     No todos los bonos son iguales. La diferencia entre deuda gubernamental y high yield
@@ -486,7 +503,7 @@ export function AssetBonds() {
             </section>
 
             {/* Credit Rating */}
-            <section className="asset-page__section">
+            <section id="section-6" className="asset-page__section">
                 <h2><BarChart3 size={22} /> Ratings Crediticios</h2>
                 <div className="asset-page__text-block">
                     <p>Las agencias de calificación (Moody's, S&P, Fitch) evalúan la probabilidad de que un emisor pague sus deudas. La calificación determina el interés que debe pagar el emisor.</p>
@@ -521,7 +538,7 @@ export function AssetBonds() {
             </section>
 
             {/* Credit spread */}
-            <section className="asset-page__section">
+            <section id="section-7" className="asset-page__section">
                 <h2><TrendingDown size={22} /> Spread de Crédito: El Termómetro del Riesgo</h2>
                 <div className="asset-page__text-block">
                     <p>
@@ -573,6 +590,7 @@ export function AssetBonds() {
                     <div className="spread-sim__mode">
                         <button
                             type="button"
+                            aria-pressed={!isStressMode}
                             className={`spread-sim__mode-btn ${!isStressMode ? 'is-active' : ''}`}
                             onClick={() => setIsStressMode(false)}
                         >
@@ -580,19 +598,21 @@ export function AssetBonds() {
                         </button>
                         <button
                             type="button"
+                            aria-pressed={isStressMode}
                             className={`spread-sim__mode-btn ${isStressMode ? 'is-active' : ''}`}
                             onClick={() => {
                                 setIsStressMode(true);
                                 if (spreadShockBps < 0) setSpreadShockBps(100);
                             }}
                         >
-                            Modo estres
+                            Modo estrés
                         </button>
                     </div>
 
                     <div className="spread-sim__preset-buttons">
                         <button
                             type="button"
+                            aria-pressed={spreadClass === 'ig'}
                             className={`spread-sim__preset ${spreadClass === 'ig' ? 'is-active' : ''}`}
                             onClick={() => {
                                 setSpreadClass('ig');
@@ -603,6 +623,7 @@ export function AssetBonds() {
                         </button>
                         <button
                             type="button"
+                            aria-pressed={spreadClass === 'hy'}
                             className={`spread-sim__preset ${spreadClass === 'hy' ? 'is-active' : ''}`}
                             onClick={() => {
                                 setSpreadClass('hy');
@@ -678,7 +699,7 @@ export function AssetBonds() {
             </section>
 
             {/* Checklist */}
-            <section className="asset-page__section">
+            <section id="section-8" className="asset-page__section">
                 <h2><CheckCircle2 size={22} /> Checklist Antes de Comprar Bonos o ETFs</h2>
                 <div className="asset-page__text-block">
                     <p>
@@ -711,7 +732,7 @@ export function AssetBonds() {
             </section>
 
             {/* Ladder strategy */}
-            <section className="asset-page__section">
+            <section id="section-9" className="asset-page__section">
                 <h2><Clock size={22} /> Estrategia Ladder (Escalera de Vencimientos)</h2>
                 <div className="asset-page__text-block">
                     <p>
@@ -745,7 +766,7 @@ export function AssetBonds() {
             </section>
 
             {/* Portfolio duration calculator */}
-            <section className="asset-page__section">
+            <section id="section-10" className="asset-page__section">
                 <h2><BarChart3 size={22} /> Duración Total de tu Cartera de Bonos</h2>
                 <div className="asset-page__text-block">
                     <p>
@@ -836,7 +857,7 @@ export function AssetBonds() {
             </section>
 
             {/* Common mistakes */}
-            <section className="asset-page__section">
+            <section id="section-11" className="asset-page__section">
                 <h2><AlertTriangle size={22} /> Errores Comunes en Renta Fija</h2>
                 <div className="bond-mistakes-grid">
                     {COMMON_BOND_ERRORS.map((item) => (
@@ -850,7 +871,7 @@ export function AssetBonds() {
             </section>
 
             {/* Pros and Cons */}
-            <section className="asset-page__section">
+            <section id="section-12" className="asset-page__section">
                 <h2><Shield size={22} /> Ventajas y Riesgos</h2>
                 <div className="asset-page__pros-cons">
                     <div className="pc-column pc-column--pros">
@@ -879,7 +900,7 @@ export function AssetBonds() {
             </section>
 
             {/* How to invest */}
-            <section className="asset-page__section">
+            <section id="section-13" className="asset-page__section">
                 <h2><Zap size={22} /> ¿Cómo Invertir en Renta Fija?</h2>
                 <div className="asset-page__steps">
                     <div className="step-card">

@@ -137,3 +137,9 @@ html[data-appearance="liquid-glass"] .fund-transfer__full input[type="checkbox"]
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+.fund-transfer__fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: grid; gap: 1rem; }
+.fund-transfer__destination-mode { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .5rem; }
+.fund-transfer__new-fund { display: grid; gap: .75rem; padding: .9rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); }
+.fund-transfer__new-fund p { margin: 0; }
+.fund-transfer__new-fund small { color: var(--text-secondary); line-height: 1.5; }

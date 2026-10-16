@@ -24,17 +24,21 @@ Cada métrica conserva la fecha del proveedor, que puede ser distinta a la consu
 
 El actualizador solo modifica las observaciones del proveedor: no cambia nombre, categoría, notas, datos manuales ni preferencias de un editor. Con modo automático desactivado se excluye del batch y se usan exclusivamente los datos manuales. En automático, un dato no proporcionado puede seguir mostrando la referencia manual, con su fecha original o sin verificar.
 
-## Clasificación
+## Rentabilidad frente a riesgo
 
-La base orientativa es:
+Las tarjetas destacan la rentabilidad anualizada a 3 años y muestran retornos YTD/1Y, TER, fechas y riesgo. «Retorno / volatilidad» es una medida continua, no una nota de calidad:
 
 ```
-retorno 3Y anualizado − 0,50 × volatilidad 3Y − 0,25 × |caída máxima 3Y|
+ratio = retorno 3Y anualizado (%) / volatilidad 3Y anualizada (%)
 ```
 
-Se transforma en percentil relativo, no en una rentabilidad prevista ni una valoración absoluta. El TER se muestra y permite ordenar, pero no se resta otra vez de retornos ya netos. El grupo exige misma categoría editorial, divisa y mes de rentabilidad; retornos y riesgo de 3 años, fechas verificadas, antigüedad máxima de 90 días y desfase máximo de 45 días entre métricas. La categoría del proveedor se muestra como información adicional: la agrupación editorial se puede adaptar desde la ficha.
+El cociente indica retorno anual por unidad de volatilidad. No es Sharpe: no se descuenta un tipo libre de riesgo supuesto. El TER no se resta de nuevo a retornos ya netos. La caída máxima y el Sharpe publicado se consultan por separado; no se mezclan mediante penalizaciones con pesos arbitrarios. Los ratios negativos conservan su signo y la volatilidad cero no genera un infinito ni una nota máxima.
 
-Solo se puntúa con al menos cinco fondos elegibles en el grupo. Los empates comparten puesto y el percentil medio; un grupo uniforme obtiene 50, no un 90 arbitrario. Si no hay comparables suficientes se explica el motivo al abrir la ficha. No se comparan percentiles de distintas categorías. Un percentil cero no significa pérdida del capital: es la posición relativa dentro del grupo.
+El cálculo exige ventana de 3 años, divisa, fechas válidas y verificadas, antigüedad máxima de 90 días y desfase máximo de 45 días entre retorno y volatilidad. No exige compañeros en el catálogo: añadir, retirar o filtrar fondos no modifica el valor medido. Se conserva la precisión hasta la presentación.
+
+El puesto opcional exige al menos cinco fondos elegibles con igual categoría **del proveedor**, divisa y mes de rentabilidad; en fichas manuales se usa la categoría editorial y se mantiene su grupo separado del automático. Una categoría del proveedor desconocida no se sustituye por una categoría editorial amplia. Los empates comparten puesto. El ratio sirve para estudiar estrategias y exposiciones similares, no para calificar la calidad de fondos con objetivos distintos.
+
+La antigua escala de percentiles forzaba saltos 0/25/50/75/100 con cinco fondos. Azvalor aparecía en 25 por ocupar el cuarto lugar de una categoría editorial que mezclaba tecnología, value y capitalizaciones distintas. Con la observación del 14/10/2026, sus cifras de 17,40317 % anualizado y 15,45808 % de volatilidad producen 1,1258299866× (1,13× en pantalla). Es un ejemplo de regresión, no una excepción por marca ni un dato fijado en el catálogo.
 
 ## Verificación y despliegue
 

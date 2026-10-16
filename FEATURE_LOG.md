@@ -12,6 +12,11 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-16 - Tarjetas y métricas del radar
+- Funcionalidad: tarjetas con rentabilidad a 3 años destacada, métricas compactas, escala de riesgo y ficha ampliable; estilos estándar y Liquid Glass.
+- Resumen: sustituye los percentiles de 0–100 por retorno anualizado / volatilidad a 3 años, sin saltos por tamaño del catálogo ni penalizaciones arbitrarias. Puestos solo con cinco comparables de categoría del proveedor, divisa y fecha. Conserva las fechas y los datos ausentes.
+- Archivos: `src/components/academy/simulators/FundRadar.tsx`, `FundRadar.css`, `src/services/funds/fundScoring.ts`, `scripts/test-fund-radar.ts`, `scripts/test-fund-radar-ui.ts`, `docs/fund-radar.md`, `README.md`.
+
 ### 2026-10-16 - Traspaso a fondos nuevos
 - Funcionalidad: el traspaso del Dashboard permite elegir un fondo existente o dar de alta uno nuevo por ISIN, con búsqueda en Finect y entrada manual.
 - Resumen: alta y traspaso se guardan en un único comando con control de revisión y reintentos; conserva coste y fecha de adquisición de origen. No genera aportaciones ni compras iniciales duplicadas en el destino. Disponible también con un solo fondo en cartera.

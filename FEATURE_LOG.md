@@ -12,6 +12,11 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-16 - Traspaso a fondos nuevos
+- Funcionalidad: el traspaso del Dashboard permite elegir un fondo existente o dar de alta uno nuevo por ISIN, con búsqueda en Finect y entrada manual.
+- Resumen: alta y traspaso se guardan en un único comando con control de revisión y reintentos; conserva coste y fecha de adquisición de origen. No genera aportaciones ni compras iniciales duplicadas en el destino. Disponible también con un solo fondo en cartera.
+- Archivos: `src/components/dashboard/FundTransferDialog.tsx`, `FundTransferDialog.css`, `src/services/fundTransfer.ts`, `src/context/PortfolioContext.tsx`, `src/pages/Dashboard/Dashboard.tsx`, `src/services/portfolioPerformance.ts`, migraciones `20261016123119_portfolio_fund_transfer_execution_prices.sql` y `20261016123134_portfolio_new_fund_transfer_destination.sql`, `scripts/test-fund-transfer.ts`, `scripts/test-fund-transfer-ui.ts`, `package.json`.
+
 ### 2026-10-15 - v6.3.3 - Dashboard más claro
 - Funcionalidad:
   - Dashboard: resume los avisos sobre datos y cotizaciones para que ocupen menos espacio; puedes abrir la ayuda cuando necesites más detalles.

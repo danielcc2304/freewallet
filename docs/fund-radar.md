@@ -24,17 +24,35 @@ Cada métrica conserva la fecha del proveedor, que puede ser distinta a la consu
 
 El actualizador solo modifica las observaciones del proveedor: no cambia nombre, categoría, notas, datos manuales ni preferencias de un editor. Con modo automático desactivado se excluye del batch y se usan exclusivamente los datos manuales. En automático, un dato no proporcionado puede seguir mostrando la referencia manual, con su fecha original o sin verificar.
 
-## Clasificación
+## Rentabilidad frente a riesgo
 
-La base orientativa es:
+Las tarjetas destacan la rentabilidad anualizada a 3 años y muestran retornos YTD/1Y, TER, fechas y riesgo. «Retorno / volatilidad» es una medida continua, no una nota de calidad:
 
 ```
-retorno 3Y anualizado − 0,50 × volatilidad 3Y − 0,25 × |caída máxima 3Y|
+ratio = retorno 3Y anualizado (%) / volatilidad 3Y anualizada (%)
 ```
 
-Se transforma en percentil relativo, no en una rentabilidad prevista ni una valoración absoluta. El TER se muestra y permite ordenar, pero no se resta otra vez de retornos ya netos. El grupo exige misma categoría editorial, divisa y mes de rentabilidad; retornos y riesgo de 3 años, fechas verificadas, antigüedad máxima de 90 días y desfase máximo de 45 días entre métricas. La categoría del proveedor se muestra como información adicional: la agrupación editorial se puede adaptar desde la ficha.
+El cociente indica retorno anual por unidad de volatilidad. No es Sharpe: no se descuenta un tipo libre de riesgo supuesto. El TER no se resta de nuevo a retornos ya netos. La caída máxima y el Sharpe publicado se consultan por separado; no se mezclan mediante penalizaciones con pesos arbitrarios. Los ratios negativos conservan su signo y la volatilidad cero no genera un infinito ni una nota máxima.
 
-Solo se puntúa con al menos cinco fondos elegibles en el grupo. Los empates comparten puesto y el percentil medio; un grupo uniforme obtiene 50, no un 90 arbitrario. Si no hay comparables suficientes se explica el motivo al abrir la ficha. No se comparan percentiles de distintas categorías. Un percentil cero no significa pérdida del capital: es la posición relativa dentro del grupo.
+El cálculo exige ventana de 3 años, divisa, fechas válidas y verificadas, antigüedad máxima de 90 días y desfase máximo de 45 días entre retorno y volatilidad. No exige compañeros en el catálogo: añadir, retirar o filtrar fondos no modifica el valor medido. Se conserva la precisión hasta la presentación.
+
+## Nota de 0 a 100 por categoría general
+
+La nota utiliza las categorías generales del catálogo (elección explícita del usuario), divisa y mes de rentabilidad. La categoría específica de Finect sigue visible en la ficha. Una nota de una categoría no se compara con una nota de otra; los grupos amplios pueden contener distintas estrategias.
+
+```
+r = retorno 3Y anualizado / volatilidad 3Y
+centro = mediana de los ratios del grupo
+MAD = mediana de |r − centro|
+escala = max(0,5; 1,482602218505602 × MAD)
+nota = 50 + 50 × tanh((r − centro) / (2 × escala))
+```
+
+El factor 1,4826 convierte la MAD en una estimación robusta de dispersión normal. La escala mínima de 0,5 unidades de ratio es una decisión de diseño publicada: impide que diferencias diminutas ocupen toda la escala. La transformación es continua, acotada y monotónica; no se basa en puestos ni fuerza escalones de 25 puntos. No se ajusta por marca ni para mejorar un fondo concreto. La mediana reduce la influencia de valores extremos.
+
+Un 50 significa centro del grupo, no aprobado. Los empates comparten nota y puesto. Las notas pueden cambiar al cambiar los datos o miembros de su grupo; los filtros de pantalla no las recalculan. Se requieren al menos dos fondos elegibles. Entre dos y cuatro se muestra «Provisional»; con uno solo no se fabrica una nota. Se mantienen los controles de fechas, ventana, divisa y datos válidos descritos arriba. El ratio sigue disponible aunque no haya compañeros suficientes para puntuar.
+
+La nota ordena un resultado histórico relativo, no la calidad absoluta ni la rentabilidad futura: un fondo que perdió puede liderar un grupo que perdió más. La interfaz conserva los retornos con su signo, el coste, el riesgo y las otras métricas para contextualizarla.
 
 ## Verificación y despliegue
 

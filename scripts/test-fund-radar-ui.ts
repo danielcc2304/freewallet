@@ -54,6 +54,23 @@ try{
   await p.goto(`${origin}/academy/fund-radar`,{waitUntil:'networkidle0'});
   await p.waitForSelector('.radar-card');assert.equal(await p.$('[role=dialog]'),null,'construction notice removed');
   assert.equal(await p.$$eval('.radar-card',els=>els.length),20);
+  assert.equal(await p.$$eval('.radar-card__score',els=>els.every(el=>el.textContent?.includes('Nota en su categoría'))),true);
+  if(process.env.RADAR_LIVE_FIXTURE){
+   await fill('.radar-filters input[type=search]','azvalor');await p.waitForFunction(()=>document.querySelectorAll('.radar-card').length===1);
+   const ratio=await p.$eval('.radar-card__ratio',el=>el.textContent);
+   const grade=await p.$eval('.radar-card__grade-meter',el=>(el as HTMLMeterElement).value);
+   assert.ok(grade>0&&grade<100);
+   assert.ok(await p.$eval('.radar-card__score strong',el=>el.textContent?.includes('/ 100')));
+   assert.equal(ratio,'Retorno / volatilidad · 1,13×','The observed 17.40317 / 15.45808 ratio appears without percentile steps');
+   assert.ok(await p.$eval('.radar-card__score',el=>el.textContent?.includes('Renta Variable Activa · 5 fondos')),'Grades use the general categories requested by the user');
+   await click('.radar-card__footer button');assert.ok(await p.$eval('.radar-card__score-note',el=>el.textContent?.includes('17,4%')));
+   await click('.radar-card__footer button');
+   await click('.radar-results button');await p.waitForFunction(()=>document.querySelectorAll('.radar-card').length===20);
+   const after=await p.$$eval('.radar-card',els=>els.find(el=>el.querySelector('h2')?.textContent?.includes('Azvalor'))?.querySelector('.radar-card__ratio')?.textContent);
+   assert.equal(after,ratio,'Filtering never changes the fund ratio');
+   const afterGrade=await p.$$eval('.radar-card',els=>(els.find(el=>el.querySelector('h2')?.textContent?.includes('Azvalor'))?.querySelector('.radar-card__grade-meter') as HTMLMeterElement).value);
+   assert.equal(afterGrade,grade,'Filtering never changes the category grade');
+  }
   if(scenario.allowed)await p.waitForSelector('.radar-card__editor');
   else assert.equal(await p.$('.radar-card__editor'),null);
   await click('.radar-card__footer button');assert.equal(await p.$$eval('.radar-card__details',els=>els.length),1,'expansion is per card');await click('.radar-card__footer button');
@@ -65,7 +82,7 @@ try{
    for(const theme of ['light','dark'])for(const appearance of ['standard','liquid-glass']){
     await p.evaluate((t,a)=>{document.documentElement.dataset.theme=t;document.documentElement.dataset.appearance=a;},theme,appearance);await settle();
     const bad=await p.$$eval('.fund-radar *',els=>els.filter(el=>{const r=el.getBoundingClientRect();return r.width>0&&(r.left< -2||r.right>innerWidth+2)}).map(el=>el.className));assert.deepEqual(bad,[],JSON.stringify({width,theme,appearance}));
-    if(theme==='light'&&appearance==='liquid-glass'&&(width===390||width===1440)){await p.evaluate(()=>scrollTo({top:0,behavior:'instant'}));await p.screenshot({path:`/tmp/freewallet-radar-${width}.png`});}
+    if(theme==='light'&&appearance==='liquid-glass'&&(width===390||width===1440)){await p.$eval('.radar-grid',el=>window.scrollTo({top:window.scrollY+el.getBoundingClientRect().top-28,behavior:'instant'}));await p.screenshot({path:`/tmp/freewallet-radar-${width}.png`});}
    }
   }
   const byText=async(selector:string,match:string)=>{const els=await p.$$(selector);for(const el of els)if((await el.evaluate(e=>e.textContent))?.includes(match)){await el.evaluate(e=>e.scrollIntoView({behavior:'instant',block:'center'}));await el.click();return;}throw new Error('Missing control '+match);};

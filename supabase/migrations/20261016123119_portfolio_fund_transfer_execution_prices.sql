@@ -90,6 +90,10 @@ begin
                     raise exception 'Invalid correction' using errcode='22023'; end if;
             else raise exception 'Unsupported operation' using errcode='22023';
             end case;
+            item := coalesce(new_asset,old_asset);
+            if operation->>'assetSymbol' is distinct from item->>'symbol' or operation->>'assetName' is distinct from item->>'name'
+                or operation->>'assetType' is distinct from item->>'type' then
+                raise exception 'Operation does not identify its position' using errcode='22023'; end if;
             select coalesce(jsonb_agg(case when a->>'id'=asset_id then new_asset else a end),'[]') into assets
             from jsonb_array_elements(assets) a where a->>'id' <> asset_id or new_asset is not null;
     $marker$;
@@ -118,9 +122,9 @@ begin
                     or operation->>'assetName' is distinct from old_asset->>'name'
                     or operation->>'assetType' is distinct from old_asset->>'type' then
                     raise exception 'Invalid transfer positions' using errcode='22023'; end if;
-                if case when nullif(old_asset->>'isin','') is not null and nullif(old_target->>'isin','') is not null
+                if (case when nullif(old_asset->>'isin','') is not null and nullif(old_target->>'isin','') is not null
                     then upper(old_asset->>'isin') = upper(old_target->>'isin')
-                    else upper(old_asset->>'symbol') = upper(old_target->>'symbol') end then
+                    else upper(old_asset->>'symbol') = upper(old_target->>'symbol') end) then
                     raise exception 'Transfer destination must be another fund' using errcode='22023'; end if;
                 if (select coalesce(jsonb_agg(a order by a->>'id'),'[]') from jsonb_array_elements(assets) a where a->>'id' not in (asset_id,target_id))
                     <> (select coalesce(jsonb_agg(a order by a->>'id'),'[]') from jsonb_array_elements(previous->'assets') a where a->>'id' not in (asset_id,target_id)) then
@@ -187,6 +191,10 @@ begin
                         raise exception 'Invalid correction' using errcode='22023'; end if;
                 else raise exception 'Unsupported operation' using errcode='22023';
                 end case;
+                item := coalesce(new_asset,old_asset);
+                if operation->>'assetSymbol' is distinct from item->>'symbol' or operation->>'assetName' is distinct from item->>'name'
+                    or operation->>'assetType' is distinct from item->>'type' then
+                    raise exception 'Operation does not identify its position' using errcode='22023'; end if;
                 select coalesce(jsonb_agg(case when a->>'id'=asset_id then new_asset else a end),'[]') into assets
                 from jsonb_array_elements(assets) a where a->>'id' <> asset_id or new_asset is not null;
             end if;

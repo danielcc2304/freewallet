@@ -4,6 +4,7 @@ import {
     Lightbulb, BarChart3, Clock, Shield, Activity
 } from 'lucide-react';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
+import { AssetGuideNav } from './AssetGuideNav';
 import './AssetPage.css';
 
 const CASH_INSTRUMENTS = [
@@ -47,16 +48,16 @@ const CASH_INSTRUMENTS = [
 
 export function AssetCash() {
     return (
-        <div className="asset-page">
+        <div className="asset-page asset-page--cash" style={{ '--asset-color': '#06b6d4' } as React.CSSProperties}>
             <Link to="/academy/portfolio" className="asset-page__back">
-                <ArrowLeft size={18} /> Volver a Carteras
+                <ArrowLeft size={18} /> Estrategia y cartera
             </Link>
 
             <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#64748b' } as React.CSSProperties}>
                 <div className="asset-page__hero-icon">
                     <Wallet size={48} />
                 </div>
-                <h1>Liquidez (Cash)</h1>
+                <h1>Liquidez</h1>
                 <p className="asset-page__hero-sub">
                     El oxígeno de tu cartera. La liquidez te da tranquilidad, capacidad de reacción ante oportunidades
                     y es el primer pilar de toda estrategia financiera sólida.
@@ -77,7 +78,15 @@ export function AssetCash() {
                 </div>
             </AcademyPageHeader>
 
-            <section className="asset-page__section">
+            <AssetGuideNav sections={[
+                { id: 'section-1', label: 'Para qué sirve' },
+                { id: 'section-2', label: 'Instrumentos' },
+                { id: 'section-3', label: 'Inflación' },
+                { id: 'section-4', label: 'Ventajas y riesgos' },
+                { id: 'section-5', label: 'Escalera de vencimientos' },
+            ]} />
+
+            <section id="section-1" className="asset-page__section">
                 <h2><Globe size={22} /> ¿Por qué tener Liquidez?</h2>
                 <div className="asset-page__text-block">
                     <p>
@@ -100,7 +109,7 @@ export function AssetCash() {
                 </div>
             </section>
 
-            <section className="asset-page__section">
+            <section id="section-2" className="asset-page__section">
                 <h2><BarChart3 size={22} /> Instrumentos de Liquidez</h2>
                 <p className="asset-page__section-desc">No todo el cash es igual. Hay formas de mantener liquidez que rinden significativamente más que el dinero en una cuenta corriente.</p>
 
@@ -121,7 +130,7 @@ export function AssetCash() {
                 </div>
             </section>
 
-            <section className="asset-page__section">
+            <section id="section-3" className="asset-page__section">
                 <h2><AlertTriangle size={22} /> El Enemigo Silencioso: La Inflación</h2>
                 <div className="asset-page__text-block">
                     <p>
@@ -172,7 +181,7 @@ export function AssetCash() {
                 </div>
             </section>
 
-            <section className="asset-page__section">
+            <section id="section-4" className="asset-page__section">
                 <h2><Shield size={22} /> Ventajas y Riesgos</h2>
                 <div className="asset-page__pros-cons">
                     <div className="pc-column pc-column--pros">
@@ -198,7 +207,7 @@ export function AssetCash() {
                 </div>
             </section>
 
-            <section className="asset-page__section">
+            <section id="section-5" className="asset-page__section">
                 <h2><Clock size={22} /> Estrategia de Escalera (Ladder)</h2>
                 <div className="asset-page__text-block">
                     <p>

@@ -4,6 +4,7 @@ import {
     Lightbulb, Home, Building, Factory, Truck, Shield
 } from 'lucide-react';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
+import { AssetGuideNav } from './AssetGuideNav';
 import './AssetPage.css';
 
 const REIT_TYPES = [
@@ -39,16 +40,16 @@ const REIT_TYPES = [
 
 export function AssetREITs() {
     return (
-        <div className="asset-page">
+        <div className="asset-page asset-page--reits" style={{ '--asset-color': '#8b5cf6' } as React.CSSProperties}>
             <Link to="/academy/portfolio" className="asset-page__back">
-                <ArrowLeft size={18} /> Volver a Carteras
+                <ArrowLeft size={18} /> Estrategia y cartera
             </Link>
 
             <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#8b5cf6' } as React.CSSProperties}>
                 <div className="asset-page__hero-icon">
                     <Building2 size={48} />
                 </div>
-                <h1>Real Estate (REITs)</h1>
+                <h1>Inmobiliario cotizado</h1>
                 <p className="asset-page__hero-sub">
                     Inversión inmobiliaria profesional con la liquidez de una acción. Descubre cómo
                     generar rentas periódicas sin las complicaciones de gestionar un piso.
@@ -69,7 +70,14 @@ export function AssetREITs() {
                 </div>
             </AcademyPageHeader>
 
-            <section className="asset-page__section">
+            <AssetGuideNav sections={[
+                { id: 'section-1', label: 'Conceptos' },
+                { id: 'section-2', label: 'Sectores' },
+                { id: 'section-3', label: 'Ventajas y riesgos' },
+                { id: 'section-4', label: 'Cómo invertir' },
+            ]} />
+
+            <section id="section-1" className="asset-page__section">
                 <h2><Globe size={22} /> ¿Qué son los REITs?</h2>
                 <div className="asset-page__text-block">
                     <p>
@@ -92,7 +100,7 @@ export function AssetREITs() {
                 </div>
             </section>
 
-            <section className="asset-page__section">
+            <section id="section-2" className="asset-page__section">
                 <h2><Building size={22} /> Sectores Inmobiliarios</h2>
                 <div className="asset-page__subtype-grid">
                     {REIT_TYPES.map((type) => (
@@ -126,7 +134,7 @@ export function AssetREITs() {
                 </div>
             </section>
 
-            <section className="asset-page__section">
+            <section id="section-3" className="asset-page__section">
                 <h2><Shield size={22} /> Ventajas y Riesgos</h2>
                 <div className="asset-page__pros-cons">
                     <div className="pc-column pc-column--pros">
@@ -152,7 +160,7 @@ export function AssetREITs() {
                 </div>
             </section>
 
-            <section className="asset-page__section">
+            <section id="section-4" className="asset-page__section">
                 <h2><Zap size={22} /> ¿Cómo invertir profesionalmente?</h2>
                 <div className="asset-page__steps">
                     <div className="step-card">
@@ -172,7 +180,7 @@ export function AssetREITs() {
             <section className="asset-page__final-tip">
                 <Lightbulb size={28} />
                 <div>
-                    <h3>Consejo Final</h3>
+                    <h3>Para tu cartera</h3>
                     <p>
                         Los REITs son el complemento perfecto para una cartera diversificada, aportando una descorrelación
                         parcial con las acciones tradicionales y un flujo de caja real. <strong>Un 5-10% de exposición

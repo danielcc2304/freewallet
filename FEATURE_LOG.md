@@ -12,14 +12,19 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-16 - v6.4.1 - Guías de inversión más claras
+### 2026-10-16 - v6.5.0 - Academia y radar de fondos
 - Funcionalidad:
-  - Academia: ahora puedes recorrer por secciones las guías de acciones, bonos, efectivo, cripto e inmobiliario cotizado; sus tarjetas y las de carteras se presentan con más claridad.
-  - Academia: en la apariencia translúcida, las secciones de las guías se mantienen transparentes y las tarjetas se distinguen mejor.
+  - Academia: las guías de inversión se recorren por secciones y sus tarjetas se distinguen mejor, también con la apariencia translúcida.
+  - Academia: la guía de estrategias compara opciones y muestra visualmente cómo se rebalancea una cartera.
+  - Academia: el simulador de crisis está renovado y deja de mostrar resultados de DCA que no se apoyaban en datos fiables.
+  - Academia: los recursos incluyen miniaturas de vídeo y la guía fiscal enlaza con las calculadoras de sueldo e IRPF.
+  - Academia: el radar de fondos reúne un catálogo revisado, consulta datos de Finect y permite que los editores mantengan la información al día.
+  - Cartera: después de importar un archivo, aparece un aviso para continuar en Dashboard.
 - Resumen:
-  - Las guías y ejemplos de inversión son más fáciles de recorrer y entender.
+  - Reúne mejoras de las guías, simuladores y recursos de Academia, además de un radar de fondos actualizado y una importación de cartera más clara.
 - Archivos:
-  - `FEATURE_LOG.md`, `package-lock.json`, `package.json`, `src/components/academy/assets/AssetBonds.tsx`, `src/components/academy/assets/AssetCash.tsx`, `src/components/academy/assets/AssetCrypto.tsx`, `src/components/academy/assets/AssetEquities.tsx`, `src/components/academy/assets/AssetGuideNav.tsx`, `src/components/academy/assets/AssetPage.css`, `src/components/academy/assets/AssetREITs.tsx`, `src/components/academy/simulators/PortfolioBuilder.css`, `src/components/academy/simulators/PortfolioBuilder.tsx`, `src/constants/app.ts`, `src/styles/liquidGlass.css`
+  - `FEATURE_LOG.md`, `README.md`, `docs/fund-radar.md`, `package-lock.json`, `package.json`, `scripts/test-crisis-impact.ts`, `scripts/test-fund-radar-db.ts`, `scripts/test-fund-radar-ui.ts`, `scripts/test-fund-radar.ts`, `src/components/academy/assets/AssetBonds.tsx`, `src/components/academy/assets/AssetCash.tsx`, `src/components/academy/assets/AssetCrypto.tsx`, `src/components/academy/assets/AssetEquities.tsx`, `src/components/academy/assets/AssetGuideNav.tsx`, `src/components/academy/assets/AssetPage.css`, `src/components/academy/assets/AssetREITs.tsx`, `src/components/academy/guides/InProcess.css`, `src/components/academy/guides/InProcess.tsx`, `src/components/academy/guides/Strategies.css`, `src/components/academy/guides/Strategies.tsx`, `src/components/academy/guides/Taxation.css`, `src/components/academy/guides/Taxation.tsx`, `src/components/academy/simulators/CrisisSimulator.css`, `src/components/academy/simulators/CrisisSimulator.tsx`, `src/components/academy/simulators/FundRadar.css`, `src/components/academy/simulators/FundRadar.tsx`, `src/components/academy/simulators/FundRadarEditor.tsx`, `src/components/academy/simulators/PortfolioBuilder.css`, `src/components/academy/simulators/PortfolioBuilder.tsx`, `src/components/academy/simulators/crisisImpact.ts`, `src/constants/app.ts`, `src/pages/PortfolioCsv/PortfolioCsv.css`, `src/pages/PortfolioCsv/PortfolioCsv.tsx`, `src/services/fundRadar/catalog.ts`, `src/services/fundRadar/types.ts`, `src/services/funds/fundScoring.ts`, `src/styles/liquidGlass.css`, `supabase/functions/fund-radar-refresh/finect.ts`, `supabase/functions/fund-radar-refresh/handler.ts`, `supabase/functions/fund-radar-refresh/index.ts`, `supabase/migrations/20261016102051_fund_radar_editorial_catalog.sql`, `supabase/migrations/20261016102447_fund_radar_worker_schema_access.sql`, `supabase/migrations/20261016103234_fund_radar_public_catalog_access.sql`
+
 
 ### 2026-10-15 - v6.4.0 - Cuenta y comentarios en Noticias
 - Funcionalidad:

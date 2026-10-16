@@ -12,6 +12,14 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-16 - v6.4.1 - Guías de inversión más claras
+- Funcionalidad:
+  - Academia: ahora puedes recorrer por secciones las guías de acciones, bonos, efectivo, cripto e inmobiliario cotizado; sus tarjetas y las de carteras se presentan con más claridad.
+- Resumen:
+  - Las guías y ejemplos de inversión son más fáciles de recorrer y entender.
+- Archivos:
+  - `FEATURE_LOG.md`, `package-lock.json`, `package.json`, `src/components/academy/assets/AssetBonds.tsx`, `src/components/academy/assets/AssetCash.tsx`, `src/components/academy/assets/AssetCrypto.tsx`, `src/components/academy/assets/AssetEquities.tsx`, `src/components/academy/assets/AssetGuideNav.tsx`, `src/components/academy/assets/AssetPage.css`, `src/components/academy/assets/AssetREITs.tsx`, `src/components/academy/simulators/PortfolioBuilder.css`, `src/components/academy/simulators/PortfolioBuilder.tsx`, `src/constants/app.ts`
+
 ### 2026-10-15 - v6.4.0 - Cuenta y comentarios en Noticias
 - Funcionalidad:
   - Cuenta: puedes elegir un nombre de usuario único e iniciar sesión con ese nombre o con tu correo.

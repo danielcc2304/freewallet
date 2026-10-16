@@ -62,6 +62,7 @@
     "test:academy-account-polish": "tsx scripts/test-academy-account-polish.ts",
     "test:news-article-editor-ui": "tsx scripts/test-news-article-editor-ui.ts",
     "test:market-timing": "tsx scripts/test-market-timing.ts",
+    "test:crisis-impact": "tsx scripts/test-crisis-impact.ts",
     "test:market-timing-ui": "tsx scripts/test-market-timing-ui.ts",
     "test:dashboard-market-polish": "tsx scripts/test-dashboard-market-polish.ts",
     "test:dashboard-quality": "tsx scripts/test-dashboard-quality.ts",

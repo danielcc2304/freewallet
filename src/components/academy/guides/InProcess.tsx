@@ -1,11 +1,12 @@
-import { ArrowLeft, ExternalLink, PlayCircle } from 'lucide-react';
-import { useMemo } from 'react';
+import { ArrowLeft, ExternalLink, Play } from 'lucide-react';
+import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './InProcess.css';
 
 export function InProcess() {
     const navigate = useNavigate();
+    const [failedThumbnails, setFailedThumbnails] = useState<Set<string>>(() => new Set());
     const sourceUrl = 'https://www.lapizarradeandres.com/conocimientos-basicos';
 
     const videos = useMemo(() => ([
@@ -74,7 +75,7 @@ export function InProcess() {
     return (
         <div className="resources-page">
             <AcademyPageHeader className="resources-page__header" section="Recursos">
-                <h1 className="resources-page__title">Recursos y Guías</h1>
+                <h1 className="resources-page__title">Recursos y guías</h1>
                 <p className="resources-page__description">
                     Selección de vídeos de conocimientos básicos referenciados en la página de La Pizarra de Andrés.
                 </p>
@@ -88,15 +89,28 @@ export function InProcess() {
                 {videos.map((video) => {
                     const videoUrl = `https://www.youtube.com/watch?v=${video.videoId}`;
                     return (
-                        <article key={video.title} className="resource-card">
-                            <div className="resource-card__head">
-                                <PlayCircle size={20} />
-                                <h3>{video.title}</h3>
-                            </div>
-                            <p>{video.summary}</p>
-                            <a href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label={`Ver ${video.title} en YouTube`}>
-                                Ver en YouTube
-                                <ExternalLink size={14} />
+                        <article key={video.videoId} className="resource-card">
+                            <a className="resource-card__link" href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label={`Ver ${video.title} en YouTube (se abre en otra pestaña)`}>
+                                <div className="resource-card__preview">
+                                    {!failedThumbnails.has(video.videoId) && (
+                                        <img
+                                            src={`https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`}
+                                            alt=""
+                                            width={480}
+                                            height={360}
+                                            loading="lazy"
+                                            decoding="async"
+                                            onError={() => setFailedThumbnails(previous => new Set(previous).add(video.videoId))}
+                                        />
+                                    )}
+                                    <span className="resource-card__play" aria-hidden="true"><Play size={24} fill="currentColor" /></span>
+                                    <span className="resource-card__video-label" aria-hidden="true">YouTube</span>
+                                </div>
+                                <div className="resource-card__content">
+                                    <h2>{video.title}</h2>
+                                    <p>{video.summary}</p>
+                                    <span className="resource-card__action">Ver en YouTube <ExternalLink size={15} aria-hidden="true" /></span>
+                                </div>
                             </a>
                         </article>
                     );

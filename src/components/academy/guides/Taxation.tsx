@@ -1,4 +1,4 @@
-import { Receipt, ShieldCheck, Landmark, ArrowDownRight, ArrowUpRight, Scale } from 'lucide-react';
+import { Receipt, ShieldCheck, Landmark, ArrowDownRight, ArrowUpRight, Scale, Calculator, ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './Taxation.css';
@@ -99,15 +99,24 @@ export function Taxation() {
                 </div>
             </section>
 
-            <section className="tax-info__cta">
-                <Receipt className="icon" size={48} />
-                <h2 className="cta__title">¿Quieres ver el impacto real?</h2>
-                <p className="cta__desc">
-                    Calcula cuánto pagarías exactamente por tus beneficios y descubre el ahorro potencial que supone el diferimiento fiscal.
-                </p>
-                <Link to="/academy/taxes" className="cta__button">
-                    Ir al Simulador Fiscal <ArrowUpRight size={18} style={{ marginLeft: '8px', verticalAlign: 'middle' }} />
-                </Link>
+            <section className="tax-info__tools" aria-labelledby="tax-tools-title">
+                <h2 id="tax-tools-title" className="tax-info__section-title">Ponlo en práctica</h2>
+                <div className="tax-info__tools-grid">
+                    <Link to="/academy/taxes" className="tax-info__tool-card">
+                        <span className="tax-info__tool-icon"><Receipt size={24} aria-hidden="true" /></span>
+                        <span className="tax-info__tool-category">Inversiones</span>
+                        <h3>Simulador fiscal</h3>
+                        <p>Estima los impuestos sobre tus beneficios y compara el efecto del diferimiento fiscal.</p>
+                        <span className="tax-info__tool-action">Abrir simulador <ArrowRight size={18} aria-hidden="true" /></span>
+                    </Link>
+                    <Link to="/academy/salary-calculator" className="tax-info__tool-card">
+                        <span className="tax-info__tool-icon"><Calculator size={24} aria-hidden="true" /></span>
+                        <span className="tax-info__tool-category">Sueldo e IRPF</span>
+                        <h3>Calculadora de IRPF y sueldo neto</h3>
+                        <p>Estima tu sueldo neto, retención de IRPF y cotizaciones según tu salario, comunidad y situación personal.</p>
+                        <span className="tax-info__tool-action">Calcular sueldo neto <ArrowRight size={18} aria-hidden="true" /></span>
+                    </Link>
+                </div>
             </section>
         </div>
     );

@@ -1,122 +1,117 @@
-import { BarChart3, TrendingUp, Zap, Repeat, Target, ArrowRight, ShieldCheck, HelpCircle } from 'lucide-react';
+import { BarChart3, TrendingUp, Zap, Repeat, Target, ArrowRight, ShieldCheck, Info, CalendarDays, Scale, Wallet } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './Strategies.css';
+
+const REBALANCING_EXAMPLE = [
+    { label: 'Tu objetivo', equity: 60, bonds: 40, note: 'La distribución que elegiste.' },
+    { label: 'Tras los movimientos', equity: 70, bonds: 30, note: 'La bolsa gana peso: asumes más riesgo.' },
+    { label: 'Después de ajustar', equity: 60, bonds: 40, note: 'Recuperas el riesgo previsto.' },
+];
 
 export function Strategies() {
     return (
         <div className="strategies">
             <AcademyPageHeader className="strategies__header" section="Construir">
-                <h1 className="strategies__title">Estrategias de Inversión</h1>
-                <p className="strategies__subtitle">
-                    No existe una "mejor" estrategia universal, pero sí una que se adapta mejor a tus objetivos y temperamento.
-                    Elige tu camino y mantén el rumbo.
-                </p>
+                <h1>Estrategias de inversión</h1>
+                <p>Una estrategia que puedas mantener. Decide cómo invertir, cómo aportar y cuándo ajustar tu cartera.</p>
+                <nav className="strategies__roadmap" aria-label="Secciones de estrategias">
+                    <a href="#gestion"><ShieldCheck size={18} aria-hidden="true" /> Cómo invertir</a>
+                    <a href="#aportaciones"><Repeat size={18} aria-hidden="true" /> Cómo aportar</a>
+                    <a href="#reequilibrio"><Scale size={18} aria-hidden="true" /> Cómo ajustar</a>
+                </nav>
             </AcademyPageHeader>
 
-            <section className="strategies__active-passive">
-                <h2 className="strategies__section-title">1. Gestión Pasiva vs. Activa</h2>
-                <div className="strategies__comparison-grid">
-                    <div className="strategy-card passive">
-                        <div className="strategy-card__header">
-                            <ShieldCheck size={32} />
-                            <h3>Gestión Pasiva (Indexación)</h3>
-                        </div>
-                        <p>Busca replicar un índice (como el S&P 500) en lugar de batirlo.</p>
-                        <ul>
-                            <li><strong>Costes:</strong> Muy bajos (0.1% - 0.3%).</li>
-                            <li><strong>Esfuerzo:</strong> Mínimo, apto para el 99% de los inversores.</li>
-                            <li><strong>Filosofía:</strong> "Si no puedes con el mercado, únete a él".</li>
-                        </ul>
-                    </div>
-                    <div className="strategy-card active">
-                        <div className="strategy-card__header">
-                            <Zap size={32} />
-                            <h3>Gestión Activa</h3>
-                        </div>
-                        <p>Un gestor elige activos específicos para intentar obtener retornos superiores al mercado.</p>
-                        <ul>
-                            <li><strong>Costes:</strong> Altos (1.5% - 2.5%).</li>
-                            <li><strong>Riesgo:</strong> Posibilidad de batir al mercado... o quedar muy por debajo.</li>
-                            <li><strong>Filosofía:</strong> Búsqueda de ineficiencias y "alfa".</li>
-                        </ul>
-                    </div>
+            <section id="gestion" className="strategies__section" aria-labelledby="gestion-title">
+                <div className="strategies__section-heading">
+                    <span className="strategies__number">01</span>
+                    <div><h2 id="gestion-title">Elige cómo se gestiona tu dinero</h2><p>Dos enfoques que también puedes combinar.</p></div>
                 </div>
-                <div className="strategies__insight">
-                    <HelpCircle size={20} />
-                    <p>Históricamente, más del 90% de los fondos activos no consiguen batir a su índice de referencia a 10 años vista tras comisiones.</p>
+                <div className="strategies__grid">
+                    <article className="strategies__approach-card">
+                        <div className="strategies__card-heading"><span className="strategies__icon"><ShieldCheck size={24} aria-hidden="true" /></span><span className="strategies__tag">Seguir el mercado</span></div>
+                        <h3>Gestión pasiva</h3>
+                        <p>Replica un índice mediante fondos o ETFs, sin intentar elegir a los próximos ganadores.</p>
+                        <dl className="strategies__facts">
+                            <div><dt>Costes</dt><dd>Generalmente bajos; compara el coste total.</dd></div>
+                            <div><dt>Seguimiento</dt><dd>Elegir la distribución y revisar sus pesos.</dd></div>
+                            <div><dt>A vigilar</dt><dd>También asumes las caídas y concentraciones del índice.</dd></div>
+                        </dl>
+                        <div className="strategies__takeaway">Encaja si buscas sencillez y una exposición amplia.</div>
+                    </article>
+                    <article className="strategies__approach-card strategies__approach-card--active">
+                        <div className="strategies__card-heading"><span className="strategies__icon"><Zap size={24} aria-hidden="true" /></span><span className="strategies__tag">Seleccionar oportunidades</span></div>
+                        <h3>Gestión activa</h3>
+                        <p>Un gestor, o tú mismo, selecciona activos para intentar mejorar un objetivo o índice de referencia.</p>
+                        <dl className="strategies__facts">
+                            <div><dt>Costes</dt><dd>Suelen ser mayores; revisa comisiones y rotación.</dd></div>
+                            <div><dt>Seguimiento</dt><dd>Entender el proceso y evaluar sus resultados.</dd></div>
+                            <div><dt>A vigilar</dt><dd>Puede quedarse por debajo del índice tras costes.</dd></div>
+                        </dl>
+                        <div className="strategies__takeaway">Encaja si entiendes y puedes evaluar la selección.</div>
+                    </article>
+                </div>
+                <aside className="strategies__insight"><Info size={20} aria-hidden="true" /><p>Compara siempre resultados netos de costes con un índice de riesgo y exposición similares. Una buena racha no demuestra que una estrategia sea mejor.</p></aside>
+            </section>
+
+            <section id="aportaciones" className="strategies__section" aria-labelledby="aportaciones-title">
+                <div className="strategies__section-heading">
+                    <span className="strategies__number">02</span>
+                    <div><h2 id="aportaciones-title">Decide cómo entrar al mercado</h2><p>Ahorrar cada mes y tener ya un capital disponible son situaciones distintas.</p></div>
+                </div>
+                <div className="strategies__grid">
+                    <article className="strategies__entry-card">
+                        <span className="strategies__icon"><Repeat size={24} aria-hidden="true" /></span>
+                        <h3>Aportaciones periódicas</h3>
+                        <span className="strategies__term">DCA · una cantidad a intervalos regulares</span>
+                        <p>Invierte el ahorro que vas generando sin necesitar acertar el mejor día de compra.</p>
+                        <div className="strategies__entry-detail"><strong>A favor</strong><p>Facilita el hábito y reparte las compras en el tiempo.</p></div>
+                        <div className="strategies__entry-detail"><strong>Ten en cuenta</strong><p>Si el capital ya está disponible, escalonarlo mantiene una parte fuera del mercado. No elimina el riesgo de pérdidas.</p></div>
+                    </article>
+                    <article className="strategies__entry-card">
+                        <span className="strategies__icon"><Wallet size={24} aria-hidden="true" /></span>
+                        <h3>Inversión de una vez</h3>
+                        <span className="strategies__term">Lump sum · todo el capital previsto</span>
+                        <p>Pone a trabajar desde el inicio el dinero que ya has reservado para invertir.</p>
+                        <div className="strategies__entry-detail"><strong>A favor</strong><p>Evita esperar con parte del capital sin invertir.</p></div>
+                        <div className="strategies__entry-detail"><strong>Ten en cuenta</strong><p>Una caída inmediata afecta a toda la inversión. Necesitas un nivel de riesgo que puedas sostener.</p></div>
+                    </article>
                 </div>
             </section>
 
-            <section className="strategies__entry">
-                <h2 className="strategies__section-title">2. ¿Cómo entrar al mercado?</h2>
-                <div className="strategies__entry-grid">
-                    <div className="entry-method">
-                        <div className="entry-method__icon">
-                            <Repeat size={24} />
-                        </div>
-                        <div className="entry-method__content">
-                            <h3>DCA (Dollar Cost Averaging)</h3>
-                            <p>Invertir una cantidad fija cada mes, independientemente de si el mercado sube o baja.</p>
-                            <span className="badge">Recomendado para la mayoría</span>
-                        </div>
+            <section id="reequilibrio" className="strategies__section" aria-labelledby="reequilibrio-title">
+                <div className="strategies__section-heading">
+                    <span className="strategies__number">03</span>
+                    <div><h2 id="reequilibrio-title">Ajusta el riesgo, no persigas las subidas</h2><p>Reequilibrar devuelve cada bloque a su peso objetivo.</p></div>
+                </div>
+                <div className="strategies__rebalance-card">
+                    <div className="strategies__chart-heading"><h3>Un ejemplo de cartera 60 / 40</h3><span>Ejemplo ilustrativo</span></div>
+                    <div className="strategies__balance-grid">
+                        {REBALANCING_EXAMPLE.map(({ label, equity, bonds, note }) => (
+                            <div className="strategies__balance-stage" key={label}>
+                                <h4>{label}</h4>
+                                <div className="strategies__balance-bar" role="img" aria-label={`${label}: ${equity}% renta variable y ${bonds}% renta fija`}>
+                                    <span style={{ width: `${equity}%` }}>{equity}%</span><span style={{ width: `${bonds}%` }}>{bonds}%</span>
+                                </div>
+                                <p>{note}</p>
+                            </div>
+                        ))}
                     </div>
-                    <div className="entry-method">
-                        <div className="entry-method__icon">
-                            <Target size={24} />
-                        </div>
-                        <div className="entry-method__content">
-                            <h3>Lump Sum</h3>
-                            <p>Invertir todo el capital disponible de una sola vez.</p>
-                            <span className="badge warning">Mayor riesgo emocional</span>
-                        </div>
-                    </div>
+                    <div className="strategies__legend"><span><i /> Renta variable</span><span><i /> Renta fija</span></div>
+                    <ol className="strategies__rules">
+                        <li><Target size={20} aria-hidden="true" /><div><strong>Fija tus pesos</strong><p>Según tu horizonte, objetivos y tolerancia a pérdidas.</p></div></li>
+                        <li><CalendarDays size={20} aria-hidden="true" /><div><strong>Define una regla</strong><p>Por calendario o por desviación; por ejemplo, una revisión anual o un umbral de 5 puntos porcentuales.</p></div></li>
+                        <li><Scale size={20} aria-hidden="true" /><div><strong>Prioriza las aportaciones</strong><p>Dirígelas al bloque con menos peso. Si necesitas vender, revisa impuestos, comisiones y posibles traspasos.</p></div></li>
+                    </ol>
                 </div>
             </section>
 
-            <section className="strategies__rebalancing">
-                <h2 className="strategies__section-title">3. El Rebalanceo: La clave de la Disciplina</h2>
-                <div className="rebalancing-box">
-                    <div className="rebalancing-box__text">
-                        <p>
-                            Con el tiempo, los activos que más suben ganan peso en tu cartera, aumentando tu riesgo.
-                            <strong> Rebalancear</strong> significa vender lo que ha subido y comprar lo que ha bajado para
-                            volver a tu asignación original.
-                        </p>
-                        <div className="rebalancing-steps">
-                            <div className="step">
-                                <span className="step-num">1</span>
-                                <span>Define tu allocation (ej. 60/40)</span>
-                            </div>
-                            <div className="step">
-                                <span className="step-num">2</span>
-                                <span>Revisa una vez al año</span>
-                            </div>
-                            <div className="step">
-                                <span className="step-num">3</span>
-                                <span>Ajusta desviaciones {'>'} 5%</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="rebalancing-box__icon">
-                        <BarChart3 size={64} />
-                    </div>
-                </div>
-            </section>
-
-            <section className="strategies__cta">
-                <TrendingUp className="icon" size={48} />
-                <h2 className="cta__title">Diseña tu propia estrategia</h2>
-                <p className="cta__desc">
-                    No dejes tu futuro al azar. Utiliza nuestras calculadoras para proyectar tu libertad financiera según tu estrategia.
-                </p>
-                <div className="cta__buttons">
-                    <Link to="/academy/fire-calculator" className="cta__button">
-                        Plan FIRE <ArrowRight size={18} />
-                    </Link>
-                    <Link to="/academy/compound-interest" className="cta__button secondary">
-                        Interés Compuesto <ArrowRight size={18} />
-                    </Link>
+            <section className="strategies__section" aria-labelledby="strategy-tools-title">
+                <div className="strategies__section-heading"><span className="strategies__number"><BarChart3 size={20} aria-hidden="true" /></span><div><h2 id="strategy-tools-title">Lleva la estrategia a tu cartera</h2><p>Define la distribución y comprueba cómo encaja con tus objetivos.</p></div></div>
+                <div className="strategies__tools">
+                    <Link to="/academy/portfolio" className="strategies__tool-card"><Target size={24} aria-hidden="true" /><h3>Estrategia y cartera</h3><p>Explora bloques y construye tu distribución.</p><span>Diseñar cartera <ArrowRight size={18} aria-hidden="true" /></span></Link>
+                    <Link to="/academy/compound-interest" className="strategies__tool-card"><TrendingUp size={24} aria-hidden="true" /><h3>Interés compuesto</h3><p>Proyecta tus aportaciones con distintos supuestos.</p><span>Simular evolución <ArrowRight size={18} aria-hidden="true" /></span></Link>
+                    <Link to="/academy/fire-calculator" className="strategies__tool-card"><ShieldCheck size={24} aria-hidden="true" /><h3>Plan FIRE</h3><p>Estima el capital para tu independencia financiera.</p><span>Explorar objetivo <ArrowRight size={18} aria-hidden="true" /></span></Link>
                 </div>
             </section>
         </div>

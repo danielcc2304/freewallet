@@ -1,515 +1,105 @@
-import { useState, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import {
-    Search, Filter, ExternalLink, Info,
-    ArrowLeft, Landmark, BarChart3,
-    ChevronDown, ChevronUp, Star, Trophy,
-    Wrench, GraduationCap, Settings, FileSpreadsheet,
-} from 'lucide-react';
-import { BEST_FUNDS } from '../../../data/academyData';
-import type { Fund } from '../../../types/types';
-import { calculateRawScore, calculatePercentile, normalizeScore } from '../../../services/funds/fundScoring';
-import { Button, Modal } from '../../ui';
+import { Search, RefreshCw, Plus, Pencil, Archive, RotateCcw, ChevronDown, ExternalLink, Info, SlidersHorizontal } from 'lucide-react';
+import { Button, ConfirmDialog } from '../../ui';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
+import { useNewsEditorId } from '../../../hooks/useNewsEditorId';
+import { loadRadarCatalog, refreshRadarData, setRadarFundActive } from '../../../services/fundRadar/catalog';
+import { effectiveMetrics, RADAR_METRIC_LABELS, type MetricKey, type RadarFund } from '../../../services/fundRadar/types';
+import { scoreRadarFunds, type RadarScore } from '../../../services/funds/fundScoring';
+import { FundRadarEditor } from './FundRadarEditor';
 import './FundRadar.css';
 
-interface FundCardProps {
-    fund: Fund;
-    getRiskColor: (risk: number) => string;
-    isExpanded: boolean;
-    onToggle: () => void;
-    score: number;
-    rank?: number;
+const fmt=(value:number|null|undefined,suffix='%')=>value==null||!Number.isFinite(value)?'—':`${value.toLocaleString('es-ES',{maximumFractionDigits:2})}${suffix}`;
+const day=(value:string|null|undefined)=>value&&Number.isFinite(Date.parse(value))?new Date(value).toLocaleDateString('es-ES'):'Sin fecha verificada';
+const text=(value:string)=>value.normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLocaleLowerCase('es');
+function Metric({fund,metric,label}:{fund:RadarFund;metric:MetricKey;label?:string}){
+    const m=effectiveMetrics(fund),value=m[metric],date=m.dates?.[metric];
+    const missingDate=fund.auto_refresh&&fund.fund_radar_data?.metrics[metric]!=null?'Fecha no publicada':'Sin fecha verificada';
+    const suffix=metric==='sharpe'?'':metric==='nav'?` ${m.currency??''}`:'%';
+    return <div className="radar-card__metric"><dt>{label??RADAR_METRIC_LABELS[metric]}</dt><dd>{fmt(value,suffix)}</dd><small>{value!=null?(date?day(date):missingDate):'No facilitado'}</small></div>;
 }
-
-const formatPercent = (val: number | undefined) => {
-    if (val === undefined || isNaN(val)) return { text: '—', className: '' };
-    const formatted = val.toFixed(2);
-    const sign = val > 0 ? '+' : '';
-    const className = val > 0 ? 'pos' : val < 0 ? 'neg' : '';
-    return { text: `${sign}${formatted}%`, className };
-};
-
-function FundCard({ fund, getRiskColor, isExpanded, onToggle, score, rank }: FundCardProps) {
-    return (
-        <div className={`fund-card ${isExpanded ? 'fund-card--expanded' : ''} ${rank === 1 ? 'fund-card--gold' : ''}`} onClick={onToggle}>
-            {rank && rank <= 3 && (
-                <div className={`fund-card__rank-badge rank-${rank}`}>
-                    <Trophy size={14} />
-                    <span>Top {rank}</span>
-                </div>
-            )}
-
-            <div className="fund-card__header">
-                <div className="fund-card__title-row">
-                    <span className="fund-card__category">{fund.category}</span>
-                    <div className="fund-card__risk" style={{ background: getRiskColor(fund.risk) }}>
-                        Riesgo SRRI {fund.risk}
-                    </div>
-                </div>
-                <h3 className="fund-card__name">{fund.name}</h3>
-                <div className="fund-card__meta">
-                    <div className="fund-card__isin">
-                        <Landmark size={12} />
-                        <span>{fund.isin}</span>
-                    </div>
-                    {isExpanded && fund.aum && (
-                        <div className="fund-card__aum">
-                            <BarChart3 size={12} />
-                            <span>Patr: {fund.aum}</span>
-                        </div>
-                    )}
-                </div>
-            </div>
-
-            <div className="fund-card__body">
-                <div className="fund-card__summary">
-                    <div className="fund-card__metrics-grid">
-                        <div className="fund-stat">
-                            <span className="fund-stat__label">Rent. YTD</span>
-                            <span className={`fund-stat__value ${formatPercent(fund.returns.ytd).className}`}>
-                                {formatPercent(fund.returns.ytd).text}
-                            </span>
-                        </div>
-                        <div className="fund-stat">
-                            <span className="fund-stat__label">Rent. 1Y</span>
-                            <span className={`fund-stat__value ${formatPercent(fund.returns.y1).className}`}>
-                                {formatPercent(fund.returns.y1).text}
-                            </span>
-                        </div>
-                        <div className="fund-stat fund-stat--highlight">
-                            <span className="fund-stat__label">Volatilidad</span>
-                            <span className="fund-stat__value">{fund.volatility}%</span>
-                        </div>
-                        <div className="fund-stat">
-                            <span className="fund-stat__label">Máx. Caída</span>
-                            <span className={`fund-stat__value ${formatPercent(fund.maxDrawdown).className}`}>
-                                {formatPercent(fund.maxDrawdown).text}
-                            </span>
-                        </div>
-                        <div className="fund-stat">
-                            <span className="fund-stat__label">TER (Costes)</span>
-                            <span className="fund-stat__value">{fund.ter}%</span>
-                        </div>
-                        <div className="fund-stat fund-stat--score">
-                            <span className="fund-stat__label">Puntuación</span>
-                            <span className="fund-stat__value score">{score.toFixed(1)}</span>
-                        </div>
-                    </div>
-                </div>
-
-                {isExpanded && (
-                    <div className="fund-card__expanded-content">
-                        <div className="expanded-divider">Analítica Avanzada</div>
-
-                        <div className="fund-card__metrics-grid">
-                            <div className="fund-stat">
-                                <span className="fund-stat__label">Sharpe Ratio</span>
-                                <span className="fund-stat__value">{fund.sharpe ?? '--'}</span>
-                            </div>
-                            {fund.returns.y3 !== undefined && (
-                                <div className="fund-stat">
-                                    <span className="fund-stat__label">Rent. 3Y (An.)</span>
-                                    <span className={`fund-stat__value ${formatPercent(fund.returns.y3).className}`}>
-                                        {formatPercent(fund.returns.y3).text}
-                                    </span>
-                                </div>
-                            )}
-                            {fund.returns.y5 !== undefined && (
-                                <div className="fund-stat">
-                                    <span className="fund-stat__label">Rent. 5Y (An.)</span>
-                                    <span className={`fund-stat__value ${formatPercent(fund.returns.y5).className}`}>
-                                        {formatPercent(fund.returns.y5).text}
-                                    </span>
-                                </div>
-                            )}
-                            {fund.duration !== undefined && (
-                                <div className="fund-stat">
-                                    <span className="fund-stat__label">Duración</span>
-                                    <span className="fund-stat__value">{fund.duration}y</span>
-                                </div>
-                            )}
-                        </div>
-
-                        {fund.allocation && fund.allocation.length > 0 && (
-                            <div className="fund-card__allocation">
-                                <h4 className="section-title">Distribución de Cartera</h4>
-                                <div className="allocation-bar">
-                                    {fund.allocation.map((item, i) => (
-                                        <div
-                                            key={i}
-                                            className="allocation-segment"
-                                            style={{ width: `${item.value}%`, backgroundColor: `hsl(${i * 60 + 200}, 70%, 45%)` }}
-                                        />
-                                    ))}
-                                </div>
-                                <div className="allocation-labels">
-                                    {fund.allocation.map((item, i) => (
-                                        <span key={i} className="alloc-label">
-                                            {item.label} <strong>{item.value}%</strong>
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        <p className="fund-card__desc">{fund.description}</p>
-                    </div>
-                )}
-            </div>
-
-            <div className="fund-card__footer">
-                <div className="fund-card__toggle-hint">
-                    {isExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                    <span>{isExpanded ? 'Menos info' : 'Análisis completo'}</span>
-                </div>
-                <div className="fund-card__actions">
-                    <a
-                        href={fund.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="fund-card__link"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        Finect <ExternalLink size={14} />
-                    </a>
-                </div>
-            </div>
-        </div>
-    );
+function RadarCard({fund,score,expanded,onToggle,editor,onEdit,onArchive,onRefresh,busy}:{fund:RadarFund;score:RadarScore|undefined;expanded:boolean;onToggle:()=>void;editor:boolean;onEdit:()=>void;onArchive:()=>void;onRefresh:()=>void;busy:boolean}){
+    const m=effectiveMetrics(fund),source=fund.auto_refresh?fund.fund_radar_data?.source_url??fund.source_url:fund.source_url;
+    const lastFetchFailed=fund.auto_refresh&&!!fund.fund_radar_data?.checked_at&&(!fund.fund_radar_data.last_success_at||Date.parse(fund.fund_radar_data.checked_at)>Date.parse(fund.fund_radar_data.last_success_at));
+    const detailsId=`radar-details-${fund.id}`;
+    return <article className={`radar-card ${!fund.is_active?'radar-card--archived':''}`}>
+        <div className="radar-card__badges"><span>{fund.category}</span><span>{m.risk!=null?`Riesgo ${m.risk}/7`:'Riesgo sin verificar'}</span>{!fund.is_active&&<span>Retirado</span>}</div>
+        <h2>{fund.name}</h2><div className="radar-card__identity"><code>{fund.isin}</code><span>{fund.manager||fund.fund_radar_data?.profile?.manager||'Gestora sin indicar'}</span></div>
+        <dl className="radar-card__summary"><Metric fund={fund} metric="ytd" label="YTD"/><Metric fund={fund} metric="y1" label="1 año"/><Metric fund={fund} metric="y3" label="3 años · anualizada"/><Metric fund={fund} metric="ter" label="TER anual"/></dl>
+        <div className="radar-card__score">{score?.value!=null?<><strong>{fmt(score.value,'')}<small> / 100</small></strong><span>#{score.rank} de {score.peers} comparables</span></>:<><span>Sin puntuación comparable</span><Info size={16} aria-hidden="true"/></>}</div>
+        {expanded&&<div className="radar-card__details" id={detailsId}>
+            <p className="radar-card__score-note">{score?.value!=null?'Percentil relativo dentro de su grupo; no es una previsión de rentabilidad.':score?.reason}</p>
+            <dl className="radar-card__summary"><Metric fund={fund} metric="y5" label="5 años · anualizada"/><Metric fund={fund} metric="volatility" label="Volatilidad · 3 años"/><Metric fund={fund} metric="maxDrawdown" label="Caída máxima · 3 años"/><Metric fund={fund} metric="sharpe" label="Sharpe · 3 años"/><Metric fund={fund} metric="nav" label="Valor liquidativo"/></dl>
+            {fund.fund_radar_data?.provider_category&&<p><strong>Categoría Finect:</strong> {fund.fund_radar_data.provider_category}</p>}
+            {fund.fund_radar_data?.profile?.description&&<p>{fund.fund_radar_data.profile.description}</p>}
+            {fund.description&&<p><strong>Notas editoriales:</strong> {fund.description}</p>}
+            {(fund.extra.aum||fund.fund_radar_data?.profile?.aum!=null)&&<p><strong>Patrimonio:</strong> {fund.auto_refresh&&fund.fund_radar_data?.profile?.aum!=null?fmt(fund.fund_radar_data.profile.aum,` ${m.currency??''}`):fund.extra.aum}</p>}
+            {fund.extra.duration!=null&&<p><strong>Duración de referencia:</strong> {fmt(fund.extra.duration,' años')}</p>}
+            {fund.extra.yieldToMaturity!=null&&<p><strong>TIR de referencia:</strong> {fmt(fund.extra.yieldToMaturity)}</p>}
+            {fund.extra.rating&&<p><strong>Rating de referencia:</strong> {fund.extra.rating}</p>}
+            {fund.extra.minInvestment&&<p><strong>Inversión mínima de referencia:</strong> {fund.extra.minInvestment}</p>}
+            {!!fund.extra.allocation?.length&&<div className="radar-card__allocation"><h3>Desglose de referencia</h3>{fund.extra.allocation.map((row,i)=><div key={i}><span>{row.label}</span><strong>{fmt(row.value)}</strong><progress value={row.value} max={100} aria-label={`${row.label}: ${fmt(row.value)}`}/></div>)}</div>}
+            {lastFetchFailed&&<p>La última consulta no aportó datos válidos. Se conserva la información anterior.</p>}
+            <p className="radar-card__provenance">{fund.auto_refresh?'Consulta a Finect':'Actualización manual'}: {fund.auto_refresh?day(fund.fund_radar_data?.checked_at):day(fund.updated_at)}. Las fechas de cada métrica pueden ser diferentes.</p>
+        </div>}
+        <div className="radar-card__footer"><button type="button" onClick={onToggle} aria-expanded={expanded} aria-controls={detailsId}>{expanded?'Menos detalles':'Ver ficha'}<ChevronDown size={16} className={expanded?'radar-card__chevron--open':''} aria-hidden="true"/></button>{source&&<a href={source} target="_blank" rel="noopener noreferrer">Fuente <ExternalLink size={15} aria-hidden="true"/></a>}</div>
+        {editor&&<div className="radar-card__editor" aria-label={`Gestión de ${fund.name}`}><button type="button" onClick={onEdit}><Pencil size={16} aria-hidden="true"/>Editar</button><button type="button" disabled={busy} onClick={onArchive}>{fund.is_active?<Archive size={16} aria-hidden="true"/>:<RotateCcw size={16} aria-hidden="true"/>}{fund.is_active?'Retirar':'Restaurar'}</button>{fund.auto_refresh&&fund.is_active&&<button type="button" disabled={busy} onClick={onRefresh} aria-label={`Actualizar datos de ${fund.name}`}><RefreshCw size={16} aria-hidden="true"/>Datos</button>}</div>}
+    </article>;
 }
-
-const clamp = (x: number, min: number, max: number) => Math.min(max, Math.max(min, x));
-
-export function FundRadar() {
-    const [search, setSearch] = useState('');
-    const [activeCategory, setActiveCategory] = useState('Todas');
-    const [allExpanded, setAllExpanded] = useState(false);
-    const [showFundRadarNotice, setShowFundRadarNotice] = useState(true);
-
-    const categories = useMemo(() => {
-        const cats = new Set(BEST_FUNDS.map(fund => fund.category));
-        const sortedCats = Array.from(cats).sort((a, b) => {
-            if (a.includes('Monetario') && !b.includes('Monetario')) return -1;
-            if (!a.includes('Monetario') && b.includes('Monetario')) return 1;
-            if (a.includes('Mixto') && !b.includes('Mixto')) return -1;
-            if (!a.includes('Mixto') && b.includes('Mixto')) return 1;
-            return a.localeCompare(b);
-        });
-        return ['Todas', ...sortedCats];
-    }, []);
-
-    const processedFunds = useMemo(() => {
-        // 1. Calcular Score Bruto
-        const scored = BEST_FUNDS.map(f => ({ fund: f, raw: calculateRawScore(f) }));
-
-        // 2. Normalizar 0–100 por categoría con winsorization p5–p95
-        const catStats = new Map<string, { p5: number; p95: number; min: number; max: number; size: number }>();
-        const uniqueCats = Array.from(new Set(scored.map(x => x.fund.category)));
-
-        uniqueCats.forEach(cat => {
-            const raws = scored.filter(x => x.fund.category === cat).map(x => x.raw);
-            const p5 = calculatePercentile(raws, 0.05);
-            const p95 = calculatePercentile(raws, 0.95);
-
-            const clipped = raws.map(r => clamp(r, p5, p95));
-            const min = Math.min(...clipped);
-            const max = Math.max(...clipped);
-
-            catStats.set(cat, { p5, p95, min, max, size: raws.length });
-        });
-
-        // 3. Precalcular Ranks por categoría
-        const rankMaps = new Map<string, Map<string, number>>();
-        uniqueCats.forEach(cat => {
-            const catRankMap = new Map<string, number>();
-            scored
-                .filter(item => item.fund.category === cat)
-                .sort((a, b) => b.raw - a.raw)
-                .forEach((item, index) => {
-                    catRankMap.set(item.fund.id, index + 1);
-                });
-            rankMaps.set(cat, catRankMap);
-        });
-
-        return scored.map(({ fund, raw }) => {
-            const stats = catStats.get(fund.category)!;
-            const clipped = clamp(raw, stats.p5, stats.p95);
-            const finalScore = normalizeScore(clipped, stats.min, stats.max, stats.size);
-
-            const rank = rankMaps.get(fund.category)?.get(fund.id) || 999;
-
-            return {
-                ...fund,
-                calculatedScore: finalScore,
-                rank
-            };
-        });
-    }, []);
-
-    const filteredFunds = useMemo(() => {
-        return processedFunds.filter(fund => {
-            const matchesSearch = fund.name.toLowerCase().includes(search.toLowerCase()) ||
-                fund.isin.toLowerCase().includes(search.toLowerCase()) ||
-                fund.manager.toLowerCase().includes(search.toLowerCase());
-            const matchesCategory = activeCategory === 'Todas' || fund.category === activeCategory;
-            return matchesSearch && matchesCategory;
-        }).sort((a, b) => {
-            // Default sort by category priority, then by rank within category
-            if (a.category !== b.category) {
-                const cats = categories.slice(1);
-                return cats.indexOf(a.category) - cats.indexOf(b.category);
-            }
-            return a.rank - b.rank;
-        });
-    }, [search, activeCategory, processedFunds, categories]);
-
-    const getRiskColor = (risk: number) => {
-        if (risk <= 2) return '#10b981';
-        if (risk <= 4) return '#f59e0b';
-        return '#ef4444';
+export function FundRadar(){
+    const editorId=useNewsEditorId();
+    const [funds,setFunds]=useState<RadarFund[]>([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[notice,setNotice]=useState('');
+    const [search,setSearch]=useState(''),[category,setCategory]=useState('Todas'),[sort,setSort]=useState('name'),[risk,setRisk]=useState('all'),[status,setStatus]=useState('active');
+    const [expanded,setExpanded]=useState<Set<string>>(()=>new Set());
+    const [editing,setEditing]=useState<{fund:RadarFund|null;actor:string}|null>(null),[retiring,setRetiring]=useState<RadarFund|null>(null),[working,setWorking]=useState(false);
+    const request=useRef(0),mounted=useRef(true);
+    const reload=useCallback(async()=>{
+        const n=++request.current;setLoading(true);setError('');
+        try{const data=await loadRadarCatalog();if(mounted.current&&n===request.current)setFunds(data);}
+        catch(e){if(mounted.current&&n===request.current)setError(e instanceof Error?e.message:'No se pudo cargar el radar.');}
+        finally{if(mounted.current&&n===request.current)setLoading(false);}
+    },[]);
+    useEffect(()=>{mounted.current=true;void reload();return()=>{mounted.current=false;};},[reload,editorId]);
+    const publicFunds=useMemo(()=>funds.filter(f=>f.is_active),[funds]);
+    const categories=useMemo(()=>[...new Set(funds.filter(f=>editorId||f.is_active).map(f=>f.category))].sort((a,b)=>a.localeCompare(b,'es')),[funds,editorId]);
+    const scores=useMemo(()=>scoreRadarFunds(publicFunds),[publicFunds]);
+    const visible=useMemo(()=>funds.filter(f=>{
+        if(!editorId&&!f.is_active)return false;
+        if((!editorId||status==='active')&&!f.is_active||editorId&&status==='archived'&&f.is_active)return false;
+        if(category!=='Todas'&&f.category!==category)return false;
+        if(!text([f.name,f.isin,f.manager,f.fund_radar_data?.profile?.name].join(' ')).includes(text(search.trim())))return false;
+        const r=effectiveMetrics(f).risk;if(risk!=='all'&&(r==null||risk==='low'&&r>2||risk==='mid'&&(r<3||r>4)||risk==='high'&&r<5))return false;
+        return true;
+    }).sort((a,b)=>{
+        if(sort==='name')return a.name.localeCompare(b.name,'es');
+        const av=sort==='score'?scores.get(a.id)?.value:effectiveMetrics(a)[sort==='ter'?'ter':'y3'];
+        const bv=sort==='score'?scores.get(b.id)?.value:effectiveMetrics(b)[sort==='ter'?'ter':'y3'];
+        if(av==null&&bv!=null)return 1;if(bv==null&&av!=null)return -1;
+        return (av!=null&&bv!=null?(sort==='ter'?av-bv:bv-av):0)||a.name.localeCompare(b.name,'es');
+    }),[funds,editorId,status,category,search,risk,sort,scores]);
+    const refresh=async(fundId?:string)=>{
+        if(!editorId||working)return;setWorking(true);setError('');setNotice('');
+        try{const result=await refreshRadarData(editorId,fundId);if(mounted.current){setNotice(result.requested?`${result.updated} fondos actualizados${result.failed?`; ${result.failed} consultas fallidas: se conserva el dato anterior`:''}.`:'Sin consultas pendientes. Cada fondo admite una nueva consulta editorial cada 15 minutos.');await reload();}}
+        catch(e){if(mounted.current)setError(e instanceof Error?e.message:'No se pudieron consultar los datos.');}finally{if(mounted.current)setWorking(false);}
     };
-
-    const morningstarExampleFund = useMemo(
-        () => BEST_FUNDS.find(f => f.id === 'fidelity-msci-world') ?? BEST_FUNDS[0],
-        []
-    );
-
-    const fundRadarNoticeModal = (
-        <Modal
-            isOpen={showFundRadarNotice}
-            onClose={() => setShowFundRadarNotice(false)}
-            size="md"
-        >
-            <div className="fund-radar__notice fund-radar__notice--hero">
-                <div className="fund-radar__notice-icon">
-                    <Wrench size={44} />
-                </div>
-                <h2 className="fund-radar__notice-title">Radar de fondos en progreso</h2>
-                <p className="fund-radar__notice-description">
-                    Esta sección sigue en desarrollo y va a recibir modificaciones importantes.
-                    El ranking, las métricas y los datos de los fondos pueden cambiar mientras terminamos esta parte.
-                </p>
-                <div className="fund-radar__notice-links">
-                    <Link to="/academy" onClick={() => setShowFundRadarNotice(false)}>
-                        <GraduationCap size={18} />
-                        Academia
-                    </Link>
-                    <Link to="/settings" onClick={() => setShowFundRadarNotice(false)}>
-                        <Settings size={18} />
-                        Configuración
-                    </Link>
-                    <Link to="/portfolio-csv" onClick={() => setShowFundRadarNotice(false)}>
-                        <FileSpreadsheet size={18} />
-                        Portfolio
-                    </Link>
-                </div>
-                <Button onClick={() => setShowFundRadarNotice(false)} size="lg" fullWidth>
-                    Entendido
-                </Button>
-            </div>
-        </Modal>
-    );
-
-    return (
-        <>
-        <div className="fund-radar">
-            <Link to="/academy" className="fund-radar__back">
-                <ArrowLeft size={18} /> Volver a la Academia
-            </Link>
-
-            <AcademyPageHeader className="fund-radar__header" section="Herramientas">
-
-                <h1>Ranking de Fondos por Categorías</h1>
-                <div className="fund-radar__last-update">
-                    <Star size={12} />
-                    <span>Última actualización: 4 de Marzo del 2026</span>
-                </div>
-                <p>
-                    Clasificamos cada fondo mediante una métrica de eficiencia que considera
-                    rentabilidad a largo plazo, riesgo gestionado y costes.
-                </p>
-                <div className="fund-radar__srri-info">
-                    <Star size={14} />
-                    <span>Esta puntuación es un <strong>análisis cuantitativo</strong> basado en datos históricos. No constituye una recomendación de compra.</span>
-                </div>
-            </AcademyPageHeader>
-
-            <div className="fund-radar__filters">
-                <div className="fund-radar__search-row">
-                    <div className="fund-radar__search">
-                        <Search className="search-icon" size={20} />
-                        <input
-                            type="text"
-                            placeholder="Buscar por nombre, ISIN o gestora..."
-                            value={search}
-                            onChange={(e) => setSearch(e.target.value)}
-                        />
-                    </div>
-                    <button
-                        className={`expand-all-btn ${allExpanded ? 'active' : ''}`}
-                        onClick={() => setAllExpanded(!allExpanded)}
-                    >
-                        {allExpanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                        {allExpanded ? 'Colapsar Detalles' : 'Ver Análisis Avanzado'}
-                    </button>
-                </div>
-
-                <div className="fund-radar__categories">
-                    <Filter className="fund-radar__filter-icon" size={16} />
-                    <div className="categories-list">
-                        {categories.map(cat => (
-                            <button
-                                key={cat}
-                                className={`category-chip ${activeCategory === cat ? 'active' : ''}`}
-                                onClick={() => setActiveCategory(cat)}
-                            >
-                                {cat}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-            </div>
-
-            <div className="fund-radar__grid">
-                {filteredFunds.map(fund => (
-                    <FundCard
-                        key={fund.id}
-                        fund={fund}
-                        getRiskColor={getRiskColor}
-                        isExpanded={allExpanded}
-                        onToggle={() => setAllExpanded(!allExpanded)}
-                        score={fund.calculatedScore}
-                        rank={fund.rank}
-                    />
-                ))}
-            </div>
-
-            {filteredFunds.length === 0 && (
-                <div className="fund-radar__empty">
-                    <Info size={48} />
-                    <p>No se han encontrado fondos con esos criterios.</p>
-                </div>
-            )}
-
-            <section className="fund-radar__edu">
-                <h2>Cómo interpretar una ficha Morningstar</h2>
-                <p className="fund-radar__edu-intro">
-                    Usa esta guía rápida con un caso conocido para leer una ficha sin perderte en métricas.
-                </p>
-
-                <div className="edu-example">
-                    <div className="edu-example__header">
-                        <div>
-                            <span className="edu-example__tag">Ejemplo</span>
-                            <h3>{morningstarExampleFund.name}</h3>
-                            <p>{morningstarExampleFund.category} · ISIN {morningstarExampleFund.isin}</p>
-                        </div>
-                        <a href={morningstarExampleFund.link} target="_blank" rel="noopener noreferrer" className="fund-card__link">
-                            Ver ficha completa <ExternalLink size={14} />
-                        </a>
-                    </div>
-
-                    <div className="edu-example__grid">
-                        <div className="edu-metric">
-                            <span>Rent. 5Y (anual)</span>
-                            <strong className={formatPercent(morningstarExampleFund.returns.y5).className}>
-                                {formatPercent(morningstarExampleFund.returns.y5).text}
-                            </strong>
-                            <p>Mide consistencia de largo plazo, no solo el último año.</p>
-                        </div>
-                        <div className="edu-metric">
-                            <span>Volatilidad</span>
-                            <strong>{morningstarExampleFund.volatility}%</strong>
-                            <p>Cuánto se mueve el fondo. Más volatilidad implica más estrés potencial.</p>
-                        </div>
-                        <div className="edu-metric">
-                            <span>Máx. Caída</span>
-                            <strong className={formatPercent(morningstarExampleFund.maxDrawdown).className}>
-                                {formatPercent(morningstarExampleFund.maxDrawdown).text}
-                            </strong>
-                            <p>Tu peor bajada histórica para preparar la parte emocional.</p>
-                        </div>
-                        <div className="edu-metric">
-                            <span>TER</span>
-                            <strong>{morningstarExampleFund.ter}%</strong>
-                            <p>Coste anual. En horizontes largos, pequeñas diferencias pesan mucho.</p>
-                        </div>
-                        <div className="edu-metric">
-                            <span>Sharpe</span>
-                            <strong>{morningstarExampleFund.sharpe ?? '--'}</strong>
-                            <p>Rentabilidad por unidad de riesgo: útil para comparar fondos similares.</p>
-                        </div>
-                        <div className="edu-metric">
-                            <span>SRRI</span>
-                            <strong>{morningstarExampleFund.risk}/7</strong>
-                            <p>Escala regulatoria de riesgo. No sustituye al análisis completo.</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="edu-checklist">
-                    <h4>Checklist de lectura en 60 segundos</h4>
-                    <ul>
-                        <li>1) Comprueba que categoría y benchmark encajan con tu objetivo.</li>
-                        <li>2) Mira 3Y/5Y anualizados y no te quedes solo con YTD o 1Y.</li>
-                        <li>3) Revisa volatilidad y máximo drawdown antes de invertir.</li>
-                        <li>4) Contrasta TER frente a alternativas de la misma categoría.</li>
-                        <li>5) Valora consistencia del gestor y tamaño del fondo (AUM).</li>
-                    </ul>
-                </div>
-            </section>
-
-            <footer className="fund-radar__footer-info">
-                <div className="info-box info-box--formula">
-                    <div className="info-text">
-                        <p><strong>Fórmula de Eficiencia:</strong> Prioriza historial a 5 años (80%) y penaliza riesgos extremos.</p>
-                        <code className="formula-code">Score = (0.8 * Rent.5Y + 0.2 * Rent.3Y) - 0.4 * Vol - 0.4 * MDD - TER</code>
-                        <p className="formula-note">Penalización por falta de histórico a 5 años. Se utiliza Winsorization p5–p95 para normalización relativa por categoría.</p>
-                    </div>
-                </div>
-
-                <div className="info-box">
-                    <div className="info-icon-wrapper">
-                        <Info size={24} />
-                    </div>
-                    <div className="info-text">
-                        <p>
-                            Los datos se basan en registros históricos de Finect y Morningstar.
-                            Las puntuaciones reflejan la eficiencia relativa del gestor dentro de su categoría de activos.
-                        </p>
-                        <span className="disclaimer">
-                            <strong>Aviso Legal:</strong> Este ranking es exclusivamente informativo. FreeWallet no ofrece asesoramiento financiero.
-                            La elección de cualquier producto de inversión debe basarse en un estudio personal y/o con un asesor certificado.
-                        </span>
-                    </div>
-                </div>
-            </footer>
-
-
-            <section className="fund-radar__next">
-                <div className="fund-radar__next-header">
-                    <h2>Qué hacer despues del radar</h2>
-                    <p>Una vez filtrados los fondos, contrasta encaje, riesgo y lectura de cartera.</p>
-                </div>
-                <div className="fund-radar__next-grid">
-                    <Link to="/academy/portfolio" className="fund-radar__next-card">
-                        <strong>Estrategia y cartera</strong>
-                        <p>Comprueba si el fondo mejora una asignacion completa y no solo una posición aislada.</p>
-                    </Link>
-                    <Link to="/academy/risk" className="fund-radar__next-card">
-                        <strong>Gestión del riesgo</strong>
-                        <p>Revisa riesgo de divisa, correlacion y drawdown antes de decidir.</p>
-                    </Link>
-                    <Link to="/portfolio-csv" className="fund-radar__next-card">
-                        <strong>Portfolio</strong>
-                        <p>Comprueba si ese fondo reduce o empeora la concentracion de tu cartera real.</p>
-                    </Link>
-                </div>
-            </section>
-        </div>
-        {fundRadarNoticeModal}
-        </>
-    );
+    const retire=async()=>{
+        if(!retiring||!editorId||working)return;setWorking(true);setError('');
+        try{await setRadarFundActive(retiring,!retiring.is_active,editorId);setNotice(retiring.is_active?'Fondo retirado del catálogo público. Puedes restaurarlo desde Retirados.':'Fondo restaurado.');setRetiring(null);await reload();}
+        catch(e){setRetiring(null);setError(e instanceof Error?e.message:'No se pudo cambiar el estado.');}finally{setWorking(false);}
+    };
+    return <div className="fund-radar">
+        <AcademyPageHeader section="Herramientas" className="radar-header"><h1>Radar de fondos</h1><p>Explora clases por ISIN, compara costes y consulta sus datos de origen antes de decidir.</p><div className="radar-header__meta"><span>{publicFunds.length} fondos publicados</span><span>{categories.length} categorías</span><span>Consulta diaria a Finect</span></div></AcademyPageHeader>
+        <div className="radar-toolbar"><div><strong>Catálogo de fondos</strong><span>Las métricas conservan su fecha de origen.</span></div><div className="radar-toolbar__actions"><Button variant="secondary" size="sm" icon={<RefreshCw size={16}/>} disabled={loading} onClick={()=>void reload()}>Recargar</Button>{editorId&&<><Button variant="secondary" size="sm" disabled={working||loading} onClick={()=>void refresh()}>Actualizar Finect</Button><Button size="sm" icon={<Plus size={16}/>} onClick={()=>setEditing({fund:null,actor:editorId})}>Añadir fondo</Button></>}</div></div>
+        <section className="radar-filters" aria-label="Filtros del catálogo"><label className="radar-filters__search"><span>Buscar fondo</span><div><Search size={18} aria-hidden="true"/><input type="search" placeholder="Nombre, ISIN o gestora" value={search} onChange={e=>setSearch(e.target.value)}/></div></label><label>Categoría<select value={category} onChange={e=>setCategory(e.target.value)}><option>Todas</option>{categories.map(c=><option key={c}>{c}</option>)}</select></label><label>Riesgo<select value={risk} onChange={e=>setRisk(e.target.value)}><option value="all">Todos</option><option value="low">1–2</option><option value="mid">3–4</option><option value="high">5–7</option></select></label><label>Ordenar<select value={sort} onChange={e=>setSort(e.target.value)}><option value="name">Nombre</option><option value="ter">Menor TER</option><option value="y3">Mayor rentabilidad 3Y</option><option value="score">Puntuación comparable</option></select></label>{editorId&&<label>Estado<select value={status} onChange={e=>setStatus(e.target.value)}><option value="active">Publicados</option><option value="archived">Retirados</option><option value="all">Todos</option></select></label>}</section>
+        {error&&<div role="alert" className="radar-error">{error}<button type="button" onClick={()=>void reload()}>Reintentar carga</button></div>}
+        {notice&&<p className="radar-notice" role="status">{notice}</p>}
+        <div className="radar-results"><span role="status">{loading?'Cargando catálogo…':`${visible.length} fondos encontrados`}</span><button type="button" onClick={()=>{setSearch('');setCategory('Todas');setRisk('all');setSort('name');setStatus('active');}}><SlidersHorizontal size={16} aria-hidden="true"/>Restablecer filtros</button></div>
+        {loading&&funds.length===0?<div className="radar-loading" role="status"><RefreshCw size={22} aria-hidden="true"/>Preparando las fichas…</div>:<div className="radar-grid" aria-busy={loading}>{visible.map(f=><RadarCard key={f.id} fund={f} score={scores.get(f.id)} expanded={expanded.has(f.id)} onToggle={()=>setExpanded(prev=>{const next=new Set(prev);if(next.has(f.id))next.delete(f.id);else next.add(f.id);return next;})} editor={!!editorId} onEdit={()=>editorId&&setEditing({fund:f,actor:editorId})} onArchive={()=>setRetiring(f)} onRefresh={()=>void refresh(f.id)} busy={working}/>)}</div>}
+        {!loading&&!error&&visible.length===0&&<div className="radar-empty"><Search size={28} aria-hidden="true"/><h2>No hay fondos con estos filtros</h2><p>Prueba con otro nombre, ISIN o categoría.</p></div>}
+        <details className="radar-method"><summary><Info size={18} aria-hidden="true"/>Cómo interpretar los datos y la puntuación</summary><div><h2>Comparaciones con contexto</h2><p>YTD y 1Y son retornos acumulados; 3Y y 5Y son anualizados. El riesgo es el declarado por la fuente. Un guion significa que no se dispone del dato; nunca se trata como cero.</p><p>La puntuación solo aparece con al menos 5 fondos de la misma categoría editorial, divisa y mes de rentabilidad, con métricas de 3 años, fechas verificadas, datos de menos de 90 días y un desfase máximo de 45 días entre riesgo y rentabilidad.</p><code>Base = rentabilidad 3Y − 0,50 × volatilidad 3Y − 0,25 × |caída máxima 3Y|</code><p>Se convierte en un percentil de 0 a 100 dentro de ese grupo; los empates comparten puesto. No se resta otra vez el TER, ya reflejado en las rentabilidades netas. No compares puntuaciones de categorías diferentes.</p><p>Los valores manuales sin fecha se conservan como referencia. La consulta diaria no implica que todas las métricas sean de hoy: Finect puede publicar fechas distintas. Este catálogo es informativo, no una recomendación de compra.</p></div></details>
+        <div className="radar-next"><Link to="/academy/portfolio">Diseñar una cartera <ExternalLink size={16} aria-hidden="true"/></Link><Link to="/academy/risk">Revisar el riesgo <ExternalLink size={16} aria-hidden="true"/></Link>{!editorId&&<Link to="/admin/news">Acceso editorial</Link>}</div>
+        {editing&&<FundRadarEditor key={`${editing.fund?.id??'new'}-${editing.actor}`} fund={editing.fund} editorId={editing.actor} isOpen={editorId===editing.actor} categories={categories} onClose={()=>setEditing(null)} onSaved={saved=>{setFunds(prev=>[...prev.filter(f=>f.id!==saved.id),saved]);setEditing(null);setNotice('Fondo guardado. Las próximas consultas automáticas usarán esta ficha.');if(saved.auto_refresh&&(!editing.fund||!editing.fund.auto_refresh))void refresh(saved.id);}}/>}
+        <ConfirmDialog isOpen={!!retiring&&!!editorId} onClose={()=>{if(!working)setRetiring(null);}} onConfirm={()=>void retire()} title={retiring?.is_active?'Retirar fondo del radar':'Restaurar fondo'} message={retiring?.is_active?`«${retiring.name}» dejará de mostrarse al público. La ficha y su historial se conservan y podrás restaurarlo.`:`«${retiring?.name??''}» volverá a estar disponible en el catálogo público.`} confirmText={retiring?.is_active?'Retirar fondo':'Restaurar'} variant="info" loading={working}/>
+    </div>;
 }
-

@@ -1,71 +1,37 @@
-import type { Fund } from '../../types/types';
-
-/**
- * Calculates a raw performance score for a fund.
- * Prioritizes 5-year returns, low volatility, and minimal drawdown.
+import { effectiveMetrics, type RadarFund } from '../fundRadar/types';
+export interface RadarScore {value:number|null;rank:number|null;peers:number;reason:string;raw:number|null}
+/** Relative heuristic, not a forecast. Returns already include fund expenses:
+ * TER is displayed/filterable but is not subtracted for a second time.
+ * Compare only matching category, currency, 3Y window and observation month.
  */
-export const calculateRawScore = (f: Fund): number => {
-    // 1. Return Component (R)
-    // We prioritize 5Y returns as requested.
-    const y5 = f.returns.y5;
-    const y3 = f.returns.y3 ?? f.returns.y1;
-    const y1 = f.returns.y1;
-
-    let R = 0;
-    if (y5 !== undefined) {
-        // High confidence with 5Y data
-        R = (0.85 * y5) + (0.15 * y3);
-    } else {
-        // Lower confidence, penalized for lack of track record
-        R = (0.7 * y3) + (0.3 * y1);
-        R -= 8; // Lack of historical consistency penalty
+export function scoreRadarFunds(funds:RadarFund[],now=new Date()):Map<string,RadarScore> {
+    const result=new Map<string,RadarScore>();
+    const groups=new Map<string,{id:string;raw:number}[]>();
+    for(const fund of funds){
+        const m=effectiveMetrics(fund);
+        let reason='';
+        if(!fund.is_active)reason='Fondo retirado';
+        else if([m.y3,m.volatility,m.maxDrawdown].some(n=>n==null||!Number.isFinite(n)))reason='Faltan rentabilidad, volatilidad o caída a 3 años';
+        else if(m.window!=='3y'||!m.currency)reason='Divisa o período de riesgo sin verificar';
+        const dates=[m.dates?.y3,m.dates?.volatility,m.dates?.maxDrawdown];
+        if(!reason&&dates.some(d=>!d||!Number.isFinite(Date.parse(d))||d>now.toISOString().slice(0,10)))reason='Fecha de las métricas sin verificar';
+        if(!reason&&dates.some(d=>now.getTime()-Date.parse(d!)>90*86400000))reason='Métricas con más de 90 días';
+        if(!reason&&Math.max(...dates.map(d=>Date.parse(d!)))-Math.min(...dates.map(d=>Date.parse(d!)))>45*86400000)reason='Las fechas de riesgo y rentabilidad difieren más de 45 días';
+        result.set(fund.id,{value:null,rank:null,peers:0,reason,raw:null});
+        if(reason)continue;
+        const raw=m.y3!-0.5*m.volatility!-0.25*Math.abs(m.maxDrawdown!);
+        const groupKey=[fund.category.trim().toLocaleLowerCase('es'),m.currency,dates[0]!.slice(0,7)].join('|');
+        const group=groups.get(groupKey)??[];group.push({id:fund.id,raw});groups.set(groupKey,group);
     }
-
-    // 2. Risk Components
-    const vol = f.volatility ?? NaN;
-    const dd = f.maxDrawdown !== undefined ? Math.abs(f.maxDrawdown) : NaN;
-
-    // Higher weights for volatility and drawdown as requested
-    const volTerm = Number.isFinite(vol) ? vol * 0.50 : 6;
-    const ddTerm = Number.isFinite(dd) ? dd * 0.50 : 10;
-
-    // 3. Cost Component
-    // TER is usually already reflected in returns, but efficiency matters.
-    const costTerm = f.ter * 0.5;
-
-    // 4. Quality Multipliers (Optional but professional)
-    // Sharpe Ratio tells us if the risk was worth the return
-    const sharpeBoost = (f.sharpe && f.sharpe > 1.5) ? (f.sharpe - 1.5) * 2 : 0;
-
-    return R - volTerm - ddTerm - costTerm + sharpeBoost;
-};
-
-/**
- * Helper to calculate percentile from a numeric dataset
- */
-export const calculatePercentile = (arr: number[], p: number): number => {
-    if (arr.length === 0) return 0;
-    const a = [...arr].sort((x, y) => x - y);
-    const idx = (a.length - 1) * p;
-    const lo = Math.floor(idx);
-    const hi = Math.ceil(idx);
-    if (lo === hi) return a[lo];
-    return a[lo] + (a[hi] - a[lo]) * (idx - lo);
-};
-
-/**
- * Normalizes a raw score within a category to a 0-100 range.
- * Uses a compressed scale (40-100) for small datasets to avoid extreme low scores.
- */
-export const normalizeScore = (raw: number, min: number, max: number, sampleSize: number): number => {
-    if (max === min || sampleSize <= 1) return 90; // Default for single item or identical scores
-
-    const score01 = (raw - min) / (max - min);
-
-    if (sampleSize < 4) {
-        // Compressed scale 40-100 for small samples
-        return 40 + (score01 * 60);
+    for(const group of groups.values()){
+        group.sort((a,b)=>b.raw-a.raw||a.id.localeCompare(b.id));
+        for(const item of group){
+            if(group.length<5){result.set(item.id,{value:null,rank:null,peers:group.length,raw:item.raw,reason:'Muestra insuficiente: se necesitan al menos 5 fondos comparables'});continue;}
+            const better=group.filter(g=>g.raw>item.raw).length;
+            const equal=group.filter(g=>g.raw===item.raw).length;
+            const score=100*(group.length-1-better-(equal-1)/2)/(group.length-1);
+            result.set(item.id,{value:score,rank:better+1,peers:group.length,raw:item.raw,reason:''});
+        }
     }
-
-    return score01 * 100;
-};
+    return result;
+}

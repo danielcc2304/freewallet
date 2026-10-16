@@ -70,7 +70,9 @@ El Excel proporciona posiciones, movimientos e histórico inicial. Las carteras 
 
 - Fundamentos, **Tu viaje como inversor**, glosario, errores comunes, fiscalidad, estrategias y gestión del riesgo.
 - Guías de acciones, bonos, efectivo, REITs y criptoactivos.
-- Perfil inversor, carteras modelo, asignación de activos, escenarios de crisis y radar/ficha de fondos.
+- Perfil inversor, escenarios de crisis y ficha de fondos.
+- **Radar de fondos**: catálogo público en Supabase, gestión desde la interfaz para editores de noticias, retirada/restauración e historial de cambios. Consulta diaria a Finect a las 09:15 de Madrid, fechas por métrica y puntuación relativa solo cuando existen comparables suficientes. [Catálogo, permisos y proceso diario](docs/fund-radar.md).
+- **Estrategia y cartera**: modelos con filtros de plazo/riesgo, comparación de hasta tres carteras, pesos e importes editables y traslado al simulador por hipótesis. Los siete bloques se conservan; las preferencias son locales y no modifican el Dashboard. [Alcance y fórmulas](docs/strategy-portfolio.md).
 - Calculadoras de interés compuesto, FIRE, jubilación, fondo de emergencia, bonos, impuestos e inflación.
 - Calculadora de IRPF y sueldo neto 2026: nómina en 12/14 pagas, Seguridad Social, circunstancias familiares, estimación individual de renta por comunidad y comparación de escenarios. Consulta el [alcance del cálculo](docs/salary-calculator.md).
 - **Reto: Market Timing vs DCA**: tres rondas de 30 segundos, compras y ventas parciales, órdenes con demora y límite de operaciones. Ambas estrategias incluyen efectivo y costes; se requieren dos rondas ganadas y al menos 100 € de ventaja acumulada. Son mercados simulados, no una predicción de resultados reales.
@@ -131,7 +133,7 @@ Los datos del navegador dependen del origen: cambiar dominio o puerto no compart
 
 Si un movimiento o hueco impide verificar un periodo completo, los periodos con cobertura suficiente conservan su tramo inicial verificable y muestran las fechas reales en el resumen y la comparativa. Los rangos diario/semanal solo recuperan ventanas recientes; no se rellenan huecos ni bases ausentes. El tramo pendiente queda fuera del gráfico.
 
-Hay dos procesos distintos:
+El Dashboard utiliza dos vías de actualización. El radar de fondos tiene su propio [proceso diario independiente](docs/fund-radar.md), que no modifica posiciones ni snapshots de las carteras:
 
 Las consultas del navegador contrastan Yahoo con **Google Finance para el mismo mercado** cuando falta un precio reciente, y con **CoinGecko para criptos identificadas**. Nextil (`ES0126962069`) prioriza Madrid/BME; su ficha permite escoger el mercado del registro. Los precios conservan la fecha publicada y nunca se reemplazan por observaciones anteriores. La consulta cada minuto no garantiza un dato nuevo ni un feed bursátil en tiempo real.
 

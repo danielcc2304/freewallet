@@ -4,6 +4,7 @@ import {
     Lightbulb, Shield, Database, Lock
 } from 'lucide-react';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
+import { AssetGuideNav } from './AssetGuideNav';
 import './AssetPage.css';
 
 const CRYPTO_CATEGORIES = [
@@ -35,9 +36,9 @@ const CRYPTO_CATEGORIES = [
 
 export function AssetCrypto() {
     return (
-        <div className="asset-page">
+        <div className="asset-page asset-page--crypto" style={{ '--asset-color': '#f59e0b' } as React.CSSProperties}>
             <Link to="/academy/portfolio" className="asset-page__back">
-                <ArrowLeft size={18} /> Volver a Carteras
+                <ArrowLeft size={18} /> Estrategia y cartera
             </Link>
 
             <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#f59e0b' } as React.CSSProperties}>
@@ -65,7 +66,14 @@ export function AssetCrypto() {
                 </div>
             </AcademyPageHeader>
 
-            <section className="asset-page__section">
+            <AssetGuideNav sections={[
+                { id: 'section-1', label: 'Conceptos' },
+                { id: 'section-2', label: 'Ecosistema' },
+                { id: 'section-3', label: 'Custodia' },
+                { id: 'section-4', label: 'Ventajas y riesgos' },
+            ]} />
+
+            <section id="section-1" className="asset-page__section">
                 <h2><Globe size={22} /> ¿Por qué invertir en Cripto?</h2>
                 <div className="asset-page__text-block">
                     <p>
@@ -85,7 +93,7 @@ export function AssetCrypto() {
                 </div>
             </section>
 
-            <section className="asset-page__section">
+            <section id="section-2" className="asset-page__section">
                 <h2><Database size={22} /> El Ecosistema Cripto</h2>
                 <div className="asset-page__subtype-grid">
                     {CRYPTO_CATEGORIES.map((cat) => (
@@ -103,7 +111,7 @@ export function AssetCrypto() {
                 </div>
             </section>
 
-            <section className="asset-page__section">
+            <section id="section-3" className="asset-page__section">
                 <h2><Lock size={22} /> Custodia: El Gran Diferenciador</h2>
                 <div className="asset-page__text-block">
                     <p>
@@ -130,7 +138,7 @@ export function AssetCrypto() {
                 </div>
             </section>
 
-            <section className="asset-page__section">
+            <section id="section-4" className="asset-page__section">
                 <h2><Shield size={22} /> Ventajas y Riesgos</h2>
                 <div className="asset-page__pros-cons">
                     <div className="pc-column pc-column--pros">

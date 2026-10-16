@@ -855,6 +855,9 @@ html[data-appearance='liquid-glass'] .dashboard__updating-banner {
 }
 
 /*
+ * Asset guide sections are layout containers, not cards: keep them transparent.
+ * Apply the glass material only to their actual cards, callouts and heroes.
+ *
  * Module audit: custom surfaces that do not use the shared Card component.
  * They intentionally use the quieter content material to keep dense financial
  * data and long-form Academy content readable.
@@ -862,7 +865,6 @@ html[data-appearance='liquid-glass'] .dashboard__updating-banner {
 html[data-appearance='liquid-glass'] :is(
     .academy__content > * > header,
     .asset-page__hero,
-    .asset-page__section,
     .news-page__hero,
     .news-card,
     .portfolio-csv-hero,
@@ -1529,7 +1531,6 @@ html[data-theme='light'] .fundamentos.fundamentos--liquid-glass .fundamentos__mi
         [class$='__card'],
         [class*='__card '],
         .asset-page__hero,
-        .asset-page__section,
         .calculators__footer,
         .calculators__recommendation,
         .glossary-controls,
@@ -1809,7 +1810,6 @@ html[data-appearance='liquid-glass'] .academy__content :is(
     [class$='__card'],
     [class*='__card '],
     .asset-page__hero,
-    .asset-page__section,
     .calculators__footer,
     .calculators__recommendation,
     .glossary-controls,
@@ -1862,7 +1862,6 @@ html[data-appearance='liquid-glass'] .academy__content :is(
     [class$='__card'],
     [class*='__card '],
     .asset-page__hero,
-    .asset-page__section,
     .calculators__footer,
     .calculators__recommendation,
     .glossary-controls,

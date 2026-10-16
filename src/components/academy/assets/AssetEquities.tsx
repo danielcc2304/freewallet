@@ -4,6 +4,7 @@ import {
     Lightbulb, BarChart3, PieChart, Clock, Target, Shield
 } from 'lucide-react';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
+import { AssetGuideNav } from './AssetGuideNav';
 import './AssetPage.css';
 
 const SUB_TYPES = [
@@ -67,9 +68,9 @@ const GEOGRAPHIC_ZONES = [
 
 export function AssetEquities() {
     return (
-        <div className="asset-page">
+        <div className="asset-page asset-page--equities" style={{ '--asset-color': '#3b82f6' } as React.CSSProperties}>
             <Link to="/academy/portfolio" className="asset-page__back">
-                <ArrowLeft size={18} /> Volver a Carteras
+                <ArrowLeft size={18} /> Estrategia y cartera
             </Link>
 
             <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#3b82f6' } as React.CSSProperties}>
@@ -97,8 +98,19 @@ export function AssetEquities() {
                 </div>
             </AcademyPageHeader>
 
+            <AssetGuideNav sections={[
+                { id: 'section-1', label: 'Conceptos' },
+                { id: 'section-2', label: 'Tipos de acciones' },
+                { id: 'section-3', label: 'Value y growth' },
+                { id: 'section-4', label: 'Geografía' },
+                { id: 'section-5', label: 'Ventajas y riesgos' },
+                { id: 'section-6', label: 'Cómo invertir' },
+                { id: 'section-7', label: 'Métricas' },
+                { id: 'section-8', label: 'Valorar una empresa' },
+            ]} />
+
             {/* What is it */}
-            <section className="asset-page__section">
+            <section id="section-1" className="asset-page__section">
                 <h2><Globe size={22} /> ¿Qué es la Renta Variable?</h2>
                 <div className="asset-page__text-block">
                     <p>
@@ -124,7 +136,7 @@ export function AssetEquities() {
             </section>
 
             {/* Sub-types */}
-            <section className="asset-page__section">
+            <section id="section-2" className="asset-page__section">
                 <h2><BarChart3 size={22} /> Tipos de Acciones</h2>
                 <p className="asset-page__section-desc">No todas las acciones son iguales. Entender las diferencias es clave para elegir tu exposición.</p>
 
@@ -154,7 +166,7 @@ export function AssetEquities() {
             </section>
 
             {/* Value vs Growth visual */}
-            <section className="asset-page__section">
+            <section id="section-3" className="asset-page__section">
                 <h2><Target size={22} /> Value vs Growth: El Eterno Debate</h2>
                 <div className="asset-page__versus">
                     <div className="versus-card versus-card--value">
@@ -184,7 +196,7 @@ export function AssetEquities() {
             </section>
 
             {/* Geographic zones */}
-            <section className="asset-page__section">
+            <section id="section-4" className="asset-page__section">
                 <h2><PieChart size={22} /> Zonas Geográficas</h2>
                 <p className="asset-page__section-desc">
                     La diversificación geográfica reduce el riesgo de depender de un solo país o región.
@@ -212,7 +224,7 @@ export function AssetEquities() {
             </section>
 
             {/* Pros and cons */}
-            <section className="asset-page__section">
+            <section id="section-5" className="asset-page__section">
                 <h2><Shield size={22} /> Ventajas y Riesgos</h2>
                 <div className="asset-page__pros-cons">
                     <div className="pc-column pc-column--pros">
@@ -241,7 +253,7 @@ export function AssetEquities() {
             </section>
 
             {/* How to invest */}
-            <section className="asset-page__section">
+            <section id="section-6" className="asset-page__section">
                 <h2><Zap size={22} /> ¿Cómo Invertir en Acciones?</h2>
                 <div className="asset-page__steps">
                     <div className="step-card">
@@ -265,7 +277,7 @@ export function AssetEquities() {
             </section>
 
             {/* Key metrics */}
-            <section className="asset-page__section">
+            <section id="section-7" className="asset-page__section">
                 <h2><Clock size={22} /> Métricas para Entender Acciones</h2>
                 <div className="asset-page__metrics-grid">
                     <div className="metric-explainer">
@@ -304,7 +316,7 @@ export function AssetEquities() {
             </section>
 
             {/* Deep Dive CTA */}
-            <section className="asset-page__section asset-page__section--cta">
+            <section id="section-8" className="asset-page__section asset-page__section--cta">
                 <div className="cta-box">
                     <div className="cta-box__content">
                         <h3>🔍 ¿Quieres aprender a valorar empresas como un profesional?</h3>

@@ -12,6 +12,11 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-16 - Notas por categoría del radar
+- Funcionalidad: recupera notas de 0–100 dentro de las categorías generales elegidas por el usuario, conservando el ratio retorno/volatilidad.
+- Resumen: transformación continua respecto a la mediana y dispersión robusta del grupo, sin escalones de percentiles. Muestra provisional con dos a cuatro fondos; sin nota con uno. Mismas divisa y fecha, filtros independientes y metodología visible.
+- Archivos: `src/services/funds/categoryScore.ts`, `fundScoring.ts`, `src/components/academy/simulators/FundRadar.tsx`, `FundRadar.css`, `scripts/test-category-score.ts`, `scripts/test-fund-radar.ts`, `scripts/test-fund-radar-ui.ts`, `docs/fund-radar.md`, `README.md`, `package.json`.
+
 ### 2026-10-16 - Tarjetas y métricas del radar
 - Funcionalidad: tarjetas con rentabilidad a 3 años destacada, métricas compactas, escala de riesgo y ficha ampliable; estilos estándar y Liquid Glass.
 - Resumen: sustituye los percentiles de 0–100 por retorno anualizado / volatilidad a 3 años, sin saltos por tamaño del catálogo ni penalizaciones arbitrarias. Puestos solo con cinco comparables de categoría del proveedor, divisa y fecha. Conserva las fechas y los datos ausentes.

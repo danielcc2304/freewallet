@@ -36,9 +36,23 @@ El cociente indica retorno anual por unidad de volatilidad. No es Sharpe: no se 
 
 El cálculo exige ventana de 3 años, divisa, fechas válidas y verificadas, antigüedad máxima de 90 días y desfase máximo de 45 días entre retorno y volatilidad. No exige compañeros en el catálogo: añadir, retirar o filtrar fondos no modifica el valor medido. Se conserva la precisión hasta la presentación.
 
-El puesto opcional exige al menos cinco fondos elegibles con igual categoría **del proveedor**, divisa y mes de rentabilidad; en fichas manuales se usa la categoría editorial y se mantiene su grupo separado del automático. Una categoría del proveedor desconocida no se sustituye por una categoría editorial amplia. Los empates comparten puesto. El ratio sirve para estudiar estrategias y exposiciones similares, no para calificar la calidad de fondos con objetivos distintos.
+## Nota de 0 a 100 por categoría general
 
-La antigua escala de percentiles forzaba saltos 0/25/50/75/100 con cinco fondos. Azvalor aparecía en 25 por ocupar el cuarto lugar de una categoría editorial que mezclaba tecnología, value y capitalizaciones distintas. Con la observación del 14/10/2026, sus cifras de 17,40317 % anualizado y 15,45808 % de volatilidad producen 1,1258299866× (1,13× en pantalla). Es un ejemplo de regresión, no una excepción por marca ni un dato fijado en el catálogo.
+La nota utiliza las categorías generales del catálogo (elección explícita del usuario), divisa y mes de rentabilidad. La categoría específica de Finect sigue visible en la ficha. Una nota de una categoría no se compara con una nota de otra; los grupos amplios pueden contener distintas estrategias.
+
+```
+r = retorno 3Y anualizado / volatilidad 3Y
+centro = mediana de los ratios del grupo
+MAD = mediana de |r − centro|
+escala = max(0,5; 1,482602218505602 × MAD)
+nota = 50 + 50 × tanh((r − centro) / (2 × escala))
+```
+
+El factor 1,4826 convierte la MAD en una estimación robusta de dispersión normal. La escala mínima de 0,5 unidades de ratio es una decisión de diseño publicada: impide que diferencias diminutas ocupen toda la escala. La transformación es continua, acotada y monotónica; no se basa en puestos ni fuerza escalones de 25 puntos. No se ajusta por marca ni para mejorar un fondo concreto. La mediana reduce la influencia de valores extremos.
+
+Un 50 significa centro del grupo, no aprobado. Los empates comparten nota y puesto. Las notas pueden cambiar al cambiar los datos o miembros de su grupo; los filtros de pantalla no las recalculan. Se requieren al menos dos fondos elegibles. Entre dos y cuatro se muestra «Provisional»; con uno solo no se fabrica una nota. Se mantienen los controles de fechas, ventana, divisa y datos válidos descritos arriba. El ratio sigue disponible aunque no haya compañeros suficientes para puntuar.
+
+La nota ordena un resultado histórico relativo, no la calidad absoluta ni la rentabilidad futura: un fondo que perdió puede liderar un grupo que perdió más. La interfaz conserva los retornos con su signo, el coste, el riesgo y las otras métricas para contextualizarla.
 
 ## Verificación y despliegue
 

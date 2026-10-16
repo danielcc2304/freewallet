@@ -54,17 +54,22 @@ try{
   await p.goto(`${origin}/academy/fund-radar`,{waitUntil:'networkidle0'});
   await p.waitForSelector('.radar-card');assert.equal(await p.$('[role=dialog]'),null,'construction notice removed');
   assert.equal(await p.$$eval('.radar-card',els=>els.length),20);
-  assert.equal(await p.$$eval('.radar-card__score',els=>els.some(el=>el.textContent?.includes('/ 100'))),false,'No misleading quality grades');
+  assert.equal(await p.$$eval('.radar-card__score',els=>els.every(el=>el.textContent?.includes('Nota en su categoría'))),true);
   if(process.env.RADAR_LIVE_FIXTURE){
    await fill('.radar-filters input[type=search]','azvalor');await p.waitForFunction(()=>document.querySelectorAll('.radar-card').length===1);
-   const ratio=await p.$eval('.radar-card__score strong',el=>el.textContent);
-   assert.equal(ratio,'1,13×','The observed 17.40317 / 15.45808 ratio appears without percentile steps');
-   assert.equal(await p.$eval('.radar-card__score',el=>el.textContent?.includes('Puesto')),false,'A broad editorial group cannot rank different provider categories');
+   const ratio=await p.$eval('.radar-card__ratio',el=>el.textContent);
+   const grade=await p.$eval('.radar-card__grade-meter',el=>(el as HTMLMeterElement).value);
+   assert.ok(grade>0&&grade<100);
+   assert.ok(await p.$eval('.radar-card__score strong',el=>el.textContent?.includes('/ 100')));
+   assert.equal(ratio,'Retorno / volatilidad · 1,13×','The observed 17.40317 / 15.45808 ratio appears without percentile steps');
+   assert.ok(await p.$eval('.radar-card__score',el=>el.textContent?.includes('Renta Variable Activa · 5 fondos')),'Grades use the general categories requested by the user');
    await click('.radar-card__footer button');assert.ok(await p.$eval('.radar-card__score-note',el=>el.textContent?.includes('17,4%')));
    await click('.radar-card__footer button');
    await click('.radar-results button');await p.waitForFunction(()=>document.querySelectorAll('.radar-card').length===20);
-   const after=await p.$$eval('.radar-card',els=>els.find(el=>el.querySelector('h2')?.textContent?.includes('Azvalor'))?.querySelector('.radar-card__score strong')?.textContent);
+   const after=await p.$$eval('.radar-card',els=>els.find(el=>el.querySelector('h2')?.textContent?.includes('Azvalor'))?.querySelector('.radar-card__ratio')?.textContent);
    assert.equal(after,ratio,'Filtering never changes the fund ratio');
+   const afterGrade=await p.$$eval('.radar-card',els=>(els.find(el=>el.querySelector('h2')?.textContent?.includes('Azvalor'))?.querySelector('.radar-card__grade-meter') as HTMLMeterElement).value);
+   assert.equal(afterGrade,grade,'Filtering never changes the category grade');
   }
   if(scenario.allowed)await p.waitForSelector('.radar-card__editor');
   else assert.equal(await p.$('.radar-card__editor'),null);

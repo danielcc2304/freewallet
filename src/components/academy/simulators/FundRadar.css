@@ -106,3 +106,10 @@ html[data-appearance="liquid-glass"] .radar-card { background: linear-gradient(1
     .radar-toolbar__actions { width: 100%; }
     .radar-card { padding: 1rem; }
 }
+
+.radar-card__score strong small { font-size: .72rem; color: var(--text-secondary); font-weight: 400; }
+.radar-card__grade-meter { display: block; width: 100%; height: 6px; margin: .7rem 0; appearance: none; border: 0; border-radius: 4px; background: var(--bg-tertiary); }
+.radar-card__grade-meter::-webkit-meter-bar { border: 0; border-radius: 4px; background: var(--bg-tertiary); }
+.radar-card__grade-meter::-webkit-meter-optimum-value { background: var(--accent-primary); border-radius: 4px; }
+.radar-card__grade-meter::-moz-meter-bar { background: var(--accent-primary); border-radius: 4px; }
+.radar-card__score .radar-card__ratio { border-top: 1px solid var(--border-color); padding-top: .5rem; margin-top: .65rem; }

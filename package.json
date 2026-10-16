@@ -16,7 +16,7 @@
     "test:salary-calculator-ui": "tsx scripts/test-salary-calculator-ui.ts",
     "test:fund-transfer": "tsx scripts/test-fund-transfer.ts",
     "test:fund-transfer-ui": "tsx scripts/test-fund-transfer-ui.ts",
-    "test:fund-radar": "tsx scripts/test-fund-radar.ts && tsx scripts/test-fund-radar-db.ts",
+    "test:fund-radar": "tsx scripts/test-category-score.ts && tsx scripts/test-fund-radar.ts && tsx scripts/test-fund-radar-db.ts",
     "test:fund-radar-ui": "tsx scripts/test-fund-radar-ui.ts",
     "test:fund-breakdown": "tsx scripts/test-fund-breakdown.ts",
     "test:fund-chart-resolution": "tsx scripts/test-fund-chart-resolution.ts",

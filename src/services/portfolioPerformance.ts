@@ -62,7 +62,7 @@ function transactionFlow(transaction: PortfolioTransaction): number {
 export function normalizePortfolioTransactions(assets: Asset[], transactions: PortfolioTransaction[]): PortfolioTransaction[] {
     const result = [...transactions];
     for (const asset of assets) {
-        if (transactions.some(transaction => transaction.assetId === asset.id)) continue;
+        if (transactions.some(transaction => transaction.assetId === asset.id || (transaction.type === 'transfer' && transaction.transferToAssetId === asset.id))) continue;
         result.push({ provenance: 'initial-position', id: `position-${asset.id}`, assetId: asset.id, assetSymbol: asset.symbol, assetName: asset.name,
             assetType: asset.type, type: 'buy', date: asset.purchaseDate, quantity: asset.quantity,
             price: asset.purchasePrice, total: asset.purchasePrice * asset.quantity, createdAt: asset.purchaseDate });

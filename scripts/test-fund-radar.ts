@@ -6,21 +6,52 @@ import {handleRadarRefresh,type RadarRefreshDependencies} from '../supabase/func
 const now=new Date('2026-10-16T12:00:00Z');
 const fund=(id:string,y3=5):RadarFund=>({id,isin:'IE00BYX5NX33',name:`Fund ${id}`,manager:'Manager',category:'Global EUR',description:'',source_url:null,manual_metrics:{y3,volatility:8,maxDrawdown:-10,ter:0.2,currency:'EUR',window:'3y',dates:{y3:'2026-10-13',volatility:'2026-09-30',maxDrawdown:'2026-09-30'}},extra:{},auto_refresh:false,is_active:true,version:1,created_at:now.toISOString(),updated_at:now.toISOString(),updated_by:null});
 const all=Array.from({length:5},(_,i)=>fund(String(i),i));
-const scores=scoreRadarFunds(all,now);assert.equal(scores.get('4')?.value,100);assert.equal(scores.get('0')?.value,0);
-assert.equal(scoreRadarFunds(all.slice(0,1),now).get('0')?.value,null,'a single fund never receives an invented 90/100');
-assert.equal(scoreRadarFunds(all.slice(0,4),now).get('0')?.value,null);
-assert.equal(scoreRadarFunds(all.map(f=>({...f,manual_metrics:{...f.manual_metrics,y3:5}})),now).get('0')?.value,50,'ties share a neutral percentile');
-const zero=fund('zero',0);assert.notEqual(scoreRadarFunds([...all,zero],now).get('zero')?.value,null,'zero return is data, not missing');
+const scores=scoreRadarFunds(all,now);
+assert.equal(scores.get('4')?.value,4/8);assert.equal(scores.get('0')?.value,0);
+assert.equal(scores.get('4')?.rank,1);assert.equal(scores.get('0')?.rank,5);
+assert.equal(scoreRadarFunds(all.slice(0,1),now).get('0')?.value,0,'A measured ratio does not require inventing a comparison cohort');
+assert.equal(scoreRadarFunds(all.slice(0,4),now).get('0')?.provisional,true,'Two to four eligible peers produce provisional grades');
+assert.equal(scoreRadarFunds(all.slice(0,1),now).get('0')?.grade,null,'A lone fund never receives an invented grade');
+assert.equal(scores.get('4')?.provisional,false);
+assert.ok(scores.get('4')!.grade! > scores.get('0')!.grade!);
+assert.equal(scores.get('2')?.grade,50,'Median marks the category center');
+assert.equal(scoreRadarFunds(all.map(f=>({...f,manual_metrics:{...f.manual_metrics,y3:5}})),now).get('0')?.rank,1,'Ties share a rank without percentile marks');
+const zero=fund('zero',0);assert.equal(scoreRadarFunds([...all,zero],now).get('zero')?.value,0,'zero return is data, not missing');
 const expensive={...all[4],manual_metrics:{...all[4].manual_metrics,ter:10}};assert.equal(scoreRadarFunds([...all.slice(0,4),expensive],now).get('4')?.value,scores.get('4')?.value,'TER is not deducted twice from net returns');
 for(const replacement of [
  {...all[0],manual_metrics:{...all[0].manual_metrics,y3:null}},
  {...all[0],manual_metrics:{...all[0].manual_metrics,window:null}},
- {...all[0],manual_metrics:{...all[0].manual_metrics,currency:'USD'}},
- {...all[0],manual_metrics:{...all[0].manual_metrics,dates:{y3:'2026-01-01',volatility:'2026-01-01',maxDrawdown:'2026-01-01'}}},
- {...all[0],manual_metrics:{...all[0].manual_metrics,dates:{y3:'2099-01-01',volatility:'2026-09-30',maxDrawdown:'2026-09-30'}}},
- {...all[0],manual_metrics:{...all[0].manual_metrics,dates:{y3:'2026-10-13',volatility:'2026-07-31',maxDrawdown:'2026-07-31'}}},
- {...all[0],category:'Another category'},
+ {...all[0],manual_metrics:{...all[0].manual_metrics,volatility:0}},
+ {...all[0],manual_metrics:{...all[0].manual_metrics,volatility:-1}},
+ {...all[0],manual_metrics:{...all[0].manual_metrics,dates:{y3:'2026-01-01',volatility:'2026-01-01'}}},
+ {...all[0],manual_metrics:{...all[0].manual_metrics,dates:{y3:'2099-01-01',volatility:'2026-09-30'}}},
+ {...all[0],manual_metrics:{...all[0].manual_metrics,dates:{y3:'2026-10-13',volatility:'2026-07-31'}}},
+ {...all[0],manual_metrics:{...all[0].manual_metrics,dates:{y3:'2026-02-30',volatility:'2026-09-30'}}},
 ])assert.equal(scoreRadarFunds([replacement,...all.slice(1)],now).get('0')?.value,null);
+const otherCurrency={...all[0],manual_metrics:{...all[0].manual_metrics,currency:'USD'}};
+assert.equal(scoreRadarFunds([otherCurrency,...all.slice(1)],now).get('0')?.rank,null);
+assert.equal(scoreRadarFunds([{...all[0],category:'Another category'},...all.slice(1)],now).get('0')?.rank,null);
+const negative=fund('negative',-4);assert.equal(scoreRadarFunds([negative],now).get('negative')?.value,-.5);
+const closeA=fund('a',10),closeB=fund('b',10.01);
+assert.ok(Math.abs(scoreRadarFunds([closeA,closeB],now).get('a')!.value!-scoreRadarFunds([closeA,closeB],now).get('b')!.value!)<.002,'Close inputs produce close ratios, never 25-point steps');
+assert.equal(scoreRadarFunds([closeA,...all],now).get('a')?.value,scoreRadarFunds([closeA],now).get('a')?.value,'Changing the catalogue never changes the metric');
+const providerFunds=all.map((f,i)=>({...f,auto_refresh:true,fund_radar_data:{metrics:{},provider_category:i===0?'RV Sector Tecnología':'RV Global Cap. Pequeña',source_url:null,checked_at:null,last_success_at:null}}));
+assert.equal(scoreRadarFunds(providerFunds,now).get('0')?.rank,5,'The user explicitly chose general catalog categories');
+assert.equal(scoreRadarFunds(providerFunds,now).get('0')?.peers,5);
+assert.equal(scoreRadarFunds(providerFunds,now).get('0')?.grade,scores.get('0')?.grade);
+const missingProvider={...providerFunds[0],fund_radar_data:{...providerFunds[0].fund_radar_data,provider_category:null}};
+assert.equal(scoreRadarFunds([missingProvider],now).get('0')?.category,'Global EUR');
+assert.notEqual(scoreRadarFunds([missingProvider],now).get('0')?.value,null,'Missing peers cannot erase valid fund measurements');
+// Azvalor observation: a strong return is not a 25/100 quality grade. The
+// measured ratio follows directly from provider data, without a brand override.
+const azvalor={...fund('azvalor',17.40317),manual_metrics:{...fund('a').manual_metrics,y3:17.40317,volatility:15.45808,maxDrawdown:-12.64031}};
+assert.equal(scoreRadarFunds([azvalor],now).get('azvalor')?.value,17.40317/15.45808);
+assert.equal(scoreRadarFunds([{...azvalor,name:'Any other fund'}],now).get('azvalor')?.value,17.40317/15.45808);
+const withUnrelated=scoreRadarFunds([...all,{...fund('other',100),category:'Completely different'}],now);
+for(const f of all)assert.equal(withUnrelated.get(f.id)?.grade,scores.get(f.id)?.grade,'Other categories cannot change the grade');
+assert.equal(scoreRadarFunds([...all,{...fund('stale',100),manual_metrics:{...fund('stale').manual_metrics,dates:{y3:'2020-01-01',volatility:'2020-01-01'}}}],now).get('4')?.grade,scores.get('4')?.grade,'Stale peers never skew valid grades');
+const negatives=scoreRadarFunds([fund('loss-a',-1),fund('loss-b',-5)],now);
+assert.ok(negatives.get('loss-a')!.grade!>50);assert.ok(negatives.get('loss-a')!.value!<0,'Relative grades do not change the sign of actual returns');
 const draft:RadarDraft={isin:all[0].isin,name:all[0].name,category:all[0].category,manager:'',description:'',source_url:'https://www.finect.com/',manual_metrics:all[0].manual_metrics,extra:{},auto_refresh:true,is_active:true};
 validateDraft(draft,now);assert.equal(validIsin('IE00BYX5NX32'),false);
 assert.throws(()=>validateDraft({...draft,source_url:'javascript:alert(1)'},now));
@@ -50,4 +81,4 @@ assert.equal((await handleRadarRefresh(new Request('https://fixture',{method:'PO
 assert.equal(lookups,0);
 const denied=await handleRadarRefresh(new Request('https://fixture',{method:'POST',headers:{authorization:'Bearer invalid'},body:'{}'}),{...deps,claim:async()=>{throw new Error('Forbidden');}});assert.equal(denied.status,403);assert.equal(lookups,0);
 const response=await handleRadarRefresh(new Request('https://fixture',{method:'POST',headers:{'x-job-secret':'fixture'},body:'{}'}),deps);assert.deepEqual(await response.json(),{updated:1,failed:1,skipped:0,requested:2});assert.equal(published,1);
-console.log('Fund radar: eligibility, percentile ties, missing data, validation, class identity, Finect parsing, fallback and authenticated refresh passed');
+console.log('Fund radar: continuous category grades, ratios, general catalog cohorts, provisional samples, eligibility, ties, missing data, validation, class identity, Finect parsing, fallback and authenticated refresh passed');

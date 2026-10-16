@@ -1,7 +1,7 @@
 {
   "name": "freewallet",
   "private": true,
-  "version": "6.4.1",
+  "version": "6.5.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,6 +14,8 @@
     "test:bond-calculator-ui": "tsx scripts/test-bond-calculator-ui.ts",
     "test:salary-calculator": "tsx scripts/test-salary-calculator.ts",
     "test:salary-calculator-ui": "tsx scripts/test-salary-calculator-ui.ts",
+    "test:fund-radar": "tsx scripts/test-fund-radar.ts && tsx scripts/test-fund-radar-db.ts",
+    "test:fund-radar-ui": "tsx scripts/test-fund-radar-ui.ts",
     "test:fund-breakdown": "tsx scripts/test-fund-breakdown.ts",
     "test:fund-chart-resolution": "tsx scripts/test-fund-chart-resolution.ts",
     "test:fund-chart-ui": "tsx scripts/test-fund-chart-ui.ts",
@@ -62,6 +64,7 @@
     "test:academy-account-polish": "tsx scripts/test-academy-account-polish.ts",
     "test:news-article-editor-ui": "tsx scripts/test-news-article-editor-ui.ts",
     "test:market-timing": "tsx scripts/test-market-timing.ts",
+    "test:crisis-impact": "tsx scripts/test-crisis-impact.ts",
     "test:market-timing-ui": "tsx scripts/test-market-timing-ui.ts",
     "test:dashboard-market-polish": "tsx scripts/test-dashboard-market-polish.ts",
     "test:dashboard-quality": "tsx scripts/test-dashboard-quality.ts",

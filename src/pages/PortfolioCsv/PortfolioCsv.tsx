@@ -1,6 +1,8 @@
 import { migrateLegacyPortfolioHistory } from '../../services/imports/portfolioHistoryImport';
 import { portfolioStorage } from '../../services/portfolioCloudStorage';
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { Button, Modal } from '../../components/ui';
 import {
     AlertTriangle,
     Activity,
@@ -9,6 +11,7 @@ import {
     FileSpreadsheet,
     Gauge,
     Layers3,
+    LayoutDashboard,
     ListChecks,
     Target,
     RefreshCw,
@@ -166,6 +169,7 @@ export function PortfolioCsv() {
         drawdownPctReset: number | null;
     };
 
+    const [showTransitionNotice, setShowTransitionNotice] = useState(true);
     const [holdingsRaw, setHoldingsRaw] = useState(() => readStoredValue(STORAGE_KEYS.holdingsRaw, DEFAULT_HOLDINGS_CSV));
     const [evolutionRaw, setEvolutionRaw] = useState(() => readStoredValue(STORAGE_KEYS.evolutionRaw, DEFAULT_EVOLUTION_CSV));
     const [comparisonRaw, setComparisonRaw] = useState(() => readStoredValue(STORAGE_KEYS.comparisonRaw, DEFAULT_COMPARISON_CSV));
@@ -717,6 +721,21 @@ export function PortfolioCsv() {
 
     return (
         <div className="portfolio-csv-page">
+            <Modal isOpen={showTransitionNotice} onClose={() => setShowTransitionNotice(false)} size="md">
+                <div className="portfolio-csv-notice">
+                    <div className="portfolio-csv-notice__icon"><FileSpreadsheet size={44} aria-hidden="true" /></div>
+                    <h2>Portfolio da paso al Dashboard</h2>
+                    <p>Esta sección se irá retirando progresivamente en favor del Dashboard, donde puedes seguir tu cartera.</p>
+                    <p>Por ahora, puedes seguir usando Portfolio para <strong>subir la plantilla Excel e incorporar el histórico de tu cartera</strong>.</p>
+                    <p className="portfolio-csv-notice__note">La importación mediante plantilla aún no está integrada en el Dashboard.</p>
+                    <Link to="/" className="portfolio-csv-notice__dashboard" onClick={() => setShowTransitionNotice(false)}>
+                        <LayoutDashboard size={18} aria-hidden="true" /> Ir al Dashboard
+                    </Link>
+                    <Button onClick={() => setShowTransitionNotice(false)} size="lg" fullWidth>
+                        Continuar en Portfolio
+                    </Button>
+                </div>
+            </Modal>
             <header className="portfolio-csv-hero">
                 <div className="portfolio-csv-hero__badge">Portfolio</div>
                 <h1>Análisis de cartera</h1>

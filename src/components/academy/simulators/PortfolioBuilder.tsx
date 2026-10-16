@@ -1,5 +1,5 @@
 import {useEffect,useState,type CSSProperties} from 'react';
-import {ArrowRight,Check,ChevronDown,Coins,Landmark,PieChart as PieChartIcon,RotateCcw,Scale,Shield,TrendingUp,Wallet} from 'lucide-react';
+import {ArrowRight,Check,ChevronDown,Coins,Building2,Gem,Landmark,PieChart as PieChartIcon,RotateCcw,Scale,TrendingUp,Wallet} from 'lucide-react';
 import {Link,useSearchParams} from 'react-router-dom';
 import {AcademyPageHeader} from '../layout/AcademyPageHeader';
 import {ASSET_CLASSES,ASSET_KEYS,CATEGORIES,HORIZON_FILTERS,MODEL_PORTFOLIOS,RISK_FILTERS,STYLE_FILTERS,type Allocation,type PortfolioModel} from '../../../data/academy/portfolioModels';
@@ -9,7 +9,7 @@ import './PortfolioBuilder.css';
 const STORAGE_KEY='freewallet_strategy_preferences_v1';
 const money=new Intl.NumberFormat('es-ES',{style:'currency',currency:'EUR',maximumFractionDigits:2});
 const percent=(value:number)=>`${new Intl.NumberFormat('es-ES',{maximumFractionDigits:2}).format(value)}%`;
-const icons={stocks:TrendingUp,bonds:Landmark,cash:Wallet,crypto:Coins,gold:Shield,commodities:Scale,reits:Landmark};
+const icons={stocks:TrendingUp,bonds:Landmark,cash:Wallet,crypto:Coins,gold:Gem,commodities:Scale,reits:Building2};
 function savedPreferences():URLSearchParams {
     try {const saved=localStorage.getItem(STORAGE_KEY);return new URLSearchParams(saved&&saved.length<5000?saved:'');}catch{return new URLSearchParams();}
 }
@@ -113,7 +113,31 @@ export function PortfolioBuilder(){
             <p className="strategy-help">Edición por bloques: los subtipos del modelo se agrupan. El simulador no distingue regiones, duración ni fondos concretos. Tus cambios no modifican tu cartera del Dashboard.</p>
             {valid&&amountValid?<Link className="strategy-button strategy-button--primary" to={`/academy/asset-allocation?${allocationQuery(allocation,amount,selected)}`}>Simular esta distribución<ArrowRight size={18}/></Link>:<button className="strategy-button strategy-button--primary" disabled>Simular esta distribución</button>}
         </section>
-        <section id="strategy-assets" className="strategy-assets"><h2 className="portfolio-builder__section-title">Qué aporta cada bloque</h2><div className="strategy-asset-grid">{ASSET_CLASSES.map(asset=>{const Icon=icons[asset.key];const content=<><div><Icon size={22}/><h3>{asset.name}</h3></div><p>{asset.desc}</p><small>Riesgo: {asset.risk}</small>{asset.path&&<span>Conocer este activo <ArrowRight size={16}/></span>}</>;return asset.path?<Link key={asset.key} className="strategy-asset" to={asset.path}>{content}</Link>:<article key={asset.key} className="strategy-asset">{content}</article>;})}</div></section>
+        <section id="strategy-assets" className="strategy-assets" aria-labelledby="strategy-assets-title">
+            <h2 id="strategy-assets-title" className="portfolio-builder__section-title">Qué aporta cada bloque</h2>
+            <div className="strategy-asset-grid">
+                {ASSET_CLASSES.map(asset=>{
+                    const Icon=icons[asset.key];
+                    const titleId=`strategy-asset-${asset.key}-title`;
+                    const descriptionId=`strategy-asset-${asset.key}-description`;
+                    const content=<>
+                        <div className="strategy-asset__header">
+                            <span className="strategy-asset__icon" aria-hidden="true"><Icon size={23}/></span>
+                            <h3 id={titleId}>{asset.name}</h3>
+                        </div>
+                        <p id={descriptionId} className="strategy-asset__description">{asset.desc}</p>
+                        <div className="strategy-asset__footer">
+                            <div className="strategy-asset__risk"><span>Riesgo</span><strong>{asset.risk}</strong></div>
+                            {asset.path&&<span className="strategy-asset__guide">Ver guía <ArrowRight size={16} aria-hidden="true"/></span>}
+                        </div>
+                    </>;
+                    const style={'--asset-color':asset.color} as CSSProperties;
+                    return asset.path
+                        ?<Link key={asset.key} className="strategy-asset strategy-asset--linked" style={style} to={asset.path} aria-labelledby={titleId} aria-describedby={descriptionId}>{content}</Link>
+                        :<article key={asset.key} className="strategy-asset" style={style} aria-labelledby={titleId}>{content}</article>;
+                })}
+            </div>
+        </section>
         <section id="strategy-profile" className="strategy-profile"><h2 className="portfolio-builder__section-title">Antes de elegir una distribución</h2><p>El plazo, la necesidad de retirar dinero y la capacidad de soportar pérdidas importan tanto como la tolerancia emocional. Un perfil no determina un porcentaje único de acciones y bonos.</p>
             <div className="strategy-profile__grid"><article><h3>Conservador</h3><p>Prioriza disponibilidad y pérdidas limitadas. Distingue entre dinero que necesitas pronto y capital que puedes mantener invertido.</p></article><article><h3>Moderado</h3><p>Acepta fluctuaciones y combina fuentes de riesgo. Los bonos no aseguran compensar las caídas de la bolsa.</p></article><article><h3>Agresivo</h3><p>Puede soportar caídas importantes y periodos prolongados de recuperación, sin depender de ese dinero a corto plazo.</p></article></div>
             <div className="strategy-links"><Link to="/academy/investor-profile-test">Revisar mi perfil <ArrowRight size={16}/></Link><Link to="/academy/risk">Gestión del riesgo <ArrowRight size={16}/></Link><Link to="/academy/fund-radar">Explorar fondos <ArrowRight size={16}/></Link></div>

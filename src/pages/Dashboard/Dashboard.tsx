@@ -1,3 +1,4 @@
+import type { NewTransferFund } from '../../services/fundTransfer';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
 import { PlusCircle, RefreshCw, Wallet, Feather, Loader2, Radio, Wrench, GraduationCap, Settings, FileSpreadsheet } from 'lucide-react';
@@ -124,8 +125,8 @@ export function Dashboard() {
             ? sourceIsin !== destinationIsin
             : source.symbol.toUpperCase() !== destination.symbol.toUpperCase();
     }, []);
-    const canTransferFrom = useCallback((source: Asset) => source.quantity > 0
-        && assets.some(destination => canTransferBetweenFunds(source, destination)), [assets, canTransferBetweenFunds]);
+    const canTransferFrom = useCallback((source: Asset) => source.type === 'fund' && source.quantity > 0 && hasValidPrice(source)
+        && (source.currentPrice ?? 0) > 0 && (!source.currency || source.currency === 'EUR'), []);
     const fundTransferDestinations = useMemo(() => fundTransferSource
         ? assets.filter(destination => canTransferBetweenFunds(fundTransferSource, destination)) : [],
     [assets, canTransferBetweenFunds, fundTransferSource]);
@@ -214,8 +215,8 @@ export function Dashboard() {
         setFundTransferSourceId(asset.id);
     }, []);
 
-    const submitFundTransfer = useCallback(async (sourceId: string, destinationId: string, amount: number, transferAll: boolean, executionPrices: { sourcePrice?: number; destinationPrice?: number }) => {
-        await transferFund(sourceId, destinationId, amount, transferAll, executionPrices);
+    const submitFundTransfer = useCallback(async (sourceId: string, destinationId: string, amount: number, transferAll: boolean, executionPrices: { sourcePrice?: number; destinationPrice?: number }, newDestination?: NewTransferFund) => {
+        await transferFund(sourceId, destinationId, amount, transferAll, executionPrices, newDestination);
         setFundTransferSourceId(null);
         setCalculationNow(Date.now());
     }, [transferFund]);

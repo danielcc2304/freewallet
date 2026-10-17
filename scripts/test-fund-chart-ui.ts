@@ -18,17 +18,18 @@ const funds=[
  ['ES0119199018','Cobas Internacional D FI','0P0001LFVO.F'],
  ['LU0625737910','Pictet-China Index P EUR','LU0625737910.LU'],
  ['ES0112611001','Azvalor Internacional FI','0P00016YQ5.F'],
+ ['LU0329355670','Robeco QI Emerging Markets Active Equities D €','LU0329355670'],
 ];
 const stamp=new Date().toISOString();
 const assets=funds.map(([isin,name],i)=>({id:'fund-'+i,name,symbol:isin,isin,type:'fund',currency:'EUR',quantity:1,purchasePrice:90,currentPrice:100,purchaseDate:'2026-01-01',quotedAt:stamp,lastCheckedAt:stamp}));
 const version=JSON.parse(readFileSync('package.json','utf8')).version;
 const recorded=process.env.FREEWALLET_FUND_PROVIDER_FIXTURES;
-const browser=await puppeteer.launch({headless:true,args:['--no-sandbox']});
+const browser=await puppeteer.launch({headless:true,executablePath:process.env.PUPPETEER_EXECUTABLE_PATH??'/usr/bin/chromium',args:['--no-sandbox']});
 const errors:string[]=[], searches:string[]=[], charts:string[]=[];
-let failDws=true;
+let failDws=true,failRobeco=true,ftLookups=0;
 const body=(name:string)=>readFileSync(join(recorded!,name),'utf8');
 try{
- const page=await browser.newPage();page.on('pageerror',e=>errors.push(String(e)));
+ const page=await browser.newPage();page.setDefaultTimeout(60000);page.setDefaultNavigationTimeout(60000);page.on('pageerror',e=>errors.push(String(e)));
  await page.setViewport({width:1280,height:900});
  await page.evaluateOnNewDocument((assets,version)=>{
   localStorage.setItem('freewallet_portfolio_v1',JSON.stringify({version:1,assets,transactions:[]}));
@@ -38,13 +39,22 @@ try{
  await page.setRequestInterception(true);
  page.on('request',r=>{void(async()=>{
   const url=new URL(r.url());
+  if(url.pathname==='/__market/ft/funds/tearsheet/summary'&&url.searchParams.get('s')==='LU0329355670'){
+   ftLookups++;
+   await r.respond({status:200,contentType:'text/html',body:`<h1>Robeco QI Emerging Markets Active Equities D €</h1><div data-mod-config='{"symbol":"LU0329355670:EUR","xid":"535675774","assetClass":"Fund"}'></div>`});return;
+  }
+  if(url.pathname==='/__market/ft/chartapi/series'){
+   if(failRobeco){await r.respond({status:503,body:'Synthetic FT outage'});return;}
+   const request=JSON.parse(r.postData()!);assert.equal(request.dataNormalized,false);assert.equal(request.elements[0].Symbol,'535675774');
+   await r.respond({status:200,contentType:'application/json',body:readFileSync('scripts/fixtures/fund-history/robeco-ft.json','utf8')});return;
+  }
   if(url.pathname.includes('/finance/search')){
    const q=url.searchParams.get('q')!;searches.push(q);
    const fund=funds.find(([isin,name])=>q===isin||q===name);
    let payload:unknown={quotes:[]};
    if(fund){
     const [isin,name,symbol]=fund;
-    payload=q===name?{quotes:[{symbol:'WRONG-LD',quoteType:'MUTUALFUND',longname:'DWS Floating Rate Notes LD'},{symbol,quoteType:'MUTUALFUND',longname:name}]}
+    payload=isin==='LU0329355670'?{quotes:[{symbol:isin+'.SG',quoteType:'MUTUALFUND',shortname:'Robeco QI Emerging Markets Acti'}]}:q===name?{quotes:[{symbol:'WRONG-LD',quoteType:'MUTUALFUND',longname:'DWS Floating Rate Notes LD'},{symbol,quoteType:'MUTUALFUND',longname:name}]}
      :recorded?JSON.parse(body('fw-fund-search-'+isin+'.json'))
       :{quotes:[isin==='LU0034353002'?{symbol:'DI4A.F',quoteType:'ETF',longname:'DWS Floating Rate Notes'}
         :isin==='ES0140072002'?{symbol:isin+'.SG',quoteType:'MUTUALFUND',longname:name}
@@ -57,6 +67,7 @@ try{
    if(failDws && (symbol==='0P00000N4I.F'||symbol.startsWith('LU0034353002'))){
     await r.respond({status:503,body:'Synthetic first attempt failure'});return;
    }
+   if(symbol.startsWith('LU0329355670')){await r.respond({status:200,contentType:'application/json',body:readFileSync('scripts/fixtures/fund-history/robeco-yahoo-quote-only.json','utf8')});return;}
    const fund=funds.find(f=>f[2]===symbol);
    if(fund){
     const payload=recorded?body('fw-fund-chart-'+symbol+'.json'):JSON.stringify({chart:{result:[{meta:{symbol,currency:'EUR'},timestamp:[1790683200,1790769600,1790856000,1790942400],indicators:{quote:[{close:[100,100.3,100.6,101]}]}}]}});
@@ -109,12 +120,28 @@ try{
  }
  for(const [isin,,symbol] of funds.slice(1)){
   await page.click('.modal__close');await open(isin);
+  if(isin==='LU0329355670'){
+   await page.waitForSelector('.chart-overlay.error-state .btn');failRobeco=false;
+   await page.click('.chart-overlay.error-state .btn');
+  }
   await page.waitForFunction(symbol=>document.querySelector('.asset-detail__chart-source')?.textContent?.includes(symbol),{},symbol);
   await page.waitForSelector('.asset-detail__chart-container .recharts-wrapper');
   assert.doesNotMatch(await page.$eval('.asset-detail__period-performance',el=>el.textContent||''),/N\/D/);
+  if(isin==='LU0329355670'){
+   assert.ok(ftLookups>=2,'Retry resolves FT identity again rather than retaining a failed attempt');
+   assert.ok(await page.$eval('.asset-detail__chart-source',el=>el.textContent?.includes('Financial Times')));
+   for(const period of ['1D','7D','3M','YTD','Máx']){
+    await page.$$eval('.period-btn',(buttons,period)=>(buttons.find(el=>el.textContent===period) as HTMLElement).click(),period);
+    await page.waitForSelector('.asset-detail__chart-container .recharts-wrapper');
+    assert.doesNotMatch(await page.$eval('.asset-detail__period-performance',el=>el.textContent||''),/N\/D/);
+   }
+   await page.$$eval('.period-btn',buttons=>(buttons.find(el=>el.textContent==='1M') as HTMLElement).click());
+   await page.waitForSelector('.asset-detail__chart-container .recharts-wrapper');
+   await(await page.$('.asset-detail__chart-section'))!.screenshot({path:'/tmp/freewallet-robeco-history.png'});
+  }
  }
  assert.deepEqual(errors,[]);
- console.log('Fund chart UI passed: ten funds, DWS verified LC fallback, daily NAV chart, period controls, symbol refresh on retry, styled retry on desktop/mobile and wrong-class rejection.'+(recorded?' Replayed real public provider responses.':''));
+ console.log('Fund chart UI passed: eleven funds including Robeco via Financial Times, DWS verified LC fallback, daily NAV chart, period controls, symbol refresh on retry, styled retry on desktop/mobile and wrong-class rejection.'+(recorded?' Replayed real public provider responses.':''));
 }catch(error){
  console.error(JSON.stringify({errors,searches:searches.slice(-12),charts:charts.slice(-12)}));
  throw error;

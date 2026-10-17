@@ -1,0 +1,62 @@
+import assert from 'node:assert/strict';
+import { readFileSync, readdirSync } from 'node:fs';
+import { PGlite } from '@electric-sql/pglite';
+import { calculatePortfolioResults } from '../src/services/portfolioResults';
+const db = new PGlite();
+const owner='11111111-1111-4111-8111-111111111111',otherOwner='22222222-2222-4222-8222-222222222222';
+const source={id:'source',symbol:'IE00BYX5NX33',isin:'IE00BYX5NX33',name:'Source fixture',type:'fund' as const,quantity:10.11,purchasePrice:100.1234,purchaseDate:'2025-02-01',currency:'EUR'};
+const target={...source,id:'target',symbol:'LU0034353002',isin:'LU0034353002',name:'Target fixture',quantity:16.0491,purchasePrice:77.77,currentPrice:77.77};
+const unrelated={...target,id:'unrelated',type:'stock' as const,quantity:2,purchasePrice:5};
+const buy={id:'buy',assetId:source.id,assetSymbol:source.symbol,assetName:source.name,assetType:source.type,type:'buy',date:source.purchaseDate,quantity:10.11,price:100.1234,total:1012.247574,createdAt:'2026-09-01T10:00:00Z'};
+const transfer={...buy,id:'transfer',type:'transfer',date:'2026-10-16',quantity:10.11,price:123.456,total:1248.14016,createdAt:'2026-10-16T16:01:00Z',transferToAssetId:target.id,transferToAssetSymbol:target.symbol,transferToAssetName:target.name,transferToAssetType:'fund',transferQuantity:16.049121254983,transferToPrice:77.77,transferBasis:1012.247574};
+const edit={...buy,id:'mistaken-edit',assetId:target.id,assetSymbol:target.symbol,assetName:target.name,type:'edit',quantity:16.0491,price:77.77,total:1248.138507,createdAt:'2026-10-16T16:03:00Z'};
+const document={freewallet_portfolio_v1:JSON.stringify({version:1,assets:[target,unrelated],transactions:[edit,transfer,buy]}),freewallet_history:'[]',freewallet_history_archive_v1:'{"keep":true}'};
+const params={repairId:'33333333-3333-4333-8333-333333333333',userId:owner,expectedRevision:10,transferId:'transfer',correctionId:'mistaken-edit',sourceIsin:source.isin,destinationIsin:target.isin,sourceUnits:10.11,sourcePrice:123.456,destinationUnits:16.0491,destinationPrice:77.77,gross:1248.14,sourceDate:'2026-10-15',destinationDate:'2026-10-16',sourceOrder:'source-order-fixture',destinationOrder:'destination-order-fixture',expectedCurrentCost:77.77};
+const repair=readFileSync('scripts/ops/repair-confirmed-fund-transfer.sql','utf8');
+const run=async(input:unknown,rollback=false)=>{await db.exec('begin');try{await db.query("select set_config('freewallet.transfer_repair',$1,true)",[JSON.stringify(input)]);await db.exec(repair);await db.exec(rollback?'rollback':'commit');}catch(e){await db.exec('rollback');throw e;}};
+try{
+ await db.exec(`create role anon;create role authenticated;create role service_role;create schema auth;create schema portfolio_private;
+ create table auth.users(id uuid primary key);create table public.user_portfolios(user_id uuid primary key,revision bigint,updated_at timestamptz);
+ create table portfolio_private.documents(user_id uuid primary key,data jsonb);
+ create table public.portfolio_positions(user_id uuid,id text,quantity numeric,purchase_price_eur numeric);
+ create table public.portfolio_transactions(user_id uuid,id text,quantity numeric,price_eur numeric,total_eur numeric,transfer_quantity numeric,transfer_to_price_eur numeric,transfer_basis_eur numeric,operation_date date,operation_type text,notes text);
+ create table portfolio_private.snapshot_ledger(user_id uuid,entry_no bigint,transaction_id text,payload jsonb);
+ create table portfolio_private.daily_snapshots(user_id uuid,snapshot_date date,revision bigint,collected_at timestamptz,assets jsonb,transactions jsonb,legacy_ledger_ids jsonb);`);
+ const name=readdirSync('supabase/migrations').find(n=>n.endsWith('_portfolio_support_repair_audit.sql'));assert.ok(name);
+ await db.exec(readFileSync('supabase/migrations/'+name,'utf8'));
+ await db.query('insert into auth.users values ($1),($2)',[owner,otherOwner]);
+ await db.query('insert into public.user_portfolios values($1,10,now()),($2,5,now())',[owner,otherOwner]);
+ await db.query('insert into portfolio_private.documents values($1,$2),($3,$4)',[owner,document,otherOwner,{keep:'untouched'}]);
+ await db.query('insert into public.portfolio_positions values($1,$2,$3,$4)',[owner,target.id,target.quantity,target.purchasePrice]);
+ for(const t of [buy,transfer,edit]){
+  const x=t as typeof transfer;
+  await db.query('insert into public.portfolio_transactions values($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)',[owner,x.id,x.quantity,x.price,x.total,x.transferQuantity??null,x.transferToPrice??null,x.transferBasis??null,x.date,x.type,'fixture']);
+  await db.query('insert into portfolio_private.snapshot_ledger values($1,$2,$3,$4)',[owner,t===buy?1:t===transfer?3:2,t.id,t]);
+ }
+ for(const day of ['2026-10-15','2026-10-16','2026-10-17'])await db.query('insert into portfolio_private.daily_snapshots values($1,$2,10,now(),$3,$4,$5)',[owner,day,day==='2026-10-15'?[source,unrelated]:[target,unrelated],day==='2026-10-15'?[buy]:[edit,transfer,buy],day==='2026-10-15'?['buy']:['buy','transfer','mistaken-edit']]);
+ for(const role of ['anon','authenticated','service_role'])assert.equal((await db.query<{v:boolean}>("select has_table_privilege($1,'portfolio_private.support_repairs','SELECT') v",[role])).rows[0].v,false);
+ await assert.rejects(run({...params,expectedRevision:9}),/Portfolio changed/);
+ await assert.rejects(run({...params,gross:7000}),/Invalid confirmation/);
+ await assert.rejects(run({...params,destinationIsin:source.isin}),/Unexpected destination/);
+ assert.equal((await db.query<{n:number}>('select count(*)::int n from portfolio_private.support_repairs')).rows[0].n,0);
+ await run(params,true);assert.equal((await db.query<{n:number}>('select count(*)::int n from portfolio_private.support_repairs')).rows[0].n,0,'Explicit rehearsal rolls every change back');
+ await run(params);await run(params);
+ const saved=(await db.query<{data:typeof document}>('select data from portfolio_private.documents where user_id=$1',[owner])).rows[0].data;
+ const portfolio=JSON.parse(saved.freewallet_portfolio_v1);
+ assert.equal(portfolio.transactions.length,2);assert.equal(portfolio.transactions[0].transferQuantity,16.0491);
+ assert.equal(portfolio.transactions[0].total,1248.14);assert.equal(portfolio.transactions[0].transferBasis,1012.247574);
+ assert.equal(portfolio.transactions[0].date,'2026-10-16');assert.equal(portfolio.transactions[0].transferSourceDate,'2026-10-15');
+ assert.equal(portfolio.assets[0].purchasePrice,63.071921416154);assert.equal(portfolio.assets[0].purchaseDate,'2025-02-01','Original acquisition basis/date are retained');
+ assert.deepEqual(portfolio.assets[1],unrelated);assert.equal(saved.freewallet_history_archive_v1,document.freewallet_history_archive_v1);
+ const results=calculatePortfolioResults([portfolio.assets[0]],portfolio.transactions,new Date('2026-10-17T12:00:00Z').getTime());
+ assert.equal(results.resultUnavailableReason,undefined);assert.equal(results.realizedGain,0);
+ assert.ok(Math.abs(results.unrealizedGain-235.890933)<1e-8);
+ const snapshots=(await db.query<{snapshot_date:string;assets:typeof target[];transactions:typeof transfer[];legacy_ledger_ids:string[]}>('select * from portfolio_private.daily_snapshots order by snapshot_date')).rows;
+ assert.equal(snapshots[0].assets[0].purchasePrice,100.1234);
+ for(const s of snapshots.slice(1)){assert.equal(s.assets[0].purchasePrice,63.071921416154);assert.equal(s.assets[0].currentPrice,77.77);assert.ok(!s.legacy_ledger_ids.includes('mistaken-edit'));assert.equal(s.transactions.length,2);}
+ assert.equal((await db.query<{revision:number}>('select revision from public.user_portfolios where user_id=$1',[owner])).rows[0].revision,11,'Idempotent repair bumps revision once');
+ const audit=(await db.query<{before_state:{document:typeof document};after_summary:{snapshotsRestated:number}}>('select before_state,after_summary from portfolio_private.support_repairs')).rows[0];
+ assert.deepEqual(audit.before_state.document,document);assert.equal(audit.after_summary.snapshotsRestated,2);
+ assert.deepEqual((await db.query<{data:unknown}>('select data from portfolio_private.documents where user_id=$1',[otherOwner])).rows[0].data,{keep:'untouched'});
+ console.log('PASS confirmed transfer repair: private backup, guards, rehearsal rollback, idempotency, broker-rounded units/cents, carried cost/date, no realized profit, snapshot and ledger parity, unrelated account isolation.');
+}finally{await db.close();}

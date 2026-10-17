@@ -12,6 +12,11 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-17 - Conciliación administrativa de traspasos confirmados
+- Funcionalidad: respaldo privado y procedimiento transaccional para conciliar un traspaso completo a un fondo nuevo tras una edición manual errónea.
+- Resumen: conserva participaciones y efectivo confirmados, coste y fecha de adquisición heredados; sincroniza documento, tablas, ledger de snapshots y cierres afectados, sin registrar ganancias realizadas ni nuevas aportaciones. Comprueba revisión, protege otras cuentas y conserva el estado anterior para auditoría.
+- Archivos: `scripts/ops/repair-confirmed-fund-transfer.sql`, `scripts/test-transfer-repair.ts`, `supabase/migrations/20261017122443_portfolio_support_repair_audit.sql`, `docs/fund-transfer-repair.md`, `package.json`.
+
 ### 2026-10-16 - Notas por categoría del radar
 - Funcionalidad: recupera notas de 0–100 dentro de las categorías generales elegidas por el usuario, conservando el ratio retorno/volatilidad.
 - Resumen: transformación continua respecto a la mediana y dispersión robusta del grupo, sin escalones de percentiles. Muestra provisional con dos a cuatro fondos; sin nota con uno. Mismas divisa y fecha, filtros independientes y metodología visible.

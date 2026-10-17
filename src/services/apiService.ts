@@ -2,6 +2,7 @@ import axios from 'axios';
 import {quoteCurrency,marketSymbolMatches} from '../../supabase/functions/_shared/quoteCurrency';
 import { verifiedSecurityAlias } from './securityAliases';
 import { getFundRelevance } from './finect/finectService';
+import { firstUsableFundHistory, getFinancialTimesFundHistory } from './funds/fundHistory';
 import { fundChartSymbols } from './funds/fundChartResolution';
 import { extractPublicFundamentals, normalizeFundamentals, normalizeFundamentalSeries, mergeFundamentals, hasFundamentals, FUNDAMENTAL_SERIES_TYPES } from './market/fundamentals';
 import type { StockQuote, SearchResult, HistoricalDataPoint, AssetType, TimePeriod } from '../types/types';
@@ -900,9 +901,16 @@ async function fetchYahooChartPoints(
         ? `period1=${Math.floor((startDate! - 7 * 86400000) / 1000)}&period2=${Math.ceil((endDate ?? Date.now()) / 1000)}`
         : 'range=' + range;
     const url = YAHOO_CHART_URL + '/' + encodeURIComponent(symbol) + '?' + dates + '&interval=' + interval;
-    const rawData: unknown = url.startsWith('/')
-        ? (await axios.get(url, { signal, timeout: 6000 })).data
-        : await fetchFromFastestProxy(url, signal);
+    let rawData: unknown;
+    try {
+        rawData = url.startsWith('/') ? (await axios.get(url, { signal, timeout: 6000 })).data : await fetchFromFastestProxy(url, signal);
+        const primary = asJsonRecords(asJsonRecord(asJsonRecord(rawData).chart).result)[0];
+        if (!Array.isArray(primary?.timestamp) || !primary.timestamp.length) throw new Error('Primary chart has no history');
+    } catch (error) {
+        if (axios.isCancel(error) || signal?.aborted) throw error;
+        const fallbackUrl = url.replace(YAHOO_CHART_URL,YAHOO_CHART_FALLBACK_URL);
+        rawData = (await axios.get(fallbackUrl, { signal, timeout: 6000 })).data;
+    }
     const data = asJsonRecord(rawData);
     const chart = asJsonRecord(data.chart);
     const result = asJsonRecords(chart.result)[0] ?? {};
@@ -931,6 +939,7 @@ async function fetchYahooChartPoints(
             timestamp: timestamp * 1000,
             currency,
             sourceSymbol: symbol,
+            source: 'Yahoo Finance' as const,
             previousClose: i === 0 && previousClose !== undefined ? previousClose * scale : undefined,
             open: readNumberAt(quotes.open, i) * scale,
             high: readNumberAt(quotes.high, i) * scale,
@@ -995,35 +1004,43 @@ export async function getAssetChartData(
     }
 
     try {
-        const candidates = await getChartSymbolCandidates(symbol, signal);
-        let bestPoints: HistoricalDataPoint[] = [];
-        const visited = new Set<string>();
-        const loadCandidates = async (symbols: string[]) => {
-            for (const candidate of symbols) {
-                if (visited.has(candidate)) continue;
-                visited.add(candidate);
-                try {
-                    const points = await fetchYahooChartPoints(candidate, range, Number.isFinite(options.startDate) ? '1d' : interval, period, signal, options.startDate, options.endDate);
-                    if (points.length > bestPoints.length) bestPoints = points;
-                    // Keep looking when a listing only exposes a current quote.
-                    if (points.length >= 2) return;
-                } catch (error) {
-                    if (axios.isCancel(error) || signal?.aborted) throw error;
+        const yahooHistory = async (signal?: AbortSignal) => {
+            const candidates = await getChartSymbolCandidates(symbol, signal);
+            let bestPoints: HistoricalDataPoint[] = [];
+            const visited = new Set<string>();
+            const loadCandidates = async (symbols: string[]) => {
+                for (const candidate of symbols) {
+                    if (visited.has(candidate)) continue;
+                    visited.add(candidate);
+                    try {
+                        const points = await fetchYahooChartPoints(candidate, range, Number.isFinite(options.startDate) ? '1d' : interval, period, signal, options.startDate, options.endDate);
+                        if (points.length > bestPoints.length) bestPoints = points;
+                        // Keep looking when a listing only exposes a current quote.
+                        if (points.length >= 2) return;
+                    } catch (error) {
+                        if (axios.isCancel(error) || signal?.aborted) throw error;
+                    }
                 }
+            };
+            await loadCandidates(candidates);
+            if (fundIdentifier && bestPoints.length < 2) {
+                await loadCandidates(await getFundClassChartSymbols(symbol.trim().toUpperCase(), signal));
             }
+            return fundIdentifier && period === '1D' ? bestPoints.slice(-2) : bestPoints;
         };
-        await loadCandidates(candidates);
-        if (fundIdentifier && bestPoints.length < 2) {
-            await loadCandidates(await getFundClassChartSymbols(symbol.trim().toUpperCase(), signal));
-        }
-        const result = fundIdentifier && period === '1D' ? bestPoints.slice(-2) : bestPoints;
+        const result = fundIdentifier
+            ? await firstUsableFundHistory([
+                requestSignal => yahooHistory(requestSignal),
+                requestSignal => getFinancialTimesFundHistory(symbol,period,requestSignal,options),
+            ],signal)
+            : await yahooHistory(signal);
         if (result.length > 0) {
             CHART_CACHE.set(cacheKey, { data: result, timestamp: Date.now() });
         }
         return result;
     } catch (error) {
-        if (axios.isCancel(error)) throw error;
-        console.warn('Yahoo Finance chart failed:', error);
+        if (axios.isCancel(error) || signal?.aborted) throw error;
+        console.warn('Historical chart sources failed:', error);
     }
 
     return [];

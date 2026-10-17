@@ -1,5 +1,7 @@
 {
     "routes": [
+        { "src": "/__market/ft/funds/tearsheet/summary", "dest": "https://markets.ft.com/data/funds/tearsheet/summary" },
+        { "src": "/__market/ft/chartapi/series", "dest": "https://markets.ft.com/data/chartapi/series" },
         {
             "src": "/__market/google/(.*)",
             "dest": "https://www.google.com/$1"

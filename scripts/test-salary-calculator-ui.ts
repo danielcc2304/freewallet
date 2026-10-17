@@ -82,10 +82,10 @@ try {
     await page.evaluate(() => { (window as typeof window & { salaryExport?: string }).salaryExport = ''; HTMLAnchorElement.prototype.click = function () { (window as typeof window & { salaryExport?: string }).salaryExport = this.download; }; });
     await clickText(page, '.salary-calc button', 'Descargar desglose');
     assert.equal(await page.evaluate(() => (window as typeof window & { salaryExport?: string }).salaryExport), 'freewallet-sueldo-neto-2026.csv');
-    // Route is reachable from both the calculators hub and Tools sidebar.
+    // IRPF is reached through Calculators; the standalone sidebar entry was removed.
     await page.goto(`${origin}/academy/calculators`, { waitUntil: 'networkidle2' });
     await page.waitForSelector('.calculators__grid a[href="/academy/salary-calculator"]');
-    assert.ok(await page.$('.sidebar a[href="/academy/salary-calculator"]'));
+    assert.equal(await page.$('.sidebar a[href="/academy/salary-calculator"]'), null);
     await page.click('.calculators__grid a[href="/academy/salary-calculator"]');
     await page.waitForSelector('.salary-calc');
     for (const width of [320, 390, 768, 1440]) {

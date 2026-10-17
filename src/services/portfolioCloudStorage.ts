@@ -35,8 +35,8 @@ function preserveQuotes(data:CloudData, current:CloudData):CloudData {
     result.assets=result.assets.map((asset:Asset)=>{
         const cached=old.find(a=>a.id===asset.id && a.symbol===asset.symbol && a.isin===asset.isin);
         if(!cached)return asset;
-        const {currentPrice,previousClose,holdings,lastQuoteAt,lastCheckedAt,lastReadAt,quoteOrigin,quotedAt,quoteSource,originalPrice,originalCurrency,originalUnit,unitScale,fxRate,fxAt,valuationBasis}=cached;
-        return {...asset,currentPrice,previousClose,holdings,lastQuoteAt,lastCheckedAt,lastReadAt,quoteOrigin,quotedAt,quoteSource,originalPrice,originalCurrency,originalUnit,unitScale,fxRate,fxAt,valuationBasis};
+        const {currentPrice,previousClose,holdings,lastQuoteAt,lastCheckedAt,lastReadAt,quoteOrigin,quotedAt,quoteSource,quoteInstrument,originalPrice,originalCurrency,originalUnit,unitScale,fxRate,fxAt,valuationBasis}=cached;
+        return {...asset,currentPrice,previousClose,holdings,lastQuoteAt,lastCheckedAt,lastReadAt,quoteOrigin,quotedAt,quoteSource,quoteInstrument,originalPrice,originalCurrency,originalUnit,unitScale,fxRate,fxAt,valuationBasis};
     });
     return {...data,freewallet_portfolio_v1:JSON.stringify(result)};
 }

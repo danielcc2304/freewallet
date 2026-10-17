@@ -25,22 +25,11 @@ export function useExpenseBook() {
             )
                 void expenseStore.load();
         };
-        const unload = (event: BeforeUnloadEvent) => {
-            if (
-                expenseStore.hasPending ||
-                expenseStore.getSnapshot().status === 'saving'
-            ) {
-                event.preventDefault();
-                event.returnValue = '';
-            }
-        };
         window.addEventListener('focus', refresh);
         window.addEventListener('online', refresh);
-        window.addEventListener('beforeunload', unload);
         return () => {
             window.removeEventListener('focus', refresh);
             window.removeEventListener('online', refresh);
-            window.removeEventListener('beforeunload', unload);
         };
     }, []);
     return {

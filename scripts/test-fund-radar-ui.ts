@@ -6,11 +6,12 @@ import type {RadarFund} from '../src/services/fundRadar/types';
 const origin=process.env.FREEWALLET_TEST_URL??'http://127.0.0.1:5191';
 assert.match(origin,/^http:\/\/(localhost|127\.0\.0\.1):\d+$/);
 const editor='22222222-2222-4222-8222-222222222222',reader='11111111-1111-4111-8111-111111111111';
+const appVersion=JSON.parse(readFileSync('package.json','utf8')).version;
 const stamp='2026-10-16T10:00:00Z';
 const user=(id:string)=>({id,email:'fixture@example.invalid',email_confirmed_at:stamp,aud:'authenticated',role:'authenticated',is_anonymous:false,app_metadata:{},user_metadata:{role:'editor'},created_at:stamp,factors:[]});
 const session=(id:string)=>({access_token:`${Buffer.from('{"alg":"HS256","typ":"JWT"}').toString('base64url')}.${Buffer.from(JSON.stringify({sub:id,aal:'aal1',role:'authenticated',exp:Math.floor(Date.now()/1000)+3600})).toString('base64url')}.fixture`,refresh_token:'synthetic',expires_at:Math.floor(Date.now()/1000)+3600,expires_in:3600,token_type:'bearer',user:user(id)});
 const seed:RadarFund[]=process.env.RADAR_LIVE_FIXTURE?JSON.parse(readFileSync(process.env.RADAR_LIVE_FIXTURE,'utf8')):BEST_FUNDS.map(f=>({id:f.id,isin:f.isin,name:f.name,category:f.category,manager:f.manager,description:f.description??'',source_url:f.link??null,manual_metrics:{...f.returns,volatility:f.volatility,maxDrawdown:f.maxDrawdown,ter:f.ter,risk:f.risk,dates:{}},extra:{},auto_refresh:true,is_active:true,version:1,created_at:stamp,updated_at:stamp,updated_by:null,fund_radar_data:null}));
-const browser=await puppeteer.launch({headless:true,executablePath:process.env.PUPPETEER_EXECUTABLE_PATH??'/usr/bin/chromium',args:['--no-sandbox']});
+const browser=await puppeteer.launch({headless:true,executablePath:process.env.PUPPETEER_EXECUTABLE_PATH,args:['--no-sandbox']});
 try{
  for(const scenario of [{name:'visitor',identity:null,allowed:false},{name:'registered reader',identity:reader,allowed:false},{name:'revoked editor',identity:editor,allowed:false},{name:'active editor',identity:editor,allowed:true}]){
   const p=await browser.newPage();p.setDefaultTimeout(60000);p.setDefaultNavigationTimeout(60000);
@@ -18,7 +19,7 @@ try{
   const rows=structuredClone(seed);let writes=0,refreshes=0;
   rows.push({...rows[0],id:'fixture-archived',isin:'IE00B4L5Y983',name:'Archivado de prueba',is_active:false});
   await p.setViewport({width:390,height:844});await p.emulateMediaFeatures([{name:'prefers-reduced-motion',value:'reduce'}]);
-  await p.evaluateOnNewDocument((auth)=>{if(auth)localStorage.setItem('freewallet-news-auth',JSON.stringify(auth));localStorage.setItem('freewallet_settings','{"apiEnabled":false}');localStorage.setItem('freewallet_last_seen_version','6.3.3');},scenario.identity?session(scenario.identity):null);
+  await p.evaluateOnNewDocument((auth,version)=>{if(auth)localStorage.setItem('freewallet-news-auth',JSON.stringify(auth));localStorage.setItem('freewallet_settings','{"apiEnabled":false}');localStorage.setItem('freewallet_last_seen_version',version);},scenario.identity?session(scenario.identity):null,appVersion);
   await p.setRequestInterception(true);
   p.on('request',request=>{void(async()=>{
    const u=new URL(request.url());

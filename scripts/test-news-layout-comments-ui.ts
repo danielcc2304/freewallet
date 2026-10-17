@@ -60,9 +60,9 @@ try{
         const click=async(text:string)=>{const button=await page.waitForSelector(`button::-p-text(${text})`);assert.ok(button);await button.click();};
         const fit=async()=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${scenario}/${await page.evaluate(()=>innerWidth)}: page overflow`);
         for(const width of [320,390,768,1280,1920]){
-            console.log('Checking',scenario,width);await page.setViewport({width,height:1000});await page.goto(`${origin}/news`,{waitUntil:'networkidle2'});await page.waitForSelector('.news-card');
+            console.log('Checking',scenario,width);await page.setViewport({width,height:1000});await page.goto(`${origin}/news`,{waitUntil:'domcontentloaded'});await page.waitForSelector('.news-card');
             await fit();
-            await page.goto(`${origin}/admin/news`,{waitUntil:'networkidle2'});
+            await page.goto(`${origin}/admin/news`,{waitUntil:'domcontentloaded'});
             if(scenario==='visitor'){
                 await page.waitForSelector('.news-admin__login-card');
                 const bounds=await page.$eval('.news-admin__login-card',element=>{const r=element.getBoundingClientRect();const p=element.parentElement!.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width,parentLeft:p.left,parentWidth:p.width};});
@@ -106,7 +106,7 @@ try{
                 await page.screenshot({path:`/tmp/freewallet-news-${scenario}-${width}.png`});
             }
         }
-        await page.setViewport({width:390,height:1000});await page.goto(`${origin}/news/${article.slug}`,{waitUntil:'networkidle2'});
+        await page.setViewport({width:390,height:1000});await page.goto(`${origin}/news/${article.slug}`,{waitUntil:'domcontentloaded'});
         await page.waitForSelector('.news-comments__item');assert.equal(await page.$('.news-comments__body img'),null,'Comment HTML must be inert text');
         if(scenario==='visitor'){
             assert.equal(await page.$('#news-comment-body'),null);assert.equal(await page.$('.news-comments__actions'),null);
@@ -131,7 +131,7 @@ try{
             rejectPost=true;await page.type('#news-comment-body','Conservar si falla');await click('Publicar comentario');await page.waitForFunction(()=>document.body.innerText.includes('Espera 20 segundos'));
             assert.equal(await page.$eval('#news-comment-body',element=>(element as HTMLTextAreaElement).value),'Conservar si falla');
             await click('Ver más comentarios');await page.waitForFunction(()=>document.body.innerText.includes('Un comentario anterior.'));assert.equal(await page.$('button::-p-text(Ver más comentarios)'),null);
-            await page.reload({waitUntil:'networkidle2'});await page.waitForSelector('.news-comments__item');
+            await page.reload({waitUntil:'domcontentloaded'});await page.waitForSelector('.news-comments__item');
         }else{
             assert.equal(await page.$('button[aria-label="Editar comentario de otro_lector"]'),null);
             assert.ok(await page.$('button[aria-label="Eliminar comentario de otro_lector"]'));

@@ -1,3 +1,6 @@
+import { PendingChangesGuard } from './components/ui/PendingChangesGuard';
+import { AppErrorBoundary } from './components/ui/RouteView';
+import { hasPendingFinancialChanges } from './services/pendingChanges';
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import { Analytics } from '@vercel/analytics/react'
@@ -21,6 +24,7 @@ function isChunkLoadFailure(message: string): boolean {
 }
 
 function reloadOnceForChunkError() {
+  if (hasPendingFinancialChanges()) return
   try {
     if (sessionStorage.getItem(CHUNK_RELOAD_KEY) === '1') return
     sessionStorage.setItem(CHUNK_RELOAD_KEY, '1')
@@ -48,6 +52,8 @@ window.addEventListener('unhandledrejection', (event) => {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <FeedbackProvider>
+    <PendingChangesGuard />
+    <AppErrorBoundary>
     <AccountProvider>
     <ThemeProvider>
       <AppearanceProvider>
@@ -59,6 +65,7 @@ createRoot(document.getElementById('root')!).render(
       </AppearanceProvider>
     </ThemeProvider>
     </AccountProvider>
+    </AppErrorBoundary>
     </FeedbackProvider>
   </StrictMode>,
 )

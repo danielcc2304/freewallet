@@ -594,7 +594,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                </p>}
                {isFund && (
                    <p className="asset-detail__chart-source">
-                       {chartData[0]?.sourceSymbol ? `Histórico Yahoo · ${chartData[0].sourceSymbol}. ` : ''}
+                       {chartData[0]?.sourceSymbol ? `Histórico ${chartData[0].source==='Financial Times'?'Financial Times':'Yahoo'} · ${chartData[0].sourceSymbol}. ` : ''}
                        Clase identificada por ISIN. Finect aporta la ficha y la última valoración.
                    </p>
                )}

@@ -36,6 +36,11 @@ export default defineConfig(({ mode }) => {
         secure: true,
         rewrite: (path) => path.replace(/^\/__finect\/site/, ''),
       },
+      '/__market/ft': {
+        agent: process.env.NODE_USE_ENV_PROXY === '1' ? globalAgent : undefined,
+        target: 'https://markets.ft.com', changeOrigin: true, secure: true,
+        rewrite: (path) => path.replace(/^\/__market\/ft/, '/data'),
+      },
       '/__market/yahoo1': {
         agent: process.env.NODE_USE_ENV_PROXY === '1' ? globalAgent : undefined,
         target: 'https://query1.finance.yahoo.com',

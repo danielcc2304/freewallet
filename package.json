@@ -83,7 +83,9 @@
     "test:strategy-portfolio-ui": "tsx scripts/test-strategy-portfolio-ui.ts",
     "test:news-images": "tsx scripts/test-news-images.ts",
     "test:news-comments": "tsx scripts/test-news-comments.ts",
-    "test:news-layout-comments-ui": "tsx scripts/test-news-layout-comments-ui.ts"
+    "test:news-layout-comments-ui": "tsx scripts/test-news-layout-comments-ui.ts",
+    "test:fund-history": "tsx scripts/test-fund-history.ts",
+    "test:transfer-repair": "tsx scripts/test-transfer-repair.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

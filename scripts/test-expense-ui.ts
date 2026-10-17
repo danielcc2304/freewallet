@@ -200,7 +200,7 @@ try {
     await page.$eval('.expense-export-menu', (e) => {
         (e as HTMLDetailsElement).open = true;
     });
-    await click('Importar CSV, Excel o copia JSON');
+    await click('Importar');
     await page
         .$('input[type=file]')
         .then((input) => input!.uploadFile('/tmp/freewallet-expense-test.csv'));
@@ -277,7 +277,7 @@ try {
         '/tmp/freewallet-expense-test.xlsx',
         XLSX.write(workbook, { type: 'buffer', bookType: 'xlsx' }),
     );
-    await click('Importar CSV, Excel o copia JSON');
+    await click('Importar');
     await page
         .$('input[type=file]')
         .then((input) =>
@@ -321,7 +321,7 @@ try {
         ),
     );
     // Reimporting the same spreadsheet preserves the duplicate review.
-    await click('Importar CSV, Excel o copia JSON');
+    await click('Importar');
     await page
         .$('input[type=file]')
         .then((input) =>

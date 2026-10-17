@@ -262,14 +262,16 @@ export function NewsAdmin() {
     };
 
     const handleLogout = async () => {
-        await signOutNewsAdmin();
-        setSession(null);setAccessDenied(false);
-        setPosts([]);
-        setIsOwner(false);
-        setAdminMembers([]);
-        setDraft(EMPTY_DRAFT);
-        setPendingInvitation(false);
-        setNotice('Sesión cerrada.');
+        try {
+            await signOutNewsAdmin();
+            setSession(null);setAccessDenied(false);
+            setPosts([]);
+            setIsOwner(false);
+            setAdminMembers([]);
+            setDraft(EMPTY_DRAFT);
+            setPendingInvitation(false);
+            setNotice('Sesión cerrada.');
+        } catch (cause) { setError(getErrorMessage(cause)); }
     };
 
     const handleInvitationAccepted = async () => {

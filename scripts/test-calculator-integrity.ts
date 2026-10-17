@@ -44,8 +44,8 @@ function helpers(name: string) {
     vm.runInContext(javascript, context);
     return context;
 }
-const bond = helpers('BondCalculator');
-const schedule: Date[] = bond.buildCouponSchedule(bond.parseIsoDate('2026-01-31'), bond.parseIsoDate('2027-01-31'), 12);
+const bond = await import('../src/services/bondCalculator');
+const schedule = bond.buildBondCouponSchedule(bond.parseIsoDate('2026-01-31')!, bond.parseIsoDate('2027-01-31')!, 'monthly')!.dates;
 assert.equal(schedule.length, 12);
 assert.equal(schedule[0].toISOString().slice(0, 10), '2026-02-28');
 assert.equal(schedule[1].toISOString().slice(0, 10), '2026-03-31');

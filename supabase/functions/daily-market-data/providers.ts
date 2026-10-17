@@ -1,3 +1,4 @@
+import { parseGoogleFinanceQuote } from '../_shared/googleFinanceQuote.ts';
 import { quoteCurrency, datedFx, marketSymbolMatches, previousCryptoClose } from '../_shared/quoteCurrency.ts';
 import {fetchFreshFund} from './fundSources.ts';
 import type {FundObservation,FundSource} from '../_shared/fundQuotePolicy.ts';
@@ -6,7 +7,7 @@ import type {FundObservation,FundSource} from '../_shared/fundQuotePolicy.ts';
 export interface MarketPrice {
     instrument: string; quoted_at: string; price_eur: number; previous_close_eur: number | null;
     original_price: number; original_currency: string; original_unit: string; unit_scale: number; fx_rate: number; fx_at: string | null;
-    source: FundSource; checked_at: string;
+    source: FundSource | 'Google Finance'; checked_at: string;
     history?: MarketPrice[];
 }
 type RecordValue = Record<string, unknown>;
@@ -35,7 +36,7 @@ async function providerResponse(url:string,signal:AbortSignal|undefined,text:boo
         try {
             const response = await fetch(url, { signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(8000)]) : AbortSignal.timeout(8000),
                 method:body===undefined?'GET':'POST',body:body===undefined?undefined:JSON.stringify(body),
-                headers: { Accept: text?'text/html,application/xml':'application/json', 'User-Agent': 'Mozilla/5.0',...(body===undefined?{}:{'Content-Type':'application/json'}) } });
+                headers: { Accept: text?'text/html,application/xml':'application/json', 'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36',...(body===undefined?{}:{'Content-Type':'application/json'}) } });
             if (response.ok) {
                 if(Number(response.headers.get('content-length'))>1500000){await response.body?.cancel();throw new Error('Proveedor HTTP: respuesta demasiado grande');}
                 const content=await response.text();
@@ -141,7 +142,7 @@ async function sessionQuote(symbol: string, signal?: AbortSignal): Promise<RawQu
     throw new Error('Mercado no disponible');
 }
 export const fxAt = datedFx;
-export interface MarketInstrument { instrument: string; symbol: string; isin?: string | null; type: 'stock' | 'etf' | 'fund' | 'crypto' }
+export interface MarketInstrument { instrument: string; symbol: string; isin?: string | null; type: 'stock' | 'etf' | 'fund' | 'crypto'; googleListing?: string | null; quoteCurrency?: string | null }
 export async function fetchMarketPrice(input: MarketInstrument | string, finectKey: string,
     fxCache = new Map<string, Promise<ReturnType<typeof parseChart>>>(), signal?: AbortSignal): Promise<MarketPrice> {
     // Strings remain accepted only for callers predating the typed RPC contract.
@@ -149,7 +150,13 @@ export async function fetchMarketPrice(input: MarketInstrument | string, finectK
         ? { instrument: input, symbol: input, type: /^[A-Z]{2}[A-Z0-9]{10}$/.test(input) ? 'fund' : 'stock', isin: input } : input;
     const { instrument, symbol, type, isin } = descriptor;
     let raw: RawQuote;
-    if (type === 'fund') {
+    if (descriptor.googleListing) {
+        if (type !== 'stock' || instrument !== descriptor.googleListing || !/^[A-Z0-9.-]+:[A-Z]+$/.test(descriptor.googleListing)) throw new Error('Mercado de cotización no válido');
+        const quote = parseGoogleFinanceQuote(await providerText(`https://www.google.com/finance/quote/${encodeURIComponent(descriptor.googleListing)}?hl=en`, signal), descriptor.googleListing);
+        if (!quote || quote.currency !== descriptor.quoteCurrency || Date.now() - Date.parse(quote.quotedAt) > 4 * 86400000) throw new Error('Cotización del mercado seleccionado no disponible');
+        raw = {price: quote.price, previous: Number.isFinite(quote.previousClose) ? quote.previousClose : null,
+            currency: quote.currency, at: quote.quotedAt, source: 'Google Finance'};
+    } else if (type === 'fund') {
         if (!isin || !/^[A-Z]{2}[A-Z0-9]{10}$/.test(isin)) throw new Error('ISIN de fondo inválido');
         raw = await fetchFreshFund(isin,()=>finectFund(isin,finectKey,signal),{json:providerJson,text:providerText,postJson:providerPostJson},signal);
     } else {

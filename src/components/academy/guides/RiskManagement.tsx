@@ -13,259 +13,116 @@ const CORRELATION_MATRIX = [
     [0.5, -0.1, 0.3, 0.0, 0.0, 1.0]
 ];
 
-export function RiskManagement() {
-    const correlationColor = (value: number) => {
-        if (value >= 0.6) return '#ef4444';
-        if (value >= 0.3) return '#f59e0b';
-        if (value > -0.1) return '#64748b';
-        return '#10b981';
-    };
+const RISK_TYPES = [
+    { icon: Zap, title: 'Mercado', description: 'Caídas que afectan a gran parte del mercado. La recuperación puede tardar y no está garantizada.', action: 'Ajusta la exposición a tu horizonte y capacidad de asumir pérdidas.' },
+    { icon: Layers, title: 'Concentración', description: 'Depender demasiado de una empresa, un sector o un país, incluso a través de varios fondos.', action: 'Revisa las posiciones subyacentes y los solapamientos.' },
+    { icon: Scale, title: 'Inflación', description: 'Que tus ahorros pierdan poder adquisitivo aunque su saldo no disminuya.', action: 'Valora la rentabilidad después de inflación, costes e impuestos.' },
+    { icon: Shield, title: 'Liquidez', description: 'No poder vender a tiempo o tener que aceptar un precio muy inferior al esperado.', action: 'Separa el dinero para imprevistos del capital que puedes invertir.' },
+];
+const DIVERSIFICATION = [
+    { icon: Globe, title: 'Por regiones', description: 'Reparte la exposición entre países y economías. Varios fondos del mismo mercado pueden duplicar posiciones.' },
+    { icon: Layers, title: 'Por activos', description: 'Combina renta variable, renta fija y liquidez según tus objetivos. Cada bloque cumple una función distinta.' },
+    { icon: BarChart, title: 'Por sectores', description: 'Tecnología, salud, energía o consumo responden de forma diferente al ciclo económico.' },
+];
+function SectionHeading({ number, id, title, description }: { number: string; id: string; title: string; description: string }) {
+    return <div className="risk-mgmt__section-heading"><span className="risk-mgmt__number" aria-hidden="true">{number}</span><div><h2 id={id}>{title}</h2><p>{description}</p></div></div>;
+}
+function correlationBand(value: number) {
+    return value >= .6 ? 'high' : value >= .3 ? 'medium' : value > -.1 ? 'neutral' : 'low';
+}
 
+export function RiskManagement() {
     return (
         <div className="risk-mgmt">
-            <AcademyPageHeader className="risk-mgmt__header" section="Construir">
-                <h1 className="risk-mgmt__title">Gestión del Riesgo</h1>
-                <p className="risk-mgmt__subtitle">
-                    Invertir no es evitar el riesgo, sino saber qué riesgos merece la pena correr y cómo proteger tu patrimonio de los que no.
-                </p>
+            <AcademyPageHeader section="Construir">
+                <h1>Gestión del riesgo</h1>
+                <p>Entiende qué puede afectar a tu patrimonio y construye una cartera que puedas mantener, también cuando el mercado cae.</p>
+                <nav className="risk-mgmt__roadmap" aria-label="Secciones de gestión del riesgo">
+                    <a href="#risk-types"><Shield size={18} aria-hidden="true" /> Identifica los riesgos</a>
+                    <a href="#risk-diversification"><Layers size={18} aria-hidden="true" /> Diversifica</a>
+                    <a href="#risk-currency"><Globe size={18} aria-hidden="true" /> Revisa la divisa</a>
+                </nav>
             </AcademyPageHeader>
 
-            <section className="risk-mgmt__vol-vs-risk">
-                <h2 className="risk-mgmt__section-title">1. Volatilidad vs. Riesgo Real</h2>
-                <div className="risk-mgmt__box">
-                    <div className="comparison-item">
-                        <div className="icon-badge vol">
-                            <BarChart size={24} />
-                        </div>
+            <section className="risk-mgmt__section" aria-labelledby="risk-volatility-title">
+                <SectionHeading number="01" id="risk-volatility-title" title="Una caída no cuenta toda la historia" description="Distingue el movimiento del precio de la pérdida permanente de capital." />
+                <div className="risk-mgmt__grid">
+                    <article className="risk-mgmt__card risk-mgmt__comparison">
+                        <span className="risk-mgmt__icon"><BarChart size={24} aria-hidden="true" /></span>
                         <h3>Volatilidad</h3>
-                        <p>Es la fluctuación del precio en el corto plazo. Es el "precio de la entrada" para obtener rentabilidad. Si no la soportas, no deberías estar en RV.</p>
-                    </div>
-                    <div className="divider"></div>
-                    <div className="comparison-item">
-                        <div className="icon-badge risk">
-                            <AlertTriangle size={24} />
-                        </div>
-                        <h3>Riesgo Real</h3>
-                        <p>Es la pérdida permanente de capital. Ocurre por vender en pánico, por invertir en negocios que quiebran o por la inflación devorando tus ahorros.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section className="risk-mgmt__types">
-                <h2 className="risk-mgmt__section-title">2. Los 4 Jinetes del Riesgo</h2>
-                <div className="risk-types-grid">
-                    <div className="risk-type-card">
-                        <Zap size={24} className="icon" />
-                        <h4>Riesgo de Mercado</h4>
-                        <p>Que el mercado entero baje (crisis sistémica). Es inevitable pero temporal.</p>
-                    </div>
-                    <div className="risk-type-card">
-                        <Layers size={24} className="icon" />
-                        <h4>Riesgo de Concentración</h4>
-                        <p>Poner demasiado capital en un solo activo, sector o país. Se cura con diversificación.</p>
-                    </div>
-                    <div className="risk-type-card">
-                        <Scale size={24} className="icon" />
-                        <h4>Riesgo de Inflación</h4>
-                        <p>El riesgo de que tu dinero pierda poder adquisitivo. Afecta especialmente al Cash y Bonos.</p>
-                    </div>
-                    <div className="risk-type-card">
-                        <Shield size={24} className="icon" />
-                        <h4>Riesgo de Liquidez</h4>
-                        <p>No poder vender un activo rápidamente cuando necesitas el dinero (ej. inmuebles).</p>
-                    </div>
-                </div>
-            </section>
-
-            <section className="risk-mgmt__diversification">
-                <h2 className="risk-mgmt__section-title">3. Diversificación: El "Almuerzo Gratis"</h2>
-                <p>La diversificación es la única forma de reducir el riesgo sin reducir necesariamente la rentabilidad esperada.</p>
-                <div className="div-levels">
-                    <div className="div-level">
-                        <Globe size={28} />
-                        <h5>Geográfica</h5>
-                        <p>No inviertas solo en tu país. El mundo es grande (USA, Europa, Emergentes).</p>
-                    </div>
-                    <div className="div-level">
-                        <Layers size={28} />
-                        <h5>Por Activos</h5>
-                        <p>Combina Acciones, Bonos, Oro y Cash según tu perfil.</p>
-                    </div>
-                    <div className="div-level">
-                        <BarChart size={28} />
-                        <h5>Por Sectores</h5>
-                        <p>Tecnología, Salud, Energía, Consumo... No todos se mueven igual.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section className="risk-mgmt__time">
-                <h2 className="risk-mgmt__section-title">4. Descorrelación: Tu Airbag Invisible</h2>
-                <p className="risk-mgmt__fx-intro">
-                    Diversificar no es tener muchos activos, sino combinar activos que no caen a la vez.
-                    La <strong>correlación</strong> va de -1 a +1: cuanto más baja, mayor efecto amortiguador
-                    sobre la volatilidad total de tu cartera.
-                </p>
-
-                <div className="corr-matrix-wrap">
-                    <h4>Matriz de correlación (ilustrativa)</h4>
-                    <div className="corr-matrix">
-                        <div className="corr-row corr-row--head">
-                            <div className="corr-cell corr-cell--label"></div>
-                            {CORRELATION_ASSETS.map((asset) => (
-                                <div key={asset} className="corr-cell corr-cell--head">{asset}</div>
-                            ))}
-                        </div>
-
-                        {CORRELATION_MATRIX.map((row, i) => (
-                            <div key={CORRELATION_ASSETS[i]} className="corr-row">
-                                <div className="corr-cell corr-cell--label">{CORRELATION_ASSETS[i]}</div>
-                                {row.map((val, j) => (
-                                    <div
-                                        key={`${i}-${j}`}
-                                        className="corr-cell corr-cell--value"
-                                        style={{
-                                            backgroundColor: `${correlationColor(val)}20`,
-                                            color: correlationColor(val)
-                                        }}
-                                    >
-                                        {val.toFixed(1)}
-                                    </div>
-                                ))}
-                            </div>
-                        ))}
-                    </div>
-                </div>
-
-                <div className="fx-rules-grid">
-                    <div className="fx-rule">
-                        <strong>Correlación alta (+0.6 a +1)</strong>
-                        <p>Los activos suelen moverse juntos. Aporta menos diversificación real.</p>
-                    </div>
-                    <div className="fx-rule">
-                        <strong>Correlación media (0 a +0.5)</strong>
-                        <p>Puede ayudar algo, pero no esperes gran protección en estrés severo.</p>
-                    </div>
-                    <div className="fx-rule">
-                        <strong>Correlación baja/negativa</strong>
-                        <p>Mejor combinación defensiva para reducir drawdowns y suavizar el viaje.</p>
-                    </div>
-                </div>
-            </section>
-
-            <section className="risk-mgmt__time">
-                <h2 className="risk-mgmt__section-title">5. El Tiempo: El mejor antídoto</h2>
-                <div className="time-box">
-                    <div className="time-box__content">
-                        <p>
-                            A corto plazo (1 día/1 mes), la inversión en bolsa es casi azar.
-                            Sin embargo, <strong>cuanto mayor es tu horizonte temporal, menor es la probabilidad de perder dinero.</strong>
-                        </p>
-                        <div className="time-stats">
-                            <div className="time-stat">
-                                <span className="label">1 Año</span>
-                                <span className="value">~25% prob. pérdidas</span>
-                            </div>
-                            <div className="time-stat">
-                                <span className="label">10 Años</span>
-                                <span className="value">{'>'}95% prob. ganancias</span>
-                            </div>
-                            <div className="time-stat">
-                                <span className="label">20 Años</span>
-                                <span className="value">~100% prob. ganancias</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="time-box__icon">
-                        <Clock size={64} />
-                    </div>
-                </div>
-            </section>
-
-            <section className="risk-mgmt__fx">
-                <h2 className="risk-mgmt__section-title">6. Riesgo de Divisa y Cobertura</h2>
-                <p className="risk-mgmt__fx-intro">
-                    Si inviertes en activos fuera de la Eurozona, no solo asumes el riesgo del activo:
-                    también asumes el movimiento EUR/USD, EUR/JPY, etc. Esa capa puede sumar o restar
-                    mucho a tu resultado final.
-                </p>
-
-                <div className="risk-mgmt__fx-grid">
-                    <article className="fx-card fx-card--hedged">
-                        <h3>Versión cubierta (Hedged)</h3>
-                        <p>
-                            El fondo/ETF intenta neutralizar el efecto de la divisa mediante derivados.
-                            Suele reducir volatilidad en EUR, pero tiene coste de cobertura.
-                        </p>
-                        <ul>
-                            <li>Más estable en tu moneda base (EUR)</li>
-                            <li>Útil para renta fija global y horizontes cortos/medios</li>
-                            <li>Puede rendir menos que la versión sin cubrir en ciertos periodos</li>
-                        </ul>
+                        <p>Es la fluctuación de los precios. Puede generar pérdidas temporales y poner a prueba tu tolerancia al riesgo.</p>
+                        <div className="risk-mgmt__takeaway"><strong>Qué revisar</strong>Si necesitarás ese dinero antes de que tu inversión tenga tiempo para recuperarse.</div>
                     </article>
-
-                    <article className="fx-card fx-card--unhedged">
-                        <h3>Versión sin cubrir (Unhedged)</h3>
-                        <p>
-                            Asumes totalmente el riesgo de divisa. Tu rentabilidad en euros depende
-                            del activo y del cruce de moneda.
-                        </p>
-                        <ul>
-                            <li>Menor coste directo</li>
-                            <li>Más volatilidad de corto plazo</li>
-                            <li>Razonable para renta variable global a muy largo plazo</li>
-                        </ul>
+                    <article className="risk-mgmt__card risk-mgmt__comparison risk-mgmt__comparison--loss">
+                        <span className="risk-mgmt__icon"><AlertTriangle size={24} aria-hidden="true" /></span>
+                        <h3>Pérdida permanente</h3>
+                        <p>Ocurre cuando el capital no se recupera: por una quiebra, una venta forzada o el deterioro duradero de una inversión.</p>
+                        <div className="risk-mgmt__takeaway"><strong>Qué revisar</strong>La calidad del activo, la concentración y tu reserva para imprevistos.</div>
                     </article>
                 </div>
-
-                <h4 className="risk-mgmt__fx-rules-title">Regla rápida para decidir</h4>
-                <div className="fx-rules-grid">
-                    <div className="fx-rule">
-                        <strong>Renta Fija Global</strong>
-                        <p>Prioriza EUR-hedged si tu objetivo es estabilizar cartera.</p>
-                    </div>
-                    <div className="fx-rule">
-                        <strong>Renta Variable Global</strong>
-                        <p>A largo plazo suele ser válido mantener sin cobertura.</p>
-                    </div>
-                    <div className="fx-rule">
-                        <strong>Necesidad de gasto en EUR</strong>
-                        <p>Cuanto más cercano el gasto, más sentido tiene cubrir divisa.</p>
-                    </div>
-                </div>
-
             </section>
 
-            <section className="risk-mgmt__cta">
-                <Shield className="icon" size={48} />
-                <h2 className="cta__title">¿Estás asumiendo demasiado riesgo?</h2>
-                <p className="cta__desc">
-                    Mide tu tolerancia emocional y descubre qué asignación de activos encaja realmente contigo.
-                </p>
-                <div className="cta__actions">
-                    <Link to="/academy/timeline" className="cta__link">
-                        Ver Tu Recorrido <ArrowRight size={18} />
-                    </Link>
-                    <Link to="/academy/portfolio" className="cta__button">
-                        Configurar mi Cartera
-                    </Link>
+            <section id="risk-types" className="risk-mgmt__section" aria-labelledby="risk-types-title">
+                <SectionHeading number="02" id="risk-types-title" title="Cuatro riesgos que conviene vigilar" description="Reconocerlos te ayuda a decidir qué protección necesita tu cartera." />
+                <div className="risk-mgmt__grid">
+                    {RISK_TYPES.map(({icon: Icon,title,description,action}) => <article className="risk-mgmt__card" key={title}>
+                        <span className="risk-mgmt__icon"><Icon size={24} aria-hidden="true" /></span><h3>{title}</h3><p>{description}</p>
+                        <div className="risk-mgmt__action"><strong>Cómo gestionarlo</strong><p>{action}</p></div>
+                    </article>)}
                 </div>
             </section>
-            <section className="risk-mgmt__next">
-                <h2 className="risk-mgmt__section-title">Si quieres llevarlo a la práctica</h2>
-                <div className="risk-mgmt__next-grid">
-                    <Link to="/academy/crisis" className="risk-mgmt__next-card">
-                        <strong>Mercado y crisis</strong>
-                        <p>Mide qué significa una caí­da real para tu capital y para tu comportamiento.</p>
-                    </Link>
-                    <Link to="/academy/scenarios" className="risk-mgmt__next-card">
-                        <strong>Qué hacer si...</strong>
-                        <p>Trabaja respuestas concretas para rebalanceos, pánico y entradas en mercado.</p>
-                    </Link>
-                    <Link to="/portfolio-csv" className="risk-mgmt__next-card">
-                        <strong>Portfolio</strong>
-                        <p>Aplica los checks de concentración y buckets sobre tu cartera real.</p>
-                    </Link>
+
+            <section id="risk-diversification" className="risk-mgmt__section" aria-labelledby="risk-diversification-title">
+                <SectionHeading number="03" id="risk-diversification-title" title="Diversifica la exposición, no solo el número de fondos" description="Tener muchos productos no garantiza que estés asumiendo riesgos diferentes." />
+                <div className="risk-mgmt__grid risk-mgmt__grid--three">
+                    {DIVERSIFICATION.map(({icon: Icon,title,description}) => <article className="risk-mgmt__card" key={title}>
+                        <span className="risk-mgmt__icon"><Icon size={24} aria-hidden="true" /></span><h3>{title}</h3><p>{description}</p>
+                    </article>)}
+                </div>
+                <div className="risk-mgmt__card risk-mgmt__correlations">
+                    <div className="risk-mgmt__matrix-heading"><h3>Cómo se mueven juntos</h3><span>Ejemplo ilustrativo · no son datos de mercado</span></div>
+                    <p>La correlación va de −1 a +1. Una correlación menor puede suavizar los movimientos de la cartera, pero cambia con el tiempo y puede aumentar durante una crisis.</p>
+                    <div className="risk-mgmt__matrix-scroll" role="region" aria-label="Matriz de correlaciones ilustrativas, desplazable horizontalmente" tabIndex={0}>
+                        <table className="risk-mgmt__matrix">
+                            <caption>Matriz de correlación ilustrativa entre clases de activos</caption>
+                            <thead><tr><th scope="col">Activo</th>{CORRELATION_ASSETS.map(asset => <th key={asset} scope="col">{asset}</th>)}</tr></thead>
+                            <tbody>{CORRELATION_MATRIX.map((row,i) => <tr key={CORRELATION_ASSETS[i]}><th scope="row">{CORRELATION_ASSETS[i]}</th>
+                                {row.map((value,j) => <td key={j} className={`risk-mgmt__correlation risk-mgmt__correlation--${correlationBand(value)}`}>{value.toFixed(1).replace('.',',')}</td>)}
+                            </tr>)}</tbody>
+                        </table>
+                    </div>
+                    <div className="risk-mgmt__legend"><span><i className="risk-mgmt__swatch--high" /> Alta: se mueven juntos</span><span><i className="risk-mgmt__swatch--medium" /> Media: diversificación parcial</span><span><i className="risk-mgmt__swatch--low" /> Baja o negativa: menor relación</span></div>
+                    <p className="risk-mgmt__note">En móvil, desliza la tabla para ver todos los activos. Una correlación baja no garantiza protección frente a pérdidas.</p>
+                </div>
+            </section>
+
+            <section className="risk-mgmt__section" aria-labelledby="risk-time-title">
+                <SectionHeading number="04" id="risk-time-title" title="Adapta el riesgo al tiempo que tienes" description="El horizonte ayuda a decidir qué caídas puedes asumir, pero no elimina el riesgo." />
+                <div className="risk-mgmt__card">
+                    <div className="risk-mgmt__card-heading"><span className="risk-mgmt__icon"><Clock size={24} aria-hidden="true" /></span><h3>Cuándo necesitarás el dinero importa</h3></div>
+                    <div className="risk-mgmt__horizons">
+                        <div><span className="risk-mgmt__tag">Corto plazo</span><h4>Prioriza la disponibilidad</h4><p>El ahorro para gastos próximos necesita estabilidad y liquidez.</p></div>
+                        <div><span className="risk-mgmt__tag">Medio plazo</span><h4>Equilibra los bloques</h4><p>Combina activos según la flexibilidad de tu objetivo y las pérdidas que puedas asumir.</p></div>
+                        <div><span className="risk-mgmt__tag">Largo plazo</span><h4>Prepárate para las caídas</h4><p>Más tiempo permite atravesar ciclos, aunque no garantiza recuperar cualquier inversión.</p></div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="risk-currency" className="risk-mgmt__section" aria-labelledby="risk-currency-title">
+                <SectionHeading number="05" id="risk-currency-title" title="La divisa también forma parte del riesgo" description="Tu resultado en euros depende del activo y de las monedas a las que está expuesto. Que el fondo cotice en EUR no implica que esté cubierto." />
+                <div className="risk-mgmt__grid">
+                    <article className="risk-mgmt__card risk-mgmt__currency"><span className="risk-mgmt__tag">Hedged</span><h3>Con cobertura de divisa</h3><p>Utiliza derivados para reducir el efecto del cambio de moneda. La cobertura tiene costes y puede no ser perfecta.</p><ul><li>Puede ayudar a estabilizar la renta fija global en EUR.</li><li>Revisa qué monedas cubre y el coste total.</li><li>No elimina el riesgo de mercado ni el de crédito.</li></ul></article>
+                    <article className="risk-mgmt__card risk-mgmt__currency"><span className="risk-mgmt__tag">Unhedged</span><h3>Sin cobertura de divisa</h3><p>El movimiento de las monedas puede aumentar o reducir tu rentabilidad en euros.</p><ul><li>Mantienes la exposición al tipo de cambio.</li><li>Evitas el coste específico de la cobertura.</li><li>Valora el horizonte y la moneda de tus futuros gastos.</li></ul></article>
+                </div>
+                <aside className="risk-mgmt__insight"><Globe size={20} aria-hidden="true" /><p>Cuanto más próximo esté un gasto en euros, más importante es limitar la incertidumbre de la divisa en el dinero reservado para ese objetivo.</p></aside>
+            </section>
+
+            <section className="risk-mgmt__section" aria-labelledby="risk-tools-title">
+                <SectionHeading number="06" id="risk-tools-title" title="Llévalo a tu cartera" description="Define tus límites antes de que llegue una caída." />
+                <div className="risk-mgmt__grid risk-mgmt__grid--three">
+                    <Link to="/academy/portfolio" className="risk-mgmt__card risk-mgmt__tool"><Layers size={24} aria-hidden="true" /><h3>Estrategia y cartera</h3><p>Elige una distribución coherente con tus objetivos y tolerancia a pérdidas.</p><span>Definir mi cartera <ArrowRight size={18} aria-hidden="true" /></span></Link>
+                    <Link to="/academy/crisis" className="risk-mgmt__card risk-mgmt__tool"><BarChart size={24} aria-hidden="true" /><h3>Mercado y crisis</h3><p>Explora qué significaría una caída para tu capital y tus decisiones.</p><span>Explorar escenarios <ArrowRight size={18} aria-hidden="true" /></span></Link>
+                    <Link to="/" className="risk-mgmt__card risk-mgmt__tool"><Shield size={24} aria-hidden="true" /><h3>Tu Dashboard</h3><p>Revisa la asignación y la concentración de tus posiciones actuales.</p><span>Ver mi cartera <ArrowRight size={18} aria-hidden="true" /></span></Link>
                 </div>
             </section>
         </div>

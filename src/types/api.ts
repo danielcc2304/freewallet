@@ -1,6 +1,7 @@
 import type { AssetType } from './asset';
 
 export interface StockQuote {
+    quoteInstrument?: string;
     quotedAt?: string;
     previousQuotedAt?: string;
     valuationBasis?: 'quote-date-fx';

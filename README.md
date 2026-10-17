@@ -135,7 +135,7 @@ Si un movimiento o hueco impide verificar un periodo completo, los periodos con 
 
 El Dashboard utiliza dos vías de actualización. El radar de fondos tiene su propio [proceso diario independiente](docs/fund-radar.md), que no modifica posiciones ni snapshots de las carteras:
 
-Las consultas del navegador contrastan Yahoo con **Google Finance para el mismo mercado** cuando falta un precio reciente, y con **CoinGecko para criptos identificadas**. Nextil (`ES0126962069`) prioriza Madrid/BME; su ficha permite escoger el mercado del registro. Los precios conservan la fecha publicada y nunca se reemplazan por observaciones anteriores. La consulta cada minuto no garantiza un dato nuevo ni un feed bursátil en tiempo real.
+Las consultas del navegador contrastan Yahoo con **Google Finance para el mismo mercado** cuando falta un precio reciente, y con **CoinGecko para criptos identificadas**. Nextil (`ES0126962069`) prioriza Madrid/BME; su ficha permite escoger el mercado del registro. El worker y las capturas resuelven también esa preferencia por cuenta mediante el registro privado de mercados verificados; no cambian el símbolo de las operaciones ni mezclan observaciones de bolsas distintas. Los precios conservan la fecha publicada y nunca se reemplazan por observaciones anteriores. La consulta cada minuto no garantiza un dato nuevo ni un feed bursátil en tiempo real.
 
 | Proceso | Funcionamiento |
 | --- | --- |
@@ -215,6 +215,9 @@ La navegación principal está en [`src/App.tsx`](src/App.tsx); Academia y herra
 | `npm run build` | TypeScript, bundle de Vite, SEO y prerender de rutas públicas con Puppeteer. |
 | `npm run preview` | Vista local de la compilación. |
 | `npm run lint` | ESLint. |
+| `npm run check` | Lint, TypeScript y todas las pruebas locales de lógica/base de datos; incluye la referencia independiente de bonos en Python. |
+| `npm run test:smoke` | Arranca Vite con configuración sintética y ejecuta los recorridos de navegador principales. Requiere Chromium/Puppeteer. |
+| `npm run test:build` | Tras compilar, comprueba el tamaño del JS inicial y que calculadoras y SDK editorial se carguen bajo demanda. |
 | `npm run verify-funds` | Verificación de identidad/enlaces de fondos del catálogo. |
 
 Las regresiones están agrupadas en scripts `test:*` de `package.json`, entre ellos:
@@ -226,7 +229,11 @@ Las regresiones están agrupadas en scripts `test:*` de `package.json`, entre el
 - Fondos y acciones: `test:fund-chart-resolution`, `test:fund-breakdown`, `test:stock-fundamentals`, `test:underlying-resolution`.
 - Noticias y juego: `test:news-article-editor-ui`, `test:market-timing`, `test:market-timing-ui`.
 
-Las pruebas UI requieren Vite, Chromium y, en los escenarios de cuenta, configuración de fixtures. No todas usan el mismo puerto. Consulta las cabeceras de los scripts y sus documentos antes de ejecutarlas; no configures pruebas de escritura con credenciales de una cartera real.
+`test:smoke` prepara su propio puerto y backend de prueba; las peticiones externas de sus escenarios se interceptan. Para usar Chromium del sistema puedes definir `PUPPETEER_EXECUTABLE_PATH`. Los scripts UI individuales aceptan `FREEWALLET_TEST_URL`; consulta sus cabeceras. No configures pruebas de escritura con credenciales de una cartera real. Los logs y resultados quedan en `test-results/` (ignorado por Git).
+
+Puedes repetir una sola suite con `npm run test:smoke -- --only=test-portfolio-ui.ts`; sus logs quedan separados de la ejecución completa.
+
+El workflow [Application quality](.github/workflows/quality.yml) ejecuta estos controles, build y auditoría de dependencias en las PR y en `dev`, `release` y `master`. También exige incorporar los hotfixes de `master` antes de promover `dev`/`release`. La protección obligatoria de ramas debe configurarse en GitHub para exigir su resultado.
 
 ## Despliegue
 
@@ -234,7 +241,9 @@ El frontend produce `dist`. [`vercel.json`](vercel.json) configura rutas de prox
 
 Supabase aloja Auth, la base y las Edge Functions. Sus migraciones y funciones se gestionan por separado del despliegue del frontend.
 
-La compilación genera `sitemap.xml`, `robots.txt` y, fuera de Vercel, prerender con Puppeteer. Revisa el dominio configurado en [`scripts/generate-seo.js`](scripts/generate-seo.js) antes de publicar: actualmente usa `https://freewallet-v2.vercel.app`.
+La compilación genera `sitemap.xml`, `robots.txt` y, fuera de Vercel, prerender con Puppeteer. `FREEWALLET_SITE_URL` configura el origen público de producción (por defecto `https://freewallet-gilt.vercel.app`). Las previews, las ramas Vercel `release`/`dev` y los entornos con `FREEWALLET_DEPLOYMENT_ENV=preproduction` generan robots sin indexación, sitemap vacío y una meta `noindex,nofollow`. Esto cubre también un proyecto Vercel independiente de PRE que despliega `release` como su rama de producción.
+
+Las pantallas se descargan por ruta, con indicador de carga y recuperación de errores, manteniendo la navegación visible. Los gastos pendientes conservan su aviso al salir de la pantalla y bloquean el cierre de sesión hasta reintentar o exportar. Consulta las [correcciones de la auditoría y su despliegue](docs/application-audit-fixes.md), incluida la identidad de mercado compartida entre navegador, worker y capturas.
 
 Para omitir solo el prerender en un entorno que no disponga de Chromium:
 

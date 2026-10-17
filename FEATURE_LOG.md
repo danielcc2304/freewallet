@@ -12,17 +12,37 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-17 - v6.5.1 - Mejoras en fondos y traspasos
+### 2026-10-17 - v7.0.0 - Seguridad, cotizaciones y rendimiento
+- Funcionalidad:
+  - Noticias: protege la lectura y edición de artículos frente a HTML malicioso, incluido contenido anidado o malformado, conservando los formatos admitidos del editor.
+  - Cartera: el navegador y el batch usan el mismo mercado seleccionado y verificado para cada acción; conservan el instrumento original de las operaciones y la procedencia de cada cotización.
+  - Cartera: al cambiar de mercado, descarta respuestas del anterior y admite la última observación del elegido aunque tenga una hora anterior; mantiene la protección contra precios atrasados dentro de un mismo mercado.
+  - Gastos: mantiene el aviso de cambios sin guardar al navegar, permite volver para reintentar o exportar y evita cerrar la sesión de cuenta o editorial mientras haya guardados pendientes.
+  - Navegación: carga las pantallas cuando se necesitan, muestra un indicador de carga y permite recuperarse de errores sin perder la navegación; evita recargas automáticas si quedan cambios pendientes.
+  - Calidad: incorpora controles automatizados de lógica, base de datos, navegador, compilación, dependencias e integración de hotfixes antes de promover dev o release.
+  - SEO: corrige el dominio de producción, permite configurarlo por entorno y excluye de la indexación las vistas previas y preproducción.
+- Resumen:
+  - Incluye mejoras de seguridad en Noticias, coherencia en las cotizaciones de Cartera y navegación más ágil. El backend de cotizaciones ya está aplicado en Supabase; los históricos conservan su mercado real y no se reconstruyen ni se reetiquetan.
+  - Reduce el archivo JavaScript principal de 1.807,92 a 618,32 kB (aproximadamente un 66 %). Actualiza DOMPurify y source-map-js; la auditoría completa de dependencias no detecta vulnerabilidades conocidas.
+  - En GitHub Actions pasaron lint, TypeScript, compilación, 63 comprobaciones de lógica/base de datos, el control del bundle, 10 suites de navegador y auditoría de dependencias. La protección de ramas todavía no exige este workflow.
+  - La protección nativa de contraseñas filtradas queda pendiente: requiere Supabase Pro y el proyecto usa Free. No se modifica el plan. Los históricos de cotizaciones anteriores conservan su mercado real y no se reconstruyen ni se reetiquetan.
+- Archivos:
+  - FEATURE_LOG.md, docs/application-audit-fixes.md, .github/workflows/quality.yml, package-lock.json, scripts/run-tests.mjs, scripts/test-application-audit-ui.ts, scripts/test-unified-quote-markets.ts, scripts/test-quote-market-switch.ts, scripts/test-seo.mjs
+  - src/utils/newsContent.ts, src/services/pendingChanges.ts, src/services/portfolioQuoteService.ts, src/services/portfolioCloudStorage.ts, src/services/dashboardIntegrity.ts, src/components/ui/PendingChangesGuard.tsx, src/components/ui/RouteView.tsx, src/App.tsx, src/app/routes/academyRoutes.tsx
+  - supabase/functions/_shared/stockListings.ts, supabase/functions/_shared/googleFinanceQuote.ts, supabase/functions/daily-market-data/providers.ts, supabase/migrations/20261017174622_unified_quote_markets.sql
+
+### 2026-10-17 - v6.5.1 - Fondos, traspasos y gestión del riesgo
 - Funcionalidad:
   - Radar de fondos: destaca la rentabilidad a tres años, reúne métricas de riesgo y asigna notas de 0 a 100 para comparar fondos de la misma categoría; indica cuándo hay pocos datos para que la comparación sea orientativa.
   - Dashboard: permite elegir un fondo existente o dar de alta uno nuevo por ISIN, buscando sus datos en Finect o introduciéndolos manualmente.
   - Dashboard: completa el alta y el traspaso en una sola operación, conserva el coste y la fecha de compra originales y evita duplicar la compra en el fondo de destino.
   - Dashboard: recupera el historial disponible de los fondos e indica si los datos proceden de Financial Times o Yahoo.
   - Cartera: incorpora un procedimiento de soporte auditable para revisar correcciones de traspasos confirmados.
+  - Academia: renueva la guía Gestión del riesgo con secciones numeradas, navegación clara y pautas prácticas basadas en horizontes temporales, sin promesas de rentabilidad.
 - Resumen:
-  - Facilita comparar fondos, consultar el historial de los fondos y completar traspasos, incluso hacia fondos nuevos, sin perder datos ni duplicar movimientos. Incluye un procedimiento auditable de soporte para correcciones confirmadas.
+  - Facilita comparar fondos, consultar sus históricos y completar traspasos sin duplicar movimientos; también ayuda a entender los principales riesgos y cómo diversificar. Incluye un procedimiento auditable para correcciones confirmadas.
 - Archivos:
-  - FEATURE_LOG.md, README.md, docs/fund-radar.md, package-lock.json, package.json, scripts/test-category-score.ts, scripts/test-fund-radar-ui.ts, scripts/test-fund-radar.ts, scripts/test-fund-transfer-ui.ts, scripts/test-fund-transfer.ts, src/components/academy/simulators/FundRadar.css, src/components/academy/simulators/FundRadar.tsx, src/components/dashboard/FundTransferDialog.css, src/components/dashboard/FundTransferDialog.tsx, src/constants/app.ts, src/context/PortfolioContext.tsx, src/pages/Dashboard/Dashboard.tsx, src/services/fundTransfer.ts, src/services/funds/categoryScore.ts, src/services/funds/fundScoring.ts, src/services/portfolioPerformance.ts, supabase/migrations/20261016123119_portfolio_fund_transfer_execution_prices.sql, supabase/migrations/20261016123134_portfolio_new_fund_transfer_destination.sql, docs/fund-transfer-repair.md, scripts/ops/repair-confirmed-fund-transfer.sql, scripts/test-transfer-repair.ts, supabase/migrations/20261017122443_portfolio_support_repair_audit.sql, docs/fund-history.md, scripts/fixtures/fund-history/robeco-ft.json, scripts/fixtures/fund-history/robeco-yahoo-quote-only.json, scripts/test-fund-chart-ui.ts, scripts/test-fund-history.ts, src/components/dashboard/AssetDetail.tsx, src/services/apiService.ts, src/services/funds/fundHistory.ts, src/types/api.ts, supabase/functions/_shared/financialTimesHistory.ts, supabase/functions/daily-market-data/financialTimesFund.ts, vercel.json, vite.config.ts
+  - FEATURE_LOG.md, README.md, docs/fund-radar.md, package-lock.json, package.json, scripts/test-category-score.ts, scripts/test-fund-radar-ui.ts, scripts/test-fund-radar.ts, scripts/test-fund-transfer-ui.ts, scripts/test-fund-transfer.ts, src/components/academy/simulators/FundRadar.css, src/components/academy/simulators/FundRadar.tsx, src/components/dashboard/FundTransferDialog.css, src/components/dashboard/FundTransferDialog.tsx, src/constants/app.ts, src/context/PortfolioContext.tsx, src/pages/Dashboard/Dashboard.tsx, src/services/fundTransfer.ts, src/services/funds/categoryScore.ts, src/services/funds/fundScoring.ts, src/services/portfolioPerformance.ts, supabase/migrations/20261016123119_portfolio_fund_transfer_execution_prices.sql, supabase/migrations/20261016123134_portfolio_new_fund_transfer_destination.sql, docs/fund-transfer-repair.md, scripts/ops/repair-confirmed-fund-transfer.sql, scripts/test-transfer-repair.ts, supabase/migrations/20261017122443_portfolio_support_repair_audit.sql, docs/fund-history.md, scripts/fixtures/fund-history/robeco-ft.json, scripts/fixtures/fund-history/robeco-yahoo-quote-only.json, scripts/test-fund-chart-ui.ts, scripts/test-fund-history.ts, src/components/dashboard/AssetDetail.tsx, src/services/apiService.ts, src/services/funds/fundHistory.ts, src/types/api.ts, supabase/functions/_shared/financialTimesHistory.ts, supabase/functions/daily-market-data/financialTimesFund.ts, vercel.json, vite.config.ts, src/components/academy/guides/RiskManagement.tsx, src/components/academy/guides/RiskManagement.css
 ### 2026-10-16 - v6.5.0 - Academia y radar de fondos
 - Funcionalidad:
   - Academia: las guías de inversión se recorren por secciones y sus tarjetas se distinguen mejor, también con la apariencia translúcida.

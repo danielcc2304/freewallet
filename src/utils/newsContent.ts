@@ -1,3 +1,5 @@
+import DOMPurify from 'dompurify';
+
 const ALLOWED_TAGS = new Set([
     'P',
     'BR',
@@ -32,6 +34,7 @@ const ALLOWED_FONT_SIZES = new Set(['0.875rem', '1rem', '1.125rem', '1.35rem']);
 const SAFE_URL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:']);
 
 function isSafeUrl(value: string): boolean {
+    if (!value.trim()) return false;
     try {
         const url = new URL(value, 'https://freewallet.local');
         return SAFE_URL_PROTOCOLS.has(url.protocol);
@@ -60,93 +63,42 @@ export function getSafeNewsLinkUrl(value: string): string | null {
     }
 }
 
-function sanitizeNode(parent: Node): void {
-    Array.from(parent.childNodes).forEach((node) => {
-        if (node.nodeType === Node.COMMENT_NODE) {
-            node.remove();
-            return;
+/** Sanitize the complete tree before unwrapping or normalizing any node.
+ * The maintained parser handles nested/malformed HTML; our pass only narrows
+ * per-element formatting and URL rules, never reintroduces unsanitized nodes.
+ */
+export function sanitizeNewsHtml(html: string): string {
+    if (typeof document === 'undefined') return '';
+    const fragment = DOMPurify.sanitize(html, {
+        ALLOWED_TAGS: [...ALLOWED_TAGS].map(tag => tag.toLowerCase()),
+        ALLOWED_ATTR: [...new Set(Object.values(ALLOWED_ATTRIBUTES).flatMap(attrs => [...attrs]))],
+        ALLOW_DATA_ATTR: false,
+        ALLOW_ARIA_ATTR: false,
+        RETURN_DOM_FRAGMENT: true,
+    });
+    for (const element of fragment.querySelectorAll<HTMLElement>('*')) {
+        const tag = element.tagName.toUpperCase();
+        const allowed = ALLOWED_ATTRIBUTES[tag] ?? new Set<string>();
+        for (const attribute of [...element.attributes]) {
+            if (!allowed.has(attribute.name.toLowerCase())) element.removeAttribute(attribute.name);
         }
-
-        if (node.nodeType !== Node.ELEMENT_NODE) {
-            return;
-        }
-
-        const element = node as HTMLElement;
-        const tagName = element.tagName.toUpperCase();
-
-        if (tagName === 'SCRIPT' || tagName === 'STYLE' || tagName === 'IFRAME' || tagName === 'OBJECT') {
-            element.remove();
-            return;
-        }
-
-        if (!ALLOWED_TAGS.has(tagName)) {
-            const fragment = document.createDocumentFragment();
-            while (element.firstChild) {
-                fragment.appendChild(element.firstChild);
-            }
-            element.replaceWith(fragment);
-            sanitizeNode(fragment);
-            return;
-        }
-
-        const allowedAttributes = ALLOWED_ATTRIBUTES[tagName] ?? new Set<string>();
-        Array.from(element.attributes).forEach((attribute) => {
-            if (!allowedAttributes.has(attribute.name.toLowerCase())) {
-                element.removeAttribute(attribute.name);
-            }
-        });
-
-        if (tagName === 'A') {
-            const href = element.getAttribute('href');
-            if (!href || !isSafeUrl(href)) {
-                element.removeAttribute('href');
-                element.removeAttribute('target');
-                element.removeAttribute('rel');
+        if (tag === 'A') {
+            if (!isSafeUrl(element.getAttribute('href') ?? '')) {
+                element.removeAttribute('href'); element.removeAttribute('target'); element.removeAttribute('rel');
             } else if (element.getAttribute('target') === '_blank') {
                 element.setAttribute('rel', 'noopener noreferrer');
             }
         }
-
-        if (tagName === 'IMG') {
-            const src = element.getAttribute('src');
-            if (!src || !isSafeUrl(src)) {
-                element.remove();
-                return;
-            }
+        if (tag === 'IMG' && !getSafeNewsImageUrl(element.getAttribute('src'))) element.remove();
+        if (tag === 'SPAN') {
+            const size = element.style.fontSize.trim().toLowerCase();
+            if (ALLOWED_FONT_SIZES.has(size)) element.setAttribute('style', `font-size: ${size}`);
+            else element.replaceWith(...element.childNodes);
         }
-
-        if (tagName === 'SPAN') {
-            const fontSize = element.style.fontSize.trim().toLowerCase();
-            if (ALLOWED_FONT_SIZES.has(fontSize)) {
-                element.setAttribute('style', `font-size: ${fontSize}`);
-            } else {
-                element.removeAttribute('style');
-            }
-
-            if (!element.hasAttribute('style')) {
-                const fragment = document.createDocumentFragment();
-                while (element.firstChild) {
-                    fragment.appendChild(element.firstChild);
-                }
-                element.replaceWith(fragment);
-                sanitizeNode(fragment);
-                return;
-            }
-        }
-
-        sanitizeNode(element);
-    });
-}
-
-export function sanitizeNewsHtml(html: string): string {
-    if (typeof document === 'undefined') {
-        return html;
     }
-
-    const template = document.createElement('template');
-    template.innerHTML = html;
-    sanitizeNode(template.content);
-    return template.innerHTML;
+    const container = document.createElement('template');
+    container.content.append(fragment);
+    return container.innerHTML;
 }
 
 export function getNewsTextExcerpt(html: string, maxLength = 180): string {

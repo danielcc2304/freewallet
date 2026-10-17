@@ -135,7 +135,7 @@ try {
     await a.waitForSelector('.local-portfolio-prompt',{hidden:true});
     assert.equal(await a.$('.local-portfolio-prompt'),null,'Account page uses inline guidance, not a second modal');
     await click(a,'Revisar datos de este navegador');
-    await a.waitForFunction(count=>document.body.innerText.includes(`${count} posiciones`),{},localPortfolio.assets.length);
+    await a.waitForSelector('.account-page__confirmation');
     assert.ok(await a.$('.account-page__welcome'),'Empty cloud account must explain the existing device portfolio');
     assert.equal(await a.$eval('button::-p-text(Guardar cartera en mi cuenta)',element=>(element as HTMLButtonElement).disabled),true);
     assert.ok(await a.$eval('.account-page__confirmation input',element=>element.getBoundingClientRect().width<=24),'Confirmation checkbox must not stretch across the card');

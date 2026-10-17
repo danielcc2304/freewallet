@@ -12,6 +12,11 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-17 · Gestión del riesgo: diseño unificado
+- **Funcionalidad:** renovación visual de Academia → Gestión del riesgo.
+- **Resumen:** cabecera y navegación coherentes con Estrategias, secciones numeradas, tarjetas alineadas y enlaces prácticos al Dashboard. Estilos aislados, temas claro/oscuro y Liquid Glass. Matriz ilustrativa con tabla semántica, foco de teclado y desplazamiento interno en móvil. Sustituye probabilidades de ganancia sin fuente por pautas de horizonte temporal sin promesas de rentabilidad.
+- **Archivos:** `src/components/academy/guides/RiskManagement.tsx`, `src/components/academy/guides/RiskManagement.css`.
+
 ### 2026-10-16 - v6.5.1 - Mejoras en el radar y los traspasos
 - Funcionalidad:
   - Radar de fondos: destaca la rentabilidad a tres años, reúne métricas de riesgo y asigna notas de 0 a 100 para comparar fondos de la misma categoría; indica cuándo hay pocos datos para que la comparación sea orientativa.

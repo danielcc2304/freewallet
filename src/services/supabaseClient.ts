@@ -1,8 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { publicSupabaseConfig } from './supabaseConfig';
 
-export const appBackendConfig = publicSupabaseConfig(import.meta.env.VITE_SUPABASE_URL,
-    import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? import.meta.env.VITE_SUPABASE_ANON_KEY);
+export const appBackendConfig = publicSupabaseConfig(import.meta.env?.VITE_SUPABASE_URL,
+    import.meta.env?.VITE_SUPABASE_PUBLISHABLE_KEY ?? import.meta.env?.VITE_SUPABASE_ANON_KEY);
 const config=appBackendConfig;
 export const isAppBackendConfigured = config !== null;
 let clientPromise: Promise<SupabaseClient> | undefined;

@@ -4,6 +4,11 @@
   "version": "6.5.1",
   "type": "module",
   "scripts": {
+    "typecheck": "tsc -b",
+    "test:unit": "node scripts/run-tests.mjs",
+    "test:smoke": "node scripts/run-tests.mjs --smoke",
+    "test:build": "node --import tsx scripts/test-dashboard-bundle.ts",
+    "check": "npm run lint && npm run typecheck && npm run test:unit",
     "dev": "vite",
     "build": "tsc -b && vite build && node scripts/generate-seo.js && node scripts/prerender.js",
     "lint": "eslint .",

@@ -47,7 +47,7 @@ export function quoteIdentity(asset: Pick<Asset, 'symbol' | 'isin' | 'type' | 'c
 export function applyPositionUpdate(asset: Asset, updates: Partial<Asset>): Asset {
     const next = { ...asset, ...updates };
     if (quoteIdentity(asset) === quoteIdentity(next)) return next;
-    return { ...next, currentPrice: undefined, previousClose: undefined, lastCheckedAt: undefined, lastReadAt: undefined, quoteOrigin: undefined, lastQuoteAt: undefined, quotedAt: undefined, quoteSource: undefined, holdings: undefined };
+    return { ...next, currentPrice: undefined, previousClose: undefined, lastCheckedAt: undefined, lastReadAt: undefined, quoteOrigin: undefined, lastQuoteAt: undefined, quotedAt: undefined, quoteSource: undefined, quoteInstrument: undefined, holdings: undefined };
 }
 
 /** Late responses belong to the requested instrument, not just its reusable ID. */
@@ -60,6 +60,7 @@ export function applicableQuoteUpdates(requested: Asset[], current: Asset[], upd
         const asset = currentAssets.get(u.id)!;
         const currentAt = Date.parse(asset.quotedAt || asset.lastQuoteAt || '');
         const incomingAt = Date.parse(u.updates.quotedAt || u.updates.lastQuoteAt || '');
+        if (u.updates.quoteInstrument && asset.quoteInstrument !== u.updates.quoteInstrument) return Number.isFinite(incomingAt);
         return !Number.isFinite(currentAt) || (Number.isFinite(incomingAt) && incomingAt >= currentAt);
     });
 }

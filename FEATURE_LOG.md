@@ -12,6 +12,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-17 - Correcciones de la auditoría de aplicación
+- Funcionalidad:
+  - Noticias: saneamiento completo con DOMPurify, incluido HTML anidado y malformado.
+  - Cartera: unifica la cotización del navegador y las capturas del batch según el mercado elegido; conserva el instrumento de origen de las operaciones.
+  - Gastos: mantiene la protección de cambios sin guardar al navegar y al cerrar la sesión de cuenta o editorial.
+  - Carga las pantallas bajo demanda con indicador de carga y recuperación de errores.
+- Resumen:
+  - Añade regresiones de seguridad, persistencia y mercados, controles de CI, actualizaciones de dependencias y SEO por entorno. La protección nativa de contraseñas filtradas requiere un plan Supabase Pro y queda pendiente en el plan Free actual.
+- Archivos:
+  - docs/application-audit-fixes.md, .github/workflows/quality.yml, scripts/run-tests.mjs, scripts/test-application-audit-ui.ts, scripts/test-unified-quote-markets.ts, scripts/test-seo.mjs, src/utils/newsContent.ts, src/services/pendingChanges.ts, src/components/ui/PendingChangesGuard.tsx, src/components/ui/RouteView.tsx, src/App.tsx, src/app/routes/academyRoutes.tsx, supabase/functions/_shared/stockListings.ts, supabase/functions/_shared/googleFinanceQuote.ts, supabase/functions/daily-market-data/providers.ts, supabase/migrations/20261017174622_unified_quote_markets.sql
+
 ### 2026-10-17 - v6.5.1 - Fondos, traspasos y gestión del riesgo
 - Funcionalidad:
   - Radar de fondos: destaca la rentabilidad a tres años, reúne métricas de riesgo y asigna notas de 0 a 100 para comparar fondos de la misma categoría; indica cuándo hay pocos datos para que la comparación sea orientativa.

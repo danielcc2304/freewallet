@@ -12,16 +12,24 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-17 - Correcciones de la auditoría de aplicación
+### 2026-10-17 - v7.0.0 (en preparación) - Seguridad, cotizaciones y rendimiento
 - Funcionalidad:
-  - Noticias: saneamiento completo con DOMPurify, incluido HTML anidado y malformado.
-  - Cartera: unifica la cotización del navegador y las capturas del batch según el mercado elegido; conserva el instrumento de origen de las operaciones.
-  - Gastos: mantiene la protección de cambios sin guardar al navegar y al cerrar la sesión de cuenta o editorial.
-  - Carga las pantallas bajo demanda con indicador de carga y recuperación de errores.
+  - Noticias: protege la lectura y edición de artículos frente a HTML malicioso, incluido contenido anidado o malformado, conservando los formatos admitidos del editor.
+  - Cartera: el navegador y el batch usan el mismo mercado seleccionado y verificado para cada acción; conservan el instrumento original de las operaciones y la procedencia de cada cotización.
+  - Cartera: al cambiar de mercado, descarta respuestas del anterior y admite la última observación del elegido aunque tenga una hora anterior; mantiene la protección contra precios atrasados dentro de un mismo mercado.
+  - Gastos: mantiene el aviso de cambios sin guardar al navegar, permite volver para reintentar o exportar y evita cerrar la sesión de cuenta o editorial mientras haya guardados pendientes.
+  - Navegación: carga las pantallas cuando se necesitan, muestra un indicador de carga y permite recuperarse de errores sin perder la navegación; evita recargas automáticas si quedan cambios pendientes.
+  - Calidad: incorpora controles automatizados de lógica, base de datos, navegador, compilación, dependencias e integración de hotfixes antes de promover dev o release.
+  - SEO: corrige el dominio de producción, permite configurarlo por entorno y excluye de la indexación las vistas previas y preproducción.
 - Resumen:
-  - Añade regresiones de seguridad, persistencia y mercados, controles de CI, actualizaciones de dependencias y SEO por entorno. La protección nativa de contraseñas filtradas requiere un plan Supabase Pro y queda pendiente en el plan Free actual.
+  - Cambios preparados para formar parte de v7.0.0, todavía sin publicar esa versión. El backend de cotizaciones está aplicado en Supabase; el frontend permanece en feature/application-audit-fixes, pendiente de integración y despliegue.
+  - Reduce el archivo JavaScript principal de 1.807,92 a 618,32 kB (aproximadamente un 66 %). Actualiza DOMPurify y source-map-js; la auditoría completa de dependencias no detecta vulnerabilidades conocidas.
+  - Validación local: lint, tipos, compilación, 63 comprobaciones de lógica/base de datos y 10 suites de navegador correctos. El workflow está preparado; su ejecución en GitHub y la obligatoriedad mediante protección de ramas quedan pendientes.
+  - La protección nativa de contraseñas filtradas queda pendiente: requiere Supabase Pro y el proyecto usa Free. No se modifica el plan. Los históricos de cotizaciones anteriores conservan su mercado real y no se reconstruyen ni se reetiquetan.
 - Archivos:
-  - docs/application-audit-fixes.md, .github/workflows/quality.yml, scripts/run-tests.mjs, scripts/test-application-audit-ui.ts, scripts/test-unified-quote-markets.ts, scripts/test-seo.mjs, src/utils/newsContent.ts, src/services/pendingChanges.ts, src/components/ui/PendingChangesGuard.tsx, src/components/ui/RouteView.tsx, src/App.tsx, src/app/routes/academyRoutes.tsx, supabase/functions/_shared/stockListings.ts, supabase/functions/_shared/googleFinanceQuote.ts, supabase/functions/daily-market-data/providers.ts, supabase/migrations/20261017174622_unified_quote_markets.sql
+  - FEATURE_LOG.md, docs/application-audit-fixes.md, .github/workflows/quality.yml, package-lock.json, scripts/run-tests.mjs, scripts/test-application-audit-ui.ts, scripts/test-unified-quote-markets.ts, scripts/test-quote-market-switch.ts, scripts/test-seo.mjs
+  - src/utils/newsContent.ts, src/services/pendingChanges.ts, src/services/portfolioQuoteService.ts, src/services/portfolioCloudStorage.ts, src/services/dashboardIntegrity.ts, src/components/ui/PendingChangesGuard.tsx, src/components/ui/RouteView.tsx, src/App.tsx, src/app/routes/academyRoutes.tsx
+  - supabase/functions/_shared/stockListings.ts, supabase/functions/_shared/googleFinanceQuote.ts, supabase/functions/daily-market-data/providers.ts, supabase/migrations/20261017174622_unified_quote_markets.sql
 
 ### 2026-10-17 - v6.5.1 - Fondos, traspasos y gestión del riesgo
 - Funcionalidad:

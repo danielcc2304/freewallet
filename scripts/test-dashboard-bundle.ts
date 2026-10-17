@@ -26,5 +26,12 @@ const sdkChunks = readdirSync(resolve(dist, 'assets')).filter(name => name.endsW
 assert.ok(sdkChunks.length > 0, 'Editorial SDK remains available on demand');
 assert.ok(sdkChunks.every(name => !startup.has(resolve(dist, 'assets', name))), 'Editorial SDK must not be an initial import or preload');
 const app = readFileSync(resolve('src/App.tsx'), 'utf8');
-assert.doesNotMatch(app, /\blazy\s*\(/, 'Do not reintroduce deferred routes');
-console.log(`Dashboard build passed: editorial SDK outside startup imports, routes remain eager, entry ${(statSync(entryPath).size / 1000).toFixed(2)} kB.`);
+assert.match(app, /\blazy\s*\(/, 'Screens load on demand while the shell remains available');
+const academy = readFileSync(resolve('src/app/routes/academyRoutes.tsx'), 'utf8');
+assert.match(academy, /const SalaryCalculator = lazy\(/);
+const salaryChunks = readdirSync(resolve(dist, 'assets')).filter(name => /^SalaryCalculator-.*\.js$/.test(name));
+assert.equal(salaryChunks.length, 1, 'The salary calculator has a separate chunk');
+assert.ok(!startup.has(resolve(dist, 'assets', salaryChunks[0])), 'Unvisited calculators do not enter startup');
+const startupBytes = [...startup].reduce((total, file) => total + statSync(file).size, 0);
+assert.ok(startupBytes < 700000, `Startup JS grew to ${startupBytes} bytes`);
+console.log(`Dashboard build passed: editorial SDK and calculators outside startup, lazy screens, initial JS ${(startupBytes / 1000).toFixed(2)} kB.`);

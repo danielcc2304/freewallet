@@ -214,7 +214,8 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                     try {
                         const quote = await getPortfolioAssetQuote(asset, controller.signal, forceRefresh, dailyQuote(asset, centralData));
                         if (quote && Number.isFinite(quote.price) && quote.price >= 0 && quote.currency === 'EUR') {
-                            const sameObservation = quote.price === asset.currentPrice && quote.quotedAt
+                            const sameObservation = (!quote.quoteInstrument || quote.quoteInstrument === asset.quoteInstrument)
+                                && quote.price === asset.currentPrice && quote.quotedAt
                                 && Date.parse(quote.quotedAt) === Date.parse(asset.quotedAt || asset.lastQuoteAt || '');
                             const previousClose = Number.isFinite(quote.previousClose) && quote.previousClose > 0 ? quote.previousClose
                                 : sameObservation && Number.isFinite(asset.previousClose) && asset.previousClose! > 0 ? asset.previousClose : quote.previousClose;
@@ -228,6 +229,7 @@ export function PortfolioProvider({ children }: { children: ReactNode }) {
                                 quotedAt: quote.quotedAt,
                                 lastQuoteAt: quote.quotedAt,
                                 quoteSource: quote.source,
+                                quoteInstrument: quote.quoteInstrument,
                                 originalPrice: quote.originalPrice, originalCurrency: quote.originalCurrency,
                                 originalUnit: quote.originalUnit, unitScale: quote.unitScale,
                                 fxRate: quote.fxRate, fxAt: quote.fxAt, valuationBasis: quote.valuationBasis,

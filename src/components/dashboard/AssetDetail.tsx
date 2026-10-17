@@ -447,7 +447,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                 </select>
                 <p>Elige el mercado de tu compra. Las cotizaciones de otras bolsas pueden diferir.</p>
                 {changingMarket && <p role="status">Consultando el mercado seleccionado…</p>}
-                {selectedMarket?.id==='BME' && asset.quoteSource!=='Google Finance' && !changingMarket && <p role="status">Consulta de Madrid pendiente. El precio visible conserva su origen anterior.</p>}
+                {marketChoices.length > 1 && !!asset.currentPrice && asset.quoteInstrument !== (selectedMarket?.instrument ?? asset.symbol.trim().toUpperCase()) && !changingMarket && <p role="status">Consulta del mercado seleccionado pendiente. El precio visible conserva su origen anterior.</p>}
                 {marketError && <p role="alert">{marketError}</p>}
             </div>}
             {!marketOnly && asset.originalCurrency && asset.originalCurrency!=='EUR' && <details className="dashboard__update-details">

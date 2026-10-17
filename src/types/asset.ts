@@ -28,6 +28,8 @@ export interface Asset {
     lastCheckedAt?: string;
     /** Time the app read the quote; never a provider verification. */
     lastReadAt?: string;
+    /** Actual venue/instrument used in a stored valuation. */
+    quoteInstrument?: string;
     quoteOrigin?: 'batch' | 'provider';
     quotedAt?: string;
     originalPrice?: number;

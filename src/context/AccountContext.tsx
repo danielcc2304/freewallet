@@ -7,6 +7,7 @@ import type {CloudData} from '../services/portfolioCloudStorage';
 import {readCloudPortfolio,writeCloudPortfolio} from '../services/portfolioRepository';
 import {AccountScope} from '../services/accountScope';
 import {isNativeFilePickerOpen} from '../services/nativeFilePicker';
+import {assertSafeToSignOut} from '../services/pendingChanges';
 import {AccountConnectionState} from '../components/ui/AccountConnectionState';
 
 const portfolioCloudEnabled=isAppBackendConfigured && import.meta.env.VITE_PORTFOLIO_CLOUD_ENABLED==='true';
@@ -81,9 +82,7 @@ export function AccountProvider({children}:{children:ReactNode}) {
         };
         const timer=window.setInterval(check,30000);
         window.addEventListener('focus',check);window.addEventListener('online',check);document.addEventListener('visibilitychange',check);
-        const beforeUnload=(event:BeforeUnloadEvent)=>{if(portfolioStorage.busy || ['error','conflict'].includes(portfolioStorage.getSnapshot().status)){event.preventDefault();event.returnValue='';}};
-        window.addEventListener('beforeunload',beforeUnload);
-        return()=>{clearInterval(timer);window.removeEventListener('focus',check);window.removeEventListener('online',check);document.removeEventListener('visibilitychange',check);window.removeEventListener('beforeunload',beforeUnload);};
+        return()=>{clearInterval(timer);window.removeEventListener('focus',check);window.removeEventListener('online',check);document.removeEventListener('visibilitychange',check);};
     },[user,refresh]);
     const importLocal=async(data:CloudData,id:string)=>{
         if(!user || portfolioStorage.currentRevision>=0)throw new Error('No se reemplazará una cartera existente.');
@@ -92,7 +91,7 @@ export function AccountProvider({children}:{children:ReactNode}) {
         finally{ticket.finish();}
     };
     const logout=async()=>{
-        if(portfolioStorage.busy || (portfolioStorage.currentRevision>=0 && ['error','conflict'].includes(sync.status)))throw new Error('Exporta tus cambios pendientes y recupera la cartera antes de salir.');
+        assertSafeToSignOut();
         const client=await getAppSupabaseClient();const {error}=await client.auth.signOut({scope:'local'});if(error)throw error;
         setRecovery(false);
     };

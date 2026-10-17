@@ -21,7 +21,7 @@ if(process.env.FREEWALLET_REFERENCE_FILE){
 const origin=process.env.FREEWALLET_TEST_URL??'http://127.0.0.1:5176';
 const appVersion=JSON.parse(readFileSync('package.json','utf8')).version;
 assert.match(origin,/^http:\/\/(127\.0\.0\.1|localhost):\d+$/);
-const browser=await puppeteer.launch({headless:true});
+const browser=await puppeteer.launch({headless:true,args:['--no-sandbox']});
 const backupPath=join(tmpdir(),`freewallet-private-backup-mobile-layout-${crypto.randomUUID()}.json`);
 const removeTestBackup=()=>{try{unlinkSync(backupPath);}catch(error){if((error as NodeJS.ErrnoException).code!=='ENOENT')throw error;}};
 try {
@@ -33,7 +33,7 @@ try {
         create function auth.jwt() returns jsonb language sql stable as $$select current_setting('request.jwt.claims',true)::jsonb$$;
         grant usage on schema public,auth to anon,authenticated;`);
     for(let index=0;index<2;index++){await db.query('insert into auth.users(id) values ($1)',[users[index]]);await db.query('insert into auth.sessions values ($1,$2)',[sessions[index],users[index]]);}
-    for(const suffix of ['portfolio_foundation.sql','portfolio_commands.sql','portfolio_mfa_guard.sql','portfolio_command_validation.sql','portfolio_opening_basis.sql']){
+    for(const suffix of ['portfolio_foundation.sql','portfolio_commands.sql','portfolio_mfa_guard.sql','portfolio_command_validation.sql','portfolio_opening_basis.sql','portfolio_delta_commands.sql','portfolio_structured_history.sql','portfolio_history_event_dates.sql']){
         const migration=readdirSync('supabase/migrations').find(name=>name.endsWith(suffix));assert.ok(migration);
         await db.exec(readFileSync(`supabase/migrations/${migration}`,'utf8'));
     }
@@ -46,6 +46,8 @@ try {
             localStorage.setItem('freewallet_portfolio_v1',JSON.stringify(portfolio));
             localStorage.setItem('freewallet_settings','{"apiEnabled":false}');
             localStorage.setItem('freewallet_last_seen_version',version);
+            // Keep the independent Dashboard introduction from covering migration.
+            localStorage.setItem('freewallet-dashboard-notice-dismissed','1');
         },{access_token:jwt,refresh_token:'synthetic-refresh',expires_at:Math.floor(Date.now()/1000)+3600,expires_in:3600,token_type:'bearer',user},localPortfolio,appVersion);
         page.on('pageerror',error=>errors.push(String(error)));
         await page.setRequestInterception(true);
@@ -61,13 +63,20 @@ try {
                 }
                 let data:unknown=null;let status=200;
                 if(url.pathname==='/auth/v1/user')data=user;
+                else if(url.pathname==='/rest/v1/rpc/my_account_profile')data={userId:user.id,username:`fixture_${index}`,createdAt:user.created_at};
+                else if(['/rest/v1/rpc/read_daily_market_data','/rest/v1/rpc/read_daily_market_data_v2'].includes(url.pathname))data={benchmark:{isin:'IE00BYX5NX33',name:'Fidelity MSCI World ACC EUR'},prices:[],snapshots:[],ledger:[],lastRun:null};
                 else if(url.pathname.startsWith('/rest/v1/rpc/')){
                     const args=JSON.parse(request.postData()??'{}');
                     try{data=await db.transaction(async(tx)=>{
                         await tx.query(`select set_config('request.jwt.claims',$1,true)`,[JSON.stringify({sub:user.id,session_id:sessions[index]})]);
                         await tx.exec('set local role authenticated');
+                        if(!['/rest/v1/rpc/read_portfolio','/rest/v1/rpc/commit_portfolio','/rest/v1/rpc/patch_portfolio','/rest/v1/rpc/read_portfolio_history'].includes(url.pathname))throw Error('Unsupported fixture RPC: '+url.pathname);
                         const query=url.pathname.endsWith('read_portfolio')
                             ? await tx.query<{result:unknown}>('select public.read_portfolio($1) as result',[args.known_revision])
+                            : url.pathname.endsWith('patch_portfolio')
+                            ? await tx.query<{result:unknown}>('select public.patch_portfolio($1,$2,$3,$4) as result',[args.expected_revision,args.request_id,args.changes,args.removed])
+                            : url.pathname.endsWith('read_portfolio_history')
+                            ? await tx.query<{result:unknown}>('select public.read_portfolio_history($1) as result',[args.known_updated_at])
                             : await tx.query<{result:unknown}>('select public.commit_portfolio($1,$2,$3,$4) as result',[args.expected_revision,args.request_id,args.mode,args.data]);
                         return query.rows[0].result;
                     });}catch(error){console.error('Local fixture RPC:',url.pathname,String(error));status=409;data={code:typeof error==='object'&&error!==null&&'code'in error?error.code:'XX000',message:String(error)};}
@@ -76,7 +85,7 @@ try {
             }else if(url.origin===origin||url.protocol==='data:'||url.protocol==='blob:')await request.continue();
             else await request.abort();
         })().catch(error=>errors.push(String(error)));});
-        await page.goto(`${origin}/account`,{waitUntil:'networkidle2'});
+        await page.goto(`${origin}/account`,{waitUntil:'domcontentloaded'});
         try{await page.waitForFunction(()=>document.body.innerText.includes('Sin cartera importada'));}
         catch(error){console.error('Fixture account did not load:',await page.evaluate(()=>document.body.innerText),errors);throw error;}
         return page;
@@ -89,7 +98,7 @@ try {
         assert.equal(await page.$('a::-p-text(Ir al Dashboard)'),null);
         assert.ok(await page.$$eval('.account-page .btn',buttons=>buttons.every(button=>button.getBoundingClientRect().height>=44)),'Account actions must have usable touch targets');
         assert.ok(await page.$eval('.account-page__email',element=>element.textContent?.includes('long-account-address')&&parseFloat(getComputedStyle(element).fontSize)<=18),'Full email must use restrained body typography');
-        assert.ok(await page.$$eval('.account-page h2',headings=>headings.every(element=>parseFloat(getComputedStyle(element).fontSize)<=22)),'Section headings must not dominate mobile cards');
+        assert.ok(await page.$$eval('.account-page h2',headings=>headings.filter(element=>!element.closest('.account-page__identity-heading')).every(element=>parseFloat(getComputedStyle(element).fontSize)<=22)),'Section headings must not dominate mobile cards');
         const backup=await page.$('#account-private-backup');
         if(backup){
             assert.ok(await backup.evaluate(element=>{
@@ -101,17 +110,29 @@ try {
         }
     };
     await checkLayout(a);
-    const click=async(page:Page,text:string)=>{const button=await page.$(`button::-p-text(${text})`);assert.ok(button,`Missing ${text}`);await button.click();};
-    await a.goto(`${origin}/`,{waitUntil:'networkidle2'});
+    const click=async(page:Page,text:string)=>{
+        const selector=`button::-p-text(${text})`;
+        assert.ok(await page.$(selector),`Missing ${text}`);
+        // Native clicks must wait for the modal's moving entrance animation.
+        await page.locator(selector).setWaitForStableBoundingBox(true).click();
+    };
+    const flush=async(page:Page)=>page.evaluate(async()=>{
+        const {portfolioStorage}=await import('/src/services/portfolioCloudStorage.ts');
+        await portfolioStorage.flush();
+        if(portfolioStorage.busy)throw Error('Navigation attempted before the portfolio was acknowledged');
+    });
+    await a.goto(`${origin}/`,{waitUntil:'domcontentloaded'});
     await a.waitForSelector('.local-portfolio-prompt');
     assert.ok(await a.$eval('.local-portfolio-prompt',element=>element.textContent?.includes('no se ha borrado')));
     await click(a,'Ahora no');
+    await a.waitForSelector('.local-portfolio-prompt',{hidden:true});
     assert.equal(await a.$('.local-portfolio-prompt'),null);
     assert.equal((await db.query('select * from public.user_portfolios')).rows.length,0,'Dismissing onboarding must not create or import a portfolio');
-    await a.goto(`${origin}/`,{waitUntil:'networkidle2'});
+    await a.goto(`${origin}/`,{waitUntil:'domcontentloaded'});
     await a.waitForSelector('.local-portfolio-prompt');
     await click(a,'Revisar e importar mi cartera');
     await a.waitForSelector('.account-page__welcome');
+    await a.waitForSelector('.local-portfolio-prompt',{hidden:true});
     assert.equal(await a.$('.local-portfolio-prompt'),null,'Account page uses inline guidance, not a second modal');
     await click(a,'Revisar datos de este navegador');
     await a.waitForFunction(count=>document.body.innerText.includes(`${count} posiciones`),{},localPortfolio.assets.length);
@@ -128,18 +149,22 @@ try {
     await b.waitForFunction(count=>document.body.innerText.includes(`${count} posiciones`),{},localPortfolio.assets.length);
     assert.equal(await b.$eval('button::-p-text(Guardar cartera en mi cuenta)',element=>(element as HTMLButtonElement).disabled),true,'Selecting a backup must not import automatically');
     assert.equal((await db.query<{count:number}>('select count(*)::int as count from public.user_portfolios')).rows[0].count,1,'Only the explicitly confirmed account may have a portfolio');
-    await a.goto(`${origin}/`,{waitUntil:'networkidle2'});
+    await a.goto(`${origin}/`,{waitUntil:'domcontentloaded'});
     await a.waitForFunction(()=>document.body.innerText.includes('Mis Activos'));
     assert.equal(await a.$('.layout__main > .account-sync'),null);
-    await a.goto(`${origin}/portfolio-csv`,{waitUntil:'networkidle2'});
+    await flush(a);
+    await a.goto(`${origin}/portfolio-csv`,{waitUntil:'domcontentloaded'});
     await a.waitForFunction(()=>document.body.innerText.includes('Análisis de cartera'));
-    await a.goto(`${origin}/account`,{waitUntil:'networkidle2'});
+    await flush(a);
+    await a.goto(`${origin}/account`,{waitUntil:'domcontentloaded'});
     await a.waitForFunction(()=>document.body.innerText.includes('Guardado en tu cuenta'));
     assert.equal(await a.$('button::-p-text(Guardar cartera en mi cuenta)'),null,'Existing cloud portfolio cannot be overwritten via import');
     const data=await db.query<{data:Record<string,string>}>('select data from portfolio_private.documents where user_id=$1',[users[0]]);
     const roundTrip=JSON.parse(data.rows[0].data.freewallet_portfolio_v1);
     for(const asset of localPortfolio.assets){const stored=roundTrip.assets.find((item:{id:string})=>item.id===asset.id);assert.equal(stored.quantity,asset.quantity);assert.equal(stored.purchasePrice,asset.purchasePrice);}
-    await a.setViewport({width:390,height:844});await a.reload({waitUntil:'networkidle2'});
+    await flush(a);
+    await a.setViewport({width:390,height:844});await a.reload({waitUntil:'domcontentloaded'});
+    await a.waitForFunction(()=>document.body.innerText.includes('Guardado en tu cuenta'));
     assert.ok(await a.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1),'Account must fit mobile');
     await checkLayout(a);
     for(const width of [320,390,600])for(const page of [a,b]){

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import type { ExpenseBook } from '../../types/expenses';
 import {
     CSV_FIELDS,
@@ -36,7 +36,7 @@ export function ExpenseImportDialog({
 }) {
     const [sheetIndex, setSheetIndex] = useState(0);
     const [onlyCards, setOnlyCards] = useState(false);
-    const sheet = document.sheets[sheetIndex];
+    const sheet = document.sheets[sheetIndex] ?? document.sheets[0];
     const [mapping, setMapping] = useState<CsvMapping>(() =>
         guessCsvMapping(document.sheets[0].rows[0]),
     );
@@ -49,11 +49,15 @@ export function ExpenseImportDialog({
         Record<number, string>
     >({});
     const [previewPage, setPreviewPage] = useState(0);
-    useEffect(() => {
+    const [previousDocument, setPreviousDocument] = useState(document);
+    if (previousDocument !== document) {
+        setPreviousDocument(document);
+        setSheetIndex(0);
+        setOnlyCards(false);
+        setMapping(guessCsvMapping(document.sheets[0].rows[0]));
         setCategoryOverrides({});
         setPreviewPage(0);
-    }, [document, sheetIndex]);
-    useEffect(() => setPreviewPage(0), [onlyCards]);
+    }
     const selected = useMemo(() => {
         const indices = sheet.rows
             .map((_, i) => i)
@@ -177,6 +181,8 @@ export function ExpenseImportDialog({
                         onChange={(e) => {
                             const index = Number(e.target.value);
                             setSheetIndex(index);
+                            setCategoryOverrides({});
+                            setPreviewPage(0);
                             setOnlyCards(false);
                             setMapping(
                                 guessCsvMapping(document.sheets[index].rows[0]),
@@ -217,7 +223,7 @@ export function ExpenseImportDialog({
                         <input
                             type="checkbox"
                             checked={onlyCards}
-                            onChange={(e) => setOnlyCards(e.target.checked)}
+                            onChange={(e) => { setOnlyCards(e.target.checked); setPreviewPage(0); }}
                         />
                         Solo pagos de tarjeta
                     </label>

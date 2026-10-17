@@ -21,41 +21,41 @@ import {
     Target,
     TrendingUp,
 } from 'lucide-react';
-import { lazy, Suspense } from 'react';
+import { lazy } from 'react';
 import type { ReactNode } from 'react';
 const ExpenseManager = lazy(() => import('../../components/expenses/ExpenseManager'));
 import { Navigate } from 'react-router-dom';
-import { AssetBonds } from '../../components/academy/assets/AssetBonds';
-import { AssetCash } from '../../components/academy/assets/AssetCash';
-import { AssetCrypto } from '../../components/academy/assets/AssetCrypto';
-import { AssetEquities } from '../../components/academy/assets/AssetEquities';
-import { AssetREITs } from '../../components/academy/assets/AssetREITs';
-import { Calculators } from '../../components/academy/calculators/Calculators';
-import { BondCalculator } from '../../components/academy/calculators/BondCalculator';
-import { CompoundInterestCalc } from '../../components/academy/calculators/CompoundInterestCalc';
-import { EmergencyFundCalculator } from '../../components/academy/calculators/EmergencyFundCalculator';
-import { FIRECalculator } from '../../components/academy/calculators/FIRECalculator';
-import { FundInformationCalculator } from '../../components/academy/calculators/FundInformationCalculator';
-import { InflationPredator } from '../../components/academy/calculators/InflationPredator';
-import { RetirementCalculator } from '../../components/academy/calculators/RetirementCalculator';
-import { TaxSimulator } from '../../components/academy/calculators/TaxSimulator';
-import { SalaryCalculator } from '../../components/academy/calculators/SalaryCalculator';
-import { Fundamentos } from '../../components/academy/guides/Fundamentos';
-import { CommonErrors } from '../../components/academy/guides/CommonErrors';
-import { Glossary } from '../../components/academy/guides/Glossary';
-import { InProcess } from '../../components/academy/guides/InProcess';
-import { InvestorTimeline } from '../../components/academy/guides/InvestorTimeline';
-import { RiskManagement } from '../../components/academy/guides/RiskManagement';
-import { Scenarios } from '../../components/academy/guides/Scenarios';
-import { Strategies } from '../../components/academy/guides/Strategies';
-import { Taxation } from '../../components/academy/guides/Taxation';
-import { ValuationGuide } from '../../components/academy/guides/ValuationGuide';
-import { AssetAllocationSim } from '../../components/academy/simulators/AssetAllocationSim';
-import { CrisisSimulator } from '../../components/academy/simulators/CrisisSimulator';
-import { FundRadar } from '../../components/academy/simulators/FundRadar';
-import { InvestorProfileTest } from '../../components/academy/simulators/InvestorProfileTest';
-import { MarketTimingGame } from '../../components/academy/simulators/MarketTimingGame';
-import { PortfolioBuilder } from '../../components/academy/simulators/PortfolioBuilder';
+const AssetBonds = lazy(() => import('../../components/academy/assets/AssetBonds').then(module => ({ default: module.AssetBonds })));
+const AssetCash = lazy(() => import('../../components/academy/assets/AssetCash').then(module => ({ default: module.AssetCash })));
+const AssetCrypto = lazy(() => import('../../components/academy/assets/AssetCrypto').then(module => ({ default: module.AssetCrypto })));
+const AssetEquities = lazy(() => import('../../components/academy/assets/AssetEquities').then(module => ({ default: module.AssetEquities })));
+const AssetREITs = lazy(() => import('../../components/academy/assets/AssetREITs').then(module => ({ default: module.AssetREITs })));
+const Calculators = lazy(() => import('../../components/academy/calculators/Calculators').then(module => ({ default: module.Calculators })));
+const BondCalculator = lazy(() => import('../../components/academy/calculators/BondCalculator').then(module => ({ default: module.BondCalculator })));
+const CompoundInterestCalc = lazy(() => import('../../components/academy/calculators/CompoundInterestCalc').then(module => ({ default: module.CompoundInterestCalc })));
+const EmergencyFundCalculator = lazy(() => import('../../components/academy/calculators/EmergencyFundCalculator').then(module => ({ default: module.EmergencyFundCalculator })));
+const FIRECalculator = lazy(() => import('../../components/academy/calculators/FIRECalculator').then(module => ({ default: module.FIRECalculator })));
+const FundInformationCalculator = lazy(() => import('../../components/academy/calculators/FundInformationCalculator').then(module => ({ default: module.FundInformationCalculator })));
+const InflationPredator = lazy(() => import('../../components/academy/calculators/InflationPredator').then(module => ({ default: module.InflationPredator })));
+const RetirementCalculator = lazy(() => import('../../components/academy/calculators/RetirementCalculator').then(module => ({ default: module.RetirementCalculator })));
+const TaxSimulator = lazy(() => import('../../components/academy/calculators/TaxSimulator').then(module => ({ default: module.TaxSimulator })));
+const SalaryCalculator = lazy(() => import('../../components/academy/calculators/SalaryCalculator').then(module => ({ default: module.SalaryCalculator })));
+const Fundamentos = lazy(() => import('../../components/academy/guides/Fundamentos').then(module => ({ default: module.Fundamentos })));
+const CommonErrors = lazy(() => import('../../components/academy/guides/CommonErrors').then(module => ({ default: module.CommonErrors })));
+const Glossary = lazy(() => import('../../components/academy/guides/Glossary').then(module => ({ default: module.Glossary })));
+const InProcess = lazy(() => import('../../components/academy/guides/InProcess').then(module => ({ default: module.InProcess })));
+const InvestorTimeline = lazy(() => import('../../components/academy/guides/InvestorTimeline').then(module => ({ default: module.InvestorTimeline })));
+const RiskManagement = lazy(() => import('../../components/academy/guides/RiskManagement').then(module => ({ default: module.RiskManagement })));
+const Scenarios = lazy(() => import('../../components/academy/guides/Scenarios').then(module => ({ default: module.Scenarios })));
+const Strategies = lazy(() => import('../../components/academy/guides/Strategies').then(module => ({ default: module.Strategies })));
+const Taxation = lazy(() => import('../../components/academy/guides/Taxation').then(module => ({ default: module.Taxation })));
+const ValuationGuide = lazy(() => import('../../components/academy/guides/ValuationGuide').then(module => ({ default: module.ValuationGuide })));
+const AssetAllocationSim = lazy(() => import('../../components/academy/simulators/AssetAllocationSim').then(module => ({ default: module.AssetAllocationSim })));
+const CrisisSimulator = lazy(() => import('../../components/academy/simulators/CrisisSimulator').then(module => ({ default: module.CrisisSimulator })));
+const FundRadar = lazy(() => import('../../components/academy/simulators/FundRadar').then(module => ({ default: module.FundRadar })));
+const InvestorProfileTest = lazy(() => import('../../components/academy/simulators/InvestorProfileTest').then(module => ({ default: module.InvestorProfileTest })));
+const MarketTimingGame = lazy(() => import('../../components/academy/simulators/MarketTimingGame').then(module => ({ default: module.MarketTimingGame })));
+const PortfolioBuilder = lazy(() => import('../../components/academy/simulators/PortfolioBuilder').then(module => ({ default: module.PortfolioBuilder })));
 
 export type AcademySidebarGroup =
     | 'Aprender'
@@ -88,7 +88,7 @@ export const academyRouteDefinitions: AcademyRouteDefinition[] = [
 
     { path: 'calculators', label: 'Calculadoras', element: <Calculators />, icon: Calculator, group: 'Herramientas', includeInSidebar: true },
     { path: 'salary-calculator', label: 'IRPF y sueldo neto', element: <SalaryCalculator />, icon: Receipt, group: 'Herramientas', includeInSidebar: false },
-    { path: 'expenses', label: 'Gastos y presupuesto', element: <Suspense fallback={<p role="status" style={{ padding: '2rem' }}>Cargando gastos…</p>}><ExpenseManager /></Suspense>, icon: WalletCards, group: 'Herramientas', includeInSidebar: true },
+    { path: 'expenses', label: 'Gastos y presupuesto', element: <ExpenseManager />, icon: WalletCards, group: 'Herramientas', includeInSidebar: true },
     { path: 'fund-information', label: 'Ficha de fondos', element: <FundInformationCalculator />, icon: FileSearch, group: 'Herramientas', includeInSidebar: true },
     { path: 'fund-radar', label: 'Radar de fondos', element: <FundRadar />, icon: Award, group: 'Herramientas', includeInSidebar: true },
     { path: 'valuation', label: 'Valoración', element: <ValuationGuide />, icon: LineChart, group: 'Herramientas', includeInSidebar: true },

@@ -6,7 +6,7 @@ import { getFundRelevance } from './finect/finectService';
 import { prefersBatchQuote } from './market/marketSessions';
 import {freshFundQuote} from './funds/freshFundQuote';
 import {fundSourcePriority} from '../../supabase/functions/_shared/fundQuotePolicy';
-import { selectedStockQuoteMarket, googleListing } from './market/stockQuoteMarkets';
+import { selectedStockQuoteMarket, googleListing, stockQuoteInstrument, stockQuoteVenueChanged } from './market/stockQuoteMarkets';
 import { alternativeQuote } from './market/alternativeQuotes';
 import { QUOTE_CACHE } from './market/marketCache';
 
@@ -29,9 +29,10 @@ async function activeMarketQuote(asset: Asset, signal?: AbortSignal, force = fal
         if (alternative && (!candidate || !Number.isFinite(Date.parse(candidate.quotedAt || '')) || Date.parse(alternative.quotedAt!)>Date.parse(candidate.quotedAt || ''))) candidate=alternative;
     }
     if (candidate) {
-        const normalized = await normalizeQuoteToEuro(candidate,signal,force,asset.type);
+        const normalized = { ...await normalizeQuoteToEuro(candidate,signal,force,asset.type),
+            ...(asset.type === 'stock' ? {quoteInstrument:stockQuoteInstrument(asset)} : {}) };
         const at = Date.parse(normalized.quotedAt || '');
-        const currentAt = Date.parse(asset.quotedAt || asset.lastQuoteAt || '');
+        const currentAt = stockQuoteVenueChanged(asset) ? NaN : Date.parse(asset.quotedAt || asset.lastQuoteAt || '');
         if (normalized.currency==='EUR' && Number.isFinite(at) && at<=Date.now()+300000
             && (!Number.isFinite(currentAt) || at>=currentAt)) return normalized;
     }
@@ -97,7 +98,8 @@ export async function normalizeQuoteToEuro(quote: StockQuote, signal?: AbortSign
 
 export async function getPortfolioAssetQuote(asset: Asset, signal?: AbortSignal, forceRefresh = false, storedQuote?: StockQuote): Promise<StockQuote | null> {
     const preferBatch = prefersBatchQuote(asset);
-    const currentAt = Date.parse(asset.quotedAt || asset.lastQuoteAt || '');
+    const currentAt = stockQuoteVenueChanged(asset) ? NaN : Date.parse(asset.quotedAt || asset.lastQuoteAt || '');
+    if (asset.type === 'stock' && storedQuote && (storedQuote.quoteInstrument ?? storedQuote.symbol) !== stockQuoteInstrument(asset)) storedQuote = undefined;
     const storedAt = Date.parse(storedQuote?.quotedAt || '');
     const canUseStored = !Number.isFinite(currentAt) || (Number.isFinite(storedAt) && storedAt >= currentAt);
     const market = asset.type==='stock' ? selectedStockQuoteMarket(asset) : undefined;

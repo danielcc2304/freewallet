@@ -5,7 +5,7 @@ import type {CloudData,CloudRecord} from '../src/services/portfolioCloudStorage'
 const local=new Map<string,string>();
 Object.defineProperty(globalThis,'localStorage',{value:{getItem:(key:string)=>local.get(key)??null,setItem:(key:string,value:string)=>local.set(key,value),removeItem:(key:string)=>local.delete(key)}});
 const network={onLine:true};Object.defineProperty(globalThis,'navigator',{value:network,configurable:true});
-const position={id:'test',symbol:'TEST',name:'Synthetic',type:'stock',quantity:1,purchasePrice:10,purchaseDate:'2026-01-01',currency:'EUR',currentPrice:12};
+const position={id:'test',symbol:'TEST',name:'Synthetic',type:'stock',quantity:1,purchasePrice:10,purchaseDate:'2026-01-01',currency:'EUR',currentPrice:12,quoteInstrument:'TEST'};
 const portfolio=JSON.stringify({version:1,assets:[position],transactions:[]});
 local.set('freewallet_portfolio_v1',portfolio);local.set('freewallet_finnhub_key','private-device-only');local.set('freewallet-news-auth','private-session');
 const backup=captureLocalPortfolio();assert.equal('freewallet_finnhub_key' in backup,false);assert.equal('freewallet-news-auth' in backup,false);
@@ -32,6 +32,7 @@ storage.setItem('freewallet_portfolio_v1',portfolio);await storage.flush();asser
 assert.equal(JSON.parse(storage.getItem('freewallet_portfolio_v1')!).assets[0].currentPrice,12);
 storage.setItem('freewallet_theme_mode','dark');await storage.flush();
 assert.equal(JSON.parse(storage.getItem('freewallet_portfolio_v1')!).assets[0].currentPrice,12,'Acknowledgement retains quote cache');
+assert.equal(JSON.parse(storage.getItem('freewallet_portfolio_v1')!).assets[0].quoteInstrument,'TEST','Acknowledgement retains the actual quote venue');
 network.onLine=false;assert.throws(()=>storage.setItem('freewallet_theme_mode','system'));network.onLine=true;
 let attempts=0;const ids:string[]=[];
 storage.select('A',async(revision,id,data)=>{ids.push(id);if(attempts++===0)throw new Error('Network lost after sending');return {revision:revision+1,data};});

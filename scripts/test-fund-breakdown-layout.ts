@@ -24,9 +24,17 @@ visit(tree);
 for (const name of ['heatmap', 'donut', 'consolidated', 'distributions']) {
     assert.ok(layoutChildren.some(child => className(child).includes(`portfolio-composition__${name}`)), `${name} must be a separate grid child`);
 }
-assert.match(source, /<details key=\{isin\}/);
-assert.match(source, /<summary>\{fund.name\}/);
-assert.match(source, /Porcentajes sobre el fondo/);
+const fundDetails: ts.JsxElement[]=[];
+const inspectDetails=(node:ts.Node)=>{
+    if(ts.isJsxElement(node)&&node.openingElement.tagName.getText(tree)==='details'&&className(node).includes('portfolio-composition__breakdown-groups'))fundDetails.push(node);
+    ts.forEachChild(node,inspectDetails);
+};
+inspectDetails(tree);
+assert.ok(fundDetails.length>0,'Fund breakdown remains an optional disclosure');
+for(const detail of fundDetails){
+    assert.ok(!detail.openingElement.attributes.properties.some(p=>ts.isJsxAttribute(p)&&p.name.getText(tree)==='open'),'Fund disclosures start closed');
+    assert.ok(detail.children.some(n=>ts.isJsxElement(n)&&n.openingElement.tagName.getText(tree)==='summary'),'A fund disclosure has an accessible summary');
+}
 const css = read('src/components/dashboard/PortfolioComposition.css');
 assert.match(css, /\.portfolio-composition__consolidated \{ grid-column: 1 \/ -1;/);
 assert.match(css, /\.portfolio-composition__distributions \{ grid-column: 1 \/ -1;/);

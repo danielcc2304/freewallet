@@ -1,3 +1,4 @@
+import {assertSafeToSignOut} from './pendingChanges';
 import {signInWithIdentifier} from './accountProfile';
 import type {
     Session,
@@ -181,12 +182,14 @@ export async function signInNewsAdmin(email: string, password: string): Promise<
 }
 
 export async function signOutNewsAdmin(): Promise<void> {
+    assertSafeToSignOut();
     if (!isNewsBackendConfigured) {
         return;
     }
 
     const client = await requireClient();
-    await client.auth.signOut().catch(() => undefined);
+    const {error} = await client.auth.signOut({scope:'local'});
+    if (error) throw new NewsServiceError('No se pudo cerrar la sesión. Inténtalo de nuevo.');
 }
 
 export async function isCurrentUserNewsAdmin(): Promise<boolean> {

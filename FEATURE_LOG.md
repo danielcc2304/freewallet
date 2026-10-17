@@ -22,7 +22,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Calidad: incorpora controles automatizados de lógica, base de datos, navegador, compilación, dependencias e integración de hotfixes antes de promover dev o release.
   - SEO: corrige el dominio de producción, permite configurarlo por entorno y excluye de la indexación las vistas previas y preproducción.
 - Resumen:
-  - Cambios preparados para formar parte de v7.0.0, todavía sin publicar esa versión. El backend de cotizaciones está aplicado en Supabase; el frontend permanece en feature/application-audit-fixes, pendiente de integración y despliegue.
+  - Cambios incluidos en la preparación de v7.0.0; la publicación a producción queda pendiente. El backend de cotizaciones ya está aplicado en Supabase. Los históricos existentes conservan su mercado real; no se reconstruyen ni se reetiquetan.
   - Reduce el archivo JavaScript principal de 1.807,92 a 618,32 kB (aproximadamente un 66 %). Actualiza DOMPurify y source-map-js; la auditoría completa de dependencias no detecta vulnerabilidades conocidas.
   - Validación local: lint, tipos, compilación, 63 comprobaciones de lógica/base de datos y 10 suites de navegador correctos. El workflow está preparado; su ejecución en GitHub y la obligatoriedad mediante protección de ramas quedan pendientes.
   - La protección nativa de contraseñas filtradas queda pendiente: requiere Supabase Pro y el proyecto usa Free. No se modifica el plan. Los históricos de cotizaciones anteriores conservan su mercado real y no se reconstruyen ni se reetiquetan.

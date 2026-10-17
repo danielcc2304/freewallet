@@ -12,7 +12,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-17 - v7.0.0 (en preparación) - Seguridad, cotizaciones y rendimiento
+### 2026-10-17 - v7.0.0 - Seguridad, cotizaciones y rendimiento
 - Funcionalidad:
   - Noticias: protege la lectura y edición de artículos frente a HTML malicioso, incluido contenido anidado o malformado, conservando los formatos admitidos del editor.
   - Cartera: el navegador y el batch usan el mismo mercado seleccionado y verificado para cada acción; conservan el instrumento original de las operaciones y la procedencia de cada cotización.
@@ -22,9 +22,9 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Calidad: incorpora controles automatizados de lógica, base de datos, navegador, compilación, dependencias e integración de hotfixes antes de promover dev o release.
   - SEO: corrige el dominio de producción, permite configurarlo por entorno y excluye de la indexación las vistas previas y preproducción.
 - Resumen:
-  - Cambios incluidos en la preparación de v7.0.0; la publicación a producción queda pendiente. El backend de cotizaciones ya está aplicado en Supabase. Los históricos existentes conservan su mercado real; no se reconstruyen ni se reetiquetan.
+  - Incluye mejoras de seguridad en Noticias, coherencia en las cotizaciones de Cartera y navegación más ágil. El backend de cotizaciones ya está aplicado en Supabase; los históricos conservan su mercado real y no se reconstruyen ni se reetiquetan.
   - Reduce el archivo JavaScript principal de 1.807,92 a 618,32 kB (aproximadamente un 66 %). Actualiza DOMPurify y source-map-js; la auditoría completa de dependencias no detecta vulnerabilidades conocidas.
-  - Validación local: lint, tipos, compilación, 63 comprobaciones de lógica/base de datos y 10 suites de navegador correctos. El workflow está preparado; su ejecución en GitHub y la obligatoriedad mediante protección de ramas quedan pendientes.
+  - En GitHub Actions pasaron lint, TypeScript, compilación, 63 comprobaciones de lógica/base de datos, el control del bundle, 10 suites de navegador y auditoría de dependencias. La protección de ramas todavía no exige este workflow.
   - La protección nativa de contraseñas filtradas queda pendiente: requiere Supabase Pro y el proyecto usa Free. No se modifica el plan. Los históricos de cotizaciones anteriores conservan su mercado real y no se reconstruyen ni se reetiquetan.
 - Archivos:
   - FEATURE_LOG.md, docs/application-audit-fixes.md, .github/workflows/quality.yml, package-lock.json, scripts/run-tests.mjs, scripts/test-application-audit-ui.ts, scripts/test-unified-quote-markets.ts, scripts/test-quote-market-switch.ts, scripts/test-seo.mjs

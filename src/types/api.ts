@@ -67,6 +67,7 @@ export interface SearchResult {
 }
 
 export interface HistoricalDataPoint {
+    source?: 'Yahoo Finance' | 'Financial Times';
     /** Listing actually used when a quote-only symbol has no usable history. */
     sourceSymbol?: string;
     currency?: string;

@@ -20,6 +20,7 @@
     "test:fund-radar": "tsx scripts/test-category-score.ts && tsx scripts/test-fund-radar.ts && tsx scripts/test-fund-radar-db.ts",
     "test:fund-radar-ui": "tsx scripts/test-fund-radar-ui.ts",
     "test:fund-breakdown": "tsx scripts/test-fund-breakdown.ts",
+    "test:fund-history": "tsx scripts/test-fund-history.ts",
     "test:fund-chart-resolution": "tsx scripts/test-fund-chart-resolution.ts",
     "test:fund-chart-ui": "tsx scripts/test-fund-chart-ui.ts",
     "test:stock-fundamentals": "tsx scripts/test-stock-fundamentals.ts",

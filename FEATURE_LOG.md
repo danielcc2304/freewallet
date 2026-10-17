@@ -12,6 +12,11 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-17 - Históricos de fondos con fuentes alternativas
+- Funcionalidad: histórico verificado de Financial Times junto a Yahoo, con identificación por ISIN/clase/divisa y fuente visible en el gráfico.
+- Resumen: resuelve el Robeco con cotización Yahoo sin histórico; cancela fuentes lentas, rechaza cotizaciones aisladas y limita el tiempo total. Reintento en el segundo host de Yahoo y pruebas de once fondos, incluyendo respuestas reales y períodos del Robeco.
+- Archivos: `src/services/funds/fundHistory.ts`, `src/services/apiService.ts`, `src/components/dashboard/AssetDetail.tsx`, `src/types/api.ts`, `supabase/functions/_shared/financialTimesHistory.ts`, `supabase/functions/daily-market-data/financialTimesFund.ts`, `vite.config.ts`, `vercel.json`, `scripts/test-fund-history.ts`, `scripts/test-fund-chart-ui.ts`, `scripts/fixtures/fund-history`, `docs/fund-history.md`, `package.json`.
+
 ### 2026-10-17 - Conciliación administrativa de traspasos confirmados
 - Funcionalidad: respaldo privado y procedimiento transaccional para conciliar un traspaso completo a un fondo nuevo tras una edición manual errónea.
 - Resumen: conserva participaciones y efectivo confirmados, coste y fecha de adquisición heredados; sincroniza documento, tablas, ledger de snapshots y cierres afectados, sin registrar ganancias realizadas ni nuevas aportaciones. Comprueba revisión, protege otras cuentas y conserva el estado anterior para auditoría.

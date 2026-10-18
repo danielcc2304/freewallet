@@ -12,6 +12,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-18 - v7.0.1 - Fondos: vuelve a mostrar históricos
+- Funcionalidad:
+  - Fondos: vuelve a mostrar el histórico de Robeco y otros fondos cuando Financial Times redirige la ficha para indicar la divisa de la clase.
+  - Fondos: comprueba el ISIN, la clase, la serie y su moneda antes de mostrar los precios.
+- Resumen:
+  - Corrige la redirección de Financial Times que dejaba el gráfico sin histórico y añade pruebas para distintas clases y monedas. La configuración de Vercel se aplica al desplegar; no cambia la base de datos ni los movimientos.
+- Archivos:
+  - vercel.json, vite.config.ts, scripts/test-fund-history-proxy.ts, scripts/test-fund-chart-ui.ts, scripts/run-tests.mjs, docs/fund-history.md, FEATURE_LOG.md
+
 ### 2026-10-17 - v7.0.0 - Seguridad, cotizaciones y rendimiento
 - Funcionalidad:
   - Noticias: protege la lectura y edición de artículos frente a HTML malicioso, incluido contenido anidado o malformado, conservando los formatos admitidos del editor.

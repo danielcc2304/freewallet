@@ -11,6 +11,7 @@ const smokeTests = [
     'test-application-audit-ui.ts', 'test-account-usernames-ui.ts',
     'test-dashboard-quality-ui.ts', 'test-live-market-quotes-ui.ts', 'test-bond-calculator-ui.ts',
     'test-expense-ui.ts', 'test-salary-calculator-ui.ts', 'test-fund-radar-ui.ts',
+    'test-fund-chart-ui.ts',
     'test-news-layout-comments-ui.ts', 'test-portfolio-ui.ts',
 ];
 const available = smoke ? smokeTests : readdirSync('scripts').filter(name =>
@@ -77,7 +78,11 @@ try {
         await run('verify-coreweave-independent', 'python3', ['scripts/verify-coreweave-bond.py', '--check']);
     }
     // Browser scripts are sequential; two independent database/unit workers bound memory use.
-    const queue = [...files];
+    // The FT proxy test starts Vite and a local upstream; keep its server work outside concurrent workers.
+    const isolated = smoke ? [] : files.filter(name => name === 'test-fund-history-proxy.ts');
+    for (const file of isolated)
+        await run(file, process.execPath, file.endsWith('.ts') ? ['--import', 'tsx', join('scripts', file)] : [join('scripts', file)]);
+    const queue = files.filter(name => !isolated.includes(name));
     await Promise.all(Array.from({ length: smoke ? 1 : 2 }, async () => {
         while (queue.length) {
             const file = queue.shift();

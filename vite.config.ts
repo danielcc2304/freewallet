@@ -41,6 +41,12 @@ export default defineConfig(({ mode }) => {
         target: 'https://markets.ft.com', changeOrigin: true, secure: true,
         rewrite: (path) => path.replace(/^\/__market\/ft/, '/data'),
       },
+      // FT resolves a bare ISIN with a relative 302 to this canonical path,
+      // adding the class currency. Keep it on the proxy instead of the SPA.
+      '^/data/funds/tearsheet/summary(?:\\?|$)': {
+        agent: process.env.NODE_USE_ENV_PROXY === '1' ? globalAgent : undefined,
+        target: 'https://markets.ft.com', changeOrigin: true, secure: true,
+      },
       '/__market/yahoo1': {
         agent: process.env.NODE_USE_ENV_PROXY === '1' ? globalAgent : undefined,
         target: 'https://query1.finance.yahoo.com',

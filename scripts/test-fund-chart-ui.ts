@@ -26,7 +26,7 @@ const version=JSON.parse(readFileSync('package.json','utf8')).version;
 const recorded=process.env.FREEWALLET_FUND_PROVIDER_FIXTURES;
 const browser=await puppeteer.launch({headless:true,executablePath:process.env.PUPPETEER_EXECUTABLE_PATH??'/usr/bin/chromium',args:['--no-sandbox']});
 const errors:string[]=[], searches:string[]=[], charts:string[]=[];
-let failDws=true,failRobeco=true,ftLookups=0;
+let failDws=true,failRobeco=true,ftLookups=0,ftRedirects=0;
 const body=(name:string)=>readFileSync(join(recorded!,name),'utf8');
 try{
  const page=await browser.newPage();page.setDefaultTimeout(60000);page.setDefaultNavigationTimeout(60000);page.on('pageerror',e=>errors.push(String(e)));
@@ -41,6 +41,10 @@ try{
   const url=new URL(r.url());
   if(url.pathname==='/__market/ft/funds/tearsheet/summary'&&url.searchParams.get('s')==='LU0329355670'){
    ftLookups++;
+   await r.respond({status:302,headers:{location:'/data/funds/tearsheet/summary?s=LU0329355670:EUR'}});return;
+  }
+  if(url.pathname==='/data/funds/tearsheet/summary'&&url.searchParams.get('s')==='LU0329355670:EUR'){
+   ftRedirects++;
    await r.respond({status:200,contentType:'text/html',body:`<h1>Robeco QI Emerging Markets Active Equities D €</h1><div data-mod-config='{"symbol":"LU0329355670:EUR","xid":"535675774","assetClass":"Fund"}'></div>`});return;
   }
   if(url.pathname==='/__market/ft/chartapi/series'){
@@ -129,6 +133,7 @@ try{
   assert.doesNotMatch(await page.$eval('.asset-detail__period-performance',el=>el.textContent||''),/N\/D/);
   if(isin==='LU0329355670'){
    assert.ok(ftLookups>=2,'Retry resolves FT identity again rather than retaining a failed attempt');
+   assert.equal(ftRedirects,ftLookups,'The browser must follow FT’s canonical ISIN/currency redirect, including on retry');
    assert.ok(await page.$eval('.asset-detail__chart-source',el=>el.textContent?.includes('Financial Times')));
    for(const period of ['1D','7D','3M','YTD','Máx']){
     await page.$$eval('.period-btn',(buttons,period)=>(buttons.find(el=>el.textContent===period) as HTMLElement).click(),period);
@@ -141,7 +146,7 @@ try{
   }
  }
  assert.deepEqual(errors,[]);
- console.log('Fund chart UI passed: eleven funds including Robeco via Financial Times, DWS verified LC fallback, daily NAV chart, period controls, symbol refresh on retry, styled retry on desktop/mobile and wrong-class rejection.'+(recorded?' Replayed real public provider responses.':''));
+ console.log('Fund chart UI passed: eleven funds including Robeco via Financial Times with canonical 302 redirect, DWS verified LC fallback, daily NAV chart, period controls, symbol refresh on retry, styled retry on desktop/mobile and wrong-class rejection.'+(recorded?' Replayed real public provider responses.':''));
 }catch(error){
  console.error(JSON.stringify({errors,searches:searches.slice(-12),charts:charts.slice(-12)}));
  throw error;

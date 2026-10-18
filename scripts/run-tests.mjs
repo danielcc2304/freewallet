@@ -11,6 +11,7 @@ const smokeTests = [
     'test-application-audit-ui.ts', 'test-account-usernames-ui.ts',
     'test-dashboard-quality-ui.ts', 'test-live-market-quotes-ui.ts', 'test-bond-calculator-ui.ts',
     'test-expense-ui.ts', 'test-salary-calculator-ui.ts', 'test-fund-radar-ui.ts',
+    'test-fund-chart-ui.ts',
     'test-news-layout-comments-ui.ts', 'test-portfolio-ui.ts',
 ];
 const available = smoke ? smokeTests : readdirSync('scripts').filter(name =>

@@ -12,12 +12,12 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-10-18 - Históricos de fondos: redirección de Financial Times
+### 2026-10-18 - v7.0.1 - Fondos: vuelve a mostrar históricos
 - Funcionalidad:
-  - Recupera el histórico de Robeco y de otros fondos cuya ficha de Financial Times redirige para indicar la divisa de la clase.
-  - Mantiene la moneda identificada por el proveedor y las comprobaciones de ISIN, clase y serie; no sustituye clases ni inventa precios.
+  - Fondos: vuelve a mostrar el histórico de Robeco y otros fondos cuando Financial Times redirige la ficha para indicar la divisa de la clase.
+  - Fondos: comprueba el ISIN, la clase, la serie y su moneda antes de mostrar los precios.
 - Resumen:
-  - Añade en Vite y Vercel la ruta canónica de la ficha, que antes terminaba en la página de FreeWallet y dejaba el gráfico sin datos. Incluye una regresión con redirección HTTP real, clases EUR/USD/GBP y un recorrido de navegador con reintentos y cambios de período. Requiere desplegar la configuración de Vercel; no modifica la base de datos ni los batches.
+  - Corrige la redirección de Financial Times que dejaba el gráfico sin histórico y añade pruebas para distintas clases y monedas. La configuración de Vercel se aplica al desplegar; no cambia la base de datos ni los movimientos.
 - Archivos:
   - vercel.json, vite.config.ts, scripts/test-fund-history-proxy.ts, scripts/test-fund-chart-ui.ts, scripts/run-tests.mjs, docs/fund-history.md, FEATURE_LOG.md
 

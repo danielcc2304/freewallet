@@ -12,6 +12,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-21 - Tailwind: Noticias y radar de fondos
+- Funcionalidad:
+  - Migra la portada de Noticias, los artículos, comentarios y respuestas, y el panel editorial a las utilidades de Tailwind y los componentes compartidos.
+  - Migra las tarjetas, filtros y formulario de edición del radar de fondos, conservando los temas y Liquid Glass.
+- Resumen:
+  - Retira tres CSS sustituidos y reduce el del radar al medidor nativo. Mantiene CSS específico para el contenido enriquecido y el editor Tiptap. Comprueba también el espaciado de acceso editorial, las alturas táctiles, las portadas 16:9 y la jerarquía de las métricas. Conserva permisos, comentarios, cálculos y datos; no requiere cambios de base de datos ni de batches.
+- Archivos:
+  - src/pages/News/News.tsx, src/pages/NewsAdmin/NewsAdmin.tsx, src/components/news, src/components/academy/simulators/FundRadar.tsx, src/components/academy/simulators/FundRadarEditor.tsx, src/components/academy/simulators/radarStyles.ts, src/components/academy/simulators/FundRadar.css, scripts/test-news-layout-comments-ui.ts, scripts/test-fund-radar-ui.ts, scripts/run-tests.mjs, docs/tailwind-migration.md, README.md
+
 ### 2026-10-21 - Tailwind: base compartida y Mi cuenta
 - Funcionalidad:
   - Integra Tailwind CSS 4 con los colores y temas actuales, incluido Liquid Glass, para migrar la interfaz por módulos.

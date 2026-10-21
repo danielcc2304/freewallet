@@ -15,7 +15,7 @@ const smokeTests = [
     'test-dashboard-quality-ui.ts', 'test-live-market-quotes-ui.ts', 'test-bond-calculator-ui.ts',
     'test-expense-ui.ts', 'test-salary-calculator-ui.ts', 'test-fund-radar-ui.ts',
     'test-fund-chart-ui.ts',
-    'test-news-layout-comments-ui.ts', 'test-portfolio-ui.ts',
+    'test-news-layout-comments-ui.ts', 'test-news-article-editor-ui.ts', 'test-portfolio-ui.ts',
 ];
 const available = smoke ? smokeTests : readdirSync('scripts').filter(name =>
     /^test-.*\.(ts|mjs)$/.test(name) && name !== 'test-dashboard-bundle.ts' && !name.endsWith('-ui.ts') && !readFileSync(join('scripts', name), 'utf8').includes("from 'puppeteer'"),

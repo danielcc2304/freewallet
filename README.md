@@ -209,7 +209,7 @@ La navegación principal está en [`src/App.tsx`](src/App.tsx); Academia y herra
 
 ### Estilos y componentes
 
-La migración a Tailwind es progresiva. La base compartida (`Button`, `Card`, `Input`, `MetricCard`, `Modal`, `PageHeader` y `ActionGroup`) y Mi cuenta usan utilidades `tw:` vinculadas a los temas existentes. El resto de pantallas conserva su CSS. No se activa Preflight ni un `important` global; se mantienen los puntos de conexión de Liquid Glass durante la transición. [Arquitectura, convenciones y pruebas](docs/tailwind-migration.md).
+La migración a Tailwind es progresiva. La base compartida (`Button`, `Card`, `Input`, `MetricCard`, `Modal`, `PageHeader` y `ActionGroup`), Mi cuenta, Noticias —incluidos comentarios y panel editorial— y el radar de fondos usan utilidades `tw:` vinculadas a los temas existentes. Las pantallas pendientes conservan su CSS. No se activa Preflight ni un `important` global; se mantienen los puntos de conexión de Liquid Glass durante la transición. [Arquitectura, convenciones y pruebas](docs/tailwind-migration.md).
 
 ## Scripts
 
@@ -280,7 +280,7 @@ El script también omite automáticamente el prerender al detectar `VERCEL`. `PU
 
 ## Documentación técnica
 
-- [Migración de estilos a Tailwind](docs/tailwind-migration.md): componentes, temas y primera fase de Mi cuenta.
+- [Migración de estilos a Tailwind](docs/tailwind-migration.md): componentes, temas, Mi cuenta, Noticias y radar de fondos.
 - [Cartera con Supabase](docs/portfolio-supabase.md): importación, sincronización, permisos y MFA.
 - [Histórico independiente del Excel](docs/portfolio-history.md): migración, almacenamiento y API para agentes.
 - [Actualización diaria](docs/daily-market-data.md): batch, benchmark, histórico y diagnóstico.

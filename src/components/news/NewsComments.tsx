@@ -1,10 +1,14 @@
+import { commentStyles } from './commentStyles';
+import { cn } from '../../utils/cn';
 import {useEffect,useRef,useState,type FormEvent} from 'react';
 import {Link} from 'react-router-dom';
 import {ChevronDown,ChevronUp,MessageSquare,Pencil,RefreshCw,Reply,Send,Trash2,X} from 'lucide-react';
 import {Button,ConfirmDialog} from '../ui';
 import {useNewsCommentIdentity} from '../../hooks/useNewsCommentIdentity';
 import {listNewsComments,listNewsReplies,createNewsComment,createNewsReply,editNewsComment,deleteNewsComment,type NewsComment,type CommentCursor} from '../../services/newsComments';
-import './NewsComments.css';
+import { inputStyles } from '../ui/Input';
+
+const commentInput = inputStyles({ className: 'tw:min-h-[110px] tw:resize-y tw:p-[.9rem] tw:border-line-strong tw:bg-surface tw:font-[inherit] tw:leading-[1.6] tw:focus-visible:outline-solid tw:focus-visible:outline-2 tw:focus-visible:outline-accent tw:focus-visible:outline-offset-[3px]' });
 
 const formatDate=(date:string)=>new Date(date).toLocaleString('es-ES',{dateStyle:'medium',timeStyle:'short'});
 const message=(error:unknown)=>error instanceof Error?error.message:'No se pudo completar la acción.';
@@ -126,46 +130,46 @@ export function NewsComments({postId}:{postId:string}){
         });
     };
     const startReply=(item:NewsComment)=>{setReplying(item);setReplyBody('');setEditing(null);setError('');};
-    const renderComment=(item:NewsComment)=> <article className={`news-comments__item${item.parentId?' news-comments__item--reply':''}`} key={item.id}>
-        <header><span className="news-comments__avatar" aria-hidden="true">{item.deleted?'—':item.username.slice(0,2).toUpperCase()}</span>
+    const renderComment=(item:NewsComment)=> <article className={cn(commentStyles['news-comments__item'], item.parentId && commentStyles['news-comments__item--reply'])} key={item.id}>
+        <header><span className={commentStyles['news-comments__avatar']} aria-hidden="true">{item.deleted?'—':item.username.slice(0,2).toUpperCase()}</span>
             <div><strong>{item.deleted||item.username==='Cuenta eliminada'?item.username:`@${item.username}`}</strong><time dateTime={item.createdAt}>{formatDate(item.createdAt)}{!item.deleted&&item.updatedAt!==item.createdAt?' · editado':''}</time></div>
-            {canWrite&&viewer===identity.userId&&!item.deleted&&<div className="news-comments__actions">
+            {canWrite&&viewer===identity.userId&&!item.deleted&&<div className={commentStyles['news-comments__actions']}>
                 <Button type="button" variant="ghost" size="sm" aria-label={`Responder a ${item.username}`} icon={<Reply size={16}/>} disabled={busy||threads[item.parentId??item.id]?.loading} onClick={()=>startReply(item)}>Responder</Button>
                 {item.canEdit&&<Button type="button" variant="ghost" size="sm" aria-label={`Editar comentario de ${item.username}`} icon={<Pencil size={16}/>} disabled={busy} onClick={()=>{setEditing(item);setEditBody(item.body);setReplying(null);setError('');}}>Editar</Button>}
                 {item.canDelete&&<Button type="button" variant="ghost" size="sm" aria-label={`Eliminar comentario de ${item.username}`} icon={<Trash2 size={16}/>} disabled={busy} onClick={()=>setDeleting(item)}>Eliminar</Button>}
             </div>}
         </header>
-        {item.deleted?<p className="news-comments__hint">Este comentario se ha eliminado.</p>:editing?.id===item.id?<form className="news-comments__form" onSubmit={saveEdit}>
-            <label htmlFor={`edit-comment-${item.id}`}>Editar comentario</label><textarea id={`edit-comment-${item.id}`} value={editBody} onChange={event=>setEditBody(event.target.value)} rows={4} maxLength={10000} required disabled={busy}/>
-            <div className="news-comments__edit-actions"><Button type="submit" loading={busy} disabled={busy||!editBody.trim()}>Guardar cambios</Button><Button type="button" variant="ghost" disabled={busy} onClick={()=>setEditing(null)}>Cancelar</Button></div>
-        </form>:<>{item.replyToUsername&&<span className="news-comments__reply-target">En respuesta a @{item.replyToUsername}</span>}<p className="news-comments__body">{item.body}</p></>}
-        {replying?.id===item.id&&<form className="news-comments__form news-comments__reply-form" onSubmit={event=>publish(event,true)}>
-            <div className="news-comments__reply-label"><label htmlFor="news-reply-body">Responder a @{item.username}</label><Button type="button" variant="ghost" size="sm" icon={<X size={16}/>} aria-label="Cancelar respuesta" disabled={busy} onClick={()=>setReplying(null)}>Cancelar</Button></div>
-            <textarea ref={replyInput} id="news-reply-body" value={replyBody} onChange={event=>setReplyBody(event.target.value)} maxLength={10000} rows={3} required disabled={busy}/>
-            <div className="news-comments__form-footer"><small>{replyBody.length}/10000</small><Button type="submit" icon={<Send size={16}/>} loading={busy} disabled={busy||!replyBody.trim()||threads[item.parentId??item.id]?.loading}>Publicar respuesta</Button></div>
+        {item.deleted?<p className={commentStyles['news-comments__hint']}>Este comentario se ha eliminado.</p>:editing?.id===item.id?<form className={commentStyles['news-comments__form']} onSubmit={saveEdit}>
+            <label htmlFor={`edit-comment-${item.id}`}>Editar comentario</label><textarea className={commentInput} id={`edit-comment-${item.id}`} value={editBody} onChange={event=>setEditBody(event.target.value)} rows={4} maxLength={10000} required disabled={busy}/>
+            <div className={commentStyles['news-comments__edit-actions']}><Button type="submit" loading={busy} disabled={busy||!editBody.trim()}>Guardar cambios</Button><Button type="button" variant="ghost" disabled={busy} onClick={()=>setEditing(null)}>Cancelar</Button></div>
+        </form>:<>{item.replyToUsername&&<span className={commentStyles['news-comments__reply-target']}>En respuesta a @{item.replyToUsername}</span>}<p className={commentStyles['news-comments__body']}>{item.body}</p></>}
+        {replying?.id===item.id&&<form className={cn(commentStyles['news-comments__form'], commentStyles['news-comments__reply-form'])} onSubmit={event=>publish(event,true)}>
+            <div className={commentStyles['news-comments__reply-label']}><label htmlFor="news-reply-body">Responder a @{item.username}</label><Button type="button" variant="ghost" size="sm" icon={<X size={16}/>} aria-label="Cancelar respuesta" disabled={busy} onClick={()=>setReplying(null)}>Cancelar</Button></div>
+            <textarea className={commentInput} ref={replyInput} id="news-reply-body" value={replyBody} onChange={event=>setReplyBody(event.target.value)} maxLength={10000} rows={3} required disabled={busy}/>
+            <div className={commentStyles['news-comments__form-footer']}><small>{replyBody.length}/10000</small><Button type="submit" icon={<Send size={16}/>} loading={busy} disabled={busy||!replyBody.trim()||threads[item.parentId??item.id]?.loading}>Publicar respuesta</Button></div>
         </form>}
     </article>;
 
-    return <section className="news-comments" aria-labelledby="news-comments-title">
-        <header className="news-comments__heading"><div><MessageSquare size={22} aria-hidden="true"/><h2 id="news-comments-title">Comentarios</h2></div>
+    return <section className={commentStyles['news-comments']} aria-labelledby="news-comments-title">
+        <header className={commentStyles['news-comments__heading']}><div><MessageSquare size={22} aria-hidden="true"/><h2 id="news-comments-title">Comentarios</h2></div>
             <Button type="button" variant="ghost" size="sm" icon={<RefreshCw size={16}/>} disabled={loading||busy} onClick={()=>setReload(value=>value+1)}>Actualizar</Button>
         </header>
-        {identity.loading?<p role="status" className="news-comments__hint">Comprobando sesión…</p>:canWrite?<form className="news-comments__form" onSubmit={event=>publish(event)}>
+        {identity.loading?<p role="status" className={commentStyles['news-comments__hint']}>Comprobando sesión…</p>:canWrite?<form className={commentStyles['news-comments__form']} onSubmit={event=>publish(event)}>
             <label htmlFor="news-comment-body">Comparte tu opinión</label>
-            <textarea id="news-comment-body" value={body} onChange={event=>setBody(event.target.value)} maxLength={10000} rows={4} placeholder="¿Qué opinas del análisis?" required aria-describedby="news-comment-help" disabled={busy}/>
-            <div className="news-comments__form-footer"><small id="news-comment-help">Tu comentario y tu usuario serán públicos. {body.length}/10000</small><Button type="submit" icon={<Send size={16}/>} loading={busy&&!editing&&!deleting&&!replying} disabled={busy||!body.trim()}>Publicar comentario</Button></div>
-        </form>:<div className="news-comments__login"><p>{identity.mfaRequired?'Completa la verificación en dos pasos para comentar.':identity.userId?'Confirma tu correo para participar.':'Inicia sesión para participar en la conversación.'}</p><Link to="/account">{identity.mfaRequired?'Verificar mi cuenta':'Ir a Mi cuenta'}</Link></div>}
-        {error&&<p className="news-comments__error" role="alert">{error}<Button type="button" variant="ghost" size="sm" disabled={busy} onClick={()=>setReload(value=>value+1)}>Reintentar carga</Button></p>}
-        {notice&&<p className="news-comments__notice" role="status">{notice}</p>}
-        {loading?<p className="news-comments__hint" role="status">Cargando comentarios…</p>:<>
-            {!items.length&&!error&&<p className="news-comments__empty">Aún no hay comentarios. Abre la conversación.</p>}
-            <div className="news-comments__list">{items.map(item=><div className="news-comments__thread" key={item.id}>
+            <textarea className={commentInput} id="news-comment-body" value={body} onChange={event=>setBody(event.target.value)} maxLength={10000} rows={4} placeholder="¿Qué opinas del análisis?" required aria-describedby="news-comment-help" disabled={busy}/>
+            <div className={commentStyles['news-comments__form-footer']}><small id="news-comment-help">Tu comentario y tu usuario serán públicos. {body.length}/10000</small><Button type="submit" icon={<Send size={16}/>} loading={busy&&!editing&&!deleting&&!replying} disabled={busy||!body.trim()}>Publicar comentario</Button></div>
+        </form>:<div className={commentStyles['news-comments__login']}><p>{identity.mfaRequired?'Completa la verificación en dos pasos para comentar.':identity.userId?'Confirma tu correo para participar.':'Inicia sesión para participar en la conversación.'}</p><Link to="/account">{identity.mfaRequired?'Verificar mi cuenta':'Ir a Mi cuenta'}</Link></div>}
+        {error&&<p className={commentStyles['news-comments__error']} role="alert">{error}<Button type="button" variant="ghost" size="sm" disabled={busy} onClick={()=>setReload(value=>value+1)}>Reintentar carga</Button></p>}
+        {notice&&<p className={commentStyles['news-comments__notice']} role="status">{notice}</p>}
+        {loading?<p className={commentStyles['news-comments__hint']} role="status">Cargando comentarios…</p>:<>
+            {!items.length&&!error&&<p className={commentStyles['news-comments__empty']}>Aún no hay comentarios. Abre la conversación.</p>}
+            <div className={commentStyles['news-comments__list']}>{items.map(item=><div className={commentStyles['news-comments__thread']} key={item.id}>
                 {renderComment(item)}
                 {(item.replyCount>0||threads[item.id])&&<Button type="button" variant="ghost" size="sm" icon={threads[item.id]?.open?<ChevronUp size={16}/>:<ChevronDown size={16}/>} aria-expanded={threads[item.id]?.open??false} aria-controls={`replies-${item.id}`} disabled={busy} onClick={()=>toggleReplies(item.id)}>{threads[item.id]?.open?'Ocultar respuestas':`Ver respuestas (${item.replyCount??0})`}</Button>}
-                {threads[item.id]?.open&&<div className="news-comments__replies" id={`replies-${item.id}`}>
+                {threads[item.id]?.open&&<div className={commentStyles['news-comments__replies']} id={`replies-${item.id}`}>
                     {threads[item.id].items.map(renderComment)}
-                    {threads[item.id].loading&&<p role="status" className="news-comments__hint">Cargando respuestas…</p>}
-                    {threads[item.id].error&&<div role="alert" className="news-comments__error">{threads[item.id].error}<Button type="button" variant="ghost" size="sm" onClick={()=>void loadReplies(item.id)}>Reintentar respuestas</Button></div>}
+                    {threads[item.id].loading&&<p role="status" className={commentStyles['news-comments__hint']}>Cargando respuestas…</p>}
+                    {threads[item.id].error&&<div role="alert" className={commentStyles['news-comments__error']}>{threads[item.id].error}<Button type="button" variant="ghost" size="sm" onClick={()=>void loadReplies(item.id)}>Reintentar respuestas</Button></div>}
                     {threads[item.id].cursor&&<Button type="button" variant="ghost" size="sm" disabled={busy||threads[item.id].loading} onClick={()=>void loadReplies(item.id,true)}>Ver más respuestas</Button>}
                 </div>}
             </div>)}</div>

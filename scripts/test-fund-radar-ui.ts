@@ -54,6 +54,9 @@ try{
   const fill=async(selector:string,value:string)=>{const el=await p.$(selector);assert.ok(el);await el.focus();await p.keyboard.down('Control');await p.keyboard.press('A');await p.keyboard.up('Control');await p.keyboard.type(value);};
   await p.goto(`${origin}/academy/fund-radar`,{waitUntil:'networkidle0'});
   await p.waitForSelector('.radar-card');assert.equal(await p.$('[role=dialog]'),null,'construction notice removed');
+  const metricSizes=await p.$eval('.radar-card',card=>({root:parseFloat(getComputedStyle(document.documentElement).fontSize),hero:parseFloat(getComputedStyle(card.querySelector('.radar-card__metric--hero dd')!).fontSize),compact:parseFloat(getComputedStyle(card.querySelector('.radar-card__summary--compact dd')!).fontSize)}));
+  assert.ok(metricSizes.hero>=2*metricSizes.root,'The headline metric keeps its visual hierarchy');
+  assert.equal(metricSizes.compact,metricSizes.root,'Compact metrics keep their 1rem size independently of generated CSS order');
   assert.equal(await p.$$eval('.radar-card',els=>els.length),20);
   assert.equal(await p.$$eval('.radar-card__score',els=>els.every(el=>el.textContent?.includes('Nota en su categoría'))),true);
   if(process.env.RADAR_LIVE_FIXTURE){

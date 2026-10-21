@@ -1,6 +1,6 @@
-# Tailwind · base compartida y Mi cuenta
+# Migración progresiva a Tailwind
 
-La primera fase integra Tailwind CSS 4 con Vite y migra `Button`, `Card`, `Input`, `MetricCard`, `Modal`, `PageHeader` y Mi cuenta. El resto de módulos conserva su CSS y se migrará por fases. No cambia el modelo de datos, las operaciones financieras ni las llamadas de autenticación.
+La primera fase integra Tailwind CSS 4 con Vite y migra `Button`, `Card`, `Input`, `MetricCard`, `Modal`, `PageHeader` y Mi cuenta. La segunda amplía la migración a Noticias y el radar de fondos. Los módulos pendientes conservan su CSS. No cambia el modelo de datos, las operaciones financieras ni las llamadas de autenticación.
 
 ## Convivencia y temas
 
@@ -43,6 +43,18 @@ Los dos selectores de Añadir activo y el enlace del aviso de versión usan las 
 
 Se retiran siete archivos: los CSS de los seis componentes base y `Account.css`. Los módulos aún no migrados conservan sus estilos; no se ha completado una conversión de toda la aplicación.
 
+## Segunda fase: Noticias y radar de fondos
+
+Noticias migra su portada, tarjetas, artículo, comentarios, respuestas y panel editorial, incluida la gestión de portadas y colaboradores. Los mapas estáticos `newsStyles`, `newsAdminStyles` y `commentStyles` contienen las utilidades completas, conservando los nombres de clase que usan Liquid Glass y las pruebas. Se retiran `News.css`, `NewsAdmin.css` y `NewsComments.css`.
+
+Los estilos de HTML enriquecido quedan en `newsContent.css`: el contenido editorial no se construye mediante componentes React. El editor Tiptap conserva su CSS específico. La animación del aviso también permanece en ese archivo. Se conservan el ancho completo y la proporción 16:9 de las portadas de la lista, con `object-fit: contain` para evitar recortar otros formatos.
+
+El catálogo y el formulario de edición del radar comparten `radarStyles`, con filtros y campos basados en `inputStyles()`. Las consultas de contenedor mantienen el cambio de columnas según el espacio real disponible, incluido el modal de edición. `FundRadar.css` conserva únicamente el medidor nativo y sus pseudoelementos específicos de cada navegador. Las notas, fórmulas, fechas, permisos y consultas al proveedor mantienen su implementación.
+
+Los tamaños de texto usan los tokens `--font-size-*` existentes: no se sustituyen por escalas de Tailwind de nombres parecidos que puedan tener otras medidas o interlineados.
+
+En variantes arbitrarias que apuntan a clases BEM, los guiones bajos literales se escapan (`.card\_\_content`). Las recetas utilizan `String.raw` para que JavaScript y el escáner de Tailwind lean el mismo selector. Un guion bajo sin escapar representa un espacio en estas variantes. Las pruebas comprueban también el espaciado del acceso editorial y la jerarquía de las métricas del radar para detectar estas pérdidas de estilos.
+
 Las nuevas dependencias tienen versiones fijadas y lockfile. Vite se actualiza de 7.3.6 a 7.3.7 para corregir los avisos de seguridad detectados por la auditoría durante esta entrega. `tailwind-merge` añade código al cliente: el bundle inicial medido pasa de unos 618 a 651 kB, dentro del límite de 700 kB comprobado por el proyecto. Esta fase busca reducir duplicación y facilitar el mantenimiento; no afirma una mejora de rendimiento por instalar Tailwind.
 
 ## Comprobaciones
@@ -60,7 +72,9 @@ PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium npm run test:smoke
 
 Los recorridos existentes comprueban además usuario/correo, registro, errores y recuperación, cambio de nombre, altas/bajas del autenticador y lectura del QR en cada tema. Las pruebas de otros módulos verifican consumidores de los componentes compartidos. Utilizan sesiones y respuestas sintéticas; no operan con cuentas reales.
 
-Validación de esta entrega: 64 comprobaciones de lógica e integración y 15 suites de navegador verificadas, además de lint, TypeScript, build y presupuesto del bundle. La pasada general de navegador detectó tres fallos; tras corregirlos se repitieron esas suites y las afectadas por los últimos ajustes. Todos sus resultados finales pasan. La instalación limpia con el lockfile también pasa y la auditoría de dependencias informa de cero vulnerabilidades conocidas en la fecha de entrega.
+Validación de la primera fase: 64 comprobaciones de lógica e integración y 15 suites de navegador verificadas, además de lint, TypeScript, build y presupuesto del bundle. La pasada general de navegador detectó tres fallos; tras corregirlos se repitieron esas suites y las afectadas por los últimos ajustes. Todos sus resultados finales pasan. La instalación limpia con el lockfile también pasa y la auditoría de dependencias informa de cero vulnerabilidades conocidas en la fecha de entrega.
+
+Validación de la segunda fase: pasan las cuatro suites de navegador de Noticias/comentarios, edición de artículos, radar y base compartida. Incluyen vistas de 320 a 1920 px, claro/oscuro y estándar/Liquid Glass, permisos, respuestas, imágenes, edición y conflictos. También pasan las pruebas de lógica de imágenes, comentarios y notas por categoría, lint, TypeScript y build. El control de carga mantiene el JavaScript inicial en 651,40 kB y confirma que el editor y las calculadoras siguen fuera del arranque.
 
 Para repetir solo la galería con un servidor aislado:
 
@@ -70,4 +84,4 @@ npm run test:smoke -- --only=test-tailwind-foundation-ui.ts
 
 ## Siguientes fases
 
-Migrar Noticias, Herramientas, Academia y Dashboard por módulos, reutilizando la base y retirando su CSS sustituido. Mantener CSS específico para gráficos, contenido editorial y efectos ópticos cuando aporte claridad. Cada entrega debe comprobar móvil/escritorio, las cuatro apariencias y los flujos del módulo antes de ampliar el alcance.
+Continuar con las demás Herramientas, Academia y Dashboard por módulos, reutilizando la base y retirando su CSS sustituido. Mantener CSS específico para gráficos, contenido editorial y efectos ópticos cuando aporte claridad. Cada entrega debe comprobar móvil/escritorio, las cuatro apariencias y los flujos del módulo antes de ampliar el alcance.

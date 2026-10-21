@@ -33,7 +33,6 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 - Resumen:
   - Incluye mejoras de seguridad en Noticias, coherencia en las cotizaciones de Cartera y navegación más ágil. El backend de cotizaciones ya está aplicado en Supabase; los históricos conservan su mercado real y no se reconstruyen ni se reetiquetan.
   - Reduce el archivo JavaScript principal de 1.807,92 a 618,32 kB (aproximadamente un 66 %). Actualiza DOMPurify y source-map-js; la auditoría completa de dependencias no detecta vulnerabilidades conocidas.
-  - En GitHub Actions pasaron lint, TypeScript, compilación, 63 comprobaciones de lógica/base de datos, el control del bundle, 10 suites de navegador y auditoría de dependencias. La protección de ramas todavía no exige este workflow.
 - Archivos:
   - FEATURE_LOG.md, docs/application-audit-fixes.md, .github/workflows/quality.yml, package-lock.json, scripts/run-tests.mjs, scripts/test-application-audit-ui.ts, scripts/test-unified-quote-markets.ts, scripts/test-quote-market-switch.ts, scripts/test-seo.mjs
   - src/utils/newsContent.ts, src/services/pendingChanges.ts, src/services/portfolioQuoteService.ts, src/services/portfolioCloudStorage.ts, src/services/dashboardIntegrity.ts, src/components/ui/PendingChangesGuard.tsx, src/components/ui/RouteView.tsx, src/App.tsx, src/app/routes/academyRoutes.tsx

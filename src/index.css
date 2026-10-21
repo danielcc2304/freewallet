@@ -241,6 +241,11 @@ a:hover {
 }
 
 /* ===== ANIMATIONS ===== */
+/* Compatibility for unmigrated news/search spinners. Shared UI uses ui-spin. */
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 @keyframes fadeIn {
   from {
     opacity: 0;

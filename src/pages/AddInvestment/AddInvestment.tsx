@@ -3,7 +3,7 @@ import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
 import type { DashboardNavigationContext } from '../../components/layout/MainLayout/dashboardNavigation';
 import axios from 'axios';
 import { Search, Coins, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp, Wrench, Loader2 } from 'lucide-react';
-import { Card, CardHeader, CardContent, Input, Button } from '../../components/ui';
+import { Card, CardHeader, CardContent, Input, Button, inputStyles } from '../../components/ui';
 import { searchSymbol, getQuote, getAssetChartData } from '../../services/apiService';
 import { OPERATION_CURRENCIES, historicalOperationRate, operationEuroPrice } from '../../services/operationCurrency';
 import { normalizeQuoteToEuro } from '../../services/portfolioQuoteService';
@@ -721,7 +721,7 @@ export function AddInvestment() {
 
                         {manualMode && <div className="form-group">
                             <label className="form-label" htmlFor="asset-type">Tipo de activo</label>
-                            <select id="asset-type" className="input" value={formData.type} disabled={isDcaMode || isSellMode}
+                            <select id="asset-type" className={inputStyles()} value={formData.type} disabled={isDcaMode || isSellMode}
                                 onChange={event => handleInputChange('type', event.target.value)}>
                                 {assetTypes.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
                             </select>
@@ -746,7 +746,7 @@ export function AddInvestment() {
                         {/* Price, Quantity, Date in row */}
                         <div className="form-group">
                             <label className="form-label" htmlFor="operation-currency">Divisa del precio de la operación</label>
-                            <select className="input" id="operation-currency" value={currency} disabled={formData.type === 'cash' || isSubmitting}
+                            <select className={inputStyles()} id="operation-currency" value={currency} disabled={formData.type === 'cash' || isSubmitting}
                                 onChange={e => handleCurrencyChange(e.target.value)}>
                                 {OPERATION_CURRENCIES.map(code => <option key={code} value={code}>{code}</option>)}
                             </select>

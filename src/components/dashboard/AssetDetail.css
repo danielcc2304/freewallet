@@ -382,7 +382,10 @@
     color: var(--text-muted);
 }
 
-.metric-card {
+.asset-detail .metric-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
     background: var(--bg-card);
     border: 1px solid var(--border-color);
     padding: 1rem;
@@ -391,12 +394,13 @@
     min-width: 0;
 }
 
-.metric-card:hover {
+.asset-detail .metric-card:hover {
     transform: translateY(-2px);
     border-color: var(--accent-primary);
 }
 
-.metric-card__header {
+.asset-detail .metric-card__header {
+    justify-content: space-between;
     display: flex;
     align-items: center;
     gap: 0.5rem;
@@ -404,20 +408,20 @@
     margin-bottom: 0.5rem;
 }
 
-.metric-card__label {
+.asset-detail .metric-card__label {
     font-size: 0.75rem;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.025em;
 }
 
-.metric-card__icon {
+.asset-detail .metric-card__icon {
     display: flex;
     color: var(--accent-primary);
     opacity: 0.8;
 }
 
-.metric-card__value {
+.asset-detail .metric-card__value {
     font-size: 1.25rem;
     font-weight: 700;
     margin-bottom: 0.25rem;
@@ -433,7 +437,7 @@
 .asset-detail__holding-list span { min-width: 0; overflow-wrap: anywhere; }
 .asset-detail__holding-list strong { color: var(--text-primary); white-space: nowrap; }
 
-.metric-card__category {
+.asset-detail .metric-card__category {
     font-size: 0.65rem;
     color: var(--text-muted);
     background: rgba(255, 255, 255, 0.05);

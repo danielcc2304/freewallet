@@ -20,7 +20,10 @@ const funds=[
  ['ES0112611001','Azvalor Internacional FI','0P00016YQ5.F'],
  ['LU0329355670','Robeco QI Emerging Markets Active Equities D €','LU0329355670'],
 ];
-const stamp=new Date().toISOString();
+// Public history fixtures end on 15 Oct. Keep their observation window fixed
+// so the UI test does not turn a stale fixture into a provider outage over time.
+const fixtureNow=Date.UTC(2026,9,17,12);
+const stamp=new Date(fixtureNow).toISOString();
 const assets=funds.map(([isin,name],i)=>({id:'fund-'+i,name,symbol:isin,isin,type:'fund',currency:'EUR',quantity:1,purchasePrice:90,currentPrice:100,purchaseDate:'2026-01-01',quotedAt:stamp,lastCheckedAt:stamp}));
 const version=JSON.parse(readFileSync('package.json','utf8')).version;
 const recorded=process.env.FREEWALLET_FUND_PROVIDER_FIXTURES;
@@ -31,11 +34,12 @@ const body=(name:string)=>readFileSync(join(recorded!,name),'utf8');
 try{
  const page=await browser.newPage();page.setDefaultTimeout(60000);page.setDefaultNavigationTimeout(60000);page.on('pageerror',e=>errors.push(String(e)));
  await page.setViewport({width:1280,height:900});
- await page.evaluateOnNewDocument((assets,version)=>{
+ await page.evaluateOnNewDocument((assets,version,now)=>{
+  Date.now=()=>now;
   localStorage.setItem('freewallet_portfolio_v1',JSON.stringify({version:1,assets,transactions:[]}));
   localStorage.setItem('freewallet_settings','{"apiEnabled":true}');
   localStorage.setItem('freewallet_last_seen_version',version);localStorage.setItem('freewallet-dashboard-notice-dismissed','1');
- },assets,version);
+ },assets,version,fixtureNow);
  await page.setRequestInterception(true);
  page.on('request',r=>{void(async()=>{
   const url=new URL(r.url());

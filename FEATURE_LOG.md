@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-21 - Tailwind: base compartida y Mi cuenta
+- Funcionalidad:
+  - Integra Tailwind CSS 4 con los colores y temas actuales, incluido Liquid Glass, para migrar la interfaz por módulos.
+  - Migra botones, tarjetas, campos, métricas, cabeceras y modales a una base reutilizable; añade un grupo de acciones con disposición móvil.
+  - Mi cuenta reutiliza esa base en acceso, registro, recuperación, perfil, sincronización y autenticador. Mejora la asociación accesible de ayudas y errores y la visibilidad del indicador de carga.
+- Resumen:
+  - Primera fase de la migración: retira siete archivos CSS sustituidos y conserva los estilos de las pantallas pendientes. Incluye capturas de comparación, pruebas de teclado y comprobaciones de móvil/escritorio en las cuatro combinaciones de tema y apariencia. Actualiza Vite a 7.3.7 tras revisar la auditoría de dependencias. No requiere migraciones de Supabase ni cambios en los batches.
+- Archivos:
+  - docs/tailwind-migration.md, README.md, package.json, package-lock.json, vite.config.ts, src/styles/tailwind.css, src/utils/cn.ts, src/index.css, src/App.tsx, src/components/ui, src/pages/Account, src/pages/AddInvestment/AddInvestment.tsx, src/components/dashboard/AssetDetail.css, scripts/fixtures/FoundationGallery.tsx, scripts/test-tailwind-foundation-ui.ts, scripts/run-tests.mjs
+
 ### 2026-10-18 - v7.0.1 - Fondos: vuelve a mostrar históricos
 - Funcionalidad:
   - Fondos: vuelve a mostrar el histórico de Robeco y otros fondos cuando Financial Times redirige la ficha para indicar la divisa de la clase.

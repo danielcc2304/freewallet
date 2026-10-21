@@ -8,6 +8,9 @@ const only = process.argv.find(arg => arg.startsWith('--only='))?.slice(7);
 const output = resolve('test-results', (smoke ? 'smoke' : 'unit') + (only ? '-focused' : ''));
 mkdirSync(output, { recursive: true });
 const smokeTests = [
+    'test-tailwind-foundation-ui.ts',
+    'test-mfa-disable-ui.ts', 'test-academy-account-polish.ts',
+    'test-account-feedback.ts',
     'test-application-audit-ui.ts', 'test-account-usernames-ui.ts',
     'test-dashboard-quality-ui.ts', 'test-live-market-quotes-ui.ts', 'test-bond-calculator-ui.ts',
     'test-expense-ui.ts', 'test-salary-calculator-ui.ts', 'test-fund-radar-ui.ts',

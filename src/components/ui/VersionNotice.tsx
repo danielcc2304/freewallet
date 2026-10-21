@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { APP_NAME, APP_VERSION } from '../../constants/app';
 import { acknowledgeVersion, shouldShowVersionNotice } from '../../services/versionNotice';
 import { Modal } from './Modal/Modal';
-import { Button } from './Button';
+import { Button, buttonStyles } from './Button';
 import './VersionNotice.css';
 
 /** Global release notice, persisted per browser and queued behind other dialogs. */
@@ -36,7 +36,7 @@ export function VersionNotice() {
         <p>Ya está disponible <strong>{APP_NAME} v{APP_VERSION}</strong>.</p>
         <p>Consulta las novedades para conocer las mejoras y correcciones de esta actualización.</p>
         <div className="version-notice__actions">
-            <Link className="btn btn--secondary btn--md" to="/feature-log" onClick={close}>Ver novedades</Link>
+            <Link className={buttonStyles({ variant: 'secondary' })} to="/feature-log" onClick={close}>Ver novedades</Link>
             <Button onClick={close}>Continuar</Button>
         </div>
     </Modal>;

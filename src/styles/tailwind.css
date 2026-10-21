@@ -1,0 +1,66 @@
+/* Migration boundary: namespaced utilities, existing reset and theme tokens.
+ * Utilities deliberately stay unlayered while the legacy CSS is unlayered.
+ * Component/page selectors can still refine them; no global !important needed.
+ * Do not import Preflight: unmigrated pages keep their existing browser reset.
+ */
+@import 'tailwindcss/theme.css' layer(theme) prefix(tw);
+@import 'tailwindcss/utilities.css' prefix(tw) source(none);
+@source '../';
+
+@custom-variant dark (&:where([data-theme='dark'], [data-theme='dark'] *));
+@custom-variant glass (&:where([data-appearance='liquid-glass'], [data-appearance='liquid-glass'] *));
+
+/* Inline aliases read the active app variables at the element, including
+ * mobile spacing and both independent theme/appearance preferences.
+ */
+@theme inline {
+    --font-sans: var(--font-family);
+    --color-canvas: var(--bg-primary);
+    --color-surface: var(--bg-secondary);
+    --color-surface-muted: var(--bg-tertiary);
+    --color-panel: var(--bg-card);
+    --color-panel-hover: var(--bg-card-hover);
+    --color-main: var(--text-primary);
+    --color-secondary: var(--text-secondary);
+    --color-muted: var(--text-muted);
+    --color-accent: var(--accent-primary);
+    --color-accent-hover: var(--accent-primary-hover);
+    --color-positive: var(--color-positive);
+    --color-negative: var(--color-negative);
+    --color-line: var(--border-primary);
+    --color-line-strong: var(--border-secondary);
+    --color-line-accent: var(--border-accent);
+    --color-glass-content: var(--glass-content);
+    --color-glass-edge: var(--glass-edge-soft);
+    --spacing-ui-xs: var(--spacing-xs);
+    --spacing-ui-sm: var(--spacing-sm);
+    --spacing-ui-md: var(--spacing-md);
+    --spacing-ui-lg: var(--spacing-lg);
+    --spacing-ui-xl: var(--spacing-xl);
+    --radius-control: var(--radius-md);
+    --radius-panel: var(--radius-lg);
+    --radius-dialog: var(--radius-xl);
+    --shadow-ui-sm: var(--shadow-sm);
+    --shadow-ui-md: var(--shadow-md);
+    --shadow-ui-lg: var(--shadow-lg);
+    --shadow-glow: var(--shadow-glow);
+    --background-image-page-header: radial-gradient(circle at 10% 10%, rgba(16,185,129,.14), transparent 45%), radial-gradient(circle at 90% 20%, rgba(59,130,246,.14), transparent 42%);
+}
+
+/* Optical effects and animations stay in CSS; ordinary layout lives in the
+ * reusable React components. These names cannot collide with legacy keyframes.
+ */
+@theme {
+    --animate-ui-dialog: ui-dialog-in .3s ease-out;
+    --animate-ui-backdrop: ui-backdrop-in .2s ease-out;
+    --animate-ui-spinner: ui-spin .8s linear infinite;
+    @keyframes ui-dialog-in {
+        from { opacity: 0; transform: translateY(20px) scale(.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes ui-backdrop-in {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes ui-spin { to { transform: rotate(360deg); } }
+}

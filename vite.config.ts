@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import tailwindcss from '@tailwindcss/vite'
 import { assertPublicSupabaseEnvironment } from './src/services/supabaseConfig'
 import { globalAgent } from 'node:https'
 
@@ -7,7 +8,7 @@ import { globalAgent } from 'node:https'
 export default defineConfig(({ mode }) => {
   assertPublicSupabaseEnvironment({ ...loadEnv(mode, process.cwd(), 'VITE_'), ...process.env })
   return {
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   server: {
     proxy: {
       '/__market/google': {

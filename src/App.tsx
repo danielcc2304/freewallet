@@ -20,6 +20,7 @@ const NewsArticle = lazy(() => import('./pages/News/News').then(module => ({ def
 const NewsAdmin = lazy(() => import('./pages/NewsAdmin/NewsAdmin').then(module => ({ default: module.NewsAdmin })));
 const Account = lazy(() => import('./pages/Account/Account').then(module => ({ default: module.Account })));
 import './index.css';
+import './styles/tailwind.css';
 import './styles/liquidGlass.css';
 import { VersionNotice } from './components/ui/VersionNotice';
 const view = (element: ReactNode) => <RouteView>{element}</RouteView>;

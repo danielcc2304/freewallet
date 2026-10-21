@@ -1,3 +1,4 @@
+import { CalculatorField } from './CalculatorField';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import {
     Ghost, TrendingDown,
@@ -8,6 +9,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import { validateCalculatorInputs } from './calculatorValidation';
 import './InflationPredator.css';
+import { CalculatorPanel } from './CalculatorPanel';
+import { cn } from '../../../utils/cn';
+import { inflationStyles as styles } from './inflationStyles';
 
 interface InflationPredatorStorage {
     amount: number | string;
@@ -69,12 +73,12 @@ export function InflationPredator() {
     const opacityFactor = amountNum > 0 ? Math.max(0.4, Math.min(1, purchasingPower / amountNum)) : 1;
 
     return (
-        <div className="inflation-predator">
+        <div className={cn("inflation-predator", styles["inflation-predator"])}>
             <button onClick={() => navigate(-1)} className="valuation-guide__back" style={{ background: 'none', border: 'none', cursor: 'pointer', padding: 0, marginBottom: '2rem' }}>
                 <ArrowLeft size={18} /> Volver a Fundamentos
             </button>
 
-            <AcademyPageHeader className="inflation-predator__hero" section="Escenarios">
+            <AcademyPageHeader className={cn("inflation-predator__hero", styles["inflation-predator__hero"])} section="Escenarios">
                 <h1>El Depredador Silencioso</h1>
                 <p>
                     La inflación no te quita billetes de la cartera, pero les quita su poder.
@@ -82,23 +86,9 @@ export function InflationPredator() {
                 </p>
             </AcademyPageHeader>
 
-            <div className="inflation-predator__grid">
-                <aside className="inflation-predator__controls">
-                    <div className="calc__input-group">
-                        <label htmlFor="amount">Capital Inicial</label>
-                        <div className="calc__input-wrapper">
-                            <Banknote size={18} />
-                            <input
-                                id="amount"
-                                type="number"
-                                value={amount}
-                                onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
-                                min="0"
-                                step="any"
-                            />
-                            <span className="unit">€</span>
-                        </div>
-                        <input
+            <div className={cn("inflation-predator__grid", styles["inflation-predator__grid"])}>
+                <CalculatorPanel as="aside" className={cn("inflation-predator__controls", styles["inflation-predator__controls"])}>
+                    <CalculatorField controlId="amount" label="Capital Inicial" icon={<Banknote size={18} />} unit="€" afterControl={<><input
                             type="range"
                             min="1000"
                             max="100000"
@@ -108,25 +98,18 @@ export function InflationPredator() {
                             onChange={(e) => setAmount(Number(e.target.value))}
                             className="custom-slider"
                             style={{ '--progress': `${Math.max(0, Math.min(100, (amountNum / 100000) * 100))}%` } as CSSProperties}
-                        />
-                    </div>
-
-                    <div className="calc__input-group">
-                        <label htmlFor="years">Tiempo (Años)</label>
-                        <div className="calc__input-wrapper">
-                            <Calendar size={18} />
-                            <input
-                                id="years"
+                        /></>}>
+                                <input
+                                id="amount"
                                 type="number"
-                                value={years}
-                                onChange={(e) => setYears(e.target.value === '' ? '' : Number(e.target.value))}
+                                value={amount}
+                                onChange={(e) => setAmount(e.target.value === '' ? '' : Number(e.target.value))}
                                 min="0"
-                                max="100"
-                                step="1"
+                                step="any"
                             />
-                            <span className="unit">años</span>
-                        </div>
-                        <input
+                            </CalculatorField>
+
+                    <CalculatorField controlId="years" label="Tiempo (Años)" icon={<Calendar size={18} />} unit="años" afterControl={<><input
                             type="range"
                             min="1"
                             max="40"
@@ -136,25 +119,19 @@ export function InflationPredator() {
                             onChange={(e) => setYears(Number(e.target.value))}
                             className="custom-slider"
                             style={{ '--progress': `${Math.max(0, Math.min(100, ((yearsNum - 1) / 39) * 100))}%` } as CSSProperties}
-                        />
-                    </div>
-
-                    <div className="calc__input-group">
-                        <label htmlFor="inflation">Inflación Anual Media</label>
-                        <div className="calc__input-wrapper">
-                            <Percent size={18} />
-                            <input
-                                id="inflation"
+                        /></>}>
+                                <input
+                                id="years"
                                 type="number"
-                                value={inflation}
-                                onChange={(e) => setInflation(e.target.value === '' ? '' : Number(e.target.value))}
-                                min="-99"
+                                value={years}
+                                onChange={(e) => setYears(e.target.value === '' ? '' : Number(e.target.value))}
+                                min="0"
                                 max="100"
-                                step="any"
+                                step="1"
                             />
-                            <span className="unit">%</span>
-                        </div>
-                        <input
+                            </CalculatorField>
+
+                    <CalculatorField controlId="inflation" label="Inflación Anual Media" icon={<Percent size={18} />} unit="%" afterControl={<><input
                             type="range"
                             min="0.5"
                             max="15"
@@ -164,30 +141,39 @@ export function InflationPredator() {
                             onChange={(e) => setInflation(Number(e.target.value))}
                             className="custom-slider"
                             style={{ '--progress': `${Math.max(0, Math.min(100, ((inflationNum - 0.5) / 14.5) * 100))}%` } as CSSProperties}
-                        />
-                    </div>
+                        /></>}>
+                                <input
+                                id="inflation"
+                                type="number"
+                                value={inflation}
+                                onChange={(e) => setInflation(e.target.value === '' ? '' : Number(e.target.value))}
+                                min="-99"
+                                max="100"
+                                step="any"
+                            />
+                            </CalculatorField>
 
-                    <div className="inflation-info">
+                    <div className={cn("inflation-info", styles["inflation-info"])}>
                         <h3><Info size={18} /> ¿Sabías que?</h3>
                         <p>
                             El objetivo oficial del Banco Central Europeo es una inflación del 2%.
                             Incluso a ese ritmo "bajo", tu dinero pierde casi la mitad de su valor en 35 años.
                         </p>
                     </div>
-                </aside>
+                </CalculatorPanel>
 
-                <main className="inflation-predator__visualizer">
+                <CalculatorPanel as="main" className={cn("inflation-predator__visualizer", styles["inflation-predator__visualizer"])}>
                     {calculationError ? <p role="alert">{calculationError}</p> : <>
-                    <div className="money-display">
+                    <div className={cn("money-display", styles["money-display"])}>
                         <div
-                            className={`ghost-overlay ${inflationNum > 5 ? 'ghost-overlay--active' : ''}`}
+                            className={cn('ghost-overlay', styles['ghost-overlay'], inflationNum > 5 && ['ghost-overlay--active', styles['ghost-overlay--active']])}
                         >
                             <Ghost size={60} />
                         </div>
 
                         {/* Final Visual Value (Wad of money) */}
                         <div
-                            className="bill-stack"
+                            className={cn("bill-stack", styles["bill-stack"])}
                             style={{
                                 transform: `scale(${scaleFactor})`,
                                 opacity: opacityFactor,
@@ -197,25 +183,25 @@ export function InflationPredator() {
                         </div>
                     </div>
 
-                    <div className="visual-result">
-                        <div className="result-sub">Tu poder de compra será de:</div>
-                        <div className="result-main">
+                    <div className={cn("visual-result", styles["visual-result"])}>
+                        <div className={cn("result-sub", styles["result-sub"])}>Tu poder de compra será de:</div>
+                        <div className={cn("result-main", styles["result-main"])}>
                             {purchasingPower.toLocaleString('es-ES', { maximumFractionDigits: 0 })} €
                         </div>
-                        <div className="result-sub">
+                        <div className={cn("result-sub", styles["result-sub"])}>
                             En {yearsNum} años, con esos {amountNum.toLocaleString('es-ES')} € <br />
                             <strong>solo podrás comprar lo que hoy valdría {purchasingPower.toLocaleString('es-ES', { maximumFractionDigits: 0 })} €</strong>.
                         </div>
 
-                        <div className="loss-tag">
+                        <div className={cn("loss-tag", styles["loss-tag"])}>
                             <TrendingDown size={18} style={{ marginRight: '8px' }} />
                             {lossPercentage < 0 ? 'Ganancia de poder de compra' : 'Pérdida de valor'}: {(-lossPercentage).toLocaleString('es-ES', { maximumFractionDigits: 1, signDisplay: 'exceptZero' })}%
                         </div>
                     </div>
 
-                    <div className="inflation-predator__cta-box">
+                    <div className={cn("inflation-predator__cta-box", styles["inflation-predator__cta-box"])}>
                         <Lightbulb size={24} color="var(--accent-primary)" className="icon" />
-                        <div className="cta-text">
+                        <div className={cn("cta-text", styles["cta-text"])}>
                             <h4>La solución: Invertir</h4>
                             <p>
                                 Invertir no es opcional si quieres mantener tu nivel de vida futuro.
@@ -226,7 +212,7 @@ export function InflationPredator() {
                         </Link>
                     </div>
                     </>}
-                </main>
+                </CalculatorPanel>
             </div>
         </div>
     );

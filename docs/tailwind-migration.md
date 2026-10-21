@@ -122,3 +122,24 @@ Validación de la tercera fase: pasan las 64 comprobaciones únicas de lógica e
 La suite existente de usabilidad de calculadoras puede repetirse con servidor aislado mediante `npm run test:smoke -- --only=test-calculator-dashboard-usability.ts`. Su fixture del selector de benchmark explicita el modo MSCI y alimenta el histórico Fidelity con la función real `dailyHistory`; la expectativa sobre los NAV utilizados se mantiene. La ejecución de Chromium utiliza las mismas opciones de contenedor que las demás suites.
 
 Validación de la cuarta fase: pasan lint, TypeScript, build de producción y presupuesto de carga (654,47 kB de JavaScript inicial). Pasan las cinco suites de navegador seleccionadas: usabilidad de calculadoras, feedback de cuenta, auditoría de aplicación, calidad del Dashboard y Portfolio/importación. Cubren escenarios inmutables, listas móviles del plan, ayudas, conexión, gastos pendientes e importación de cartera local. Se revisaron además las capturas de escenarios y detalles del plan.
+
+## Quinta fase: primeras calculadoras
+
+El catálogo, el fondo de emergencia, el simulador de impacto fiscal y el de inflación usan composición React y recetas estáticas Tailwind. `CalculatorTile` comparte la estructura de las ocho tarjetas del catálogo; `CalculatorPanel` conserva las superficies y sus variantes; `CalculatorMetric` comparte las etiquetas y resultados. `CalculatorField` agrupa doce controles con etiqueta, icono, unidad y contenido adicional, manteniendo en el consumidor el control nativo, su valor, límites y callback. Las etiquetas fiscales quedan asociadas mediante `htmlFor`/`id`, y el deslizador recibe nombre accesible.
+
+Las recetas usan `String.raw` para preservar los guiones bajos literales en selectores BEM. Conservan media queries inclusivas, estados y selectores contextuales. La animación óptica de inflación sigue en un CSS pequeño. Los estilos globales `calc__*` se mantienen por compatibilidad con las calculadoras que todavía no usan el nuevo campo.
+
+`CalculatorPanel` conserva los hooks de sus consumidores. Se mantiene separado del anterior `CalculatorCard` porque este último tiene ajustes ópticos Liquid Glass propios: sustituir uno por otro indiscriminadamente cambiaría la apariencia.
+
+Para comprobar solo estas pantallas sobre un build de producción:
+
+```bash
+SKIP_PRERENDER=1 npm run build
+FREEWALLET_VISUAL_ROUTES='/academy/calculators,/academy/emergency-fund,/academy/taxes,/academy/inflation-predator' npm run test:tailwind-modules-ui
+```
+
+El filtro solo admite rutas existentes y rechaza listas vacías. Sin filtro, la auditoría de CI mantiene sus 41 rutas. Las comprobaciones funcionales de la suite de usabilidad incluyen navegación del catálogo, métricas fiscales al cambiar ganancias, persistencia, entradas vacías y activación de la visualización de inflación.
+
+La centralización de utilidades cambia la distribución del CSS: el archivo inicial pasa de 138,64 kB (22,40 kB gzip) a 158,20 kB (26,12 kB gzip) en esta fase. La reducción de hojas y líneas de CSS fuente mide organización y reutilización; no implica una reducción del CSS inicial descargado. El JavaScript inicial queda en 654,39 kB y conserva la carga diferida de calculadoras.
+
+Validación de la quinta fase: pasan lint, TypeScript, build, presupuesto de carga y la prueba de integridad de calculadoras. La auditoría de producción pasa 48 combinaciones (cuatro rutas, tres anchos y cuatro apariencias). La comparación anterior/posterior de 32 combinaciones no encuentra diferencias en las propiedades medidas de 2.896 elementos; se revisaron las capturas. Las 67 sentencias de lógica y almacenamiento comparadas antes del render permanecen iguales. La suite de usabilidad ampliada pasa: cubre navegación, impuestos progresivos, persistencia, campos vacíos y la visualización activa de inflación. Su primer arranque en Vite agotó la navegación de 30 segundos; con los 60 segundos usados por otras suites pasa en 224 segundos.

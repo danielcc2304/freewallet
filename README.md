@@ -209,7 +209,7 @@ La navegación principal está en [`src/App.tsx`](src/App.tsx); Academia y herra
 
 ### Estilos y componentes
 
-La interfaz usa Tailwind CSS 4 con los temas existentes. La base compartida, Mi cuenta, Noticias, el radar, los rankings, los comparadores de escenarios y los avisos usan utilidades `tw:` en React; Academia, calculadoras, simuladores, gastos, Dashboard, gráficos y demás pantallas comparten tokens y patrones mediante `@apply` y `@reference`. Los selectores de los módulos densos conservan su cascada. El reset, los materiales Liquid Glass y el contenido enriquecido mantienen CSS específico. No se activa Preflight ni un `important` global. [Arquitectura y pruebas](docs/tailwind-migration.md) · [Inventario por módulo](docs/tailwind-module-inventory.md).
+La interfaz usa Tailwind CSS 4 con los temas existentes. La base compartida, Mi cuenta, Noticias, el radar, los rankings, los comparadores de escenarios, los avisos, el catálogo y las calculadoras de emergencia, impacto fiscal e inflación usan utilidades `tw:` en React; Academia, calculadoras, simuladores, gastos, Dashboard, gráficos y demás pantallas comparten tokens y patrones mediante `@apply` y `@reference`. Los selectores de los módulos densos conservan su cascada. El reset, los materiales Liquid Glass y el contenido enriquecido mantienen CSS específico. No se activa Preflight ni un `important` global. [Arquitectura y pruebas](docs/tailwind-migration.md) · [Inventario por módulo](docs/tailwind-module-inventory.md).
 
 ## Scripts
 

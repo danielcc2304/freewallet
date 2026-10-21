@@ -12,6 +12,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-21 - Tailwind: catálogo y primeras calculadoras
+- Funcionalidad:
+  - Migra catálogo, fondo de emergencia, impacto fiscal e inflación a componentes y recetas Tailwind.
+  - Reutiliza `CalculatorTile` en las ocho herramientas, `CalculatorPanel` en las superficies, `CalculatorMetric` en los resultados y `CalculatorField` en doce campos con sus controles nativos.
+- Resumen:
+  - Retira tres hojas CSS y reduce la de inflación a su animación. Conserva cálculos, controles, datos locales, orden y rutas. Asocia las etiquetas fiscales a los campos y nombra su deslizador. Añade verificación de métricas fiscales, navegación y persistencia a la suite existente, y permite enfocar la auditoría de producción por rutas.
+- Archivos:
+  - src/components/academy/calculators/Calculators.tsx, EmergencyFundCalculator.tsx, TaxSimulator.tsx, InflationPredator.tsx, InflationPredator.css, CalculatorPanel.tsx, CalculatorTile.tsx, CalculatorField.tsx, calculatorCatalogStyles.ts, emergencyStyles.ts, taxSimulatorStyles.ts, inflationStyles.ts; scripts/test-calculator-dashboard-usability.ts; scripts/test-tailwind-modules-ui.ts; docs/tailwind-migration.md; docs/tailwind-module-inventory.md; README.md
+
 ### 2026-10-21 - Tailwind: componentes de detalle y avisos compartidos
 - Funcionalidad:
   - Añade `DefinitionList` para compartir las filas de datos entre escenarios de calculadoras y detalles del plan de cartera.

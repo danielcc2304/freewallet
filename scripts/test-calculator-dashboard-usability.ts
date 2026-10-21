@@ -78,7 +78,7 @@ async function accessibleInputs(page: Page, selector: string) {
     assert.ok(await page.$$eval(selector, nodes => nodes.every(n => (n as HTMLInputElement).labels?.length || n.getAttribute('aria-label'))), 'All calculator controls need an accessible name');
 }
 try {
-    const page = await browser.newPage(); page.on('pageerror', e => errors.push(String(e)));
+    const page = await browser.newPage(); page.setDefaultNavigationTimeout(60000); page.setDefaultTimeout(60000); page.on('pageerror', e => errors.push(String(e)));
     await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
     await page.evaluateOnNewDocument((assets, v) => {
         localStorage.setItem('freewallet_portfolio_v1', JSON.stringify({ version: 1, assets, transactions: [] }));
@@ -160,6 +160,27 @@ try {
             if (width === 390) await (await page.$('.scenario-comparison'))!.screenshot({ path: join(tmpdir(), `freewallet-${path}-scenarios.png`) });
         }
     }
+    // The migrated catalog must keep its routes/order and render changing tax results.
+    await page.setViewport({ width: 320, height: 900 });
+    await page.goto(`${origin}/academy/calculators`, { waitUntil: 'networkidle2' });
+    const routes = await page.$$eval('.calculators__card--available', nodes => nodes.map(node => node.getAttribute('href')));
+    assert.deepEqual(routes, ['/academy/compound-interest', '/academy/fire-calculator', '/academy/retirement', '/academy/salary-calculator', '/academy/emergency-fund', '/academy/taxes', '/academy/asset-allocation', '/academy/bond-calculator']);
+    await page.click('.calculators__card[href="/academy/taxes"]');
+    await page.waitForSelector('#tax-simulator-gain');
+    await accessibleInputs(page, '.tax-sim input');
+    await setInput(page, '#tax-simulator-gain', '50000');
+    await page.waitForFunction(() => document.querySelector('.tax-sim__metric .value.tax')?.textContent?.includes('10.380'));
+    const amounts = await page.$$eval('.tax-sim__metric .value', nodes => nodes.map(node => Number((node.textContent ?? '').replace(/[^\d,.-]/g, '').replaceAll('.', '').replace(',', '.'))));
+    assert.deepEqual(amounts, [10380, 39620], 'Shared metrics preserve progressive taxes and net gain');
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('freewallet_tax_simulator') ?? '{}').gain === 50000);
+    await page.reload({ waitUntil: 'networkidle2' });
+    assert.equal(await page.$eval('#tax-simulator-gain', node => (node as HTMLInputElement).value), '50000', 'Field refactor preserves stored inputs');
+    await setInput(page, '#tax-simulator-gain', '');
+    await page.waitForSelector('.tax-sim [role="alert"]');
+    await page.goto(`${origin}/academy/inflation-predator`, { waitUntil: 'networkidle2' });
+    await setInput(page, '#amount', '10000'); await setInput(page, '#years', '10'); await setInput(page, '#inflation', '10');
+    await page.waitForSelector('.ghost-overlay--active');
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('.ghost-overlay')!).opacity === '1');
     assert.deepEqual(errors, []);
-    console.log('PASS: withdrawal accounting, dated daily changes, exact Fidelity benchmark NAV selection, 15-position search/filter weights, zero-expense state, empty inflation inputs, accessible calculator controls and immutable scenarios in mobile/desktop and both themes.');
+    console.log('PASS: withdrawal accounting, dated daily changes, exact Fidelity benchmark NAV selection, 15-position search/filter weights, zero-expense state, empty inflation inputs, accessible calculator controls immutable scenarios in mobile/desktop and both themes, catalog routes, progressive tax metrics and persisted inputs.');
 } finally { await browser.close(); }

@@ -48,3 +48,7 @@ El recorrido de producción pasó las 41 rutas y sus 492 combinaciones de tamañ
 ## Actualización de la cuarta fase
 
 Se retiran otros siete archivos: `ScenarioComparison.css`, `Performers.css`, `DashboardInfo.css`, `AccountConnectionState.css`, `LocalPortfolioPrompt.css`, `PendingChangesGuard.css` y `VersionNotice.css`. Sus componentes usan utilidades en React. `DefinitionList` comparte las listas de escenarios y detalles del plan; `LivePortfolioPlan.css` retira las cuatro reglas correspondientes. Quedan 57 hojas de módulos con `@reference`, además del CSS específico descrito arriba. Las cifras de la tabla anterior son el registro de la tercera fase.
+
+## Actualización de la quinta fase
+
+El catálogo y las calculadoras de emergencia, impacto fiscal e inflación pasan a componentes y recetas en React. Se retiran `Calculators.css`, `EmergencyFundCalculator.css` y `TaxSimulator.css`; `InflationPredator.css` conserva solo la animación `float`. Los campos, superficies, métricas y tarjetas se reutilizan sin trasladar las fórmulas a los componentes de presentación. Quedan 53 hojas de módulos con `@reference`, además del CSS específico, incluida esa animación.

@@ -1,9 +1,12 @@
+import { CalculatorField } from './CalculatorField';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Percent, Info, ShieldCheck, Landmark, Receipt, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import { validateCalculatorInputs } from './calculatorValidation';
-import './TaxSimulator.css';
+import { CalculatorPanel, CalculatorMetric } from './CalculatorPanel';
+import { cn } from '../../../utils/cn';
+import { taxSimulatorStyles as styles } from './taxSimulatorStyles';
 
 interface TaxSimulatorStorage {
     gain: number | string;
@@ -130,107 +133,88 @@ export function TaxSimulator() {
     ];
 
     return (
-        <div className="tax-sim">
-            <AcademyPageHeader className="tax-sim__header" section="Herramientas">
-                <div className="tax-sim__title-group">
+        <div className={cn("tax-sim", styles["tax-sim"])}>
+            <AcademyPageHeader className={cn("tax-sim__header", styles["tax-sim__header"])} section="Herramientas">
+                <div className={cn("tax-sim__title-group", styles["tax-sim__title-group"])}>
                     <div className="tax-sim__icon-container">
-                        <Receipt className="tax-sim__title-icon" />
+                        <Receipt className={cn("tax-sim__title-icon", styles["tax-sim__title-icon"])} />
                     </div>
                     <div>
-                        <h1 className="tax-sim__title">Simulador de Impacto Fiscal</h1>
-                        <p className="tax-sim__subtitle">¿Cuánto se lleva Hacienda de tus beneficios? (IRPF España)</p>
+                        <h1 className={cn("tax-sim__title", styles["tax-sim__title"])}>Simulador de Impacto Fiscal</h1>
+                        <p className={cn("tax-sim__subtitle", styles["tax-sim__subtitle"])}>¿Cuánto se lleva Hacienda de tus beneficios? (IRPF España)</p>
                     </div>
                 </div>
             </AcademyPageHeader>
 
-            <div className="tax-sim__grid">
-                <aside className="tax-sim__inputs">
-                    <div className="tax-sim__card">
-                        <h3 className="tax-sim__card-title">Tus Beneficios</h3>
-                        <div className="calc__input-group">
-                            <label>Plusvalía Bruta (Ganancias)</label>
-                            <div className="calc__input-wrapper">
-                                <TrendingUp size={18} />
-                                <input
+            <div className={cn("tax-sim__grid", styles["tax-sim__grid"])}>
+                <aside className={cn("tax-sim__inputs", styles["tax-sim__inputs"])}>
+                    <CalculatorPanel className="tax-sim__card">
+                        <h3 className={cn("tax-sim__card-title", styles["tax-sim__card-title"])}>Tus Beneficios</h3>
+                        <CalculatorField controlId="tax-simulator-gain" label="Plusvalía Bruta (Ganancias)" icon={<TrendingUp size={18} />} unit="€" afterControl={<><p className={cn("tax-sim__input-hint", styles["tax-sim__input-hint"])}>Solo tributas por lo ganado, no por lo invertido.</p></>}>
+                                <input id="tax-simulator-gain"
                                     type="number"
                                     value={gain}
                                     onChange={(e) => setGain(e.target.value === '' ? '' : Number(e.target.value))}
                                 />
-                                <span className="unit">€</span>
-                            </div>
-                            <p className="tax-sim__input-hint">Solo tributas por lo ganado, no por lo invertido.</p>
-                        </div>
-                    </div>
+                            </CalculatorField>
+                    </CalculatorPanel>
 
-                    <div className="tax-sim__card">
-                        <h3 className="tax-sim__card-title">Poder del Diferimiento</h3>
-                        <div className="calc__input-group">
-                            <label>Años de Inversión</label>
-                            <div className="calc__input-wrapper">
-                                <Landmark size={18} />
-                                <input
-                                    type="number"
-                                    value={holdingYears}
-                                    onChange={(e) => setHoldingYears(e.target.value === '' ? '' : Number(e.target.value))}
-                                />
-                                <span className="unit">años</span>
-                            </div>
-                            <input
+                    <CalculatorPanel className="tax-sim__card">
+                        <h3 className={cn("tax-sim__card-title", styles["tax-sim__card-title"])}>Poder del Diferimiento</h3>
+                        <CalculatorField controlId="tax-simulator-holding-years" label="Años de Inversión" icon={<Landmark size={18} />} unit="años" afterControl={<><input
                                 type="range"
+                                aria-label="Años de inversión (deslizador)"
                                 min="1"
                                 max="40"
                                 value={Math.max(1, yearsNum)}
                                 onChange={(e) => setHoldingYears(Number(e.target.value))}
                                 className="custom-slider"
                                 style={{ '--progress': `${((Math.max(1, yearsNum) - 1) / (40 - 1)) * 100}%` } as CSSProperties}
-                            />
-                        </div>
-                        <label className="tax-sim__scenario-toggle">
+                            /></>}>
+                                <input id="tax-simulator-holding-years"
+                                    type="number"
+                                    value={holdingYears}
+                                    onChange={(e) => setHoldingYears(e.target.value === '' ? '' : Number(e.target.value))}
+                                />
+                            </CalculatorField>
+                        <label className={cn("tax-sim__scenario-toggle", styles["tax-sim__scenario-toggle"])}>
                             <input
                                 type="checkbox"
                                 checked={simulateAnnualTransfers}
                                 onChange={(e) => setSimulateAnnualTransfers(e.target.checked)}
                             />
-                            <span className="tax-sim__scenario-toggle-copy">
+                            <span className={cn("tax-sim__scenario-toggle-copy", styles["tax-sim__scenario-toggle-copy"])}>
                                 <strong>Simular un traspaso anual</strong>
                                 <small>En el fondo se traspasa sin tributar; en el ETF equivale a vender y recomprar cada año.</small>
                             </span>
                         </label>
-                        <div className="tax-sim__deferral-info">
+                        <div className={cn("tax-sim__deferral-info", styles["tax-sim__deferral-info"])}>
                             <Info size={16} />
                             <p>Los fondos de inversión en España no pagan impuestos al traspasarlos.</p>
                         </div>
-                    </div>
+                    </CalculatorPanel>
 
-                    <div className="tax-sim__brackets">
-                        <h4 className="tax-sim__brackets-title">Tramos IRPF 2026</h4>
-                        <ul className="tax-sim__brackets-list">
+                    <CalculatorPanel className="tax-sim__brackets">
+                        <h4 className={cn("tax-sim__brackets-title", styles["tax-sim__brackets-title"])}>Tramos IRPF 2026</h4>
+                        <ul className={cn("tax-sim__brackets-list", styles["tax-sim__brackets-list"])}>
                             <li>0 - 6.000€: <span>19%</span></li>
                             <li>6.000 - 50.000€: <span>21%</span></li>
                             <li>50.000 - 200.000€: <span>23%</span></li>
                             <li>200.000 - 300.000€: <span>27%</span></li>
                             <li>+300.000€: <span>30%</span></li>
                         </ul>
-                    </div>
+                    </CalculatorPanel>
                 </aside>
 
                 <main className="tax-sim__results">
                     {calculationError ? <p role="alert">{calculationError}</p> : <>
-                    <div className="tax-sim__summary">
-                        <div className="tax-sim__metric">
-                            <span className="label">Total Impuestos</span>
-                            <span className="value tax">{formatCurrency(taxAmount)}</span>
-                            <span className="sub">Tipo efectivo: {effectiveRate.toFixed(1)}%</span>
-                        </div>
-                        <div className="tax-sim__metric">
-                            <span className="label">Dinero Neto</span>
-                            <span className="value net">{formatCurrency(netProfit)}</span>
-                            <span className="sub">Lo que llega a tu bolsillo</span>
-                        </div>
+                    <div className={cn("tax-sim__summary", styles["tax-sim__summary"])}>
+                        <CalculatorMetric className="tax-sim__metric" framed labelClassName="tw:text-[.8rem] tw:font-bold" label="Total Impuestos" value={formatCurrency(taxAmount)} valueClassName="tax tw:text-[#ef4444]" description={<>Tipo efectivo: {effectiveRate.toFixed(1)}%</>} />
+                        <CalculatorMetric className="tax-sim__metric" framed labelClassName="tw:text-[.8rem] tw:font-bold" label="Dinero Neto" value={formatCurrency(netProfit)} valueClassName="net tw:text-[#10b981]" description={<>Lo que llega a tu bolsillo</>} />
                     </div>
 
-                    <div className="tax-sim__chart-container">
-                        <h3 className="tax-sim__chart-title">Desglose Fiscal</h3>
+                    <CalculatorPanel className={cn("tax-sim__chart-container", styles["tax-sim__chart-container"])}>
+                        <h3 className={cn("tax-sim__chart-title", styles["tax-sim__chart-title"])}>Desglose Fiscal</h3>
                         <ResponsiveContainer width="100%" height={250}>
                             <BarChart data={chartData} layout="vertical" margin={{ left: -10, right: 30, top: 0, bottom: 0 }}>
                                 <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border-primary)" />
@@ -274,37 +258,37 @@ export function TaxSimulator() {
                                 </Bar>
                             </BarChart>
                         </ResponsiveContainer>
-                    </div>
+                    </CalculatorPanel>
 
-                    <div className="tax-sim__strategy">
-                        <div className="tax-sim__strategy-header">
+                    <CalculatorPanel surface="muted" className={cn("tax-sim__strategy", styles["tax-sim__strategy"])}>
+                        <div className={cn("tax-sim__strategy-header", styles["tax-sim__strategy-header"])}>
                             <ShieldCheck className="icon" size={24} />
                             <h3>Beneficio del Diferimiento Fiscal</h3>
                         </div>
-                        <p className="tax-sim__strategy-desc">
+                        <p className={cn("tax-sim__strategy-desc", styles["tax-sim__strategy-desc"])}>
                             En España, los <strong>Fondos de Inversión</strong> permiten el traspaso sin tributar. Eso reduce el peaje fiscal cuando haces cambios de asignación antes del reembolso final.
                             <br /><br />
                             Aquí comparamos una inversión de <strong>{formatCurrency(deferralAnalysis.principal)}</strong> al <strong>{(deferralAnalysis.rate * 100).toFixed(0)}% anual</strong> durante <strong>{yearsNum} años</strong> con el escenario fiscal {simulateAnnualTransfers ? 'de un traspaso o venta anual' : 'de mantener la posición hasta el final'}.
                         </p>
-                        <div className="tax-sim__comparison">
-                            <div className="compare-card">
+                        <div className={cn("tax-sim__comparison", styles["tax-sim__comparison"])}>
+                            <CalculatorPanel surface="canvas" className={cn("compare-card", styles["compare-card"])}>
                                 <span>Fondo Traspasable</span>
                                 <strong>{formatCurrency(deferralAnalysis.fundNet)}</strong>
                                 <p>{simulateAnnualTransfers ? 'Un traspaso al año sin peaje fiscal y tributación solo al reembolso final.' : 'Sin tributar hasta el reembolso final.'}</p>
-                            </div>
-                            <div className="compare-card">
+                            </CalculatorPanel>
+                            <CalculatorPanel surface="canvas" className={cn("compare-card", styles["compare-card"])}>
                                 <span>{simulateAnnualTransfers ? 'ETF con Venta Anual' : 'ETF Acumulación Buy & Hold'}</span>
                                 <strong>{formatCurrency(deferralAnalysis.selectedEtfNet)}</strong>
                                 <p>{simulateAnnualTransfers ? 'Vendiendo y recomprando cada año, con tributación anual de las plusvalías.' : 'Si no vendes hasta el final, el resultado fiscal es prácticamente el mismo.'}</p>
-                            </div>
-                            <div className="compare-card highlight">
+                            </CalculatorPanel>
+                            <CalculatorPanel surface="canvas" className={cn("compare-card highlight", styles["compare-card"])}>
                                 <Landmark size={24} />
                                 <span>{simulateAnnualTransfers ? 'Ventaja del Fondo' : 'Diferencia Fiscal'}</span>
                                 <strong>+{formatCurrency(deferralAnalysis.selectedDifference)}</strong>
                                 <p>{simulateAnnualTransfers ? 'Dinero extra por diferir impuestos pese a hacer un cambio al año.' : 'Sin ventas intermedias, ambos vehículos quedan prácticamente igual.'}</p>
-                            </div>
+                            </CalculatorPanel>
                         </div>
-                        <div className="tax-sim__comparison-note">
+                        <div className={cn("tax-sim__comparison-note", styles["tax-sim__comparison-note"])}>
                             <Info size={16} />
                             <p>
                                 {simulateAnnualTransfers
@@ -312,16 +296,16 @@ export function TaxSimulator() {
                                     : 'Sin ventas intermedias, el Fondo Traspasable y el ETF buy & hold terminan igual porque ambos tributan solo al final.'}
                             </p>
                         </div>
-                    </div>
+                    </CalculatorPanel>
 
-                    <div className="tax-sim__footer-info">
-                        <div className="info-item">
+                    <div className={cn("tax-sim__footer-info", styles["tax-sim__footer-info"])}>
+                        <CalculatorPanel className={cn("info-item", styles["info-item"])}>
                             <Percent size={18} />
                             <div>
                                 <strong>Compensación de Pérdidas</strong>
                                 <p>Recuerda que puedes restar tus pérdidas de tus ganancias para pagar menos impuestos.</p>
                             </div>
-                        </div>
+                        </CalculatorPanel>
                     </div>
                     </>}
                 </main>

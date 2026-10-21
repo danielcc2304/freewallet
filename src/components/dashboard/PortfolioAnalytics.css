@@ -1,28 +1,29 @@
-.portfolio-analytics__kpis { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: .65rem; }
-.portfolio-analytics__kpis > div { display: grid; gap: .35rem; min-width: 0; padding: .8rem; border: 1px solid var(--border-primary); border-radius: var(--radius-md); background: var(--bg-tertiary); }
-.portfolio-analytics__kpis svg { color: var(--accent-primary); }
-.portfolio-analytics__kpis span { color: var(--text-muted); font-size: .72rem; }
-.portfolio-analytics__kpis strong { color: var(--text-primary); font-size: .95rem; overflow-wrap: anywhere; }
-.portfolio-analytics__kpis .is-positive { color: var(--color-positive); }
-.portfolio-analytics__kpis .is-negative { color: var(--color-negative); }
-.portfolio-analytics__body { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, 1fr); gap: 1rem; margin-top: 1.25rem; }
-.portfolio-analytics__chart, .portfolio-analytics__allocation { padding: 1rem; border: 1px solid var(--border-primary); border-radius: var(--radius-md); background: var(--bg-tertiary); }
-.portfolio-analytics h3 { display: flex; align-items: center; gap: .4rem; margin: 0 0 .8rem; color: var(--text-primary); font-size: .95rem; }
-.portfolio-analytics__empty { min-height: 230px; display: grid; place-items: center; color: var(--text-muted); text-align: center; }
-.portfolio-analytics__allocation-row { display: grid; grid-template-columns: 72px 1fr 48px; align-items: center; gap: .5rem; margin: .7rem 0; color: var(--text-secondary); font-size: .8rem; }
-.portfolio-analytics__allocation-row div { height: 7px; overflow: hidden; border-radius: 99px; background: var(--bg-card); }
-.portfolio-analytics__allocation-row i { display: block; height: 100%; border-radius: inherit; background: var(--accent-primary); }
-.portfolio-analytics__allocation-row strong { text-align: right; color: var(--text-primary); }
+@reference "../../styles/module-theme.css";
+.portfolio-analytics__kpis { @apply tw:grid tw:grid-cols-[repeat(7,_minmax(0,_1fr))] tw:gap-[.65rem]; }
+.portfolio-analytics__kpis > div { @apply tw:grid tw:gap-[.35rem] tw:min-w-[0] tw:p-[.8rem] tw:ui-border tw:rounded-control tw:ui-fill-muted; }
+.portfolio-analytics__kpis svg { @apply tw:text-accent; }
+.portfolio-analytics__kpis span { @apply tw:text-muted tw:text-[length:.72rem]; }
+.portfolio-analytics__kpis strong { @apply tw:text-main tw:text-[length:.95rem] tw:wrap-anywhere; }
+.portfolio-analytics__kpis .is-positive { @apply tw:text-positive; }
+.portfolio-analytics__kpis .is-negative { @apply tw:text-negative; }
+.portfolio-analytics__body { @apply tw:grid tw:grid-cols-[minmax(0,_1.5fr)_minmax(260px,_1fr)] tw:gap-[1rem] tw:mt-[1.25rem]; }
+.portfolio-analytics__chart, .portfolio-analytics__allocation { @apply tw:p-[1rem] tw:ui-border tw:rounded-control tw:ui-fill-muted; }
+.portfolio-analytics h3 { @apply tw:ui-row tw:gap-[.4rem] tw:m-[0_0_.8rem] tw:text-main tw:text-[length:.95rem]; }
+.portfolio-analytics__empty { @apply tw:min-h-[230px] tw:grid tw:place-items-center tw:text-muted tw:text-center; }
+.portfolio-analytics__allocation-row { @apply tw:grid tw:grid-cols-[72px_1fr_48px] tw:items-center tw:gap-[.5rem] tw:m-[.7rem_0] tw:text-secondary tw:text-[length:.8rem]; }
+.portfolio-analytics__allocation-row div { @apply tw:h-[7px] tw:overflow-hidden tw:rounded-[99px] tw:ui-fill-panel; }
+.portfolio-analytics__allocation-row i { @apply tw:block tw:h-full tw:rounded-[inherit]; background: var(--accent-primary); }
+.portfolio-analytics__allocation-row strong { @apply tw:text-right tw:text-main; }
 .portfolio-analytics__leaders-title { margin-top: 1.2rem !important; }
-.portfolio-analytics__leader { display: flex; justify-content: space-between; gap: .75rem; padding: .55rem 0; border-top: 1px solid var(--border-primary); }
-.portfolio-analytics__leader span { display: grid; gap: .1rem; }
-.portfolio-analytics__leader strong { color: var(--accent-primary); }
-.portfolio-analytics__leader small { color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 180px; }
-.portfolio-analytics__leader b { color: var(--text-primary); font-size: .82rem; white-space: nowrap; }
-.portfolio-analytics__alerts { display: flex; gap: .6rem; margin-top: 1rem; padding: .85rem 1rem; border: 1px solid rgba(16,185,129,.3); border-radius: var(--radius-md); background: rgba(16,185,129,.08); color: var(--color-positive); }
+.portfolio-analytics__leader { @apply tw:flex tw:justify-between tw:gap-[.75rem] tw:p-[.55rem_0]; border-top: 1px solid var(--border-primary); }
+.portfolio-analytics__leader span { @apply tw:grid tw:gap-[.1rem]; }
+.portfolio-analytics__leader strong { @apply tw:text-accent; }
+.portfolio-analytics__leader small { @apply tw:text-muted tw:whitespace-nowrap tw:overflow-hidden tw:text-ellipsis tw:max-w-[180px]; }
+.portfolio-analytics__leader b { @apply tw:text-main tw:text-[length:.82rem] tw:whitespace-nowrap; }
+.portfolio-analytics__alerts { @apply tw:flex tw:gap-[.6rem] tw:mt-[1rem] tw:p-[.85rem_1rem]; border: 1px solid rgba(16,185,129,.3); @apply tw:rounded-control; background: rgba(16,185,129,.08); @apply tw:text-positive; }
 .portfolio-analytics__alerts.has-alerts { border-color: rgba(245,158,11,.35); background: rgba(245,158,11,.08); color: var(--color-warning); }
-.portfolio-analytics__alerts div { display: grid; gap: .2rem; }
-.portfolio-analytics__alerts span { color: var(--text-secondary); font-size: .8rem; }
-@media (max-width: 1100px) { .portfolio-analytics__kpis { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-@media (max-width: 760px) { .portfolio-analytics__kpis, .portfolio-analytics__body { grid-template-columns: 1fr 1fr; } .portfolio-analytics__body { display: grid; } }
-@media (max-width: 540px) { .portfolio-analytics__kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); } .portfolio-analytics__body { grid-template-columns: 1fr; } }
+.portfolio-analytics__alerts div { @apply tw:grid tw:gap-[.2rem]; }
+.portfolio-analytics__alerts span { @apply tw:text-secondary tw:text-[length:.8rem]; }
+@media (max-width: 1100px) { .portfolio-analytics__kpis { @apply tw:grid-cols-[repeat(4,_minmax(0,_1fr))]; } }
+@media (max-width: 760px) { .portfolio-analytics__kpis, .portfolio-analytics__body { @apply tw:grid-cols-[1fr_1fr]; } .portfolio-analytics__body { @apply tw:grid; } }
+@media (max-width: 540px) { .portfolio-analytics__kpis { @apply tw:grid-cols-[repeat(2,_minmax(0,_1fr))]; } .portfolio-analytics__body { @apply tw:grid-cols-[1fr]; } }

@@ -1,41 +1,31 @@
+@reference "../../../styles/module-theme.css";
+
 .scenarios {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 1.5rem 4rem;
-    overflow-x: hidden;
+    @apply tw:max-w-[900px] tw:m-[0_auto] tw:p-[0_1.5rem_4rem] tw:overflow-x-hidden;
 }
 
 .scenarios__header {
-    margin-bottom: 3rem;
-    text-align: center;
+    @apply tw:mb-[3rem] tw:text-center;
 }
 
 .scenarios__title {
-    font-size: 2.5rem;
+    @apply tw:text-[length:2.5rem];
     font-weight: 800;
-    color: var(--text-primary);
-    margin-bottom: 1rem;
+    @apply tw:text-main tw:mb-[1rem];
 }
 
 .scenarios__subtitle {
-    font-size: 1.125rem;
-    color: var(--text-secondary);
+    @apply tw:text-[length:1.125rem] tw:text-secondary;
     line-height: 1.6;
-    max-width: 600px;
-    margin: 0 auto;
+    @apply tw:max-w-[600px] tw:m-[0_auto];
 }
 
 .scenarios__grid {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
+    @apply tw:ui-stack tw:gap-[2rem];
 }
 
 .scenario-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 2.5rem;
+    @apply tw:ui-fill-surface tw:ui-border-default tw:rounded-[20px] tw:p-[2.5rem];
     transition: all 0.3s ease;
 }
 
@@ -45,66 +35,44 @@
 }
 
 .scenario-card__header {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    @apply tw:ui-row tw:gap-[1.5rem] tw:mb-[2rem];
 }
 
 .scenario-card__emoji {
-    font-size: 3rem;
-    background: var(--bg-tertiary);
-    width: 80px;
-    height: 80px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 20px;
+    @apply tw:text-[length:3rem] tw:ui-fill-muted tw:w-[80px] tw:h-[80px] tw:ui-row tw:justify-center tw:rounded-[20px];
 }
 
 .scenario-card__title {
-    font-size: 1.75rem;
+    @apply tw:text-[length:1.75rem];
     font-weight: 800;
-    margin: 0;
-    color: var(--text-primary);
+    @apply tw:m-[0] tw:text-main;
 }
 
 .scenario-section {
-    margin-bottom: 2rem;
+    @apply tw:mb-[2rem];
 }
 
 .scenario-section:last-child {
-    margin-bottom: 0;
+    @apply tw:mb-[0];
 }
 
 .scenario-section h3 {
-    font-size: 1.1rem;
+    @apply tw:text-[length:1.1rem];
     font-weight: 700;
-    margin-bottom: 1rem;
-    color: var(--text-primary);
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
+    @apply tw:mb-[1rem] tw:text-main tw:ui-row tw:gap-[0.5rem];
 }
 
 .scenario-section__content {
-    color: var(--text-secondary);
+    @apply tw:text-secondary;
     line-height: 1.6;
 }
 
 .scenario-actions {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
+    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(240px,_1fr))] tw:gap-[1rem] tw:mt-[1rem];
 }
 
 .action-card {
-    display: flex;
-    gap: 1rem;
-    padding: 1.25rem;
-    border-radius: 12px;
-    background: var(--bg-tertiary);
+    @apply tw:flex tw:gap-[1rem] tw:p-[1.25rem] tw:rounded-[12px] tw:ui-fill-muted;
     border: 1px solid transparent;
 }
 
@@ -120,46 +88,26 @@
 
 .action-card.do::after {
     content: "✓";
-    position: absolute;
-    top: 10px;
-    right: 12px;
+    @apply tw:absolute tw:top-[10px] tw:right-[12px];
     background: #10b981;
     color: white;
-    font-size: 0.8rem;
+    @apply tw:text-[length:0.8rem];
     font-weight: 800;
-    width: 20px;
-    height: 20px;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    @apply tw:w-[20px] tw:h-[20px] tw:rounded-[999px] tw:inline-flex tw:items-center tw:justify-center;
 }
 
 .action-card.dont::after {
     content: "✕";
-    position: absolute;
-    top: 10px;
-    right: 12px;
+    @apply tw:absolute tw:top-[10px] tw:right-[12px];
     background: #ef4444;
     color: white;
-    font-size: 0.8rem;
+    @apply tw:text-[length:0.8rem];
     font-weight: 800;
-    width: 20px;
-    height: 20px;
-    border-radius: 999px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
+    @apply tw:w-[20px] tw:h-[20px] tw:rounded-[999px] tw:inline-flex tw:items-center tw:justify-center;
 }
 
 .action-card {
-    position: relative;
-    display: flex;
-    gap: 1rem;
-    padding: 1.25rem;
-    border-radius: 12px;
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-color);
+    @apply tw:relative tw:flex tw:gap-[1rem] tw:p-[1.25rem] tw:rounded-[12px] tw:ui-fill-muted tw:ui-border-default;
     transition: transform 0.2s ease;
 }
 
@@ -168,7 +116,7 @@
 }
 
 .action-card__icon {
-    padding-top: 2px;
+    @apply tw:pt-[2px];
 }
 
 .action-card.do .action-card__icon {
@@ -180,47 +128,41 @@
 }
 
 .action-card__text h4 {
-    margin: 0 0 0.25rem;
-    font-size: 0.95rem;
+    @apply tw:m-[0_0_0.25rem] tw:text-[length:0.95rem];
     font-weight: 700;
-    color: var(--text-primary);
-    padding-right: 40px;
+    @apply tw:text-main tw:pr-[40px];
     /* Space for the action badge */
 }
 
 .action-card__text p {
-    margin: 0;
-    font-size: 0.85rem;
-    color: var(--text-secondary);
+    @apply tw:m-[0] tw:text-[length:0.85rem] tw:text-secondary;
     line-height: 1.4;
 }
 
 @media (max-width: 768px) {
     .scenarios__title {
-        font-size: 1.85rem;
+        @apply tw:text-[length:1.85rem];
     }
 
     .scenario-card {
-        padding: 1.5rem;
+        @apply tw:p-[1.5rem];
     }
 
     .scenario-card__header {
-        flex-direction: column;
-        text-align: center;
-        gap: 1rem;
+        @apply tw:flex-col tw:text-center tw:gap-[1rem];
     }
 
     .scenario-card__emoji {
-        margin: 0 auto;
+        @apply tw:m-[0_auto];
     }
 
     .scenario-actions {
-        grid-template-columns: 1fr;
+        @apply tw:grid-cols-[1fr];
     }
 }
 
 @media (max-width: 480px) {
     .scenarios__title {
-        font-size: 1.6rem;
+        @apply tw:text-[length:1.6rem];
     }
 }

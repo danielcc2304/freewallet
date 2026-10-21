@@ -1,15 +1,11 @@
+@reference "../../../styles/module-theme.css";
+
 .market-heatmap {
-    width: 100%;
-    display: grid;
-    gap: 1.25rem;
+    @apply tw:w-full tw:grid tw:gap-[1.25rem];
 }
 
 .market-heatmap__workspace {
-    min-width: 0;
-    padding: clamp(1rem, 2.4vw, 1.75rem);
-    border: 1px solid var(--border-primary);
-    border-radius: 18px;
-    background: var(--bg-secondary);
+    @apply tw:min-w-[0] tw:p-[clamp(1rem,_2.4vw,_1.75rem)] tw:ui-border tw:rounded-[18px] tw:ui-fill-surface;
 }
 
 .market-heatmap__toolbar,
@@ -17,35 +13,22 @@
 .market-heatmap__details,
 .market-heatmap__footer,
 .market-heatmap__footer > div {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
+    @apply tw:ui-row tw:justify-between tw:gap-[1rem];
 }
 
 .market-heatmap__toolbar {
-    align-items: flex-end;
-    margin-bottom: 1.5rem;
+    @apply tw:items-end tw:mb-[1.5rem];
 }
 
 .market-heatmap__toolbar-label {
-    display: block;
-    margin-bottom: 0.45rem;
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
+    @apply tw:block tw:mb-[0.45rem] tw:text-muted tw:text-[length:var(--font-size-xs)];
     font-weight: 700;
     letter-spacing: 0.07em;
     text-transform: uppercase;
 }
 
 .market-heatmap__tabs {
-    display: inline-flex;
-    flex-wrap: wrap;
-    max-width: 100%;
-    padding: 3px;
-    border: 1px solid var(--border-primary);
-    border-radius: 11px;
-    background: var(--bg-primary);
+    @apply tw:inline-flex tw:flex-wrap tw:max-w-full tw:p-[3px] tw:ui-border tw:rounded-[11px] tw:ui-fill-canvas;
 }
 
 .market-heatmap__tab,
@@ -53,57 +36,42 @@
 .market-heatmap__error button {
     border: 0;
     font: inherit;
-    cursor: pointer;
+    @apply tw:cursor-pointer;
     transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .market-heatmap__tab {
-    padding: 0.62rem 0.9rem;
-    border-radius: 8px;
-    color: var(--text-secondary);
-    background: transparent;
-    font-size: var(--font-size-sm);
+    @apply tw:p-[0.62rem_0.9rem] tw:rounded-[8px] tw:text-secondary tw:ui-fill-transparent tw:text-[length:var(--font-size-sm)];
     font-weight: 600;
-    white-space: nowrap;
+    @apply tw:whitespace-nowrap;
 }
 
 .market-heatmap__tab:hover,
 .market-heatmap__tab:focus-visible {
-    color: var(--text-primary);
+    @apply tw:text-main;
 }
 
 .market-heatmap__tab--active {
-    color: var(--text-primary);
-    background: var(--bg-tertiary);
+    @apply tw:text-main tw:ui-fill-muted;
     box-shadow: var(--shadow-sm);
 }
 
 .market-heatmap__display-options {
-    display: inline-flex;
-    padding: 3px;
-    border: 1px solid var(--border-primary);
-    border-radius: 11px;
-    background: var(--bg-primary);
+    @apply tw:inline-flex tw:p-[3px] tw:ui-border tw:rounded-[11px] tw:ui-fill-canvas;
 }
 
 .market-heatmap__display-option {
-    min-width: 3.4rem;
-    padding: 0.62rem 0.75rem;
-    border-radius: 8px;
-    color: var(--text-secondary);
-    background: transparent;
-    font-size: var(--font-size-sm);
+    @apply tw:min-w-[3.4rem] tw:p-[0.62rem_0.75rem] tw:rounded-[8px] tw:text-secondary tw:ui-fill-transparent tw:text-[length:var(--font-size-sm)];
     font-weight: 600;
 }
 
 .market-heatmap__display-option:hover,
 .market-heatmap__display-option:focus-visible {
-    color: var(--text-primary);
+    @apply tw:text-main;
 }
 
 .market-heatmap__display-option--active {
-    color: var(--text-primary);
-    background: var(--bg-tertiary);
+    @apply tw:text-main tw:ui-fill-muted;
     box-shadow: var(--shadow-sm);
 }
 
@@ -116,43 +84,30 @@
 }
 
 .market-heatmap__index-intro {
-    align-items: flex-start;
-    padding-bottom: 1rem;
+    @apply tw:items-start tw:pb-[1rem];
     border-bottom: 1px solid var(--border-primary);
 }
 
 .market-heatmap__index-intro h2 {
-    margin: 0 0 0.25rem;
-    font-size: clamp(1.3rem, 2vw, 1.7rem);
+    @apply tw:m-[0_0_0.25rem] tw:text-[length:clamp(1.3rem,_2vw,_1.7rem)];
 }
 
 .market-heatmap__index-intro p {
-    margin: 0;
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+    @apply tw:m-[0] tw:text-secondary tw:text-[length:var(--font-size-sm)];
 }
 
 .market-heatmap__index-intro > span {
-    flex: 0 0 auto;
-    padding: 0.35rem 0.6rem;
-    border-radius: var(--radius-full);
-    color: var(--text-muted);
-    background: var(--bg-tertiary);
-    font-size: var(--font-size-xs);
+    @apply tw:flex-[0_0_auto] tw:p-[0.35rem_0.6rem] tw:rounded-[var(--radius-full)] tw:text-muted tw:ui-fill-muted tw:text-[length:var(--font-size-xs)];
     font-weight: 600;
 }
 
 .market-heatmap__metrics {
-    display: grid;
-    grid-template-columns: 1.35fr repeat(3, 1fr);
-    margin: 1rem 0;
+    @apply tw:grid tw:grid-cols-[1.35fr_repeat(3,_1fr)] tw:m-[1rem_0];
     border-block: 1px solid var(--border-primary);
 }
 
 .market-heatmap__metric {
-    display: grid;
-    gap: 0.3rem;
-    padding: 0.85rem 1rem;
+    @apply tw:grid tw:gap-[0.3rem] tw:p-[0.85rem_1rem];
 }
 
 .market-heatmap__metric + .market-heatmap__metric {
@@ -160,89 +115,62 @@
 }
 
 .market-heatmap__metric span {
-    color: var(--text-muted);
-    font-size: 0.7rem;
+    @apply tw:text-muted tw:text-[length:0.7rem];
     font-weight: 600;
 }
 
 .market-heatmap__metric strong {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    font-size: var(--font-size-lg);
+    @apply tw:ui-row tw:gap-[0.35rem] tw:text-[length:var(--font-size-lg)];
 }
 
 .market-heatmap__sector-summary {
-    margin: 1.25rem 0 0;
-    padding: 1rem clamp(0.75rem, 1.8vw, 1.25rem);
-    border: 1px solid var(--border-primary);
-    border-radius: 14px;
+    @apply tw:m-[1.25rem_0_0] tw:p-[1rem_clamp(0.75rem,_1.8vw,_1.25rem)] tw:ui-border tw:rounded-[14px];
 }
 
 .market-heatmap__sector-summary-header {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 0.75rem;
+    @apply tw:flex tw:items-end tw:justify-between tw:gap-[1rem] tw:mb-[0.75rem];
 }
 
 .market-heatmap__sector-summary-header .market-heatmap__toolbar-label {
-    margin-bottom: 0.25rem;
+    @apply tw:mb-[0.25rem];
 }
 
 .market-heatmap__sector-summary-header p {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
+    @apply tw:m-[0] tw:text-muted tw:text-[length:var(--font-size-xs)];
 }
 
 .market-heatmap__sector-summary-header > span {
-    flex: 0 0 auto;
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
+    @apply tw:flex-[0_0_auto] tw:text-muted tw:text-[length:var(--font-size-xs)];
     font-weight: 600;
 }
 
 .market-heatmap__sector-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    gap: 0.45rem;
+    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(180px,_1fr))] tw:gap-[0.45rem];
 }
 
 .market-heatmap__sector-item {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    gap: 0.2rem 0.65rem;
-    min-width: 0;
-    padding: 0.65rem 0.75rem;
+    @apply tw:grid tw:grid-cols-[minmax(0,_1fr)_auto] tw:gap-[0.2rem_0.65rem] tw:min-w-[0] tw:p-[0.65rem_0.75rem];
     border-left: 2px solid var(--accent-primary);
-    background: var(--bg-tertiary);
+    @apply tw:ui-fill-muted;
 }
 
 .market-heatmap__sector-item strong,
 .market-heatmap__sector-item > span {
-    overflow: hidden;
-    text-overflow: ellipsis;
+    @apply tw:overflow-hidden tw:text-ellipsis;
 }
 
 .market-heatmap__sector-item strong {
-    color: var(--text-primary);
-    font-size: var(--font-size-xs);
+    @apply tw:text-main tw:text-[length:var(--font-size-xs)];
     line-height: 1.25;
 }
 
 .market-heatmap__sector-item > span {
-    white-space: nowrap;
-    color: var(--text-secondary);
-    font-size: var(--font-size-xs);
+    @apply tw:whitespace-nowrap tw:text-secondary tw:text-[length:var(--font-size-xs)];
     font-weight: 700;
 }
 
 .market-heatmap__sector-item small {
-    grid-column: 1 / -1;
-    color: var(--text-muted);
-    font-size: 0.68rem;
+    @apply tw:col-span-full tw:text-muted tw:text-[length:0.68rem];
 }
 
 .market-heatmap__sector-item small b {
@@ -258,13 +186,7 @@
 }
 
 .market-heatmap__canvas {
-    position: relative;
-    width: 100%;
-    height: clamp(600px, 68vw, 800px);
-    min-width: 0;
-    overflow: hidden;
-    border: 1px solid var(--border-primary);
-    border-radius: 12px;
+    @apply tw:relative tw:w-full tw:h-[clamp(600px,_68vw,_800px)] tw:min-w-[0] tw:overflow-hidden tw:ui-border tw:rounded-[12px];
     background: #111827;
 }
 
@@ -274,14 +196,11 @@
 }
 
 .market-heatmap__sector-label-layer {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
+    @apply tw:absolute tw:inset-[0] tw:z-[2] tw:pointer-events-none;
 }
 
 .market-heatmap__tile {
-    cursor: pointer;
+    @apply tw:cursor-pointer;
 }
 
 .market-heatmap__tile rect {
@@ -293,26 +212,21 @@
 }
 
 .market-heatmap__sector-group rect {
-    pointer-events: none;
+    @apply tw:pointer-events-none;
 }
 
 .market-heatmap__sector-label {
-    position: absolute;
-    display: block;
-    overflow: hidden;
-    padding: 0.28rem 0.45rem;
+    @apply tw:absolute tw:block tw:overflow-hidden tw:p-[0.28rem_0.45rem];
     border: 1px solid rgba(255, 255, 255, 0.22);
-    border-radius: 5px;
+    @apply tw:rounded-[5px];
     color: rgba(255, 255, 255, 0.92);
     background: rgba(17, 24, 39, 0.82);
     box-shadow: 0 2px 8px rgba(0, 0, 0, 0.16);
-    font-family: var(--font-family);
-    font-size: 0.62rem;
+    @apply tw:font-sans tw:text-[length:0.62rem];
     font-weight: 800;
     letter-spacing: 0.04em;
     line-height: 1.2;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    @apply tw:text-ellipsis tw:whitespace-nowrap;
     text-transform: uppercase;
 }
 
@@ -320,37 +234,30 @@
 .market-heatmap__tile-change,
 .market-heatmap__tile-name {
     fill: #fff;
-    font-family: var(--font-family);
+    @apply tw:font-sans;
 }
 
 .market-heatmap__tile-symbol {
-    font-size: 13px;
+    @apply tw:text-[length:13px];
     font-weight: 800;
 }
 
 .market-heatmap__tile-name {
     fill: rgba(255, 255, 255, 0.76);
-    font-size: 9px;
+    @apply tw:text-[length:9px];
     font-weight: 500;
 }
 
 .market-heatmap__tile-change {
-    font-size: 11px;
+    @apply tw:text-[length:11px];
     font-weight: 700;
 }
 
 .market-heatmap__loading,
 .market-heatmap__error {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.75rem;
-    padding: 2rem;
+    @apply tw:absolute tw:inset-[0] tw:ui-stack tw:items-center tw:justify-center tw:gap-[0.75rem] tw:p-[2rem];
     color: #cbd5e1;
-    text-align: center;
+    @apply tw:text-center;
 }
 
 .market-heatmap__error svg {
@@ -362,149 +269,98 @@
 }
 
 .market-heatmap__error span {
-    max-width: 30rem;
+    @apply tw:max-w-[30rem];
     color: #cbd5e1;
-    font-size: var(--font-size-sm);
+    @apply tw:text-[length:var(--font-size-sm)];
 }
 
 .market-heatmap__error button {
-    padding: 0.65rem 0.9rem;
-    border-radius: 8px;
+    @apply tw:p-[0.65rem_0.9rem] tw:rounded-[8px];
     color: #052e21;
     background: var(--accent-primary);
     font-weight: 700;
 }
 
 .market-heatmap__legend {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.65rem;
-    margin: 0.75rem 0 1rem;
-    color: var(--text-muted);
-    font-size: 0.7rem;
+    @apply tw:ui-row tw:justify-center tw:gap-[0.65rem] tw:m-[0.75rem_0_1rem] tw:text-muted tw:text-[length:0.7rem];
 }
 
 .market-heatmap__legend-scale {
-    width: min(240px, 42vw);
-    height: 8px;
-    border-radius: var(--radius-full);
+    @apply tw:w-[min(240px,_42vw)] tw:h-[8px] tw:rounded-[var(--radius-full)];
     background: linear-gradient(90deg, hsl(0 69% 26%), hsl(0 69% 34%), #374151 50%, hsl(153 70% 30%), hsl(153 70% 22%));
 }
 
 .market-heatmap__completion-status {
-    margin: -0.25rem 0 0.85rem;
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
-    text-align: center;
+    @apply tw:m-[-0.25rem_0_0.85rem] tw:text-muted tw:text-[length:var(--font-size-xs)] tw:text-center;
 }
 
 .market-heatmap__details {
-    min-height: 70px;
-    padding: 0.85rem 1rem;
+    @apply tw:min-h-[70px] tw:p-[0.85rem_1rem];
     border-block: 1px solid var(--border-primary);
 }
 
 .market-heatmap__selected-company {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: baseline;
-    gap: 0.1rem 0.65rem;
-    min-width: 0;
+    @apply tw:grid tw:grid-cols-[auto_minmax(0,_1fr)_auto] tw:items-baseline tw:gap-[0.1rem_0.65rem] tw:min-w-[0];
 }
 
 .market-heatmap__selected-company > span {
-    grid-column: 1 / -1;
-    color: var(--text-muted);
-    font-size: 0.65rem;
+    @apply tw:col-span-full tw:text-muted tw:text-[length:0.65rem];
     font-weight: 700;
     letter-spacing: 0.07em;
     text-transform: uppercase;
 }
 
 .market-heatmap__selected-company strong {
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    @apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;
 }
 
 .market-heatmap__selected-company small {
-    color: var(--text-muted);
+    @apply tw:text-muted;
 }
 
 .market-heatmap__selected-company b {
-    grid-column: 3;
-    grid-row: 2 / span 2;
-    align-self: center;
-    font-size: var(--font-size-lg);
+    @apply tw:col-[3] tw:row-[2_/_span_2] tw:self-center tw:text-[length:var(--font-size-lg)];
 }
 
 .market-heatmap__selection-hint {
-    margin: 0;
-    color: var(--text-muted);
-    font-size: var(--font-size-sm);
+    @apply tw:m-[0] tw:text-muted tw:text-[length:var(--font-size-sm)];
 }
 
 .market-heatmap__extremes {
-    display: grid;
-    gap: 0.25rem;
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
+    @apply tw:grid tw:gap-[0.25rem] tw:text-muted tw:text-[length:var(--font-size-xs)];
 }
 
 .market-heatmap__extremes span {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
+    @apply tw:ui-row tw:gap-[0.35rem];
 }
 
 .market-heatmap__extremes strong {
-    color: var(--text-secondary);
+    @apply tw:text-secondary;
 }
 
 .market-heatmap__footer {
-    align-items: flex-start;
-    margin-top: 1rem;
+    @apply tw:items-start tw:mt-[1rem];
 }
 
 .market-heatmap__footer p {
-    max-width: 680px;
-    margin: 0;
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
+    @apply tw:max-w-[680px] tw:m-[0] tw:text-muted tw:text-[length:var(--font-size-xs)];
     line-height: 1.55;
 }
 
 .market-heatmap__footer > div {
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
+    @apply tw:flex-wrap tw:justify-end tw:text-muted tw:text-[length:var(--font-size-xs)];
 }
 
 .market-heatmap__footer a {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
+    @apply tw:inline-flex tw:items-center tw:gap-[0.25rem];
 }
 
 .market-heatmap__floating-actions {
-    position: fixed;
-    right: max(1.25rem, env(safe-area-inset-right));
-    bottom: max(1.25rem, env(safe-area-inset-bottom));
-    z-index: 900;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.65rem;
+    @apply tw:fixed tw:right-[max(1.25rem,_env(safe-area-inset-right))] tw:bottom-[max(1.25rem,_env(safe-area-inset-bottom))] tw:z-[900] tw:ui-stack tw:items-center tw:gap-[0.65rem];
 }
 
 .market-heatmap__floating-refresh {
-    width: 2.8rem;
-    height: 2.8rem;
-    padding: 0;
-    border-radius: 999px;
-    background: var(--bg-secondary);
+    @apply tw:w-[2.8rem] tw:h-[2.8rem] tw:p-[0] tw:rounded-[999px] tw:ui-fill-surface;
     box-shadow: 0 10px 28px rgba(0, 0, 0, 0.2);
 }
 
@@ -517,31 +373,28 @@
     .market-heatmap__footer,
     .market-heatmap__details,
     .market-heatmap__sector-summary-header {
-        align-items: stretch;
-        flex-direction: column;
+        @apply tw:items-stretch tw:flex-col;
     }
 
     .market-heatmap__tabs {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        width: 100%;
+        @apply tw:grid tw:grid-cols-[repeat(2,_1fr)] tw:w-full;
     }
 
     .market-heatmap__tab {
         padding-inline: 0.55rem;
-        white-space: normal;
+        @apply tw:whitespace-normal;
     }
 
     .market-heatmap__display-options {
-        width: 100%;
+        @apply tw:w-full;
     }
 
     .market-heatmap__display-option {
-        flex: 1;
+        @apply tw:flex-[1];
     }
 
     .market-heatmap__metrics {
-        grid-template-columns: repeat(2, 1fr);
+        @apply tw:grid-cols-[repeat(2,_1fr)];
     }
 
     .market-heatmap__metric:nth-child(3) {
@@ -553,22 +406,21 @@
     }
 
     .market-heatmap__footer > div {
-        justify-content: flex-start;
+        @apply tw:justify-start;
     }
 
     .market-heatmap__sector-list {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        @apply tw:grid-cols-[repeat(2,_minmax(0,_1fr))];
     }
 }
 
 @media (max-width: 520px) {
     .market-heatmap__workspace {
-        padding: 0.8rem;
-        border-radius: 14px;
+        @apply tw:p-[0.8rem] tw:rounded-[14px];
     }
 
     .market-heatmap__index-intro {
-        display: grid;
+        @apply tw:grid;
     }
 
     .market-heatmap__index-intro > span {
@@ -576,41 +428,39 @@
     }
 
     .market-heatmap__metrics {
-        grid-template-columns: 1fr 1fr;
+        @apply tw:grid-cols-[1fr_1fr];
     }
 
     .market-heatmap__sector-list {
-        grid-template-columns: 1fr;
+        @apply tw:grid-cols-[1fr];
     }
 
     .market-heatmap__metric {
-        padding: 0.7rem;
+        @apply tw:p-[0.7rem];
     }
 
     .market-heatmap__metric strong {
-        font-size: var(--font-size-base);
+        @apply tw:text-[length:var(--font-size-base)];
     }
 
     .market-heatmap__canvas {
-        height: 580px;
+        @apply tw:h-[580px];
     }
 
     .market-heatmap__selected-company {
-        grid-template-columns: minmax(0, 1fr) auto;
+        @apply tw:grid-cols-[minmax(0,_1fr)_auto];
     }
 
     .market-heatmap__selected-company small {
-        grid-column: 1 / -1;
+        @apply tw:col-span-full;
     }
 
     .market-heatmap__selected-company b {
-        grid-column: 2;
-        grid-row: 2;
+        @apply tw:col-[2] tw:row-[2];
     }
 
     .market-heatmap__floating-actions {
-        right: max(0.85rem, env(safe-area-inset-right));
-        bottom: max(0.85rem, env(safe-area-inset-bottom));
+        @apply tw:right-[max(0.85rem,_env(safe-area-inset-right))] tw:bottom-[max(0.85rem,_env(safe-area-inset-bottom))];
     }
 
 }

@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { compareKnownReturns, dailyAssetVariation } from '../src/services/dashboardIntegrity';
 import type { Asset } from '../src/types/types';
+import { compileModuleStyles } from './helpers/compileModuleStyles';
 
 const base: Asset = { id: 'synthetic', name: 'Synthetic fund with a long descriptive name', symbol: 'TEST', type: 'fund', currency: 'EUR', quantity: 10, purchasePrice: 8, purchaseDate: '2026-01-01', previousClose: 100, quotedAt: new Date().toISOString() };
 const rows = [105, undefined, 95, 100, 0].map(currentPrice => ({ ...base, currentPrice, ...dailyAssetVariation({ ...base, currentPrice }) }));
@@ -13,11 +14,13 @@ assert.equal(dailyAssetVariation({ ...base, currentPrice: 105 }).todayChange, 50
 assert.ok(Number.isNaN(dailyAssetVariation({ ...base, currentPrice: 105, previousClose: 0 }).todayChangePercent));
 assert.ok(Number.isNaN(dailyAssetVariation({ ...base, currentPrice: 105, currency: 'USD' }).todayChangePercent));
 const component = readFileSync(new URL('../src/components/dashboard/AssetsTable.tsx', import.meta.url), 'utf8');
-const css = readFileSync(new URL('../src/components/dashboard/AssetsTable.css', import.meta.url), 'utf8');
+const css = await compileModuleStyles('src/components/dashboard/AssetsTable.css');
 assert.match(component, /handleSort\('today'\)/);
 assert.match(component, /aria-sort=\{sortKey === 'today'/);
 assert.match(component, /compareKnownReturns\(a.latestChangePercent, b.latestChangePercent/);
-assert.match(css, /\.assets-table__table--show-details \.assets-table__name\s*\{[^}]*white-space: normal;[^}]*overflow-wrap: anywhere;/);
-assert.match(css, /\.assets-table__table--show-details \.assets-table__column--asset\s*\{ grid-column: 1 \/ -1;/);
+const fullName = css.match(/\.assets-table__table--show-details \.assets-table__name\s*\{([^}]*)\}/)?.[1] ?? '';
+assert.match(fullName, /white-space: normal;/);
+assert.match(fullName, /overflow-wrap: anywhere;/);
+assert.match(css, /\.assets-table__table--show-details \.assets-table__column--asset\s*\{\s*grid-column: 1 \/ -1;/);
 assert.doesNotMatch(css, /\.assets-table__table--show-details \.assets-table__today\s*\{[^}]*display: none/);
 console.log('Assets table passed: daily percentage sorting both ways, unavailable values last, full mobile names and visible daily variation in expanded mode. CSS checks are structural, not visual.');

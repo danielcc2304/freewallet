@@ -1,44 +1,35 @@
+@reference "../../styles/module-theme.css";
+
 .feature-log {
-    width: 100%;
-    max-width: var(--content-max-width, 100%);
-    margin: 0 auto;
+    @apply tw:w-full tw:max-w-[var(--content-max-width,_100%)] tw:m-[0_auto];
     animation: fadeIn var(--transition-base) ease-out;
 }
 
 .feature-log__header {
-    margin-bottom: var(--spacing-xl);
+    @apply tw:mb-ui-xl;
 }
 
 .feature-log__title-row {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
+    @apply tw:ui-row tw:gap-ui-md;
 }
 
 .feature-log__title-icon {
-    width: 56px;
-    height: 56px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--accent-primary);
+    @apply tw:w-[56px] tw:h-[56px] tw:ui-row tw:justify-center tw:text-accent;
     background: rgba(var(--accent-rgb), 0.12);
     border: 1px solid rgba(var(--accent-rgb), 0.2);
-    border-radius: var(--radius-md);
-    flex-shrink: 0;
+    @apply tw:rounded-control tw:shrink-[0];
 }
 
 .feature-log__eyebrow {
-    color: var(--accent-primary);
-    font-size: var(--font-size-sm);
+    @apply tw:text-accent tw:text-[length:var(--font-size-sm)];
     font-weight: 700;
-    margin: 0 0 var(--spacing-xs);
+    @apply tw:m-[0_0_var(--spacing-xs)];
 }
 
 .feature-log__title {
-    font-size: var(--font-size-4xl);
+    @apply tw:text-[length:var(--font-size-4xl)];
     font-weight: 700;
-    margin: 0;
+    @apply tw:m-[0];
     background: linear-gradient(135deg, var(--text-primary) 0%, var(--text-secondary) 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -46,150 +37,110 @@
 }
 
 .feature-log__subtitle {
-    color: var(--text-muted);
-    margin: var(--spacing-md) 0 0;
-    max-width: 680px;
+    @apply tw:text-muted tw:m-[var(--spacing-md)_0_0] tw:max-w-[680px];
 }
 
 .feature-log__summary {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-md);
-    flex-wrap: wrap;
-    margin-bottom: var(--spacing-xl);
+    @apply tw:ui-row tw:gap-ui-md tw:flex-wrap tw:mb-ui-xl;
 }
 
 .feature-log__summary-item {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: 0.65rem 0.8rem;
-    color: var(--text-secondary);
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
-    font-size: var(--font-size-sm);
+    @apply tw:inline-flex tw:items-center tw:gap-ui-sm tw:p-[0.65rem_0.8rem] tw:text-secondary tw:ui-fill-surface tw:ui-border tw:rounded-control tw:text-[length:var(--font-size-sm)];
     font-weight: 600;
 }
 
 .feature-log__entries {
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-lg);
+    @apply tw:ui-stack tw:gap-ui-lg;
 }
 
 .feature-log-entry {
-    background: var(--bg-card);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-xl);
+    @apply tw:ui-panel tw:p-ui-xl;
     box-shadow: var(--shadow-sm);
 }
 
 .feature-log-entry__meta {
-    display: flex;
-    align-items: center;
-    margin-bottom: var(--spacing-sm);
-    color: var(--text-muted);
-    font-size: var(--font-size-sm);
+    @apply tw:ui-row tw:mb-ui-sm tw:text-muted tw:text-[length:var(--font-size-sm)];
     font-weight: 700;
 }
 
 .feature-log-entry__title {
-    font-size: var(--font-size-2xl);
-    margin: 0 0 var(--spacing-lg);
+    @apply tw:text-[length:var(--font-size-2xl)] tw:m-[0_0_var(--spacing-lg)];
 }
 
 .feature-log-entry__section {
-    margin-top: var(--spacing-lg);
+    @apply tw:mt-ui-lg;
 }
 
 .feature-log-entry__section-title {
-    color: var(--text-primary);
-    font-size: var(--font-size-base);
-    margin: 0 0 var(--spacing-sm);
+    @apply tw:text-main tw:text-[length:var(--font-size-base)] tw:m-[0_0_var(--spacing-sm)];
 }
 
 .feature-log-entry__list {
     list-style: none;
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-sm);
+    @apply tw:ui-stack tw:gap-ui-sm;
 }
 
 .feature-log-entry__item {
-    position: relative;
-    padding-left: calc(1.2rem + var(--feature-log-indent, 0rem));
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+    @apply tw:relative tw:pl-[calc(1.2rem_+_var(--feature-log-indent,_0rem))] tw:text-secondary tw:text-[length:var(--font-size-sm)];
     line-height: 1.6;
 }
 
 .feature-log-entry__item::before {
     content: "";
-    position: absolute;
-    top: 0.72em;
-    left: var(--feature-log-indent, 0rem);
-    width: 6px;
-    height: 6px;
+    @apply tw:absolute tw:top-[0.72em] tw:left-[var(--feature-log-indent,_0rem)] tw:w-[6px] tw:h-[6px];
     background: var(--accent-primary);
-    border-radius: var(--radius-full);
+    @apply tw:rounded-[var(--radius-full)];
 }
 
 .feature-log-entry__item code {
-    padding: 0.1rem 0.35rem;
-    color: var(--accent-primary);
+    @apply tw:p-[0.1rem_0.35rem] tw:text-accent;
     background: rgba(var(--accent-rgb), 0.1);
     border: 1px solid rgba(var(--accent-rgb), 0.18);
-    border-radius: var(--radius-sm);
-    font-size: 0.85em;
+    @apply tw:rounded-[var(--radius-sm)] tw:text-[length:0.85em];
 }
 
 .feature-log-entry__files {
-    margin-top: var(--spacing-lg);
+    @apply tw:mt-ui-lg;
     border-top: 1px solid var(--border-primary);
-    padding-top: var(--spacing-md);
+    @apply tw:pt-ui-md;
 }
 
 .feature-log-entry__files summary {
-    color: var(--accent-primary);
-    font-size: var(--font-size-sm);
+    @apply tw:text-accent tw:text-[length:var(--font-size-sm)];
     font-weight: 700;
-    cursor: pointer;
+    @apply tw:cursor-pointer;
 }
 
 .feature-log-entry__files .feature-log-entry__section {
-    margin-top: var(--spacing-md);
+    @apply tw:mt-ui-md;
 }
 
 .feature-log-entry__files .feature-log-entry__section-title {
-    display: none;
+    @apply tw:hidden;
 }
 
 @media (max-width: 640px) {
     .feature-log__title-row {
-        align-items: flex-start;
+        @apply tw:items-start;
     }
 
     .feature-log__title-icon {
-        width: 48px;
-        height: 48px;
+        @apply tw:w-[48px] tw:h-[48px];
     }
 
     .feature-log__title {
-        font-size: var(--font-size-3xl);
+        @apply tw:text-[length:var(--font-size-3xl)];
     }
 
     .feature-log__summary {
-        align-items: stretch;
-        flex-direction: column;
+        @apply tw:items-stretch tw:flex-col;
     }
 
     .feature-log-entry {
-        padding: var(--spacing-lg);
+        @apply tw:p-ui-lg;
     }
 
     .feature-log-entry__title {
-        font-size: var(--font-size-xl);
+        @apply tw:text-[length:var(--font-size-xl)];
     }
 }

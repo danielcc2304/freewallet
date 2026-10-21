@@ -3,11 +3,16 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { assertPublicSupabaseEnvironment } from './src/services/supabaseConfig'
 import { globalAgent } from 'node:https'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   assertPublicSupabaseEnvironment({ ...loadEnv(mode, process.cwd(), 'VITE_'), ...process.env })
   return {
+  // Browser suites and visual baselines may use separate worktrees with one
+  // dependency installation. Keep their prebundles isolated from each other.
+  cacheDir: process.env.FREEWALLET_TEST_URL ? join(tmpdir(), 'freewallet-vite-tests', String(process.pid)) : undefined,
   plugins: [react(), tailwindcss()],
   server: {
     proxy: {

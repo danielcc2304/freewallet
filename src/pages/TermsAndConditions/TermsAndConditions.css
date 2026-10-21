@@ -1,145 +1,114 @@
+@reference "../../styles/module-theme.css";
+
 .terms {
-    min-height: calc(100vh - var(--header-height, 70px));
-    padding: 2rem;
-    background: var(--bg-primary);
+    @apply tw:min-h-[calc(100vh_-_var(--header-height,_70px))] tw:p-[2rem] tw:ui-fill-canvas;
 }
 
 .terms__back-fab {
-    position: fixed;
-    top: 1rem;
-    left: 1rem;
-    z-index: 99;
-    width: 44px;
-    height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    border: 1px solid var(--border-primary);
-    border-radius: 12px;
+    @apply tw:fixed tw:top-[1rem] tw:left-[1rem] tw:z-[99] tw:w-[44px] tw:h-[44px] tw:inline-flex tw:items-center tw:justify-center tw:ui-border tw:rounded-[12px];
     background: color-mix(in srgb, var(--bg-secondary) 86%, transparent);
     backdrop-filter: blur(10px);
-    color: var(--text-primary);
+    @apply tw:text-main;
     box-shadow: var(--shadow-md);
-    cursor: pointer;
+    @apply tw:cursor-pointer;
     transition: transform 0.2s ease, border-color 0.2s ease, background 0.2s ease, color 0.2s ease;
 }
 
 .terms__back-fab:hover {
     transform: translateY(-1px);
     border-color: var(--accent-primary);
-    color: var(--accent-primary);
-    background: var(--bg-tertiary);
+    @apply tw:text-accent tw:ui-fill-muted;
 }
 
 .terms__container {
-    max-width: 900px;
-    margin: 0 auto;
-    background: var(--bg-secondary);
-    border-radius: 16px;
-    padding: 3rem;
+    @apply tw:max-w-[900px] tw:m-[0_auto] tw:ui-fill-surface tw:rounded-[16px] tw:p-[3rem];
     box-shadow: var(--shadow-md);
 }
 
 .terms__title {
-    font-size: 2.5rem;
+    @apply tw:text-[length:2.5rem];
     font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
+    @apply tw:text-main tw:mb-[0.5rem];
 }
 
 .terms__updated {
-    color: var(--text-secondary);
-    font-size: 0.95rem;
-    margin-bottom: 2.5rem;
+    @apply tw:text-secondary tw:text-[length:0.95rem] tw:mb-[2.5rem];
     font-style: italic;
 }
 
 .terms__section {
-    margin-bottom: 2.5rem;
+    @apply tw:mb-[2.5rem];
 }
 
 .terms__section h2 {
-    font-size: 1.5rem;
+    @apply tw:text-[length:1.5rem];
     font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
+    @apply tw:text-main tw:mb-[1rem] tw:pb-[0.5rem];
     border-bottom: 2px solid var(--accent-primary);
 }
 
 .terms__section p {
-    color: var(--text-secondary);
+    @apply tw:text-secondary;
     line-height: 1.7;
-    margin-bottom: 1rem;
+    @apply tw:mb-[1rem];
 }
 
 .terms__section ul {
-    margin-left: 1.5rem;
-    margin-bottom: 1rem;
+    @apply tw:ml-[1.5rem] tw:mb-[1rem];
 }
 
 .terms__section li {
-    color: var(--text-secondary);
+    @apply tw:text-secondary;
     line-height: 1.7;
-    margin-bottom: 0.5rem;
+    @apply tw:mb-[0.5rem];
 }
 
 .terms__disclaimer {
     background: rgba(255, 193, 7, 0.1);
     border-left: 4px solid var(--warning-color, #ffc107);
-    padding: 1.25rem;
-    margin: 1.5rem 0;
-    border-radius: 8px;
+    @apply tw:p-[1.25rem] tw:m-[1.5rem_0] tw:rounded-[8px];
 }
 
 .terms__disclaimer strong {
     color: var(--warning-color, #ffc107);
-    display: block;
-    margin-bottom: 0.5rem;
-    font-size: 1.05rem;
+    @apply tw:block tw:mb-[0.5rem] tw:text-[length:1.05rem];
 }
 
 .terms__acknowledgment {
     background: rgba(var(--accent-rgb), 0.1);
     border: 2px solid var(--accent-primary);
-    border-radius: 12px;
-    padding: 1.5rem;
-    margin-top: 3rem;
-    text-align: center;
+    @apply tw:rounded-[12px] tw:p-[1.5rem] tw:mt-[3rem] tw:text-center;
 }
 
 .terms__acknowledgment p {
-    color: var(--text-primary);
-    font-size: 1.05rem;
-    margin: 0;
+    @apply tw:text-main tw:text-[length:1.05rem] tw:m-[0];
 }
 
 /* Responsive */
 @media (max-width: 768px) {
     .terms {
-        padding: 4.5rem 1rem 1rem;
+        @apply tw:p-[4.5rem_1rem_1rem];
     }
 
     .terms__back-fab {
-        top: 1rem;
-        left: 1rem;
+        @apply tw:top-[1rem] tw:left-[1rem];
     }
 
     .terms__container {
-        padding: 1.5rem;
+        @apply tw:p-[1.5rem];
     }
 
     .terms__title {
-        font-size: 1.875rem;
+        @apply tw:text-[length:1.875rem];
     }
 
     .terms__section h2 {
-        font-size: 1.25rem;
+        @apply tw:text-[length:1.25rem];
     }
 }
 
 @media (max-width: 1024px) {
     .terms__back-fab {
-        left: 1rem;
+        @apply tw:left-[1rem];
     }
 }

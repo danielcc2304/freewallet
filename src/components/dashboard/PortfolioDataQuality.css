@@ -1,19 +1,11 @@
+@reference "../../styles/module-theme.css";
 .portfolio-data-quality {
-    display: flex;
-    align-items: center;
-    gap: .6rem;
-    padding: .35rem .8rem;
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
-    background: var(--bg-secondary);
-    color: var(--text-secondary);
-    margin: .75rem 0;
-    font-size: .85rem;
+    @apply tw:ui-row tw:gap-[.6rem] tw:p-[.35rem_.8rem] tw:ui-border tw:rounded-control tw:ui-fill-surface tw:text-secondary tw:m-[.75rem_0] tw:text-[length:.85rem];
 }
-.portfolio-data-quality > svg { flex-shrink: 0; color: var(--accent-primary); }
-.portfolio-data-quality__label { flex: 1; min-width: 0; }
-.portfolio-data-quality__content { font-size: .85rem; overflow-wrap: anywhere; }
-.portfolio-data-quality__content p, .portfolio-data-quality__content li { margin-top: .5rem; }
-.portfolio-data-quality__content h3 { margin-top: 1rem; font-size: .9rem; }
-.portfolio-data-quality__content ul { padding-left: 1.25rem; }
+.portfolio-data-quality > svg { @apply tw:shrink-[0] tw:text-accent; }
+.portfolio-data-quality__label { @apply tw:flex-[1] tw:min-w-[0]; }
+.portfolio-data-quality__content { @apply tw:text-[length:.85rem] tw:wrap-anywhere; }
+.portfolio-data-quality__content p, .portfolio-data-quality__content li { @apply tw:mt-[.5rem]; }
+.portfolio-data-quality__content h3 { @apply tw:mt-[1rem] tw:text-[length:.9rem]; }
+.portfolio-data-quality__content ul { @apply tw:pl-[1.25rem]; }
 html[data-appearance='liquid-glass'] .portfolio-data-quality { background: var(--glass-content); border-color: var(--glass-edge-soft); box-shadow: inset 0 1px 0 var(--glass-edge-bright); }

@@ -1,52 +1,40 @@
+@reference "../../../styles/module-theme.css";
+
 .tax-info {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 1.5rem 4rem;
+    @apply tw:max-w-[900px] tw:m-[0_auto] tw:p-[0_1.5rem_4rem];
     container-type: inline-size;
-    overflow-wrap: anywhere;
+    @apply tw:wrap-anywhere;
 }
 
 .tax-info__header {
-    margin-bottom: 3rem;
-    text-align: center;
+    @apply tw:mb-[3rem] tw:text-center;
 }
 
 .tax-info__title {
-    font-size: 2.5rem;
+    @apply tw:text-[length:2.5rem];
     font-weight: 800;
-    color: var(--text-primary);
-    margin-bottom: 1rem;
+    @apply tw:text-main tw:mb-[1rem];
 }
 
 .tax-info__subtitle {
-    font-size: 1.125rem;
-    color: var(--text-secondary);
+    @apply tw:text-[length:1.125rem] tw:text-secondary;
     line-height: 1.6;
-    max-width: 700px;
-    margin: 0 auto;
+    @apply tw:max-w-[700px] tw:m-[0_auto];
 }
 
 .tax-info__section-title {
-    font-size: 1.75rem;
+    @apply tw:text-[length:1.75rem];
     font-weight: 700;
-    margin: 3.5rem 0 1.5rem;
-    color: var(--text-primary);
+    @apply tw:m-[3.5rem_0_1.5rem] tw:text-main;
 }
 
 /* Brackets Grid */
 .tax-info__brackets-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
-    gap: 1rem;
-    margin-top: 1.5rem;
+    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(min(100%,_160px),_1fr))] tw:gap-[1rem] tw:mt-[1.5rem];
 }
 
 .tax-info .bracket-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    padding: 1.5rem;
-    border-radius: 12px;
-    text-align: center;
+    @apply tw:ui-fill-surface tw:ui-border-default tw:p-[1.5rem] tw:rounded-[12px] tw:text-center;
     transition: transform 0.2s;
 }
 
@@ -56,151 +44,101 @@
 }
 
 .tax-info .bracket-range {
-    display: block;
-    font-size: 0.8rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.5rem;
+    @apply tw:block tw:text-[length:0.8rem] tw:text-secondary tw:mb-[0.5rem];
     font-weight: 600;
 }
 
 .tax-info .bracket-rate {
-    font-size: 1.5rem;
+    @apply tw:text-[length:1.5rem];
     font-weight: 800;
-    color: var(--accent-primary);
+    @apply tw:text-accent;
 }
 
 .tax-info .bracket-card.highlight .bracket-range {
-    color: var(--text-primary);
-    opacity: 0.85;
+    @apply tw:text-main tw:opacity-[0.85];
 }
 
 
 /* Compensation Card */
 .tax-info__card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 2rem;
+    @apply tw:ui-fill-surface tw:ui-border-default tw:rounded-[20px] tw:p-[2rem];
 }
 
 .tax-info__card-header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1rem;
+    @apply tw:ui-row tw:gap-[1rem] tw:mb-[1rem];
 }
 
 .tax-info__card-header .icon {
-    color: var(--accent-primary);
+    @apply tw:text-accent;
 }
 
 .tax-info__card-header h3 {
-    margin: 0;
-    font-size: 1.25rem;
+    @apply tw:m-[0] tw:text-[length:1.25rem];
     font-weight: 700;
 }
 
 .tax-info .compensation-viz {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 1.5rem;
-    margin-top: 2rem;
-    padding: 1.5rem;
-    background: var(--bg-tertiary);
-    border-radius: 12px;
+    @apply tw:ui-row tw:justify-center tw:gap-[1.5rem] tw:mt-[2rem] tw:p-[1.5rem] tw:ui-fill-muted tw:rounded-[12px];
 }
 
 .tax-info .viz-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 0.5rem;
+    @apply tw:ui-stack tw:items-center tw:gap-[0.5rem];
     font-weight: 700;
-    font-size: 1rem;
+    @apply tw:text-[length:1rem];
 }
 
 .tax-info .viz-operator {
-    font-size: 1.5rem;
+    @apply tw:text-[length:1.5rem];
     font-weight: 800;
-    color: var(--text-secondary);
+    @apply tw:text-secondary;
 }
 
 .tax-info .viz-item.result {
     color: #10b981;
     background: rgba(16, 185, 129, 0.1);
-    padding: 0.75rem 1.25rem;
-    border-radius: 8px;
+    @apply tw:p-[0.75rem_1.25rem] tw:rounded-[8px];
 }
 
 /* Comparison Section */
 .tax-info__two-cols {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1.5rem;
+    @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[1.5rem];
 }
 
 .tax-info .comparison-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 20px;
-    padding: 2rem;
+    @apply tw:ui-fill-surface tw:ui-border-default tw:rounded-[20px] tw:p-[2rem];
 }
 
 .tax-info .comparison-card .header {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    color: var(--accent-primary);
+    @apply tw:ui-row tw:gap-[1rem] tw:mb-[1.5rem] tw:text-accent;
 }
 
 .tax-info .comparison-card .header h3 {
-    margin: 0;
-    font-size: 1.35rem;
+    @apply tw:m-[0] tw:text-[length:1.35rem];
     font-weight: 800;
-    color: var(--text-primary);
+    @apply tw:text-main;
 }
 
 .tax-info .comparison-card ul {
     list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    @apply tw:p-[0] tw:m-[0] tw:ui-stack tw:gap-[1rem];
 }
 
 .tax-info .comparison-card li {
-    font-size: 0.95rem;
-    color: var(--text-secondary);
+    @apply tw:text-[length:0.95rem] tw:text-secondary;
     line-height: 1.5;
 }
 
 .tax-info .comparison-card li strong {
-    color: var(--text-primary);
-    display: block;
-    margin-bottom: 0.25rem;
+    @apply tw:text-main tw:block tw:mb-[0.25rem];
 }
 
 /* Two clearly separated tools: investment taxes and employment income. */
 .tax-info__tools-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
+    @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[1rem];
 }
 
 .tax-info__tool-card {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: .75rem;
-    min-width: 0;
-    padding: 1.5rem;
-    border: 1px solid var(--border-color);
-    border-radius: 18px;
-    background: var(--bg-secondary);
-    color: var(--text-primary);
+    @apply tw:ui-stack tw:items-start tw:gap-[.75rem] tw:min-w-[0] tw:p-[1.5rem] tw:ui-border-default tw:rounded-[18px] tw:ui-fill-surface tw:text-main;
     text-decoration: none;
     transition: border-color .2s;
 }
@@ -208,41 +146,29 @@
 .tax-info__tool-card:hover { border-color: var(--accent-primary); }
 .tax-info__tool-card:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 4px; }
 .tax-info__tool-icon {
-    display: grid;
-    place-items: center;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    color: var(--accent-primary);
+    @apply tw:grid tw:place-items-center tw:w-[44px] tw:h-[44px] tw:rounded-[12px] tw:text-accent;
     background: rgba(var(--accent-rgb), .1);
 }
-.tax-info__tool-category { font-size: .8rem; font-weight: 600; color: var(--text-secondary); }
-.tax-info__tool-card h3 { margin: 0; font-size: 1.2rem; line-height: 1.35; }
-.tax-info__tool-card p { margin: 0 0 .25rem; color: var(--text-secondary); font-size: .95rem; line-height: 1.65; }
+.tax-info__tool-category { @apply tw:text-[length:.8rem]; font-weight: 600; @apply tw:text-secondary; }
+.tax-info__tool-card h3 { @apply tw:m-[0] tw:text-[length:1.2rem]; line-height: 1.35; }
+.tax-info__tool-card p { @apply tw:m-[0_0_.25rem] tw:text-secondary tw:text-[length:.95rem]; line-height: 1.65; }
 .tax-info__tool-action {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    min-height: 44px;
-    margin-top: auto;
-    color: var(--accent-primary);
-    font-size: .9rem;
+    @apply tw:ui-row tw:gap-[.5rem] tw:min-h-[44px] tw:mt-[auto] tw:text-accent tw:text-[length:.9rem];
     font-weight: 700;
 }
-.tax-info__tool-action svg { flex-shrink: 0; }
+.tax-info__tool-action svg { @apply tw:shrink-[0]; }
 
 @media (max-width: 768px) {
     .tax-info__title {
-        font-size: 1.85rem;
+        @apply tw:text-[length:1.85rem];
     }
 
     .tax-info__two-cols {
-        grid-template-columns: 1fr;
+        @apply tw:grid-cols-[1fr];
     }
 
     .tax-info .compensation-viz {
-        flex-direction: column;
-        gap: 1rem;
+        @apply tw:flex-col tw:gap-[1rem];
     }
 
 
@@ -250,18 +176,18 @@
 
 @media (max-width: 480px) {
     .tax-info__title {
-        font-size: 1.6rem;
+        @apply tw:text-[length:1.6rem];
     }
 }
-.tax-info > section > p { color: var(--text-secondary); line-height: 1.7; }
-.tax-info .tax-info__card > p { color: var(--text-secondary); line-height: 1.7; }
-.tax-info__section-title { font-size: clamp(1.2rem, 2.3vw, 1.6rem); line-height: 1.35; margin-top: 2.5rem; }
-.tax-info :is(.tax-info__card, .comparison-card) { padding: clamp(1rem, 2.5vw, 1.5rem); }
-.tax-info :is(.tax-info__card-header, .comparison-card .header) { align-items: flex-start; }
-.tax-info :is(.tax-info__card-header, .comparison-card .header) > svg { flex-shrink: 0; }
+.tax-info > section > p { @apply tw:text-secondary; line-height: 1.7; }
+.tax-info .tax-info__card > p { @apply tw:text-secondary; line-height: 1.7; }
+.tax-info__section-title { @apply tw:text-[length:clamp(1.2rem,_2.3vw,_1.6rem)]; line-height: 1.35; @apply tw:mt-[2.5rem]; }
+.tax-info :is(.tax-info__card, .comparison-card) { @apply tw:p-[clamp(1rem,_2.5vw,_1.5rem)]; }
+.tax-info :is(.tax-info__card-header, .comparison-card .header) { @apply tw:items-start; }
+.tax-info :is(.tax-info__card-header, .comparison-card .header) > svg { @apply tw:shrink-[0]; }
 
 @container (max-width: 620px) {
-    .tax-info__tools-grid, .tax-info__two-cols { grid-template-columns: 1fr; }
-    .tax-info .compensation-viz { flex-direction: column; gap: .75rem; padding: 1rem; }
-    .tax-info__tool-card { padding: 1.25rem; }
+    .tax-info__tools-grid, .tax-info__two-cols { @apply tw:grid-cols-[1fr]; }
+    .tax-info .compensation-viz { @apply tw:flex-col tw:gap-[.75rem] tw:p-[1rem]; }
+    .tax-info__tool-card { @apply tw:p-[1.25rem]; }
 }

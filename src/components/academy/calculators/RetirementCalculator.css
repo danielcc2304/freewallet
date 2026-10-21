@@ -1,82 +1,61 @@
+@reference "../../../styles/module-theme.css";
+
 .retirement {
-    max-width: 1200px;
-    margin: 0 auto;
+    @apply tw:max-w-[1200px] tw:m-[0_auto];
 }
 
 .retirement__header {
-    margin-bottom: 2.5rem;
-    padding-bottom: 2rem;
+    @apply tw:mb-[2.5rem] tw:pb-[2rem];
     border-bottom: 1px solid var(--border-color);
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 2rem;
+    @apply tw:flex tw:justify-between tw:items-start tw:gap-[2rem];
 }
 
 .retirement__title-group {
-    display: flex;
-    align-items: center;
-    gap: 1.5rem;
+    @apply tw:ui-row tw:gap-[1.5rem];
 }
 
 .retirement__title-icon {
-    min-width: 54px;
-    width: 54px;
-    height: 54px;
-    padding: 10px;
+    @apply tw:min-w-[54px] tw:w-[54px] tw:h-[54px] tw:p-[10px];
     background: rgba(139, 92, 246, 0.1);
     color: #8b5cf6;
-    border-radius: 12px;
+    @apply tw:rounded-[12px];
 }
 
 .retirement__title {
-    font-size: 2rem;
+    @apply tw:text-[length:2rem];
     font-weight: 800;
-    color: var(--text-primary);
-    margin: 0;
+    @apply tw:text-main tw:m-[0];
 }
 
 .retirement__subtitle {
-    font-size: 1.1rem;
-    color: var(--text-secondary);
-    margin: 0.25rem 0 0 0;
+    @apply tw:text-[length:1.1rem] tw:text-secondary tw:m-[0.25rem_0_0_0];
     line-height: 1.5;
 }
 
 .retirement__summary-badge {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    padding: 0.75rem 1.25rem;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
+    @apply tw:ui-fill-surface tw:ui-border-default tw:rounded-[12px] tw:p-[0.75rem_1.25rem] tw:ui-stack tw:items-end;
 }
 
 .retirement__summary-label {
-    font-size: 0.75rem;
+    @apply tw:text-[length:0.75rem];
     font-weight: 600;
-    color: var(--text-secondary);
+    @apply tw:text-secondary;
     text-transform: uppercase;
 }
 
 .retirement__summary-value {
-    font-size: 1.5rem;
+    @apply tw:text-[length:1.5rem];
     font-weight: 800;
-    color: var(--accent-primary);
+    @apply tw:text-accent;
 }
 
 .retirement__grid {
-    display: grid;
-    grid-template-columns: 320px 1fr;
-    gap: 2.5rem;
+    @apply tw:grid tw:grid-cols-[320px_1fr] tw:gap-[2.5rem];
 }
 
 /* Inputs Sidebar */
 .retirement__inputs {
-    display: flex;
-    flex-direction: column;
-    gap: 2rem;
+    @apply tw:ui-stack tw:gap-[2rem];
 }
 
 .retirement__input-section {
@@ -85,34 +64,28 @@
 }
 
 .retirement__section-header {
-    font-size: 1.375rem;
+    @apply tw:text-[length:1.375rem];
     font-weight: 600;
-    color: var(--text-primary);
-    margin: 0 0 1.5rem 0;
+    @apply tw:text-main tw:m-[0_0_1.5rem_0];
 }
 
 .retirement__input-row {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1rem;
+    @apply tw:grid tw:grid-cols-[1fr_1fr] tw:gap-[1rem];
 }
 
 .retirement__input-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
+    @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[1rem];
     align-items: end;
 }
 
 .retirement__input-grid:not(.retirement__input-grid--stacked) .calc__input-group label {
-    display: block;
-    min-height: 2.2rem;
+    @apply tw:block tw:min-h-[2.2rem];
     /* ajusta: 2.0–2.6 según tu font-size */
     line-height: 1.1;
 }
 
 .retirement__input-grid--stacked .calc__input-wrapper {
-    min-width: 0;
+    @apply tw:min-w-[0];
 }
 
 .retirement__note {
@@ -120,37 +93,28 @@
     --calculator-card-border: rgba(59, 130, 246, 0.1);
     --calculator-card-padding: 0.95rem 1rem;
     --calculator-card-radius: 12px;
-    display: flex;
-    gap: 0.75rem;
-    align-items: flex-start;
+    @apply tw:flex tw:gap-[0.75rem] tw:items-start;
 }
 
 .retirement__note p {
-    font-size: 0.85rem;
-    margin: 0;
-    color: var(--text-secondary);
+    @apply tw:text-[length:0.85rem] tw:m-[0] tw:text-secondary;
     line-height: 1.4;
 }
 
 .retirement__note svg {
     color: #3b82f6;
-    flex-shrink: 0;
+    @apply tw:shrink-[0];
 }
 
 /* Main Content */
 .retirement__metrics {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-    margin-bottom: 2rem;
+    @apply tw:grid tw:grid-cols-[1fr_1fr] tw:gap-[1.5rem] tw:mb-[2rem];
 }
 
 .retirement__metric-card {
     --calculator-card-padding: 1.25rem;
     --calculator-card-radius: 16px;
-    display: flex;
-    align-items: center;
-    gap: 1.25rem;
+    @apply tw:ui-row tw:gap-[1.25rem];
     transition: transform 0.2s ease;
 }
 
@@ -164,9 +128,7 @@
 }
 
 .retirement__metric-icon {
-    width: 32px;
-    height: 32px;
-    color: var(--text-secondary);
+    @apply tw:w-[32px] tw:h-[32px] tw:text-secondary;
 }
 
 .retirement__metric-card--highlight .retirement__metric-icon {
@@ -174,73 +136,60 @@
 }
 
 .retirement__metric-info {
-    display: flex;
-    flex-direction: column;
+    @apply tw:ui-stack;
 }
 
 .retirement__metric-label {
-    font-size: 0.8rem;
+    @apply tw:text-[length:0.8rem];
     font-weight: 700;
-    color: var(--text-secondary);
+    @apply tw:text-secondary;
     text-transform: uppercase;
 }
 
 .retirement__metric-value {
-    font-size: 1.75rem;
+    @apply tw:text-[length:1.75rem];
     font-weight: 800;
-    color: var(--text-primary);
+    @apply tw:text-main;
 }
 
 .retirement__metric-desc {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin: 0;
+    @apply tw:text-[length:0.75rem] tw:text-secondary tw:m-[0];
 }
 
 .retirement__chart-box {
     --calculator-card-padding: 1.75rem;
     --calculator-card-radius: 16px;
-    margin-bottom: 2rem;
+    @apply tw:mb-[2rem];
 }
 
 @media (max-width: 640px) {
     .retirement__chart-box {
-        padding: 1rem 0.5rem;
+        @apply tw:p-[1rem_0.5rem];
     }
 }
 
 .retirement__chart-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
+    @apply tw:ui-row tw:justify-between tw:mb-[1.5rem];
 }
 
 .retirement__chart-title {
-    font-size: 1.1rem;
+    @apply tw:text-[length:1.1rem];
     font-weight: 700;
-    margin: 0;
+    @apply tw:m-[0];
 }
 
 .retirement__chart-legend {
-    display: flex;
-    gap: 1.5rem;
-    margin-bottom: 1.5rem;
+    @apply tw:flex tw:gap-[1.5rem] tw:mb-[1.5rem];
 }
 
 .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.85rem;
+    @apply tw:ui-row tw:gap-[0.5rem] tw:text-[length:0.85rem];
     font-weight: 600;
-    color: var(--text-secondary);
+    @apply tw:text-secondary;
 }
 
 .dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+    @apply tw:w-[10px] tw:h-[10px] tw:rounded-[50%];
 }
 
 .dot.nominal {
@@ -255,49 +204,37 @@
     --calculator-card-bg: var(--bg-tertiary);
     --calculator-card-padding: 1.25rem;
     --calculator-card-radius: 16px;
-    display: flex;
-    gap: 1.25rem;
-    align-items: center;
+    @apply tw:ui-row tw:gap-[1.25rem];
 }
 
 .retirement__insight-icon {
     color: #10b981;
-    width: 24px;
-    height: 24px;
-    flex-shrink: 0;
+    @apply tw:w-[24px] tw:h-[24px] tw:shrink-[0];
 }
 
 .retirement__insight-content h4 {
-    margin: 0 0 0.5rem 0;
-    font-size: 1rem;
+    @apply tw:m-[0_0_0.5rem_0] tw:text-[length:1rem];
     font-weight: 700;
 }
 
 .retirement__insight-content p {
-    margin: 0;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
+    @apply tw:m-[0] tw:text-[length:0.9rem] tw:text-secondary;
     line-height: 1.5;
 }
 
 /* Tooltip */
 .retirement-tooltip {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-color);
-    padding: 1rem;
-    border-radius: 12px;
+    @apply tw:ui-fill-surface tw:ui-border-default tw:p-[1rem] tw:rounded-[12px];
     box-shadow: var(--shadow-lg);
 }
 
 .retirement-tooltip__label {
     font-weight: 800;
-    margin-bottom: 0.75rem;
-    color: var(--text-primary);
+    @apply tw:mb-[0.75rem] tw:text-main;
 }
 
 .retirement-tooltip__value {
-    font-size: 0.85rem;
-    margin: 0.25rem 0;
+    @apply tw:text-[length:0.85rem] tw:m-[0.25rem_0];
     font-weight: 600;
 }
 
@@ -312,28 +249,23 @@
 /* Responsive */
 @media (max-width: 1024px) {
     .retirement__grid {
-        grid-template-columns: 1fr;
+        @apply tw:grid-cols-[1fr];
     }
 }
 
 @media (max-width: 768px) {
     .retirement__header {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 1.5rem;
+        @apply tw:flex-col tw:items-start tw:gap-[1.5rem];
     }
 
     .retirement__summary-badge {
-        align-items: flex-start;
-        width: 100%;
-        margin-top: 0.5rem;
+        @apply tw:items-start tw:w-full tw:mt-[0.5rem];
     }
 
     .retirement__metrics {
-        grid-template-columns: 1fr;
+        @apply tw:grid-cols-[1fr];
     }
 }
 .retirement__input-grid--stacked {
-    grid-template-columns: 1fr;
-    gap: 0;
+    @apply tw:grid-cols-[1fr] tw:gap-[0];
 }

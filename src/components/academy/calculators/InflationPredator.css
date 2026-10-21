@@ -1,25 +1,21 @@
+@reference "../../../styles/module-theme.css";
+
 .inflation-predator {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 0 1rem 5rem;
-    box-sizing: border-box;
-    overflow-x: clip;
+    @apply tw:max-w-[900px] tw:m-[0_auto] tw:p-[0_1rem_5rem] tw:box-border tw:overflow-x-clip;
 }
 
 .inflation-predator__hero {
-    text-align: center;
-    margin-bottom: 3.5rem;
-    padding: 3rem 2rem;
+    @apply tw:text-center tw:mb-[3.5rem] tw:p-[3rem_2rem];
     background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-    border-radius: 32px;
+    @apply tw:rounded-[32px];
     color: white;
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .inflation-predator__hero h1 {
-    font-size: 2.5rem;
+    @apply tw:text-[length:2.5rem];
     font-weight: 800;
-    margin-bottom: 1rem;
+    @apply tw:mb-[1rem];
     background: linear-gradient(to right, #fb7185, #f43f5e);
     -webkit-background-clip: text;
     background-clip: text;
@@ -27,77 +23,46 @@
 }
 
 .inflation-predator__hero p {
-    font-size: 1.1rem;
-    opacity: 0.8;
-    max-width: 600px;
-    margin: 0 auto;
+    @apply tw:text-[length:1.1rem] tw:opacity-[0.8] tw:max-w-[600px] tw:m-[0_auto];
 }
 
 .inflation-predator__grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr);
-    gap: 2.5rem;
+    @apply tw:grid tw:grid-cols-[minmax(0,_1fr)_minmax(0,_1.5fr)] tw:gap-[2.5rem];
     align-items: start;
 }
 
 /* Controls */
 .inflation-predator__controls {
-    background: var(--bg-secondary);
-    width: 100%;
-    min-width: 0;
-    padding: 2.5rem;
-    border-radius: 24px;
-    border: 1px solid var(--border-color);
+    @apply tw:ui-fill-surface tw:w-full tw:min-w-[0] tw:p-[2.5rem] tw:rounded-[24px] tw:ui-border-default;
     box-shadow: var(--shadow-md);
-    height: fit-content;
-    position: sticky;
-    top: 2rem;
+    @apply tw:h-[fit-content] tw:sticky tw:top-[2rem];
 }
 
 /* Visualizer */
 .inflation-predator__visualizer {
-    background: var(--bg-secondary);
-    width: 100%;
-    min-width: 0;
-    padding: 2.5rem;
-    border-radius: 24px;
-    border: 1px solid var(--border-color);
-    text-align: center;
-    position: relative;
-    min-height: 450px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
+    @apply tw:ui-fill-surface tw:w-full tw:min-w-[0] tw:p-[2.5rem] tw:rounded-[24px] tw:ui-border-default tw:text-center tw:relative tw:min-h-[450px] tw:ui-stack tw:justify-center;
 }
 
 .money-display {
-    position: relative;
-    width: 200px;
-    height: 120px;
-    margin: 0 auto 4rem;
+    @apply tw:relative tw:w-[200px] tw:h-[120px] tw:m-[0_auto_4rem];
     perspective: 1000px;
 }
 
 .bill-stack {
-    width: 100%;
-    height: 100%;
+    @apply tw:w-full tw:h-full;
     background: #10b981;
-    border-radius: 8px;
-    position: relative;
+    @apply tw:rounded-[8px] tw:relative;
     box-shadow: 0 4px 0 #059669, 0 8px 0 #059669, 0 12px 0 #059669;
     transition: all 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    @apply tw:ui-row tw:justify-center;
     color: white;
     font-weight: 900;
-    font-size: 1.5rem;
+    @apply tw:text-[length:1.5rem];
 }
 
 .bill-stack::after {
     content: '€';
-    font-size: 3rem;
-    opacity: 0.2;
+    @apply tw:text-[length:3rem] tw:opacity-[0.2];
 }
 
 .bill-stack--predated {
@@ -106,19 +71,16 @@
 }
 
 .ghost-overlay {
-    position: absolute;
-    top: -60px;
-    left: 50%;
+    @apply tw:absolute tw:top-[-60px] tw:left-[50%];
     transform: translateX(-50%);
     color: #f43f5e;
-    opacity: 0;
+    @apply tw:opacity-[0];
     transition: all 0.5s ease;
     animation: float 3s infinite ease-in-out;
 }
 
 .ghost-overlay--active {
-    opacity: 1;
-    top: -80px;
+    @apply tw:opacity-[1] tw:top-[-80px];
 }
 
 @keyframes float {
@@ -134,131 +96,104 @@
 }
 
 .visual-result {
-    margin-top: 2rem;
+    @apply tw:mt-[2rem];
 }
 
 .result-main {
-    font-size: 3rem;
+    @apply tw:text-[length:3rem];
     font-weight: 900;
-    color: var(--text-primary);
-    margin-bottom: 0.5rem;
+    @apply tw:text-main tw:mb-[0.5rem];
 }
 
 .result-sub {
-    font-size: 1.1rem;
-    color: var(--text-secondary);
+    @apply tw:text-[length:1.1rem] tw:text-secondary;
     font-weight: 500;
 }
 
 .loss-tag {
-    display: inline-block;
+    @apply tw:inline-block;
     background: rgba(244, 63, 94, 0.1);
     color: #f43f5e;
-    padding: 0.5rem 1rem;
-    border-radius: 100px;
+    @apply tw:p-[0.5rem_1rem] tw:rounded-[100px];
     font-weight: 800;
-    margin-top: 1.5rem;
+    @apply tw:mt-[1.5rem];
     border: 1px solid rgba(244, 63, 94, 0.2);
 }
 
 .inflation-info {
-    margin-top: 3rem;
+    @apply tw:mt-[3rem];
     background: rgba(var(--accent-rgb), 0.05);
-    padding: 2rem;
-    border-radius: 20px;
+    @apply tw:p-[2rem] tw:rounded-[20px];
     border-left: 4px solid var(--accent-primary);
 }
 
 .inflation-info h3 {
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
+    @apply tw:mb-[1rem] tw:ui-row tw:gap-[0.75rem];
 }
 
 .inflation-info p {
-    color: var(--text-secondary);
+    @apply tw:text-secondary;
     line-height: 1.6;
 }
 
 .inflation-predator__cta-box {
-    margin-top: 3rem;
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 1.5rem;
+    @apply tw:mt-[3rem] tw:ui-row tw:flex-wrap tw:gap-[1.5rem];
     background: rgba(var(--accent-rgb), 0.05);
-    padding: 1.5rem;
-    border-radius: 16px;
-    text-align: left;
-    min-width: 0;
+    @apply tw:p-[1.5rem] tw:rounded-[16px] tw:text-left tw:min-w-[0];
 }
 
 .cta-text {
-    min-width: 0;
-    flex: 1 1 220px;
+    @apply tw:min-w-[0] tw:flex-[1_1_220px];
 }
 
 .cta-text h4 {
-    margin: 0 0 0.25rem 0;
-    font-size: 1.1rem;
+    @apply tw:m-[0_0_0.25rem_0] tw:text-[length:1.1rem];
 }
 
 .cta-text p {
-    margin: 0;
-    font-size: 0.9rem;
-    color: var(--text-secondary);
+    @apply tw:m-[0] tw:text-[length:0.9rem] tw:text-secondary;
 }
 
 .inflation-predator__cta-box .quiz-button {
-    margin-left: auto;
-    white-space: nowrap;
-    max-width: 100%;
+    @apply tw:ml-[auto] tw:whitespace-nowrap tw:max-w-full;
 }
 
 @media (max-width: 850px) {
     .inflation-predator__grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
+        @apply tw:grid-cols-[1fr] tw:gap-[2rem];
     }
 
     .inflation-predator__controls {
-        position: static;
-        padding: 1.5rem;
+        @apply tw:static tw:p-[1.5rem];
     }
 
     .inflation-predator__visualizer {
-        padding: 1.5rem;
-        min-height: auto;
+        @apply tw:p-[1.5rem] tw:min-h-[auto];
     }
 }
 
 @media (max-width: 600px) {
     .inflation-predator {
-        padding: 0 1rem 4rem;
+        @apply tw:p-[0_1rem_4rem];
     }
 
     .inflation-predator__hero {
-        padding: 2rem 1rem;
-        border-radius: 24px;
+        @apply tw:p-[2rem_1rem] tw:rounded-[24px];
     }
 
     .inflation-predator__hero h1 {
-        font-size: 1.75rem;
+        @apply tw:text-[length:1.75rem];
     }
 
     .result-main {
-        font-size: 2.25rem;
+        @apply tw:text-[length:2.25rem];
     }
 
     .inflation-predator__cta-box {
-        flex-direction: column;
-        text-align: center;
-        gap: 1.25rem;
+        @apply tw:flex-col tw:text-center tw:gap-[1.25rem];
     }
 
     .inflation-predator__cta-box .quiz-button {
-        margin-left: 0;
-        width: 100%;
+        @apply tw:ml-[0] tw:w-full;
     }
 }

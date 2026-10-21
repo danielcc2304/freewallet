@@ -1,15 +1,11 @@
+@reference "../../styles/module-theme.css";
+
 .version-notice__actions {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: var(--spacing-sm);
-    margin-top: var(--spacing-lg);
-    padding-top: var(--spacing-md);
+    @apply tw:flex tw:flex-wrap tw:justify-end tw:gap-ui-sm tw:mt-ui-lg tw:pt-ui-md;
     border-top: 1px solid var(--border-color);
 }
 
 .version-notice__actions > .btn {
-    flex: 1 1 120px;
-    min-height: 44px;
+    @apply tw:flex-[1_1_120px] tw:min-h-[44px];
     text-decoration: none;
 }

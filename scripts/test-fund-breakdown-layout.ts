@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
+import { compileModuleStyles } from './helpers/compileModuleStyles';
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 const source = read('src/components/dashboard/PortfolioComposition.tsx');
@@ -35,15 +36,15 @@ for(const detail of fundDetails){
     assert.ok(!detail.openingElement.attributes.properties.some(p=>ts.isJsxAttribute(p)&&p.name.getText(tree)==='open'),'Fund disclosures start closed');
     assert.ok(detail.children.some(n=>ts.isJsxElement(n)&&n.openingElement.tagName.getText(tree)==='summary'),'A fund disclosure has an accessible summary');
 }
-const css = read('src/components/dashboard/PortfolioComposition.css');
-assert.match(css, /\.portfolio-composition__consolidated \{ grid-column: 1 \/ -1;/);
-assert.match(css, /\.portfolio-composition__distributions \{ grid-column: 1 \/ -1;/);
+const css = await compileModuleStyles('src/components/dashboard/PortfolioComposition.css');
+assert.match(css, /\.portfolio-composition__consolidated \{\s*grid-column: 1 \/ -1;/);
+assert.match(css, /\.portfolio-composition__distributions \{\s*grid-column: 1 \/ -1;/);
 assert.match(css, /grid-template-areas: "donut" "heatmap"/);
 assert.match(css, /summary:focus-visible/);
 const heatmap = read('src/components/charts/Heatmap.tsx');
 assert.match(heatmap, /flex: `\$\{child.weight\} 1 96px`/);
 assert.match(heatmap, /hoveredItem === child.id/);
-const heatmapCss = read('src/components/charts/Heatmap.css');
-assert.match(heatmapCss, /min-width: min\(96px, 100%\)/);
+const heatmapCss = await compileModuleStyles('src/components/charts/Heatmap.css');
+assert.match(heatmapCss, /min-width:\s*min\(96px,\s*100%\)/);
 assert.match(heatmapCss, /overflow-wrap: anywhere/);
 console.log('Fund breakdown structure passed: independent grid sections, accessible disclosures, mobile ordering, readable child cells and hover identity. This is not a browser visual test.');

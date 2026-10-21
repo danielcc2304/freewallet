@@ -1,16 +1,10 @@
+@reference "../../../styles/module-theme.css";
+
 .sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: var(--sidebar-width);
-    height: 100vh;
-    height: 100dvh;
-    max-height: 100dvh;
-    background: var(--bg-secondary);
+    @apply tw:fixed tw:top-[0] tw:left-[0] tw:w-[var(--sidebar-width)] tw:h-[100vh];
+    @apply tw:h-[100dvh] tw:max-h-[100dvh] tw:ui-fill-surface;
     border-right: 1px solid var(--border-primary);
-    display: flex;
-    flex-direction: column;
-    z-index: 100;
+    @apply tw:ui-stack tw:z-[100];
     transition: transform var(--transition-base);
 }
 
@@ -21,57 +15,42 @@
 }
 
 .sidebar-overlay {
-    display: none;
+    @apply tw:hidden;
 }
 
 /* Header */
 .sidebar__header {
-    flex-shrink: 0;
-    padding: var(--spacing-lg);
+    @apply tw:shrink-[0] tw:p-ui-lg;
     border-bottom: 1px solid var(--border-primary);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    @apply tw:ui-row tw:justify-between;
 }
 
 .sidebar__logo {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
+    @apply tw:ui-row tw:gap-ui-sm;
 }
 
 .sidebar__logo-icons {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 32px;
-    height: 32px;
+    @apply tw:relative tw:ui-row tw:w-[32px] tw:h-[32px];
 }
 
 .sidebar__logo-icon {
-    color: var(--accent-primary);
-    width: 24px;
-    height: 24px;
+    @apply tw:text-accent tw:w-[24px] tw:h-[24px];
 }
 
 .sidebar__logo-icon--wallet {
-    z-index: 1;
+    @apply tw:z-[1];
 }
 
 .sidebar__logo-icon--feather {
-    position: absolute;
-    top: -4px;
-    right: -4px;
-    width: 18px;
-    height: 18px;
+    @apply tw:absolute tw:top-[-4px] tw:right-[-4px] tw:w-[18px] tw:h-[18px];
     color: var(--accent-secondary);
     transform: rotate(15deg);
-    z-index: 2;
+    @apply tw:z-[2];
     filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.2));
 }
 
 .sidebar__logo-text {
-    font-size: var(--font-size-xl);
+    @apply tw:text-[length:var(--font-size-xl)];
     font-weight: 700;
     background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
     -webkit-background-clip: text;
@@ -81,24 +60,13 @@
 
 /* Navigation */
 .sidebar__nav {
-    flex: 1;
-    min-height: 0;
-    padding: var(--spacing-md);
-    display: flex;
-    flex-direction: column;
-    gap: var(--spacing-xs);
-    overflow-y: auto;
+    @apply tw:flex-[1] tw:min-h-[0] tw:p-ui-md tw:ui-stack tw:gap-ui-xs tw:overflow-y-auto;
 }
 
 .sidebar__link {
-    display: flex;
+    @apply tw:flex;
     /* Expanded groups should scroll the nav instead of compressing its links. */
-    flex-shrink: 0;
-    align-items: center;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
-    border-radius: var(--radius-md);
-    color: var(--text-secondary);
+    @apply tw:shrink-[0] tw:items-center tw:gap-ui-md tw:p-ui-md tw:rounded-control tw:text-secondary;
     text-decoration: none;
     font-weight: 500;
     transition:
@@ -109,40 +77,31 @@
         transform var(--transition-fast);
     border: none;
     background: none;
-    cursor: pointer;
-    font-size: inherit;
-    width: 100%;
-    text-align: left;
+    @apply tw:cursor-pointer tw:text-[length:inherit] tw:w-full tw:text-left;
 }
 
 .sidebar__link:hover {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
+    @apply tw:ui-fill-muted tw:text-main;
 }
 
 .sidebar__link--active {
-    background: var(--bg-tertiary);
-    color: var(--accent-primary);
+    @apply tw:ui-fill-muted tw:text-accent;
     box-shadow: inset 3px 0 0 var(--accent-primary);
 }
 
 .sidebar__link-icon {
-    flex-shrink: 0;
+    @apply tw:shrink-[0];
 }
 
 .sidebar__account-label {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-    min-width: 0;
+    @apply tw:ui-stack tw:gap-[0.2rem] tw:min-w-[0];
 }
 
 .sidebar__account-status {
-    font-size: var(--font-size-xs);
+    @apply tw:text-[length:var(--font-size-xs)];
     line-height: 1.4;
     font-weight: 400;
-    color: var(--text-secondary);
-    overflow-wrap: anywhere;
+    @apply tw:text-secondary tw:wrap-anywhere;
 }
 
 .sidebar__account-status--warning {
@@ -151,20 +110,17 @@
 
 /* Academy group */
 .sidebar__group {
-    display: flex;
-    flex-direction: column;
-    flex-shrink: 0;
+    @apply tw:ui-stack tw:shrink-[0];
 }
 
 .sidebar__group-toggle {
-    position: relative;
+    @apply tw:relative;
 }
 
 .sidebar__chevron {
-    margin-left: auto;
-    flex-shrink: 0;
+    @apply tw:ml-[auto] tw:shrink-[0];
     transition: transform 0.25s ease;
-    color: var(--text-muted);
+    @apply tw:text-muted;
 }
 
 .sidebar__chevron--open {
@@ -173,131 +129,102 @@
 
 /* Sub-navigation */
 .sidebar__sub-nav {
-    display: grid;
-    grid-template-rows: 0fr;
+    @apply tw:grid tw:grid-rows-[0fr];
     transition: grid-template-rows 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    overflow: hidden;
+    @apply tw:overflow-hidden;
 }
 
 .sidebar__sub-nav--open {
-    grid-template-rows: 1fr;
+    @apply tw:grid-rows-[1fr];
 }
 
 .sidebar__sub-nav-inner {
-    min-height: 0;
-    visibility: hidden;
-    opacity: 0;
+    @apply tw:min-h-[0] tw:invisible tw:opacity-[0];
     transform: translateY(-10px);
     transition: opacity 0.3s ease, transform 0.3s ease, visibility 0.3s ease;
 }
 
 .sidebar__sub-nav--open .sidebar__sub-nav-inner {
-    visibility: visible;
-    opacity: 1;
+    @apply tw:visible tw:opacity-[1];
     transform: translateY(0);
     transition-delay: 0.1s;
 }
 
 .sidebar__sub-group {
-    margin-top: 0.35rem;
+    @apply tw:mt-[0.35rem];
 }
 
 .sidebar__sub-group-title {
-    padding: 0.45rem 0.75rem 0.2rem 2.75rem;
-    font-size: 0.65rem;
+    @apply tw:p-[0.45rem_0.75rem_0.2rem_2.75rem] tw:text-[length:0.65rem];
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--text-muted);
+    @apply tw:text-muted;
     font-weight: 700;
 }
 
 .sidebar__sub-link {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    padding: 0.5rem 0.75rem 0.5rem 2.75rem;
-    color: var(--text-secondary);
+    @apply tw:ui-row tw:gap-ui-sm tw:p-[0.5rem_0.75rem_0.5rem_2.75rem] tw:text-secondary;
     text-decoration: none;
-    font-size: 0.875rem;
+    @apply tw:text-[length:0.875rem];
     font-weight: 400;
-    border-radius: var(--radius-sm);
+    @apply tw:rounded-[var(--radius-sm)];
     transition: background-color var(--transition-fast), color var(--transition-fast);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    @apply tw:whitespace-nowrap tw:overflow-hidden tw:text-ellipsis;
 }
 
 .sidebar__sub-link:hover {
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
+    @apply tw:ui-fill-muted tw:text-main;
 }
 
 .sidebar__sub-link--active {
-    color: var(--accent-primary);
+    @apply tw:text-accent;
     background: rgba(var(--accent-rgb, 99, 102, 241), 0.08);
     font-weight: 500;
 }
 
 .sidebar__sub-icon {
-    flex-shrink: 0;
-    opacity: 0.7;
+    @apply tw:shrink-[0] tw:opacity-[0.7];
 }
 
 .sidebar__sub-link--active .sidebar__sub-icon {
-    opacity: 1;
+    @apply tw:opacity-[1];
 }
 
 .sidebar__sub-text {
-    overflow: hidden;
-    text-overflow: ellipsis;
+    @apply tw:overflow-hidden tw:text-ellipsis;
 }
 
 /* Footer */
 .sidebar__footer {
-    flex-shrink: 0;
-    padding: var(--spacing-md);
-    padding-bottom: calc(var(--spacing-md) + env(safe-area-inset-bottom, 0px));
+    @apply tw:shrink-[0] tw:p-ui-md;
+    @apply tw:pb-[calc(var(--spacing-md)_+_env(safe-area-inset-bottom,_0px))];
     border-top: 1px solid var(--border-primary);
 }
 
 .sidebar__version {
-    display: block;
-    font-size: var(--font-size-xs);
-    color: var(--text-muted);
-    text-align: center;
+    @apply tw:block tw:text-[length:var(--font-size-xs)] tw:text-muted tw:text-center;
     text-decoration: none;
     transition: color var(--transition-fast);
 }
 
 .sidebar__version:hover {
-    color: var(--accent-primary);
+    @apply tw:text-accent;
 }
 
 .sidebar__terms-link {
-    display: block;
-    font-size: 10px;
-    color: var(--text-muted);
-    text-align: center;
+    @apply tw:block tw:text-[length:10px] tw:text-muted tw:text-center;
     text-decoration: none;
-    margin-bottom: 4px;
+    @apply tw:mb-[4px];
     transition: color var(--transition-fast);
 }
 
 .sidebar__terms-link:hover {
-    color: var(--accent-primary);
+    @apply tw:text-accent;
 }
 
 /* Toggle buttons */
 .sidebar__toggle {
-    background: var(--bg-tertiary);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
-    color: var(--text-secondary);
-    padding: var(--spacing-sm);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    @apply tw:ui-fill-muted tw:ui-border tw:rounded-control tw:text-secondary tw:p-ui-sm tw:ui-row tw:justify-center tw:cursor-pointer;
     transition:
         background-color var(--transition-fast),
         border-color var(--transition-fast),
@@ -308,29 +235,23 @@
 
 .sidebar__toggle:hover {
     background: var(--bg-card-hover);
-    color: var(--text-primary);
+    @apply tw:text-main;
 }
 
 .sidebar__toggle--mobile {
-    display: none;
+    @apply tw:hidden;
 }
 
 .sidebar__toggle--fixed {
-    position: fixed;
-    top: var(--spacing-md);
-    left: var(--spacing-md);
-    z-index: 99;
-    display: none;
+    @apply tw:fixed tw:top-[var(--spacing-md)] tw:left-[var(--spacing-md)] tw:z-[99] tw:hidden;
 }
 
 /* Responsive - Tablet and below */
 @media (max-width: 1024px) {
     .sidebar {
         transform: translateX(-100%);
-        width: 280px;
-        height: 100svh;
-        height: 100dvh;
-        max-height: 100dvh;
+        @apply tw:w-[280px] tw:h-[100svh];
+        @apply tw:h-[100dvh] tw:max-h-[100dvh];
     }
 
     .sidebar--open {
@@ -338,22 +259,17 @@
     }
 
     .sidebar-overlay {
-        display: block;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        @apply tw:block tw:fixed tw:top-[0] tw:left-[0] tw:right-[0] tw:bottom-[0];
         background: rgba(0, 0, 0, 0.5);
         backdrop-filter: blur(4px);
-        z-index: 99;
+        @apply tw:z-[99];
     }
 
     .sidebar__toggle--mobile {
-        display: flex;
+        @apply tw:flex;
     }
 
     .sidebar__toggle--fixed {
-        display: flex;
+        @apply tw:flex;
     }
 }

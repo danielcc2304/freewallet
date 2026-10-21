@@ -12,6 +12,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-21 - Tailwind: Academia, herramientas, Dashboard y módulos restantes
+- Funcionalidad:
+  - Incorpora guías, activos, calculadoras, simuladores, gastos, Dashboard, gráficos, navegación, formularios y páginas auxiliares a los tokens y patrones compartidos de Tailwind.
+  - Las hojas de módulos densos usan `@apply` y `@reference`, conservando sus selectores y su cascada. Reutiliza las superficies de calculadora y migra a utilidades React los avisos, estados de ruta y pantalla 404.
+- Resumen:
+  - Comparte 9.964 declaraciones en 64 hojas y retira otros cuatro CSS. Mantiene unidades, temas, Liquid Glass, cálculos y datos. Añade un recorrido de 41 rutas sobre la compilación de producción y separa las comprobaciones de CI, conservando `verify` como resultado conjunto. Incluye inventario y guía de mantenimiento.
+- Archivos:
+  - src/styles, src/components/academy, src/components/dashboard, src/components/charts, src/components/expenses, src/components/layout, src/components/ui, src/components/news/RichTextEditor, src/pages, scripts/helpers/compileModuleStyles.ts, scripts/test-tailwind-modules-ui.ts, scripts/run-tests.mjs, scripts/test-assets-table.ts, scripts/test-fund-breakdown-layout.ts, vite.config.ts, .github/workflows/quality.yml, docs/tailwind-migration.md, docs/tailwind-module-inventory.md, README.md
+
 ### 2026-10-21 - Tailwind: Noticias y radar de fondos
 - Funcionalidad:
   - Migra la portada de Noticias, los artículos, comentarios y respuestas, y el panel editorial a las utilidades de Tailwind y los componentes compartidos.

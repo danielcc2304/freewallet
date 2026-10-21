@@ -209,7 +209,7 @@ La navegación principal está en [`src/App.tsx`](src/App.tsx); Academia y herra
 
 ### Estilos y componentes
 
-La migración a Tailwind es progresiva. La base compartida (`Button`, `Card`, `Input`, `MetricCard`, `Modal`, `PageHeader` y `ActionGroup`), Mi cuenta, Noticias —incluidos comentarios y panel editorial— y el radar de fondos usan utilidades `tw:` vinculadas a los temas existentes. Las pantallas pendientes conservan su CSS. No se activa Preflight ni un `important` global; se mantienen los puntos de conexión de Liquid Glass durante la transición. [Arquitectura, convenciones y pruebas](docs/tailwind-migration.md).
+La interfaz usa Tailwind CSS 4 con los temas existentes. La base compartida, Mi cuenta, Noticias y el radar usan utilidades `tw:` en React; Academia, calculadoras, simuladores, gastos, Dashboard, gráficos y demás pantallas comparten tokens y patrones mediante `@apply` y `@reference`. Los selectores de los módulos densos conservan su cascada. El reset, los materiales Liquid Glass y el contenido enriquecido mantienen CSS específico. No se activa Preflight ni un `important` global. [Arquitectura y pruebas](docs/tailwind-migration.md) · [Inventario por módulo](docs/tailwind-module-inventory.md).
 
 ## Scripts
 
@@ -221,6 +221,7 @@ La migración a Tailwind es progresiva. La base compartida (`Button`, `Card`, `I
 | `npm run lint` | ESLint. |
 | `npm run check` | Lint, TypeScript y todas las pruebas locales de lógica/base de datos; incluye la referencia independiente de bonos en Python. |
 | `npm run test:smoke` | Arranca Vite con configuración sintética y ejecuta los recorridos de navegador principales. Requiere Chromium/Puppeteer. |
+| `npm run test:tailwind-modules-ui` | Tras compilar, recorre 41 rutas de `dist` en móvil/escritorio y las cuatro combinaciones de tema y apariencia. |
 | `npm run test:build` | Tras compilar, comprueba el tamaño del JS inicial y que calculadoras y SDK editorial se carguen bajo demanda. |
 | `npm run verify-funds` | Verificación de identidad/enlaces de fondos del catálogo. |
 
@@ -237,7 +238,7 @@ Las regresiones están agrupadas en scripts `test:*` de `package.json`, entre el
 
 Puedes repetir una sola suite con `npm run test:smoke -- --only=test-portfolio-ui.ts`; sus logs quedan separados de la ejecución completa.
 
-El workflow [Application quality](.github/workflows/quality.yml) ejecuta estos controles, build y auditoría de dependencias en las PR y en `dev`, `release` y `master`. También exige incorporar los hotfixes de `master` antes de promover `dev`/`release`. La protección obligatoria de ramas debe configurarse en GitHub para exigir su resultado.
+El workflow [Application quality](.github/workflows/quality.yml) ejecuta estos controles, build y auditoría de dependencias en las PR y en `dev`, `release` y `master`. Separa lógica/build, navegador y estilos por rutas para que cada grupo tenga su propio tiempo. El estado final `verify` exige que pasen los tres grupos. También exige incorporar los hotfixes de `master` antes de promover `dev`/`release`. La protección obligatoria de ramas debe configurarse en GitHub para exigir su resultado.
 
 ## Despliegue
 

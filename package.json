@@ -90,7 +90,8 @@
     "test:news-comments": "tsx scripts/test-news-comments.ts",
     "test:news-layout-comments-ui": "tsx scripts/test-news-layout-comments-ui.ts",
     "test:fund-history": "tsx scripts/test-fund-history.ts",
-    "test:transfer-repair": "tsx scripts/test-transfer-repair.ts"
+    "test:transfer-repair": "tsx scripts/test-transfer-repair.ts",
+    "test:tailwind-modules-ui": "node scripts/run-tests.mjs --smoke --only=test-tailwind-modules-ui.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.112.4",

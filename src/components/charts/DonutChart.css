@@ -1,109 +1,77 @@
+@reference "../../styles/module-theme.css";
+
 .donut-chart {
-    width: 100%;
-    min-width: 0;
-    overflow: visible;
+    @apply tw:w-full tw:min-w-[0] tw:overflow-visible;
 }
 
 .donut-chart__title {
-    font-size: var(--font-size-base);
+    @apply tw:text-[length:var(--font-size-base)];
     font-weight: 600;
-    color: var(--text-primary);
-    text-align: center;
-    margin-bottom: var(--spacing-md);
+    @apply tw:text-main tw:text-center tw:mb-ui-md;
 }
 
 .donut-chart__plot {
-    width: 100%;
-    height: 220px;
-    min-width: 0;
-    overflow: visible;
+    @apply tw:w-full tw:h-[220px] tw:min-w-[0] tw:overflow-visible;
 }
 
 /* Tooltip */
 .donut-tooltip {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-secondary);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-sm) var(--spacing-md);
+    @apply tw:ui-fill-surface tw:ui-border-strong tw:rounded-control tw:p-[var(--spacing-sm)_var(--spacing-md)];
     box-shadow: var(--shadow-md);
-    text-align: center;
+    @apply tw:text-center;
 }
 
 .donut-tooltip__name {
-    font-size: var(--font-size-sm);
+    @apply tw:text-[length:var(--font-size-sm)];
     font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-xs);
+    @apply tw:text-main tw:mb-ui-xs;
 }
 
 .donut-tooltip__value {
-    font-size: var(--font-size-base);
+    @apply tw:text-[length:var(--font-size-base)];
     font-weight: 700;
-    color: var(--accent-primary);
+    @apply tw:text-accent;
 }
 
 .donut-tooltip__percent {
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    @apply tw:text-[length:var(--font-size-sm)] tw:text-secondary;
 }
 
 /* Legend */
 .donut-legend {
     list-style: none;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--spacing-xs);
-    margin: var(--spacing-md) 0 0;
-    padding: 0;
+    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(220px,_1fr))] tw:gap-ui-xs tw:m-[var(--spacing-md)_0_0] tw:p-[0];
 }
 
 .donut-legend__item {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-    column-gap: var(--spacing-xs);
-    row-gap: 2px;
-    min-width: 0;
-    padding: .45rem .55rem;
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-sm);
-    background: var(--bg-tertiary);
-    font-size: var(--font-size-sm);
+    @apply tw:grid tw:grid-cols-[auto_minmax(0,_1fr)_auto] tw:items-center tw:gap-x-ui-xs tw:gap-y-[2px] tw:min-w-[0] tw:p-[.45rem_.55rem] tw:ui-border tw:rounded-[var(--radius-sm)] tw:ui-fill-muted tw:text-[length:var(--font-size-sm)];
 }
 
 .donut-legend__dot {
-    width: 10px;
-    height: 10px;
-    border-radius: var(--radius-sm);
+    @apply tw:w-[10px] tw:h-[10px] tw:rounded-[var(--radius-sm)];
 }
 
 .donut-legend__name {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    color: var(--text-primary);
+    @apply tw:min-w-[0] tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap tw:text-main;
     font-weight: 600;
 }
 
 .donut-legend__percent {
     justify-self: end;
-    color: var(--text-secondary);
+    @apply tw:text-secondary;
     font-weight: 700;
 }
 
 .donut-legend__value {
-    grid-column: 2 / -1;
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
+    @apply tw:col-[2_/_-1] tw:text-muted tw:text-[length:var(--font-size-xs)];
 }
 
 @media (max-width: 640px) {
     .donut-chart__plot {
-        height: 210px;
+        @apply tw:h-[210px];
     }
 
     .donut-legend {
-        grid-template-columns: 1fr;
+        @apply tw:grid-cols-[1fr];
     }
 }

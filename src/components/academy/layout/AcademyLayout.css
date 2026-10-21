@@ -1,8 +1,8 @@
+@reference "../../../styles/module-theme.css";
+
 .academy {
     --academy-surface-gap: 1.25rem;
-    min-height: calc(100vh - var(--header-height, 70px));
-    background: var(--bg-primary);
-    overflow-x: hidden;
+    @apply tw:min-h-[calc(100vh_-_var(--header-height,_70px))] tw:ui-fill-canvas tw:overflow-x-hidden;
 }
 
 .academy--liquid-glass {
@@ -11,35 +11,29 @@
 
 /* ===== CONTENT AREA ===== */
 .academy__content {
-    width: 100%;
-    margin: 0 auto;
-    padding: 0;
-    max-width: var(--content-max-width, 100%);
-    overflow-x: hidden;
+    @apply tw:w-full tw:m-[0_auto] tw:p-[0] tw:max-w-[var(--content-max-width,_100%)] tw:overflow-x-hidden;
 }
 
 /* Keep route content in one stacking context. The full-width neutral canvas
    lives on MainLayout so it cannot be clipped by a route's max-width. */
 .academy--liquid-glass .academy__content {
-    position: relative;
-    isolation: isolate;
+    @apply tw:relative tw:isolate;
 }
 
 /* Keep every Academy route on the same outer width as the Dashboard canvas. */
 .academy__content > * {
-    width: 100%;
+    @apply tw:w-full;
     max-width: var(--content-max-width, 100%) !important;
-    margin-left: auto;
-    margin-right: auto;
+    @apply tw:ml-[auto] tw:mr-[auto];
     padding-left: 0 !important;
     padding-right: 0 !important;
-    box-sizing: border-box;
+    @apply tw:box-border;
 }
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 1024px) {
     .academy__content {
-        padding: 0;
+        @apply tw:p-[0];
     }
 }
 
@@ -52,6 +46,6 @@
     }
 
     .academy__content {
-        padding: 0;
+        @apply tw:p-[0];
     }
 }

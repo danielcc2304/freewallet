@@ -1,34 +1,25 @@
+@reference "../../styles/module-theme.css";
+
 .portfolio-csv-page {
-    width: 100%;
-    max-width: none;
-    margin: 0 auto;
-    padding: 0 0 3.5rem;
+    @apply tw:w-full tw:max-w-[none] tw:m-[0_auto] tw:p-[0_0_3.5rem];
     animation: fadeIn var(--transition-base) ease-out;
 }
 
 .portfolio-csv-grid--workbook {
-    align-items: stretch;
+    @apply tw:items-stretch;
 }
 
 .portfolio-csv-card__heading-row {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
+    @apply tw:flex tw:items-start tw:justify-between tw:gap-[1rem];
 }
 
 .portfolio-csv-card__heading-row h2,
 .portfolio-csv-card__heading-row p {
-    margin-top: 0;
+    @apply tw:mt-[0];
 }
 
 .portfolio-csv-status {
-    flex: 0 0 auto;
-    padding: 0.35rem 0.65rem;
-    border: 1px solid var(--border-secondary);
-    border-radius: 999px;
-    color: var(--text-secondary);
-    font-size: 0.72rem;
+    @apply tw:flex-[0_0_auto] tw:p-[0.35rem_0.65rem] tw:ui-border-strong tw:rounded-[999px] tw:text-secondary tw:text-[length:0.72rem];
     font-weight: 800;
     letter-spacing: 0.04em;
 }
@@ -48,26 +39,20 @@
 .portfolio-csv-workbook-controls,
 .portfolio-csv-objectives,
 .portfolio-csv-movements__list {
-    display: grid;
-    gap: 0.7rem;
-    margin-top: 1.1rem;
+    @apply tw:grid tw:gap-[0.7rem] tw:mt-[1.1rem];
 }
 
 .portfolio-csv-workbook-control,
 .portfolio-csv-objective,
 .portfolio-csv-movements__list > div {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    padding-bottom: 0.65rem;
+    @apply tw:ui-row tw:justify-between tw:gap-[1rem] tw:pb-[0.65rem];
     border-bottom: 1px solid var(--border-secondary);
 }
 
 .portfolio-csv-workbook-control span,
 .portfolio-csv-objective small,
 .portfolio-csv-movements__list small {
-    color: var(--text-muted);
+    @apply tw:text-muted;
 }
 
 .portfolio-csv-workbook-control--ok,
@@ -82,105 +67,72 @@
 
 .portfolio-csv-objective > div,
 .portfolio-csv-movements__list span {
-    display: grid;
-    gap: 0.2rem;
+    @apply tw:grid tw:gap-[0.2rem];
 }
 
 .portfolio-csv-objectives__total {
-    display: flex;
-    justify-content: space-between;
-    padding-top: 0.25rem;
+    @apply tw:flex tw:justify-between tw:pt-[0.25rem];
 }
 
 .portfolio-csv-movements {
-    margin-bottom: 1.25rem;
+    @apply tw:mb-[1.25rem];
 }
 
 .portfolio-csv-movements__summary {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0.75rem;
-    margin-top: 1rem;
+    @apply tw:grid tw:grid-cols-[repeat(3,_minmax(0,_1fr))] tw:gap-[0.75rem] tw:mt-[1rem];
 }
 
 .portfolio-csv-movements__summary > div {
-    display: grid;
-    gap: 0.3rem;
-    padding: 0.85rem;
-    border: 1px solid var(--border-secondary);
-    border-radius: 12px;
+    @apply tw:grid tw:gap-[0.3rem] tw:p-[0.85rem] tw:ui-border-strong tw:rounded-[12px];
     background: rgba(255, 255, 255, 0.02);
 }
 
 .portfolio-csv-movements__summary span {
-    color: var(--text-muted);
-    font-size: 0.78rem;
+    @apply tw:text-muted tw:text-[length:0.78rem];
 }
 
 @media (max-width: 700px) {
     .portfolio-csv-card__heading-row {
-        align-items: flex-start;
+        @apply tw:items-start;
     }
 
     .portfolio-csv-movements__summary {
-        grid-template-columns: 1fr;
+        @apply tw:grid-cols-[1fr];
     }
 }
 
 .portfolio-csv-hero {
-    position: relative;
-    margin-bottom: 1.4rem;
-    padding: 2rem;
-    border-radius: 18px;
-    border: 1px solid var(--border-primary);
+    @apply tw:relative tw:mb-[1.4rem] tw:p-[2rem] tw:rounded-[18px] tw:ui-border;
     background:
         radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.18), transparent 45%),
         radial-gradient(circle at 90% 20%, rgba(59, 130, 246, 0.18), transparent 42%),
         var(--bg-secondary);
-    overflow: hidden;
+    @apply tw:overflow-hidden;
 }
 
 .portfolio-csv-hero__badge {
-    display: inline-flex;
-    font-size: var(--font-size-xs);
+    @apply tw:inline-flex tw:text-[length:var(--font-size-xs)];
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    padding: 0.3rem 0.6rem;
-    border-radius: var(--radius-full);
-    border: 1px solid var(--border-secondary);
-    margin-bottom: 0.8rem;
-    color: var(--accent-primary);
+    @apply tw:p-[0.3rem_0.6rem] tw:rounded-[var(--radius-full)] tw:ui-border-strong tw:mb-[0.8rem] tw:text-accent;
     font-weight: 700;
 }
 
 .portfolio-csv-hero h1 {
-    margin: 0 0 0.65rem;
-    font-size: clamp(1.6rem, 2.3vw, 2.4rem);
-    max-width: 820px;
+    @apply tw:m-[0_0_0.65rem] tw:text-[length:clamp(1.6rem,_2.3vw,_2.4rem)] tw:max-w-[820px];
 }
 
 .portfolio-csv-hero p {
-    margin: 0;
-    max-width: 820px;
-    color: var(--text-secondary);
+    @apply tw:m-[0] tw:max-w-[820px] tw:text-secondary;
     line-height: 1.7;
 }
 
 .portfolio-csv-upload {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 0.9rem;
-    margin-bottom: 1rem;
+    @apply tw:grid tw:grid-cols-[minmax(0,_1fr)] tw:gap-[0.9rem] tw:mb-[1rem];
 }
 
 .portfolio-csv-upload__card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-primary);
-    border-radius: 14px;
-    padding: 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
+    @apply tw:ui-fill-surface tw:ui-border tw:rounded-[14px] tw:p-[1rem] tw:ui-stack tw:gap-[0.55rem];
 }
 
 .portfolio-csv-upload__card--utility {
@@ -188,137 +140,92 @@
 }
 
 .portfolio-csv-upload__card h3 {
-    font-size: var(--font-size-base);
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
+    @apply tw:text-[length:var(--font-size-base)] tw:m-[0] tw:ui-row tw:gap-[0.4rem];
 }
 
 .portfolio-csv-upload__card p {
-    margin: 0;
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+    @apply tw:m-[0] tw:text-secondary tw:text-[length:var(--font-size-sm)];
     line-height: 1.5;
 }
 
 .portfolio-csv-upload__card small {
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
+    @apply tw:text-muted tw:text-[length:var(--font-size-xs)];
 }
 
 .portfolio-csv-upload__actions {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
+    @apply tw:ui-row tw:gap-[0.5rem] tw:flex-wrap;
 }
 
 .portfolio-csv-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    border-radius: 10px;
-    border: 1px solid var(--border-secondary);
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
+    @apply tw:inline-flex tw:items-center tw:gap-[0.4rem] tw:rounded-[10px] tw:ui-border-strong tw:ui-fill-muted tw:text-main;
     font-weight: 600;
-    padding: 0.5rem 0.75rem;
+    @apply tw:p-[0.5rem_0.75rem];
 }
 
 .portfolio-csv-btn:hover {
     border-color: var(--accent-primary);
-    color: var(--accent-primary);
+    @apply tw:text-accent;
 }
 
 .portfolio-csv-btn--ghost {
-    background: transparent;
+    @apply tw:ui-fill-transparent;
 }
 
 .portfolio-csv-error {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    padding: 0.55rem 0.75rem;
-    border-radius: 10px;
-    margin-bottom: 1rem;
+    @apply tw:inline-flex tw:items-center tw:gap-[0.45rem] tw:p-[0.55rem_0.75rem] tw:rounded-[10px] tw:mb-[1rem];
     color: #ef4444;
     background: rgba(239, 68, 68, 0.08);
     border: 1px solid rgba(239, 68, 68, 0.35);
 }
 
 .portfolio-csv-kpis {
-    display: grid;
-    grid-template-columns: repeat(6, minmax(140px, 1fr));
-    gap: 0.8rem;
-    margin-bottom: 1rem;
+    @apply tw:grid tw:grid-cols-[repeat(6,_minmax(140px,_1fr))] tw:gap-[0.8rem] tw:mb-[1rem];
 }
 
 .portfolio-csv-kpi {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-primary);
-    border-radius: 14px;
-    padding: 0.9rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
+    @apply tw:ui-fill-surface tw:ui-border tw:rounded-[14px] tw:p-[0.9rem] tw:ui-stack tw:gap-[0.3rem];
 }
 
 .portfolio-csv-kpi span {
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
+    @apply tw:text-muted tw:text-[length:var(--font-size-xs)];
 }
 
 .portfolio-csv-kpi strong {
-    font-size: var(--font-size-lg);
-    color: var(--text-primary);
+    @apply tw:text-[length:var(--font-size-lg)] tw:text-main;
     font-weight: 700;
 }
 
 .portfolio-csv-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(280px, 1fr));
-    gap: 0.9rem;
-    margin-bottom: 0.9rem;
+    @apply tw:grid tw:grid-cols-[repeat(2,_minmax(280px,_1fr))] tw:gap-[0.9rem] tw:mb-[0.9rem];
 }
 
 .portfolio-csv-card {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-primary);
-    border-radius: 14px;
-    padding: 1rem;
+    @apply tw:ui-fill-surface tw:ui-border tw:rounded-[14px] tw:p-[1rem];
 }
 
 .portfolio-csv-card--full {
-    margin-bottom: 0.9rem;
+    @apply tw:mb-[0.9rem];
 }
 
 .portfolio-csv-card--wide {
-    grid-column: span 2;
+    @apply tw:col-[span_2];
 }
 
 .portfolio-csv-card h2 {
-    margin: 0 0 0.5rem;
-    font-size: var(--font-size-lg);
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
+    @apply tw:m-[0_0_0.5rem] tw:text-[length:var(--font-size-lg)] tw:ui-row tw:gap-[0.4rem];
 }
 
 .portfolio-csv-card p {
-    margin: 0 0 0.7rem;
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+    @apply tw:m-[0_0_0.7rem] tw:text-secondary tw:text-[length:var(--font-size-sm)];
     line-height: 1.55;
 }
 
 .portfolio-csv-chart {
-    width: 100%;
-    height: 320px;
+    @apply tw:w-full tw:h-[320px];
 }
 
 .portfolio-csv-chart--composition {
-    margin-bottom: 0.55rem;
+    @apply tw:mb-[0.55rem];
 }
 
 .portfolio-csv-chart .recharts-default-legend {
@@ -327,53 +234,33 @@
 }
 
 .portfolio-csv-chart--benchmark {
-    height: 330px;
+    @apply tw:h-[330px];
 }
 
 .portfolio-csv-empty-state {
     border: 1px dashed var(--border-secondary);
-    border-radius: 10px;
-    padding: 1rem;
-    background: var(--bg-tertiary);
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+    @apply tw:rounded-[10px] tw:p-[1rem] tw:ui-fill-muted tw:text-secondary tw:text-[length:var(--font-size-sm)];
     line-height: 1.55;
 }
 
 .portfolio-csv-pie-legend {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.45rem;
+    @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[0.45rem];
 }
 
 .portfolio-csv-pie-legend__item {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 0.45rem;
-    border: 1px solid var(--border-primary);
-    border-radius: 10px;
-    padding: 0.45rem 0.55rem;
-    background: var(--bg-tertiary);
+    @apply tw:grid tw:grid-cols-[auto_1fr_auto] tw:items-center tw:gap-[0.45rem] tw:ui-border tw:rounded-[10px] tw:p-[0.45rem_0.55rem] tw:ui-fill-muted;
 }
 
 .portfolio-csv-pie-legend__dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
+    @apply tw:w-[9px] tw:h-[9px] tw:rounded-[50%];
 }
 
 .portfolio-csv-pie-legend__name {
-    color: var(--text-secondary);
-    font-size: var(--font-size-xs);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    @apply tw:text-secondary tw:text-[length:var(--font-size-xs)] tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;
 }
 
 .portfolio-csv-pie-legend__weight {
-    color: var(--text-primary);
-    font-size: var(--font-size-xs);
+    @apply tw:text-main tw:text-[length:var(--font-size-xs)];
     font-weight: 600;
 }
 
@@ -396,60 +283,39 @@
 
 .portfolio-csv-insights {
     list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.55rem;
+    @apply tw:p-[0] tw:m-[0] tw:ui-stack tw:gap-[0.55rem];
 }
 
 .portfolio-csv-insights li {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.8rem;
-    border: 1px solid var(--border-primary);
-    border-radius: 10px;
-    padding: 0.65rem 0.75rem;
-    background: var(--bg-tertiary);
+    @apply tw:ui-row tw:justify-between tw:gap-[0.8rem] tw:ui-border tw:rounded-[10px] tw:p-[0.65rem_0.75rem] tw:ui-fill-muted;
 }
 
 .portfolio-csv-insights span {
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+    @apply tw:text-secondary tw:text-[length:var(--font-size-sm)];
 }
 
 .portfolio-csv-insights strong {
-    color: var(--text-primary);
-    font-size: var(--font-size-sm);
-    text-align: right;
+    @apply tw:text-main tw:text-[length:var(--font-size-sm)] tw:text-right;
 }
 
 .portfolio-csv-note {
-    margin-top: 0.75rem;
+    @apply tw:mt-[0.75rem];
     border: 1px dashed var(--border-secondary);
-    border-radius: 10px;
-    padding: 0.7rem;
+    @apply tw:rounded-[10px] tw:p-[0.7rem];
     background: rgba(16, 185, 129, 0.06);
 }
 
 .portfolio-csv-note p {
-    margin: 0;
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+    @apply tw:m-[0] tw:text-secondary tw:text-[length:var(--font-size-sm)];
     line-height: 1.6;
 }
 
 .portfolio-csv-checks {
-    display: grid;
-    gap: 0.7rem;
+    @apply tw:grid tw:gap-[0.7rem];
 }
 
 .portfolio-csv-check {
-    border: 1px solid var(--border-primary);
-    border-radius: 10px;
-    padding: 0.75rem;
-    background: var(--bg-tertiary);
+    @apply tw:ui-border tw:rounded-[10px] tw:p-[0.75rem] tw:ui-fill-muted;
 }
 
 .portfolio-csv-check--good {
@@ -461,101 +327,64 @@
 }
 
 .portfolio-csv-check__top {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.75rem;
-    margin-bottom: 0.35rem;
+    @apply tw:ui-row tw:justify-between tw:gap-[0.75rem] tw:mb-[0.35rem];
 }
 
 .portfolio-csv-check__title {
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+    @apply tw:text-secondary tw:text-[length:var(--font-size-sm)];
 }
 
 .portfolio-csv-check__value {
-    color: var(--text-primary);
-    font-size: var(--font-size-base);
+    @apply tw:text-main tw:text-[length:var(--font-size-base)];
 }
 
 .portfolio-csv-check p {
-    margin: 0;
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+    @apply tw:m-[0] tw:text-secondary tw:text-[length:var(--font-size-sm)];
     line-height: 1.5;
 }
 
 .portfolio-csv-controls-table {
-    display: grid;
-    gap: 0.55rem;
+    @apply tw:grid tw:gap-[0.55rem];
 }
 
 .portfolio-csv-controls-table__head,
 .portfolio-csv-controls-table__row {
-    display: grid;
-    grid-template-columns: minmax(220px, 2fr) minmax(90px, 0.7fr) minmax(180px, 1fr);
-    align-items: center;
-    gap: 0.75rem;
+    @apply tw:grid tw:grid-cols-[minmax(220px,_2fr)_minmax(90px,_0.7fr)_minmax(180px,_1fr)] tw:items-center tw:gap-[0.75rem];
 }
 
 .portfolio-csv-controls-table__head {
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
+    @apply tw:text-muted tw:text-[length:var(--font-size-xs)];
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    padding: 0 0.25rem;
+    @apply tw:p-[0_0.25rem];
 }
 
 .portfolio-csv-controls-table__row {
-    border: 1px solid var(--border-primary);
-    border-radius: 10px;
-    padding: 0.7rem 0.75rem;
-    background: var(--bg-tertiary);
+    @apply tw:ui-border tw:rounded-[10px] tw:p-[0.7rem_0.75rem] tw:ui-fill-muted;
 }
 
 .portfolio-csv-controls-table__asset {
-    display: grid;
-    gap: 0.2rem;
+    @apply tw:grid tw:gap-[0.2rem];
 }
 
 .portfolio-csv-controls-table__asset small {
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
+    @apply tw:text-muted tw:text-[length:var(--font-size-xs)];
 }
 
 .portfolio-csv-select {
-    width: 100%;
-    min-height: 40px;
-    border: 1px solid var(--border-secondary);
-    border-radius: 10px;
-    background: var(--bg-secondary);
-    color: var(--text-primary);
-    padding: 0.45rem 0.65rem;
+    @apply tw:w-full tw:min-h-[40px] tw:ui-border-strong tw:rounded-[10px] tw:ui-fill-surface tw:text-main tw:p-[0.45rem_0.65rem];
 }
 
 .portfolio-csv-targets {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 0.75rem;
+    @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[0.75rem];
 }
 
 .portfolio-csv-targets__item {
-    display: grid;
-    gap: 0.35rem;
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
+    @apply tw:grid tw:gap-[0.35rem] tw:text-secondary tw:text-[length:var(--font-size-sm)];
 }
 
 .portfolio-csv-targets__total {
-    margin-top: 0.9rem;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 1rem;
-    border: 1px solid var(--border-primary);
-    border-radius: 10px;
-    padding: 0.75rem;
-    background: var(--bg-tertiary);
+    @apply tw:mt-[0.9rem] tw:ui-row tw:justify-between tw:gap-[1rem] tw:ui-border tw:rounded-[10px] tw:p-[0.75rem] tw:ui-fill-muted;
 }
 
 .portfolio-csv-targets__total--warn {
@@ -564,35 +393,27 @@
 }
 
 .portfolio-csv-plan-table {
-    display: grid;
-    gap: 0.55rem;
+    @apply tw:grid tw:gap-[0.55rem];
 }
 
 .portfolio-csv-plan-table__head,
 .portfolio-csv-plan-table__row {
-    display: grid;
-    grid-template-columns: minmax(140px, 1.2fr) repeat(3, minmax(80px, 0.8fr));
-    gap: 0.75rem;
-    align-items: center;
+    @apply tw:grid tw:grid-cols-[minmax(140px,_1.2fr)_repeat(3,_minmax(80px,_0.8fr))] tw:gap-[0.75rem] tw:items-center;
 }
 
 .portfolio-csv-plan-table__head {
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
+    @apply tw:text-muted tw:text-[length:var(--font-size-xs)];
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    padding: 0 0.25rem;
+    @apply tw:p-[0_0.25rem];
 }
 
 .portfolio-csv-plan-table__row {
-    border: 1px solid var(--border-primary);
-    border-radius: 10px;
-    padding: 0.7rem 0.75rem;
-    background: var(--bg-tertiary);
+    @apply tw:ui-border tw:rounded-[10px] tw:p-[0.7rem_0.75rem] tw:ui-fill-muted;
 }
 
 .portfolio-csv-plan-table__bucket {
-    color: var(--text-primary);
+    @apply tw:text-main;
 }
 
 .portfolio-csv-plan-table__delta--over {
@@ -606,190 +427,146 @@
 }
 
 .portfolio-csv-tooltip {
-    min-width: 190px;
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-secondary);
-    border-radius: 10px;
-    padding: 0.55rem 0.65rem;
+    @apply tw:min-w-[190px] tw:ui-fill-surface tw:ui-border-strong tw:rounded-[10px] tw:p-[0.55rem_0.65rem];
     box-shadow: var(--shadow-md);
 }
 
 .portfolio-csv-tooltip__label {
-    font-size: var(--font-size-xs);
-    color: var(--text-primary);
+    @apply tw:text-[length:var(--font-size-xs)] tw:text-main;
     font-weight: 700;
-    margin-bottom: 0.35rem;
+    @apply tw:mb-[0.35rem];
 }
 
 .portfolio-csv-tooltip__rows {
-    display: flex;
-    flex-direction: column;
-    gap: 0.28rem;
+    @apply tw:ui-stack tw:gap-[0.28rem];
 }
 
 .portfolio-csv-tooltip__row {
-    display: grid;
-    grid-template-columns: auto 1fr auto;
-    align-items: center;
-    gap: 0.4rem;
+    @apply tw:grid tw:grid-cols-[auto_1fr_auto] tw:items-center tw:gap-[0.4rem];
 }
 
 .portfolio-csv-tooltip__dot {
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
+    @apply tw:w-[9px] tw:h-[9px] tw:rounded-[50%];
 }
 
 .portfolio-csv-tooltip__name {
-    color: var(--text-secondary);
-    font-size: var(--font-size-xs);
+    @apply tw:text-secondary tw:text-[length:var(--font-size-xs)];
 }
 
 .portfolio-csv-tooltip__value {
-    color: var(--text-primary);
-    font-size: var(--font-size-xs);
+    @apply tw:text-main tw:text-[length:var(--font-size-xs)];
 }
 
 .portfolio-csv-advanced {
-    margin-bottom: 0.9rem;
+    @apply tw:mb-[0.9rem];
 }
 
 .portfolio-csv-advanced__header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 1rem;
-    margin-bottom: 0.9rem;
+    @apply tw:flex tw:items-start tw:justify-between tw:gap-[1rem] tw:mb-[0.9rem];
 }
 
 .portfolio-csv-advanced__header h2 {
-    margin-bottom: 0.35rem;
+    @apply tw:mb-[0.35rem];
 }
 
 .portfolio-csv-advanced__header p {
-    margin-bottom: 0;
+    @apply tw:mb-[0];
 }
 
 .portfolio-csv-advanced__source {
-    flex: 0 0 auto;
-    padding: 0.45rem 0.65rem;
+    @apply tw:flex-[0_0_auto] tw:p-[0.45rem_0.65rem];
     border: 1px solid rgba(16, 185, 129, 0.3);
-    border-radius: 999px;
+    @apply tw:rounded-[999px];
     background: rgba(16, 185, 129, 0.08);
-    color: var(--accent-primary);
-    font-size: var(--font-size-xs);
+    @apply tw:text-accent tw:text-[length:var(--font-size-xs)];
     font-weight: 700;
 }
 
 .portfolio-csv-advanced__grid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.65rem;
+    @apply tw:grid tw:grid-cols-[repeat(4,_minmax(0,_1fr))] tw:gap-[0.65rem];
 }
 
 .portfolio-csv-advanced__metric {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    padding: 0.8rem;
-    border: 1px solid var(--border-primary);
-    border-radius: 10px;
-    background: var(--bg-tertiary);
+    @apply tw:min-w-[0] tw:ui-stack tw:gap-[0.25rem] tw:p-[0.8rem] tw:ui-border tw:rounded-[10px] tw:ui-fill-muted;
 }
 
 .portfolio-csv-advanced__metric span,
 .portfolio-csv-advanced__metric small {
-    color: var(--text-secondary);
-    font-size: var(--font-size-xs);
+    @apply tw:text-secondary tw:text-[length:var(--font-size-xs)];
     line-height: 1.35;
 }
 
 .portfolio-csv-advanced__metric small {
-    color: var(--text-muted);
+    @apply tw:text-muted;
 }
 
 .portfolio-csv-advanced__metric strong {
-    color: var(--text-primary);
-    font-size: var(--font-size-lg);
+    @apply tw:text-main tw:text-[length:var(--font-size-lg)];
     line-height: 1.1;
-    overflow-wrap: anywhere;
+    @apply tw:wrap-anywhere;
 }
 
 .portfolio-csv-advanced__daily {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 0.65rem;
-    margin-top: 0.65rem;
-    padding-top: 0.65rem;
+    @apply tw:grid tw:grid-cols-[repeat(4,_minmax(0,_1fr))] tw:gap-[0.65rem] tw:mt-[0.65rem] tw:pt-[0.65rem];
     border-top: 1px solid var(--border-primary);
 }
 
 .portfolio-csv-advanced__daily > div {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    align-items: center;
-    column-gap: 0.4rem;
-    row-gap: 0.2rem;
-    color: var(--text-secondary);
-    font-size: var(--font-size-xs);
+    @apply tw:grid tw:grid-cols-[auto_1fr] tw:items-center tw:gap-x-[0.4rem] tw:gap-y-[0.2rem] tw:text-secondary tw:text-[length:var(--font-size-xs)];
 }
 
 .portfolio-csv-advanced__daily svg {
-    color: var(--accent-primary);
-    grid-row: span 2;
+    @apply tw:text-accent tw:row-[span_2];
 }
 
 .portfolio-csv-advanced__daily strong {
-    color: var(--text-primary);
-    font-size: var(--font-size-sm);
-    overflow-wrap: anywhere;
+    @apply tw:text-main tw:text-[length:var(--font-size-sm)] tw:wrap-anywhere;
 }
 
 @media (max-width: 1180px) {
     .portfolio-csv-kpis {
-        grid-template-columns: repeat(3, 1fr);
+        @apply tw:grid-cols-[repeat(3,_1fr)];
     }
 
     .portfolio-csv-advanced__grid,
     .portfolio-csv-advanced__daily {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        @apply tw:grid-cols-[repeat(2,_minmax(0,_1fr))];
     }
 }
 
 @media (max-width: 980px) {
     .portfolio-csv-upload {
-        grid-template-columns: 1fr;
+        @apply tw:grid-cols-[1fr];
     }
 
     .portfolio-csv-grid {
-        grid-template-columns: 1fr;
+        @apply tw:grid-cols-[1fr];
     }
 
     .portfolio-csv-card--wide {
-        grid-column: auto;
+        @apply tw:col-[auto];
     }
 }
 
 @media (max-width: 700px) {
     .portfolio-csv-page {
-        padding: 0 0 2.3rem;
+        @apply tw:p-[0_0_2.3rem];
     }
 
     .portfolio-csv-hero {
-        padding: 1.15rem;
+        @apply tw:p-[1.15rem];
     }
 
     .portfolio-csv-kpis {
-        grid-template-columns: repeat(2, 1fr);
+        @apply tw:grid-cols-[repeat(2,_1fr)];
     }
 
     .portfolio-csv-chart {
-        height: 276px;
+        @apply tw:h-[276px];
     }
 
     .portfolio-csv-chart--benchmark {
-        height: 360px;
+        @apply tw:h-[360px];
     }
 
     .portfolio-csv-chart .recharts-responsive-container {
@@ -797,126 +574,98 @@
     }
 
     .portfolio-csv-pie-legend {
-        grid-template-columns: 1fr;
+        @apply tw:grid-cols-[1fr];
     }
 
     .portfolio-csv-insights li {
-        flex-direction: column;
-        align-items: flex-start;
+        @apply tw:flex-col tw:items-start;
     }
 
     .portfolio-csv-controls-table__head {
-        display: none;
+        @apply tw:hidden;
     }
 
     .portfolio-csv-controls-table__row {
-        grid-template-columns: 1fr;
+        @apply tw:grid-cols-[1fr];
     }
 
     .portfolio-csv-targets {
-        grid-template-columns: 1fr;
+        @apply tw:grid-cols-[1fr];
     }
 
     .portfolio-csv-plan-table__head {
-        display: none;
+        @apply tw:hidden;
     }
 
     .portfolio-csv-plan-table__row {
-        grid-template-columns: 1fr;
-        gap: 0.55rem;
+        @apply tw:grid-cols-[1fr] tw:gap-[0.55rem];
     }
 
     .portfolio-csv-plan-table__bucket {
-        padding-bottom: 0.35rem;
+        @apply tw:pb-[0.35rem];
         border-bottom: 1px solid var(--border-primary);
     }
 
     .portfolio-csv-plan-table__row span {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        gap: 0.8rem;
-        font-size: var(--font-size-sm);
+        @apply tw:ui-row tw:justify-between tw:gap-[0.8rem] tw:text-[length:var(--font-size-sm)];
     }
 
     .portfolio-csv-plan-table__row span::before {
         content: attr(data-label);
-        color: var(--text-muted);
-        font-size: var(--font-size-xs);
+        @apply tw:text-muted tw:text-[length:var(--font-size-xs)];
         text-transform: uppercase;
         letter-spacing: 0.04em;
     }
 
     .portfolio-csv-card {
-        padding: 0.85rem 0.7rem;
+        @apply tw:p-[0.85rem_0.7rem];
     }
 
     .portfolio-csv-advanced__header {
-        flex-direction: column;
+        @apply tw:flex-col;
     }
 
     .portfolio-csv-advanced__source {
-        align-self: flex-start;
+        @apply tw:self-start;
     }
 
     .portfolio-csv-advanced__grid,
     .portfolio-csv-advanced__daily {
-        grid-template-columns: 1fr;
+        @apply tw:grid-cols-[1fr];
     }
 
     .portfolio-csv-chart--risk-map {
-        margin-left: 0;
+        @apply tw:ml-[0];
     }
 }
 
 /* Matches the informational hero dialogs used in the Academy fund radar. */
 .portfolio-csv-notice {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 1rem;
-    padding: .5rem 0;
-    color: var(--text-secondary);
-    text-align: center;
+    @apply tw:ui-stack tw:items-center tw:gap-[1rem] tw:p-[.5rem_0] tw:text-secondary tw:text-center;
     line-height: 1.65;
-    overflow-wrap: anywhere;
+    @apply tw:wrap-anywhere;
 }
 .portfolio-csv-notice__icon {
-    display: grid;
-    place-items: center;
-    width: 96px;
-    height: 96px;
-    border-radius: 50%;
-    color: var(--accent-primary);
+    @apply tw:grid tw:place-items-center tw:w-[96px] tw:h-[96px] tw:rounded-[50%] tw:text-accent;
     background: rgba(var(--accent-rgb), .1);
     border: 1px solid rgba(var(--accent-rgb), .18);
 }
-.portfolio-csv-notice h2 { margin: 0; font-size: clamp(1.35rem, 4vw, 1.85rem); line-height: 1.25; font-weight: 800; color: var(--text-primary); }
-.portfolio-csv-notice p { max-width: 430px; margin: 0; font-size: 1rem; }
-.portfolio-csv-notice strong { color: var(--text-primary); font-weight: 600; }
-.portfolio-csv-notice .portfolio-csv-notice__note { font-size: .85rem; }
+.portfolio-csv-notice h2 { @apply tw:m-[0] tw:text-[length:clamp(1.35rem,_4vw,_1.85rem)]; line-height: 1.25; font-weight: 800; @apply tw:text-main; }
+.portfolio-csv-notice p { @apply tw:max-w-[430px] tw:m-[0] tw:text-[length:1rem]; }
+.portfolio-csv-notice strong { @apply tw:text-main; font-weight: 600; }
+.portfolio-csv-notice .portfolio-csv-notice__note { @apply tw:text-[length:.85rem]; }
 .portfolio-csv-notice__dashboard {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: .65rem;
-    min-height: 48px;
-    width: 100%;
-    padding: .75rem 1rem;
-    border: 1px solid var(--border-color);
-    border-radius: 12px;
-    background: var(--bg-tertiary);
-    color: var(--text-primary);
+    @apply tw:inline-flex tw:items-center tw:justify-center tw:gap-[.65rem] tw:min-h-[48px] tw:w-full tw:p-[.75rem_1rem] tw:ui-border-default tw:rounded-[12px] tw:ui-fill-muted tw:text-main;
     text-decoration: none;
     font-weight: 600;
 }
-.portfolio-csv-notice__dashboard svg { flex-shrink: 0; }
+.portfolio-csv-notice__dashboard svg { @apply tw:shrink-[0]; }
 .portfolio-csv-notice__dashboard:hover { border-color: var(--accent-primary); }
 .portfolio-csv-notice__dashboard:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
 @media (max-width: 480px) {
-    .portfolio-csv-notice { gap: .85rem; }
-    .portfolio-csv-notice__icon { width: 72px; height: 72px; }
-    .portfolio-csv-notice__icon svg { width: 34px; height: 34px; }
-    .portfolio-csv-notice p { font-size: .9rem; }
-    .portfolio-csv-notice .portfolio-csv-notice__note { font-size: .8rem; }
+    .portfolio-csv-notice { @apply tw:gap-[.85rem]; }
+    .portfolio-csv-notice__icon { @apply tw:w-[72px] tw:h-[72px]; }
+    .portfolio-csv-notice__icon svg { @apply tw:w-[34px] tw:h-[34px]; }
+    .portfolio-csv-notice p { @apply tw:text-[length:.9rem]; }
+    .portfolio-csv-notice .portfolio-csv-notice__note { @apply tw:text-[length:.8rem]; }
 }

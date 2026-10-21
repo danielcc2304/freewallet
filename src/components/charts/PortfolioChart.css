@@ -1,50 +1,39 @@
+@reference "../../styles/module-theme.css";
+
 .portfolio-chart {
-    width: 100%;
+    @apply tw:w-full;
 }
 
 .portfolio-chart__content {
-    padding-top: var(--spacing-md);
+    @apply tw:pt-ui-md;
 }
 
 .portfolio-chart__empty {
-    min-height: 300px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.4rem;
-    color: var(--text-secondary);
+    @apply tw:min-h-[300px] tw:ui-stack tw:items-center tw:justify-center tw:gap-[0.4rem] tw:text-secondary;
     border: 1px dashed var(--border-primary);
-    border-radius: var(--radius-md);
+    @apply tw:rounded-control;
 }
 
 .portfolio-chart__empty small {
-    color: var(--text-muted);
+    @apply tw:text-muted;
 }
 
 /* Period Selector */
 .period-selector {
-    display: flex;
-    gap: var(--spacing-xs);
-    background: var(--bg-tertiary);
-    padding: var(--spacing-xs);
-    border-radius: var(--radius-md);
+    @apply tw:flex tw:gap-ui-xs tw:ui-fill-muted tw:p-ui-xs tw:rounded-control;
 }
 
 .period-selector__btn {
-    padding: var(--spacing-xs) var(--spacing-sm);
-    font-size: var(--font-size-sm);
+    @apply tw:p-[var(--spacing-xs)_var(--spacing-sm)] tw:text-[length:var(--font-size-sm)];
     font-weight: 500;
-    background: transparent;
+    @apply tw:ui-fill-transparent;
     border: none;
-    border-radius: var(--radius-sm);
-    color: var(--text-muted);
-    cursor: pointer;
+    @apply tw:rounded-[var(--radius-sm)] tw:text-muted tw:cursor-pointer;
     transition: all var(--transition-fast);
 }
 
 .period-selector__btn:hover {
-    color: var(--text-primary);
+    @apply tw:text-main;
 }
 
 .period-selector__btn--active {
@@ -54,33 +43,26 @@
 
 /* Tooltip */
 .chart-tooltip {
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-secondary);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-sm) var(--spacing-md);
+    @apply tw:ui-fill-surface tw:ui-border-strong tw:rounded-control tw:p-[var(--spacing-sm)_var(--spacing-md)];
     box-shadow: var(--shadow-md);
 }
 
 .chart-tooltip__label {
-    font-size: var(--font-size-xs);
-    color: var(--text-primary);
+    @apply tw:text-[length:var(--font-size-xs)] tw:text-main;
     font-weight: 700;
-    margin-bottom: var(--spacing-xs);
+    @apply tw:mb-ui-xs;
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .chart-tooltip__value {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-sm);
-    font-size: var(--font-size-sm);
+    @apply tw:ui-row tw:gap-ui-sm tw:text-[length:var(--font-size-sm)];
     font-weight: 600;
-    margin: var(--spacing-xs) 0;
+    @apply tw:m-[var(--spacing-xs)_0];
 }
 
 .chart-tooltip__value--primary {
-    color: var(--accent-primary);
+    @apply tw:text-accent;
 }
 
 .chart-tooltip__value--secondary {
@@ -88,9 +70,7 @@
 }
 
 .chart-tooltip__dot {
-    width: 8px;
-    height: 8px;
-    border-radius: 50%;
+    @apply tw:w-[8px] tw:h-[8px] tw:rounded-[50%];
 }
 
 .chart-tooltip__dot--value {
@@ -103,24 +83,15 @@
 
 /* Legend */
 .chart-legend {
-    display: flex;
-    justify-content: center;
-    gap: var(--spacing-lg);
-    margin-top: var(--spacing-md);
+    @apply tw:flex tw:justify-center tw:gap-ui-lg tw:mt-ui-md;
 }
 
 .chart-legend__item {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    font-size: var(--font-size-sm);
-    color: var(--text-secondary);
+    @apply tw:ui-row tw:gap-ui-xs tw:text-[length:var(--font-size-sm)] tw:text-secondary;
 }
 
 .chart-legend__dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
+    @apply tw:w-[10px] tw:h-[10px] tw:rounded-[50%];
 }
 
 .chart-legend__dot--value {
@@ -134,12 +105,10 @@
 /* Responsive */
 @media (max-width: 640px) {
     .period-selector {
-        flex-wrap: wrap;
-        justify-content: center;
+        @apply tw:flex-wrap tw:justify-center;
     }
 
     .period-selector__btn {
-        padding: var(--spacing-xs);
-        font-size: var(--font-size-xs);
+        @apply tw:p-ui-xs tw:text-[length:var(--font-size-xs)];
     }
 }

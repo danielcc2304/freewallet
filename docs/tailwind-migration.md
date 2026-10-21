@@ -1,13 +1,13 @@
 # Migración progresiva a Tailwind
 
-La primera fase integra Tailwind CSS 4 con Vite y migra `Button`, `Card`, `Input`, `MetricCard`, `Modal`, `PageHeader` y Mi cuenta. La segunda amplía la migración a Noticias y el radar de fondos. Los módulos pendientes conservan su CSS. No cambia el modelo de datos, las operaciones financieras ni las llamadas de autenticación.
+La primera fase integra Tailwind CSS 4 con Vite y migra `Button`, `Card`, `Input`, `MetricCard`, `Modal`, `PageHeader` y Mi cuenta. La segunda amplía la migración a Noticias y el radar de fondos. La tercera incorpora Academia, herramientas, Dashboard, gastos, navegación y demás pantallas mediante componentes compartidos y CSS de módulos compilado con Tailwind. No cambia el modelo de datos, las operaciones financieras ni las llamadas de autenticación.
 
 ## Convivencia y temas
 
 - `src/styles/tailwind.css` importa tema y utilidades, **sin Preflight**: el reset existente sigue en `src/index.css`.
 - Las utilidades llevan el prefijo `tw:`. No colisionan con clases existentes como `text-muted` o `font-medium`.
 - Las utilidades quedan sin capa mientras el CSS antiguo siga sin capa. Esto evita que la prioridad de las capas inutilice las utilidades durante la transición; los selectores propios de los módulos pueden seguir refinando sus componentes. No se activa `important` global.
-- Los alias de `@theme inline` leen las variables existentes en cada elemento. Colores, bordes, sombras, radios y espaciados responden al tema claro/oscuro, al modo estándar/Liquid Glass y al tamaño de pantalla.
+- Los alias de `@theme inline` de `module-theme.css` leen las variables existentes en cada elemento. Colores, bordes, sombras, radios y espaciados responden al tema claro/oscuro, al modo estándar/Liquid Glass y al tamaño de pantalla.
 - `dark:` usa `data-theme`, y `glass:` usa `data-appearance`. Ambas preferencias siguen siendo independientes.
 - Las animaciones específicas permanecen en CSS, respetando movimiento reducido. El antiguo `spin` se conserva en el reset para las pantallas todavía no migradas.
 
@@ -57,6 +57,27 @@ En variantes arbitrarias que apuntan a clases BEM, los guiones bajos literales s
 
 Las nuevas dependencias tienen versiones fijadas y lockfile. Vite se actualiza de 7.3.6 a 7.3.7 para corregir los avisos de seguridad detectados por la auditoría durante esta entrega. `tailwind-merge` añade código al cliente: el bundle inicial medido pasa de unos 618 a 651 kB, dentro del límite de 700 kB comprobado por el proyecto. Esta fase busca reducir duplicación y facilitar el mantenimiento; no afirma una mejora de rendimiento por instalar Tailwind.
 
+## Tercera fase: módulos restantes
+
+Las 64 hojas de módulos conservadas usan `@reference` a `module-theme.css` y comparten 9.964 declaraciones mediante utilidades `@apply`. El [inventario por módulo](tailwind-module-inventory.md) detalla su cobertura y el CSS específico conservado. Las tarjetas de calculadora, los avisos flotantes, los estados de carga/error y la pantalla 404 pasan a utilidades en React y retiran otros cuatro CSS.
+
+```css
+@reference "../../../styles/module-theme.css";
+
+.module__summary {
+    @apply tw:ui-row tw:gap-ui-md tw:p-[1rem] tw:ui-border-default;
+    line-height: 1.4;
+}
+```
+
+La ruta de referencia se resuelve desde cada hoja. Este patrón permite migrar las tablas, gráficos, modales y selectores de editor conservando su especificidad y sus consultas de medios. Los componentes React nuevos reutilizan la base compartida y utilidades directas; `@apply` mantiene las integraciones cuyo comportamiento depende de la cascada existente.
+
+`module-theme.css` contiene los tokens y patrones compartidos, sin las animaciones predeterminadas de Tailwind. Los módulos pueden aplicar sus utilidades sin que una animación histórica llamada `bounce` o `spin` incorpore keyframes de otro tema. El tema completo y las animaciones `ui-*` siguen disponibles en `tailwind.css` para React.
+
+Los shorthands se conservan como tales: `ui-fill-*` usa `background`, y `ui-border*` usa `border`. Sustituirlos solo por `background-color` o `border-width` dejaría imágenes o estilos anteriores activos. Las alturas y medidas originalmente expresadas en píxeles mantienen esa unidad. La tipografía contextual, las sombras, los efectos ópticos y las reglas específicas de editor/gráficos conservan CSS cuando hace falta para mantener sus efectos y su herencia.
+
+Los tests estructurales de tablas y desglose inspeccionan el CSS compilado con `compileModuleStyles()`, de modo que siguen comprobando sus reglas sin depender de cómo se escriba un `@apply`.
+
 ## Comprobaciones
 
 ```bash
@@ -82,6 +103,12 @@ Para repetir solo la galería con un servidor aislado:
 npm run test:smoke -- --only=test-tailwind-foundation-ui.ts
 ```
 
-## Siguientes fases
+## Validación de módulos y mantenimiento
 
-Continuar con las demás Herramientas, Academia y Dashboard por módulos, reutilizando la base y retirando su CSS sustituido. Mantener CSS específico para gráficos, contenido editorial y efectos ópticos cuando aporte claridad. Cada entrega debe comprobar móvil/escritorio, las cuatro apariencias y los flujos del módulo antes de ampliar el alcance.
+`npm run test:tailwind-modules-ui` comprueba la compilación de producción y requiere ejecutar antes `SKIP_PRERENDER=1 npm run build`. Recorre 41 rutas con anchos de 320, 390 y 1280 px, y las cuatro combinaciones de tema/apariencia: 492 combinaciones. Captura nueve pantallas representativas y guarda sus medidas en `/tmp/freewallet-tailwind-modules-after`. La referencia local anterior registra móvil y escritorio por ruta. El recorrido bloquea peticiones a proveedores, incluidos los proxies locales.
+
+Los recorridos funcionales de `test:smoke` conservan Vite dev porque algunos fixtures importan servicios de `/src`. Cada servidor de prueba tiene su propia caché de prebundles, lo que permite aislar las referencias de otros worktrees. La CI ejecuta lógica/build, recorridos funcionales y la auditoría de rutas en grupos separados; el job final `verify` comprueba que todos terminen correctamente.
+
+El CSS específico conservado se enumera en el inventario. Las futuras mejoras pueden pasar más composición a React cuando aporten claridad, reutilizando los mismos tokens. Cada modificación debe comprobar móvil/escritorio, las cuatro apariencias y los flujos afectados.
+
+Validación de la tercera fase: pasan las 64 comprobaciones únicas de lógica e integración y las 16 suites funcionales de navegador. La prueba de histórico estructurado superó el límite de tiempo al compartir recursos con el navegador; su repetición aislada pasó. También pasan lint, TypeScript incluido en el build, compilación de producción y presupuesto del bundle (652,83 kB de JavaScript inicial). El recorrido adicional pasa las 41 rutas y 492 combinaciones de tamaño/apariencia. La comparación con la referencia anterior de 82 combinaciones no encuentra diferencias en las propiedades medidas de 4.497 elementos coincidentes.

@@ -1,4 +1,0 @@
-@reference "../../styles/module-theme.css";
-.pending-changes { @apply tw:fixed tw:z-[800] tw:bottom-[max(1rem,_env(safe-area-inset-bottom))] tw:left-[50%]; transform: translateX(-50%); @apply tw:ui-row tw:flex-wrap tw:gap-[.4rem_1rem] tw:w-[max-content] tw:max-w-[calc(100vw_-_2rem)] tw:p-[.7rem_1rem] tw:ui-border-default tw:rounded-[12px] tw:ui-fill-surface tw:text-main; box-shadow: var(--shadow-md); @apply tw:text-[length:.9rem]; }
-.pending-changes a { @apply tw:inline-flex tw:items-center tw:min-h-[44px] tw:text-accent; font-weight: 700; }
-.pending-changes a:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }

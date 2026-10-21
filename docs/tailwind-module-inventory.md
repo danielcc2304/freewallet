@@ -2,7 +2,7 @@
 
 La tercera fase conserva los selectores y consultas de medios de los módulos densos, y compila su presentación con `@apply` y `@reference` a `src/styles/module-theme.css`. Los patrones `ui-row`, `ui-stack`, `ui-panel`, `ui-surface` y `ui-control` comparten estructura y tokens. Los rellenos `ui-fill-*` y bordes `ui-border*` conservan los shorthands originales.
 
-Las tarjetas de calculadora, avisos flotantes, estados de ruta y pantalla 404 pasan a utilidades en React y retiran sus cuatro CSS. La tabla cuenta las hojas conservadas que usan `@apply`; no afirma que todas sus propiedades sean utilidades ni que se hayan eliminado todos los CSS.
+Las tarjetas de calculadora, avisos flotantes, estados de ruta y pantalla 404 pasan a utilidades en React y retiran sus cuatro CSS. La tabla registra las hojas que conservaba la tercera fase y usaban `@apply`; no afirma que todas sus propiedades sean utilidades ni que se hayan eliminado todos los CSS.
 
 | Módulo | Hojas con referencia | Declaraciones sustituidas | Bloques `@apply` |
 | --- | ---: | ---: | ---: |
@@ -44,3 +44,7 @@ Se compararon los selectores, condiciones y declaraciones del CSS anterior con e
 Las capturas y medidas de rutas complementan esta comprobación. Los tests funcionales siguen comprobando los cálculos financieros, importaciones, formularios, permisos y operaciones.
 
 El recorrido de producción pasó las 41 rutas y sus 492 combinaciones de tamaño/apariencia, sin desbordamientos horizontales. La referencia anterior registra 82 combinaciones de móvil/escritorio. Al contrastar 4.497 elementos coincidentes no hubo diferencias en las propiedades medidas: disposición, columnas, tipografía, relleno, separación, radios, colores, bordes y altura mínima. Esta medición no se presenta como una comparación píxel a píxel de todos los estados interactivos.
+
+## Actualización de la cuarta fase
+
+Se retiran otros siete archivos: `ScenarioComparison.css`, `Performers.css`, `DashboardInfo.css`, `AccountConnectionState.css`, `LocalPortfolioPrompt.css`, `PendingChangesGuard.css` y `VersionNotice.css`. Sus componentes usan utilidades en React. `DefinitionList` comparte las listas de escenarios y detalles del plan; `LivePortfolioPlan.css` retira las cuatro reglas correspondientes. Quedan 57 hojas de módulos con `@reference`, además del CSS específico descrito arriba. Las cifras de la tabla anterior son el registro de la tercera fase.

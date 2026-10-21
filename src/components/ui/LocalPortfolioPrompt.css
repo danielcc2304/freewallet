@@ -1,5 +1,0 @@
-@reference "../../styles/module-theme.css";
-.local-portfolio-prompt { @apply tw:grid tw:gap-[1rem]; }
-.local-portfolio-prompt p { line-height: 1.6; @apply tw:wrap-anywhere; }
-.local-portfolio-prompt p:last-child { @apply tw:text-[length:.875rem] tw:text-secondary; }
-.local-portfolio-prompt .btn { @apply tw:min-h-[44px] tw:whitespace-normal; }

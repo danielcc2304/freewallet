@@ -12,6 +12,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-21 - Tailwind: componentes de detalle y avisos compartidos
+- Funcionalidad:
+  - Añade `DefinitionList` para compartir las filas de datos entre escenarios de calculadoras y detalles del plan de cartera.
+  - Migra a utilidades React los rankings, la ayuda del Dashboard y los avisos de conexión, cartera local, gastos pendientes y nueva versión.
+- Resumen:
+  - Retira siete CSS de componentes y cuatro reglas repetidas del plan. Reutiliza `ActionGroup` en el aviso de versión y conserva los selectores de comportamiento, semántica, formatos, ordenación y operaciones existentes.
+- Archivos:
+  - src/components/ui/DefinitionList.tsx, src/components/ui, src/components/dashboard/Performers.tsx, src/components/dashboard/performerStyles.ts, src/components/dashboard/DashboardInfo.tsx, src/components/dashboard/LivePortfolioPlan.tsx, src/components/dashboard/LivePortfolioPlan.css, src/components/academy/calculators/ScenarioComparison.tsx, scripts/run-tests.mjs, scripts/test-calculator-dashboard-usability.ts, docs/tailwind-migration.md, docs/tailwind-module-inventory.md, README.md
+
 ### 2026-10-21 - Tailwind: Academia, herramientas, Dashboard y módulos restantes
 - Funcionalidad:
   - Incorpora guías, activos, calculadoras, simuladores, gastos, Dashboard, gráficos, navegación, formularios y páginas auxiliares a los tokens y patrones compartidos de Tailwind.

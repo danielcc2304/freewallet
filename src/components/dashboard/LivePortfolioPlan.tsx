@@ -1,6 +1,6 @@
 import { portfolioStorage } from '../../services/portfolioCloudStorage';
 import { useMemo, useState } from 'react';
-import { Button, Card, CardContent, CardHeader } from '../ui';
+import { Button, Card, CardContent, CardHeader, DefinitionList } from '../ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import type { DashboardAnalytics } from './useDashboardAnalytics';
 import { formatQuantity, hasValidPrice } from '../../services/assetValuation';
@@ -109,14 +109,14 @@ function LivePortfolioPlanEditor({ analytics, section = 'all' }: { analytics: Da
                             <label>Objetivo %<input aria-label={'Peso objetivo de ' + r.a.name} type="text" inputMode="decimal" value={targets[r.key] ?? ''} onChange={e => setTarget(r.key, e.target.value)} aria-invalid={!!targets[r.key] && (r.target === null || r.target > 100)} /></label>
                             <div><span>Aportar</span><strong>{canCalculate ? contributionMoney(r.contribution) : '—'}</strong></div>
                         </div>
-                        <details><summary>Ver detalle de la posición</summary><dl>
-                            <div><dt>Cantidad</dt><dd>{formatQuantity(r.a)}</dd></div>
-                            <div><dt>Coste</dt><dd>{money(r.cost)}</dd></div>
-                            <div><dt>Valor actual</dt><dd>{money(r.value)}</dd></div>
-                            <div><dt>Resultado{!r.assets.every(hasValidPrice) ? ' estimado' : ''}</dt><dd>{money(r.value - r.cost)}</dd></div>
-                            <div><dt>Rentabilidad</dt><dd>{r.cost && r.assets.every(hasValidPrice) ? pct((r.value / r.cost - 1) * 100) : 'N/D'}</dd></div>
-                            <div><dt>Desviación (pp)</dt><dd>{r.target !== null ? (r.weight - r.target).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '—'}</dd></div>
-                        </dl></details>
+                        <details><summary>Ver detalle de la posición</summary><DefinitionList layout="inline" items={[
+                            { label: 'Cantidad', value: formatQuantity(r.a) },
+                            { label: 'Coste', value: money(r.cost) },
+                            { label: 'Valor actual', value: money(r.value) },
+                            { label: 'Resultado' + (!r.assets.every(hasValidPrice) ? ' estimado' : ''), value: money(r.value - r.cost) },
+                            { label: 'Rentabilidad', value: r.cost && r.assets.every(hasValidPrice) ? pct((r.value / r.cost - 1) * 100) : 'N/D' },
+                            { label: 'Desviación (pp)', value: r.target !== null ? (r.weight - r.target).toLocaleString('es-ES', {minimumFractionDigits: 2, maximumFractionDigits: 2}) : '—' },
+                        ]} /></details>
                     </article>)}
                 </div>
                 <div className="live-plan__scroll live-plan__desktop-positions"><table>

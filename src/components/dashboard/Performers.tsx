@@ -2,7 +2,8 @@ import { memo } from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardHeader, CardContent } from '../ui';
 import type { PerformerData } from '../../types/types';
-import './Performers.css';
+import { cn } from '../../utils/cn';
+import { performerStyles as styles } from './performerStyles';
 
 interface PerformersProps {
     data: PerformerData[];
@@ -36,40 +37,40 @@ export const Performers = memo(function Performers({ data, type, limit = 5 }: Pe
 
     if (sortedData.length === 0) {
         return (
-            <Card className={`performers performers--${type}`}>
+            <Card className={cn(`performers performers--${type}`, styles.root)}>
                 <CardHeader
                     title={title}
                     subtitle="Rentabilidad desde la compra"
-                    action={<Icon size={20} className={`performers__icon performers__icon--${type}`} />}
+                    action={<Icon size={20} className={cn(`performers__icon performers__icon--${type}`, styles.icon, type === 'best' ? 'tw:text-positive' : 'tw:text-negative')} />}
                 />
                 <CardContent>
-                    <p className="performers__empty">No hay datos disponibles</p>
+                    <p className={cn('performers__empty', styles.empty)}>No hay datos disponibles</p>
                 </CardContent>
             </Card>
         );
     }
 
     return (
-        <Card className={`performers performers--${type}`}>
+        <Card className={cn(`performers performers--${type}`, styles.root)}>
             <CardHeader
                 title={title}
                 subtitle="Rentabilidad desde la compra"
-                action={<Icon size={20} className={`performers__icon performers__icon--${type}`} />}
+                action={<Icon size={20} className={cn(`performers__icon performers__icon--${type}`, styles.icon, type === 'best' ? 'tw:text-positive' : 'tw:text-negative')} />}
             />
             <CardContent>
-                <ul className="performers__list">
+                <ul className={cn('performers__list', styles.list)}>
                     {sortedData.map((item, index) => (
-                        <li key={item.id} className="performers__item">
-                            <div className="performers__rank">{index + 1}</div>
-                            <div className="performers__info">
-                                <span className="performers__symbol">{item.symbol}</span>
-                                <span className="performers__name">{item.name}</span>
+                        <li key={item.id} className={cn('performers__item', styles.item)}>
+                            <div className={cn('performers__rank', styles.rank)}>{index + 1}</div>
+                            <div className={cn('performers__info', styles.info)}>
+                                <span className={cn('performers__symbol', styles.symbol)}>{item.symbol}</span>
+                                <span className={cn('performers__name', styles.name)}>{item.name}</span>
                             </div>
-                            <div className="performers__data">
-                                <span className={`performers__change ${item.changePercent > 0 ? 'performers__change--positive' : item.changePercent < 0 ? 'performers__change--negative' : ''}`}>
+                            <div className={cn('performers__data', styles.data)}>
+                                <span className={cn('performers__change', styles.change, item.changePercent > 0 ? 'performers__change--positive tw:text-positive' : item.changePercent < 0 ? 'performers__change--negative tw:text-negative' : '')}>
                                     {formatChange(item.changePercent)}
                                 </span>
-                                <span className="performers__value">{formatCurrency(item.value)}</span>
+                                <span className={cn('performers__value', styles.value)}>{formatCurrency(item.value)}</span>
                             </div>
                         </li>
                     ))}

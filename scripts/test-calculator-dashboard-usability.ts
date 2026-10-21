@@ -47,7 +47,7 @@ const benchmarkContext = vm.createContext({ BENCHMARK_ISIN: 'IE00BYX5NX33', anal
     { instrument:'IE00BYX5NX33',quoted_at:'2026-10-01',price_eur:14 },
     { instrument:'IE00BYX5NX33',quoted_at:'2026-10-02',price_eur:14.2 },
 ] } } } });
-vm.runInContext(ts.transpileModule(historyFunction.getText(dailySource).replace('export ', '') + `\nconst selectBenchmark = ${benchmarkSelector}`,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText, benchmarkContext);
+vm.runInContext(ts.transpileModule(historyFunction.getText(dailySource).replace('export ', '') + `\nconst benchmarkMode = 'msci';\nconst fidelityHistory = dailyHistory(analytics.dailyMarket.data, BENCHMARK_ISIN);\nconst selectBenchmark = ${benchmarkSelector}`,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText, benchmarkContext);
 assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext('selectBenchmark()',benchmarkContext))).map((p: {close:number})=>p.close),[14,14.2]);
 
 const fireSource = ts.createSourceFile('FIRECalculator.tsx', readFileSync('src/components/academy/calculators/FIRECalculator.tsx', 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
@@ -69,7 +69,7 @@ const positions: Asset[] = reference
     : Array.from({ length: 15 }, (_, i) => ({ ...base, id: `test-${i}`, symbol: `TEST${i}`, isin: `ISIN${i}`, type: i < 10 ? 'fund' : 'stock', quotedAt: new Date().toISOString() }));
 assert.equal(positions.length, 15);
 positions[0].quotedAt = '2026-01-02T12:00:00Z';
-const browser = await puppeteer.launch({ headless: true });
+const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 const errors: string[] = [];
 async function setInput(page: Page, selector: string, value: string) {
     await page.$eval(selector, (node, next) => { const input = node as HTMLInputElement; Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, next); input.dispatchEvent(new Event('input', { bubbles: true })); }, value);

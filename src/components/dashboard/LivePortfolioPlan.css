@@ -36,9 +36,5 @@
     .live-plan__position summary::before { content: '+'; @apply tw:mr-[.5rem]; }
     .live-plan__position details[open] summary::before { content: '−'; }
     .live-plan__position summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
-    .live-plan__position dl { @apply tw:grid tw:gap-[.5rem] tw:m-[0] tw:text-[length:.8rem]; }
-    .live-plan__position dl > div { @apply tw:flex tw:flex-wrap tw:justify-between tw:gap-[.5rem]; }
-    .live-plan__position dt { @apply tw:text-secondary; }
-    .live-plan__position dd { @apply tw:m-[0] tw:text-main; }
     html[data-appearance='liquid-glass'] .live-plan__position { background: var(--glass-content); border-color: var(--glass-edge-soft); }
 }

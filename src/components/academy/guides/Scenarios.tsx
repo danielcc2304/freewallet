@@ -1,3 +1,5 @@
+import { AcademyGrid } from '../ui/AcademyGrid';
+import { AcademyPanel } from '../ui/AcademyPanel';
 import {
     Shield,
     TrendingUp,
@@ -61,9 +63,9 @@ export function Scenarios() {
                 </p>
             </AcademyPageHeader>
 
-            <div className="scenarios__grid">
+            <AcademyGrid variant="scenarios" className="scenarios__grid">
                 {SCENARIOS.map((scenario) => (
-                    <article key={scenario.id} className="scenario-card">
+                    <AcademyPanel variant="scenario" as="article" key={scenario.id} className="scenario-card">
                         <header className="scenario-card__header">
                             <div className="scenario-card__emoji">{scenario.emoji}</div>
                             <h2 className="scenario-card__title">{scenario.title}</h2>
@@ -101,9 +103,9 @@ export function Scenarios() {
                                 </section>
                             ))}
                         </div>
-                    </article>
+                    </AcademyPanel>
                 ))}
-            </div>
+            </AcademyGrid>
         </div>
     );
 }

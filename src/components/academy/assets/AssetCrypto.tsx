@@ -1,3 +1,7 @@
+import { AcademyMetric } from '../ui/AcademyMetric';
+import { AcademySection } from '../ui/AcademySection';
+import { AcademyGrid } from '../ui/AcademyGrid';
+import { AcademyPanel } from '../ui/AcademyPanel';
 import { Link } from 'react-router-dom';
 import {
     Coins, ArrowLeft, Globe, CheckCircle2, AlertTriangle,
@@ -51,18 +55,9 @@ export function AssetCrypto() {
                     y cómo gestionar el activo más volátil que existe hoy en día.
                 </p>
                 <div className="asset-page__hero-stats">
-                    <div className="hero-stat">
-                        <span className="hero-stat__value">Impredecible</span>
-                        <span className="hero-stat__label">Retorno esperado</span>
-                    </div>
-                    <div className="hero-stat">
-                        <span className="hero-stat__value">50-80%</span>
-                        <span className="hero-stat__label">Volatilidad anual</span>
-                    </div>
-                    <div className="hero-stat">
-                        <span className="hero-stat__value">365 / 24 / 7</span>
-                        <span className="hero-stat__label">Disponibilidad mercado</span>
-                    </div>
+                    <AcademyMetric variant="hero" label={<>Retorno esperado</>} value={<>Impredecible</>} valueProps={{"className":"hero-stat__value"}} />
+                    <AcademyMetric variant="hero" label={<>Volatilidad anual</>} value={<>50-80%</>} valueProps={{"className":"hero-stat__value"}} />
+                    <AcademyMetric variant="hero" label={<>Disponibilidad mercado</>} value={<>365 / 24 / 7</>} valueProps={{"className":"hero-stat__value"}} />
                 </div>
             </AcademyPageHeader>
 
@@ -73,8 +68,8 @@ export function AssetCrypto() {
                 { id: 'section-4', label: 'Ventajas y riesgos' },
             ]} />
 
-            <section id="section-1" className="asset-page__section">
-                <h2><Globe size={22} /> ¿Por qué invertir en Cripto?</h2>
+            <AcademySection title={<><Globe size={22} /> ¿Por qué invertir en Cripto?</>} id="section-1" className="asset-page__section">
+
                 <div className="asset-page__text-block">
                     <p>
                         Invertir en criptoactivos no es solo comprar "monedas", es comprar <strong>opcionalidad sobre una nueva infraestructura tecnológica</strong>: la Blockchain.
@@ -91,13 +86,13 @@ export function AssetCrypto() {
                         <p>Las caídas de más del 80% han sucedido varias veces en la historia de Bitcoin. Invertir aquí requiere una tolerancia al riesgo extrema y un horizonte temporal largo.</p>
                     </div>
                 </div>
-            </section>
+            </AcademySection>
 
-            <section id="section-2" className="asset-page__section">
-                <h2><Database size={22} /> El Ecosistema Cripto</h2>
-                <div className="asset-page__subtype-grid">
+            <AcademySection title={<><Database size={22} /> El Ecosistema Cripto</>} id="section-2" className="asset-page__section">
+
+                <AcademyGrid variant="subtypes" className="asset-page__subtype-grid">
                     {CRYPTO_CATEGORIES.map((cat) => (
-                        <div key={cat.title} className="subtype-card" style={{ '--subtype-color': cat.color } as React.CSSProperties}>
+                        <AcademyPanel variant="subtype" key={cat.title} className="subtype-card" style={{ '--subtype-color': cat.color } as React.CSSProperties}>
                             <div className="subtype-card__header">
                                 <div className="subtype-card__dot" />
                                 <h3>{cat.title}</h3>
@@ -106,42 +101,42 @@ export function AssetCrypto() {
                             <div className="subtype-card__footer">
                                 <span>Principales: <strong>{cat.ticker}</strong></span>
                             </div>
-                        </div>
+                        </AcademyPanel>
                     ))}
-                </div>
-            </section>
+                </AcademyGrid>
+            </AcademySection>
 
-            <section id="section-3" className="asset-page__section">
-                <h2><Lock size={22} /> Custodia: El Gran Diferenciador</h2>
+            <AcademySection title={<><Lock size={22} /> Custodia: El Gran Diferenciador</>} id="section-3" className="asset-page__section">
+
                 <div className="asset-page__text-block">
                     <p>
                         A diferencia de las acciones, donde siempre hay un custodio, en cripto tú puedes ser tu propio banco ("Self-Custody").
                     </p>
                 </div>
-                <div className="asset-page__steps">
-                    <div className="step-card">
+                <AcademyGrid variant="steps" className="asset-page__steps">
+                    <AcademyPanel variant="step" className="step-card">
                         <div className="step-card__number">1</div>
                         <h4>Exchange (Custodiado)</h4>
                         <p>Plataformas como Coinbase o Kraken. Fácil de usar pero dependes de la empresa.</p>
-                    </div>
-                    <div className="step-card">
+                    </AcademyPanel>
+                    <AcademyPanel variant="step" className="step-card">
                         <div className="step-card__number">2</div>
                         <h4>ETFs de Bitcoin Spot</h4>
                         <p>La opción más sencilla para el inversor tradicional. Compras Bitcoin en la bolsa regulada.</p>
                         <span className="step-card__badge step-card__badge--recommended">Recomendado</span>
-                    </div>
-                    <div className="step-card">
+                    </AcademyPanel>
+                    <AcademyPanel variant="step" className="step-card">
                         <div className="step-card__number">3</div>
                         <h4>Cold Wallet (Propia)</h4>
                         <p>Máxima seguridad. Tú controlas las llaves privadas. Ideal para el largo plazo.</p>
-                    </div>
-                </div>
-            </section>
+                    </AcademyPanel>
+                </AcademyGrid>
+            </AcademySection>
 
-            <section id="section-4" className="asset-page__section">
-                <h2><Shield size={22} /> Ventajas y Riesgos</h2>
-                <div className="asset-page__pros-cons">
-                    <div className="pc-column pc-column--pros">
+            <AcademySection title={<><Shield size={22} /> Ventajas y Riesgos</>} id="section-4" className="asset-page__section">
+
+                <AcademyGrid variant="prosCons" className="asset-page__pros-cons">
+                    <AcademyPanel variant="prosCons" className="pc-column pc-column--pros">
                         <h3><CheckCircle2 size={18} /> Ventajas</h3>
                         <ul>
                             <li>Retorno asimétrico exponencial histórico</li>
@@ -149,8 +144,8 @@ export function AssetCrypto() {
                             <li>Mercado abierto 24/7 sin fronteras</li>
                             <li>Acceso directo sin intermediarios financieros</li>
                         </ul>
-                    </div>
-                    <div className="pc-column pc-column--cons">
+                    </AcademyPanel>
+                    <AcademyPanel variant="prosCons" className="pc-column pc-column--cons">
                         <h3><AlertTriangle size={18} /> Riesgos</h3>
                         <ul>
                             <li>Volatilidad extrema e impredecible</li>
@@ -158,9 +153,9 @@ export function AssetCrypto() {
                             <li>Riesgo de pérdida permanente por errores de seguridad</li>
                             <li>Muchas altcoins son proyectos fallidos o estafas</li>
                         </ul>
-                    </div>
-                </div>
-            </section>
+                    </AcademyPanel>
+                </AcademyGrid>
+            </AcademySection>
 
             <section className="asset-page__final-tip">
                 <Lightbulb size={28} />

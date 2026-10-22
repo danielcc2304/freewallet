@@ -1,3 +1,5 @@
+import { AcademyGrid } from '../ui/AcademyGrid';
+import { AcademyPanel } from '../ui/AcademyPanel';
 import { AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
 import { COMMON_ERRORS } from '../../../data/academyData';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
@@ -14,9 +16,9 @@ export function CommonErrors() {
                 </p>
             </AcademyPageHeader>
 
-            <div className="errors-page__grid">
+            <AcademyGrid variant="errors" className="errors-page__grid">
                 {COMMON_ERRORS.map((error) => (
-                    <article key={error.id} className="error-detail-card">
+                    <AcademyPanel variant="error" as="article" key={error.id} className="error-detail-card">
                         <header className="error-detail-card__header">
                             <div className="error-detail-card__emoji">{error.emoji}</div>
                             <h2 className="error-detail-card__title">{error.title}</h2>
@@ -24,23 +26,23 @@ export function CommonErrors() {
 
                         <p className="error-detail-card__desc">{error.desc}</p>
 
-                        <div className="error-detail-card__grid">
-                            <div className="error-sub-box consequence">
+                        <AcademyGrid variant="errorDetails" className="error-detail-card__grid">
+                            <AcademyPanel variant="errorDetail" className="error-sub-box consequence">
                                 <h5><XCircle size={14} /> Consecuencia</h5>
                                 <p>{error.consequence}</p>
-                            </div>
-                            <div className="error-sub-box solution">
+                            </AcademyPanel>
+                            <AcademyPanel variant="errorDetail" className="error-sub-box solution">
                                 <h5><CheckCircle2 size={14} /> Solución</h5>
                                 <p>{error.solution}</p>
-                            </div>
-                        </div>
+                            </AcademyPanel>
+                        </AcademyGrid>
 
                         <div className="error-detail-card__footer">
                             <AlertCircle size={14} /> Evitar esto mejora tu rentabilidad a largo plazo.
                         </div>
-                    </article>
+                    </AcademyPanel>
                 ))}
-            </div>
+            </AcademyGrid>
         </div>
     );
 }

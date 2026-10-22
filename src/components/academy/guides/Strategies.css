@@ -23,9 +23,6 @@
 .strategies__section-heading h2 { @apply tw:text-[length:clamp(1.2rem,_2.2vw,_1.6rem)]; line-height: 1.35; @apply tw:m-[0_0_.4rem]; }
 .strategies__section-heading p { @apply tw:m-[0] tw:text-secondary tw:text-[length:.95rem]; line-height: 1.6; }
 .strategies__grid { @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[1rem]; }
-.strategies :is(.strategies__approach-card, .strategies__entry-card, .strategies__rebalance-card, .strategies__tool-card) {
-    @apply tw:min-w-[0] tw:p-[clamp(1rem,_2.5vw,_1.5rem)] tw:ui-fill-surface tw:ui-border-default tw:rounded-[18px];
-}
 .strategies__approach-card { @apply tw:ui-stack; border-top: 3px solid var(--accent-primary) !important; }
 .strategies .strategies__approach-card--active { border-top-color: #8b5cf6 !important; }
 .strategies__card-heading { @apply tw:ui-row tw:flex-wrap tw:gap-[.75rem] tw:mb-[1rem]; }

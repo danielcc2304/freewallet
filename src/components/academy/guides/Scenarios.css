@@ -20,12 +20,7 @@
     @apply tw:max-w-[600px] tw:m-[0_auto];
 }
 
-.scenarios__grid {
-    @apply tw:ui-stack tw:gap-[2rem];
-}
-
 .scenario-card {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:rounded-[20px] tw:p-[2.5rem];
     transition: all 0.3s ease;
 }
 

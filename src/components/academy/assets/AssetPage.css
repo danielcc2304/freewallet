@@ -48,33 +48,21 @@
     @apply tw:flex tw:justify-center tw:items-stretch tw:gap-[var(--academy-space-section)] tw:flex-wrap;
 }
 
-.hero-stat {
-    @apply tw:ui-stack tw:gap-[0.25rem] tw:text-center tw:min-w-[170px];
-}
-
 .hero-stat__value {
-    @apply tw:text-[length:1.5rem];
     font-weight: 800;
     color: var(--hero-color);
 }
 
 .hero-stat__label {
-    @apply tw:text-[length:0.8rem];
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    @apply tw:text-muted;
     font-weight: 600;
 }
 
 /* Section styling */
-.asset-page__section {
-    @apply tw:mb-[var(--academy-space-section)];
-}
 
 .asset-page__section h2 {
-    @apply tw:ui-row tw:gap-[0.75rem] tw:text-[length:1.75rem];
     font-weight: 700;
-    @apply tw:mb-[1.5rem];
 }
 
 .asset-page__section h2 svg {
@@ -96,12 +84,8 @@
 }
 
 /* Subtype Grid */
-.asset-page__subtype-grid {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(300px,_1fr))] tw:gap-[1.5rem];
-}
 
 .subtype-card {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:p-[1.5rem] tw:rounded-[16px];
     transition: transform 0.2s;
     border-top: 3px solid var(--subtype-color);
 }
@@ -162,13 +146,6 @@
 }
 
 /* Pros & Cons */
-.asset-page__pros-cons {
-    @apply tw:grid tw:grid-cols-[1fr_1fr] tw:gap-[2rem];
-}
-
-.pc-column {
-    @apply tw:p-[2rem] tw:rounded-[20px] tw:ui-border-default;
-}
 
 .pc-column--pros {
     background: rgba(16, 185, 129, 0.04);
@@ -258,13 +235,6 @@
 }
 
 /* Steps */
-.asset-page__steps {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(240px,_1fr))] tw:gap-[1.5rem];
-}
-
-.step-card {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:p-[2rem] tw:rounded-[20px] tw:text-center tw:relative;
-}
 
 .step-card__number {
     @apply tw:w-[32px] tw:h-[32px];
@@ -311,10 +281,6 @@
     @apply tw:flex tw:items-stretch tw:gap-[2rem];
 }
 
-.versus-card {
-    @apply tw:flex-[1] tw:ui-fill-surface tw:ui-border-default tw:p-[2rem] tw:rounded-[24px] tw:relative;
-}
-
 .versus-card h3 {
     @apply tw:text-center tw:mb-[1.5rem];
 }
@@ -348,12 +314,8 @@
 }
 
 /* Geographic zones */
-.asset-page__geo-grid {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(180px,_1fr))] tw:gap-[1.25rem] tw:mb-[2rem];
-}
 
 .geo-card {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:p-[1.25rem] tw:rounded-[16px];
     border-left: 4px solid var(--accent-primary);
 }
 
@@ -372,13 +334,6 @@
 }
 
 /* Metrics explainers */
-.asset-page__metrics-grid {
-    @apply tw:grid tw:grid-cols-[1fr_1fr] tw:gap-[1.5rem];
-}
-
-.metric-explainer {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:p-[1.5rem] tw:rounded-[20px] tw:ui-stack;
-}
 
 .metric-explainer h4 {
     @apply tw:text-accent tw:mb-[0.5rem];
@@ -404,14 +359,6 @@
 
 .bond-anatomy h3 {
     @apply tw:text-center tw:mb-[1.5rem] tw:text-[length:1.25rem];
-}
-
-.bond-anatomy__grid {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(200px,_1fr))] tw:gap-[1.5rem];
-}
-
-.bond-anatomy__item {
-    @apply tw:ui-fill-surface tw:p-[1.25rem] tw:rounded-[12px] tw:ui-stack tw:text-center tw:ui-border-default;
 }
 
 .bond-anatomy__label {
@@ -563,7 +510,6 @@
 }
 
 .yield-curve-card {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:p-[1.5rem] tw:rounded-[20px];
     border-top: 4px solid var(--curve-color);
 }
 
@@ -1053,14 +999,6 @@
 
 .bond-type-block__header p {
     @apply tw:text-secondary tw:m-[0];
-}
-
-.bond-type-block__subtypes {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(240px,_1fr))] tw:gap-[1.25rem];
-}
-
-.bond-subtype {
-    @apply tw:ui-fill-muted tw:p-[var(--academy-space-card)] tw:rounded-[16px] tw:ui-border-default tw:ui-stack tw:gap-[0.75rem];
 }
 
 .bond-subtype__header {

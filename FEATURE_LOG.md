@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-22 - Tailwind: Academia y simuladores
+- Funcionalidad:
+  - Comparte superficies, enlaces de tarjetas, rejillas, secciones, indicadores, campos y previsualizaciones de vídeos mediante siete componentes React con estructura y estilos Tailwind.
+  - Aplica la composición a las cinco guías de activos, fundamentos, glosario, recorrido, errores, riesgo, fiscalidad, estrategias, valoración, escenarios, recursos y los cinco simuladores.
+- Resumen:
+  - Retira 183 líneas de CSS fuente; conserva los materiales Liquid Glass, las adaptaciones por contenedor, gráficos y animaciones específicos.
+  - Mantiene los controles nativos, cálculos, almacenamiento, enlaces y gestión de errores de miniaturas en los módulos originales.
+- Archivos:
+  - src/components/academy/ui; src/components/academy/assets; src/components/academy/guides; src/components/academy/simulators; scripts/test-market-timing-ui.ts; README.md; docs/tailwind-migration.md; docs/tailwind-module-inventory.md
+
 ### 2026-10-22 - Tailwind: componentes reutilizables del Dashboard
 - Funcionalidad:
   - Comparte indicadores, paneles, selectores, interruptores, filtros, campos de traspaso, métricas ampliadas, filas de corrección y acciones flotantes mediante nueve componentes React con estructura y estilos Tailwind.

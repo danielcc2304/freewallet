@@ -38,26 +38,13 @@
     @apply tw:ui-stack tw:gap-[var(--academy-space-section)];
 }
 
-.alloc-sim__top-section {
-    @apply tw:grid tw:grid-cols-[1fr_1fr] tw:gap-[var(--academy-space-stack)];
-}
-
-.alloc-sim__stat-card {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:p-[var(--academy-space-card)] tw:rounded-[20px] tw:ui-stack tw:items-center tw:text-center;
-}
-
 .alloc-sim__stat-card .label {
-    @apply tw:text-[length:0.8rem];
     font-weight: 700;
-    @apply tw:text-secondary;
     text-transform: uppercase;
-    @apply tw:mb-[0.5rem];
 }
 
 .alloc-sim__stat-card .value {
-    @apply tw:text-[length:2rem];
     font-weight: 800;
-    @apply tw:text-main;
 }
 
 .alloc-sim__stat-card .risk-value {
@@ -65,17 +52,8 @@
     font-weight: 800;
 }
 
-.alloc-sim__stat-card .desc {
-    @apply tw:text-[length:0.8rem] tw:text-secondary tw:mt-[0.25rem];
-}
-
 .alloc-sim__visuals {
     @apply tw:grid tw:grid-cols-[1.2fr_1fr] tw:gap-[var(--academy-space-stack)];
-}
-
-.alloc-sim__chart-box,
-.alloc-sim__info-box {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:p-[var(--academy-space-card)] tw:rounded-[20px];
 }
 
 @media (max-width: 640px) {
@@ -120,9 +98,6 @@
 }
 
 /* Inputs Area */
-.alloc-sim__inputs-area {
-    @apply tw:ui-fill-surface tw:p-[var(--academy-space-card-lg)] tw:rounded-[24px] tw:ui-border-default;
-}
 
 .alloc-sim__inputs-header {
     @apply tw:ui-row tw:justify-between tw:mb-[var(--academy-space-section)] tw:pb-[var(--academy-space-stack)];
@@ -231,7 +206,6 @@
 .alloc-sim__table-scroll th,.alloc-sim__table-scroll td {@apply tw:text-left tw:p-[.65rem];border-bottom:1px solid var(--border-primary);@apply tw:text-main;}
 .alloc-sim__table-scroll input {@apply tw:max-w-[170px];}
 .alloc-sim__correlation {@apply tw:grid tw:gap-[.5rem];}
-.alloc-sim__shock-grid {@apply tw:grid tw:grid-cols-[repeat(3,minmax(0,1fr))] tw:gap-[1rem];}
 .alloc-sim__shock-grid label {@apply tw:grid tw:gap-[.5rem];}
 .alloc-sim__back {@apply tw:inline-flex tw:items-center tw:gap-[.6rem] tw:min-h-[44px] tw:text-accent;font-weight:600;}
 .alloc-sim details summary {@apply tw:cursor-pointer tw:min-h-[44px] tw:ui-row;font-weight:600;}

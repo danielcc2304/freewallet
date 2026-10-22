@@ -16,9 +16,7 @@
 .risk-mgmt__number { @apply tw:grid tw:place-items-center tw:flex-[0_0_38px] tw:h-[38px] tw:rounded-[11px]; background: rgba(var(--accent-rgb), .1); @apply tw:text-accent tw:text-[length:.85rem]; font-weight: 800; }
 .risk-mgmt__section-heading h2 { @apply tw:text-[length:clamp(1.2rem,_2.2vw,_1.6rem)]; line-height: 1.35; @apply tw:m-[0_0_.4rem]; }
 .risk-mgmt__section-heading p { @apply tw:m-[0] tw:text-secondary tw:text-[length:.95rem]; line-height: 1.6; }
-.risk-mgmt__grid { @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[1rem]; }
 .risk-mgmt__grid--three { @apply tw:grid-cols-[repeat(3,_minmax(0,_1fr))]; }
-.risk-mgmt__card { @apply tw:min-w-[0] tw:p-[clamp(1rem,_2.5vw,_1.5rem)] tw:ui-border-default tw:rounded-[18px] tw:ui-fill-surface; }
 .risk-mgmt__card h3 { @apply tw:text-[length:1.15rem]; line-height: 1.4; @apply tw:m-[0_0_.75rem]; }
 .risk-mgmt__card p { @apply tw:text-[length:.95rem]; line-height: 1.7; @apply tw:text-secondary tw:m-[0]; }
 .risk-mgmt__icon { @apply tw:grid tw:place-items-center tw:w-[44px] tw:h-[44px] tw:rounded-[12px]; background: rgba(var(--accent-rgb), .08); @apply tw:text-accent tw:mb-[1rem] tw:shrink-[0]; }

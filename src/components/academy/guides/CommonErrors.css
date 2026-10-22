@@ -23,12 +23,7 @@
     @apply tw:max-w-[600px] tw:m-[0_auto];
 }
 
-.errors-page__grid {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(320px,_1fr))] tw:gap-[var(--academy-space-stack)];
-}
-
 .error-detail-card {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:rounded-[20px] tw:p-[var(--academy-space-card)] tw:ui-stack tw:gap-[var(--academy-space-stack)];
     transition: all 0.3s ease;
 }
 
@@ -55,14 +50,6 @@
 .error-detail-card__desc {
     @apply tw:text-[length:1rem] tw:text-secondary;
     line-height: 1.5;
-}
-
-.error-detail-card__grid {
-    @apply tw:grid tw:grid-cols-[1fr_1fr] tw:gap-[1.25rem] tw:mt-[0.5rem];
-}
-
-.error-sub-box {
-    @apply tw:p-[1rem] tw:rounded-[12px];
 }
 
 .error-sub-box.consequence {

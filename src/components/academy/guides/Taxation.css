@@ -29,9 +29,6 @@
 }
 
 /* Brackets Grid */
-.tax-info__brackets-grid {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(min(100%,_160px),_1fr))] tw:gap-[1rem] tw:mt-[1.5rem];
-}
 
 .tax-info .bracket-card {
     @apply tw:ui-fill-surface tw:ui-border-default tw:p-[1.5rem] tw:rounded-[12px] tw:text-center;
@@ -60,9 +57,6 @@
 
 
 /* Compensation Card */
-.tax-info__card {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:rounded-[20px] tw:p-[2rem];
-}
 
 .tax-info__card-header {
     @apply tw:ui-row tw:gap-[1rem] tw:mb-[1rem];
@@ -133,12 +127,8 @@
 }
 
 /* Two clearly separated tools: investment taxes and employment income. */
-.tax-info__tools-grid {
-    @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[1rem];
-}
 
 .tax-info__tool-card {
-    @apply tw:ui-stack tw:items-start tw:gap-[.75rem] tw:min-w-[0] tw:p-[1.5rem] tw:ui-border-default tw:rounded-[18px] tw:ui-fill-surface tw:text-main;
     text-decoration: none;
     transition: border-color .2s;
 }

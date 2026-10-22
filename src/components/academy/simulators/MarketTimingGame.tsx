@@ -1,3 +1,5 @@
+import { AcademyMetric } from '../ui/AcademyMetric';
+import { AcademyGrid } from '../ui/AcademyGrid';
 import { useEffect, useReducer, useRef, useState } from 'react';
 import { ArrowRight, Pause, Play, RotateCcw, TrendingDown, TrendingUp, Trophy } from 'lucide-react';
 import { Area, CartesianGrid, ComposedChart, ReferenceDot, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -88,12 +90,12 @@ export function MarketTimingGame() {
                 </div>
                 <progress className="timing-progress" max={TIMING_RULES.ticks} value={game.tick} aria-label="Progreso de la ronda" />
 
-                <div className="timing-stats">
-                    <div><span>Tu cartera</span><strong>{money(playerValue)}</strong></div>
-                    <div><span>DCA</span><strong>{money(dcaValue)}</strong><small>Incluye el efectivo pendiente</small></div>
-                    <div><span>Ventaja en esta ronda</span><strong className={direction(edge)}>{signedMoney(edge)}</strong></div>
-                    <div><span>Órdenes usadas</span><strong>{game.trades.length + (game.pending ? 1 : 0)} / {TIMING_RULES.maxOrders}</strong></div>
-                </div>
+                <AcademyGrid variant="timingStats" className="timing-stats">
+                    <AcademyMetric variant="timing" label={<>Tu cartera</>} value={<>{money(playerValue)}</>} />
+                    <AcademyMetric variant="timing" label={<>DCA</>} value={<>{money(dcaValue)}</>} detail={<>Incluye el efectivo pendiente</>} />
+                    <AcademyMetric variant="timing" label={<>Ventaja en esta ronda</>} value={<>{signedMoney(edge)}</>} valueProps={{"className":direction(edge)}} />
+                    <AcademyMetric variant="timing" label={<>Órdenes usadas</>} value={<>{game.trades.length + (game.pending ? 1 : 0)} / {TIMING_RULES.maxOrders}</>} />
+                </AcademyGrid>
 
                 {ready ? (
                     <div className="timing-intro">

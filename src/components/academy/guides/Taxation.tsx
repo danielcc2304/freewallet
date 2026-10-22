@@ -1,5 +1,6 @@
+import { AcademyGrid } from '../ui/AcademyGrid';
+import { AcademyPanel, AcademyLinkCard } from '../ui/AcademyPanel';
 import { Receipt, ShieldCheck, Landmark, ArrowDownRight, ArrowUpRight, Scale, Calculator, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './Taxation.css';
 
@@ -18,7 +19,7 @@ export function Taxation() {
                 <h2 className="tax-info__section-title">1. Base Imponible del Ahorro</h2>
                 <p>La mayoría de los beneficios por inversiones (dividendos, intereses, ganancias patrimoniales) tributan en la base del ahorro con tipos progresivos.</p>
 
-                <div className="tax-info__brackets-grid">
+                <AcademyGrid variant="taxBrackets" className="tax-info__brackets-grid">
                     <div className="bracket-card">
                         <span className="bracket-range">Hasta 6.000€</span>
                         <strong className="bracket-rate">19%</strong>
@@ -39,12 +40,12 @@ export function Taxation() {
                         <span className="bracket-range">Más de 300.000€</span>
                         <strong className="bracket-rate">30%</strong>
                     </div>
-                </div>
+                </AcademyGrid>
             </section>
 
             <section className="tax-info__compensation">
                 <h2 className="tax-info__section-title">2. Compensación de Ganancias y Pérdidas</h2>
-                <div className="tax-info__card">
+                <AcademyPanel variant="tax" className="tax-info__card">
                     <div className="tax-info__card-header">
                         <Scale size={24} className="icon" />
                         <h3>El escudo fiscal</h3>
@@ -68,7 +69,7 @@ export function Taxation() {
                             <span>Tributas por: 600€</span>
                         </div>
                     </div>
-                </div>
+                </AcademyPanel>
             </section>
 
             <section className="tax-info__comparison">
@@ -101,22 +102,22 @@ export function Taxation() {
 
             <section className="tax-info__tools" aria-labelledby="tax-tools-title">
                 <h2 id="tax-tools-title" className="tax-info__section-title">Ponlo en práctica</h2>
-                <div className="tax-info__tools-grid">
-                    <Link to="/academy/taxes" className="tax-info__tool-card">
+                <AcademyGrid variant="taxTools" className="tax-info__tools-grid">
+                    <AcademyLinkCard variant="taxTool" to="/academy/taxes" className="tax-info__tool-card">
                         <span className="tax-info__tool-icon"><Receipt size={24} aria-hidden="true" /></span>
                         <span className="tax-info__tool-category">Inversiones</span>
                         <h3>Simulador fiscal</h3>
                         <p>Estima los impuestos sobre tus beneficios y compara el efecto del diferimiento fiscal.</p>
                         <span className="tax-info__tool-action">Abrir simulador <ArrowRight size={18} aria-hidden="true" /></span>
-                    </Link>
-                    <Link to="/academy/salary-calculator" className="tax-info__tool-card">
+                    </AcademyLinkCard>
+                    <AcademyLinkCard variant="taxTool" to="/academy/salary-calculator" className="tax-info__tool-card">
                         <span className="tax-info__tool-icon"><Calculator size={24} aria-hidden="true" /></span>
                         <span className="tax-info__tool-category">Sueldo e IRPF</span>
                         <h3>Calculadora de IRPF y sueldo neto</h3>
                         <p>Estima tu sueldo neto, retención de IRPF y cotizaciones según tu salario, comunidad y situación personal.</p>
                         <span className="tax-info__tool-action">Calcular sueldo neto <ArrowRight size={18} aria-hidden="true" /></span>
-                    </Link>
-                </div>
+                    </AcademyLinkCard>
+                </AcademyGrid>
             </section>
         </div>
     );

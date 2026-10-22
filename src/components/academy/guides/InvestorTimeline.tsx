@@ -1,3 +1,4 @@
+import { AcademyPanel } from '../ui/AcademyPanel';
 import { useState } from 'react';
 import { Check, AlertCircle, TrendingUp } from 'lucide-react';
 import { Link } from 'react-router-dom';
@@ -44,7 +45,7 @@ export function InvestorTimeline() {
                             )}
                         </div>
 
-                        <div className="timeline__phase-content">
+                        <AcademyPanel variant="timeline" className="timeline__phase-content">
                             <button
                                 className="timeline__phase-header"
                                 onClick={() => togglePhase(phase.id)}
@@ -112,7 +113,7 @@ export function InvestorTimeline() {
                                     </div>
                                 </div>
                             )}
-                        </div>
+                        </AcademyPanel>
                     </div>
                 ))}
             </div>

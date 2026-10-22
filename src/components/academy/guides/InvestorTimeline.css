@@ -63,7 +63,6 @@
 }
 
 .timeline__phase-content {
-    @apply tw:flex-[1] tw:ui-fill-surface tw:ui-border-default tw:rounded-[12px] tw:overflow-hidden;
     transition: all 0.3s ease;
 }
 

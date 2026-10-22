@@ -67,3 +67,8 @@ Bonos, IRPF/sueldo neto y ficha de fondos usan componentes que encapsulan estruc
 ## Actualización de la octava fase
 
 El Dashboard comparte nueve componentes de interfaz con marcado y utilidades Tailwind. Se retiran `PortfolioSummary.css` y `PortfolioDataQuality.css`; sus estilos se componen en React. Las hojas del Dashboard pasan de 1.804 a 1.457 líneas, incluida su página principal. Quedan 51 hojas con `@reference`; se mantienen estilos específicos de tablas, gráficos y disposición.
+
+
+## Actualización de la novena fase
+
+Academia y los simuladores componen superficies, tarjetas enlazadas, rejillas, secciones con título, indicadores, campos y vídeos mediante siete componentes en `src/components/academy/ui`. Se reutilizan en 20 módulos. El CSS total de `src` pasa de 14.974 a 14.791 líneas (183 menos); se mantienen 58 archivos CSS y 51 hojas con `@reference`. Los selectores contextuales de los módulos conservan adaptaciones móviles, materiales Liquid Glass y elementos específicos.

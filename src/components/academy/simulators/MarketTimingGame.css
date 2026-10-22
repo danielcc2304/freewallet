@@ -12,11 +12,7 @@
 .timing-progress::-webkit-progress-bar { @apply tw:ui-fill-muted; }
 .timing-progress::-webkit-progress-value { background: var(--accent-primary); }
 .timing-progress::-moz-progress-bar { background: var(--accent-primary); }
-.timing-stats { @apply tw:grid tw:grid-cols-[repeat(4,_minmax(0,_1fr))] tw:gap-[.8rem] tw:mb-[1.25rem]; }
-.timing-stats > div { @apply tw:ui-stack tw:min-w-[0] tw:p-[.8rem] tw:ui-border tw:rounded-[10px] tw:ui-fill-muted; }
-.timing-stats span { @apply tw:text-[length:.75rem] tw:text-secondary; }
-.timing-stats strong { @apply tw:mt-[.3rem] tw:text-[length:clamp(1rem,_1.6vw,_1.3rem)]; font-variant-numeric: tabular-nums; @apply tw:wrap-anywhere; }
-.timing-stats small { @apply tw:mt-[.2rem] tw:text-[length:.65rem] tw:text-muted; }
+.timing-stats strong { font-variant-numeric: tabular-nums; }
 .timing-intro { @apply tw:max-w-[640px] tw:m-[1.5rem_auto_.5rem] tw:text-center; }
 .timing-intro h2 { @apply tw:text-[length:1.3rem] tw:text-main; }
 .timing-intro p { @apply tw:text-secondary; line-height: 1.65; }

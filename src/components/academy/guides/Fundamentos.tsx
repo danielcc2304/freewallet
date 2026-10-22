@@ -1,3 +1,4 @@
+import { AcademyPanel } from '../ui/AcademyPanel';
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown, ChevronUp } from "lucide-react";
@@ -375,7 +376,7 @@ export function Fundamentos() {
         </article>
       </section>
 
-      <section className="fundamentos__section-block">
+      <AcademyPanel variant="fundamentals" as="section" className="fundamentos__section-block">
         <div className="fundamentos__section-head">
           <div className="fundamentos__section-head-row">
             <h2>Ruta guiada por nivel</h2>
@@ -447,9 +448,9 @@ export function Fundamentos() {
             </article>
           ))}
         </div>
-      </section>
+      </AcademyPanel>
 
-      <section className="fundamentos__section-block">
+      <AcademyPanel variant="fundamentals" as="section" className="fundamentos__section-block">
         <div className="fundamentos__section-head">
           <h2>Academia por objetivo</h2>
           <p>Atajos prácticos para entrar por intención.</p>
@@ -478,9 +479,9 @@ export function Fundamentos() {
             </article>
           ))}
         </div>
-      </section>
+      </AcademyPanel>
 
-      <section className="fundamentos__section-block">
+      <AcademyPanel variant="fundamentals" as="section" className="fundamentos__section-block">
         <div className="fundamentos__section-head">
           <h2>Checklists visuales</h2>
           <p>
@@ -508,9 +509,9 @@ export function Fundamentos() {
             </Link>
           ))}
         </div>
-      </section>
+      </AcademyPanel>
 
-      <section className="fundamentos__section-block">
+      <AcademyPanel variant="fundamentals" as="section" className="fundamentos__section-block">
         <div className="fundamentos__section-head">
           <h2>Centro de simuladores</h2>
           <p>
@@ -537,9 +538,9 @@ export function Fundamentos() {
             </Link>
           ))}
         </div>
-      </section>
+      </AcademyPanel>
 
-      <section className="fundamentos__spotlight">
+      <AcademyPanel variant="fundamentals" as="section" className="fundamentos__spotlight">
         <div className="fundamentos__spotlight-copy">
           <h2>Cómo leer tu cartera real con Portfolio</h2>
           <p>
@@ -562,9 +563,9 @@ export function Fundamentos() {
             Ver estrategia y cartera
           </Link>
         </div>
-      </section>
+      </AcademyPanel>
 
-      <div className="fundamentos__next">
+      <AcademyPanel variant="fundamentals" className="fundamentos__next">
         <h3>Siguiente paso recomendado</h3>
         <p>
           Si vienes totalmente desde cero: glosario, perfil, interés compuesto y
@@ -588,7 +589,7 @@ export function Fundamentos() {
             📉 Prepararme para crisis
           </Link>
         </div>
-      </div>
+      </AcademyPanel>
     </div>
   );
 }

@@ -10,7 +10,6 @@
 .crisis h2 { @apply tw:text-[length:clamp(1.2rem,_2.2vw,_1.6rem)] tw:m-[0_0_1rem]; }
 .crisis__selector { @apply tw:m-[2rem_0_1.25rem]; }
 .crisis__selector h2 { @apply tw:text-[length:1rem]; }
-.crisis__tabs { @apply tw:grid tw:grid-cols-[repeat(3,_minmax(0,_1fr))] tw:gap-[.75rem]; }
 .crisis__tab { @apply tw:ui-stack tw:items-start tw:gap-[.25rem] tw:min-h-[76px] tw:p-[1rem] tw:ui-border-default tw:rounded-[14px] tw:ui-fill-surface tw:text-main tw:cursor-pointer tw:text-left; }
 .crisis__tab:hover { border-color: var(--accent-primary); }
 .crisis .crisis__tab--active { border-color: var(--accent-primary); box-shadow: inset 0 0 0 1px var(--accent-primary); }
@@ -18,15 +17,12 @@
 .crisis__tab-year { @apply tw:text-[length:1.3rem]; font-weight: 800; }
 .crisis__tab-name { @apply tw:text-[length:.8rem]; line-height: 1.4; @apply tw:text-secondary; }
 .crisis :is(a, button, input, [tabindex]):focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 4px; }
-.crisis :is(.crisis__info-card, .crisis__simulator-card, .crisis__next-card) { @apply tw:p-[clamp(1rem,_2.5vw,_1.5rem)] tw:ui-border-default tw:rounded-[18px] tw:ui-fill-surface tw:min-w-[0]; }
 .crisis__eyebrow { @apply tw:block tw:text-[length:.75rem]; font-weight: 700; @apply tw:text-secondary tw:mb-[.5rem]; }
 .crisis__copy { @apply tw:text-secondary tw:text-[length:.95rem]; line-height: 1.7; @apply tw:m-[0_0_1.25rem]; }
-.crisis__stats { @apply tw:grid tw:grid-cols-[repeat(3,_minmax(0,_1fr))] tw:gap-[.75rem]; }
-.crisis__stat { @apply tw:grid; align-content: start; @apply tw:gap-[.5rem] tw:p-[1rem] tw:ui-border-default tw:ui-fill-muted tw:rounded-[12px] tw:min-w-[0]; }
+.crisis__stat { align-content: start; }
 .crisis__stat > svg { @apply tw:text-accent; }
 .crisis__stat:first-child > svg { color: var(--error-color, #ef4444); }
-.crisis__stat > span { @apply tw:text-[length:.8rem] tw:text-secondary; line-height: 1.5; }
-.crisis__stat strong { @apply tw:text-[length:1.35rem] tw:mt-[auto]; }
+.crisis__stat > span { line-height: 1.5; }
 .crisis__footnote { @apply tw:text-[length:.8rem] tw:text-secondary; line-height: 1.65; @apply tw:m-[1rem_0_0]; }
 .crisis__insight { @apply tw:flex tw:items-start tw:gap-[.75rem] tw:p-[1rem] tw:m-[1.25rem_0_2rem]; border-left: 3px solid var(--accent-primary); @apply tw:rounded-[0_12px_12px_0]; background: rgba(var(--accent-rgb), .05); }
 .crisis__insight svg { @apply tw:flex-[0_0_20px] tw:mt-[.15rem] tw:text-accent; }
@@ -36,12 +32,9 @@
 .crisis__section-heading h2 { @apply tw:m-[0_0_.4rem]; }
 .crisis__section-heading p { @apply tw:text-secondary tw:text-[length:.9rem]; line-height: 1.6; @apply tw:m-[0]; }
 .crisis__icon { @apply tw:grid tw:place-items-center tw:flex-[0_0_44px] tw:h-[44px] tw:rounded-[12px] tw:text-accent; background: rgba(var(--accent-rgb), .08); }
-.crisis__inputs { @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[1rem] tw:mb-[1.5rem]; }
-.crisis__input-group label { @apply tw:block tw:text-[length:.85rem]; font-weight: 600; line-height: 1.5; @apply tw:mb-[.5rem]; }
-.crisis__input-wrapper { @apply tw:ui-row tw:gap-[.5rem] tw:ui-border-default tw:rounded-[10px] tw:ui-fill-muted tw:p-[.5rem_.85rem]; }
+.crisis__input-group label { font-weight: 600; line-height: 1.5; }
 .crisis__input-wrapper:focus-within { border-color: var(--accent-primary); }
-.crisis__input-wrapper input { @apply tw:min-w-[0] tw:w-full tw:min-h-[44px] tw:ui-fill-transparent tw:text-main; font: inherit; border: 0; }
-.crisis__input-wrapper span { @apply tw:text-[length:.8rem] tw:text-secondary tw:shrink-[0]; }
+.crisis__input-wrapper input { font: inherit; border: 0; }
 .crisis__impact { @apply tw:p-[1.25rem] tw:rounded-[12px] tw:ui-fill-muted; }
 .crisis__impact-row { @apply tw:grid tw:grid-cols-[minmax(0,_1fr)_auto] tw:gap-[.5rem_1rem] tw:mb-[1rem] tw:items-baseline; }
 .crisis__impact-row > span { @apply tw:text-[length:.85rem] tw:text-secondary; line-height: 1.5; }
@@ -52,7 +45,6 @@
 .crisis__impact > p { @apply tw:text-[length:.9rem]; line-height: 1.65; @apply tw:text-secondary tw:m-[0]; }
 .crisis__impact > p strong { @apply tw:text-main; }
 .crisis__decision-title { @apply tw:m-[1.5rem_0_1rem] tw:text-[length:1.1rem]; }
-.crisis__scenarios { @apply tw:grid tw:grid-cols-[repeat(3,_minmax(0,_1fr))] tw:gap-[.75rem]; }
 .crisis__scenario { @apply tw:ui-stack tw:items-start tw:gap-[.75rem] tw:min-w-[0] tw:p-[1rem] tw:ui-border-default tw:rounded-[12px] tw:ui-fill-muted tw:text-main; font: inherit; @apply tw:text-left tw:cursor-pointer; }
 .crisis__scenario:hover { border-color: var(--accent-primary); }
 .crisis .crisis__scenario--selected { border-color: var(--accent-primary); box-shadow: inset 0 0 0 1px var(--accent-primary); }

@@ -24,14 +24,6 @@
     @apply tw:m-[0_auto] tw:max-w-[820px];
 }
 
-.fundamentos__disclaimer,
-.fundamentos__spotlight,
-.fundamentos__next,
-.fundamentos__section-block,
-.interact-card {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:rounded-[16px];
-}
-
 .fundamentos__disclaimer {
     @apply tw:p-[1.25rem];
     line-height: 1.6;

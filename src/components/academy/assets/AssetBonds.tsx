@@ -1,3 +1,7 @@
+import { AcademyMetric } from '../ui/AcademyMetric';
+import { AcademySection } from '../ui/AcademySection';
+import { AcademyGrid } from '../ui/AcademyGrid';
+import { AcademyPanel } from '../ui/AcademyPanel';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import {
@@ -225,18 +229,9 @@ export function AssetBonds() {
                     y por qué la curva de tipos puede predecir recesiones.
                 </p>
                 <div className="asset-page__hero-stats">
-                    <div className="hero-stat">
-                        <span className="hero-stat__value">2-10%</span>
-                        <span className="hero-stat__label">Retorno típico</span>
-                    </div>
-                    <div className="hero-stat">
-                        <span className="hero-stat__value">3-8%</span>
-                        <span className="hero-stat__label">Volatilidad</span>
-                    </div>
-                    <div className="hero-stat">
-                        <span className="hero-stat__value">1-5 años</span>
-                        <span className="hero-stat__label">Horizonte recomendado</span>
-                    </div>
+                    <AcademyMetric variant="hero" label={<>Retorno típico</>} value={<>2-10%</>} valueProps={{"className":"hero-stat__value"}} />
+                    <AcademyMetric variant="hero" label={<>Volatilidad</>} value={<>3-8%</>} valueProps={{"className":"hero-stat__value"}} />
+                    <AcademyMetric variant="hero" label={<>Horizonte recomendado</>} value={<>1-5 años</>} valueProps={{"className":"hero-stat__value"}} />
                 </div>
             </AcademyPageHeader>
 
@@ -257,8 +252,8 @@ export function AssetBonds() {
             ]} />
 
             {/* What is it */}
-            <section id="section-1" className="asset-page__section">
-                <h2><Globe size={22} /> ¿Qué es un Bono?</h2>
+            <AcademySection title={<><Globe size={22} /> ¿Qué es un Bono?</>} id="section-1" className="asset-page__section">
+
                 <div className="asset-page__text-block">
                     <p>
                         Un bono es un <strong>préstamo que tú haces a un gobierno o empresa</strong>. A cambio, te pagan
@@ -275,44 +270,44 @@ export function AssetBonds() {
                 {/* Bond anatomy visual */}
                 <div className="bond-anatomy">
                     <h3>Anatomía de un Bono</h3>
-                    <div className="bond-anatomy__grid">
-                        <div className="bond-anatomy__item">
+                    <AcademyGrid variant="bondAnatomy" className="bond-anatomy__grid">
+                        <AcademyPanel variant="bondAnatomy" className="bond-anatomy__item">
                             <span className="bond-anatomy__label">Nominal (Face Value)</span>
                             <span className="bond-anatomy__value">1.000€</span>
                             <span className="bond-anatomy__desc">Lo que te devuelven al vencimiento</span>
-                        </div>
-                        <div className="bond-anatomy__item">
+                        </AcademyPanel>
+                        <AcademyPanel variant="bondAnatomy" className="bond-anatomy__item">
                             <span className="bond-anatomy__label">Cupón</span>
                             <span className="bond-anatomy__value">3.5%</span>
                             <span className="bond-anatomy__desc">Interés anual que recibes</span>
-                        </div>
-                        <div className="bond-anatomy__item">
+                        </AcademyPanel>
+                        <AcademyPanel variant="bondAnatomy" className="bond-anatomy__item">
                             <span className="bond-anatomy__label">Vencimiento</span>
                             <span className="bond-anatomy__value">10 años</span>
                             <span className="bond-anatomy__desc">Plazo hasta recuperar el nominal</span>
-                        </div>
-                        <div className="bond-anatomy__item">
+                        </AcademyPanel>
+                        <AcademyPanel variant="bondAnatomy" className="bond-anatomy__item">
                             <span className="bond-anatomy__label">Precio</span>
                             <span className="bond-anatomy__value">98.50</span>
                             <span className="bond-anatomy__desc">Lo que pagas hoy (puede ser {'≠'} 100)</span>
-                        </div>
-                        <div className="bond-anatomy__item">
+                        </AcademyPanel>
+                        <AcademyPanel variant="bondAnatomy" className="bond-anatomy__item">
                             <span className="bond-anatomy__label">Yield (TIR)</span>
                             <span className="bond-anatomy__value">3.67%</span>
                             <span className="bond-anatomy__desc">Rentabilidad real si mantienes a vencimiento</span>
-                        </div>
-                        <div className="bond-anatomy__item">
+                        </AcademyPanel>
+                        <AcademyPanel variant="bondAnatomy" className="bond-anatomy__item">
                             <span className="bond-anatomy__label">Rating</span>
                             <span className="bond-anatomy__value">AA+</span>
                             <span className="bond-anatomy__desc">Calidad crediticia del emisor</span>
-                        </div>
-                    </div>
+                        </AcademyPanel>
+                    </AcademyGrid>
                 </div>
-            </section>
+            </AcademySection>
 
             {/* Inverse relationship */}
-            <section id="section-2" className="asset-page__section">
-                <h2><ArrowUpDown size={22} /> La Regla de Oro: Precio vs Yield</h2>
+            <AcademySection title={<><ArrowUpDown size={22} /> La Regla de Oro: Precio vs Yield</>} id="section-2" className="asset-page__section">
+
                 <div className="asset-page__text-block">
                     <p>
                         Esta es <strong>la relación más importante</strong> que debes entender sobre bonos:
@@ -346,11 +341,11 @@ export function AssetBonds() {
                         <p>Si compras un bono a 10 años y los tipos suben un 2%, podrías ver una caída del ~15% en el precio de mercado de tu bono. Si lo mantienes a vencimiento, no importa (cobras cupón + nominal). Pero si necesitas vender antes, puedes perder dinero.</p>
                     </div>
                 </div>
-            </section>
+            </AcademySection>
 
             {/* Duration & Convexity */}
-            <section id="section-3" className="asset-page__section">
-                <h2><BarChart3 size={22} /> Duración y Convexidad</h2>
+            <AcademySection title={<><BarChart3 size={22} /> Duración y Convexidad</>} id="section-3" className="asset-page__section">
+
                 <div className="asset-page__text-block">
                     <p>
                         La <strong>duración</strong> mide cuánto cambia el precio de un bono cuando los tipos se mueven.
@@ -415,11 +410,11 @@ export function AssetBonds() {
                         </div>
                     </div>
                 </div>
-            </section>
+            </AcademySection>
 
             {/* Yield Curve */}
-            <section id="section-4" className="asset-page__section">
-                <h2><TrendingUp size={22} /> La Curva de Tipos</h2>
+            <AcademySection title={<><TrendingUp size={22} /> La Curva de Tipos</>} id="section-4" className="asset-page__section">
+
                 <div className="asset-page__text-block">
                     <p>
                         La <strong>curva de rendimientos</strong> (yield curve) muestra qué rentabilidad ofrecen
@@ -429,7 +424,7 @@ export function AssetBonds() {
 
                 <div className="yield-curves">
                     {YIELD_CURVE_SCENARIOS.map(scenario => (
-                        <div key={scenario.name} className="yield-curve-card" style={{ '--curve-color': scenario.color } as React.CSSProperties}>
+                        <AcademyPanel variant="yieldCurve" key={scenario.name} className="yield-curve-card" style={{ '--curve-color': scenario.color } as React.CSSProperties}>
                             <div className="yield-curve-card__header">
                                 <h4>{scenario.name}</h4>
                                 <span className="yield-curve-card__signal">{scenario.signal}</span>
@@ -452,7 +447,7 @@ export function AssetBonds() {
                                     ))}
                                 </div>
                             </div>
-                        </div>
+                        </AcademyPanel>
                     ))}
                 </div>
 
@@ -463,11 +458,11 @@ export function AssetBonds() {
                         <p>Históricamente, cada vez que la curva de tipos se ha invertido (el bono a 2 años rinde más que el de 10 años), una recesión ha seguido en los 6-18 meses siguientes. Ocurrió antes de 2001, 2008, y 2020.</p>
                     </div>
                 </div>
-            </section>
+            </AcademySection>
 
             {/* Bond types deep dive */}
-            <section id="section-5" className="asset-page__section">
-                <h2><Shield size={22} /> Tipos de Bonos en Detalle</h2>
+            <AcademySection title={<><Shield size={22} /> Tipos de Bonos en Detalle</>} id="section-5" className="asset-page__section">
+
                 <p className="asset-page__section-desc">
                     No todos los bonos son iguales. La diferencia entre deuda gubernamental y high yield
                     es como la diferencia entre un depósito y una criptomoneda.
@@ -482,9 +477,9 @@ export function AssetBonds() {
                                 <p>{type.desc}</p>
                             </div>
                         </div>
-                        <div className="bond-type-block__subtypes">
+                        <AcademyGrid variant="bondSubtypes" className="bond-type-block__subtypes">
                             {type.subtypes.map(sub => (
-                                <div key={sub.name} className="bond-subtype">
+                                <AcademyPanel variant="bondSubtype" key={sub.name} className="bond-subtype">
                                     <div className="bond-subtype__header">
                                         <h4>{sub.name}</h4>
                                         <span className={`bond-subtype__risk bond-subtype__risk--${sub.risk.toLowerCase().replace(/[^a-z]/g, '')}`}>
@@ -495,16 +490,16 @@ export function AssetBonds() {
                                     <span className="bond-subtype__duration">
                                         <Clock size={14} /> {sub.duration}
                                     </span>
-                                </div>
+                                </AcademyPanel>
                             ))}
-                        </div>
+                        </AcademyGrid>
                     </div>
                 ))}
-            </section>
+            </AcademySection>
 
             {/* Credit Rating */}
-            <section id="section-6" className="asset-page__section">
-                <h2><BarChart3 size={22} /> Ratings Crediticios</h2>
+            <AcademySection title={<><BarChart3 size={22} /> Ratings Crediticios</>} id="section-6" className="asset-page__section">
+
                 <div className="asset-page__text-block">
                     <p>Las agencias de calificación (Moody's, S&P, Fitch) evalúan la probabilidad de que un emisor pague sus deudas. La calificación determina el interés que debe pagar el emisor.</p>
                 </div>
@@ -535,11 +530,11 @@ export function AssetBonds() {
                         <span>↓ High Yield (Basura)</span>
                     </div>
                 </div>
-            </section>
+            </AcademySection>
 
             {/* Credit spread */}
-            <section id="section-7" className="asset-page__section">
-                <h2><TrendingDown size={22} /> Spread de Crédito: El Termómetro del Riesgo</h2>
+            <AcademySection title={<><TrendingDown size={22} /> Spread de Crédito: El Termómetro del Riesgo</>} id="section-7" className="asset-page__section">
+
                 <div className="asset-page__text-block">
                     <p>
                         El <strong>spread de crédito</strong> es la prima extra que exige el mercado por prestar a una empresa
@@ -696,11 +691,11 @@ export function AssetBonds() {
                         Aproximación de primer orden. No incluye cambios de tipos soberanos, convexidad, defaults ni efecto de cupones.
                     </p>
                 </div>
-            </section>
+            </AcademySection>
 
             {/* Checklist */}
-            <section id="section-8" className="asset-page__section">
-                <h2><CheckCircle2 size={22} /> Checklist Antes de Comprar Bonos o ETFs</h2>
+            <AcademySection title={<><CheckCircle2 size={22} /> Checklist Antes de Comprar Bonos o ETFs</>} id="section-8" className="asset-page__section">
+
                 <div className="asset-page__text-block">
                     <p>
                         Esta revisión de 60 segundos evita la mayoría de errores típicos en renta fija:
@@ -729,11 +724,11 @@ export function AssetBonds() {
                         </Link>
                     </div>
                 </div>
-            </section>
+            </AcademySection>
 
             {/* Ladder strategy */}
-            <section id="section-9" className="asset-page__section">
-                <h2><Clock size={22} /> Estrategia Ladder (Escalera de Vencimientos)</h2>
+            <AcademySection title={<><Clock size={22} /> Estrategia Ladder (Escalera de Vencimientos)</>} id="section-9" className="asset-page__section">
+
                 <div className="asset-page__text-block">
                     <p>
                         La estrategia <strong>ladder</strong> consiste en repartir tu renta fija por vencimientos
@@ -763,11 +758,11 @@ export function AssetBonds() {
                         </p>
                     </div>
                 </div>
-            </section>
+            </AcademySection>
 
             {/* Portfolio duration calculator */}
-            <section id="section-10" className="asset-page__section">
-                <h2><BarChart3 size={22} /> Duración Total de tu Cartera de Bonos</h2>
+            <AcademySection title={<><BarChart3 size={22} /> Duración Total de tu Cartera de Bonos</>} id="section-10" className="asset-page__section">
+
                 <div className="asset-page__text-block">
                     <p>
                         Esta mini calculadora estima la sensibilidad conjunta de tu cartera de renta fija
@@ -854,11 +849,11 @@ export function AssetBonds() {
                         </div>
                     </div>
                 </div>
-            </section>
+            </AcademySection>
 
             {/* Common mistakes */}
-            <section id="section-11" className="asset-page__section">
-                <h2><AlertTriangle size={22} /> Errores Comunes en Renta Fija</h2>
+            <AcademySection title={<><AlertTriangle size={22} /> Errores Comunes en Renta Fija</>} id="section-11" className="asset-page__section">
+
                 <div className="bond-mistakes-grid">
                     {COMMON_BOND_ERRORS.map((item) => (
                         <article key={item.mistake} className="bond-mistake-card">
@@ -868,13 +863,13 @@ export function AssetBonds() {
                         </article>
                     ))}
                 </div>
-            </section>
+            </AcademySection>
 
             {/* Pros and Cons */}
-            <section id="section-12" className="asset-page__section">
-                <h2><Shield size={22} /> Ventajas y Riesgos</h2>
-                <div className="asset-page__pros-cons">
-                    <div className="pc-column pc-column--pros">
+            <AcademySection title={<><Shield size={22} /> Ventajas y Riesgos</>} id="section-12" className="asset-page__section">
+
+                <AcademyGrid variant="prosCons" className="asset-page__pros-cons">
+                    <AcademyPanel variant="prosCons" className="pc-column pc-column--pros">
                         <h3><CheckCircle2 size={18} /> Ventajas</h3>
                         <ul>
                             <li>Estabilidad y previsibilidad de rentas</li>
@@ -884,8 +879,8 @@ export function AssetBonds() {
                             <li>Letras del Tesoro: alternativa superior a depósitos bancarios</li>
                             <li>Si mantienes a vencimiento, conoces exactamente tu retorno</li>
                         </ul>
-                    </div>
-                    <div className="pc-column pc-column--cons">
+                    </AcademyPanel>
+                    <AcademyPanel variant="prosCons" className="pc-column pc-column--cons">
                         <h3><AlertTriangle size={18} /> Riesgos</h3>
                         <ul>
                             <li>Rentabilidad real puede no superar inflación</li>
@@ -895,40 +890,40 @@ export function AssetBonds() {
                             <li>Liquidez variable según el mercado</li>
                             <li>Fiscalidad: cupones tributan como rendimiento del capital</li>
                         </ul>
-                    </div>
-                </div>
-            </section>
+                    </AcademyPanel>
+                </AcademyGrid>
+            </AcademySection>
 
             {/* How to invest */}
-            <section id="section-13" className="asset-page__section">
-                <h2><Zap size={22} /> ¿Cómo Invertir en Renta Fija?</h2>
-                <div className="asset-page__steps">
-                    <div className="step-card">
+            <AcademySection title={<><Zap size={22} /> ¿Cómo Invertir en Renta Fija?</>} id="section-13" className="asset-page__section">
+
+                <AcademyGrid variant="steps" className="asset-page__steps">
+                    <AcademyPanel variant="step" className="step-card">
                         <div className="step-card__number">1</div>
                         <h4>ETFs de Bonos</h4>
                         <p>Forma más accesible. Un ETF como iShares Core Euro Govt Bond te da diversificación en decenas de emisiones gubernamentales europeas.</p>
                         <span className="step-card__badge step-card__badge--recommended">Recomendado</span>
-                    </div>
-                    <div className="step-card">
+                    </AcademyPanel>
+                    <AcademyPanel variant="step" className="step-card">
                         <div className="step-card__number">2</div>
                         <h4>Letras del Tesoro Directas</h4>
                         <p>Se compran directamente en el Tesoro Público español. Sin comisiones, máxima seguridad. Ideal para plazos cortos (3-12 meses).</p>
                         <span className="step-card__badge step-card__badge--fiscal">Sin comisiones</span>
-                    </div>
-                    <div className="step-card">
+                    </AcademyPanel>
+                    <AcademyPanel variant="step" className="step-card">
                         <div className="step-card__number">3</div>
                         <h4>Fondos de Renta Fija</h4>
                         <p>Gestionados activamente o indexados. Ventaja fiscal en España por traspasos. Cuidado con las comisiones de gestión activa.</p>
                         <span className="step-card__badge step-card__badge--fiscal">Ventaja Fiscal 🇪🇸</span>
-                    </div>
-                    <div className="step-card">
+                    </AcademyPanel>
+                    <AcademyPanel variant="step" className="step-card">
                         <div className="step-card__number">4</div>
                         <h4>Bonos Individuales</h4>
                         <p>Comprar bonos concretos en el mercado secundario. Requiere más capital y conocimiento. Solo para inversores experimentados.</p>
                         <span className="step-card__badge step-card__badge--advanced">Avanzado</span>
-                    </div>
-                </div>
-            </section>
+                    </AcademyPanel>
+                </AcademyGrid>
+            </AcademySection>
 
             {/* Final tip */}
             <section className="asset-page__final-tip">

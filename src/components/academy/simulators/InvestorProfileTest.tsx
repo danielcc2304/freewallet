@@ -1,3 +1,4 @@
+import { AcademyPanel } from '../ui/AcademyPanel';
 import { useState } from 'react';
 import {
     Target, ArrowRight, RotateCcw, Shield, Scale,
@@ -133,7 +134,7 @@ export function InvestorProfileTest() {
                 <p>Descubre qué tipo de inversor eres y qué estrategia se adapta mejor a tu psicología y objetivos.</p>
             </AcademyPageHeader>
 
-            <div className="quiz-card">
+            <AcademyPanel variant="quiz" className="quiz-card">
                 {step === 'start' && (
                     <div className="quiz-start">
                         <div className="quiz-start__icon">
@@ -205,7 +206,7 @@ export function InvestorProfileTest() {
                         </div>
                     </div>
                 )}
-            </div>
+            </AcademyPanel>
         </div>
     );
 }

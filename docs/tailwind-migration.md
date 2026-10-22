@@ -192,3 +192,20 @@ Se amplía la suite existente de calidad con navegación de pestañas por teclad
 
 
 Validación final: pasan TypeScript, ESLint, compilación de producción y presupuesto de carga (654,61 kB de JavaScript inicial; calculadoras y SDK editorial mantienen su carga diferida). Pasan las suites de navegador de calidad del Dashboard, métricas de acciones, desgloses, resultados y traspasos. Pasan también las pruebas de resultados financieros, periodos y consolidación de exposición. La comparación del build de producción vuelve a coincidir en los 31.520 elementos de los 48 estados de referencia. Se revisaron capturas del resumen en escritorio y de las métricas ampliadas; las capturas nuevas de producción utilizan posiciones sintéticas.
+
+
+## Novena fase: Academia y simuladores
+
+`src/components/academy/ui` comparte siete componentes con su estructura y utilidades Tailwind. `AcademyPanel` conserva el elemento semántico de cada superficie; `AcademyLinkCard` mantiene el enlace nativo de React Router y sus atributos. `AcademyGrid` organiza las colecciones conservando los ajustes móviles y por contenedor del módulo. Las clases existentes siguen siendo hooks para estados, materiales y pruebas.
+
+`AcademySection` compone 34 secciones de las cinco guías de activos, con títulos opcionales para la sección final. `AcademyMetric` presenta 25 indicadores de guías, asignación, crisis y market timing, sin calcular valores. `AcademyControlField` comparte etiqueta, marco, unidad y ayuda de los pesos de estrategia y las entradas de crisis, conservando los controles, identificadores y callbacks originales. `AcademyVideoCard` encapsula la previsualización y el enlace accesible; el catálogo y el estado de error de miniaturas permanecen en Recursos y guías.
+
+Se aplican estas piezas a 20 módulos existentes. El CSS fuente de `src` pasa de 14.974 a 14.791 líneas: 183 menos en esta fase y un 34,99 % menos respecto a las 22.753 iniciales. No se retiran hojas completas. Las reglas específicas de gráficos, pseudoelementos, animaciones, sombras, contenedores y materiales permanecen donde tienen sentido. Estas cifras describen el código fuente y no el tamaño descargado.
+
+
+La comparación anterior/posterior cubre 160 combinaciones de 20 rutas, dos anchos y cuatro combinaciones de tema/apariencia. Coinciden las propiedades medidas de 32.604 elementos. En Recursos se compara el estado alternativo de miniaturas: las peticiones externas están bloqueadas y se excluyen únicamente los nodos `IMG` transitorios que el navegador carga de forma diferida. No se afirma una comparación píxel a píxel. Se revisó la captura móvil de Mercado y crisis en Liquid Glass.
+
+La prueba de market timing controla su reloj simulado durante la inspección de órdenes pendientes, evitando que dos comandos de navegador separados pierdan ese estado de dos sesiones. Mantiene las comprobaciones de compra/venta parcial y bloqueo de nuevas órdenes; espera el aumento efectivo del saldo para confirmar la venta. El límite por ronda se amplía a 60 segundos para tolerar trabajadores de CI cargados sin cambiar la duración del juego en producción.
+
+
+Validación final: pasan TypeScript, ESLint de los módulos y la prueba modificados, build de producción y presupuesto de carga (654,89 kB de JavaScript inicial). Pasan las pruebas financieras de estrategia/asignación, crisis y market timing, y las pruebas de navegador de estrategia/asignación y las tres rondas completas del juego. El recorrido del build de producción pasa 20 rutas y 240 combinaciones de tres anchos y cuatro temas/apariencias sin errores de ejecución ni desbordamientos horizontales. La prueba del juego espera posiciones estables al pulsar las acciones de resultados y usa movimiento reducido para evitar carreras con el desplazamiento automático.

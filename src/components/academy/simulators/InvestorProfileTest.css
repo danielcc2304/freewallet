@@ -6,9 +6,7 @@
 
 /* Base Card Style */
 .quiz-card {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:rounded-[24px] tw:p-[3rem];
     box-shadow: var(--shadow-lg);
-    @apply tw:relative tw:overflow-hidden;
 }
 
 /* Start Screen */

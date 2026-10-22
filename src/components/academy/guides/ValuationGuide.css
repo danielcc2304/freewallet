@@ -50,12 +50,7 @@
     @apply tw:mb-[1.5rem] tw:text-main;
 }
 
-.valuation-guide__grid {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))] tw:gap-[1.5rem];
-}
-
 .metric-card {
-    @apply tw:ui-fill-surface tw:rounded-[16px] tw:p-[1.5rem] tw:ui-border-default;
     transition: all 0.2s ease;
 }
 

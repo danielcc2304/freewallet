@@ -1,4 +1,6 @@
-﻿import { Link } from 'react-router-dom';
+import { AcademyPanel } from '../ui/AcademyPanel';
+import { AcademyGrid } from '../ui/AcademyGrid';
+import { Link } from 'react-router-dom';
 import {
     ArrowLeft, BarChart3, ShieldCheck, TrendingUp,
     Calculator, AlertCircle, CheckCircle2, DollarSign, Activity,
@@ -15,7 +17,7 @@ interface MetricProps {
 }
 
 const Metric = ({ title, formula, description, benchmarks }: MetricProps) => (
-    <div className="metric-card">
+    <AcademyPanel variant="valuation" className="metric-card">
         <div className="metric-card__header">
             <h3 className="metric-card__title">{title}</h3>
         </div>
@@ -29,7 +31,7 @@ const Metric = ({ title, formula, description, benchmarks }: MetricProps) => (
                 </div>
             ))}
         </div>
-    </div>
+    </AcademyPanel>
 );
 
 export function ValuationGuide() {
@@ -52,7 +54,7 @@ export function ValuationGuide() {
             {/* 1. Rentabilidad del negocio */}
             <section className="valuation-guide__section">
                 <h2><Activity size={24} /> 1. Rentabilidad del Negocio</h2>
-                <div className="valuation-guide__grid">
+                <AcademyGrid variant="valuation" className="valuation-guide__grid">
                     <Metric
                         title="Margen Bruto"
                         formula="(Revenue - Coste de Ventas) / Revenue"
@@ -81,13 +83,13 @@ export function ValuationGuide() {
                             { label: "Core Business", value: "Cash Focus", type: "neutral" }
                         ]}
                     />
-                </div>
+                </AcademyGrid>
             </section>
 
             {/* 2. Rentabilidad del capital */}
             <section className="valuation-guide__section">
                 <h2><TrendingUp size={24} /> 2. Rentabilidad del Capital</h2>
-                <div className="valuation-guide__grid">
+                <AcademyGrid variant="valuation" className="valuation-guide__grid">
                     <Metric
                         title="ROE (Return on Equity)"
                         formula="Net Income / Equity"
@@ -115,13 +117,13 @@ export function ValuationGuide() {
                             { label: "Bajo", value: "< 4%", type: "bad" }
                         ]}
                     />
-                </div>
+                </AcademyGrid>
             </section>
 
             {/* 3. Deuda y Solvencia */}
             <section className="valuation-guide__section">
                 <h2><ShieldCheck size={24} /> 3. Deuda y Solvencia</h2>
-                <div className="valuation-guide__grid">
+                <AcademyGrid variant="valuation" className="valuation-guide__grid">
                     <Metric
                         title="Deuda Neta / EBITDA"
                         formula="(Deuda - Caja) / EBITDA"
@@ -150,13 +152,13 @@ export function ValuationGuide() {
                             { label: "Agresivo", value: "> 1.0", type: "bad" }
                         ]}
                     />
-                </div>
+                </AcademyGrid>
             </section>
 
             {/* 4. Flujo de Caja */}
             <section className="valuation-guide__section">
                 <h2><DollarSign size={24} /> 4. Flujo de Caja (Cash Flow)</h2>
-                <div className="valuation-guide__grid">
+                <AcademyGrid variant="valuation" className="valuation-guide__grid">
                     <Metric
                         title="Operating Cash Flow (OCF)"
                         formula="CFO = Net Income + Depreciation & Amortization +/- Working Capital"
@@ -185,13 +187,13 @@ export function ValuationGuide() {
                             { label: "Exigente", value: "< 4%", type: "bad" }
                         ]}
                     />
-                </div>
+                </AcademyGrid>
             </section>
 
             {/* 5. Valoración */}
             <section className="valuation-guide__section">
                 <h2><Calculator size={24} /> 5. Valoración (Múltiplos)</h2>
-                <div className="valuation-guide__grid">
+                <AcademyGrid variant="valuation" className="valuation-guide__grid">
                     <Metric
                         title="PER (PE Ratio)"
                         formula="Precio / Beneficio por Acción"
@@ -220,7 +222,7 @@ export function ValuationGuide() {
                             { label: "Hype", value: "> 10", type: "bad" }
                         ]}
                     />
-                </div>
+                </AcademyGrid>
             </section>
 
             {/* Ejemplos */}

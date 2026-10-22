@@ -1,3 +1,7 @@
+import { AcademyMetric } from '../ui/AcademyMetric';
+import { AcademySection } from '../ui/AcademySection';
+import { AcademyGrid } from '../ui/AcademyGrid';
+import { AcademyPanel } from '../ui/AcademyPanel';
 import { Link } from 'react-router-dom';
 import {
     TrendingUp, ArrowLeft, Globe, Zap, CheckCircle2, AlertTriangle,
@@ -83,18 +87,9 @@ export function AssetEquities() {
                     riesgos y cómo elegir la exposición correcta para ti.
                 </p>
                 <div className="asset-page__hero-stats">
-                    <div className="hero-stat">
-                        <span className="hero-stat__value">7-10%</span>
-                        <span className="hero-stat__label">Retorno histórico anual</span>
-                    </div>
-                    <div className="hero-stat">
-                        <span className="hero-stat__value">15-20%</span>
-                        <span className="hero-stat__label">Volatilidad típica</span>
-                    </div>
-                    <div className="hero-stat">
-                        <span className="hero-stat__value">7+ años</span>
-                        <span className="hero-stat__label">Horizonte recomendado</span>
-                    </div>
+                    <AcademyMetric variant="hero" label={<>Retorno histórico anual</>} value={<>7-10%</>} valueProps={{"className":"hero-stat__value"}} />
+                    <AcademyMetric variant="hero" label={<>Volatilidad típica</>} value={<>15-20%</>} valueProps={{"className":"hero-stat__value"}} />
+                    <AcademyMetric variant="hero" label={<>Horizonte recomendado</>} value={<>7+ años</>} valueProps={{"className":"hero-stat__value"}} />
                 </div>
             </AcademyPageHeader>
 
@@ -110,8 +105,8 @@ export function AssetEquities() {
             ]} />
 
             {/* What is it */}
-            <section id="section-1" className="asset-page__section">
-                <h2><Globe size={22} /> ¿Qué es la Renta Variable?</h2>
+            <AcademySection title={<><Globe size={22} /> ¿Qué es la Renta Variable?</>} id="section-1" className="asset-page__section">
+
                 <div className="asset-page__text-block">
                     <p>
                         Comprar acciones es comprar <strong>una fracción de propiedad real de una empresa</strong>.
@@ -133,16 +128,16 @@ export function AssetEquities() {
                         <p>El S&P 500 ha caído más de un 20% en 12 ocasiones desde 1929, pero siempre ha recuperado máximos históricos. La paciencia es el superpoder del inversor en acciones.</p>
                     </div>
                 </div>
-            </section>
+            </AcademySection>
 
             {/* Sub-types */}
-            <section id="section-2" className="asset-page__section">
-                <h2><BarChart3 size={22} /> Tipos de Acciones</h2>
+            <AcademySection title={<><BarChart3 size={22} /> Tipos de Acciones</>} id="section-2" className="asset-page__section">
+
                 <p className="asset-page__section-desc">No todas las acciones son iguales. Entender las diferencias es clave para elegir tu exposición.</p>
 
-                <div className="asset-page__subtype-grid">
+                <AcademyGrid variant="subtypes" className="asset-page__subtype-grid">
                     {SUB_TYPES.map((type) => (
-                        <div key={type.title} className="subtype-card" style={{ '--subtype-color': type.color } as React.CSSProperties}>
+                        <AcademyPanel variant="subtype" key={type.title} className="subtype-card" style={{ '--subtype-color': type.color } as React.CSSProperties}>
                             <div className="subtype-card__header">
                                 <div className="subtype-card__dot" />
                                 <h3>{type.title}</h3>
@@ -160,16 +155,16 @@ export function AssetEquities() {
                                 <span>Riesgo: <strong>{type.risk}</strong></span>
                                 <span>Retorno: <strong>{type.returnRange}</strong></span>
                             </div>
-                        </div>
+                        </AcademyPanel>
                     ))}
-                </div>
-            </section>
+                </AcademyGrid>
+            </AcademySection>
 
             {/* Value vs Growth visual */}
-            <section id="section-3" className="asset-page__section">
-                <h2><Target size={22} /> Value vs Growth: El Eterno Debate</h2>
+            <AcademySection title={<><Target size={22} /> Value vs Growth: El Eterno Debate</>} id="section-3" className="asset-page__section">
+
                 <div className="asset-page__versus">
-                    <div className="versus-card versus-card--value">
+                    <AcademyPanel variant="comparison" className="versus-card versus-card--value">
                         <h3>📊 Value (Valor)</h3>
                         <ul>
                             <li>Empresas baratas según fundamentales (PER bajo)</li>
@@ -179,9 +174,9 @@ export function AssetEquities() {
                             <li>Mentalidad: «comprar un euro por 50 céntimos»</li>
                         </ul>
                         <div className="versus-card__badge">Warren Buffett</div>
-                    </div>
+                    </AcademyPanel>
                     <div className="versus-divider">VS</div>
-                    <div className="versus-card versus-card--growth">
+                    <AcademyPanel variant="comparison" className="versus-card versus-card--growth">
                         <h3>🚀 Growth (Crecimiento)</h3>
                         <ul>
                             <li>Empresas con alto crecimiento de ingresos</li>
@@ -191,25 +186,25 @@ export function AssetEquities() {
                             <li>Mentalidad: «la empresa del futuro»</li>
                         </ul>
                         <div className="versus-card__badge">Cathie Wood</div>
-                    </div>
+                    </AcademyPanel>
                 </div>
-            </section>
+            </AcademySection>
 
             {/* Geographic zones */}
-            <section id="section-4" className="asset-page__section">
-                <h2><PieChart size={22} /> Zonas Geográficas</h2>
+            <AcademySection title={<><PieChart size={22} /> Zonas Geográficas</>} id="section-4" className="asset-page__section">
+
                 <p className="asset-page__section-desc">
                     La diversificación geográfica reduce el riesgo de depender de un solo país o región.
                 </p>
-                <div className="asset-page__geo-grid">
+                <AcademyGrid variant="geography" className="asset-page__geo-grid">
                     {GEOGRAPHIC_ZONES.map(zone => (
-                        <div key={zone.name} className="geo-card" style={{ borderLeftColor: zone.color }}>
+                        <AcademyPanel variant="geography" key={zone.name} className="geo-card" style={{ borderLeftColor: zone.color }}>
                             <h4 style={{ color: zone.color }}>{zone.name}</h4>
                             <p className="geo-card__region">{zone.region}</p>
                             <p className="geo-card__weight">{zone.weight}</p>
-                        </div>
+                        </AcademyPanel>
                     ))}
-                </div>
+                </AcademyGrid>
 
                 <div className="asset-page__callout asset-page__callout--warning">
                     <AlertTriangle size={20} />
@@ -221,13 +216,13 @@ export function AssetEquities() {
                         </Link>
                     </div>
                 </div>
-            </section>
+            </AcademySection>
 
             {/* Pros and cons */}
-            <section id="section-5" className="asset-page__section">
-                <h2><Shield size={22} /> Ventajas y Riesgos</h2>
-                <div className="asset-page__pros-cons">
-                    <div className="pc-column pc-column--pros">
+            <AcademySection title={<><Shield size={22} /> Ventajas y Riesgos</>} id="section-5" className="asset-page__section">
+
+                <AcademyGrid variant="prosCons" className="asset-page__pros-cons">
+                    <AcademyPanel variant="prosCons" className="pc-column pc-column--pros">
                         <h3><CheckCircle2 size={18} /> Ventajas</h3>
                         <ul>
                             <li>Mayor rentabilidad histórica a largo plazo vs cualquier otro activo</li>
@@ -237,8 +232,8 @@ export function AssetEquities() {
                             <li>Accesibilidad: desde 1€ con ETFs fraccionados</li>
                             <li>Fiscalidad favorable en España para fondos indexados (traspaso sin tributar)</li>
                         </ul>
-                    </div>
-                    <div className="pc-column pc-column--cons">
+                    </AcademyPanel>
+                    <AcademyPanel variant="prosCons" className="pc-column pc-column--cons">
                         <h3><AlertTriangle size={18} /> Riesgos</h3>
                         <ul>
                             <li>Caídas del 30-50% son parte del juego</li>
@@ -248,75 +243,75 @@ export function AssetEquities() {
                             <li>Rendimientos pasados no garantizan rendimientos futuros</li>
                             <li>Riesgo divisa si inviertes fuera de la Eurozona</li>
                         </ul>
-                    </div>
-                </div>
-            </section>
+                    </AcademyPanel>
+                </AcademyGrid>
+            </AcademySection>
 
             {/* How to invest */}
-            <section id="section-6" className="asset-page__section">
-                <h2><Zap size={22} /> ¿Cómo Invertir en Acciones?</h2>
-                <div className="asset-page__steps">
-                    <div className="step-card">
+            <AcademySection title={<><Zap size={22} /> ¿Cómo Invertir en Acciones?</>} id="section-6" className="asset-page__section">
+
+                <AcademyGrid variant="steps" className="asset-page__steps">
+                    <AcademyPanel variant="step" className="step-card">
                         <div className="step-card__number">1</div>
                         <h4>ETFs Indexados</h4>
                         <p>Un solo ETF como el MSCI World te da exposición a +1.500 empresas de 23 países.</p>
-                    </div>
-                    <div className="step-card">
+                    </AcademyPanel>
+                    <AcademyPanel variant="step" className="step-card">
                         <div className="step-card__number">2</div>
                         <h4>Fondos Indexados</h4>
                         <p>La opción más recomendada para el 95% de inversores. Misma filosofía que ETFs pero con ventaja fiscal en España: puedes traspasar entre fondos sin tributar. Ideal para acumular a largo plazo.</p>
                         <span className="step-card__badge step-card__badge--fiscal">Ventaja Fiscal 🇪🇸</span>
-                    </div>
-                    <div className="step-card">
+                    </AcademyPanel>
+                    <AcademyPanel variant="step" className="step-card">
                         <div className="step-card__number">3</div>
                         <h4>Acciones Individuales</h4>
                         <p>Solo si tienes conocimiento profundo del análisis fundamental. Riesgo de concentración muy alto. Máximo 10-20% de cartera.</p>
                         <span className="step-card__badge step-card__badge--advanced">Avanzado</span>
-                    </div>
-                </div>
-            </section>
+                    </AcademyPanel>
+                </AcademyGrid>
+            </AcademySection>
 
             {/* Key metrics */}
-            <section id="section-7" className="asset-page__section">
-                <h2><Clock size={22} /> Métricas para Entender Acciones</h2>
-                <div className="asset-page__metrics-grid">
-                    <div className="metric-explainer">
+            <AcademySection title={<><Clock size={22} /> Métricas para Entender Acciones</>} id="section-7" className="asset-page__section">
+
+                <AcademyGrid variant="metrics" className="asset-page__metrics-grid">
+                    <AcademyPanel variant="explainer" className="metric-explainer">
                         <h4>PER (Price/Earnings Ratio)</h4>
                         <p>Cuántos años de beneficios estás pagando. PER 15 = pagas 15 años de beneficio actual. Menor = más barato.</p>
                         <div className="metric-explainer__range">
                             <span className="range-low">PER {'<'} 12 (Barato)</span>
                             <span className="range-high">PER {'>'} 25 (Caro)</span>
                         </div>
-                    </div>
-                    <div className="metric-explainer">
+                    </AcademyPanel>
+                    <AcademyPanel variant="explainer" className="metric-explainer">
                         <h4>Dividend Yield</h4>
                         <p>Porcentaje de dividendo anual respecto al precio. Una acción a 100€ que paga 4€ tiene yield del 4%.</p>
                         <div className="metric-explainer__range">
                             <span className="range-low">{'<'} 2% (Growth)</span>
                             <span className="range-high">{'>'} 4% (Income)</span>
                         </div>
-                    </div>
-                    <div className="metric-explainer">
+                    </AcademyPanel>
+                    <AcademyPanel variant="explainer" className="metric-explainer">
                         <h4>Beta</h4>
                         <p>Mide la volatilidad respecto al mercado. Beta 1 = igual al mercado. Beta 1.5 = 50% más volátil.</p>
                         <div className="metric-explainer__range">
                             <span className="range-low">{'<'} 0.8 (Defensivo)</span>
                             <span className="range-high">{'>'} 1.2 (Agresivo)</span>
                         </div>
-                    </div>
-                    <div className="metric-explainer">
+                    </AcademyPanel>
+                    <AcademyPanel variant="explainer" className="metric-explainer">
                         <h4>Sharpe Ratio</h4>
                         <p>Retorno por unidad de riesgo asumida. Mayor = mejor relación riesgo/recompensa. Ideal {'>'} 1.</p>
                         <div className="metric-explainer__range">
                             <span className="range-low">{'<'} 0.5 (Pobre)</span>
                             <span className="range-high">{'>'} 1.0 (Excelente)</span>
                         </div>
-                    </div>
-                </div>
-            </section>
+                    </AcademyPanel>
+                </AcademyGrid>
+            </AcademySection>
 
             {/* Deep Dive CTA */}
-            <section id="section-8" className="asset-page__section asset-page__section--cta">
+            <AcademySection id="section-8" className="asset-page__section asset-page__section--cta">
                 <div className="cta-box">
                     <div className="cta-box__content">
                         <h3>🔍 ¿Quieres aprender a valorar empresas como un profesional?</h3>
@@ -329,7 +324,7 @@ export function AssetEquities() {
                         </Link>
                     </div>
                 </div>
-            </section>
+            </AcademySection>
 
             {/* Final tip */}
             <section className="asset-page__final-tip">

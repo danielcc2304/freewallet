@@ -1,3 +1,5 @@
+import { AcademyGrid } from '../ui/AcademyGrid';
+import { AcademyPanel } from '../ui/AcademyPanel';
 import { useState, useMemo } from 'react';
 import { Search, Info } from 'lucide-react';
 import { GLOSSARY } from '../../../data/academyData';
@@ -55,10 +57,10 @@ export function Glossary() {
                 </div>
             </div>
 
-            <div className="glossary-grid">
+            <AcademyGrid variant="glossary" className="glossary-grid">
                 {filteredTerms.length > 0 ? (
                     filteredTerms.map((item) => (
-                        <article key={item.id} className="glossary-card">
+                        <AcademyPanel variant="glossary" as="article" key={item.id} className="glossary-card">
                             <span className="glossary-card__category">{item.category}</span>
                             <h2 className="glossary-card__term">{item.term}</h2>
                             <p className="glossary-card__def">{item.definition}</p>
@@ -73,7 +75,7 @@ export function Glossary() {
                                     </div>
                                 </div>
                             )}
-                        </article>
+                        </AcademyPanel>
                     ))
                 ) : (
                     <div className="glossary-empty">
@@ -81,7 +83,7 @@ export function Glossary() {
                         <p>No se encontraron términos que coincidan con tu búsqueda.</p>
                     </div>
                 )}
-            </div>
+            </AcademyGrid>
         </div>
     );
 }

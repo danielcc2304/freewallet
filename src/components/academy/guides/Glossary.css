@@ -66,12 +66,8 @@
 }
 
 /* Glossary Grid */
-.glossary-grid {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fill,_minmax(300px,_1fr))] tw:gap-[1.5rem];
-}
 
 .glossary-card {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:rounded-[20px] tw:p-[2rem] tw:ui-stack tw:gap-[1rem];
     transition: all 0.3s ease;
 }
 

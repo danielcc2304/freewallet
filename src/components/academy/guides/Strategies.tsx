@@ -1,5 +1,5 @@
+import { AcademyPanel, AcademyLinkCard } from '../ui/AcademyPanel';
 import { BarChart3, TrendingUp, Zap, Repeat, Target, ArrowRight, ShieldCheck, Info, CalendarDays, Scale, Wallet } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './Strategies.css';
 
@@ -28,7 +28,7 @@ export function Strategies() {
                     <div><h2 id="gestion-title">Elige cómo se gestiona tu dinero</h2><p>Dos enfoques que también puedes combinar.</p></div>
                 </div>
                 <div className="strategies__grid">
-                    <article className="strategies__approach-card">
+                    <AcademyPanel variant="strategy" as="article" className="strategies__approach-card">
                         <div className="strategies__card-heading"><span className="strategies__icon"><ShieldCheck size={24} aria-hidden="true" /></span><span className="strategies__tag">Seguir el mercado</span></div>
                         <h3>Gestión pasiva</h3>
                         <p>Replica un índice mediante fondos o ETFs, sin intentar elegir a los próximos ganadores.</p>
@@ -38,8 +38,8 @@ export function Strategies() {
                             <div><dt>A vigilar</dt><dd>También asumes las caídas y concentraciones del índice.</dd></div>
                         </dl>
                         <div className="strategies__takeaway">Encaja si buscas sencillez y una exposición amplia.</div>
-                    </article>
-                    <article className="strategies__approach-card strategies__approach-card--active">
+                    </AcademyPanel>
+                    <AcademyPanel variant="strategy" as="article" className="strategies__approach-card strategies__approach-card--active">
                         <div className="strategies__card-heading"><span className="strategies__icon"><Zap size={24} aria-hidden="true" /></span><span className="strategies__tag">Seleccionar oportunidades</span></div>
                         <h3>Gestión activa</h3>
                         <p>Un gestor, o tú mismo, selecciona activos para intentar mejorar un objetivo o índice de referencia.</p>
@@ -49,7 +49,7 @@ export function Strategies() {
                             <div><dt>A vigilar</dt><dd>Puede quedarse por debajo del índice tras costes.</dd></div>
                         </dl>
                         <div className="strategies__takeaway">Encaja si entiendes y puedes evaluar la selección.</div>
-                    </article>
+                    </AcademyPanel>
                 </div>
                 <aside className="strategies__insight"><Info size={20} aria-hidden="true" /><p>Compara siempre resultados netos de costes con un índice de riesgo y exposición similares. Una buena racha no demuestra que una estrategia sea mejor.</p></aside>
             </section>
@@ -60,22 +60,22 @@ export function Strategies() {
                     <div><h2 id="aportaciones-title">Decide cómo entrar al mercado</h2><p>Ahorrar cada mes y tener ya un capital disponible son situaciones distintas.</p></div>
                 </div>
                 <div className="strategies__grid">
-                    <article className="strategies__entry-card">
+                    <AcademyPanel variant="strategy" as="article" className="strategies__entry-card">
                         <span className="strategies__icon"><Repeat size={24} aria-hidden="true" /></span>
                         <h3>Aportaciones periódicas</h3>
                         <span className="strategies__term">DCA · una cantidad a intervalos regulares</span>
                         <p>Invierte el ahorro que vas generando sin necesitar acertar el mejor día de compra.</p>
                         <div className="strategies__entry-detail"><strong>A favor</strong><p>Facilita el hábito y reparte las compras en el tiempo.</p></div>
                         <div className="strategies__entry-detail"><strong>Ten en cuenta</strong><p>Si el capital ya está disponible, escalonarlo mantiene una parte fuera del mercado. No elimina el riesgo de pérdidas.</p></div>
-                    </article>
-                    <article className="strategies__entry-card">
+                    </AcademyPanel>
+                    <AcademyPanel variant="strategy" as="article" className="strategies__entry-card">
                         <span className="strategies__icon"><Wallet size={24} aria-hidden="true" /></span>
                         <h3>Inversión de una vez</h3>
                         <span className="strategies__term">Lump sum · todo el capital previsto</span>
                         <p>Pone a trabajar desde el inicio el dinero que ya has reservado para invertir.</p>
                         <div className="strategies__entry-detail"><strong>A favor</strong><p>Evita esperar con parte del capital sin invertir.</p></div>
                         <div className="strategies__entry-detail"><strong>Ten en cuenta</strong><p>Una caída inmediata afecta a toda la inversión. Necesitas un nivel de riesgo que puedas sostener.</p></div>
-                    </article>
+                    </AcademyPanel>
                 </div>
             </section>
 
@@ -84,7 +84,7 @@ export function Strategies() {
                     <span className="strategies__number">03</span>
                     <div><h2 id="reequilibrio-title">Ajusta el riesgo, no persigas las subidas</h2><p>Reequilibrar devuelve cada bloque a su peso objetivo.</p></div>
                 </div>
-                <div className="strategies__rebalance-card">
+                <AcademyPanel variant="strategy" className="strategies__rebalance-card">
                     <div className="strategies__chart-heading"><h3>Un ejemplo de cartera 60 / 40</h3><span>Ejemplo ilustrativo</span></div>
                     <div className="strategies__balance-grid">
                         {REBALANCING_EXAMPLE.map(({ label, equity, bonds, note }) => (
@@ -103,15 +103,15 @@ export function Strategies() {
                         <li><CalendarDays size={20} aria-hidden="true" /><div><strong>Define una regla</strong><p>Por calendario o por desviación; por ejemplo, una revisión anual o un umbral de 5 puntos porcentuales.</p></div></li>
                         <li><Scale size={20} aria-hidden="true" /><div><strong>Prioriza las aportaciones</strong><p>Dirígelas al bloque con menos peso. Si necesitas vender, revisa impuestos, comisiones y posibles traspasos.</p></div></li>
                     </ol>
-                </div>
+                </AcademyPanel>
             </section>
 
             <section className="strategies__section" aria-labelledby="strategy-tools-title">
                 <div className="strategies__section-heading"><span className="strategies__number"><BarChart3 size={20} aria-hidden="true" /></span><div><h2 id="strategy-tools-title">Lleva la estrategia a tu cartera</h2><p>Define la distribución y comprueba cómo encaja con tus objetivos.</p></div></div>
                 <div className="strategies__tools">
-                    <Link to="/academy/portfolio" className="strategies__tool-card"><Target size={24} aria-hidden="true" /><h3>Estrategia y cartera</h3><p>Explora bloques y construye tu distribución.</p><span>Diseñar cartera <ArrowRight size={18} aria-hidden="true" /></span></Link>
-                    <Link to="/academy/compound-interest" className="strategies__tool-card"><TrendingUp size={24} aria-hidden="true" /><h3>Interés compuesto</h3><p>Proyecta tus aportaciones con distintos supuestos.</p><span>Simular evolución <ArrowRight size={18} aria-hidden="true" /></span></Link>
-                    <Link to="/academy/fire-calculator" className="strategies__tool-card"><ShieldCheck size={24} aria-hidden="true" /><h3>Plan FIRE</h3><p>Estima el capital para tu independencia financiera.</p><span>Explorar objetivo <ArrowRight size={18} aria-hidden="true" /></span></Link>
+                    <AcademyLinkCard variant="strategy" to="/academy/portfolio" className="strategies__tool-card"><Target size={24} aria-hidden="true" /><h3>Estrategia y cartera</h3><p>Explora bloques y construye tu distribución.</p><span>Diseñar cartera <ArrowRight size={18} aria-hidden="true" /></span></AcademyLinkCard>
+                    <AcademyLinkCard variant="strategy" to="/academy/compound-interest" className="strategies__tool-card"><TrendingUp size={24} aria-hidden="true" /><h3>Interés compuesto</h3><p>Proyecta tus aportaciones con distintos supuestos.</p><span>Simular evolución <ArrowRight size={18} aria-hidden="true" /></span></AcademyLinkCard>
+                    <AcademyLinkCard variant="strategy" to="/academy/fire-calculator" className="strategies__tool-card"><ShieldCheck size={24} aria-hidden="true" /><h3>Plan FIRE</h3><p>Estima el capital para tu independencia financiera.</p><span>Explorar objetivo <ArrowRight size={18} aria-hidden="true" /></span></AcademyLinkCard>
                 </div>
             </section>
         </div>

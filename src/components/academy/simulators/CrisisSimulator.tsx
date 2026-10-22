@@ -1,6 +1,9 @@
+import { AcademyControlField } from '../ui/AcademyControlField';
+import { AcademyMetric } from '../ui/AcademyMetric';
+import { AcademyGrid } from '../ui/AcademyGrid';
+import { AcademyPanel, AcademyLinkCard } from '../ui/AcademyPanel';
 import { useState } from 'react';
 import { TrendingDown, TrendingUp, Euro, Info, ArrowRight, CalendarDays, Repeat, Shield, BookOpen } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { CRISIS_DATA } from '../../../data/academyData';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import { calculateCrisisImpact } from './crisisImpact';
@@ -38,49 +41,49 @@ export function CrisisSimulator() {
 
             <section className="crisis__selector" aria-labelledby="crisis-picker-title">
                 <h2 id="crisis-picker-title">Explora un episodio</h2>
-                <div className="crisis__tabs" role="group" aria-label="Crisis de referencia">
+                <AcademyGrid variant="crisisTabs" className="crisis__tabs" role="group" aria-label="Crisis de referencia">
                     {Object.values(CRISIS_DATA).map(item => (
                         <button type="button" key={item.year} className={`crisis__tab ${selectedCrisis === item.year ? 'crisis__tab--active' : ''}`} aria-pressed={selectedCrisis === item.year} onClick={() => setSelectedCrisis(item.year)}>
                             <span className="crisis__tab-year">{item.year}</span><span className="crisis__tab-name">{SHORT_NAMES[item.year] ?? item.name}</span>
                         </button>
                     ))}
-                </div>
+                </AcademyGrid>
             </section>
 
-            <section className="crisis__info-card" aria-labelledby="crisis-episode-title">
+            <AcademyPanel variant="crisis" as="section" className="crisis__info-card" aria-labelledby="crisis-episode-title">
                 <span className="crisis__eyebrow">Episodio {crisis.year}</span>
                 <h2 id="crisis-episode-title">{crisis.name}</h2>
                 <p className="crisis__copy">{crisis.description}</p>
-                <div className="crisis__stats">
-                    <div className="crisis__stat"><TrendingDown size={20} aria-hidden="true" /><span>Caída máxima</span><strong>{percent(crisis.maxDrawdown)}</strong></div>
-                    <div className="crisis__stat"><CalendarDays size={20} aria-hidden="true" /><span>Duración de la caída</span><strong>{crisis.monthsDown} meses</strong></div>
-                    <div className="crisis__stat"><TrendingUp size={20} aria-hidden="true" /><span>Recuperación desde el mínimo*</span><strong>{crisis.monthsRecovery} meses</strong></div>
-                </div>
+                <AcademyGrid variant="crisisStats" className="crisis__stats">
+                    <AcademyMetric variant="crisis" label={<>Caída máxima</>} value={<>{percent(crisis.maxDrawdown)}</>} icon={<TrendingDown size={20} aria-hidden="true" />} />
+                    <AcademyMetric variant="crisis" label={<>Duración de la caída</>} value={<>{crisis.monthsDown} meses</>} icon={<CalendarDays size={20} aria-hidden="true" />} />
+                    <AcademyMetric variant="crisis" label={<>Recuperación desde el mínimo*</>} value={<>{crisis.monthsRecovery} meses</>} icon={<TrendingUp size={20} aria-hidden="true" />} />
+                </AcademyGrid>
                 <p className="crisis__footnote">*Referencias aproximadas del S&amp;P 500 incluidas en la app. La recuperación se cuenta desde el mínimo hasta volver al máximo previo, no desde el inicio de la caída. No es una reconstrucción histórica exacta.</p>
-            </section>
+            </AcademyPanel>
 
             <aside className="crisis__insight"><Info size={20} aria-hidden="true" /><p><strong>Una recuperación pasada no es una promesa.</strong> El plazo, la diversificación y el dinero que necesitas a corto plazo importan tanto como tu capacidad para soportar caídas.</p></aside>
 
-            <section className="crisis__simulator-card" aria-labelledby="crisis-simulation-title">
+            <AcademyPanel variant="crisis" as="section" className="crisis__simulator-card" aria-labelledby="crisis-simulation-title">
                 <div className="crisis__section-heading"><span className="crisis__icon"><Euro size={24} aria-hidden="true" /></span><div><h2 id="crisis-simulation-title">Pon la caída en euros</h2><p>Ejercicio educativo con el porcentaje del episodio seleccionado.</p></div></div>
-                <div className="crisis__inputs">
-                    <div className="crisis__input-group"><label htmlFor="crisis-capital">Capital antes de la caída</label><div className="crisis__input-wrapper"><input id="crisis-capital" type="number" inputMode="decimal" value={capital} onChange={e => setAmount(e.target.value, setCapital)} min="0" max="1000000000000" step="100" /><span>€</span></div></div>
-                    <div className="crisis__input-group"><label htmlFor="crisis-dca">Aportación mensual durante la caída</label><div className="crisis__input-wrapper"><input id="crisis-dca" type="number" inputMode="decimal" value={monthlyDCA} onChange={e => setAmount(e.target.value, setMonthlyDCA)} min="0" max="1000000000000" step="50" /><span>€/mes</span></div></div>
-                </div>
+                <AcademyGrid variant="crisisInputs" className="crisis__inputs">
+                    <AcademyControlField variant="crisis" controlId="crisis-capital" label={<>Capital antes de la caída</>} unit={<>€</>} ><input id="crisis-capital" type="number" inputMode="decimal" value={capital} onChange={e => setAmount(e.target.value, setCapital)} min="0" max="1000000000000" step="100" /></AcademyControlField>
+                    <AcademyControlField variant="crisis" controlId="crisis-dca" label={<>Aportación mensual durante la caída</>} unit={<>€/mes</>} ><input id="crisis-dca" type="number" inputMode="decimal" value={monthlyDCA} onChange={e => setAmount(e.target.value, setMonthlyDCA)} min="0" max="1000000000000" step="50" /></AcademyControlField>
+                </AcademyGrid>
                 <div className="crisis__impact">
                     <div className="crisis__impact-row"><span>Capital inicial</span><strong>{money(capital)}</strong><div className="crisis__bar"><span style={{ width: '100%' }} /></div></div>
                     <div className="crisis__impact-row crisis__impact-row--low"><span>En el mínimo · sin nuevas aportaciones</span><strong data-testid="crisis-low-value">{money(impact.lowValue)}</strong><div className="crisis__bar"><span style={{ width: `${100 + crisis.maxDrawdown}%` }} /></div></div>
                     <p>Una caída del <strong>{percent(Math.abs(crisis.maxDrawdown))}</strong> exige después una subida del <strong data-testid="crisis-recovery">{percent(impact.recoveryPercent)}</strong> para volver al punto de partida.</p>
                 </div>
                 <h3 className="crisis__decision-title">¿Qué cambia según tu decisión?</h3>
-                <div className="crisis__scenarios" role="group" aria-label="Decisiones durante la caída">
+                <AcademyGrid variant="crisisScenarios" className="crisis__scenarios" role="group" aria-label="Decisiones durante la caída">
                     <button type="button" className={`crisis__scenario ${selectedScenario === 'panic' ? 'crisis__scenario--selected' : ''}`} aria-pressed={selectedScenario === 'panic'} onClick={() => setSelectedScenario('panic')}><span className="crisis__scenario-title">Vender en el mínimo</span><span className="crisis__scenario-label">Efectivo tras vender</span><strong>{money(impact.lowValue)}</strong><span>Pérdida realizada: {money(impact.loss)}</span></button>
                     <button type="button" className={`crisis__scenario ${selectedScenario === 'hold' ? 'crisis__scenario--selected' : ''}`} aria-pressed={selectedScenario === 'hold'} onClick={() => setSelectedScenario('hold')}><span className="crisis__scenario-title">Mantener la inversión</span><span className="crisis__scenario-label">Valor de la posición en el mínimo</span><strong>{money(impact.lowValue)}</strong><span>Pérdida no realizada: {money(impact.loss)}</span></button>
                     <button type="button" className={`crisis__scenario ${selectedScenario === 'dca' ? 'crisis__scenario--selected' : ''}`} aria-pressed={selectedScenario === 'dca'} onClick={() => setSelectedScenario('dca')}><span className="crisis__scenario-title">Seguir aportando</span><span className="crisis__scenario-label">Capital total aportado · no valoración</span><strong data-testid="crisis-contributed">{money(impact.totalContributed)}</strong><span>Incluye {money(impact.contributions)} en {crisis.monthsDown} aportaciones mensuales.</span></button>
-                </div>
+                </AcademyGrid>
                 <div className="crisis__explanation" role="status"><strong>{EXPLANATIONS[selectedScenario].title}</strong><p>{EXPLANATIONS[selectedScenario].text}</p></div>
                 <p className="crisis__footnote">Importes nominales en euros por simplicidad. Sin efecto divisa, inflación, comisiones ni impuestos; no simula tu cartera real.</p>
-            </section>
+            </AcademyPanel>
 
             <section className="crisis__comparison" aria-labelledby="crisis-comparison-title">
                 <h2 id="crisis-comparison-title">Los episodios, de un vistazo</h2>
@@ -93,9 +96,9 @@ export function CrisisSimulator() {
             </section>
 
             <section className="crisis__next" aria-labelledby="crisis-next-title"><h2 id="crisis-next-title">Prepara tu próxima decisión</h2><div className="crisis__next-links">
-                <Link to="/academy/risk" className="crisis__next-card"><Shield size={24} aria-hidden="true" /><h3>Gestiona el riesgo</h3><p>Revisa el colchón, la concentración y el plazo.</p><span>Revisar mi plan <ArrowRight size={18} aria-hidden="true" /></span></Link>
-                <Link to="/academy/strategies" className="crisis__next-card"><Repeat size={24} aria-hidden="true" /><h3>Define tus reglas</h3><p>Aportaciones y reequilibrio con un criterio previo.</p><span>Ver estrategias <ArrowRight size={18} aria-hidden="true" /></span></Link>
-                <Link to="/academy/scenarios" className="crisis__next-card"><BookOpen size={24} aria-hidden="true" /><h3>Qué hacer si…</h3><p>Ensaya decisiones cuando el mercado se complica.</p><span>Explorar escenarios <ArrowRight size={18} aria-hidden="true" /></span></Link>
+                <AcademyLinkCard variant="crisis" to="/academy/risk" className="crisis__next-card"><Shield size={24} aria-hidden="true" /><h3>Gestiona el riesgo</h3><p>Revisa el colchón, la concentración y el plazo.</p><span>Revisar mi plan <ArrowRight size={18} aria-hidden="true" /></span></AcademyLinkCard>
+                <AcademyLinkCard variant="crisis" to="/academy/strategies" className="crisis__next-card"><Repeat size={24} aria-hidden="true" /><h3>Define tus reglas</h3><p>Aportaciones y reequilibrio con un criterio previo.</p><span>Ver estrategias <ArrowRight size={18} aria-hidden="true" /></span></AcademyLinkCard>
+                <AcademyLinkCard variant="crisis" to="/academy/scenarios" className="crisis__next-card"><BookOpen size={24} aria-hidden="true" /><h3>Qué hacer si…</h3><p>Ensaya decisiones cuando el mercado se complica.</p><span>Explorar escenarios <ArrowRight size={18} aria-hidden="true" /></span></AcademyLinkCard>
             </div></section>
         </div>
     );

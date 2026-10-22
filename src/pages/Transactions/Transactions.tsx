@@ -1,3 +1,5 @@
+import { DataItem } from '../../components/ui/DataItem';
+import { PageHeading } from '../../components/ui/PageHeading';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRightLeft, MinusCircle, Pencil, Search, ShoppingCart, Trash2 } from 'lucide-react';
@@ -81,54 +83,28 @@ export function Transactions() {
 
     return (
         <div className="transactions-page">
-            <div className="transactions-page__header">
-                <div>
-                    <h1 className="transactions-page__title">Historial de operaciones</h1>
-                    <p className="transactions-page__subtitle">
-                        Registro separado de compras, ventas, traspasos, ediciones y eliminaciones de tu cartera.
-                    </p>
-                </div>
-                <Link to="/add">
+            <PageHeading className="transactions-page__header" titleClassName="transactions-page__title" descriptionClassName="transactions-page__subtitle" title={'Historial de operaciones'} description={'Registro separado de compras, ventas, traspasos, ediciones y eliminaciones de tu cartera.'} actions={<Link to="/add">
                     <Button icon={<ArrowRightLeft size={16} />}>Registrar inversión</Button>
-                </Link>
-            </div>
+                </Link>} />
 
             <section className="transactions-page__summary">
                 <Card>
-                    <CardContent className="transactions-page__summary-card">
-                        <span className="transactions-page__summary-label">Total</span>
-                        <strong>{state.transactions.length}</strong>
-                    </CardContent>
+                    <DataItem as="content" layout="transactions" className="transactions-page__summary-card" labelClassName="transactions-page__summary-label" label={'Total'} value={state.transactions.length} />
                 </Card>
                 <Card>
-                    <CardContent className="transactions-page__summary-card">
-                        <span className="transactions-page__summary-label">Compras</span>
-                        <strong>{summary.purchases}</strong>
-                    </CardContent>
+                    <DataItem as="content" layout="transactions" className="transactions-page__summary-card" labelClassName="transactions-page__summary-label" label={'Compras'} value={summary.purchases} />
                 </Card>
                 <Card>
-                    <CardContent className="transactions-page__summary-card">
-                        <span className="transactions-page__summary-label">Ventas</span>
-                        <strong>{summary.sales}</strong>
-                    </CardContent>
+                    <DataItem as="content" layout="transactions" className="transactions-page__summary-card" labelClassName="transactions-page__summary-label" label={'Ventas'} value={summary.sales} />
                 </Card>
                 <Card>
-                    <CardContent className="transactions-page__summary-card">
-                        <span className="transactions-page__summary-label">Traspasos</span>
-                        <strong>{summary.transfers}</strong>
-                    </CardContent>
+                    <DataItem as="content" layout="transactions" className="transactions-page__summary-card" labelClassName="transactions-page__summary-label" label={'Traspasos'} value={summary.transfers} />
                 </Card>
                 <Card>
-                    <CardContent className="transactions-page__summary-card">
-                        <span className="transactions-page__summary-label">Ediciones</span>
-                        <strong>{summary.edits}</strong>
-                    </CardContent>
+                    <DataItem as="content" layout="transactions" className="transactions-page__summary-card" labelClassName="transactions-page__summary-label" label={'Ediciones'} value={summary.edits} />
                 </Card>
                 <Card>
-                    <CardContent className="transactions-page__summary-card">
-                        <span className="transactions-page__summary-label">Eliminaciones</span>
-                        <strong>{summary.deletions}</strong>
-                    </CardContent>
+                    <DataItem as="content" layout="transactions" className="transactions-page__summary-card" labelClassName="transactions-page__summary-label" label={'Eliminaciones'} value={summary.deletions} />
                 </Card>
             </section>
 

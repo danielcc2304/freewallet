@@ -1,3 +1,4 @@
+import { FormField, FieldHint } from '../../components/ui/FormField';
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
 import type { DashboardNavigationContext } from '../../components/layout/MainLayout/dashboardNavigation';
@@ -624,9 +625,9 @@ export function AddInvestment() {
                         )}
 
                         {/* Symbol / ISIN Search */}
-                        <div className="form-group form-group--search">
-                            <label className="form-label">Busca el activo</label>
-                            <p className="form-hint">Escribe el nombre, ticker o ISIN. Te mostraremos coincidencias mientras escribes.</p>
+                        <FormField className="form-group form-group--search" label={<>Busca el activo</>} labelClassName="form-label">
+
+                            <FieldHint className="form-hint">Escribe el nombre, ticker o ISIN. Te mostraremos coincidencias mientras escribes.</FieldHint>
                             <div className="search-container">
                                 <Input
                                     placeholder="Apple, AAPL, Fidelity, IE00BYX5NX33…"
@@ -703,11 +704,11 @@ export function AddInvestment() {
                                     </span>
                                 </div>
                             )}
-                        </div>
+                        </FormField>
 
                         {/* Name field - only shown in manual mode */}
                         {manualMode && (
-                            <div className="form-group">
+                            <FormField className="form-group">
                                 <Input
                                     label="Nombre del activo"
                                     placeholder="Ej: Fidelity MSCI World Index Fund"
@@ -716,16 +717,16 @@ export function AddInvestment() {
                                     error={errors.name}
                                     disabled={isDcaMode} // Disable name edit in DCA mode
                                 />
-                            </div>
+                            </FormField>
                         )}
 
-                        {manualMode && <div className="form-group">
-                            <label className="form-label" htmlFor="asset-type">Tipo de activo</label>
+                        {manualMode && <FormField className="form-group" label={<>Tipo de activo</>} controlId="asset-type" labelClassName="form-label">
+
                             <select id="asset-type" className={inputStyles()} value={formData.type} disabled={isDcaMode || isSellMode}
                                 onChange={event => handleInputChange('type', event.target.value)}>
                                 {assetTypes.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
                             </select>
-                        </div>}
+                        </FormField>}
 
                         {/* Current Price Display */}
                         {(currentPrice !== null || loadingPrice) && !manualMode && (
@@ -744,19 +745,19 @@ export function AddInvestment() {
                         )}
 
                         {/* Price, Quantity, Date in row */}
-                        <div className="form-group">
-                            <label className="form-label" htmlFor="operation-currency">Divisa del precio de la operación</label>
+                        <FormField className="form-group" label={<>Divisa del precio de la operación</>} controlId="operation-currency" labelClassName="form-label">
+
                             <select className={inputStyles()} id="operation-currency" value={currency} disabled={formData.type === 'cash' || isSubmitting}
                                 onChange={e => handleCurrencyChange(e.target.value)}>
                                 {OPERATION_CURRENCIES.map(code => <option key={code} value={code}>{code}</option>)}
                             </select>
-                            <p className="form-hint">La cartera se contabiliza en euros. La liquidez se registra en EUR.</p>
-                        </div>
+                            <FieldHint className="form-hint">La cartera se contabiliza en euros. La liquidez se registra en EUR.</FieldHint>
+                        </FormField>
                         {isSellMode && assetToSell && (
                             <p className="position-availability">Disponible para vender: <strong>{assetToSell.quantity}</strong> participaciones</p>
                         )}
                         <div className="form-row">
-                            <div className="form-group">
+                            <FormField className="form-group">
                                 <Input
                                     label={`${isSellMode ? 'Precio de venta' : 'Precio de compra'} (${currency})`}
                                     type="number"
@@ -769,9 +770,9 @@ export function AddInvestment() {
                                     icon={<Coins size={18} />}
                                     error={errors.purchasePrice}
                                 />
-                            </div>
+                            </FormField>
 
-                            <div className="form-group">
+                            <FormField className="form-group">
                                 <Input
                                     label={formData.type === 'cash' ? 'Saldo en euros' : isDcaMode ? 'Nueva cantidad' : isSellMode ? 'Cantidad a vender' : 'Cantidad'}
                                     type="number"
@@ -784,9 +785,9 @@ export function AddInvestment() {
                                     icon={<Hash size={18} />}
                                     error={errors.quantity}
                                 />
-                            </div>
+                            </FormField>
 
-                            <div className="form-group">
+                            <FormField className="form-group">
                                 <Input
                                     label={isSellMode ? 'Fecha de venta' : 'Fecha de compra'}
                                     type="date"
@@ -794,26 +795,26 @@ export function AddInvestment() {
                                     onChange={(e) => handleInputChange('purchaseDate', e.target.value)}
                                     error={errors.purchaseDate}
                                 />
-                            </div>
+                            </FormField>
                         </div>
 
-                        {formData.type === 'cash' && !isSellMode && !isDcaMode && <div className="form-group">
+                        {formData.type === 'cash' && !isSellMode && !isDcaMode && <FormField className="form-group">
                             <Input label="TAE de la cuenta (%)" type="number" min="0" step="any" placeholder="Ej. 2,5" value={formData.cashTae}
                                 onChange={event => handleInputChange('cashTae', event.target.value)} error={errors.cashTae} />
-                            <p className="form-hint">Opcional. Indica 0 % si no está remunerada. El saldo cambia cuando registres los intereses abonados.</p>
-                        </div>}
+                            <FieldHint className="form-hint">Opcional. Indica 0 % si no está remunerada. El saldo cambia cuando registres los intereses abonados.</FieldHint>
+                        </FormField>}
 
                         {currency !== 'EUR' && (
-                            <div className="form-group">
-                                <p className="form-hint" role="status">{activeFx?.loading ? 'Consultando el cambio histórico…' : activeFx?.rate
+                            <FormField className="form-group">
+                                <FieldHint className="form-hint" role="status">{activeFx?.loading ? 'Consultando el cambio histórico…' : activeFx?.rate
                                     ? `Cambio de cierre del ${activeFx.date}: 1 ${currency} = ${activeFx.rate} EUR. Es una estimación, no el cambio aplicado por tu bróker.`
-                                    : 'No hay cambio histórico disponible. Introduce el importe real en euros para guardar.'}</p>
+                                    : 'No hay cambio histórico disponible. Introduce el importe real en euros para guardar.'}</FieldHint>
                                 <Input label={isSellMode ? 'Importe recibido en euros (sin comisiones)' : 'Importe pagado en euros (sin comisiones)'}
                                     type="number" min="0" step="any" value={manualEuroTotal}
                                     placeholder="Opcional si hay cambio histórico" onChange={e => setManualEuroTotal(e.target.value)} />
-                                <p className="form-hint">Este importe sustituye la estimación. Si editas un precio medio, indica el coste total de la posición en euros.</p>
-                                {Number.isFinite(euroPrice) && <p className="form-hint">Importe contabilizado: {(euroPrice * Number(formData.quantity)).toLocaleString('es-ES', { maximumFractionDigits: 2 })} EUR</p>}
-                            </div>
+                                <FieldHint className="form-hint">Este importe sustituye la estimación. Si editas un precio medio, indica el coste total de la posición en euros.</FieldHint>
+                                {Number.isFinite(euroPrice) && <FieldHint className="form-hint">Importe contabilizado: {(euroPrice * Number(formData.quantity)).toLocaleString('es-ES', { maximumFractionDigits: 2 })} EUR</FieldHint>}
+                            </FormField>
                         )}
                         {operationTotal > 0 && (
                             <div className="operation-total" aria-live="polite">

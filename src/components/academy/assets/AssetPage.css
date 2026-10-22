@@ -187,42 +187,6 @@
 }
 
 /* Callouts */
-.asset-page__callout {
-    @apply tw:mt-[2rem] tw:p-[1.5rem] tw:rounded-[16px] tw:flex tw:gap-[1rem] tw:items-start;
-}
-
-.asset-page__callout > svg {
-    @apply tw:w-[20px] tw:h-[20px] tw:flex-[0_0_20px] tw:mt-[0.15rem];
-}
-
-.asset-page__callout--info {
-    background: rgba(59, 130, 246, 0.06);
-    border: 1px solid rgba(59, 130, 246, 0.1);
-}
-
-.asset-page__callout--info svg {
-    color: #3b82f6;
-}
-
-.asset-page__callout--warning {
-    background: rgba(245, 158, 11, 0.06);
-    border: 1px solid rgba(245, 158, 11, 0.1);
-}
-
-.asset-page__callout--warning svg {
-    color: #f59e0b;
-}
-
-.asset-page__callout strong {
-    @apply tw:block tw:mb-[0.25rem];
-    font-weight: 700;
-}
-
-.asset-page__callout p {
-    @apply tw:text-[length:0.95rem] tw:text-secondary;
-    line-height: 1.5;
-    @apply tw:m-[0];
-}
 
 .asset-page__cta-link {
     @apply tw:inline-block tw:mt-[0.55rem] tw:text-accent;
@@ -235,46 +199,6 @@
 }
 
 /* Steps */
-
-.step-card__number {
-    @apply tw:w-[32px] tw:h-[32px];
-    background: var(--accent-primary);
-    color: white;
-    @apply tw:rounded-[50%] tw:ui-row tw:justify-center;
-    font-weight: 800;
-    @apply tw:m-[0_auto_1rem];
-}
-
-.step-card h4 {
-    @apply tw:mb-[0.75rem];
-    font-weight: 700;
-}
-
-.step-card p {
-    @apply tw:text-[length:0.9rem] tw:text-secondary;
-    line-height: 1.5;
-}
-
-.step-card__badge {
-    @apply tw:absolute tw:top-[1rem] tw:right-[1rem] tw:text-[length:0.7rem] tw:p-[0.2rem_0.5rem] tw:rounded-[100px];
-    font-weight: 700;
-    text-transform: uppercase;
-}
-
-.step-card__badge--recommended {
-    background: #10b981;
-    color: white;
-}
-
-.step-card__badge--fiscal {
-    background: #8b5cf6;
-    color: white;
-}
-
-.step-card__badge--advanced {
-    background: #f59e0b;
-    color: white;
-}
 
 /* Versus side by side */
 .asset-page__versus {
@@ -1290,9 +1214,6 @@
 }
 
 @media (max-width: 480px) {
-    .asset-page__callout > svg {
-        @apply tw:w-[22px] tw:h-[22px] tw:basis-[22px];
-    }
 
     .asset-page__hero h1 {
         @apply tw:text-[length:1.75rem];
@@ -1402,14 +1323,7 @@
 .asset-page .versus-card__badge { @apply tw:static; transform: none; @apply tw:block tw:w-[fit-content] tw:m-[1rem_auto_0] tw:text-center; }
 .asset-page .pc-column h3 { @apply tw:m-[0_0_1rem] tw:text-[length:1.1rem]; }
 .asset-page .pc-column li { line-height: 1.65; }
-.asset-page .step-card { @apply tw:text-left tw:ui-stack tw:items-start; }
-.asset-page .step-card__number { @apply tw:m-[0_0_1rem] tw:shrink-[0]; }
-.asset-page .step-card h4 { @apply tw:m-[0_0_.5rem] tw:text-[length:1rem]; }
-.asset-page .step-card p { @apply tw:m-[0_0_.75rem]; line-height: 1.65; }
-.asset-page .step-card__badge { @apply tw:static tw:mt-[auto]; text-transform: none; @apply tw:text-[length:.75rem]; }
-.asset-page .asset-page__callout { @apply tw:mt-[1.25rem] tw:p-[1rem] tw:rounded-[12px] tw:gap-[.75rem]; }
-.asset-page .asset-page__callout > div { @apply tw:min-w-[0]; }
-.asset-page .asset-page__callout p { line-height: 1.65; }
+
 .asset-page .asset-page__final-tip { @apply tw:mt-[2rem] tw:p-[1.5rem] tw:gap-[1rem] tw:text-left tw:items-start; background: var(--guide-tint); }
 .asset-page .asset-page__final-tip > svg { @apply tw:flex-[0_0_28px]; }
 .asset-page .asset-page__final-tip h3 { @apply tw:m-[0_0_.5rem]; }

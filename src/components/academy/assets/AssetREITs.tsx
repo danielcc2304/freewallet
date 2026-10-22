@@ -1,3 +1,5 @@
+import { AcademyCallout } from '../ui/AcademyCallout';
+import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
 import { AcademySection } from '../ui/AcademySection';
 import { AcademyGrid } from '../ui/AcademyGrid';
@@ -86,13 +88,9 @@ export function AssetREITs() {
                     </p>
                 </div>
 
-                <div className="asset-page__callout asset-page__callout--info">
-                    <Lightbulb size={20} />
-                    <div>
-                        <strong>La Regla del 90%</strong>
-                        <p>Por ley, los REITs deben repartir al menos el 90% de sus beneficios imponibles en forma de dividendos a sus accionistas. Esto los convierte en activos ideales para quienes buscan flujo de caja.</p>
-                    </div>
-                </div>
+                <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>La Regla del 90%</>}>
+                    <p>Por ley, los REITs deben repartir al menos el 90% de sus beneficios imponibles en forma de dividendos a sus accionistas. Esto los convierte en activos ideales para quienes buscan flujo de caja.</p>
+                </AcademyCallout>
             </AcademySection>
 
             <AcademySection title={<><Building size={22} /> Sectores Inmobiliarios</>} id="section-2" className="asset-page__section">
@@ -117,16 +115,12 @@ export function AssetREITs() {
                     ))}
                 </AcademyGrid>
 
-                <div className="asset-page__callout asset-page__callout--info" style={{ marginTop: '1.5rem' }}>
-                    <Lightbulb size={20} />
-                    <div>
-                        <strong>REITs globales = también riesgo divisa</strong>
-                        <p>Si compras REITs USA o globales desde EUR, parte del resultado vendrá de la moneda. Decide conscientemente si quieres versión cubierta (hedged) o no cubierta.</p>
-                        <Link to="/academy/risk" className="asset-page__cta-link">
-                            Revisar cuándo cubrir divisa →
-                        </Link>
-                    </div>
-                </div>
+                <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>REITs globales = también riesgo divisa</>} style={{ marginTop: '1.5rem' }}>
+                    <p>Si compras REITs USA o globales desde EUR, parte del resultado vendrá de la moneda. Decide conscientemente si quieres versión cubierta (hedged) o no cubierta.</p>
+                    <Link to="/academy/risk" className="asset-page__cta-link">
+                        Revisar cuándo cubrir divisa →
+                    </Link>
+                </AcademyCallout>
             </AcademySection>
 
             <AcademySection title={<><Shield size={22} /> Ventajas y Riesgos</>} id="section-3" className="asset-page__section">
@@ -158,17 +152,8 @@ export function AssetREITs() {
             <AcademySection title={<><Zap size={22} /> ¿Cómo invertir profesionalmente?</>} id="section-4" className="asset-page__section">
 
                 <AcademyGrid variant="steps" className="asset-page__steps">
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">1</div>
-                        <h4>ETFs de REITs Globales</h4>
-                        <p>Inviertes en cientos de inmobiliarias de todo el mundo en un solo clic. Máxima diversificación.</p>
-                        <span className="step-card__badge step-card__badge--recommended">Recomendado</span>
-                    </AcademyPanel>
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">2</div>
-                        <h4>REITs Individuales</h4>
-                        <p>Solo para quienes quieren elegir sectores específicos (ej. Logística o centros de datos).</p>
-                    </AcademyPanel>
+                    <AcademyStepCard number={'1'} title={'ETFs de REITs Globales'} badgeTone="recommended" badge={'Recomendado'}>Inviertes en cientos de inmobiliarias de todo el mundo en un solo clic. Máxima diversificación.</AcademyStepCard>
+                    <AcademyStepCard number={'2'} title={'REITs Individuales'}>Solo para quienes quieren elegir sectores específicos (ej. Logística o centros de datos).</AcademyStepCard>
                 </AcademyGrid>
             </AcademySection>
 

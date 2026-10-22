@@ -1,3 +1,5 @@
+import { AcademyCallout } from '../ui/AcademyCallout';
+import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
 import { AcademySection } from '../ui/AcademySection';
 import { AcademyGrid } from '../ui/AcademyGrid';
@@ -95,13 +97,9 @@ export function AssetCash() {
                     </p>
                 </div>
 
-                <div className="asset-page__callout asset-page__callout--info">
-                    <Lightbulb size={20} />
-                    <div>
-                        <strong>Regla de los 3-6 meses</strong>
-                        <p>Mantén entre 3 y 6 meses de gastos indispensables en liquidez. Si tienes ingresos variables o eres autónomo, sube a 6-12 meses. Este colchón debe ser intocable salvo emergencias reales.</p>
-                    </div>
-                </div>
+                <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>Regla de los 3-6 meses</>}>
+                    <p>Mantén entre 3 y 6 meses de gastos indispensables en liquidez. Si tienes ingresos variables o eres autónomo, sube a 6-12 meses. Este colchón debe ser intocable salvo emergencias reales.</p>
+                </AcademyCallout>
             </AcademySection>
 
             <AcademySection title={<><BarChart3 size={22} /> Instrumentos de Liquidez</>} id="section-2" className="asset-page__section">
@@ -156,24 +154,20 @@ export function AssetCash() {
                     </div>
                 </div>
 
-                <div className="asset-page__callout asset-page__callout--warning" style={{ marginTop: '2rem' }}>
-                    <Activity size={24} />
-                    <div>
-                        <strong>¿Quieres ver cómo afecta la inflación a tus propios ahorros?</strong>
-                        <p>
-                            Usa nuestro simulador interactivo para calcular cuánto poder adquisitivo perderás en el tiempo si no inviertes tu dinero.
-                        </p>
-                        <Link to="/academy/inflation-predator" className="asset-page__cta-link" style={{
-                            display: 'inline-block',
-                            marginTop: '0.5rem',
-                            color: 'var(--accent-primary)',
-                            fontWeight: '600',
-                            textDecoration: 'none'
-                        }}>
-                            Ir al Depredador de la Inflación →
-                        </Link>
-                    </div>
-                </div>
+                <AcademyCallout tone="warning" icon={<Activity size={24} />} title={<>¿Quieres ver cómo afecta la inflación a tus propios ahorros?</>} style={{ marginTop: '2rem' }}>
+                    <p>
+                        Usa nuestro simulador interactivo para calcular cuánto poder adquisitivo perderás en el tiempo si no inviertes tu dinero.
+                    </p>
+                    <Link to="/academy/inflation-predator" className="asset-page__cta-link" style={{
+                        display: 'inline-block',
+                        marginTop: '0.5rem',
+                        color: 'var(--accent-primary)',
+                        fontWeight: '600',
+                        textDecoration: 'none'
+                    }}>
+                        Ir al Depredador de la Inflación →
+                    </Link>
+                </AcademyCallout>
             </AcademySection>
 
             <AcademySection title={<><Shield size={22} /> Ventajas y Riesgos</>} id="section-4" className="asset-page__section">
@@ -213,21 +207,9 @@ export function AssetCash() {
                 </div>
 
                 <AcademyGrid variant="steps" className="asset-page__steps">
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">1</div>
-                        <h4>Inmediato (33%)</h4>
-                        <p>Cuenta remunerada para gastos inesperados. Disponibilidad instantánea.</p>
-                    </AcademyPanel>
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">2</div>
-                        <h4>3 meses (33%)</h4>
-                        <p>Fondo monetario o Letras del Tesoro a 3 meses. Mejor rendimiento con alta liquidez.</p>
-                    </AcademyPanel>
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">3</div>
-                        <h4>6-12 meses (33%)</h4>
-                        <p>Letras del Tesoro a 6-12 meses o depósito. Máximo rendimiento del cash.</p>
-                    </AcademyPanel>
+                    <AcademyStepCard number={'1'} title={'Inmediato (33%)'}>Cuenta remunerada para gastos inesperados. Disponibilidad instantánea.</AcademyStepCard>
+                    <AcademyStepCard number={'2'} title={'3 meses (33%)'}>Fondo monetario o Letras del Tesoro a 3 meses. Mejor rendimiento con alta liquidez.</AcademyStepCard>
+                    <AcademyStepCard number={'3'} title={'6-12 meses (33%)'}>Letras del Tesoro a 6-12 meses o depósito. Máximo rendimiento del cash.</AcademyStepCard>
                 </AcademyGrid>
             </AcademySection>
 

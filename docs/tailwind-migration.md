@@ -224,3 +224,25 @@ La comparación anterior/posterior pasa 96 combinaciones: cinco pestañas, seis 
 
 
 Validación final: pasan ESLint, TypeScript, compilación de producción y presupuesto de carga (654,89 kB de JavaScript inicial). La suite funcional completa pasa sobre el build de producción: altas, edición, cancelación, borrado, ingresos, reembolsos, transferencias, presupuestos, recurrentes sin duplicados, objetivos, importación CSV/Excel y persistencia. Comprueba también las cinco pestañas y el editor en 320/390/768 px, además de capturas claras/oscuras. La comparación del build de producción vuelve a coincidir en los 15.704 elementos de las 96 combinaciones de referencia, incluidas ambas apariencias. Se revisó la captura móvil del resumen en Liquid Glass.
+
+
+## Undécima fase: reutilización entre pantallas
+
+`DataItem` comparte el marcado de etiqueta, valor y detalle entre las calculadoras, Planificación, Operaciones, Portfolio CSV y mapa de calor. Sus variantes conservan las diferencias de presentación y los elementos semánticos originales, incluido `CardContent` en Operaciones. Los cálculos y formatos permanecen en los consumidores. `CalculatorDataItem` conserva su nombre como reexportación del componente común.
+
+`DataTable` aporta una única estructura de contenedor y tabla nativa a ficha de fondos, IRPF y las tablas de movimientos/importación de gastos. Las variantes conservan los estilos de columnas y el comportamiento móvil de cada herramienta. `CalculatorTable` delega en esta pieza sin mantener otra implementación.
+
+`FormField` y `FieldHint` comparten el contenedor, la etiqueta explícita y las ayudas entre Añadir activo y los campos estándar de las calculadoras. Conservan el orden de las ayudas, `htmlFor`, identificadores, controles nativos y eventos. Los campos que ya incluyen una etiqueta mediante `Input` no reciben una segunda etiqueta. Los campos de nómina y los campos con etiqueta implícita de gastos conservan sus variantes existentes.
+
+`PageHeading` reúne título, descripción y acciones de Planificación y Operaciones, con la misma disposición móvil. `AcademyStepCard` comparte número, título, contenido y distintivo opcional en quince tarjetas de las cinco guías de activos. `AcademyCallout` comparte icono, título, contenido y tonos de doce avisos, manteniendo estilos inline y enlaces de las lecciones. Sus estilos ordinarios pasan de `@apply` a Tailwind en los componentes; las reglas contextuales de materiales y contenedores permanecen en CSS.
+
+El CSS fuente de `src` pasa de 14.747 a 14.557 líneas en 58 archivos: 190 menos en esta fase y un 36,02 % menos frente a las 22.753 líneas iniciales. Esta medición incluye la limpieza de espacios vacíos de las reglas retiradas; no representa ahorro equivalente en el paquete descargado.
+
+
+La comparación anterior/posterior sobre el build de producción cubre trece rutas, dos anchos y cuatro combinaciones de tema/apariencia: 104 estados y 21.240 elementos. Coinciden todas las propiedades medidas, incluidas tipografía, dimensiones y sombras; no se presenta como una comparación píxel a píxel. La referencia de Portfolio se toma después de estabilizar el cambio de tamaño de sus gráficos. Se conservan también las declaraciones de lógica fuera del JSX y las propiedades de controles interactivos de doce módulos consumidores. Pasan TypeScript, ESLint, build sin prerender y presupuesto de carga (654,99 kB de JavaScript inicial), además de las pruebas financieras existentes de bonos, IRPF, gastos e importación Excel. La prueba funcional de ficha de fondos pasa con datos simulados, valores cero y ausentes, composición, documentos y dieciséis combinaciones de tamaño/tema.
+
+
+La comparación de gastos pasa otros 96 estados (cinco pestañas, seis editores y vista previa de importación): coinciden las propiedades medidas de 15.704 elementos entre la referencia y el build de producción. Pasan también los flujos funcionales de altas, edición, cancelación y borrado, ingresos, reembolsos, transferencias, presupuestos, recurrentes sin duplicados, objetivos, CSV/Excel, persistencia y tamaños 320/390/768 px. El recorrido responsive de Planificación, Operaciones, Añadir activo, Portfolio y mapa de calor pasa 60 combinaciones de tres anchos y cuatro temas/apariencias, sin errores de ejecución ni desbordamientos horizontales. Se revisó la captura móvil de Planificación en Liquid Glass.
+
+
+La suite de usabilidad de calculadoras y Dashboard pasa sobre producción, incluida la asociación accesible de los campos, entradas inválidas, aportaciones y retiradas, persistencia y resultados en tres anchos de pantalla.

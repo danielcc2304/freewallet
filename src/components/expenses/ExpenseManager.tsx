@@ -1,3 +1,4 @@
+import { DataTable } from '../ui/DataTable';
 import { ExpenseProgress as Progress } from './ui/ExpenseProgress';
 import { ExpenseEmptyState as Empty } from './ui/ExpenseEmptyState';
 import { ExpensePanelHeading, ExpensePanelTitle, ExpensePanel, ExpenseCard } from './ui/ExpensePanel';
@@ -1350,187 +1351,185 @@ export default function ExpenseManager() {
                                         </article>
                                     ))}
                             </div>
-                            <div className="expense-table-scroll expense-entry-table">
-                                <table className="expense-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Concepto</th>
-                                            <th>Fecha</th>
-                                            <th>Categoría</th>
-                                            <th>Cuenta</th>
-                                            <th>Importe</th>
-                                            <th>
-                                                <span className="expense-sr">
-                                                    Acciones
-                                                </span>
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filtered
-                                            .slice(
-                                                safePage * 30,
-                                                (safePage + 1) * 30,
-                                            )
-                                            .map((e) => (
-                                                <tr key={e.id}>
-                                                    <td>
-                                                        <div className="expense-entry-name">
-                                                            <span
-                                                                className={`expense-kind expense-kind--${e.kind}`}
-                                                            >
-                                                                {e.kind ===
-                                                                'transfer' ? (
-                                                                    <ArrowRightLeft
-                                                                        size={
-                                                                            15
-                                                                        }
-                                                                    />
-                                                                ) : e.kind ===
-                                                                  'expense' ? (
-                                                                    <ArrowUpRight
-                                                                        size={
-                                                                            15
-                                                                        }
-                                                                    />
-                                                                ) : (
-                                                                    <ArrowDownLeft
-                                                                        size={
-                                                                            15
-                                                                        }
-                                                                    />
-                                                                )}
-                                                            </span>
-                                                            <div>
-                                                                <strong>
-                                                                    {
-                                                                        e.description
+                            <DataTable appearance="expenses" className="expense-entry-table">
+                                <thead>
+                                    <tr>
+                                        <th>Concepto</th>
+                                        <th>Fecha</th>
+                                        <th>Categoría</th>
+                                        <th>Cuenta</th>
+                                        <th>Importe</th>
+                                        <th>
+                                            <span className="expense-sr">
+                                                Acciones
+                                            </span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filtered
+                                        .slice(
+                                            safePage * 30,
+                                            (safePage + 1) * 30,
+                                        )
+                                        .map((e) => (
+                                            <tr key={e.id}>
+                                                <td>
+                                                    <div className="expense-entry-name">
+                                                        <span
+                                                            className={`expense-kind expense-kind--${e.kind}`}
+                                                        >
+                                                            {e.kind ===
+                                                            'transfer' ? (
+                                                                <ArrowRightLeft
+                                                                    size={
+                                                                        15
                                                                     }
-                                                                </strong>
-                                                                <small>
-                                                                    {
-                                                                        kindLabels[
-                                                                            e
-                                                                                .kind
-                                                                        ]
+                                                                />
+                                                            ) : e.kind ===
+                                                              'expense' ? (
+                                                                <ArrowUpRight
+                                                                    size={
+                                                                        15
                                                                     }
-                                                                    {e.recurrenceId
-                                                                        ? ' · Recurrente'
-                                                                        : ''}
-                                                                    {e.date >
-                                                                    today
-                                                                        ? ' · Previsto'
-                                                                        : ''}
-                                                                    {e.tags
-                                                                        .length
-                                                                        ? ` · ${e.tags.join(', ')}`
-                                                                        : ''}
-                                                                </small>
-                                                                {e.note && (
-                                                                    <small
-                                                                        title={
-                                                                            e.note
-                                                                        }
-                                                                    >
-                                                                        {e.note.slice(
-                                                                            0,
-                                                                            80,
-                                                                        )}
-                                                                    </small>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td>{dayLabel(e.date)}</td>
-                                                    <td>
-                                                        {categoryName(
-                                                            e.categoryId,
-                                                        )}
-                                                    </td>
-                                                    <td>
-                                                        {accountName(
-                                                            e.accountId,
-                                                        )}
-                                                        {e.toAccountId && (
+                                                                />
+                                                            ) : (
+                                                                <ArrowDownLeft
+                                                                    size={
+                                                                        15
+                                                                    }
+                                                                />
+                                                            )}
+                                                        </span>
+                                                        <div>
+                                                            <strong>
+                                                                {
+                                                                    e.description
+                                                                }
+                                                            </strong>
                                                             <small>
-                                                                →{' '}
-                                                                {accountName(
-                                                                    e.toAccountId,
-                                                                )}
+                                                                {
+                                                                    kindLabels[
+                                                                        e
+                                                                            .kind
+                                                                    ]
+                                                                }
+                                                                {e.recurrenceId
+                                                                    ? ' · Recurrente'
+                                                                    : ''}
+                                                                {e.date >
+                                                                today
+                                                                    ? ' · Previsto'
+                                                                    : ''}
+                                                                {e.tags
+                                                                    .length
+                                                                    ? ` · ${e.tags.join(', ')}`
+                                                                    : ''}
                                                             </small>
-                                                        )}
-                                                    </td>
-                                                    <td
-                                                        className={
-                                                            e.kind ===
-                                                                'income' ||
-                                                            e.kind === 'refund'
-                                                                ? 'expense-positive'
-                                                                : ''
-                                                        }
-                                                    >
-                                                        {e.kind === 'transfer'
-                                                            ? ''
-                                                            : e.kind ===
-                                                                'expense'
-                                                              ? '−'
-                                                              : '+'}
-                                                        {money(e.amountCents)}
-                                                    </td>
-                                                    <td>
-                                                        <ExpenseActions variant="row" className="expense-row-actions">
-                                                            <ExpenseIconButton
-                                                                disabled={
-                                                                    !editable
-                                                                }
-                                                                aria-label={`Editar ${e.description}`}
-                                                                onClick={() =>
-                                                                    setEditor({
-                                                                        type: 'entry',
-                                                                        value: e,
-                                                                    })
-                                                                }
-                                                            >
-                                                                <Pencil
-                                                                    size={16}
-                                                                />
-                                                            </ExpenseIconButton>
-                                                            <ExpenseIconButton
-                                                                disabled={
-                                                                    !editable
-                                                                }
-                                                                aria-label={`Eliminar ${e.description}`}
-                                                                onClick={() =>
-                                                                    setConfirmation(
-                                                                        {
-                                                                            title: 'Eliminar movimiento',
-                                                                            message: `Se eliminará «${e.description}» (${money(e.amountCents)}). Los saldos y presupuestos se recalcularán.${e.recurrenceId ? ' Su vencimiento volverá a quedar pendiente.' : ''}`,
-                                                                            next: {
-                                                                                ...book,
-                                                                                entries:
-                                                                                    book.entries.filter(
-                                                                                        (
-                                                                                            old,
-                                                                                        ) =>
-                                                                                            old.id !==
-                                                                                            e.id,
-                                                                                    ),
-                                                                            },
+                                                            {e.note && (
+                                                                <small
+                                                                    title={
+                                                                        e.note
+                                                                    }
+                                                                >
+                                                                    {e.note.slice(
+                                                                        0,
+                                                                        80,
+                                                                    )}
+                                                                </small>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                                <td>{dayLabel(e.date)}</td>
+                                                <td>
+                                                    {categoryName(
+                                                        e.categoryId,
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {accountName(
+                                                        e.accountId,
+                                                    )}
+                                                    {e.toAccountId && (
+                                                        <small>
+                                                            →{' '}
+                                                            {accountName(
+                                                                e.toAccountId,
+                                                            )}
+                                                        </small>
+                                                    )}
+                                                </td>
+                                                <td
+                                                    className={
+                                                        e.kind ===
+                                                            'income' ||
+                                                        e.kind === 'refund'
+                                                            ? 'expense-positive'
+                                                            : ''
+                                                    }
+                                                >
+                                                    {e.kind === 'transfer'
+                                                        ? ''
+                                                        : e.kind ===
+                                                            'expense'
+                                                          ? '−'
+                                                          : '+'}
+                                                    {money(e.amountCents)}
+                                                </td>
+                                                <td>
+                                                    <ExpenseActions variant="row" className="expense-row-actions">
+                                                        <ExpenseIconButton
+                                                            disabled={
+                                                                !editable
+                                                            }
+                                                            aria-label={`Editar ${e.description}`}
+                                                            onClick={() =>
+                                                                setEditor({
+                                                                    type: 'entry',
+                                                                    value: e,
+                                                                })
+                                                            }
+                                                        >
+                                                            <Pencil
+                                                                size={16}
+                                                            />
+                                                        </ExpenseIconButton>
+                                                        <ExpenseIconButton
+                                                            disabled={
+                                                                !editable
+                                                            }
+                                                            aria-label={`Eliminar ${e.description}`}
+                                                            onClick={() =>
+                                                                setConfirmation(
+                                                                    {
+                                                                        title: 'Eliminar movimiento',
+                                                                        message: `Se eliminará «${e.description}» (${money(e.amountCents)}). Los saldos y presupuestos se recalcularán.${e.recurrenceId ? ' Su vencimiento volverá a quedar pendiente.' : ''}`,
+                                                                        next: {
+                                                                            ...book,
+                                                                            entries:
+                                                                                book.entries.filter(
+                                                                                    (
+                                                                                        old,
+                                                                                    ) =>
+                                                                                        old.id !==
+                                                                                        e.id,
+                                                                                ),
                                                                         },
-                                                                    )
-                                                                }
-                                                            >
-                                                                <Trash2
-                                                                    size={16}
-                                                                />
-                                                            </ExpenseIconButton>
-                                                        </ExpenseActions>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                    </tbody>
-                                </table>
-                            </div>
+                                                                    },
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2
+                                                                size={16}
+                                                            />
+                                                        </ExpenseIconButton>
+                                                    </ExpenseActions>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                </tbody>
+                            </DataTable>
                             <div className="expense-pagination">
                                 <ExpenseButton variant="secondary"
                                     className="expense-btn expense-btn--secondary"

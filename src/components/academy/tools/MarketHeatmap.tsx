@@ -1,3 +1,4 @@
+import { DataItem } from '../../ui/DataItem';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
     AlertTriangle,
@@ -493,24 +494,12 @@ export function MarketHeatmap() {
                 </div>
 
                 <div className="market-heatmap__metrics" aria-live="polite">
-                    <div className="market-heatmap__metric">
-                        <span>ETF de referencia · {indexDefinition.proxySymbol}</span>
-                        <strong className={proxyQuote && proxyQuote.changePercent < 0 ? 'is-negative' : proxyQuote && proxyQuote.changePercent > 0 ? 'is-positive' : ''}>
+                    <DataItem layout="heatmap" className="market-heatmap__metric" label={<>ETF de referencia · {indexDefinition.proxySymbol}</>} value={<>
                             {proxyQuote ? formatPercent(proxyQuote.changePercent) : isLoading ? 'Cargando…' : 'N/D'}
-                        </strong>
-                    </div>
-                    <div className="market-heatmap__metric">
-                        <span>Avanzan</span>
-                        <strong className="is-positive"><TrendingUp size={16} /> {advancers}</strong>
-                    </div>
-                    <div className="market-heatmap__metric">
-                        <span>Caen</span>
-                        <strong className="is-negative"><TrendingDown size={16} /> {decliners}</strong>
-                    </div>
-                    <div className="market-heatmap__metric">
-                        <span>Peso representado</span>
-                        <strong>{coverageWeight.toLocaleString('es-ES', { maximumFractionDigits: 1 })}%</strong>
-                    </div>
+                        </>} valueClassName={proxyQuote && proxyQuote.changePercent < 0 ? 'is-negative' : proxyQuote && proxyQuote.changePercent > 0 ? 'is-positive' : ''} />
+                    <DataItem layout="heatmap" className="market-heatmap__metric" label={<>Avanzan</>} value={<><TrendingUp size={16} /> {advancers}</>} valueClassName="is-positive" />
+                    <DataItem layout="heatmap" className="market-heatmap__metric" label={<>Caen</>} value={<><TrendingDown size={16} /> {decliners}</>} valueClassName="is-negative" />
+                    <DataItem layout="heatmap" className="market-heatmap__metric" label={<>Peso representado</>} value={<>{coverageWeight.toLocaleString('es-ES', { maximumFractionDigits: 1 })}%</>}  />
                 </div>
 
                 <div

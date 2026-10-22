@@ -106,21 +106,8 @@
     border-block: 1px solid var(--border-primary);
 }
 
-.market-heatmap__metric {
-    @apply tw:grid tw:gap-[0.3rem] tw:p-[0.85rem_1rem];
-}
-
 .market-heatmap__metric + .market-heatmap__metric {
     border-left: 1px solid var(--border-primary);
-}
-
-.market-heatmap__metric span {
-    @apply tw:text-muted tw:text-[length:0.7rem];
-    font-weight: 600;
-}
-
-.market-heatmap__metric strong {
-    @apply tw:ui-row tw:gap-[0.35rem] tw:text-[length:var(--font-size-lg)];
 }
 
 .market-heatmap__sector-summary {

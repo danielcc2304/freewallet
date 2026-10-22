@@ -4,19 +4,6 @@
     @apply tw:grid tw:gap-[1.5rem];
 }
 
-.planning-page__header {
-    @apply tw:flex tw:justify-between tw:items-start tw:gap-[1rem];
-}
-
-.planning-page__title {
-    @apply tw:m-[0] tw:text-[length:1.875rem];
-    font-weight: 700;
-}
-
-.planning-page__subtitle {
-    @apply tw:m-[0.5rem_0_0] tw:text-secondary;
-}
-
 .planning-page__grid {
     @apply tw:grid tw:grid-cols-[1.5fr_1fr] tw:gap-[1rem];
 }
@@ -49,18 +36,6 @@
 
 .planning-check p {
     @apply tw:m-[0.25rem_0_0] tw:text-secondary;
-}
-
-.planning-stat {
-    @apply tw:grid tw:gap-[0.3rem];
-}
-
-.planning-stat span {
-    @apply tw:text-secondary tw:text-[length:0.875rem];
-}
-
-.planning-stat strong {
-    @apply tw:text-[length:1.4rem];
 }
 
 .planning-page__split {
@@ -133,9 +108,6 @@
 }
 
 @media (max-width: 640px) {
-    .planning-page__header {
-        @apply tw:grid;
-    }
 
     .planning-form__row {
         @apply tw:grid-cols-[1fr];

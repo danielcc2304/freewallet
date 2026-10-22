@@ -1,3 +1,4 @@
+import { DataTable } from '../ui/DataTable';
 import { ExpenseField } from './ui/ExpenseField';
 import { ExpenseCheckbox } from './ui/ExpenseCheckbox';
 import { ExpenseGrid } from './ui/ExpenseGrid';
@@ -391,92 +392,90 @@ export function ExpenseImportDialog({
                     omitidas
                 </span>
             </div>
-            <div className="expense-table-scroll">
-                <table className="expense-table">
-                    <thead>
-                        <tr>
-                            <th>Fila</th>
-                            <th>Concepto / error</th>
-                            <th>Tipo</th>
-                            <th>Importe</th>
-                            {reviewBbvaCategories && <th>Categoría</th>}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {visiblePreview.map((row) => (
-                            <tr key={row.line}>
-                                <td>{row.line}</td>
-                                <td>
-                                    {row.error ?? row.entry?.description}
-                                    {row.duplicate && (
-                                        <small>Coincidencia</small>
+            <DataTable appearance="expenses">
+                <thead>
+                    <tr>
+                        <th>Fila</th>
+                        <th>Concepto / error</th>
+                        <th>Tipo</th>
+                        <th>Importe</th>
+                        {reviewBbvaCategories && <th>Categoría</th>}
+                    </tr>
+                </thead>
+                <tbody>
+                    {visiblePreview.map((row) => (
+                        <tr key={row.line}>
+                            <td>{row.line}</td>
+                            <td>
+                                {row.error ?? row.entry?.description}
+                                {row.duplicate && (
+                                    <small>Coincidencia</small>
+                                )}
+                            </td>
+                            <td>
+                                {row.entry
+                                    ? {
+                                          expense: 'Gasto',
+                                          income: 'Ingreso',
+                                          refund: 'Reembolso',
+                                          transfer: 'Transferencia',
+                                      }[row.entry.kind]
+                                    : '—'}
+                            </td>
+                            <td>
+                                {row.entry
+                                    ? money(row.entry.amountCents)
+                                    : '—'}
+                            </td>
+                            {reviewBbvaCategories && (
+                                <td className="expense-import__category-cell">
+                                    {row.entry?.categoryId ? (
+                                        <>
+                                            <select
+                                                className="expense-import__category-select"
+                                                aria-label={`Categoría para la fila ${row.line}`}
+                                                value={row.entry.categoryId}
+                                                onChange={(event) =>
+                                                    setCategoryOverrides(
+                                                        (current) => ({
+                                                            ...current,
+                                                            [row.line]:
+                                                                event.target
+                                                                    .value,
+                                                        }),
+                                                    )
+                                                }
+                                            >
+                                                {book.categories.map(
+                                                    (category) => (
+                                                        <option
+                                                            key={category.id}
+                                                            value={category.id}
+                                                        >
+                                                            {category.name}
+                                                        </option>
+                                                    ),
+                                                )}
+                                            </select>
+                                            <small>
+                                                {categoryOverrides[row.line]
+                                                    ? 'Revisada'
+                                                    : categorySuggestions.has(
+                                                            row.line,
+                                                        )
+                                                      ? 'Sugerida'
+                                                      : 'Sin sugerencia'}
+                                            </small>
+                                        </>
+                                    ) : (
+                                        '—'
                                     )}
                                 </td>
-                                <td>
-                                    {row.entry
-                                        ? {
-                                              expense: 'Gasto',
-                                              income: 'Ingreso',
-                                              refund: 'Reembolso',
-                                              transfer: 'Transferencia',
-                                          }[row.entry.kind]
-                                        : '—'}
-                                </td>
-                                <td>
-                                    {row.entry
-                                        ? money(row.entry.amountCents)
-                                        : '—'}
-                                </td>
-                                {reviewBbvaCategories && (
-                                    <td className="expense-import__category-cell">
-                                        {row.entry?.categoryId ? (
-                                            <>
-                                                <select
-                                                    className="expense-import__category-select"
-                                                    aria-label={`Categoría para la fila ${row.line}`}
-                                                    value={row.entry.categoryId}
-                                                    onChange={(event) =>
-                                                        setCategoryOverrides(
-                                                            (current) => ({
-                                                                ...current,
-                                                                [row.line]:
-                                                                    event.target
-                                                                        .value,
-                                                            }),
-                                                        )
-                                                    }
-                                                >
-                                                    {book.categories.map(
-                                                        (category) => (
-                                                            <option
-                                                                key={category.id}
-                                                                value={category.id}
-                                                            >
-                                                                {category.name}
-                                                            </option>
-                                                        ),
-                                                    )}
-                                                </select>
-                                                <small>
-                                                    {categoryOverrides[row.line]
-                                                        ? 'Revisada'
-                                                        : categorySuggestions.has(
-                                                                row.line,
-                                                            )
-                                                          ? 'Sugerida'
-                                                          : 'Sin sugerencia'}
-                                                </small>
-                                            </>
-                                        ) : (
-                                            '—'
-                                        )}
-                                    </td>
-                                )}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                            )}
+                        </tr>
+                    ))}
+                </tbody>
+            </DataTable>
             {reviewBbvaCategories && preview.length > previewPageSize && (
                 <div
                     className="expense-import__pagination"

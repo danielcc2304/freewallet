@@ -4,34 +4,8 @@
     @apply tw:grid tw:gap-[1.5rem];
 }
 
-.transactions-page__header {
-    @apply tw:flex tw:items-start tw:justify-between tw:gap-[1rem];
-}
-
-.transactions-page__title {
-    @apply tw:m-[0] tw:text-[length:1.875rem];
-    font-weight: 700;
-}
-
-.transactions-page__subtitle {
-    @apply tw:m-[0.5rem_0_0] tw:text-secondary;
-}
-
 .transactions-page__summary {
     @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))] tw:gap-[1rem];
-}
-
-.transactions-page__summary-card {
-    @apply tw:ui-stack tw:gap-[0.35rem];
-}
-
-.transactions-page__summary-card strong {
-    @apply tw:text-[length:1.75rem];
-    line-height: 1;
-}
-
-.transactions-page__summary-label {
-    @apply tw:text-secondary tw:text-[length:0.875rem];
 }
 
 .transactions-page__filters-content {
@@ -158,9 +132,6 @@
 }
 
 @media (max-width: 640px) {
-    .transactions-page__header {
-        @apply tw:grid-cols-[1fr] tw:grid;
-    }
 
     .transactions-page__summary {
         @apply tw:grid-cols-[1fr];

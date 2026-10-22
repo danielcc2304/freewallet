@@ -1,3 +1,5 @@
+import { AcademyCallout } from '../ui/AcademyCallout';
+import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
 import { AcademySection } from '../ui/AcademySection';
 import { AcademyGrid } from '../ui/AcademyGrid';
@@ -121,13 +123,9 @@ export function AssetEquities() {
                     </p>
                 </div>
 
-                <div className="asset-page__callout asset-page__callout--info">
-                    <Lightbulb size={20} />
-                    <div>
-                        <strong>Dato clave</strong>
-                        <p>El S&P 500 ha caído más de un 20% en 12 ocasiones desde 1929, pero siempre ha recuperado máximos históricos. La paciencia es el superpoder del inversor en acciones.</p>
-                    </div>
-                </div>
+                <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>Dato clave</>}>
+                    <p>El S&P 500 ha caído más de un 20% en 12 ocasiones desde 1929, pero siempre ha recuperado máximos históricos. La paciencia es el superpoder del inversor en acciones.</p>
+                </AcademyCallout>
             </AcademySection>
 
             {/* Sub-types */}
@@ -206,16 +204,12 @@ export function AssetEquities() {
                     ))}
                 </AcademyGrid>
 
-                <div className="asset-page__callout asset-page__callout--warning">
-                    <AlertTriangle size={20} />
-                    <div>
-                        <strong>Sesgo doméstico (Home Bias)</strong>
-                        <p>Los inversores tienden a sobreponderar su propio país. España representa solo el ~0.6% del mercado mundial. Si inviertes solo en el IBEX35, estás concentrando riesgo innecesariamente.</p>
-                        <Link to="/academy/risk" className="asset-page__cta-link">
-                            Ver guía de riesgo de divisa y cobertura →
-                        </Link>
-                    </div>
-                </div>
+                <AcademyCallout tone="warning" icon={<AlertTriangle size={20} />} title={<>Sesgo doméstico (Home Bias)</>}>
+                    <p>Los inversores tienden a sobreponderar su propio país. España representa solo el ~0.6% del mercado mundial. Si inviertes solo en el IBEX35, estás concentrando riesgo innecesariamente.</p>
+                    <Link to="/academy/risk" className="asset-page__cta-link">
+                        Ver guía de riesgo de divisa y cobertura →
+                    </Link>
+                </AcademyCallout>
             </AcademySection>
 
             {/* Pros and cons */}
@@ -251,23 +245,9 @@ export function AssetEquities() {
             <AcademySection title={<><Zap size={22} /> ¿Cómo Invertir en Acciones?</>} id="section-6" className="asset-page__section">
 
                 <AcademyGrid variant="steps" className="asset-page__steps">
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">1</div>
-                        <h4>ETFs Indexados</h4>
-                        <p>Un solo ETF como el MSCI World te da exposición a +1.500 empresas de 23 países.</p>
-                    </AcademyPanel>
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">2</div>
-                        <h4>Fondos Indexados</h4>
-                        <p>La opción más recomendada para el 95% de inversores. Misma filosofía que ETFs pero con ventaja fiscal en España: puedes traspasar entre fondos sin tributar. Ideal para acumular a largo plazo.</p>
-                        <span className="step-card__badge step-card__badge--fiscal">Ventaja Fiscal 🇪🇸</span>
-                    </AcademyPanel>
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">3</div>
-                        <h4>Acciones Individuales</h4>
-                        <p>Solo si tienes conocimiento profundo del análisis fundamental. Riesgo de concentración muy alto. Máximo 10-20% de cartera.</p>
-                        <span className="step-card__badge step-card__badge--advanced">Avanzado</span>
-                    </AcademyPanel>
+                    <AcademyStepCard number={'1'} title={'ETFs Indexados'}>Un solo ETF como el MSCI World te da exposición a +1.500 empresas de 23 países.</AcademyStepCard>
+                    <AcademyStepCard number={'2'} title={'Fondos Indexados'} badgeTone="fiscal" badge={'Ventaja Fiscal 🇪🇸'}>La opción más recomendada para el 95% de inversores. Misma filosofía que ETFs pero con ventaja fiscal en España: puedes traspasar entre fondos sin tributar. Ideal para acumular a largo plazo.</AcademyStepCard>
+                    <AcademyStepCard number={'3'} title={'Acciones Individuales'} badgeTone="advanced" badge={'Avanzado'}>Solo si tienes conocimiento profundo del análisis fundamental. Riesgo de concentración muy alto. Máximo 10-20% de cartera.</AcademyStepCard>
                 </AcademyGrid>
             </AcademySection>
 

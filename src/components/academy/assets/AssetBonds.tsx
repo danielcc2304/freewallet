@@ -1,3 +1,5 @@
+import { AcademyCallout } from '../ui/AcademyCallout';
+import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
 import { AcademySection } from '../ui/AcademySection';
 import { AcademyGrid } from '../ui/AcademyGrid';
@@ -334,13 +336,9 @@ export function AssetBonds() {
                     </div>
                 </div>
 
-                <div className="asset-page__callout asset-page__callout--info">
-                    <Lightbulb size={20} />
-                    <div>
-                        <strong>¿Por qué importa?</strong>
-                        <p>Si compras un bono a 10 años y los tipos suben un 2%, podrías ver una caída del ~15% en el precio de mercado de tu bono. Si lo mantienes a vencimiento, no importa (cobras cupón + nominal). Pero si necesitas vender antes, puedes perder dinero.</p>
-                    </div>
-                </div>
+                <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>¿Por qué importa?</>}>
+                    <p>Si compras un bono a 10 años y los tipos suben un 2%, podrías ver una caída del ~15% en el precio de mercado de tu bono. Si lo mantienes a vencimiento, no importa (cobras cupón + nominal). Pero si necesitas vender antes, puedes perder dinero.</p>
+                </AcademyCallout>
             </AcademySection>
 
             {/* Duration & Convexity */}
@@ -451,13 +449,9 @@ export function AssetBonds() {
                     ))}
                 </div>
 
-                <div className="asset-page__callout asset-page__callout--warning">
-                    <AlertTriangle size={20} />
-                    <div>
-                        <strong>Curva invertida = señal de recesión</strong>
-                        <p>Históricamente, cada vez que la curva de tipos se ha invertido (el bono a 2 años rinde más que el de 10 años), una recesión ha seguido en los 6-18 meses siguientes. Ocurrió antes de 2001, 2008, y 2020.</p>
-                    </div>
-                </div>
+                <AcademyCallout tone="warning" icon={<AlertTriangle size={20} />} title={<>Curva invertida = señal de recesión</>}>
+                    <p>Históricamente, cada vez que la curva de tipos se ha invertido (el bono a 2 años rinde más que el de 10 años), una recesión ha seguido en los 6-18 meses siguientes. Ocurrió antes de 2001, 2008, y 2020.</p>
+                </AcademyCallout>
             </AcademySection>
 
             {/* Bond types deep dive */}
@@ -564,16 +558,12 @@ export function AssetBonds() {
                     ))}
                 </div>
 
-                <div className="asset-page__callout asset-page__callout--warning">
-                    <AlertTriangle size={20} />
-                    <div>
-                        <strong>Cuando el spread se abre rápido, manda el riesgo</strong>
-                        <p>
-                            Si los spreads se amplían de golpe, el crédito suele caer aunque los tipos oficiales no cambien.
-                            En ese entorno, la calidad del emisor y la liquidez importan más que rascar unas décimas extra de yield.
-                        </p>
-                    </div>
-                </div>
+                <AcademyCallout tone="warning" icon={<AlertTriangle size={20} />} title={<>Cuando el spread se abre rápido, manda el riesgo</>}>
+                    <p>
+                        Si los spreads se amplían de golpe, el crédito suele caer aunque los tipos oficiales no cambien.
+                        En ese entorno, la calidad del emisor y la liquidez importan más que rascar unas décimas extra de yield.
+                    </p>
+                </AcademyCallout>
 
                 <div className="spread-sim">
                     <h3>Mini simulador: impacto de spread</h3>
@@ -711,19 +701,15 @@ export function AssetBonds() {
                     ))}
                 </div>
 
-                <div className="asset-page__callout asset-page__callout--info" style={{ marginTop: '1.5rem' }}>
-                    <Lightbulb size={20} />
-                    <div>
-                        <strong>En bonos globales, cubrir divisa suele tener más sentido</strong>
-                        <p>
-                            Si tu objetivo de renta fija es estabilizar cartera en EUR, la cobertura de divisa
-                            suele reducir ruido y hacer más predecible el comportamiento.
-                        </p>
-                        <Link to="/academy/risk" className="asset-page__cta-link">
-                            Ver guía completa de cobertura de divisa →
-                        </Link>
-                    </div>
-                </div>
+                <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>En bonos globales, cubrir divisa suele tener más sentido</>} style={{ marginTop: '1.5rem' }}>
+                    <p>
+                        Si tu objetivo de renta fija es estabilizar cartera en EUR, la cobertura de divisa
+                        suele reducir ruido y hacer más predecible el comportamiento.
+                    </p>
+                    <Link to="/academy/risk" className="asset-page__cta-link">
+                        Ver guía completa de cobertura de divisa →
+                    </Link>
+                </AcademyCallout>
             </AcademySection>
 
             {/* Ladder strategy */}
@@ -748,16 +734,12 @@ export function AssetBonds() {
                     ))}
                 </div>
 
-                <div className="asset-page__callout asset-page__callout--info">
-                    <Lightbulb size={20} />
-                    <div>
-                        <strong>Ventaja clave del ladder</strong>
-                        <p>
-                            Cada año vence una parte de la cartera. Puedes usar ese flujo para gasto,
-                            o reinvertir al nuevo nivel de tipos sin tener que deshacer toda la posición.
-                        </p>
-                    </div>
-                </div>
+                <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>Ventaja clave del ladder</>}>
+                    <p>
+                        Cada año vence una parte de la cartera. Puedes usar ese flujo para gasto,
+                        o reinvertir al nuevo nivel de tipos sin tener que deshacer toda la posición.
+                    </p>
+                </AcademyCallout>
             </AcademySection>
 
             {/* Portfolio duration calculator */}
@@ -898,30 +880,10 @@ export function AssetBonds() {
             <AcademySection title={<><Zap size={22} /> ¿Cómo Invertir en Renta Fija?</>} id="section-13" className="asset-page__section">
 
                 <AcademyGrid variant="steps" className="asset-page__steps">
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">1</div>
-                        <h4>ETFs de Bonos</h4>
-                        <p>Forma más accesible. Un ETF como iShares Core Euro Govt Bond te da diversificación en decenas de emisiones gubernamentales europeas.</p>
-                        <span className="step-card__badge step-card__badge--recommended">Recomendado</span>
-                    </AcademyPanel>
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">2</div>
-                        <h4>Letras del Tesoro Directas</h4>
-                        <p>Se compran directamente en el Tesoro Público español. Sin comisiones, máxima seguridad. Ideal para plazos cortos (3-12 meses).</p>
-                        <span className="step-card__badge step-card__badge--fiscal">Sin comisiones</span>
-                    </AcademyPanel>
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">3</div>
-                        <h4>Fondos de Renta Fija</h4>
-                        <p>Gestionados activamente o indexados. Ventaja fiscal en España por traspasos. Cuidado con las comisiones de gestión activa.</p>
-                        <span className="step-card__badge step-card__badge--fiscal">Ventaja Fiscal 🇪🇸</span>
-                    </AcademyPanel>
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">4</div>
-                        <h4>Bonos Individuales</h4>
-                        <p>Comprar bonos concretos en el mercado secundario. Requiere más capital y conocimiento. Solo para inversores experimentados.</p>
-                        <span className="step-card__badge step-card__badge--advanced">Avanzado</span>
-                    </AcademyPanel>
+                    <AcademyStepCard number={'1'} title={'ETFs de Bonos'} badgeTone="recommended" badge={'Recomendado'}>Forma más accesible. Un ETF como iShares Core Euro Govt Bond te da diversificación en decenas de emisiones gubernamentales europeas.</AcademyStepCard>
+                    <AcademyStepCard number={'2'} title={'Letras del Tesoro Directas'} badgeTone="fiscal" badge={'Sin comisiones'}>Se compran directamente en el Tesoro Público español. Sin comisiones, máxima seguridad. Ideal para plazos cortos (3-12 meses).</AcademyStepCard>
+                    <AcademyStepCard number={'3'} title={'Fondos de Renta Fija'} badgeTone="fiscal" badge={'Ventaja Fiscal 🇪🇸'}>Gestionados activamente o indexados. Ventaja fiscal en España por traspasos. Cuidado con las comisiones de gestión activa.</AcademyStepCard>
+                    <AcademyStepCard number={'4'} title={'Bonos Individuales'} badgeTone="advanced" badge={'Avanzado'}>Comprar bonos concretos en el mercado secundario. Requiere más capital y conocimiento. Solo para inversores experimentados.</AcademyStepCard>
                 </AcademyGrid>
             </AcademySection>
 

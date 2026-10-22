@@ -182,19 +182,6 @@
     @apply tw:grid tw:grid-cols-[repeat(6,_minmax(140px,_1fr))] tw:gap-[0.8rem] tw:mb-[1rem];
 }
 
-.portfolio-csv-kpi {
-    @apply tw:ui-fill-surface tw:ui-border tw:rounded-[14px] tw:p-[0.9rem] tw:ui-stack tw:gap-[0.3rem];
-}
-
-.portfolio-csv-kpi span {
-    @apply tw:text-muted tw:text-[length:var(--font-size-xs)];
-}
-
-.portfolio-csv-kpi strong {
-    @apply tw:text-[length:var(--font-size-lg)] tw:text-main;
-    font-weight: 700;
-}
-
 .portfolio-csv-grid {
     @apply tw:grid tw:grid-cols-[repeat(2,_minmax(280px,_1fr))] tw:gap-[0.9rem] tw:mb-[0.9rem];
 }

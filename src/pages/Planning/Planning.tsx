@@ -1,3 +1,5 @@
+import { DataItem } from '../../components/ui/DataItem';
+import { PageHeading } from '../../components/ui/PageHeading';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, CheckCircle2, Eye, PlusCircle, Target, Trash2 } from 'lucide-react';
@@ -204,17 +206,9 @@ export function Planning() {
     return (
         <div className="planning-page">
             {saveError && <p role="alert">{saveError}</p>}
-            <div className="planning-page__header">
-                <div>
-                    <h1 className="planning-page__title">Planificacion</h1>
-                    <p className="planning-page__subtitle">
-                        Objetivos, control de cartera y watchlist manual en una vista separada del dashboard.
-                    </p>
-                </div>
-                <Link to="/add">
+            <PageHeading className="planning-page__header" titleClassName="planning-page__title" descriptionClassName="planning-page__subtitle" title={'Planificacion'} description={'Objetivos, control de cartera y watchlist manual en una vista separada del dashboard.'} actions={<Link to="/add">
                     <Button icon={<PlusCircle size={16} />}>Añadir inversión</Button>
-                </Link>
-            </div>
+                </Link>} />
 
             <section className="planning-page__grid">
                 <Card>
@@ -243,22 +237,10 @@ export function Planning() {
                         subtitle="Contexto rapido para decidir siguientes pasos"
                     />
                     <CardContent className="planning-page__summary">
-                        <div className="planning-stat">
-                            <span>Capital invertido</span>
-                            <strong>{formatCurrency(totalInvested)}</strong>
-                        </div>
-                        <div className="planning-stat">
-                            <span>Posiciones</span>
-                            <strong>{state.assets.length}</strong>
-                        </div>
-                        <div className="planning-stat">
-                            <span>Objetivos activos</span>
-                            <strong>{goals.length}</strong>
-                        </div>
-                        <div className="planning-stat">
-                            <span>Watchlist</span>
-                            <strong>{watchlist.length}</strong>
-                        </div>
+                        <DataItem layout="planning" className="planning-stat" label={'Capital invertido'} value={formatCurrency(totalInvested)} />
+                        <DataItem layout="planning" className="planning-stat" label={'Posiciones'} value={state.assets.length} />
+                        <DataItem layout="planning" className="planning-stat" label={'Objetivos activos'} value={goals.length} />
+                        <DataItem layout="planning" className="planning-stat" label={'Watchlist'} value={watchlist.length} />
                     </CardContent>
                 </Card>
             </section>

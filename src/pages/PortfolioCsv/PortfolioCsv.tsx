@@ -1,3 +1,4 @@
+import { DataItem } from '../../components/ui/DataItem';
 import { migrateLegacyPortfolioHistory } from '../../services/imports/portfolioHistoryImport';
 import { portfolioStorage } from '../../services/portfolioCloudStorage';
 import { useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
@@ -781,12 +782,12 @@ export function PortfolioCsv() {
             )}
 
             <section className="portfolio-csv-kpis">
-                <article className="portfolio-csv-kpi"><span>Patrimonio actual</span><strong>{formatCurrency(totalPortfolioValue)}</strong></article>
-                <article className="portfolio-csv-kpi"><span>Top 3 concentración</span><strong>{formatPct(topConcentration)}</strong></article>
-                <article className="portfolio-csv-kpi"><span>Diversificación efectiva</span><strong>{effectivePositions.toFixed(1)} posiciones</strong></article>
-                <article className="portfolio-csv-kpi"><span>Meses positivos</span><strong>{formatPct(positiveMonthRatio)}</strong></article>
-                <article className="portfolio-csv-kpi"><span>Retorno medio mensual</span><strong>{formatPct(avgMonthlyReturn)}</strong></article>
-                <article className="portfolio-csv-kpi"><span>Volatilidad mensual</span><strong>{formatPct(monthlyVolatility)}</strong></article>
+                <DataItem as="article" layout="csv" className="portfolio-csv-kpi" label={'Patrimonio actual'} value={<>{formatCurrency(totalPortfolioValue)}</>} />
+                <DataItem as="article" layout="csv" className="portfolio-csv-kpi" label={'Top 3 concentración'} value={<>{formatPct(topConcentration)}</>} />
+                <DataItem as="article" layout="csv" className="portfolio-csv-kpi" label={'Diversificación efectiva'} value={<>{effectivePositions.toFixed(1)} posiciones</>} />
+                <DataItem as="article" layout="csv" className="portfolio-csv-kpi" label={'Meses positivos'} value={<>{formatPct(positiveMonthRatio)}</>} />
+                <DataItem as="article" layout="csv" className="portfolio-csv-kpi" label={'Retorno medio mensual'} value={<>{formatPct(avgMonthlyReturn)}</>} />
+                <DataItem as="article" layout="csv" className="portfolio-csv-kpi" label={'Volatilidad mensual'} value={<>{formatPct(monthlyVolatility)}</>} />
             </section>
 
             {(workbookControls.length > 0 || objectives.length > 0 || movements.length > 0) && (

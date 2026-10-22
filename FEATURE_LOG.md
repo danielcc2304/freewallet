@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-22 - Tailwind: piezas compartidas entre módulos
+- Funcionalidad:
+  - Reutiliza `DataItem`, `DataTable`, `FormField`, `FieldHint` y `PageHeading` entre calculadoras, Planificación, Operaciones, Portfolio, Añadir activo, mapa de calor y gastos.
+  - Añade `AcademyStepCard` y `AcademyCallout` con estructura completa para las cinco guías de activos; elimina sus reglas `@apply` migradas.
+- Resumen:
+  - Conserva los controles nativos, los formatos financieros, las etiquetas y los cálculos de cada pantalla. Los nombres anteriores de las piezas de calculadora delegan en los componentes comunes.
+  - Retira 54 declaraciones `@apply` y 190 líneas de CSS fuente: quedan 14.557 frente a las 22.753 iniciales (36,02 % menos). Las reglas de materiales, gráficos y ajustes contextuales permanecen en CSS.
+- Archivos:
+  - src/components/ui/{DataItem,DataTable,FormField,PageHeading}.tsx; src/components/academy/ui/{AcademyStepCard,AcademyCallout}.tsx; calculadoras; guías de activos; MarketHeatmap; ExpenseManager; ExpenseImportDialog; Planning; Transactions; PortfolioCsv; AddInvestment; documentación de Tailwind.
+
 ### 2026-10-22 - Tailwind: componentes de Gestión de gastos
 - Funcionalidad:
   - Comparte catorce componentes React para botones, campos, casillas, selectores, paneles, cabeceras, títulos, tarjetas, métricas, rejillas, acciones, progreso y estados vacíos.

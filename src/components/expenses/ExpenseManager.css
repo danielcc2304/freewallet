@@ -86,13 +86,6 @@
 .expense-filters .expense-field { @apply tw:flex-[1_1_125px] tw:m-[0]; }
 .expense-search { @apply tw:flex-[2_1_220px] tw:ui-row tw:p-[0_.85rem] tw:ui-border-strong tw:rounded-[11px] tw:ui-fill-surface tw:text-secondary; }
 .expense-search input { @apply tw:w-full tw:min-w-[0]; border:0; @apply tw:min-h-[44px] tw:p-[.6rem] tw:ui-fill-transparent tw:text-main; font:inherit; @apply tw:text-[length:.85rem]; }
-.expense-table-scroll { @apply tw:w-full tw:overflow-x-auto; scrollbar-width:thin; }
-.expense-table { @apply tw:w-full tw:border-collapse tw:text-[length:.8rem]; }
-.expense-table th { @apply tw:text-secondary; font-weight:500; @apply tw:text-[length:.74rem] tw:p-[.8rem_.6rem] tw:text-left; border-bottom:1px solid var(--border-secondary); @apply tw:whitespace-nowrap; }
-.expense-table td { border-bottom:1px solid var(--border-primary); @apply tw:p-[1rem_.6rem] tw:text-left; }
-.expense-table td:first-child { @apply tw:min-w-[200px] tw:max-w-[350px] tw:wrap-anywhere; }
-.expense-table td:nth-child(5) { @apply tw:whitespace-nowrap; font-weight:650; }
-.expense-table small { @apply tw:block tw:text-secondary tw:text-[length:.72rem]; line-height:1.5; @apply tw:mt-[.2rem]; }
 .expense-import__category-cell { @apply tw:min-w-[170px]; }
 .expense-import__category-select { @apply tw:w-full tw:min-w-[150px] tw:min-h-[42px] tw:p-[.6rem_.7rem] tw:ui-border-strong tw:rounded-[10px] tw:ui-fill-surface tw:text-main; font:inherit; @apply tw:text-[length:.78rem]; }
 .expense-import__category-select option { @apply tw:ui-fill-surface tw:text-main; }

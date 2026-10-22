@@ -77,3 +77,8 @@ Academia y los simuladores componen superficies, tarjetas enlazadas, rejillas, s
 ## Actualización de la décima fase
 
 Gestión de gastos comparte catorce componentes de interfaz en diez archivos de `src/components/expenses/ui`. Se aplican a la pantalla principal, edición e importación. Su hoja local pasa de 298 a 254 líneas (28.980 a 23.525 bytes de fuente); conserva materiales, gráficos, tablas y estilos contextuales. El total de `src` queda en 14.747 líneas y 58 archivos CSS; se mantienen 51 módulos con `@reference`.
+
+
+### Piezas compartidas entre pantallas
+
+Planificación, Operaciones, Portfolio CSV, Añadir activo y mapa de calor incorporan componentes comunes de `src/components/ui`: indicadores con variantes, cabeceras compactas, campos y ayudas. Las calculadoras reutilizan los mismos indicadores y campos; las tablas de ficha de fondos e IRPF comparten `DataTable` con movimientos e importación de gastos. Las cinco guías de activos componen sus pasos numerados y avisos mediante `AcademyStepCard` y `AcademyCallout`. Se conservan los hooks de estilos necesarios para materiales y ajustes contextuales. Quedan 14.557 líneas en 58 hojas CSS (36,02 % menos frente al inicio).

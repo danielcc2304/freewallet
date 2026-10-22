@@ -31,18 +31,8 @@
     @apply tw:ui-stack tw:gap-[1.35rem];
 }
 
-.form-group {
-    @apply tw:ui-stack tw:gap-ui-xs;
-}
-
 .form-group--search {
     @apply tw:relative;
-}
-
-.form-label {
-    @apply tw:text-[length:var(--font-size-sm)];
-    font-weight: 500;
-    @apply tw:text-secondary;
 }
 
 .form-row {
@@ -279,10 +269,6 @@
 
 .operation-total strong {
     @apply tw:text-main tw:text-[length:var(--font-size-base)] tw:whitespace-nowrap;
-}
-
-.form-hint {
-    @apply tw:text-[length:var(--font-size-xs)] tw:text-muted tw:m-[var(--spacing-xs)_0_0_0];
 }
 
 /* Form Actions */

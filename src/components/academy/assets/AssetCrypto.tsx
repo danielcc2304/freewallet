@@ -1,3 +1,5 @@
+import { AcademyCallout } from '../ui/AcademyCallout';
+import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
 import { AcademySection } from '../ui/AcademySection';
 import { AcademyGrid } from '../ui/AcademyGrid';
@@ -79,13 +81,9 @@ export function AssetCrypto() {
                     </p>
                 </div>
 
-                <div className="asset-page__callout asset-page__callout--warning">
-                    <AlertTriangle size={20} />
-                    <div>
-                        <strong>Advertencia de Volatilidad</strong>
-                        <p>Las caídas de más del 80% han sucedido varias veces en la historia de Bitcoin. Invertir aquí requiere una tolerancia al riesgo extrema y un horizonte temporal largo.</p>
-                    </div>
-                </div>
+                <AcademyCallout tone="warning" icon={<AlertTriangle size={20} />} title={<>Advertencia de Volatilidad</>}>
+                    <p>Las caídas de más del 80% han sucedido varias veces en la historia de Bitcoin. Invertir aquí requiere una tolerancia al riesgo extrema y un horizonte temporal largo.</p>
+                </AcademyCallout>
             </AcademySection>
 
             <AcademySection title={<><Database size={22} /> El Ecosistema Cripto</>} id="section-2" className="asset-page__section">
@@ -114,22 +112,9 @@ export function AssetCrypto() {
                     </p>
                 </div>
                 <AcademyGrid variant="steps" className="asset-page__steps">
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">1</div>
-                        <h4>Exchange (Custodiado)</h4>
-                        <p>Plataformas como Coinbase o Kraken. Fácil de usar pero dependes de la empresa.</p>
-                    </AcademyPanel>
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">2</div>
-                        <h4>ETFs de Bitcoin Spot</h4>
-                        <p>La opción más sencilla para el inversor tradicional. Compras Bitcoin en la bolsa regulada.</p>
-                        <span className="step-card__badge step-card__badge--recommended">Recomendado</span>
-                    </AcademyPanel>
-                    <AcademyPanel variant="step" className="step-card">
-                        <div className="step-card__number">3</div>
-                        <h4>Cold Wallet (Propia)</h4>
-                        <p>Máxima seguridad. Tú controlas las llaves privadas. Ideal para el largo plazo.</p>
-                    </AcademyPanel>
+                    <AcademyStepCard number={'1'} title={'Exchange (Custodiado)'}>Plataformas como Coinbase o Kraken. Fácil de usar pero dependes de la empresa.</AcademyStepCard>
+                    <AcademyStepCard number={'2'} title={'ETFs de Bitcoin Spot'} badgeTone="recommended" badge={'Recomendado'}>La opción más sencilla para el inversor tradicional. Compras Bitcoin en la bolsa regulada.</AcademyStepCard>
+                    <AcademyStepCard number={'3'} title={'Cold Wallet (Propia)'}>Máxima seguridad. Tú controlas las llaves privadas. Ideal para el largo plazo.</AcademyStepCard>
                 </AcademyGrid>
             </AcademySection>
 

@@ -209,3 +209,18 @@ La prueba de market timing controla su reloj simulado durante la inspección de 
 
 
 Validación final: pasan TypeScript, ESLint de los módulos y la prueba modificados, build de producción y presupuesto de carga (654,89 kB de JavaScript inicial). Pasan las pruebas financieras de estrategia/asignación, crisis y market timing, y las pruebas de navegador de estrategia/asignación y las tres rondas completas del juego. El recorrido del build de producción pasa 20 rutas y 240 combinaciones de tres anchos y cuatro temas/apariencias sin errores de ejecución ni desbordamientos horizontales. La prueba del juego espera posiciones estables al pulsar las acciones de resultados y usa movimiento reducido para evitar carreras con el desplazamiento automático.
+
+
+## Décima fase: Gestión de gastos
+
+Los diez archivos de `src/components/expenses/ui` exponen catorce componentes con marcado y estilos Tailwind: botones y acciones, campos y casillas, selectores, paneles y tarjetas, cabeceras y títulos, rejillas, indicadores, progreso y estados vacíos. Se reutilizan en Gestión de gastos, sus seis editores y la importación CSV/Excel.
+
+`ExpenseField` conserva la etiqueta implícita del control y permite mantener las etiquetas visualmente ocultas de los filtros. `ExpensePanel` conserva el elemento semántico de cada panel, incluido el `details` nativo del calendario; `ExpensePanelTitle` también presenta títulos que no tienen una cabecera de acciones. Los selectores utilizan botones nativos con `aria-pressed`, preservando el tipo de botón de los formularios. Los valores se calculan y formatean en sus módulos originales; la barra mantiene exactamente el cálculo y los atributos accesibles del helper anterior.
+
+Se retiran 44 líneas del CSS local, de 298 a 254. Al estar escrito principalmente con reglas de una línea, también se registra su tamaño fuente: pasa de 28.980 a 23.525 bytes. El CSS total de `src` pasa de 14.791 a 14.747 líneas, un 35,19 % menos respecto a las 22.753 anteriores al inicio de las migraciones. No se retiran hojas completas ni se equipara esta reducción al tamaño descargado. Los materiales Liquid Glass, gráficos, tablas y ajustes contextuales conservan CSS donde corresponde.
+
+
+La comparación anterior/posterior pasa 96 combinaciones: cinco pestañas, seis editores y vista previa de importación, dos anchos y cuatro temas/apariencias. Coinciden las propiedades medidas de 15.704 elementos; no se presenta como una comparación píxel a píxel de todos los estados posibles. La comprobación del código conserva las propiedades de los controles nativos y las declaraciones de lógica sin JSX de los tres módulos. Las pruebas existentes de presupuestos en céntimos e importación Excel/CSV pasan. La suite de navegador usa ahora los 60 segundos de navegación que emplean otras suites del repositorio, para tolerar la compilación de Vite en trabajadores ocupados, y registra por separado el progreso de los flujos y de los tamaños de pantalla.
+
+
+Validación final: pasan ESLint, TypeScript, compilación de producción y presupuesto de carga (654,89 kB de JavaScript inicial). La suite funcional completa pasa sobre el build de producción: altas, edición, cancelación, borrado, ingresos, reembolsos, transferencias, presupuestos, recurrentes sin duplicados, objetivos, importación CSV/Excel y persistencia. Comprueba también las cinco pestañas y el editor en 320/390/768 px, además de capturas claras/oscuras. La comparación del build de producción vuelve a coincidir en los 15.704 elementos de las 96 combinaciones de referencia, incluidas ambas apariencias. Se revisó la captura móvil del resumen en Liquid Glass.

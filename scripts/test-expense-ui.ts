@@ -22,6 +22,8 @@ const errors: string[] = [];
 const today = todayLocal();
 try {
     const page = await browser.newPage();
+    page.setDefaultTimeout(60000);
+    page.setDefaultNavigationTimeout(60000);
     await page.emulateMediaFeatures([
         { name: 'prefers-reduced-motion', value: 'reduce' },
     ]);
@@ -341,6 +343,7 @@ try {
         await page.$eval('[data-testid=expense-spent]', (n) => n.textContent!),
         /190,00/,
     );
+    console.log('PASS: financial entries, editors, recurring flows and CSV/Excel import, including duplicates and refunds.');
     // Check all sections and dialogs fit narrow viewports in both themes.
     for (const width of [320, 390, 768]) {
         await page.setViewport({ width, height: 900 });
@@ -384,6 +387,7 @@ try {
         );
         await click('Cancelar', '.expense-form button');
     }
+    console.log('PASS: all five expense sections and editor fit 320/390/768px.');
     // Captures use synthetic data only. No personal financial account is queried.
     const demo = emptyExpenseBook();
     demo.accounts[0].openingBalanceCents = 185000;

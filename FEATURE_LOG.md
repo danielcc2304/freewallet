@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-22 - Tailwind: componentes de Gestión de gastos
+- Funcionalidad:
+  - Comparte catorce componentes React para botones, campos, casillas, selectores, paneles, cabeceras, títulos, tarjetas, métricas, rejillas, acciones, progreso y estados vacíos.
+  - Aplica la composición a las cinco pestañas, los seis editores y la importación CSV/Excel, manteniendo las etiquetas accesibles y los controles nativos.
+- Resumen:
+  - El CSS local pasa de 298 a 254 líneas; conserva gráficos, tablas, distribución específica y materiales Liquid Glass. La reducción acumulada de CSS fuente es del 35,19 %.
+  - Mantiene el almacenamiento, cálculos en céntimos, presupuestos, recurrentes, deduplicación y categorización de BBVA.
+- Archivos:
+  - src/components/expenses/ui; ExpenseManager.tsx; ExpenseEditors.tsx; ExpenseImportDialog.tsx; ExpenseManager.css; scripts/test-expense-ui.ts; README.md; docs/tailwind-migration.md; docs/tailwind-module-inventory.md
+
 ### 2026-10-22 - Tailwind: Academia y simuladores
 - Funcionalidad:
   - Comparte superficies, enlaces de tarjetas, rejillas, secciones, indicadores, campos y previsualizaciones de vídeos mediante siete componentes React con estructura y estilos Tailwind.

@@ -72,3 +72,8 @@ El Dashboard comparte nueve componentes de interfaz con marcado y utilidades Tai
 ## Actualización de la novena fase
 
 Academia y los simuladores componen superficies, tarjetas enlazadas, rejillas, secciones con título, indicadores, campos y vídeos mediante siete componentes en `src/components/academy/ui`. Se reutilizan en 20 módulos. El CSS total de `src` pasa de 14.974 a 14.791 líneas (183 menos); se mantienen 58 archivos CSS y 51 hojas con `@reference`. Los selectores contextuales de los módulos conservan adaptaciones móviles, materiales Liquid Glass y elementos específicos.
+
+
+## Actualización de la décima fase
+
+Gestión de gastos comparte catorce componentes de interfaz en diez archivos de `src/components/expenses/ui`. Se aplican a la pantalla principal, edición e importación. Su hoja local pasa de 298 a 254 líneas (28.980 a 23.525 bytes de fuente); conserva materiales, gráficos, tablas y estilos contextuales. El total de `src` queda en 14.747 líneas y 58 archivos CSS; se mantienen 51 módulos con `@reference`.

@@ -10,10 +10,6 @@
 .expense-month { @apply tw:ui-row tw:gap-[.4rem] tw:p-[.35rem] tw:ui-border-strong tw:ui-fill-panel tw:rounded-[14px]; }
 .expense-month button { @apply tw:grid tw:place-items-center tw:w-[38px] tw:h-[38px]; border:0; @apply tw:text-main tw:ui-fill-transparent tw:rounded-[9px] tw:cursor-pointer; }
 .expense-month input { @apply tw:ui-fill-transparent; border:0; @apply tw:text-main; font:inherit; @apply tw:text-[length:.94rem] tw:p-[.4rem] tw:min-w-[0]; }
-.expense-toolbar-actions,.expense-actions { @apply tw:ui-row tw:flex-wrap tw:gap-[.65rem]; }
-.expense-btn { @apply tw:inline-flex tw:justify-center tw:items-center tw:gap-[.45rem] tw:min-h-[42px]; border:1px solid transparent; @apply tw:rounded-[11px] tw:p-[.65rem_.95rem]; font:inherit; @apply tw:text-[length:.85rem]; font-weight:650; color:#071b14; background:var(--accent-primary); @apply tw:cursor-pointer; }
-.expense-btn--secondary { @apply tw:ui-fill-muted; border-color:var(--border-secondary); @apply tw:text-main; }
-.expense-btn--quiet { @apply tw:ui-fill-transparent tw:text-secondary tw:p-[.4rem_.6rem]; }
 .expense-manager button:disabled,.expense-form button:disabled { @apply tw:opacity-[.45] tw:cursor-not-allowed; }
 .expense-manager button:focus-visible,.expense-manager summary:focus-visible,.expense-manager input:focus-visible,.expense-manager select:focus-visible,.expense-form input:focus-visible,.expense-form select:focus-visible,.expense-form button:focus-visible,.expense-form textarea:focus-visible,.expense-import select:focus-visible { outline:2px solid var(--accent-primary); outline-offset:3px; }
 .expense-export-menu { @apply tw:relative tw:text-[length:.85rem]; }
@@ -29,33 +25,14 @@
 .expense-import-help__content ul { @apply tw:m-[.5rem_0] tw:pl-[1.25rem]; }
 .expense-import-help__content li { @apply tw:m-[.4rem_0]; }
 .expense-import-help__content strong { @apply tw:text-main; }
-.expense-tabs { @apply tw:flex tw:gap-[.25rem] tw:p-[.35rem] tw:ui-border-strong tw:rounded-[15px] tw:ui-fill-panel tw:mb-[1.3rem] tw:overflow-x-auto; scrollbar-width:thin; }
-.expense-tabs button { @apply tw:ui-row tw:justify-center tw:gap-[.5rem] tw:flex-[1_0_auto] tw:min-h-[44px] tw:p-[.6rem_.9rem]; border:0; @apply tw:rounded-[11px] tw:ui-fill-transparent tw:text-secondary; font:inherit; @apply tw:text-[length:.86rem] tw:cursor-pointer; }
-.expense-tabs button[aria-pressed=true] { background:rgba(var(--accent-rgb),.16); @apply tw:text-accent; font-weight:700; }
-.expense-metrics { @apply tw:grid tw:grid-cols-[repeat(4,minmax(0,1fr))] tw:gap-[1rem] tw:mb-[1.3rem]; }
 .expense-metrics--three { @apply tw:grid-cols-[repeat(3,minmax(0,1fr))]; }
-.expense-stat,.expense-panel { @apply tw:ui-fill-panel tw:ui-border-strong tw:rounded-[20px] tw:min-w-[0]; }
-.expense-stat { @apply tw:p-[1.25rem]; }
-.expense-stat > span { @apply tw:ui-row tw:gap-[.4rem] tw:text-[length:.81rem] tw:text-secondary; line-height:1.45; }
-.expense-stat > strong { @apply tw:block tw:m-[.65rem_0_.35rem] tw:text-[length:clamp(1.4rem,2.1vw,2rem)]; font-weight:750; letter-spacing:-.045em; font-variant-numeric:tabular-nums; @apply tw:wrap-anywhere; }
-.expense-stat > small { @apply tw:text-[length:.73rem]; line-height:1.5; @apply tw:text-secondary tw:block; }
 .expense-stat--hero { background:linear-gradient(135deg,rgba(var(--accent-rgb),.17),rgba(56,189,248,.04)),var(--bg-card); border-color:var(--border-accent); }
-.expense-panel { @apply tw:p-[1.4rem] tw:mb-[1.25rem]; }
-.expense-panel-title { @apply tw:ui-row tw:justify-between tw:gap-[.7rem] tw:mb-[1.1rem] tw:flex-wrap; }
-.expense-panel-title-actions { @apply tw:ui-row tw:justify-end tw:gap-[.65rem] tw:flex-wrap; }
-.expense-panel h2 { @apply tw:ui-row tw:gap-[.5rem] tw:text-[length:1.04rem]; font-weight:700; letter-spacing:-.015em; line-height:1.5; }
 .expense-panel h3 { @apply tw:text-[length:.95rem]; line-height:1.5; }
 .expense-panel-title > span,.expense-panel-title-actions > span { @apply tw:text-[length:.78rem] tw:text-secondary; }
-.expense-btn--danger { background:rgba(251,113,133,.12); border-color:rgba(251,113,133,.35); color:#fb7185; }
 @media(max-width:600px) { .expense-panel-title-actions { @apply tw:w-full tw:justify-between; } }
-.expense-two-col { @apply tw:grid tw:grid-cols-[repeat(2,minmax(0,1fr))] tw:gap-[1.25rem]; align-items:start; }
 .expense-start { @apply tw:ui-row tw:justify-between tw:gap-[1rem] tw:p-[1.4rem] tw:mb-[1.3rem]; border:1px dashed rgba(var(--accent-rgb),.5); background:rgba(var(--accent-rgb),.05); @apply tw:rounded-[20px]; }
 .expense-start h2 { @apply tw:text-[length:1.08rem]; }
 .expense-start p { @apply tw:mt-[.4rem] tw:text-[length:.85rem] tw:text-secondary; line-height:1.6; }
-.expense-empty { @apply tw:p-[1.7rem_1rem] tw:text-center tw:text-secondary; }
-.expense-empty > svg { @apply tw:text-accent tw:opacity-[.6] tw:mb-[.8rem]; }
-.expense-empty h3 { @apply tw:text-main tw:mb-[.5rem] tw:text-[length:.95rem]; }
-.expense-empty p { @apply tw:text-[length:.82rem]; line-height:1.6; @apply tw:max-w-[340px] tw:m-[0_auto_.8rem]; }
 .expense-distribution { @apply tw:ui-row tw:gap-[1.5rem]; }
 .expense-donut { @apply tw:shrink-[0] tw:w-[175px] tw:h-[175px] tw:rounded-[50%] tw:p-[18px]; }
 .expense-donut > div { @apply tw:ui-fill-panel tw:rounded-[50%] tw:w-full tw:h-full tw:ui-stack tw:items-center tw:justify-center tw:gap-[.35rem] tw:text-center; }
@@ -71,9 +48,6 @@
 .expense-budget-number { @apply tw:flex tw:gap-[.65rem] tw:flex-wrap tw:items-baseline tw:mb-[1rem]; }
 .expense-budget-number strong { @apply tw:text-[length:1.8rem]; letter-spacing:-.045em; }
 .expense-budget-number span { @apply tw:text-secondary tw:text-[length:.8rem]; }
-.expense-progress { @apply tw:h-[8px] tw:rounded-[8px] tw:ui-fill-muted tw:overflow-hidden tw:m-[.8rem_0]; }
-.expense-progress > span { @apply tw:block tw:h-full tw:rounded-[inherit]; background:var(--accent-primary); transition:width .2s; }
-.expense-progress--over > span { background:#fb7185 !important; }
 .expense-hint { @apply tw:text-[length:.78rem] tw:text-secondary; line-height:1.6; @apply tw:m-[.65rem_0]; }
 .expense-facts { @apply tw:text-[length:.81rem] tw:m-[1rem_0]; }
 .expense-facts > div { @apply tw:flex tw:justify-between tw:items-baseline tw:gap-[1rem] tw:p-[.7rem_0]; border-bottom:1px solid var(--border-primary); }
@@ -85,8 +59,6 @@
 .expense-row > div:first-child { @apply tw:min-w-[0]; }
 .expense-row strong { @apply tw:text-[length:.88rem] tw:wrap-anywhere; }
 .expense-upcoming .expense-row,.expense-rule-row { border-bottom:1px solid var(--border-primary); @apply tw:p-[.95rem_0]; }
-.expense-row-actions { @apply tw:flex tw:gap-[.2rem] tw:shrink-[0]; }
-.expense-row-actions button,.expense-icon-btn { @apply tw:min-w-[36px] tw:min-h-[36px] tw:inline-flex tw:justify-center tw:items-center tw:ui-fill-transparent; border:0; @apply tw:rounded-[9px] tw:text-secondary; font:inherit; @apply tw:text-[length:.76rem] tw:p-[.4rem] tw:cursor-pointer; }
 .expense-row-actions button:hover,.expense-icon-btn:hover { @apply tw:text-accent tw:ui-fill-muted; }
 .expense-positive { color:var(--accent-primary) !important; }
 .expense-negative { color:#fb7185 !important; }
@@ -131,8 +103,6 @@
 .expense-kind--income,.expense-kind--refund { background:rgba(var(--accent-rgb),.12); @apply tw:text-accent; }
 .expense-kind--transfer { @apply tw:text-secondary tw:ui-fill-muted; }
 .expense-pagination { @apply tw:ui-row tw:gap-[1rem] tw:justify-center tw:mt-[1rem] tw:text-[length:.8rem]; }
-.expense-category-grid { @apply tw:grid tw:grid-cols-[repeat(3,minmax(0,1fr))] tw:gap-[.8rem]; }
-.expense-category-card,.expense-account,.expense-goal { @apply tw:p-[1rem] tw:ui-border-strong tw:rounded-[14px] tw:ui-fill-surface tw:min-w-[0]; }
 .expense-category-card .expense-row > span { @apply tw:text-[length:.85rem]; font-weight:600; }
 .expense-category-card > strong { @apply tw:block tw:mt-[.45rem] tw:text-[length:1.1rem]; }
 .expense-category-card small { @apply tw:text-[length:.74rem]; font-weight:400; @apply tw:text-secondary; }
@@ -140,27 +110,13 @@
 .expense-allocation .expense-row > span { @apply tw:text-[length:.82rem]; }
 .expense-due-row { @apply tw:flex-wrap; }
 .expense-due-row > div:first-child { @apply tw:flex-[1]; }
-.expense-accounts,.expense-goals { @apply tw:grid tw:grid-cols-[repeat(3,minmax(0,1fr))] tw:gap-[1rem] tw:mt-[1rem]; }
 .expense-account-icon { @apply tw:ui-row tw:justify-center tw:h-[40px] tw:w-[40px] tw:rounded-[12px] tw:text-accent; background:rgba(var(--accent-rgb),.12); }
 .expense-account h3 { @apply tw:m-[.8rem_0_.3rem]; }
 .expense-account > strong { @apply tw:block tw:text-[length:1.75rem]; letter-spacing:-.04em; @apply tw:mb-[.3rem]; }
 .expense-account > small { @apply tw:text-secondary tw:text-[length:.73rem]; }
 .expense-goal > strong { @apply tw:block tw:mt-[.7rem] tw:text-[length:1.18rem]; }
 .expense-goal strong small { @apply tw:text-[length:.75rem]; font-weight:400; @apply tw:text-secondary; }
-.expense-field { @apply tw:min-w-[0] tw:ui-stack tw:gap-[.5rem] tw:m-[.2rem_0_.75rem]; }
-.expense-field > span { @apply tw:text-[length:.81rem]; font-weight:650; }
-.expense-field input,.expense-field select,.expense-field textarea { @apply tw:w-full tw:min-w-[0] tw:min-h-[44px] tw:ui-border-strong tw:rounded-[11px] tw:ui-fill-surface tw:text-main; font:inherit; @apply tw:p-[.7rem_.8rem] tw:text-[length:.87rem]; }
-.expense-field select option { @apply tw:ui-fill-surface tw:text-main; }
-.expense-field input[type=color] { @apply tw:p-[.35rem] tw:max-w-[120px]; }
-.expense-field textarea { resize:vertical; }
-.expense-form-grid { @apply tw:grid tw:grid-cols-[repeat(2,minmax(0,1fr))] tw:gap-[.2rem_1rem]; }
-.expense-segmented { @apply tw:flex tw:gap-[.25rem] tw:p-[.3rem] tw:ui-fill-muted tw:rounded-[11px] tw:mb-[1rem]; }
-.expense-segmented button { @apply tw:min-h-[40px]; border:0; @apply tw:ui-fill-transparent tw:text-secondary; font:inherit; @apply tw:text-[length:.8rem] tw:rounded-[8px] tw:flex-[1] tw:p-[.4rem] tw:cursor-pointer; }
-.expense-segmented button[aria-pressed=true] { background:var(--accent-primary); color:#071b14; font-weight:650; }
-.expense-form-actions { @apply tw:flex tw:justify-end tw:gap-[.6rem]; border-top:1px solid var(--border-secondary); @apply tw:mt-[1.2rem] tw:pt-[1rem]; }
 .expense-form h3 { @apply tw:text-[length:.95rem] tw:m-[1rem_0_.6rem]; }
-.expense-check { @apply tw:ui-row tw:gap-[.6rem] tw:text-[length:.81rem]; line-height:1.5; @apply tw:p-[.65rem_0] tw:min-h-[44px] tw:cursor-pointer; }
-.expense-check input { accent-color:var(--accent-primary); @apply tw:w-[17px] tw:h-[17px] tw:shrink-[0]; }
 .expense-import-summary { @apply tw:ui-row tw:flex-wrap tw:gap-[.75rem] tw:m-[1rem_0] tw:text-[length:.8rem]; }
 .expense-import-summary span { @apply tw:text-secondary; }
 .expense-error,.expense-sync-error { @apply tw:p-[1rem]; border:1px solid rgba(251,113,133,.35); background:rgba(251,113,133,.06); @apply tw:rounded-[12px] tw:m-[1rem_0] tw:text-[length:.83rem]; line-height:1.6; @apply tw:text-main; }

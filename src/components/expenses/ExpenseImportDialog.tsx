@@ -1,3 +1,8 @@
+import { ExpenseField } from './ui/ExpenseField';
+import { ExpenseCheckbox } from './ui/ExpenseCheckbox';
+import { ExpenseGrid } from './ui/ExpenseGrid';
+import { ExpenseButton } from './ui/ExpenseButton';
+import { ExpenseActions } from './ui/ExpenseActions';
 import { useMemo, useState } from 'react';
 import type { ExpenseBook } from '../../types/expenses';
 import {
@@ -174,8 +179,8 @@ export function ExpenseImportDialog({
     return (
         <div className="expense-import">
             {document.sheets.length > 1 && (
-                <label className="expense-field">
-                    <span>Hoja del Excel</span>
+                <ExpenseField label={<> Hoja del Excel </>} className="expense-field">
+
                     <select
                         value={sheetIndex}
                         onChange={(e) => {
@@ -196,7 +201,7 @@ export function ExpenseImportDialog({
                             </option>
                         ))}
                     </select>
-                </label>
+                </ExpenseField>
             )}
             <p className="expense-hint">
                 Asocia cada columna con su dato. Fecha, Concepto e Importe son
@@ -219,25 +224,25 @@ export function ExpenseImportDialog({
                             a Ocio.
                         </p>
                     )}
-                    <label className="expense-check">
+                    <ExpenseCheckbox className="expense-check">
                         <input
                             type="checkbox"
                             checked={onlyCards}
                             onChange={(e) => { setOnlyCards(e.target.checked); setPreviewPage(0); }}
                         />
                         Solo pagos de tarjeta
-                    </label>
+                    </ExpenseCheckbox>
                 </>
             )}
-            <div className="expense-form-grid">
+            <ExpenseGrid variant="form" className="expense-form-grid">
                 {CSV_FIELDS.map((field) => (
-                    <label key={field} className="expense-field">
-                        <span>
+                    <ExpenseField label={<>
                             {labels[field]}
                             {['date', 'description', 'amount'].includes(field)
                                 ? ' *'
                                 : ''}
-                        </span>
+                         </>} key={field} className="expense-field">
+
                         <select
                             value={mapping[field]}
                             onChange={(e) =>
@@ -254,10 +259,10 @@ export function ExpenseImportDialog({
                                 </option>
                             ))}
                         </select>
-                    </label>
+                    </ExpenseField>
                 ))}
-                <label className="expense-field">
-                    <span>Cuenta si no consta en el archivo</span>
+                <ExpenseField label={<> Cuenta si no consta en el archivo </>} className="expense-field">
+
                     <select
                         value={account}
                         onChange={(e) => setAccount(e.target.value)}
@@ -270,8 +275,8 @@ export function ExpenseImportDialog({
                                 </option>
                             ))}
                     </select>
-                </label>
-            </div>
+                </ExpenseField>
+            </ExpenseGrid>
             <details className="expense-import-help">
                 <summary>¿Qué significa cada dato de esta pantalla?</summary>
                 <div className="expense-import-help__content">
@@ -365,14 +370,14 @@ export function ExpenseImportDialog({
                     </p>
                 </div>
             </details>
-            <label className="expense-check">
+            <ExpenseCheckbox className="expense-check">
                 <input
                     type="checkbox"
                     checked={skipDuplicates}
                     onChange={(e) => setSkipDuplicates(e.target.checked)}
                 />
                 Omitir duplicados ({duplicates.length})
-            </label>
+            </ExpenseCheckbox>
             <p className="expense-hint">
                 Se comparan fecha, tipo, importe, concepto y cuentas de origen y
                 destino. Desmarca esta opción para incluir movimientos distintos
@@ -482,7 +487,7 @@ export function ExpenseImportDialog({
                         {Math.min(previewStart + previewPageSize, preview.length)}{' '}
                         de {preview.length}
                     </span>
-                    <button
+                    <ExpenseButton variant="secondary"
                         type="button"
                         className="expense-btn expense-btn--secondary"
                         disabled={activePreviewPage === 0}
@@ -491,8 +496,8 @@ export function ExpenseImportDialog({
                         }
                     >
                         Anterior
-                    </button>
-                    <button
+                    </ExpenseButton>
+                    <ExpenseButton variant="secondary"
                         type="button"
                         className="expense-btn expense-btn--secondary"
                         disabled={activePreviewPage >= previewPageCount - 1}
@@ -503,7 +508,7 @@ export function ExpenseImportDialog({
                         }
                     >
                         Siguiente
-                    </button>
+                    </ExpenseButton>
                 </div>
             )}
             {!reviewBbvaCategories && preview.length > previewPageSize && (
@@ -522,16 +527,16 @@ export function ExpenseImportDialog({
                     {error}
                 </p>
             )}
-            <div className="expense-form-actions">
-                <button
+            <ExpenseActions variant="form" className="expense-form-actions">
+                <ExpenseButton variant="secondary"
                     type="button"
                     className="expense-btn expense-btn--secondary"
                     onClick={onClose}
                     disabled={saving}
                 >
                     Cancelar
-                </button>
-                <button
+                </ExpenseButton>
+                <ExpenseButton
                     className="expense-btn"
                     type="button"
                     disabled={saving || !valid.length}
@@ -540,8 +545,8 @@ export function ExpenseImportDialog({
                     {saving
                         ? 'Importando…'
                         : `Importar ${valid.length} movimientos`}
-                </button>
-            </div>
+                </ExpenseButton>
+            </ExpenseActions>
         </div>
     );
 }

@@ -1,4 +1,6 @@
-﻿import { useEffect, useState, useMemo } from 'react';
+import { CalculatorField } from './CalculatorField';
+import { CalculatorResultCard } from './CalculatorResultCard';
+import { useEffect, useState, useMemo } from 'react';
 import { Banknote, TrendingUp, Calendar, Target, ChevronDown, ChevronUp } from 'lucide-react';
 import type { CSSProperties } from 'react';
 import {
@@ -325,22 +327,19 @@ export function CompoundInterestCalc() {
             <div className="compound__mode-selector">
                 <button
                     className={`compound__mode-btn ${calculationMode === 'normal' ? 'compound__mode-btn--active' : ''}`}
-                    onClick={() => setCalculationMode('normal')}
-                >
+                    onClick={() => setCalculationMode('normal')}>
                     <TrendingUp size={20} />
                     Calcular Capital Final
                 </button>
                 <button
                     className={`compound__mode-btn ${calculationMode === 'timeToGoal' ? 'compound__mode-btn--active' : ''}`}
-                    onClick={() => setCalculationMode('timeToGoal')}
-                >
+                    onClick={() => setCalculationMode('timeToGoal')}>
                     <Calendar size={20} />
                     Tiempo para Objetivo
                 </button>
                 <button
                     className={`compound__mode-btn ${calculationMode === 'requiredContribution' ? 'compound__mode-btn--active' : ''}`}
-                    onClick={() => setCalculationMode('requiredContribution')}
-                >
+                    onClick={() => setCalculationMode('requiredContribution')}>
                     <Target size={20} />
                     Aportación Necesaria
                 </button>
@@ -351,110 +350,81 @@ export function CompoundInterestCalc() {
                 <CalculatorCard className="compound__inputs">
                     <h3>Parámetros</h3>
 
-                    <div className="calc__input-group">
-                        <label htmlFor="initial">Patrimonio Inicial</label>
-                        <div className="calc__input-wrapper">
-                            <Banknote size={18} />
-                            <input
-                                id="initial"
-                                type="number"
-                                value={initialCapital}
-                                onChange={(e) => setInitialCapital(e.target.value === '' ? '' : Number(e.target.value))}
-                                min="0"
-                                step="1000"
-                            />
-                            <span className="unit">€</span>
-                        </div>
-                    </div>
+                    <CalculatorField controlId="initial" label="Patrimonio Inicial" icon={<Banknote size={18} />} unit="€">
+                        <input
+                            id="initial"
+                            type="number"
+                            value={initialCapital}
+                            onChange={(e) => setInitialCapital(e.target.value === '' ? '' : Number(e.target.value))}
+                            min="0"
+                            step="1000"
+                        />
+                    </CalculatorField>
 
                     {calculationMode !== 'requiredContribution' && (
-                        <div className="calc__input-group">
-                            <label htmlFor="monthly">Aportación Mensual</label>
-                            <div className="calc__input-wrapper">
-                                <Banknote size={18} />
-                                <input
-                                    id="monthly"
-                                    type="number"
-                                    value={monthlyContribution}
-                                    onChange={(e) => setMonthlyContribution(e.target.value === '' ? '' : Number(e.target.value))}
-                                    min="0"
-                                    step="50"
-                                />
-                                <span className="unit">€/mes</span>
-                            </div>
-                        </div>
+                        <CalculatorField controlId="monthly" label="Aportación Mensual" icon={<Banknote size={18} />} unit="€/mes">
+                            <input
+                                id="monthly"
+                                type="number"
+                                value={monthlyContribution}
+                                onChange={(e) => setMonthlyContribution(e.target.value === '' ? '' : Number(e.target.value))}
+                                min="0"
+                                step="50"
+                            />
+                        </CalculatorField>
                     )}
 
-                    <div className="calc__input-group">
-                        <label htmlFor="rate">
-                            {interestRateType === 'cagr'
-                                ? 'Rentabilidad Anual Esperada (CAGR)'
-                                : 'Tipo de Interés Nominal Anual (TIN)'}
-                        </label>
-                        <div className="calc__input-wrapper">
-                            <TrendingUp size={18} />
-                            <input
-                                id="rate"
-                                type="number"
-                                value={annualRate}
-                                onChange={(e) => setAnnualRate(e.target.value === '' ? '' : Number(e.target.value))}
-                                min="0"
-                                max="30"
-                                step="0.5"
-                            />
-                            <span className="unit">%</span>
-                        </div>
-                        <small className="compound__input-hint">
+                    <CalculatorField controlId="rate" label={<>{interestRateType === 'cagr'
+                        ? 'Rentabilidad Anual Esperada (CAGR)'
+                        : 'Tipo de Interés Nominal Anual (TIN)'}</>} icon={<TrendingUp size={18} />} unit="%" afterControl={<><small className="compound__input-hint">
                             {interestRateType === 'cagr'
                                 ? 'La tasa se interpreta como rentabilidad efectiva de un año completo.'
                                 : 'La tasa efectiva resultante depende de la frecuencia de capitalización.'}
-                        </small>
-                    </div>
+                        </small></>}>
+                        <input
+                            id="rate"
+                            type="number"
+                            value={annualRate}
+                            onChange={(e) => setAnnualRate(e.target.value === '' ? '' : Number(e.target.value))}
+                            min="0"
+                            max="30"
+                            step="0.5"
+                        />
+                    </CalculatorField>
 
                     {calculationMode !== 'timeToGoal' && (
-                        <div className="calc__input-group">
-                            <label htmlFor="years">Horizonte Temporal</label>
-                            <div className="calc__input-wrapper">
-                                <Calendar size={18} />
-                                <input
-                                    id="years"
-                                    type="number"
-                                    value={years}
-                                    onChange={(e) => setYears(e.target.value === '' ? '' : Number(e.target.value))}
-                                    min="1"
-                                    max="50"
-                                    step="1"
-                                />
-                                <span className="unit">años</span>
-                            </div>
+                        <CalculatorField controlId="years" label="Horizonte Temporal" icon={<Calendar size={18} />} unit="años" afterControl={<><input
+                            type="range"
+                            value={Number(years) || 1}
+                            onChange={(e) => setYears(Number(e.target.value))}
+                            min="1"
+                            max="50"
+                            className="custom-slider"
+                            style={{ '--progress': `${((Number(years) - 1) / (50 - 1)) * 100}%` } as CSSProperties}
+                        /></>}>
                             <input
-                                type="range"
-                                value={Number(years) || 1}
-                                onChange={(e) => setYears(Number(e.target.value))}
+                                id="years"
+                                type="number"
+                                value={years}
+                                onChange={(e) => setYears(e.target.value === '' ? '' : Number(e.target.value))}
                                 min="1"
                                 max="50"
-                                className="custom-slider"
-                                 style={{ '--progress': `${((Number(years) - 1) / (50 - 1)) * 100}%` } as CSSProperties}
+                                step="1"
                             />
-                        </div>
+                        </CalculatorField>
                     )}
 
                     {(calculationMode === 'timeToGoal' || calculationMode === 'requiredContribution') && (
-                        <div className="calc__input-group">
-                            <label htmlFor="target">Objetivo de Capital</label>
-                            <div className="calc__input-wrapper">
-                                <Target size={18} />
-                                <input
-                                    id="target"
-                                    type="number"
-                                    value={targetAmount}
-                                    onChange={(e) => setTargetAmount(e.target.value === '' ? '' : Number(e.target.value))}
-                                    min="1000"
-                                    step="10000"
-                                />
-                                <span className="unit">€</span>
-                            </div>
-                        </div>
+                        <CalculatorField controlId="target" label="Objetivo de Capital" icon={<Target size={18} />} unit="€">
+                            <input
+                                id="target"
+                                type="number"
+                                value={targetAmount}
+                                onChange={(e) => setTargetAmount(e.target.value === '' ? '' : Number(e.target.value))}
+                                min="1000"
+                                step="10000"
+                            />
+                        </CalculatorField>
                     )}
 
                     {/* Advanced Options */}
@@ -463,8 +433,7 @@ export function CompoundInterestCalc() {
                             <button
                                 type="button"
                                 className="compound__advanced-toggle"
-                                onClick={() => setShowAdvanced(!showAdvanced)}
-                            >
+                                onClick={() => setShowAdvanced(!showAdvanced)}>
                                 <span>Opciones Avanzadas</span>
                                 {showAdvanced ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
                             </button>
@@ -496,31 +465,25 @@ export function CompoundInterestCalc() {
                                     </div>
 
                                     {interestRateType === 'tin' && (
-                                        <div className="calc__input-group">
-                                            <label htmlFor="compounding-frequency">Frecuencia de capitalización</label>
-                                            <div className="calc__input-wrapper">
-                                                <Calendar size={18} />
-                                                <select
-                                                    id="compounding-frequency"
-                                                    value={compoundingFrequency}
-                                                    onChange={(e) => {
-                                                        if (isCompoundingFrequency(e.target.value)) {
-                                                            setCompoundingFrequency(e.target.value);
-                                                        }
-                                                    }}
-                                                >
-                                                    {COMPOUNDING_FREQUENCY_OPTIONS.map((option) => (
-                                                        <option key={option.value} value={option.value}>
-                                                            {option.label}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <p className="compound__rate-equivalence">
-                                                Rentabilidad anual efectiva equivalente:{' '}
-                                                <strong>{formatPercent(effectiveAnnualRatePercent)}</strong>
-                                            </p>
-                                        </div>
+                                        <CalculatorField controlId="compounding-frequency" label="Frecuencia de capitalización" icon={<Calendar size={18} />} afterControl={<><p className="compound__rate-equivalence">
+                                            Rentabilidad anual efectiva equivalente:{' '}
+                                            <strong>{formatPercent(effectiveAnnualRatePercent)}</strong>
+                                        </p></>}>
+                                            <select
+                                                id="compounding-frequency"
+                                                value={compoundingFrequency}
+                                                onChange={(e) => {
+                                                    if(isCompoundingFrequency(e.target.value)) {
+                                                        setCompoundingFrequency(e.target.value);
+                                                    }
+                                                }}>
+                                                {COMPOUNDING_FREQUENCY_OPTIONS.map((option) => (
+                                                    <option key={option.value} value={option.value}>
+                                                        {option.label}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </CalculatorField>
                                     )}
 
                                     {interestRateType === 'cagr' && (
@@ -564,28 +527,20 @@ export function CompoundInterestCalc() {
                                     </div>
 
                                     {withdrawalType !== 'none' && (
-                                        <div className="calc__input-group">
-                                            <label htmlFor="withdrawal">
-                                                {withdrawalType === 'percentage' ? 'Porcentaje anual' : 'Cantidad anual'}
-                                            </label>
-                                            <div className="calc__input-wrapper">
-                                                <Banknote size={18} />
-                                                <input
-                                                    id="withdrawal"
-                                                    type="number"
-                                                    value={withdrawalValue}
-                                                    onChange={(e) => setWithdrawalValue(e.target.value === '' ? '' : Number(e.target.value))}
-                                                    min="0"
-                                                    step={withdrawalType === 'percentage' ? '0.5' : '1000'}
-                                                />
-                                                <span className="unit">{withdrawalType === 'percentage' ? '%' : '€'}</span>
-                                            </div>
-                                            {withdrawalType === 'percentage' && (
-                                                <small className="compound__input-hint">
-                                                    Regla del 4%: retirada sostenible para jubilación
-                                                </small>
-                                            )}
-                                        </div>
+                                        <CalculatorField controlId="withdrawal" label={<>{withdrawalType === 'percentage' ? 'Porcentaje anual' : 'Cantidad anual'}</>} icon={<Banknote size={18} />} unit={<>{withdrawalType === 'percentage' ? '%' : '€'}</>} afterControl={<>{withdrawalType === 'percentage' && (
+                                            <small className="compound__input-hint">
+                                                Regla del 4%: retirada sostenible para jubilación
+                                            </small>
+                                        )}</>}>
+                                            <input
+                                                id="withdrawal"
+                                                type="number"
+                                                value={withdrawalValue}
+                                                onChange={(e) => setWithdrawalValue(e.target.value === '' ? '' : Number(e.target.value))}
+                                                min="0"
+                                                step={withdrawalType === 'percentage' ? '0.5' : '1000'}
+                                            />
+                                        </CalculatorField>
                                     )}
                                 </div>
                             )}
@@ -599,33 +554,21 @@ export function CompoundInterestCalc() {
                     {calculationMode === 'normal' && (
                         <>
                             <div className="compound__result-cards">
-                                <div className="compound__result-card compound__result-card--contributed">
-                                    <div className="compound__result-label">Capital Aportado</div>
-                                    <div className="compound__result-value">{formatCurrency(finalData.contributed)}</div>
-                                </div>
-                                <div className="compound__result-card compound__result-card--interest">
-                                    <div className="compound__result-label">Intereses Generados</div>
-                                    <div className="compound__result-value">{formatCurrency(finalData.grossInterest)}</div>
-                                    <div className="compound__result-subtext">
-                                        {finalData.contributed > 0 ? `${((finalData.grossInterest / finalData.contributed) * 100).toFixed(1)}% sobre lo aportado` : 'Sin capital aportado'}
-                                    </div>
-                                </div>
-                                <div className="compound__result-card compound__result-card--total">
-                                    <div className="compound__result-label">Capital Final</div>
-                                    <div className="compound__result-value">{formatCurrency(finalData.total)}</div>
-                                </div>
+                                    <CalculatorResultCard layout="investment" className="compound__result-card compound__result-card--contributed" accent="blue"
+                                        label="Capital Aportado" value={<>{formatCurrency(finalData.contributed)}</>}
+                                        slotClasses={{ label: 'compound__result-label', value: 'compound__result-value', description: 'compound__result-subtext' }} />
+                                    <CalculatorResultCard layout="investment" className="compound__result-card compound__result-card--interest" accent="green"
+                                        label="Intereses Generados" value={<>{formatCurrency(finalData.grossInterest)}</>} description={<>{finalData.contributed > 0 ? `${((finalData.grossInterest / finalData.contributed) * 100).toFixed(1)}% sobre lo aportado` : 'Sin capital aportado'}</>}
+                                        slotClasses={{ label: 'compound__result-label', value: 'compound__result-value', description: 'compound__result-subtext' }} />
+                                    <CalculatorResultCard layout="investment" className="compound__result-card compound__result-card--total" accent="primary"
+                                        label="Capital Final" value={<>{formatCurrency(finalData.total)}</>}
+                                        slotClasses={{ label: 'compound__result-label', value: 'compound__result-value', description: 'compound__result-subtext' }} />
                                 {withdrawalType !== 'none' && (
-                                    <div className="compound__result-card">
-                                        <div className="compound__result-label">Retiradas Acumuladas</div>
-                                        <div className="compound__result-value">
-                                            {formatCurrency(finalData.withdrawal)}
-                                        </div>
-                                        <div className="compound__result-subtext">
-                                            {withdrawalType === 'percentage'
+                                        <CalculatorResultCard layout="investment" className="compound__result-card"
+                                            label="Retiradas Acumuladas" value={<>{formatCurrency(finalData.withdrawal)}</>} description={<>{withdrawalType === 'percentage'
                                                 ? `Retirada anual del ${formatPercent(Number(withdrawalValue) || 0)}, limitada al saldo disponible`
-                                                : `Retirada anual de ${formatCurrency(Number(withdrawalValue) || 0)}, limitada al saldo disponible`}
-                                        </div>
-                                    </div>
+                                                : `Retirada anual de ${formatCurrency(Number(withdrawalValue) || 0)}, limitada al saldo disponible`}</>}
+                                            slotClasses={{ label: 'compound__result-label', value: 'compound__result-value', description: 'compound__result-subtext' }} />
                                 )}
                             </div>
                         </>
@@ -757,8 +700,7 @@ export function CompoundInterestCalc() {
                                         <button
                                             type="button"
                                             className="compound__detail-summary"
-                                            onClick={() => setExpandedYear(isOpen ? null : row.year)}
-                                        >
+                                            onClick={() => setExpandedYear(isOpen ? null : row.year)}>
                                             <div className="compound__detail-summary-main">
                                                 <span className="compound__detail-year">Año {row.year}</span>
                                                 <strong className="compound__detail-total">{formatCurrency(row.endingBalance)}</strong>

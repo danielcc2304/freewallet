@@ -191,46 +191,6 @@
     @apply tw:grid tw:grid-cols-[repeat(3,_1fr)] tw:gap-[1.25rem] tw:mb-[2rem];
 }
 
-.fire__metric-card {
-    @apply tw:p-[1.5rem] tw:rounded-[16px] tw:text-center tw:ui-border-default;
-    transition: transform 0.2s ease;
-}
-
-.fire__metric-card:hover {
-    transform: translateY(-4px);
-}
-
-.fire__metric-label {
-    @apply tw:text-[length:0.8rem];
-    font-weight: 700;
-    @apply tw:text-secondary;
-    text-transform: uppercase;
-    @apply tw:block tw:mb-[0.5rem];
-}
-
-.fire__metric-value {
-    @apply tw:text-[length:1.5rem];
-    font-weight: 800;
-    @apply tw:text-main tw:block;
-}
-
-.fire__metric-desc {
-    @apply tw:text-[length:0.75rem] tw:text-secondary tw:mt-[0.5rem];
-}
-
-.fire__metric-card--lean {
-    border-left: 4px solid #f59e0b;
-}
-
-.fire__metric-card--main {
-    border-left: 4px solid var(--accent-primary);
-    background: rgba(var(--accent-rgb), 0.02);
-}
-
-.fire__metric-card--fat {
-    border-left: 4px solid #8b5cf6;
-}
-
 .fire__chart-container {
     @apply tw:ui-fill-surface tw:p-[2rem] tw:rounded-[20px] tw:ui-border-default tw:ui-stack;
 }
@@ -299,8 +259,6 @@
         @apply tw:flex-[1_1_auto] tw:min-h-[410px];
     }
 }
-
-
 
 /* Theory */
 .fire__theory-grid {

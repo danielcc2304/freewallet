@@ -143,3 +143,18 @@ El filtro solo admite rutas existentes y rechaza listas vacías. Sin filtro, la 
 La centralización de utilidades cambia la distribución del CSS: el archivo inicial pasa de 138,64 kB (22,40 kB gzip) a 158,20 kB (26,12 kB gzip) en esta fase. La reducción de hojas y líneas de CSS fuente mide organización y reutilización; no implica una reducción del CSS inicial descargado. El JavaScript inicial queda en 654,39 kB y conserva la carga diferida de calculadoras.
 
 Validación de la quinta fase: pasan lint, TypeScript, build, presupuesto de carga y la prueba de integridad de calculadoras. La auditoría de producción pasa 48 combinaciones (cuatro rutas, tres anchos y cuatro apariencias). La comparación anterior/posterior de 32 combinaciones no encuentra diferencias en las propiedades medidas de 2.896 elementos; se revisaron las capturas. Las 67 sentencias de lógica y almacenamiento comparadas antes del render permanecen iguales. La suite de usabilidad ampliada pasa: cubre navegación, impuestos progresivos, persistencia, campos vacíos y la visualización activa de inflación. Su primer arranque en Vite agotó la navegación de 30 segundos; con los 60 segundos usados por otras suites pasa en 224 segundos.
+
+
+## Sexta fase: campos y tarjetas como componentes completos
+
+Interés compuesto, FIRE y jubilación componen 19 campos con `CalculatorField`: cada uso aporta el control nativo, mientras el componente es responsable de la etiqueta, el icono, la unidad, el marco y los estilos Tailwind. El contenido posterior mantiene deslizadores y explicaciones condicionales en su posición original. Los grupos de opciones conservan su estructura específica.
+
+`CalculatorResultCard` comparte el marcado y la presentación de nueve resultados. Sus variantes `investment`, `centered` e `icon` conservan las distribuciones existentes; recibe valores ya calculados y formateados. Los colores de énfasis usan clases Tailwind estáticas. Las clases de los slots mantienen la compatibilidad con selectores existentes, y la variante con icono reutiliza `CalculatorCard` para conservar su comportamiento Liquid Glass. Ninguna fórmula ni almacenamiento pertenece al componente de presentación.
+
+Se retiran 26 reglas de resultados de las tres hojas locales, incluidas las variantes y la tipografía móvil. Esas hojas conservan la disposición, los gráficos y los elementos propios de cada calculadora. Esta fase elimina duplicación de estructura además de estilos; no pretende convertir indiscriminadamente cada bloque CSS en una cadena de utilidades.
+
+
+La comparación del código anterior confirma que permanecen iguales las sentencias de cálculo y almacenamiento de las tres herramientas, así como las propiedades de sus 28 controles nativos (incluidos los grupos de opciones). Pasan la prueba de integridad financiera y la suite de usabilidad: resultados de interés compuesto con retiradas, escenarios inmutables, entradas vacías, persistencia y controles en móvil/escritorio. La suite se ejecuta con `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium` en este entorno, que dispone de Chromium del sistema.
+
+
+Validación final: pasan ESLint de los cuatro componentes afectados, TypeScript, build de producción y presupuesto de carga (654,46 kB de JavaScript inicial). La auditoría de producción pasa 36 combinaciones: tres rutas, tres anchos y las cuatro combinaciones de tema/apariencia. No hay errores de ejecución ni desbordamiento horizontal; se comprueban además los bordes de énfasis en los tres anchos. Se revisó la captura móvil de jubilación en Liquid Glass. La suite de usabilidad pasa en 163,5 segundos.

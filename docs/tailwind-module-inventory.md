@@ -52,3 +52,8 @@ Se retiran otros siete archivos: `ScenarioComparison.css`, `Performers.css`, `Da
 ## Actualización de la quinta fase
 
 El catálogo y las calculadoras de emergencia, impacto fiscal e inflación pasan a componentes y recetas en React. Se retiran `Calculators.css`, `EmergencyFundCalculator.css` y `TaxSimulator.css`; `InflationPredator.css` conserva solo la animación `float`. Los campos, superficies, métricas y tarjetas se reutilizan sin trasladar las fórmulas a los componentes de presentación. Quedan 53 hojas de módulos con `@reference`, además del CSS específico, incluida esa animación.
+
+
+## Actualización de la sexta fase
+
+Interés compuesto, FIRE y jubilación reutilizan 19 campos y nueve tarjetas de resultados mediante componentes React con estructura y estilos propios. Se retiran 26 reglas de sus hojas locales. No se retiran hojas completas: se mantienen 53 módulos con `@reference`, con la disposición y los gráficos específicos separados de los componentes de presentación.

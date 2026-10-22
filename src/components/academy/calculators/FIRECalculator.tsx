@@ -1,3 +1,5 @@
+import { CalculatorField } from './CalculatorField';
+import { CalculatorResultCard } from './CalculatorResultCard';
 import { useEffect, useMemo, useState, type CSSProperties } from 'react';
 import { Info, TrendingUp, Wallet, ShieldCheck, Flame, Banknote } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -327,97 +329,70 @@ export function FIRECalculator() {
                 <section className="fire__inputs">
                     <h2 className="fire__section-title">Parámetros de Simulación</h2>
 
-                    <div className="calc__input-group">
-                        <label htmlFor="firecalculator-monthlyExpenses">Gastos Mensuales</label>
-                        <div className="calc__input-wrapper">
-                            <Wallet size={18} />
-                            <input
-                                id="firecalculator-monthlyExpenses"
-                                type="number"
-                                value={monthlyExpenses}
-                                onChange={(e) => setMonthlyExpenses(e.target.value === '' ? '' : Number(e.target.value))}
-                            />
-                            <span className="unit">€</span>
-                        </div>
+                    <CalculatorField controlId="firecalculator-monthlyExpenses" label="Gastos Mensuales" icon={<Wallet size={18} />} unit="€" afterControl={<><input
+                        type="range"
+                        aria-label="Gastos mensuales (deslizador)"
+                        min="500"
+                        max="10000"
+                        step="100"
+                        value={expensesNum}
+                        onChange={(e) => setMonthlyExpenses(Number(e.target.value))}
+                        className="custom-slider"
+                        style={{ '--progress': `${((expensesNum - 500) / (10000 - 500)) * 100}%` } as CSSProperties}
+                    /></>}>
                         <input
-                            type="range"
-                            aria-label="Gastos mensuales (deslizador)"
-                            min="500"
-                            max="10000"
-                            step="100"
-                            value={expensesNum}
-                            onChange={(e) => setMonthlyExpenses(Number(e.target.value))}
-                            className="custom-slider"
-                            style={{ '--progress': `${((expensesNum - 500) / (10000 - 500)) * 100}%` } as CSSProperties}
+                            id="firecalculator-monthlyExpenses"
+                            type="number"
+                            value={monthlyExpenses}
+                            onChange={(e) => setMonthlyExpenses(e.target.value === '' ? '' : Number(e.target.value))}
                         />
-                    </div>
+                    </CalculatorField>
 
-                    <div className="calc__input-group">
-                        <label htmlFor="firecalculator-monthlySavings">Ahorro Mensual</label>
-                        <div className="calc__input-wrapper">
-                            <Banknote size={18} />
-                            <input
-                                id="firecalculator-monthlySavings"
-                                type="number"
-                                value={monthlySavings}
-                                onChange={(e) => setMonthlySavings(e.target.value === '' ? '' : Number(e.target.value))}
-                            />
-                            <span className="unit">€</span>
-                        </div>
+                    <CalculatorField controlId="firecalculator-monthlySavings" label="Ahorro Mensual" icon={<Banknote size={18} />} unit="€" afterControl={<><input
+                        type="range"
+                        aria-label="Ahorro mensual (deslizador)"
+                        min="0"
+                        max="10000"
+                        step="100"
+                        value={monthlySavingsNum}
+                        onChange={(e) => setMonthlySavings(Number(e.target.value))}
+                        className="custom-slider"
+                        style={{ '--progress': `${(monthlySavingsNum / 10000) * 100}%` } as CSSProperties}
+                    /></>}>
                         <input
-                            type="range"
-                            aria-label="Ahorro mensual (deslizador)"
-                            min="0"
-                            max="10000"
-                            step="100"
-                            value={monthlySavingsNum}
-                            onChange={(e) => setMonthlySavings(Number(e.target.value))}
-                            className="custom-slider"
-                            style={{ '--progress': `${(monthlySavingsNum / 10000) * 100}%` } as CSSProperties}
+                            id="firecalculator-monthlySavings"
+                            type="number"
+                            value={monthlySavings}
+                            onChange={(e) => setMonthlySavings(e.target.value === '' ? '' : Number(e.target.value))}
                         />
-                    </div>
+                    </CalculatorField>
 
-                    <div className="calc__input-group">
-                        <label htmlFor="firecalculator-currentSavings">Capital Actual</label>
-                        <div className="calc__input-wrapper">
-                            <Banknote size={18} />
-                            <input
-                                id="firecalculator-currentSavings"
-                                type="number"
-                                value={currentSavings}
-                                onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))}
-                            />
-                            <span className="unit">€</span>
-                        </div>
-                    </div>
+                    <CalculatorField controlId="firecalculator-currentSavings" label="Capital Actual" icon={<Banknote size={18} />} unit="€">
+                        <input
+                            id="firecalculator-currentSavings"
+                            type="number"
+                            value={currentSavings}
+                            onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))}
+                        />
+                    </CalculatorField>
 
                     <div className="fire__input-grid">
-                        <div className="calc__input-group">
-                            <label htmlFor="firecalculator-annualReturn">Rentab. Anual (CAGR)</label>
-                            <div className="calc__input-wrapper">
-                                <TrendingUp size={18} />
-                                <input
-                                    id="firecalculator-annualReturn"
-                                    type="number"
-                                    value={annualReturn}
-                                    onChange={(e) => setAnnualReturn(e.target.value === '' ? '' : Number(e.target.value))}
-                                />
-                                <span className="unit">%</span>
-                            </div>
-                        </div>
-                        <div className="calc__input-group">
-                            <label htmlFor="firecalculator-withdrawalRate">Tasa Retirada</label>
-                            <div className="calc__input-wrapper">
-                                <Info size={18} />
-                                <input
-                                    id="firecalculator-withdrawalRate"
-                                    type="number"
-                                    value={withdrawalRate}
-                                    onChange={(e) => setWithdrawalRate(e.target.value === '' ? '' : Number(e.target.value))}
-                                />
-                                <span className="unit">%</span>
-                            </div>
-                        </div>
+                        <CalculatorField controlId="firecalculator-annualReturn" label="Rentab. Anual (CAGR)" icon={<TrendingUp size={18} />} unit="%">
+                            <input
+                                id="firecalculator-annualReturn"
+                                type="number"
+                                value={annualReturn}
+                                onChange={(e) => setAnnualReturn(e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                        </CalculatorField>
+                        <CalculatorField controlId="firecalculator-withdrawalRate" label="Tasa Retirada" icon={<Info size={18} />} unit="%">
+                            <input
+                                id="firecalculator-withdrawalRate"
+                                type="number"
+                                value={withdrawalRate}
+                                onChange={(e) => setWithdrawalRate(e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                        </CalculatorField>
                     </div>
 
                     <div className="fire__optional-card">
@@ -435,22 +410,16 @@ export function FIRECalculator() {
 
                         {includeInflation && (
                             <div className="fire__optional-content">
-                                <div className="calc__input-group">
-                                    <label htmlFor="firecalculator-inflationRate">Inflación Anual</label>
-                                    <div className="calc__input-wrapper">
-                                        <Info size={18} />
-                                        <input
-                                            id="firecalculator-inflationRate"
-                                            type="number"
-                                            value={inflationRate}
-                                            onChange={(e) => setInflationRate(e.target.value === '' ? '' : Number(e.target.value))}
-                                        />
-                                        <span className="unit">%</span>
-                                    </div>
-                                    <small className="fire__input-hint">
-                                        Rentabilidad real estimada: {calculationError || !Number.isFinite(realAnnualReturn) ? 'N/D' : `${realAnnualReturn.toFixed(2)}% anual`}.
-                                    </small>
-                                </div>
+                                <CalculatorField controlId="firecalculator-inflationRate" label="Inflación Anual" icon={<Info size={18} />} unit="%" afterControl={<><small className="fire__input-hint">
+                                    Rentabilidad real estimada: {calculationError || !Number.isFinite(realAnnualReturn) ? 'N/D' : `${realAnnualReturn.toFixed(2)}% anual`}.
+                                </small></>}>
+                                    <input
+                                        id="firecalculator-inflationRate"
+                                        type="number"
+                                        value={inflationRate}
+                                        onChange={(e) => setInflationRate(e.target.value === '' ? '' : Number(e.target.value))}
+                                    />
+                                </CalculatorField>
 
                                 <div className="calc__input-group fire__optional-group">
                                     <label>Modo de Proyección</label>
@@ -458,16 +427,14 @@ export function FIRECalculator() {
                                         <button
                                             type="button"
                                             className={`fire__projection-btn ${projectionMode === 'nominal' ? 'fire__projection-btn--active' : ''}`}
-                                            onClick={() => setProjectionMode('nominal')}
-                                        >
+                                            onClick={() => setProjectionMode('nominal')}>
                                             Ajustado
                                             <span>Por inflación</span>
                                         </button>
                                         <button
                                             type="button"
                                             className={`fire__projection-btn ${projectionMode === 'real' ? 'fire__projection-btn--active' : ''}`}
-                                            onClick={() => setProjectionMode('real')}
-                                        >
+                                            onClick={() => setProjectionMode('real')}>
                                             Euros de hoy
                                             <span>Valor constante</span>
                                         </button>
@@ -489,21 +456,15 @@ export function FIRECalculator() {
                 <main className="fire__results">
                     {calculationError ? <p role="alert">{calculationError}</p> : <>
                     <div className="fire__metrics">
-                        <div className="fire__metric-card fire__metric-card--lean">
-                            <span className="fire__metric-label">Lean FIRE (80%)</span>
-                            <span className="fire__metric-value">{formatFIRECurrency(displayedLeanFireNumber)}</span>
-                            <p className="fire__metric-desc">{metricDescriptor}</p>
-                        </div>
-                        <div className="fire__metric-card fire__metric-card--main">
-                            <span className="fire__metric-label">Tu Número FIRE</span>
-                            <span className="fire__metric-value">{formatFIRECurrency(displayedFireNumber)}</span>
-                            <p className="fire__metric-desc">{metricDescriptor}</p>
-                        </div>
-                        <div className="fire__metric-card fire__metric-card--fat">
-                            <span className="fire__metric-label">Fat FIRE (150%)</span>
-                            <span className="fire__metric-value">{formatFIRECurrency(displayedFatFireNumber)}</span>
-                            <p className="fire__metric-desc">{metricDescriptor}</p>
-                        </div>
+                            <CalculatorResultCard layout="centered" className="fire__metric-card fire__metric-card--lean" accent="amber"
+                                label="Lean FIRE (80%)" value={<>{formatFIRECurrency(displayedLeanFireNumber)}</>} description={<>{metricDescriptor}</>}
+                                slotClasses={{ label: 'fire__metric-label', value: 'fire__metric-value', description: 'fire__metric-desc' }} />
+                            <CalculatorResultCard layout="centered" className="fire__metric-card fire__metric-card--main" accent="primary"
+                                label="Tu Número FIRE" value={<>{formatFIRECurrency(displayedFireNumber)}</>} description={<>{metricDescriptor}</>}
+                                slotClasses={{ label: 'fire__metric-label', value: 'fire__metric-value', description: 'fire__metric-desc' }} />
+                            <CalculatorResultCard layout="centered" className="fire__metric-card fire__metric-card--fat" accent="purple"
+                                label="Fat FIRE (150%)" value={<>{formatFIRECurrency(displayedFatFireNumber)}</>} description={<>{metricDescriptor}</>}
+                                slotClasses={{ label: 'fire__metric-label', value: 'fire__metric-value', description: 'fire__metric-desc' }} />
                     </div>
 
                     <div className="fire__chart-container">

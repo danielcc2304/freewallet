@@ -87,7 +87,6 @@
     font-weight: 400;
 }
 
-
 .compound__slider::-moz-range-thumb {
     @apply tw:w-[18px] tw:h-[18px] tw:rounded-[50%];
     background: var(--accent-primary);
@@ -212,49 +211,6 @@
 
 .compound__result-cards {
     @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(180px,_1fr))] tw:gap-[1.25rem] tw:w-full tw:min-w-[0];
-}
-
-.compound__result-card {
-    @apply tw:ui-fill-surface tw:rounded-[12px] tw:p-[1.5rem];
-    border: 2px solid var(--border-color);
-    transition: all 0.3s ease;
-    @apply tw:min-w-[0] tw:box-border;
-}
-
-.compound__result-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-}
-
-.compound__result-card--contributed {
-    border-top: 3px solid #3b82f6;
-}
-
-.compound__result-card--interest {
-    border-top: 3px solid #10b981;
-}
-
-.compound__result-card--total {
-    border-top: 3px solid var(--accent-primary);
-}
-
-.compound__result-label {
-    @apply tw:text-[length:0.875rem];
-    color: var(--text-tertiary);
-    @apply tw:mb-[0.5rem];
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    font-weight: 600;
-}
-
-.compound__result-value {
-    @apply tw:text-[length:1.75rem];
-    font-weight: 700;
-    @apply tw:text-main tw:mb-[0.25rem];
-}
-
-.compound__result-subtext {
-    @apply tw:text-[length:0.85rem] tw:text-secondary;
 }
 
 /* ===== GOAL RESULT ===== */
@@ -619,10 +575,6 @@
 
     .compound__result-cards {
         @apply tw:grid-cols-[1fr];
-    }
-
-    .compound__result-value {
-        @apply tw:text-[length:1.5rem];
     }
 
     .compound__goal-years {

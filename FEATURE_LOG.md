@@ -12,6 +12,15 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-22 - Tailwind: composición reutilizable de calculadoras
+- Funcionalidad:
+  - Reutiliza `CalculatorField` en 19 campos de interés compuesto, FIRE y jubilación.
+  - Añade `CalculatorResultCard` con estructura y estilos Tailwind compartidos para nueve tarjetas de resultados, con variantes de inversión, centrada y con icono.
+- Resumen:
+  - Retira 26 reglas locales de presentación de resultados. Mantiene fórmulas, controles nativos, escenarios guardados, rutas y superficies Liquid Glass; los estilos de disposición y gráficos permanecen en cada herramienta.
+- Archivos:
+  - src/components/academy/calculators/CalculatorResultCard.tsx; CompoundInterestCalc.tsx y .css; FIRECalculator.tsx y .css; RetirementCalculator.tsx y .css; README.md; docs/tailwind-migration.md; docs/tailwind-module-inventory.md
+
 ### 2026-10-21 - Tailwind: catálogo y primeras calculadoras
 - Funcionalidad:
   - Migra catálogo, fondo de emergencia, impacto fiscal e inflación a componentes y recetas Tailwind.

@@ -1,3 +1,5 @@
+import { CalculatorField } from './CalculatorField';
+import { CalculatorResultCard } from './CalculatorResultCard';
 import { useEffect, useMemo, useState } from 'react';
 import { Calendar, Info, ShieldAlert, BadgeInfo, Wallet2, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
@@ -158,96 +160,66 @@ export function RetirementCalculator() {
                     <CalculatorCard className="retirement__input-section">
                         <h3 className="retirement__section-header">Edades</h3>
                         <div className="retirement__input-grid retirement__input-grid--stacked">
-                            <div className="calc__input-group">
-                                <label htmlFor="retirementcalculator-currentAge">Edad Actual</label>
-                                <div className="calc__input-wrapper">
-                                    <Calendar size={18} />
-                                    <input
-                                        id="retirementcalculator-currentAge"
-                                        type="number"
-                                        value={currentAge}
-                                        onChange={(e) => setCurrentAge(e.target.value === '' ? '' : Number(e.target.value))}
-                                    />
-                                    <span className="unit">años</span>
-                                </div>
-                            </div>
-                            <div className="calc__input-group">
-                                <label htmlFor="retirementcalculator-retirementAge">Edad Jubilación</label>
-                                <div className="calc__input-wrapper">
-                                    <Calendar size={18} />
-                                    <input
-                                        id="retirementcalculator-retirementAge"
-                                        type="number"
-                                        value={retirementAge}
-                                        onChange={(e) => setRetirementAge(e.target.value === '' ? '' : Number(e.target.value))}
-                                    />
-                                    <span className="unit">años</span>
-                                </div>
-                            </div>
+                            <CalculatorField controlId="retirementcalculator-currentAge" label="Edad Actual" icon={<Calendar size={18} />} unit="años">
+                                <input
+                                    id="retirementcalculator-currentAge"
+                                    type="number"
+                                    value={currentAge}
+                                    onChange={(e) => setCurrentAge(e.target.value === '' ? '' : Number(e.target.value))}
+                                />
+                            </CalculatorField>
+                            <CalculatorField controlId="retirementcalculator-retirementAge" label="Edad Jubilación" icon={<Calendar size={18} />} unit="años">
+                                <input
+                                    id="retirementcalculator-retirementAge"
+                                    type="number"
+                                    value={retirementAge}
+                                    onChange={(e) => setRetirementAge(e.target.value === '' ? '' : Number(e.target.value))}
+                                />
+                            </CalculatorField>
                         </div>
                     </CalculatorCard>
 
                     <CalculatorCard className="retirement__input-section">
                         <h3 className="retirement__section-header">Ahorro y Aportaciones</h3>
-                        <div className="calc__input-group">
-                            <label htmlFor="retirementcalculator-currentSavings">Ahorro Actual</label>
-                            <div className="calc__input-wrapper">
-                                <Wallet2 size={18} />
-                                <input
-                                    id="retirementcalculator-currentSavings"
-                                    type="number"
-                                    value={currentSavings}
-                                    onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))}
-                                />
-                                <span className="unit">€</span>
-                            </div>
-                        </div>
-                        <div className="calc__input-group">
-                            <label htmlFor="retirementcalculator-monthlyContribution">Aportación Mensual</label>
-                            <div className="calc__input-wrapper">
-                                <TrendingUp size={18} />
-                                <input
-                                    id="retirementcalculator-monthlyContribution"
-                                    type="number"
-                                    value={monthlyContribution}
-                                    onChange={(e) => setMonthlyContribution(e.target.value === '' ? '' : Number(e.target.value))}
-                                />
-                                <span className="unit">€</span>
-                            </div>
-                        </div>
+                        <CalculatorField controlId="retirementcalculator-currentSavings" label="Ahorro Actual" icon={<Wallet2 size={18} />} unit="€">
+                            <input
+                                id="retirementcalculator-currentSavings"
+                                type="number"
+                                value={currentSavings}
+                                onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                        </CalculatorField>
+                        <CalculatorField controlId="retirementcalculator-monthlyContribution" label="Aportación Mensual" icon={<TrendingUp size={18} />} unit="€">
+                            <input
+                                id="retirementcalculator-monthlyContribution"
+                                type="number"
+                                value={monthlyContribution}
+                                onChange={(e) => setMonthlyContribution(e.target.value === '' ? '' : Number(e.target.value))}
+                            />
+                        </CalculatorField>
                     </CalculatorCard>
 
                     <CalculatorCard className="retirement__input-section">
                         <h3 className="retirement__section-header">Mercado e Inflación</h3>
                         <div className="retirement__input-grid">
-                            <div className="calc__input-group">
-                                <label htmlFor="retirementcalculator-annualReturn">Rentabilidad Anual</label>
-                                <div className="calc__input-wrapper">
-                                    <TrendingUp size={18} />
-                                    <input
-                                        id="retirementcalculator-annualReturn"
-                                        type="number"
-                                        step="0.5"
-                                        value={annualReturn}
-                                        onChange={(e) => setAnnualReturn(e.target.value === '' ? '' : Number(e.target.value))}
-                                    />
-                                    <span className="unit">%</span>
-                                </div>
-                            </div>
-                            <div className="calc__input-group">
-                                <label htmlFor="retirementcalculator-inflationRate">Inflación Estimada</label>
-                                <div className="calc__input-wrapper">
-                                    <Info size={18} />
-                                    <input
-                                        id="retirementcalculator-inflationRate"
-                                        type="number"
-                                        step="0.1"
-                                        value={inflationRate}
-                                        onChange={(e) => setInflationRate(e.target.value === '' ? '' : Number(e.target.value))}
-                                    />
-                                    <span className="unit">%</span>
-                                </div>
-                            </div>
+                            <CalculatorField controlId="retirementcalculator-annualReturn" label="Rentabilidad Anual" icon={<TrendingUp size={18} />} unit="%">
+                                <input
+                                    id="retirementcalculator-annualReturn"
+                                    type="number"
+                                    step="0.5"
+                                    value={annualReturn}
+                                    onChange={(e) => setAnnualReturn(e.target.value === '' ? '' : Number(e.target.value))}
+                                />
+                            </CalculatorField>
+                            <CalculatorField controlId="retirementcalculator-inflationRate" label="Inflación Estimada" icon={<Info size={18} />} unit="%">
+                                <input
+                                    id="retirementcalculator-inflationRate"
+                                    type="number"
+                                    step="0.1"
+                                    value={inflationRate}
+                                    onChange={(e) => setInflationRate(e.target.value === '' ? '' : Number(e.target.value))}
+                                />
+                            </CalculatorField>
                         </div>
                     </CalculatorCard>
 
@@ -260,22 +232,12 @@ export function RetirementCalculator() {
                 <main className="retirement__main">
                     {calculationError ? <p role="alert">{calculationError}</p> : <>
                     <div className="retirement__metrics">
-                        <CalculatorCard className="retirement__metric-card">
-                            <Wallet2 className="retirement__metric-icon" />
-                            <div className="retirement__metric-info">
-                                <span className="retirement__metric-label">Capital Nominal</span>
-                                <span className="retirement__metric-value">{formatRetirementCurrency(finalNominal)}</span>
-                                <p className="retirement__metric-desc">La cifra que verás en tu cuenta</p>
-                            </div>
-                        </CalculatorCard>
-                        <CalculatorCard className="retirement__metric-card retirement__metric-card--highlight">
-                            <ShieldAlert className="retirement__metric-icon" />
-                            <div className="retirement__metric-info">
-                                <span className="retirement__metric-label">Poder Adquisitivo Real</span>
-                                <span className="retirement__metric-value">{formatRetirementCurrency(finalReal)}</span>
-                                <p className="retirement__metric-desc">Equivalente a dinero de HOY</p>
-                            </div>
-                        </CalculatorCard>
+                            <CalculatorResultCard layout="icon" className="retirement__metric-card"
+                                label="Capital Nominal" value={<>{formatRetirementCurrency(finalNominal)}</>} description={<>La cifra que verás en tu cuenta</>} icon={<Wallet2 />}
+                                slotClasses={{ label: 'retirement__metric-label', value: 'retirement__metric-value', description: 'retirement__metric-desc', content: 'retirement__metric-info', icon: 'retirement__metric-icon' }} />
+                            <CalculatorResultCard layout="icon" className="retirement__metric-card retirement__metric-card--highlight" highlight
+                                label="Poder Adquisitivo Real" value={<>{formatRetirementCurrency(finalReal)}</>} description={<>Equivalente a dinero de HOY</>} icon={<ShieldAlert />}
+                                slotClasses={{ label: 'retirement__metric-label', value: 'retirement__metric-value', description: 'retirement__metric-desc', content: 'retirement__metric-info', icon: 'retirement__metric-icon' }} />
                     </div>
 
                     <CalculatorCard className="retirement__chart-box">

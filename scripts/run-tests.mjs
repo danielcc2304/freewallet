@@ -17,7 +17,7 @@ const smokeTests = [
     'test-application-audit-ui.ts', 'test-account-usernames-ui.ts',
     'test-dashboard-quality-ui.ts', 'test-live-market-quotes-ui.ts', 'test-bond-calculator-ui.ts',
     'test-expense-ui.ts', 'test-salary-calculator-ui.ts', 'test-fund-radar-ui.ts',
-    'test-fund-chart-ui.ts',
+    'test-fund-chart-ui.ts', 'test-fund-information-ui.ts',
     'test-news-layout-comments-ui.ts', 'test-news-article-editor-ui.ts', 'test-portfolio-ui.ts',
 ];
 const available = smoke ? (only ? [...smokeTests, 'test-tailwind-modules-ui.ts', 'test-calculator-dashboard-usability.ts'] : smokeTests) : readdirSync('scripts').filter(name =>

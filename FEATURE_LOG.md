@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-22 - Tailwind: bonos, IRPF y ficha de fondos
+- Funcionalidad:
+  - Compone campos, casillas, paneles, desplegables, resultados destacados, bloques de datos, tarjetas educativas, tablas, distribuciones y documentos mediante componentes React con estructura y estilos Tailwind.
+  - Reutiliza once campos y siete bloques de datos en bonos; IRPF comparte los controles y el resultado principal; la ficha de fondos comparte sus secciones, métricas y contenido tabular.
+- Resumen:
+  - Retira 291 líneas de las tres hojas CSS locales. Conserva los cálculos de bonos y nóminas, las consultas y cancelación de Finect, los formatos, la privacidad y los materiales Liquid Glass. Mantiene CSS local para distribución y elementos específicos.
+  - Añade una prueba de ficha de fondos con transporte Finect simulado: clase exacta, datos cero/ausentes, comisiones, histórico, composición, documentos, errores y accesibilidad.
+- Archivos:
+  - src/components/academy/calculators/{BondCalculator,SalaryCalculator,FundInformationCalculator}.tsx y .css; CalculatorField.tsx; CalculatorPanel.tsx; CalculatorCheckbox.tsx; CalculatorDisclosure.tsx; CalculatorSection.tsx; CalculatorDataItem.tsx; CalculatorEducationCard.tsx; CalculatorHeroMetric.tsx; CalculatorTable.tsx; CalculatorAllocationCard.tsx; CalculatorDocumentLink.tsx; scripts/test-fund-information-ui.ts; scripts/run-tests.mjs; package.json; README.md; docs/tailwind-migration.md; docs/tailwind-module-inventory.md
+
 ### 2026-10-22 - Tailwind: composición reutilizable de calculadoras
 - Funcionalidad:
   - Reutiliza `CalculatorField` en 19 campos de interés compuesto, FIRE y jubilación.

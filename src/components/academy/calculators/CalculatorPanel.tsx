@@ -3,16 +3,16 @@ import { cn } from '../../../utils/cn';
 
 interface CalculatorPanelProps extends HTMLAttributes<HTMLElement> {
     as?: 'div' | 'aside' | 'main' | 'section';
-    surface?: 'surface' | 'muted' | 'canvas';
-    border?: 'normal' | 'strong';
+    surface?: 'surface' | 'muted' | 'canvas' | 'panel';
+    border?: 'normal' | 'strong' | 'primary' | 'secondary';
 }
 
 /** Calculator surfaces without changing the optical behavior of legacy CalculatorCard. */
 export function CalculatorPanel({ as: Tag = 'div', surface = 'surface', border = 'normal', className, ...props }: CalculatorPanelProps) {
     return <Tag {...props} className={cn(
         'calculator-panel tw:p-[1.5rem] tw:rounded-[16px]',
-        surface === 'muted' ? 'tw:ui-fill-muted' : surface === 'canvas' ? 'tw:ui-fill-canvas' : 'tw:ui-fill-surface',
-        border === 'strong' ? 'tw:[border:2px_solid_var(--border-color)]' : 'tw:ui-border-default',
+        surface === 'panel' ? 'tw:ui-fill-panel' : surface === 'muted' ? 'tw:ui-fill-muted' : surface === 'canvas' ? 'tw:ui-fill-canvas' : 'tw:ui-fill-surface',
+        border === 'primary' ? 'tw:ui-border' : border === 'secondary' ? 'tw:ui-border-strong' : border === 'strong' ? 'tw:[border:2px_solid_var(--border-color)]' : 'tw:ui-border-default',
         className,
     )} />;
 }

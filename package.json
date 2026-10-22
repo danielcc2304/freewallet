@@ -36,6 +36,7 @@
     "test:portfolio-periods-ui": "tsx scripts/test-portfolio-periods-ui.ts",
     "test:ytd-verification-ui": "tsx scripts/test-ytd-verification-ui.ts",
     "test:fund-breakdown-ui": "tsx scripts/test-fund-breakdown-ui.ts",
+    "test:fund-information-ui": "node scripts/run-tests.mjs --smoke --only=test-fund-information-ui.ts",
     "test:finect": "tsx scripts/test-finect.ts",
     "test:dashboard-audit": "tsx scripts/test-dashboard-audit.ts",
     "test:dashboard-results": "tsx scripts/test-dashboard-results.ts",

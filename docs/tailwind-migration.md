@@ -158,3 +158,21 @@ La comparación del código anterior confirma que permanecen iguales las sentenc
 
 
 Validación final: pasan ESLint de los cuatro componentes afectados, TypeScript, build de producción y presupuesto de carga (654,46 kB de JavaScript inicial). La auditoría de producción pasa 36 combinaciones: tres rutas, tres anchos y las cuatro combinaciones de tema/apariencia. No hay errores de ejecución ni desbordamiento horizontal; se comprueban además los bordes de énfasis en los tres anchos. Se revisó la captura móvil de jubilación en Liquid Glass. La suite de usabilidad pasa en 163,5 segundos.
+
+
+## Séptima fase: bonos, sueldo neto y ficha de fondos
+
+Las tres herramientas pasan a componer partes completas de interfaz. `CalculatorField` mantiene su apariencia anterior y añade una variante de nómina: `NumericField` y `SelectField` conservan localmente los identificadores, los controles nativos, la validación y sus callbacks. `CalculatorCheckbox` comparte las casillas. `CalculatorPanel` añade superficies y bordes para las secciones de IRPF y los paneles de la ficha, conservando sus respectivos materiales.
+
+`CalculatorDisclosure` utiliza `details`/`summary` nativos, con variantes de formulario y detalle sencillo, sin sustituir la interacción de teclado por un manejador propio. `CalculatorHeroMetric` comparte el resultado principal de YTM y sueldo neto y conserva sus dos apariencias. `CalculatorDataItem` compone los siete resultados secundarios de bonos y los datos, métricas y comisiones de fondos. `CalculatorSection` organiza las secciones de la ficha y `CalculatorEducationCard` las tres explicaciones de bonos.
+
+`CalculatorTable` comparte la estructura y el estilo de las tablas: las estadísticas de fondos caben en móvil; las tablas de nómina conservan el desplazamiento nativo. `CalculatorAllocationCard` muestra las distribuciones de fondos con barras limitadas a 0–100 %; el dato numérico y su formato siguen viniendo de la ficha. `CalculatorDocumentLink` comparte el marcado y los estilos de los documentos externos.
+
+Las hojas de bonos, IRPF y fondos pasan conjuntamente de 962 a 671 líneas (291 menos). Conservan distribución, selectores específicos, ajustes contextuales, animación de carga y ayuda de riesgo. No se eliminan hojas completas ni se presenta esta reducción de fuente como una mejora del tamaño descargado.
+
+La nueva prueba `npm run test:fund-information-ui` usa respuestas sintéticas de Finect a través del flujo real de búsqueda y normalización. Comprueba la clase por ISIN, NAV, rentabilidades y comisiones de valor cero, ausencia de datos, estadísticas, composición, documentos y errores de consulta; recorre cuatro anchos y cuatro combinaciones de tema/apariencia. Se añade al conjunto de pruebas de navegador habitual.
+
+
+Validación de esta fase: pasan ESLint de los módulos y pruebas modificados, TypeScript, compilación de producción y presupuesto de carga (654,61 kB de JavaScript inicial). Pasan las pruebas financieras de bonos, nómina y Finect, incluida la verificación independiente Decimal del calendario, cupón corrido y YTM de CoreWeave, y la integridad de las demás calculadoras. Las pruebas de navegador de bonos, IRPF y ficha de fondos pasan; la auditoría de producción cubre 36 combinaciones de las tres rutas sin errores de ejecución ni desbordamientos.
+
+La referencia de la ficha anterior se obtuvo en un checkout separado del commit previo, con las mismas respuestas Finect simuladas. Al comparar las propiedades medidas de 2.688 elementos en 16 combinaciones de ancho/tema/apariencia no se detectan diferencias. Esto complementa las capturas y las pruebas de comportamiento; no se presenta como una comparación píxel a píxel. Se revisaron también las capturas móviles de sueldo neto y ficha de fondos.

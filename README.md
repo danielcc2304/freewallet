@@ -209,7 +209,7 @@ La navegación principal está en [`src/App.tsx`](src/App.tsx); Academia y herra
 
 ### Estilos y componentes
 
-La interfaz usa Tailwind CSS 4 con los temas existentes. La base compartida, Mi cuenta, Noticias, el radar, los rankings, los comparadores de escenarios, los avisos, el catálogo y las calculadoras de emergencia, impacto fiscal e inflación usan utilidades `tw:` en React; Academia, calculadoras, simuladores, gastos, Dashboard, gráficos y demás pantallas comparten tokens y patrones mediante `@apply` y `@reference`. Interés compuesto, FIRE y jubilación comparten componentes React completos para sus campos y tarjetas de resultados, con estructura y estilos Tailwind. Los selectores de los módulos densos conservan su cascada. El reset, los materiales Liquid Glass y el contenido enriquecido mantienen CSS específico. No se activa Preflight ni un `important` global. [Arquitectura y pruebas](docs/tailwind-migration.md) · [Inventario por módulo](docs/tailwind-module-inventory.md).
+La interfaz usa Tailwind CSS 4 con los temas existentes. La base compartida, Mi cuenta, Noticias, el radar, los rankings, los comparadores de escenarios, los avisos, el catálogo y las calculadoras de emergencia, impacto fiscal e inflación usan utilidades `tw:` en React; Academia, calculadoras, simuladores, gastos, Dashboard, gráficos y demás pantallas comparten tokens y patrones mediante `@apply` y `@reference`. Interés compuesto, FIRE, jubilación, bonos, IRPF y ficha de fondos comparten componentes React con estructura y estilos Tailwind para campos, paneles, desplegables, resultados y tablas. Los selectores de los módulos densos conservan su cascada. El reset, los materiales Liquid Glass y el contenido enriquecido mantienen CSS específico. No se activa Preflight ni un `important` global. [Arquitectura y pruebas](docs/tailwind-migration.md) · [Inventario por módulo](docs/tailwind-module-inventory.md).
 
 ## Scripts
 
@@ -222,6 +222,7 @@ La interfaz usa Tailwind CSS 4 con los temas existentes. La base compartida, Mi 
 | `npm run check` | Lint, TypeScript y todas las pruebas locales de lógica/base de datos; incluye la referencia independiente de bonos en Python. |
 | `npm run test:smoke` | Arranca Vite con configuración sintética y ejecuta los recorridos de navegador principales. Requiere Chromium/Puppeteer. |
 | `npm run test:tailwind-modules-ui` | Tras compilar, recorre 41 rutas de `dist` en móvil/escritorio y las cuatro combinaciones de tema y apariencia. |
+| `npm run test:fund-information-ui` | Comprueba la ficha de fondos con respuestas Finect simuladas, incluidos datos cero/ausentes y vistas móvil/escritorio. |
 | `npm run test:build` | Tras compilar, comprueba el tamaño del JS inicial y que calculadoras y SDK editorial se carguen bajo demanda. |
 | `npm run verify-funds` | Verificación de identidad/enlaces de fondos del catálogo. |
 

@@ -1,3 +1,8 @@
+import { CalculatorTable } from './CalculatorTable';
+import { CalculatorAllocationCard } from './CalculatorAllocationCard';
+import { CalculatorDocumentLink } from './CalculatorDocumentLink';
+import { CalculatorSection as Section } from './CalculatorSection';
+import { CalculatorDataItem } from './CalculatorDataItem';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import {
     BarChart3,
@@ -137,40 +142,14 @@ function isRequestCancelled(error: unknown): boolean {
 }
 
 function Metric({ label, value, detail }: { label: string; value: ReactNode; detail?: ReactNode }) {
-    return (
-        <div className="fund-info__metric">
-            <span className="fund-info__metric-label">{label}</span>
-            <strong className="fund-info__metric-value">{value}</strong>
-            {detail && <span className="fund-info__metric-detail">{detail}</span>}
-        </div>
-    );
+    return <CalculatorDataItem label={label} value={value} detail={detail} className="fund-info__metric" labelClassName="fund-info__metric-label" valueClassName="fund-info__metric-value" detailClassName="fund-info__metric-detail" />;
 }
 
 function InfoItem({ label, value }: { label: string; value?: ReactNode }) {
-    return (
-        <div className="fund-info__data-item">
-            <span>{label}</span>
-            <strong>{value ?? '—'}</strong>
-        </div>
-    );
+    return <CalculatorDataItem layout="identity" label={label} value={value ?? '—'} className="fund-info__data-item" />;
 }
 
-function Section({ icon, title, children, className = '' }: {
-    icon: ReactNode;
-    title: string;
-    children: ReactNode;
-    className?: string;
-}) {
-    return (
-        <section className={`fund-info__section ${className}`}>
-            <div className="fund-info__section-heading">
-                <span className="fund-info__section-icon">{icon}</span>
-                <h2>{title}</h2>
-            </div>
-            {children}
-        </section>
-    );
-}
+
 
 function RiskLevel({ level }: { level: number }) {
     const band = riskBands[level];
@@ -185,8 +164,7 @@ function RiskLevel({ level }: { level: number }) {
                 type="button"
                 className="fund-info__risk-trigger"
                 aria-describedby={tooltipId}
-                title={tooltipText}
-            >
+                title={tooltipText}>
                 Riesgo {level}/7
                 <Info size={14} aria-hidden="true" />
             </button>
@@ -200,37 +178,12 @@ function RiskLevel({ level }: { level: number }) {
 }
 
 function FeeItem({ label, value }: { label: string; value: number | undefined }) {
-    if (value === undefined) return null;
-
-    return (
-        <div className="fund-info__fee-item">
-            <span>{label}</span>
-            <strong>{formatPercentage(value)}</strong>
-        </div>
-    );
+ if (value === undefined) return null;
+    return <CalculatorDataItem layout="fee" label={label} value={formatPercentage(value)} className="fund-info__fee-item" />;
 }
 
 function BreakdownCard({ breakdown }: { breakdown: FinectBreakdown }) {
-    const title = breakdownTitles[breakdown.type] ?? breakdown.type;
-
-    return (
-        <article className="fund-info__breakdown-card">
-            <h3>{title}</h3>
-            <div className="fund-info__breakdown-list">
-                {breakdown.items.slice(0, 8).map((item) => (
-                    <div className="fund-info__breakdown-item" key={`${breakdown.type}-${item.label}`}>
-                        <div className="fund-info__breakdown-label">
-                            <span>{item.label}</span>
-                            <strong>{formatPercentage(item.value)}</strong>
-                        </div>
-                        <div className="fund-info__breakdown-track" aria-hidden="true">
-                            <span style={{ width: `${Math.min(Math.max(item.value, 0), 100)}%` }} />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </article>
-    );
+ return <CalculatorAllocationCard title={breakdownTitles[breakdown.type] ?? breakdown.type} items={breakdown.items} formatValue={formatPercentage} />;
 }
 
 function StrategyText({ text }: { text: string }) {
@@ -277,8 +230,7 @@ function FundResults({ fund }: { fund: FinectFundRelevance }) {
                     className="fund-info__source-link"
                     href={fund.sourceUrl}
                     target="_blank"
-                    rel="noopener noreferrer"
-                >
+                    rel="noopener noreferrer">
                     Ver ficha en Finect <ExternalLink size={16} />
                 </a>
             </section>
@@ -360,9 +312,7 @@ function FundResults({ fund }: { fund: FinectFundRelevance }) {
 
             {statsWithData && (
                 <Section icon={<BarChart3 size={20} />} title="Riesgo y comportamiento histórico">
-                    <div className="fund-info__table-wrapper">
-                        <table className="fund-info__stats-table">
-                            <caption className="fund-info__sr-only">Estadísticas históricas por periodo</caption>
+                    <CalculatorTable appearance="statistics"><caption className="fund-info__sr-only">Estadísticas históricas por periodo</caption>
                             <thead>
                                 <tr>
                                     <th scope="col">Métrica</th>
@@ -390,9 +340,7 @@ function FundResults({ fund }: { fund: FinectFundRelevance }) {
                                         </tr>
                                     );
                                 })}
-                            </tbody>
-                        </table>
-                    </div>
+                            </tbody></CalculatorTable>
                     <p className="fund-info__table-note">
                         Las métricas proceden de Finect y corresponden al periodo disponible en su ficha; no son una previsión.
                     </p>
@@ -431,20 +379,7 @@ function FundResults({ fund }: { fund: FinectFundRelevance }) {
                 <Section icon={<FileText size={20} />} title="Documentación disponible">
                     <div className="fund-info__documents">
                         {fund.documents.map((document) => (
-                            <a
-                                className="fund-info__document"
-                                href={document.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                key={`${document.type}-${document.url}`}
-                            >
-                                <FileText size={17} />
-                                <span>
-                                    <strong>{document.type}</strong>
-                                    <small>{document.language ?? 'Documento'}{document.updated ? ` · actualizado ${formatDate(document.updated) ?? document.updated}` : ''}</small>
-                                </span>
-                                <ExternalLink size={15} />
-                            </a>
+                            <CalculatorDocumentLink key={`${document.type}-${document.url}`} href={document.url} title={<>{document.type}</>} subtitle={<>{document.language ?? 'Documento'}{document.updated ? ` · actualizado ${formatDate(document.updated) ?? document.updated}` : ''}</>} />
                         ))}
                     </div>
                 </Section>
@@ -536,8 +471,7 @@ export function FundInformationCalculator() {
                         size="lg"
                         loading={loading}
                         disabled={!isin.trim()}
-                        icon={<Sparkles size={18} />}
-                    >
+                        icon={<Sparkles size={18} />}>
                         Consultar Finect
                     </Button>
                 </form>

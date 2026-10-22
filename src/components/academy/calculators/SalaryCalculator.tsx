@@ -1,5 +1,11 @@
+import { CalculatorTable } from './CalculatorTable';
+import { CalculatorHeroMetric } from './CalculatorHeroMetric';
+import { CalculatorField } from './CalculatorField';
+import { CalculatorPanel } from './CalculatorPanel';
+import { CalculatorCheckbox as CheckField } from './CalculatorCheckbox';
+import { CalculatorDisclosure as Fold } from './CalculatorDisclosure';
 import { useId, useState, type ReactNode } from 'react';
-import { ArrowDownToLine, ChevronDown, CircleHelp, Plus, Receipt, RotateCcw, Trash2, Wallet } from 'lucide-react';
+import { ArrowDownToLine, CircleHelp, Plus, Receipt, RotateCcw, Trash2, Wallet } from 'lucide-react';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import { calculateSalary, DEFAULT_SALARY_INPUT, validateSalaryInput, type Dependent, type SalaryInput, type SalaryResult } from '../../../services/irpf/salaryCalculator';
 import { TAX_REGIONS, TAX_REVIEW_DATE, TAX_SOURCES, TAX_YEAR, type TaxScale, STATE_SCALE } from '../../../services/irpf/taxData2026';
@@ -13,26 +19,32 @@ function NumericField({ label, value, onChange, hint, min = 0, max = 10000000, s
     label: string; value: number; onChange: (value: number) => void; hint?: string; min?: number; max?: number; step?: number; suffix?: string;
 }) {
     const id = useId();
-    return <div className="salary-calc__field">
-        <label htmlFor={id}>{label}</label>
-        <div className="salary-calc__input-wrap"><input id={id} type="number" inputMode={step === 1 ? 'numeric' : 'decimal'} min={min} max={max} step={step}
-            value={Number.isFinite(value) ? value : ''} onChange={e => onChange(e.target.value === '' ? NaN : Number(e.target.value))} aria-describedby={hint ? `${id}-hint` : undefined} /><span>{suffix}</span></div>
-        {hint && <small id={`${id}-hint`}>{hint}</small>}
-    </div>;
+    return <CalculatorField
+        appearance="payroll"
+        controlId={id}
+        label={label}
+        unit={suffix}
+        afterControl={hint && <small id={`${id}-hint`}>{hint}</small>}>
+
+        <input id={id} type="number" inputMode={step === 1 ? 'numeric' : 'decimal'} min={min} max={max} step={step}
+            value={Number.isFinite(value) ? value : ''} onChange={e => onChange(e.target.value === '' ? NaN : Number(e.target.value))} aria-describedby={hint ? `${id}-hint` : undefined} />
+
+    </CalculatorField>;
 }
 function SelectField({ label, value, onChange, children, hint }: { label: string; value: string; onChange: (value: string) => void; children: ReactNode; hint?: string }) {
     const id = useId();
-    return <div className="salary-calc__field"><label htmlFor={id}>{label}</label><select id={id} value={value} onChange={e => onChange(e.target.value)} aria-describedby={hint ? `${id}-hint` : undefined}>{children}</select>{hint && <small id={`${id}-hint`}>{hint}</small>}</div>;
+    return <CalculatorField
+        appearance="payroll"
+        controlId={id}
+        label={label}
+        afterControl={hint && <small id={`${id}-hint`}>{hint}</small>}>
+        <select id={id} value={value} onChange={e => onChange(e.target.value)} aria-describedby={hint ? `${id}-hint` : undefined}>{children}</select>
+    </CalculatorField>;
 }
-function CheckField({ label, checked, onChange }: { label: string; checked: boolean; onChange: (value: boolean) => void }) {
-    return <label className="salary-calc__check"><input type="checkbox" checked={checked} onChange={e => onChange(e.target.checked)} /><span>{label}</span></label>;
-}
-function Fold({ title, children, summary }: { title: string; children: ReactNode; summary?: string }) {
-    return <details className="salary-calc__fold"><summary><span>{title}{summary && <small>{summary}</small>}</span><ChevronDown size={18} /></summary><div className="salary-calc__fold-body">{children}</div></details>;
-}
+
 function ScaleTable({ title, scale, base }: { title: string; scale: TaxScale; base: number }) {
-    return <div><h4>{title}</h4><div className="salary-calc__table-wrap"><table><thead><tr><th>Base liquidable</th><th>Tipo marginal</th></tr></thead><tbody>{scale.map(([from, , rate], index) =>
-        <tr key={from} className={base >= from && (index === scale.length - 1 || base < scale[index + 1][0]) ? 'salary-calc__current-bracket' : undefined}><td>{money(from)}{scale[index + 1] ? ` – ${money(scale[index + 1][0])}` : ' en adelante'}</td><td>{percent(rate)}</td></tr>)}</tbody></table></div></div>;
+    return <div><h4>{title}</h4><CalculatorTable appearance="compact"><thead><tr><th>Base liquidable</th><th>Tipo marginal</th></tr></thead><tbody>{scale.map(([from, , rate], index) =>
+        <tr key={from} className={base >= from && (index === scale.length - 1 || base < scale[index + 1][0]) ? 'salary-calc__current-bracket' : undefined}><td>{money(from)}{scale[index + 1] ? ` – ${money(scale[index + 1][0])}` : ' en adelante'}</td><td>{percent(rate)}</td></tr>)}</tbody></CalculatorTable></div>;
 }
 function FamilyFields({ people, onChange, ascendants = false }: { people: Dependent[]; onChange: (people: Dependent[]) => void; ascendants?: boolean }) {
     const update = (index: number, patch: Partial<Dependent>) => onChange(people.map((p, i) => i === index ? { ...p, ...patch } : p));
@@ -87,7 +99,11 @@ export function SalaryCalculator() {
         <AcademyPageHeader section="Herramientas" className="salary-calc__header"><h1>Calculadora de IRPF y sueldo neto</h1><p>De tu salario bruto a lo que recibes en la cuenta.</p><span className="salary-calc__year">Ejercicio {TAX_YEAR} · Asalariados</span></AcademyPageHeader>
         <div className="salary-calc__layout">
             <section className="salary-calc__form" aria-label="Preguntas para calcular el sueldo">
-                <div className="salary-calc__panel"><div className="salary-calc__section-title"><Receipt size={21} /><h2>Tu sueldo y contrato</h2></div>
+                <CalculatorPanel
+                    surface="panel"
+                    border="secondary"
+                    className="salary-calc__panel tw:p-[1.4rem] tw:rounded-[22px] tw:[[data-appearance=liquid-glass]_&]:backdrop-blur-[20px] tw:[@media(max-width:480px)]:p-[1.15rem] tw:[@media(max-width:480px)]:rounded-[18px]">
+                    <div className="salary-calc__section-title tw:ui-row tw:gap-[.65rem] tw:mb-[1.1rem] tw:[&_svg]:text-accent tw:[&_svg]:shrink-0"><Receipt size={21} /><h2>Tu sueldo y contrato</h2></div>
                     <div className="salary-calc__fields">
                         {numeric('grossAnnual', '¿Cuál es tu sueldo bruto anual?', 'Incluye las pagas extra y el variable sujeto a IRPF. Simulamos un año completo.')}
                         <SelectField label="¿Dónde tienes tu residencia fiscal?" value={input.region} onChange={value => { setInput(previous => ({ ...previous, region: value, territorialRelief: false, manualWithholding: TAX_REGIONS.find(r => r.id === value)?.foral ? NaN : null })); }}>
@@ -96,8 +112,8 @@ export function SalaryCalculator() {
                         <SelectField label="¿Qué contrato tienes?" value={input.contract} onChange={value => set('contract', value as SalaryInput['contract'])}><option value="permanent">Indefinido</option><option value="temporary">Temporal de un año o más</option><option value="under-year">Temporal inferior a un año</option></SelectField>
                         {numeric('workingTime', '¿Qué porcentaje de jornada trabajas?', 'El bruto es el que cobras con esa jornada; no se vuelve a reducir.', { min: 1, max: 100, suffix: '%' })}
                     </div>
-                    <div className="salary-calc__field"><span>¿Cómo quieres repartir las pagas?</span><div className="salary-calc__segmented" role="group" aria-label="Número de pagas"><button type="button" aria-pressed={payments === 12} onClick={() => setPayments(12)}>12 pagas</button><button type="button" aria-pressed={payments === 14} onClick={() => setPayments(14)}>14 pagas</button></div></div>
-                </div>
+                    <div className="salary-calc__field tw:min-w-0 tw:ui-stack tw:gap-[.5rem] tw:mb-[.8rem]"><span className="tw:text-[.86rem] tw:font-[650]">¿Cómo quieres repartir las pagas?</span><div className="salary-calc__segmented" role="group" aria-label="Número de pagas"><button type="button" aria-pressed={payments === 12} onClick={() => setPayments(12)}>12 pagas</button><button type="button" aria-pressed={payments === 14} onClick={() => setPayments(14)}>14 pagas</button></div></div>
+                </CalculatorPanel>
 
                 <Fold title="Tu situación personal y familiar" summary={input.children.length || input.ascendants.length ? `${input.children.length} descendientes · ${input.ascendants.length} ascendientes` : 'Edad, hijos y discapacidad'}>
                     <div className="salary-calc__fields">{numeric('age', 'Edad a 31 de diciembre de 2026', undefined, { min: 16, max: 100, step: 1, suffix: 'años' })}
@@ -138,33 +154,53 @@ export function SalaryCalculator() {
             <section className="salary-calc__results" aria-label="Resultado del sueldo neto">
                 {error && <div className="salary-calc__error" role="alert"><CircleHelp size={22} /><div><strong>Revisa tus respuestas</strong><p>{error}</p>{region.foral && <p>Abre «Ajustes de nómina» e introduce la retención.</p>}</div></div>}
                 {result && payroll && <>
-                    <div className="salary-calc__hero"><div className="salary-calc__section-title"><Wallet size={22} /><span>Neto mensual estimado · {payments} pagas</span></div><strong data-testid="salary-monthly-net">{money(payroll.net)}</strong><p>{payments === 14 ? `12 mensualidades + 2 extras de ${money(result.extra.net)}` : 'Pagas extra prorrateadas en las 12 mensualidades'}</p>
+                    <CalculatorHeroMetric
+                        appearance="payroll"
+                        icon={<Wallet size={22} />}
+                        label={<>Neto mensual estimado · {payments} pagas</>}
+                        valueTestId="salary-monthly-net"
+                        value={<>{money(payroll.net)}</>}
+                        description={<>{payments === 14 ? `12 mensualidades + 2 extras de ${money(result.extra.net)}` : 'Pagas extra prorrateadas en las 12 mensualidades'}</>}>
                         <div className="salary-calc__hero-footer"><span>Neto anual en nómina <b data-testid="salary-annual-net">{money(result.netAnnual)}</b></span><span>Retención IRPF <b data-testid="salary-withholding-rate">{percent(result.withholdingRate)}</b></span></div>
-                    </div>
-                    <div className="salary-calc__panel"><h2>Así se reparte tu bruto</h2><div className="salary-calc__distribution" role="img" aria-label={`Neto ${money(result.netAnnual)}, IRPF ${money(result.withheldAnnual)}, Seguridad Social ${money(result.socialSecurity)} al año`}>
-                        {[['net', result.netAnnual], ['irpf', result.withheldAnnual], ['ss', result.socialSecurity]].map(([name, value]) => <span key={name} className={`salary-calc__distribution--${name}`} style={{ flexGrow: result.gross > 0 ? Math.max(0, Number(value)) / result.gross : 0 }} />)}
-                    </div>
+                    </CalculatorHeroMetric>
+                    <CalculatorPanel
+                        surface="panel"
+                        border="secondary"
+                        className="salary-calc__panel tw:p-[1.4rem] tw:rounded-[22px] tw:[[data-appearance=liquid-glass]_&]:backdrop-blur-[20px] tw:[@media(max-width:480px)]:p-[1.15rem] tw:[@media(max-width:480px)]:rounded-[18px]">
+                        <h2>Así se reparte tu bruto</h2><div className="salary-calc__distribution" role="img" aria-label={`Neto ${money(result.netAnnual)}, IRPF ${money(result.withheldAnnual)}, Seguridad Social ${money(result.socialSecurity)} al año`}>
+                            {[['net', result.netAnnual], ['irpf', result.withheldAnnual], ['ss', result.socialSecurity]].map(([name, value]) => <span key={name} className={`salary-calc__distribution--${name}`} style={{ flexGrow: result.gross > 0 ? Math.max(0, Number(value)) / result.gross : 0 }} />)}
+                        </div>
                         <dl className="salary-calc__breakdown"><div><dt>Bruto anual</dt><dd>{money(result.gross)}</dd></div><div><dt><i className="salary-calc__dot salary-calc__dot--irpf" />IRPF retenido</dt><dd>{money(result.withheldAnnual)}<small>{percent(result.withholdingRate)} del bruto</small></dd></div><div><dt><i className="salary-calc__dot salary-calc__dot--ss" />Seguridad Social</dt><dd>{money(result.socialSecurity)}</dd></div><div className="salary-calc__total"><dt><i className="salary-calc__dot salary-calc__dot--net" />Neto en nómina</dt><dd>{money(result.netAnnual)}</dd></div></dl>
                         <div className="salary-calc__payment-comparison"><div className={payments === 12 ? 'is-selected' : undefined}><span>En 12 pagas</span><strong>{money(result.twelve.net)}</strong><small>al mes</small></div><div className={payments === 14 ? 'is-selected' : undefined}><span>En 14 pagas</span><strong>{money(result.fourteen.net)}</strong><small>al mes + 2 × {money(result.extra.net)}</small></div></div>
                         <p className="salary-calc__hint">En 14 pagas, la Seguridad Social de las extras ya se descuenta en las 12 nóminas ordinarias. Cambiar el reparto mantiene el neto anual.</p>
-                    </div>
+                    </CalculatorPanel>
                     <Fold title="Desglose de una nómina" summary={`Bruto ${money(payroll.gross)} · ${payments} pagas`}><dl className="salary-calc__breakdown"><div><dt>Bruto de la paga ordinaria</dt><dd>{money(payroll.gross)}</dd></div><div><dt>IRPF retenido</dt><dd>−{money(payroll.irpf)}</dd></div>{result.contributions.map(c => <div key={c.name}><dt>{c.name}{c.rate !== null ? ` · ${percent(c.rate)}` : ' · por tramos'}</dt><dd>−{money(c.monthly)}</dd></div>)}<div className="salary-calc__total"><dt>Neto</dt><dd>{money(payroll.net)}</dd></div></dl><p className="salary-calc__hint">Base de cotización mensual: {money(result.monthlyBase)}, con las extras prorrateadas. Los redondeos de cada nómina pueden generar diferencias de céntimos.</p></Fold>
 
-                    <div className="salary-calc__panel salary-calc__tax"><h2>IRPF de la declaración</h2><p className="salary-calc__hint">Estimación individual con este sueldo como única renta.</p>{result.finalTax !== null && result.balance !== null ? <><div className="salary-calc__tax-value"><span>IRPF anual estimado</span><strong data-testid="salary-final-tax">{money(result.finalTax)}</strong><small>{percent(result.gross > 0 ? result.finalTax / result.gross * 100 : 0)} efectivo sobre el bruto</small></div>
-                        <div className="salary-calc__settlement"><span>{Math.abs(result.balance) < 0.01 ? 'Retención ajustada' : result.balance > 0 ? 'Diferencia estimada a pagar' : 'Diferencia estimada a devolver'}</span><strong>{money(Math.abs(result.balance))}</strong></div>
-                        <p className="salary-calc__hint">La empresa adelanta {money(result.withheldAnnual)} vía retenciones. La comunidad afecta a la declaración; la retención general se calcula con las reglas de la AEAT.</p></> : <p>La renta foral requiere el simulador de tu Hacienda. No se aplica la escala estatal a {region.name}.</p>}
+                    <CalculatorPanel
+                        surface="panel"
+                        border="secondary"
+                        className="salary-calc__panel salary-calc__tax tw:p-[1.4rem] tw:rounded-[22px] tw:[[data-appearance=liquid-glass]_&]:backdrop-blur-[20px] tw:[@media(max-width:480px)]:p-[1.15rem] tw:[@media(max-width:480px)]:rounded-[18px]">
+                        <h2>IRPF de la declaración</h2><p className="salary-calc__hint">Estimación individual con este sueldo como única renta.</p>{result.finalTax !== null && result.balance !== null ? <><div className="salary-calc__tax-value"><span>IRPF anual estimado</span><strong data-testid="salary-final-tax">{money(result.finalTax)}</strong><small>{percent(result.gross > 0 ? result.finalTax / result.gross * 100 : 0)} efectivo sobre el bruto</small></div>
+                            <div className="salary-calc__settlement"><span>{Math.abs(result.balance) < 0.01 ? 'Retención ajustada' : result.balance > 0 ? 'Diferencia estimada a pagar' : 'Diferencia estimada a devolver'}</span><strong>{money(Math.abs(result.balance))}</strong></div>
+                            <p className="salary-calc__hint">La empresa adelanta {money(result.withheldAnnual)} vía retenciones. La comunidad afecta a la declaración; la retención general se calcula con las reglas de la AEAT.</p></> : <p>La renta foral requiere el simulador de tu Hacienda. No se aplica la escala estatal a {region.name}.</p>}
                         {result.finalTax !== null && <Fold title="Cómo se calcula la renta"><dl className="salary-calc__breakdown"><div><dt>Gastos generales y adicionales</dt><dd>{money(result.annualGeneralExpenses)}</dd></div><div><dt>Otros gastos deducibles</dt><dd>{money(result.annualOtherExpenses)}</dd></div><div><dt>Reducción por rentas del trabajo</dt><dd>{money(result.annualWorkReduction)}</dd></div><div><dt>Reducción por plan individual</dt><dd>{money(result.pensionReduction)}</dd></div><div><dt>Base liquidable general</dt><dd>{money(result.annualTaxBase)}</dd></div><div><dt>Mínimo estatal personal y familiar</dt><dd>{money(result.stateMinimum)}</dd></div><div><dt>Mínimo autonómico</dt><dd>{money(result.regionalMinimum)}</dd></div>{result.stateQuota !== null && <div><dt>Cuota estatal tras el mínimo</dt><dd>{money(result.stateQuota)}</dd></div>}{result.regionalQuota !== null && <div><dt>Cuota autonómica tras el mínimo</dt><dd>{money(result.regionalQuota)}</dd></div>}{result.lowSalaryDeduction !== null && <div><dt>Deducción por salarios bajos</dt><dd>{money(result.lowSalaryDeduction)}</dd></div>}{result.marginalRate !== null && <div><dt>Tipo marginal sobre la base</dt><dd>{percent(result.marginalRate)}</dd></div>}</dl>
                             <p className="salary-calc__hint">El mínimo personal y familiar reduce la cuota aplicando su propia escala; no se resta directamente del bruto. El tipo marginal solo afecta al siguiente euro de base, no a todo el sueldo.</p>
                             {region.scale && <div className="salary-calc__scales"><ScaleTable title="Escala estatal" scale={STATE_SCALE} base={result.annualTaxBase} /><ScaleTable title={region.name} scale={region.scale} base={result.annualTaxBase} /></div>}
                         </Fold>}
-                    </div>
+                    </CalculatorPanel>
                     {result.warnings.length > 0 && <div className="salary-calc__notes">{result.warnings.map(warning => <p key={warning}>{warning}</p>)}</div>}
-                    <Fold title="Calendario de cobros y coste empresarial"><div className="salary-calc__table-wrap"><table><thead><tr><th>Mes</th><th>Neto ordinario</th><th>Extra</th><th>Total</th></tr></thead><tbody>{['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'].map((month, index) => { const extra = payments === 14 && (index === 5 || index === 11) ? result.extra.net : 0; return <tr key={month}><td>{month}</td><td>{money(payroll.net)}</td><td>{extra > 0 ? money(extra) : '—'}</td><td>{money(payroll.net + extra)}</td></tr>; })}</tbody></table></div><p className="salary-calc__hint">Extras iguales, en junio y diciembre. La empresa puede usar otros meses o importes según tu convenio.</p><dl className="salary-calc__breakdown"><div><dt>Cotizaciones empresariales anuales</dt><dd>{money(result.employerContributions)}</dd></div><div><dt>Coste total estimado de la empresa</dt><dd>{money(result.employerCost)}</dd></div></dl><p className="salary-calc__hint">Las cotizaciones de la empresa no se descuentan de tu neto. No incluye bonificaciones, recargos de contratos muy cortos ni otros costes laborales.</p></Fold>
+                    <Fold title="Calendario de cobros y coste empresarial"><CalculatorTable appearance="compact"><thead><tr><th>Mes</th><th>Neto ordinario</th><th>Extra</th><th>Total</th></tr></thead><tbody>{['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'].map((month, index) => { const extra = payments === 14 && (index === 5 || index === 11) ? result.extra.net : 0; return <tr key={month}><td>{month}</td><td>{money(payroll.net)}</td><td>{extra > 0 ? money(extra) : '—'}</td><td>{money(payroll.net + extra)}</td></tr>; })}</tbody></CalculatorTable><p className="salary-calc__hint">Extras iguales, en junio y diciembre. La empresa puede usar otros meses o importes según tu convenio.</p><dl className="salary-calc__breakdown"><div><dt>Cotizaciones empresariales anuales</dt><dd>{money(result.employerContributions)}</dd></div><div><dt>Coste total estimado de la empresa</dt><dd>{money(result.employerCost)}</dd></div></dl><p className="salary-calc__hint">Las cotizaciones de la empresa no se descuentan de tu neto. No incluye bonificaciones, recargos de contratos muy cortos ni otros costes laborales.</p></Fold>
                     <div className="salary-calc__actions"><button type="button" className="salary-calc__button" onClick={() => downloadResult(input, result, payments)}><ArrowDownToLine size={17} /> Descargar desglose</button><button type="button" className="salary-calc__button salary-calc__button--secondary" onClick={saveScenario} disabled={scenarios.length >= 3}><Plus size={17} /> Comparar escenario</button></div>
                 </>}
             </section>
         </div>
-        {scenarios.length > 0 && <section className="salary-calc__panel salary-calc__scenarios"><h2>Compara hasta tres escenarios</h2><div className="salary-calc__scenario-grid">{scenarios.map((scenario, index) => <article key={index}><div><h3>Escenario {index + 1}</h3><button type="button" aria-label={`Eliminar escenario ${index + 1}`} onClick={() => setScenarios(previous => previous.filter((_, i) => i !== index))}><Trash2 size={17} /></button></div><p>{scenario.name} · {money(scenario.gross)} brutos</p><strong>{money(scenario.net / 12)}<small>neto equivalente en 12 pagas</small></strong><dl className="salary-calc__breakdown"><div><dt>IRPF retenido al año</dt><dd>{money(scenario.withheld)}</dd></div><div><dt>IRPF de renta estimado</dt><dd>{scenario.finalTax === null ? 'No calculado' : money(scenario.finalTax)}</dd></div></dl></article>)}</div></section>}
+        {scenarios.length > 0 && <CalculatorPanel
+            as="section"
+            surface="panel"
+            border="secondary"
+            className="salary-calc__panel salary-calc__scenarios tw:p-[1.4rem] tw:rounded-[22px] tw:[[data-appearance=liquid-glass]_&]:backdrop-blur-[20px] tw:[@media(max-width:480px)]:p-[1.15rem] tw:[@media(max-width:480px)]:rounded-[18px]">
+            <h2>Compara hasta tres escenarios</h2><div className="salary-calc__scenario-grid">{scenarios.map((scenario, index) => <article key={index}><div><h3>Escenario {index + 1}</h3><button type="button" aria-label={`Eliminar escenario ${index + 1}`} onClick={() => setScenarios(previous => previous.filter((_, i) => i !== index))}><Trash2 size={17} /></button></div><p>{scenario.name} · {money(scenario.gross)} brutos</p><strong>{money(scenario.net / 12)}<small>neto equivalente en 12 pagas</small></strong><dl className="salary-calc__breakdown"><div><dt>IRPF retenido al año</dt><dd>{money(scenario.withheld)}</dd></div><div><dt>IRPF de renta estimado</dt><dd>{scenario.finalTax === null ? 'No calculado' : money(scenario.finalTax)}</dd></div></dl></article>)}</div>
+        </CalculatorPanel>}
         <Fold title="Alcance y fuentes oficiales" summary={`Reglas de 2026 · revisadas el ${TAX_REVIEW_DATE}`}><p>Simulación para un asalariado del Régimen General, un pagador y un año completo, con pagas de igual bruto. La jornada sirve para estimar la base mínima. La retención sigue el cálculo inicial de la AEAT aplicable desde el 10 de septiembre de 2026; no reconstruye regularizaciones ni cambios de empleo durante el año.</p><p>La estimación de renta usa las escalas y mínimos autonómicos de 2026. No incluye otras rentas, tributación conjunta, autónomos, retribución en especie, horas extra, regímenes especiales, cotización diaria ni todos los beneficios fiscales. Para territorios forales se requiere una retención indicada y no se estima la declaración. Los ajustes por vivienda del Modelo 145 reducen la retención, pero su deducción en renta debe introducirse en los importes verificados.</p><div className="salary-calc__sources"><a href={TAX_SOURCES.withholding} target="_blank" rel="noreferrer">AEAT · algoritmo de retenciones 2026</a><a href={TAX_SOURCES.regions} target="_blank" rel="noreferrer">Hacienda · escalas y mínimos autonómicos 2026</a><a href={TAX_SOURCES.socialSecurity} target="_blank" rel="noreferrer">BOE · cotización a la Seguridad Social 2026</a><a href={TAX_SOURCES.incomeTax} target="_blank" rel="noreferrer">BOE · Ley del IRPF y deducción por salarios bajos</a><a href={TAX_SOURCES.aeatCalculator} target="_blank" rel="noreferrer">Comprobar la retención en el simulador oficial</a></div></Fold>
     </div>;
 }

@@ -117,56 +117,10 @@
     @apply tw:ui-stack tw:gap-[1.5rem] tw:h-full;
 }
 
-.result-main-card {
-    background: linear-gradient(135deg, #065f46, #3730a3);
-    color: white;
-    @apply tw:p-[2.5rem] tw:rounded-[24px] tw:text-center;
-    box-shadow: var(--shadow-md);
-}
-
-.result-main-card .label {
-    @apply tw:text-[length:1rem];
-    font-weight: 600;
-    @apply tw:opacity-[0.9] tw:mb-[0.5rem];
-}
-
-.result-main-card .result-value {
-    @apply tw:text-[length:3.5rem];
-    font-weight: 800;
-    @apply tw:m-[0];
-    color: inherit;
-}
-
 /* The shared glass material replaces the gradient; use its matching text palette. */
-html[data-appearance="liquid-glass"] .bond-calc .result-main-card {
-    @apply tw:text-main;
-}
-
-html[data-appearance="liquid-glass"] .bond-calc .result-main-card__subtext {
-    @apply tw:text-secondary;
-    text-shadow: none;
-}
-
-.result-main-card__subtext {
-    @apply tw:mt-[1rem] tw:text-[length:0.85rem];
-    font-weight: 500;
-    color: rgba(255, 255, 255, 0.95);
-    /* Better contrast */
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
-}
 
 .result-details {
     @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(180px,_1fr))] tw:gap-[1rem] tw:flex-[1];
-}
-
-.detail-box {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:p-[1.5rem] tw:rounded-[20px] tw:ui-stack tw:gap-[0.75rem] tw:justify-center tw:h-full;
-}
-
-.detail-box .label {
-    @apply tw:text-[length:0.75rem] tw:text-secondary;
-    text-transform: uppercase;
-    font-weight: 700;
 }
 
 .detail-box__value {
@@ -218,28 +172,6 @@ html[data-appearance="liquid-glass"] .bond-calc .result-main-card__subtext {
 .bond-calc-edu {
     @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(300px,_1fr))] tw:gap-[1.5rem] tw:mt-[2rem];
 }
-
-.edu-card {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:p-[2rem] tw:rounded-[24px];
-}
-
-.edu-card h3 {
-    @apply tw:ui-row tw:gap-[0.75rem] tw:text-[length:1.25rem] tw:mb-[1rem] tw:text-main;
-}
-
-.edu-card p {
-    @apply tw:text-[length:0.95rem];
-    line-height: 1.6;
-    @apply tw:text-secondary tw:m-[0];
-}
-
-.bond-calc__calculation-details {
-    @apply tw:mt-[1rem] tw:p-[1rem] tw:ui-border-default tw:rounded-[16px] tw:ui-fill-surface tw:text-main;
-}
-.bond-calc__calculation-details summary {
-    @apply tw:cursor-pointer;
-    font-weight: 600;
-}
 .bond-calc__calculation-details dl {
     @apply tw:grid tw:grid-cols-[minmax(0,_1fr)_minmax(0,_1fr)] tw:gap-[0.6rem_1rem] tw:m-[1rem_0];
 }
@@ -248,10 +180,6 @@ html[data-appearance="liquid-glass"] .bond-calc .result-main-card__subtext {
 }
 .bond-calc__calculation-details dd {
     @apply tw:m-[0] tw:text-right tw:wrap-anywhere;
-}
-.bond-calc__calculation-details p {
-    @apply tw:text-secondary tw:text-[length:0.85rem];
-    line-height: 1.5;
 }
 
 @media (max-width: 850px) {
@@ -270,10 +198,6 @@ html[data-appearance="liquid-glass"] .bond-calc .result-main-card__subtext {
     .bond-calc__advanced-grid {
         @apply tw:grid-cols-[1fr];
     }
-
-    .edu-card {
-        @apply tw:p-[1.5rem] tw:rounded-[20px];
-    }
 }
 
 @media (max-width: 480px) {
@@ -283,9 +207,5 @@ html[data-appearance="liquid-glass"] .bond-calc .result-main-card__subtext {
 
     .bond-calc-edu {
         @apply tw:gap-[1rem];
-    }
-
-    .edu-card {
-        @apply tw:p-[1.1rem] tw:rounded-[16px];
     }
 }

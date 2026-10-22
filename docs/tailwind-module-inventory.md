@@ -57,3 +57,8 @@ El catálogo y las calculadoras de emergencia, impacto fiscal e inflación pasan
 ## Actualización de la sexta fase
 
 Interés compuesto, FIRE y jubilación reutilizan 19 campos y nueve tarjetas de resultados mediante componentes React con estructura y estilos propios. Se retiran 26 reglas de sus hojas locales. No se retiran hojas completas: se mantienen 53 módulos con `@reference`, con la disposición y los gráficos específicos separados de los componentes de presentación.
+
+
+## Actualización de la séptima fase
+
+Bonos, IRPF/sueldo neto y ficha de fondos usan componentes que encapsulan estructura y estilos para controles, paneles, desplegables, resultados, tablas, distribuciones y documentación. Sus CSS locales suman 671 líneas frente a 962 antes de esta fase. Se mantienen las 53 hojas de módulos con `@reference`: continúan conteniendo el diseño de página y los elementos específicos.

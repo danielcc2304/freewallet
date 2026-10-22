@@ -11,7 +11,6 @@
 }
 
 .fund-info__search-card,
-.fund-info__section,
 .fund-info__empty-state {
     @apply tw:ui-panel;
     box-shadow: var(--shadow-sm);
@@ -232,23 +231,6 @@
     color: var(--accent-secondary);
 }
 
-.fund-info__section {
-    @apply tw:p-ui-xl;
-}
-
-.fund-info__section-heading {
-    @apply tw:ui-row tw:gap-ui-sm tw:pb-ui-md tw:mb-ui-lg;
-    border-bottom: 1px solid var(--border-primary);
-}
-
-.fund-info__section-heading h2 {
-    @apply tw:m-[0] tw:text-[length:var(--font-size-xl)];
-}
-
-.fund-info__section-icon {
-    @apply tw:inline-flex tw:text-accent;
-}
-
 .fund-info__metric-grid,
 .fund-info__data-grid,
 .fund-info__fee-grid {
@@ -259,45 +241,18 @@
     @apply tw:grid-cols-[repeat(auto-fit,_minmax(170px,_1fr))];
 }
 
-.fund-info__metric {
-    @apply tw:min-w-[0] tw:p-ui-md tw:ui-fill-muted tw:ui-border tw:rounded-control;
-}
-
-.fund-info__metric-label,
-.fund-info__metric-detail,
-.fund-info__data-item span,
 .fund-info__subheading {
     @apply tw:block tw:text-muted tw:text-[length:var(--font-size-xs)];
 }
 
-.fund-info__metric-label,
 .fund-info__subheading {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.03em;
 }
 
-.fund-info__metric-value {
-    @apply tw:block tw:mt-ui-xs tw:text-main tw:text-[length:var(--font-size-lg)] tw:wrap-anywhere;
-}
-
-.fund-info__metric-detail {
-    @apply tw:mt-ui-xs;
-}
-
 .fund-info__data-grid {
     @apply tw:grid-cols-[repeat(3,_minmax(0,_1fr))];
-}
-
-.fund-info__data-item {
-    @apply tw:min-w-[0] tw:pl-ui-md;
-    border-left: 3px solid rgba(var(--accent-rgb), 0.25);
-}
-
-.fund-info__data-item strong {
-    @apply tw:block tw:mt-[0.2rem] tw:text-main tw:text-[length:var(--font-size-sm)];
-    line-height: 1.45;
-    @apply tw:wrap-anywhere;
 }
 
 .fund-info__features {
@@ -324,94 +279,12 @@
     @apply tw:grid-cols-[repeat(4,_minmax(0,_1fr))];
 }
 
-.fund-info__fee-item {
-    @apply tw:ui-stack tw:gap-ui-xs tw:p-ui-md tw:ui-fill-muted tw:rounded-control;
-}
-
-.fund-info__fee-item span {
-    @apply tw:text-muted tw:text-[length:var(--font-size-sm)];
-}
-
-.fund-info__fee-item strong {
-    @apply tw:text-main tw:text-[length:var(--font-size-lg)];
-}
-
-.fund-info__table-wrapper {
-    @apply tw:overflow-x-auto;
-}
-
-.fund-info__stats-table {
-    @apply tw:w-full tw:min-w-[560px] tw:border-collapse tw:text-secondary tw:text-[length:var(--font-size-sm)];
-}
-
-.fund-info__stats-table th,
-.fund-info__stats-table td {
-    @apply tw:p-[0.8rem_var(--spacing-sm)];
-    border-bottom: 1px solid var(--border-primary);
-    @apply tw:text-right tw:whitespace-nowrap;
-}
-
-.fund-info__stats-table th:first-child,
-.fund-info__stats-table td:first-child {
-    @apply tw:text-left;
-}
-
-.fund-info__stats-table thead th {
-    @apply tw:text-muted tw:text-[length:var(--font-size-xs)];
-    text-transform: uppercase;
-    letter-spacing: 0.03em;
-}
-
-.fund-info__stats-table tbody th {
-    @apply tw:text-main;
-    font-weight: 600;
-}
-
-.fund-info__stats-table tbody td {
-    @apply tw:text-accent;
-    font-weight: 700;
-}
-
 .fund-info__table-note {
     @apply tw:m-[var(--spacing-md)_0_0] tw:text-muted tw:text-[length:var(--font-size-xs)];
 }
 
 .fund-info__breakdown-grid {
     @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-ui-lg;
-}
-
-.fund-info__breakdown-card {
-    @apply tw:min-w-[0] tw:p-ui-lg tw:ui-fill-muted tw:ui-border tw:rounded-control;
-}
-
-.fund-info__breakdown-card h3 {
-    @apply tw:m-[0_0_var(--spacing-lg)] tw:text-[length:var(--font-size-base)];
-}
-
-.fund-info__breakdown-list {
-    @apply tw:ui-stack tw:gap-ui-md;
-}
-
-.fund-info__breakdown-label {
-    @apply tw:flex tw:justify-between tw:gap-ui-md tw:text-secondary tw:text-[length:var(--font-size-sm)];
-}
-
-.fund-info__breakdown-label span {
-    @apply tw:wrap-anywhere;
-}
-
-.fund-info__breakdown-label strong {
-    @apply tw:shrink-[0] tw:text-main;
-}
-
-.fund-info__breakdown-track {
-    @apply tw:h-[6px] tw:mt-ui-xs tw:overflow-hidden tw:ui-fill-surface tw:rounded-[var(--radius-full)];
-}
-
-.fund-info__breakdown-track span {
-    @apply tw:block tw:h-full;
-    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-    @apply tw:rounded-[inherit];
 }
 
 .fund-info__holdings-list {
@@ -449,40 +322,6 @@
     @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-ui-sm;
 }
 
-.fund-info__document {
-    @apply tw:ui-row tw:gap-ui-sm tw:min-w-[0] tw:p-ui-md tw:text-secondary tw:ui-fill-muted tw:ui-border tw:rounded-control;
-}
-
-.fund-info__document:hover {
-    @apply tw:text-main;
-    border-color: var(--accent-primary);
-}
-
-.fund-info__document > svg:first-child {
-    @apply tw:text-accent tw:shrink-[0];
-}
-
-.fund-info__document > svg:last-child {
-    @apply tw:shrink-[0] tw:ml-[auto] tw:text-muted;
-}
-
-.fund-info__document span {
-    @apply tw:ui-stack tw:min-w-[0] tw:gap-[0.15rem];
-}
-
-.fund-info__document strong,
-.fund-info__document small {
-    @apply tw:wrap-anywhere;
-}
-
-.fund-info__document strong {
-    @apply tw:text-main tw:text-[length:var(--font-size-sm)];
-}
-
-.fund-info__document small {
-    @apply tw:text-muted tw:text-[length:var(--font-size-xs)];
-}
-
 .fund-info__result-footnote {
     @apply tw:p-[0_var(--spacing-sm)];
 }
@@ -510,7 +349,6 @@
     }
 
     .fund-info__search-card,
-    .fund-info__section,
     .fund-info__fund-hero {
         @apply tw:p-ui-lg;
     }
@@ -535,23 +373,6 @@
     /* Keep the historical metrics as a real table for accessibility, but fit
        all four columns to the viewport so this section does not create a
        nested horizontal touch scroller. */
-    .fund-info__table-wrapper {
-        @apply tw:overflow-x-clip;
-    }
-
-    .fund-info__stats-table {
-        @apply tw:min-w-[0] tw:table-fixed tw:text-[length:var(--font-size-xs)];
-    }
-
-    .fund-info__stats-table th,
-    .fund-info__stats-table td {
-        @apply tw:p-[0.65rem_0.25rem] tw:whitespace-normal tw:wrap-anywhere;
-    }
-
-    .fund-info__stats-table th:first-child,
-    .fund-info__stats-table td:first-child {
-        @apply tw:w-[32%];
-    }
 
     .fund-info__risk-tooltip {
         @apply tw:right-[0] tw:left-[auto];

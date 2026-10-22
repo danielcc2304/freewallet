@@ -16,28 +16,6 @@
     background: color-mix(in srgb, var(--accent-primary) 10%, transparent);
 }
 
-.fund-transfer__field {
-    @apply tw:grid tw:gap-[.4rem] tw:text-main;
-    font-weight: 600;
-}
-
-.fund-transfer__field input,
-.fund-transfer__field select {
-    @apply tw:w-full tw:min-h-[2.75rem] tw:p-[.65rem_.75rem] tw:ui-border-default tw:rounded-control tw:ui-fill-surface tw:text-main;
-    font: inherit;
-    font-weight: 400;
-}
-
-.fund-transfer__field input:disabled {
-    @apply tw:opacity-[.65];
-}
-
-.fund-transfer__field small {
-    @apply tw:text-secondary tw:text-[length:.8rem];
-    font-weight: 400;
-    line-height: 1.45;
-}
-
 .fund-transfer__execution-grid {
     @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[.75rem];
 }

@@ -1,3 +1,4 @@
+import { DashboardActions } from '../../components/dashboard/ui/DashboardActions';
 import type { NewTransferFund } from '../../services/fundTransfer';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
@@ -449,21 +450,7 @@ export function Dashboard() {
                 ) : null}
             </Modal>
             {dashboardNoticeModal}
-            <div className="dashboard__floating-actions" aria-label="Acciones de cartera">
-                <Button
-                    variant="secondary"
-                    onClick={refreshPrices}
-                    icon={updatingPrices ? <Loader2 size={18} className="spinning" /> : <RefreshCw size={18} />}
-                    size="sm"
-                    className="dashboard__floating-refresh"
-                    disabled={updatingPrices || !apiEnabled}
-                    aria-label={!apiEnabled ? 'Consultas desactivadas' : updatingPrices ? 'Consultando precios' : 'Consultar precios ahora'}
-                    title={!apiEnabled ? 'Consultas desactivadas' : updatingPrices ? 'Consultando precios' : 'Consultar precios ahora'}
-                />
-                <Link className="dashboard__floating-add" to="/add" aria-label="Añadir inversión" title="Añadir inversión">
-                    <PlusCircle size={25} strokeWidth={2.4} />
-                </Link>
-            </div>
+            <DashboardActions updating={updatingPrices} apiEnabled={apiEnabled} onRefresh={refreshPrices} />
         </div>
     );
 }

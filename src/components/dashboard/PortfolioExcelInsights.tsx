@@ -1,3 +1,8 @@
+import type { KeyboardEvent } from 'react';
+import { DashboardMetric } from './ui/DashboardMetric';
+import { DashboardPanel } from './ui/DashboardPanel';
+import { DashboardSegments } from './ui/DashboardSegments';
+import { DashboardSwitch } from './ui/DashboardSwitch';
 import { fundBlockAllocation, portfolioBlocks, blockFundKey, blockNames, type BlockAllocation } from '../../services/portfolioBlocks';
 import { useEffect, useId, useMemo, useState, useTransition } from 'react';
 import type { ReactNode } from 'react';
@@ -148,10 +153,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         try { updateSettings({ allocationBlocks: next }); setBlockSettingsError(''); }
         catch (error) { setBlockSettingsError(error instanceof Error ? error.message : 'No se pudo guardar.'); }
     };
-    const fundBreakdownSwitch = (subtle = false) => <label className={`portfolio-excel-insights__block-toggle${subtle ? ' is-subtle' : ''}`}>
-        <input type="checkbox" role="switch" checked={blockSettings.lookThrough} onChange={event => changeBlockSettings({ ...blockSettings, lookThrough: event.target.checked })} />
-        <span className="portfolio-excel-insights__switch-track" aria-hidden="true"><span /></span><span>Desglosar fondos</span>
-    </label>;
+    const fundBreakdownSwitch = (subtle = false) => <DashboardSwitch checked={blockSettings.lookThrough} subtle={subtle} onChange={checked => changeBlockSettings({ ...blockSettings, lookThrough: checked })} label="Desglosar fondos" />;
     const [fundBlocksByIsin, setFundBlocksByIsin] = useState<Record<string, BlockAllocation | null>>({});
     const [fundAllocationsByIsin, setFundAllocationsByIsin] = useState<Record<string, FundBenchmarkAllocation | null>>({});
     const changeTab=(next:InsightTab)=>{
@@ -466,25 +468,28 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                 </div>
                 <div className="portfolio-excel-insights__kpis">
                     {kpis.map((kpi) => (
-                        <div key={kpi.label}>
-                            <span className="portfolio-excel-insights__kpi-icon">{kpi.icon}</span>
-                            <span>{kpi.label}</span>
-                            <strong className={kpi.tone}>{kpi.value}</strong>
-                            {kpi.value === 'N/D' ? <DashboardInfo className="portfolio-excel-insights__missing" title={`${kpi.label}: dato no disponible`}><p>{missingMetricReason(kpi.label, recentMonthly.length)}</p></DashboardInfo> : kpi.detail && <small>{kpi.detail}</small>}
-                        </div>
+                        <DashboardMetric variant="insights" key={kpi.label} icon={kpi.icon} label={kpi.label} value={kpi.value} valueClassName={kpi.tone} annotation={kpi.value === 'N/D' ? <DashboardInfo className="portfolio-excel-insights__missing" title={`${kpi.label}: dato no disponible`}><p>{missingMetricReason(kpi.label, recentMonthly.length)}</p></DashboardInfo> : undefined} detail={kpi.value !== 'N/D' ? kpi.detail : undefined} />
                     ))}
                 </div>
 
-                <div className="portfolio-excel-insights__tabs" role="tablist" aria-label="Análisis avanzado de cartera">
-                    {tabs.map((item) => (
-                        <button
-                            key={item.value}
-                            type="button"
-                            role="tab"
-                            id={`${tabId}-${item.value}`}
-                            aria-controls={`${tabId}-panel`}
-                            tabIndex={tab === item.value ? 0 : -1}
-                            onKeyDown={event => {
+                <DashboardSegments
+                    appearance="tabs"
+                    className="portfolio-excel-insights__tabs"
+                    role="tablist"
+                    aria-label="Análisis avanzado de cartera"
+                    value={tab}
+                    onChange={changeTab}
+                    options={tabs.map(item => ({
+                        value: item.value,
+                        label: item.label,
+                        icon: item.icon,
+                        buttonProps: {
+                            role: 'tab',
+                            id: `${tabId}-${item.value}`,
+                            'aria-controls': `${tabId}-panel`,
+                            tabIndex: tab === item.value ? 0 : -1,
+                            'aria-selected': tab === item.value,
+                            onKeyDown: (event: KeyboardEvent<HTMLButtonElement>) => {
                                 const keys = ['ArrowRight', 'ArrowLeft', 'Home', 'End'];
                                 if (!keys.includes(event.key)) return;
                                 event.preventDefault();
@@ -492,21 +497,15 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                 const next = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (index + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
                                 changeTab(tabs[next].value);
                                 document.getElementById(`${tabId}-${tabs[next].value}`)?.focus();
-                            }}
-                            aria-selected={tab === item.value}
-                            className={tab === item.value ? 'is-active' : ''}
-                            onClick={() => changeTab(item.value)}
-                        >
-                            {item.icon}{item.label}
-                        </button>
-                    ))}
-                </div>
+                            },
+                        },
+                    }))}
+                />
 
                 {(changingPanel||(tab==='benchmark'&&apiEnabled&&loadingBenchmark))&&<div className="portfolio-excel-insights__loading" role="status"><LoaderCircle size={16} aria-hidden="true" />{changingPanel?'Cargando análisis…':'Consultando histórico del benchmark…'}</div>}
                 <div role="tabpanel" id={`${tabId}-panel`} aria-labelledby={`${tabId}-${tab}`} aria-busy={changingPanel||(tab==='benchmark'&&apiEnabled&&loadingBenchmark)}>
                 {tab === 'evolution' && (
-                    <section className="portfolio-excel-insights__panel">
-                        <div className="portfolio-excel-insights__panel-heading">
+                        <DashboardPanel className="portfolio-excel-insights__panel"><div className="portfolio-excel-insights__panel-heading">
                             <div>
                                 <h3><CalendarClock size={16} /> Evolución registrada de la cartera</h3>
                                 <p>{hasArchivedHistory
@@ -520,53 +519,39 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                     <small>{selectedPeriodPerformance.observations} intervalos válidos · base {formatHistoryDate(selectedPeriodPerformance.baseDate)}{selectedPeriodPerformance.missingIntervals > 0 && ` · ${selectedPeriodPerformance.missingIntervals} sin base verificable`}{selectedPeriod.incompleteSince && ` · hasta ${formatChartDate(selectedPeriodPerformance.endDate ?? '')}`}</small>
                                 </div>
                                 <strong>{evolutionSeries.length} observaciones</strong>
-                                <div className="portfolio-excel-insights__periods" role="group" aria-label="Periodo de evolución">
-                                    {evolutionPeriods.map((period) => (
-                                        <button
-                                            key={period.value}
-                                            type="button"
-                                            aria-pressed={evolutionPeriod === period.value}
-                                            className={evolutionPeriod === period.value ? 'is-active' : ''}
-                                            onClick={() => startPanelTransition(()=>setEvolutionPeriod(period.value))}
-                                        >
-                                            {period.label}
-                                        </button>
-                                    ))}
-                                </div>
+                                <DashboardSegments appearance="periods" className="portfolio-excel-insights__periods" role="group" aria-label="Periodo de evolución" options={evolutionPeriods} value={evolutionPeriod} onChange={period => startPanelTransition(() => setEvolutionPeriod(period))} />
                             </div>
                         </div>
-                        {evolutionSeries.length > 1 ? (
-                            <ResponsiveContainer width="100%" height={270}>
-                                <ComposedChart data={evolutionSeries} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
-                                    <defs>
-                                        <linearGradient id="liveValueFill" x1="0" y1="0" x2="0" y2="1">
-                                            <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
-                                            <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
-                                        </linearGradient>
-                                    </defs>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
-                                    <XAxis dataKey="timestamp" type="number" scale="time" domain={['dataMin', 'dataMax']} tickFormatter={formatChartDate} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} minTickGap={28} />
-                                    <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={formatAxisCurrency} width={48} />
-                                    <Tooltip {...tooltipTheme} labelFormatter={label => formatChartDate(Number(label))} formatter={(value: number | string | undefined, name?: string) => [currency(Number(value || 0)), name === 'value' ? 'Valor actual' : 'Capital invertido']} />
-                                    <Legend formatter={(value) => value === 'value' ? 'Valor actual' : 'Capital invertido'} />
-                                    <Area type="linear" isAnimationActive={false} dataKey="value" stroke="#10b981" fill="url(#liveValueFill)" strokeWidth={2} />
-                                    <Line isAnimationActive={false} type="monotone" dataKey="invested" stroke="#8b5cf6" strokeWidth={2} dot={false} />
-                                </ComposedChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div className="portfolio-excel-insights__empty">Necesitamos al menos dos actualizaciones de precios para dibujar la evolución.</div>
-                        )}
-                        {significantCapitalFlow && (
-                            <p className="portfolio-excel-insights__chart-note">
-                                El cierre de {formatHistoryDate(significantCapitalFlow.date)} incluye una {significantCapitalFlow.amount >= 0 ? 'aportación' : 'retirada'} neta de {currency(Math.abs(significantCapitalFlow.amount))}; se excluye del cálculo de rentabilidad.
-                            </p>
-                        )}
-                    </section>
+                            {evolutionSeries.length > 1 ? (
+                                <ResponsiveContainer width="100%" height={270}>
+                                    <ComposedChart data={evolutionSeries} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
+                                        <defs>
+                                            <linearGradient id="liveValueFill" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#10b981" stopOpacity={0.3} />
+                                                <stop offset="95%" stopColor="#10b981" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
+                                        <XAxis dataKey="timestamp" type="number" scale="time" domain={['dataMin', 'dataMax']} tickFormatter={formatChartDate} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} minTickGap={28} />
+                                        <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={formatAxisCurrency} width={48} />
+                                        <Tooltip {...tooltipTheme} labelFormatter={label => formatChartDate(Number(label))} formatter={(value: number | string | undefined, name?: string) => [currency(Number(value || 0)), name === 'value' ? 'Valor actual' : 'Capital invertido']} />
+                                        <Legend formatter={(value) => value === 'value' ? 'Valor actual' : 'Capital invertido'} />
+                                        <Area type="linear" isAnimationActive={false} dataKey="value" stroke="#10b981" fill="url(#liveValueFill)" strokeWidth={2} />
+                                        <Line isAnimationActive={false} type="monotone" dataKey="invested" stroke="#8b5cf6" strokeWidth={2} dot={false} />
+                                    </ComposedChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="portfolio-excel-insights__empty">Necesitamos al menos dos actualizaciones de precios para dibujar la evolución.</div>
+                            )}
+                            {significantCapitalFlow && (
+                                <p className="portfolio-excel-insights__chart-note">
+                                    El cierre de {formatHistoryDate(significantCapitalFlow.date)} incluye una {significantCapitalFlow.amount >= 0 ? 'aportación' : 'retirada'} neta de {currency(Math.abs(significantCapitalFlow.amount))}; se excluye del cálculo de rentabilidad.
+                                </p>
+                            )}</DashboardPanel>
                 )}
 
                 {tab === 'benchmark' && (
-                    <section className="portfolio-excel-insights__panel">
-                        <div className="portfolio-excel-insights__panel-heading">
+                        <DashboardPanel className="portfolio-excel-insights__panel"><div className="portfolio-excel-insights__panel-heading">
                             <div>
                                 <h3><BarChart3 size={16} /> Comparativa automática</h3>
                                 <p>{benchmarkMode === 'allocation'
@@ -574,204 +559,176 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                     : benchmarkUsesWorkbook ? 'Fuente: histórico importado.' : benchmarkUsesExtension ? 'Fuente: histórico y valores liquidativos del fondo.' : `${BENCHMARK_NAME} (${BENCHMARK_ISIN}).`}</p>
                             </div>
                             <div className="portfolio-excel-insights__panel-actions">
-                                <div className="portfolio-excel-insights__benchmark-mode" role="group" aria-label="Método de comparación">
-                                    <button type="button" aria-pressed={benchmarkMode === 'allocation'} className={benchmarkMode === 'allocation' ? 'is-active' : ''} onClick={() => changeBenchmarkMode('allocation')}>Según la cartera</button>
-                                    <button type="button" aria-pressed={benchmarkMode === 'msci'} className={benchmarkMode === 'msci' ? 'is-active' : ''} onClick={() => changeBenchmarkMode('msci')}>100 % MSCI World</button>
-                                </div>
-                                <div className="portfolio-excel-insights__periods" role="group" aria-label="Periodo de benchmark">
-                                    {evolutionPeriods.map((period) => (
-                                        <button
-                                            key={period.value}
-                                            type="button"
-                                            aria-pressed={evolutionPeriod === period.value}
-                                            className={evolutionPeriod === period.value ? 'is-active' : ''}
-                                            onClick={() => startPanelTransition(()=>setEvolutionPeriod(period.value))}
-                                        >
-                                            {period.label}
-                                        </button>
-                                    ))}
-                                </div>
+                                <DashboardSegments appearance="mode" className="portfolio-excel-insights__benchmark-mode" role="group" aria-label="Método de comparación" options={[{ value: 'allocation', label: 'Según la cartera' }, { value: 'msci', label: '100 % MSCI World' }]} value={benchmarkMode} onChange={changeBenchmarkMode} />
+                                <DashboardSegments appearance="periods" className="portfolio-excel-insights__periods" role="group" aria-label="Periodo de benchmark" options={evolutionPeriods} value={evolutionPeriod} onChange={period => startPanelTransition(() => setEvolutionPeriod(period))} />
                             </div>
                         </div>
-                        {benchmarkMode === 'allocation' && fundBreakdownSwitch(true)}
-                        {benchmarkMode === 'allocation' && blockSettingsError && <p role="alert">{blockSettingsError}</p>}
-                        {benchmarkMode === 'allocation' && <p className="portfolio-excel-insights__chart-note">
-                            Pesos de la composición actual. El tramo Groupama incluye renta fija y liquidez.
-                            {benchmarkClassificationPending
-                                ? ' Consultando desgloses disponibles de fondos y ETF.'
-                                : benchmarkWeights.unclassifiedPercent > 0
-                                    ? ` El ${plainPercent(benchmarkWeights.unclassifiedPercent)} de activos sin clase verificada se asigna a Groupama.`
-                                    : ''}
-                        </p>}
-                        <div className="portfolio-excel-insights__benchmark-portfolio">
-                            <span>Tu cartera · {evolutionPeriod === 'YTD' ? 'YTD' : 'periodo seleccionado'}{selectedPeriod.incompleteSince && ` hasta ${formatChartDate(selectedPeriod.performance.endDate ?? '')}`}</span>
-                            <strong>{percent(selectedPeriod.performance.returnPercent)}</strong>
-                        </div>
-                        {selectedPeriod.incompleteSince && <p className="portfolio-excel-insights__chart-note" role="status">Datos pendientes de verificar desde {formatChartDate(selectedPeriod.incompleteSince)}.</p>}
-                        {hasPortfolioBenchmark && <p className="portfolio-excel-insights__comparison-dates">
-                            {benchmarkPartial ? 'Benchmark' : 'Comparación'} del {formatChartDate(benchmarkLine[0].date)} al {formatChartDate(benchmarkLine.at(-1)!.date)}
-                        </p>}
-                        {benchmarkPartial && <p className="portfolio-excel-insights__chart-note" role="status">
-                            {benchmarkHasPeriodBase
-                                ? comparison ? `Tu cartera incluye el último dato. La diferencia se calcula hasta ${formatChartDate(comparison.endDate)}.` : 'Tu cartera incluye el último dato. No hay fechas comparables suficientes para calcular la diferencia.'
-                                : 'Falta el cierre inicial del benchmark para comparar este periodo. La gráfica muestra tu cartera.'}
-                        </p>}
-                        {!hasPortfolioBenchmark && !benchmarkClassificationPending && !loadingBenchmark && <p className="portfolio-excel-insights__chart-note" role="status">Benchmark sin histórico suficiente para este periodo.</p>}
-                        {['3M', 'YTD', 'ALL'].includes(evolutionPeriod) && <p className="portfolio-excel-insights__chart-note">
-                            Cierres mensuales · mes en curso provisional.
-                            {benchmarkChart.at(-1)?.date.slice(0, 10) !== selectedPeriod.performance.endDate?.slice(0, 10)
-                                && ` Gráfico hasta ${formatChartDate(benchmarkChart.at(-1)?.date ?? '')}; tu rentabilidad superior incluye el ${formatChartDate(selectedPeriod.performance.endDate ?? '')}.`}
-                        </p>}
-                        <div className="portfolio-excel-insights__benchmark-kpis">
-                            <div><span>{benchmarkLabel}</span><strong>{percent(benchmarkReturn)}</strong></div>
-                            <div><span>{comparison&&benchmarkPartial?`Diferencia hasta ${formatChartDate(comparison.endDate)}`:'Diferencia del periodo'}</span><strong className={benchmarkDifference === null ? '' : benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'}>{percent(benchmarkDifference).replace('%', ' pp')}</strong></div>
-                        </div>
-                        {benchmarkChart.length > 1 ? (
-                            <ResponsiveContainer width="100%" height={230}>
-                                <LineChart data={benchmarkChart} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
-                                    <XAxis dataKey="timestamp" type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatChartDate} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
-                                    <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
-                                    <Tooltip
-                                        {...tooltipTheme}
-                                        wrapperStyle={{ maxWidth: 'calc(100vw - 48px)' }}
-                                        contentStyle={{ ...tooltipTheme.contentStyle, maxWidth: 'calc(100vw - 48px)', whiteSpace: 'normal' }}
-                                        filterNull={false}
-                                        labelFormatter={label => typeof label === 'string' || typeof label === 'number' ? formatChartDate(label) : ''}
-                                        formatter={(value, name, item) => {
-                                            const isPortfolio = name === 'portfolio' || name === 'Tu cartera';
-                                            const observation = isPortfolio ? null : benchmarkTooltipObservation(item.payload?.date ?? '', value == null ? null : Number(value), benchmarkLine);
-                                            return [observation ? `${percent(observation.value)}${observation.latestAvailable ? ` (${formatChartDate(observation.date)})` : ''}` : percent(value == null ? null : Number(value)),
+                            {benchmarkMode === 'allocation' && fundBreakdownSwitch(true)}
+                            {benchmarkMode === 'allocation' && blockSettingsError && <p role="alert">{blockSettingsError}</p>}
+                            {benchmarkMode === 'allocation' && <p className="portfolio-excel-insights__chart-note">
+                                Pesos de la composición actual. El tramo Groupama incluye renta fija y liquidez.
+                                {benchmarkClassificationPending
+                                    ? ' Consultando desgloses disponibles de fondos y ETF.'
+                                    : benchmarkWeights.unclassifiedPercent > 0
+                                        ? ` El ${plainPercent(benchmarkWeights.unclassifiedPercent)} de activos sin clase verificada se asigna a Groupama.`
+                                        : ''}
+                            </p>}
+                            <div className="portfolio-excel-insights__benchmark-portfolio">
+                                <span>Tu cartera · {evolutionPeriod === 'YTD' ? 'YTD' : 'periodo seleccionado'}{selectedPeriod.incompleteSince && ` hasta ${formatChartDate(selectedPeriod.performance.endDate ?? '')}`}</span>
+                                <strong>{percent(selectedPeriod.performance.returnPercent)}</strong>
+                            </div>
+                            {selectedPeriod.incompleteSince && <p className="portfolio-excel-insights__chart-note" role="status">Datos pendientes de verificar desde {formatChartDate(selectedPeriod.incompleteSince)}.</p>}
+                            {hasPortfolioBenchmark && <p className="portfolio-excel-insights__comparison-dates">
+                                {benchmarkPartial ? 'Benchmark' : 'Comparación'} del {formatChartDate(benchmarkLine[0].date)} al {formatChartDate(benchmarkLine.at(-1)!.date)}
+                            </p>}
+                            {benchmarkPartial && <p className="portfolio-excel-insights__chart-note" role="status">
+                                {benchmarkHasPeriodBase
+                                    ? comparison ? `Tu cartera incluye el último dato. La diferencia se calcula hasta ${formatChartDate(comparison.endDate)}.` : 'Tu cartera incluye el último dato. No hay fechas comparables suficientes para calcular la diferencia.'
+                                    : 'Falta el cierre inicial del benchmark para comparar este periodo. La gráfica muestra tu cartera.'}
+                            </p>}
+                            {!hasPortfolioBenchmark && !benchmarkClassificationPending && !loadingBenchmark && <p className="portfolio-excel-insights__chart-note" role="status">Benchmark sin histórico suficiente para este periodo.</p>}
+                            {['3M', 'YTD', 'ALL'].includes(evolutionPeriod) && <p className="portfolio-excel-insights__chart-note">
+                                Cierres mensuales · mes en curso provisional.
+                                {benchmarkChart.at(-1)?.date.slice(0, 10) !== selectedPeriod.performance.endDate?.slice(0, 10)
+                                    && ` Gráfico hasta ${formatChartDate(benchmarkChart.at(-1)?.date ?? '')}; tu rentabilidad superior incluye el ${formatChartDate(selectedPeriod.performance.endDate ?? '')}.`}
+                            </p>}
+                            <div className="portfolio-excel-insights__benchmark-kpis">
+                                <DashboardMetric variant="comparison" label={<>{benchmarkLabel}</>} value={<>{percent(benchmarkReturn)}</>} />
+                                <DashboardMetric variant="comparison" label={<>{comparison && benchmarkPartial ? `Diferencia hasta ${formatChartDate(comparison.endDate)}` : 'Diferencia del periodo'}</>} value={<>{percent(benchmarkDifference).replace('%', ' pp')}</>} valueClassName={benchmarkDifference === null ? '' : benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'} />
+                            </div>
+                            {benchmarkChart.length > 1 ? (
+                                <ResponsiveContainer width="100%" height={230}>
+                                    <LineChart data={benchmarkChart} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
+                                        <XAxis dataKey="timestamp" type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatChartDate} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} interval="preserveStartEnd" minTickGap={28} />
+                                        <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
+                                        <Tooltip
+                                            {...tooltipTheme}
+                                            wrapperStyle={{ maxWidth: 'calc(100vw - 48px)' }}
+                                            contentStyle={{ ...tooltipTheme.contentStyle, maxWidth: 'calc(100vw - 48px)', whiteSpace: 'normal' }}
+                                            filterNull={false}
+                                            labelFormatter={label => typeof label === 'string' || typeof label === 'number' ? formatChartDate(label) : ''}
+                                            formatter={(value, name, item) => {
+                                                const isPortfolio = name === 'portfolio' || name === 'Tu cartera';
+                                                const observation = isPortfolio ? null : benchmarkTooltipObservation(item.payload?.date ?? '', value == null ? null : Number(value), benchmarkLine);
+                                                return [observation ? `${percent(observation.value)}${observation.latestAvailable ? ` (${formatChartDate(observation.date)})` : ''}` : percent(value == null ? null : Number(value)),
                                                 benchmarkSeriesLabel(String(name), 'Tu cartera', benchmarkLabel)];
-                                        }}
-                                    />
-                                    <Legend formatter={(value) => benchmarkSeriesLabel(String(value), 'Tu cartera', benchmarkLabel)} />
-                                    <Line isAnimationActive={false} type="linear" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} connectNulls />
-                                    {benchmarkHasPeriodBase && <Line isAnimationActive={false} type="linear" dataKey="benchmark" name={benchmarkLabel} stroke="#3b82f6" strokeWidth={2} dot={false} connectNulls />}
-                                </LineChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div className="portfolio-excel-insights__empty">No hay histórico suficiente para dibujar la rentabilidad del periodo seleccionado.</div>
-                        )}
-                    </section>
+                                            }}
+                                        />
+                                        <Legend formatter={(value) => benchmarkSeriesLabel(String(value), 'Tu cartera', benchmarkLabel)} />
+                                        <Line isAnimationActive={false} type="linear" dataKey="portfolio" name="Tu cartera" stroke="#10b981" strokeWidth={2} dot={false} connectNulls />
+                                        {benchmarkHasPeriodBase && <Line isAnimationActive={false} type="linear" dataKey="benchmark" name={benchmarkLabel} stroke="#3b82f6" strokeWidth={2} dot={false} connectNulls />}
+                                    </LineChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="portfolio-excel-insights__empty">No hay histórico suficiente para dibujar la rentabilidad del periodo seleccionado.</div>
+                            )}</DashboardPanel>
                 )}
 
                 {tab === 'allocation' && (
                     <section className="portfolio-excel-insights__allocation">
-                        <div className="portfolio-excel-insights__mini-chart portfolio-excel-insights__blocks">
-                            <h3><Layers3 size={16} /> Asignación por bloques</h3>
-                            {fundBreakdownSwitch()}
-                            {!blockSettings.lookThrough && assets.some(asset => asset.type === 'fund' || asset.type === 'etf') && <details className="portfolio-excel-insights__block-categories">
-                                <summary>Categorizar fondos</summary>
-                                {[...new Map(assets.filter(asset => asset.type === 'fund' || asset.type === 'etf').map(asset => [blockFundKey(asset), asset])).values()].map(asset => <label key={blockFundKey(asset)}>
-                                    <span>{asset.name || asset.symbol}</span>
-                                    <select aria-label={`Categoría de ${asset.name || asset.symbol}`} value={blockSettings.categories[blockFundKey(asset)] ?? ''} onChange={event => {
-                                        const categories = { ...blockSettings.categories };
-                                        if (event.target.value) categories[blockFundKey(asset)] = event.target.value; else delete categories[blockFundKey(asset)];
-                                        changeBlockSettings({ ...blockSettings, categories });
-                                    }}><option value="">Automática (categoría del fondo)</option>{blockNames.map(name => <option key={name} value={name}>{name}</option>)}</select>
-                                </label>)}
-                            </details>}
-                            {blockSettingsError && <p role="alert">{blockSettingsError}</p>}
-                            {blocks.rows.map(row => <div className="portfolio-excel-insights__block" key={row.name}>
-                                <div className="portfolio-excel-insights__leader-row"><span><strong>{row.name}</strong><small>{plainPercent(row.weight)}</small></span><b>{currency(row.value)}</b></div>
-                                <progress max={100} value={row.weight} aria-label={`${row.name}: ${plainPercent(row.weight)}`} />
-                            </div>)}
-                            {apiEnabled && pendingFundIsins.length > 0 && <p role="status" className="portfolio-excel-insights__chart-note"><LoaderCircle size={14} /> Consultando composición de fondos…</p>}
-                            {blocks.unclassifiedValue > 0 && <p className="portfolio-excel-insights__chart-note">Otros incluye {currency(blocks.unclassifiedValue)} sin clasificación disponible.</p>}
-                        </div>
-                        <div className="portfolio-excel-insights__mini-chart">
-                            <h3><Layers3 size={16} /> Distribución por tipo</h3>
-                            <ResponsiveContainer width="100%" height={230}>
-                                <BarChart data={allocations} layout="vertical" margin={{ left: 10, right: 12 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" horizontal={false} />
-                                    <XAxis type="number" tickFormatter={(value) => value + '%'} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
-                                    <YAxis dataKey="name" type="category" width={90} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
-                                    <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined) => percent(Number(value || 0))} />
-                                    <Bar isAnimationActive={false} dataKey="actual" name="Peso actual" fill="#10b981" radius={[0, 6, 6, 0]} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        </div>
-                        <div className="portfolio-excel-insights__mini-chart">
-                            <h3><Target size={16} /> Mayores posiciones</h3>
-                            {leaders.map((leader) => (
-                                <div className="portfolio-excel-insights__leader-row" key={leader.symbol}>
-                                    <span><strong>{leader.symbol}</strong><small>{leader.name}</small></span>
-                                    <b>{currency(leader.value)}</b>
-                                </div>
-                            ))}
-                        </div>
+                            <DashboardPanel as="div" className="portfolio-excel-insights__mini-chart portfolio-excel-insights__blocks">
+                                <h3><Layers3 size={16} /> Asignación por bloques</h3>
+                                {fundBreakdownSwitch()}
+                                {!blockSettings.lookThrough && assets.some(asset => asset.type === 'fund' || asset.type === 'etf') && <details className="portfolio-excel-insights__block-categories">
+                                    <summary>Categorizar fondos</summary>
+                                    {[...new Map(assets.filter(asset => asset.type === 'fund' || asset.type === 'etf').map(asset => [blockFundKey(asset), asset])).values()].map(asset => <label key={blockFundKey(asset)}>
+                                        <span>{asset.name || asset.symbol}</span>
+                                        <select aria-label={`Categoría de ${asset.name || asset.symbol}`} value={blockSettings.categories[blockFundKey(asset)] ?? ''} onChange={event => {
+                                            const categories = { ...blockSettings.categories };
+                                            if(event.target.value) categories[blockFundKey(asset)] = event.target.value; else delete categories[blockFundKey(asset)];
+                                            changeBlockSettings({ ...blockSettings, categories });
+                                        }}><option value="">Automática (categoría del fondo)</option>{blockNames.map(name => <option key={name} value={name}>{name}</option>)}</select>
+                                    </label>)}
+                                </details>}
+                                {blockSettingsError && <p role="alert">{blockSettingsError}</p>}
+                                {blocks.rows.map(row => <div className="portfolio-excel-insights__block" key={row.name}>
+                                    <div className="portfolio-excel-insights__leader-row"><span><strong>{row.name}</strong><small>{plainPercent(row.weight)}</small></span><b>{currency(row.value)}</b></div>
+                                    <progress max={100} value={row.weight} aria-label={`${row.name}: ${plainPercent(row.weight)}`} />
+                                </div>)}
+                                {apiEnabled && pendingFundIsins.length > 0 && <p role="status" className="portfolio-excel-insights__chart-note"><LoaderCircle size={14} /> Consultando composición de fondos…</p>}
+                                {blocks.unclassifiedValue > 0 && <p className="portfolio-excel-insights__chart-note">Otros incluye {currency(blocks.unclassifiedValue)} sin clasificación disponible.</p>}
+                            </DashboardPanel>
+                            <DashboardPanel as="div" className="portfolio-excel-insights__mini-chart"><h3><Layers3 size={16} /> Distribución por tipo</h3>
+                                <ResponsiveContainer width="100%" height={230}>
+                                    <BarChart data={allocations} layout="vertical" margin={{ left: 10, right: 12 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" horizontal={false} />
+                                        <XAxis type="number" tickFormatter={(value) => value + '%'} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
+                                        <YAxis dataKey="name" type="category" width={90} tick={{ fill: 'var(--text-muted)', fontSize: 10 }} />
+                                        <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined) => percent(Number(value || 0))} />
+                                        <Bar isAnimationActive={false} dataKey="actual" name="Peso actual" fill="#10b981" radius={[0, 6, 6, 0]} />
+                                    </BarChart>
+                                </ResponsiveContainer></DashboardPanel>
+                            <DashboardPanel as="div" className="portfolio-excel-insights__mini-chart"><h3><Target size={16} /> Mayores posiciones</h3>
+                                {leaders.map((leader) => (
+                                    <div className="portfolio-excel-insights__leader-row" key={leader.symbol}>
+                                        <span><strong>{leader.symbol}</strong><small>{leader.name}</small></span>
+                                        <b>{currency(leader.value)}</b>
+                                    </div>
+                                ))}</DashboardPanel>
                     </section>
                 )}
 
                 {tab === 'risk' && (
-                    <section className="portfolio-excel-insights__panel">
-                        <div className="portfolio-excel-insights__panel-heading">
+                        <DashboardPanel className="portfolio-excel-insights__panel"><div className="portfolio-excel-insights__panel-heading">
                             <div>
                                 <h3><AlertTriangle size={16} /> Riesgo y consistencia</h3>
                                 <p>Meses cerrados consecutivos, retornos ajustados por flujos y tasa libre de riesgo del {plainPercent(riskFreeAnnual)} anual.</p>
                             </div>
                             <strong>{recentMonthly.length} meses</strong>
                         </div>
-                        {recentMonthly.length > 1 ? (
-                            <ResponsiveContainer width="100%" height={270}>
-                                <ComposedChart data={recentMonthly} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
-                                    <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} minTickGap={28} />
-                                    <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
-                                    <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined, name?: string) => [percent(Number(value || 0)), name || 'Valor']} />
-                                    <Legend />
-                                    <Bar isAnimationActive={false} dataKey="monthlyReturn" name="Retorno mensual" fill="#10b981" radius={[5, 5, 0, 0]} />
-                                    <Line isAnimationActive={false} type="monotone" dataKey="drawdown" name="Drawdown" stroke="#ef4444" strokeWidth={2} dot={false} />
-                                </ComposedChart>
-                            </ResponsiveContainer>
-                        ) : (
-                            <div className="portfolio-excel-insights__empty">Necesitamos más actualizaciones para calcular el riesgo mensual.</div>
-                        )}
-                        <div className="portfolio-excel-insights__stats">
-                            <span>Sharpe <strong>{sharpe === null ? 'N/D' : sharpe.toFixed(2)}</strong></span>
-                            <span>Sortino <strong>{sortino === null ? 'N/D' : sortino.toFixed(2)}</strong></span>
-                            <span>Peor mes <strong>{plainPercent(worstMonth?.monthlyReturn)}</strong></span>
-                            <span>Meses negativos <strong>{validMonthly.length ? `${negativeMonths} de ${validMonthly.length}` : 'N/D'}</strong></span>
-                            <span>Observaciones <strong>{history.length}</strong></span>
-                            <span>Pendientes de consulta <strong>{stale}</strong></span>
-                        </div>
-                        {(sharpe === null || sortino === null) && <DashboardInfo title="Ratios no disponibles" label="Ver motivo">{sharpe === null && <p>Sharpe: {missingMetricReason('Ratio Sharpe', recentMonthly.length)}</p>}{sortino === null && <p>Sortino: {missingMetricReason('Ratio Sortino', recentMonthly.length)}</p>}</DashboardInfo>}
-                    </section>
+                            {recentMonthly.length > 1 ? (
+                                <ResponsiveContainer width="100%" height={270}>
+                                    <ComposedChart data={recentMonthly} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" />
+                                        <XAxis dataKey="month" tick={{ fill: 'var(--text-muted)', fontSize: 10 }} minTickGap={28} />
+                                        <YAxis tick={{ fill: 'var(--text-muted)', fontSize: 10 }} tickFormatter={(value) => value + '%'} width={45} />
+                                        <Tooltip {...tooltipTheme} formatter={(value: number | string | undefined, name?: string) => [percent(Number(value || 0)), name || 'Valor']} />
+                                        <Legend />
+                                        <Bar isAnimationActive={false} dataKey="monthlyReturn" name="Retorno mensual" fill="#10b981" radius={[5, 5, 0, 0]} />
+                                        <Line isAnimationActive={false} type="monotone" dataKey="drawdown" name="Drawdown" stroke="#ef4444" strokeWidth={2} dot={false} />
+                                    </ComposedChart>
+                                </ResponsiveContainer>
+                            ) : (
+                                <div className="portfolio-excel-insights__empty">Necesitamos más actualizaciones para calcular el riesgo mensual.</div>
+                            )}
+                            <div className="portfolio-excel-insights__stats">
+                                <DashboardMetric variant="stat" label="Sharpe" value={<>{sharpe === null ? 'N/D' : sharpe.toFixed(2)}</>} />
+                                <DashboardMetric variant="stat" label="Sortino" value={<>{sortino === null ? 'N/D' : sortino.toFixed(2)}</>} />
+                                <DashboardMetric variant="stat" label="Peor mes" value={<>{plainPercent(worstMonth?.monthlyReturn)}</>} />
+                                <DashboardMetric variant="stat" label="Meses negativos" value={<>{validMonthly.length ? `${negativeMonths} de ${validMonthly.length}` : 'N/D'}</>} />
+                                <DashboardMetric variant="stat" label="Observaciones" value={<>{history.length}</>} />
+                                <DashboardMetric variant="stat" label="Pendientes de consulta" value={<>{stale}</>} />
+                            </div>
+                            {(sharpe === null || sortino === null) && <DashboardInfo title="Ratios no disponibles" label="Ver motivo">{sharpe === null && <p>Sharpe: {missingMetricReason('Ratio Sharpe', recentMonthly.length)}</p>}{sortino === null && <p>Sortino: {missingMetricReason('Ratio Sortino', recentMonthly.length)}</p>}</DashboardInfo>}</DashboardPanel>
                 )}
 
                 {tab === 'controls' && (
                     <section className="portfolio-excel-insights__controls">
-                        <div className="portfolio-excel-insights__control-column">
-                            <h3><ListChecks size={16} /> Controles vivos</h3>
-                            {controls.map((control) => (
-                                <div className="portfolio-excel-insights__control-row" key={control.label}>
-                                    {control.ok ? <CheckCircle2 size={15} /> : <AlertTriangle size={15} />}
-                                    <span>{control.label}</span>
-                                    <strong className={control.ok ? 'is-ok' : 'is-warn'}>{control.value}</strong>
-                                </div>
-                            ))}
-                        </div>
-                        <div className="portfolio-excel-insights__control-column">
-                            <h3><Target size={16} /> Operaciones recientes</h3>
-                            {transactions.length ? [...transactions]
-                                .sort((left, right) => right.date.localeCompare(left.date))
-                                .slice(0, 7)
-                                .map((transaction) => (
-                                    <div className="portfolio-excel-insights__movement-row" key={transaction.id}>
-                                        <span>{transaction.date}<small>{transaction.assetSymbol} · {transaction.type}</small></span>
-                                        <strong>{currency(transaction.total || 0)}</strong>
+                            <DashboardPanel as="div" className="portfolio-excel-insights__control-column"><h3><ListChecks size={16} /> Controles vivos</h3>
+                                {controls.map((control) => (
+                                    <div className="portfolio-excel-insights__control-row" key={control.label}>
+                                        {control.ok ? <CheckCircle2 size={15} /> : <AlertTriangle size={15} />}
+                                        <span>{control.label}</span>
+                                        <strong className={control.ok ? 'is-ok' : 'is-warn'}>{control.value}</strong>
                                     </div>
-                                )) : <p>Aún no hay operaciones registradas.</p>}
-                        </div>
-                        <div className="portfolio-excel-insights__control-column">
-                            <h3><ShieldCheck size={16} /> Estado de actualización</h3>
-                            <p>{stale ? 'Hay posiciones sin cotización reciente. Pulsa Actualizar precios para reintentar.' : 'Todas las posiciones se han consultado recientemente; la fecha de valoración puede ser anterior.'}</p>
-                            <div className="portfolio-excel-insights__live-status">
-                                <Activity size={15} />
-                                <strong>{lastPriceUpdate ? lastPriceUpdate.toLocaleString('es-ES') : 'Pendiente'}</strong>
-                            </div>
-                        </div>
+                                ))}</DashboardPanel>
+                            <DashboardPanel as="div" className="portfolio-excel-insights__control-column"><h3><Target size={16} /> Operaciones recientes</h3>
+                                {transactions.length ? [...transactions]
+                                    .sort((left, right) => right.date.localeCompare(left.date))
+                                    .slice(0, 7)
+                                    .map((transaction) => (
+                                        <div className="portfolio-excel-insights__movement-row" key={transaction.id}>
+                                            <span>{transaction.date}<small>{transaction.assetSymbol} · {transaction.type}</small></span>
+                                            <strong>{currency(transaction.total || 0)}</strong>
+                                        </div>
+                                    )) : <p>Aún no hay operaciones registradas.</p>}</DashboardPanel>
+                            <DashboardPanel as="div" className="portfolio-excel-insights__control-column"><h3><ShieldCheck size={16} /> Estado de actualización</h3>
+                                <p>{stale ? 'Hay posiciones sin cotización reciente. Pulsa Actualizar precios para reintentar.' : 'Todas las posiciones se han consultado recientemente; la fecha de valoración puede ser anterior.'}</p>
+                                <div className="portfolio-excel-insights__live-status">
+                                    <Activity size={15} />
+                                    <strong>{lastPriceUpdate ? lastPriceUpdate.toLocaleString('es-ES') : 'Pendiente'}</strong>
+                                </div></DashboardPanel>
                     </section>
                 )}
                 </div>

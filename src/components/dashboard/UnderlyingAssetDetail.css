@@ -29,18 +29,6 @@
     @apply tw:grid tw:grid-cols-[repeat(3,_minmax(0,_1fr))] tw:gap-[0.6rem];
 }
 
-.underlying-detail__context-grid > div {
-    @apply tw:grid tw:gap-[0.2rem] tw:min-w-[0];
-}
-
-.underlying-detail__context-grid span {
-    @apply tw:text-muted tw:text-[length:0.7rem];
-}
-
-.underlying-detail__context-grid strong {
-    @apply tw:text-main tw:text-[length:0.82rem] tw:wrap-anywhere;
-}
-
 .underlying-detail__context-note {
     @apply tw:m-[0] tw:text-muted tw:text-[length:0.72rem];
     line-height: 1.45;

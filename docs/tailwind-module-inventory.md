@@ -62,3 +62,8 @@ Interés compuesto, FIRE y jubilación reutilizan 19 campos y nueve tarjetas de 
 ## Actualización de la séptima fase
 
 Bonos, IRPF/sueldo neto y ficha de fondos usan componentes que encapsulan estructura y estilos para controles, paneles, desplegables, resultados, tablas, distribuciones y documentación. Sus CSS locales suman 671 líneas frente a 962 antes de esta fase. Se mantienen las 53 hojas de módulos con `@reference`: continúan conteniendo el diseño de página y los elementos específicos.
+
+
+## Actualización de la octava fase
+
+El Dashboard comparte nueve componentes de interfaz con marcado y utilidades Tailwind. Se retiran `PortfolioSummary.css` y `PortfolioDataQuality.css`; sus estilos se componen en React. Las hojas del Dashboard pasan de 1.804 a 1.457 líneas, incluida su página principal. Quedan 51 hojas con `@reference`; se mantienen estilos específicos de tablas, gráficos y disposición.

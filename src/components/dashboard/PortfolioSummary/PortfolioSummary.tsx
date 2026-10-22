@@ -1,10 +1,11 @@
+import { DashboardReviewRow } from '../ui/DashboardReviewRow';
+import { DashboardSegments } from '../ui/DashboardSegments';
 import {DashboardInfo} from '../DashboardInfo';
 import { MetricCard } from '../../ui/MetricCard';
 import {Button,ConfirmDialog} from '../../ui';
 import {useState} from 'react';
 import { Wallet, TrendingUp, PiggyBank, BarChart3 } from 'lucide-react';
 import type { PortfolioMetrics, TimePeriod } from '../../../types/types';
-import './PortfolioSummary.css';
 
 interface PortfolioSummaryProps {
     metrics: PortfolioMetrics;
@@ -86,30 +87,18 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
     ];
 
     return (
-        <div className="portfolio-summary">
-            <div className="portfolio-summary__header">
-                <h2 className="portfolio-summary__title">Resumen del Portfolio</h2>
-                <div className="portfolio-summary__tabs">
-                    {tabs.map((tab) => (
-                        <button
-                            key={tab.key}
-                            className={`portfolio-summary__tab ${activeTab === tab.key ? 'portfolio-summary__tab--active' : ''
-                                }`}
-                            type="button" aria-pressed={activeTab === tab.key}
-                            onClick={() => onPeriodChange(tab.key)}
-                        >
-                            {tab.label}
-                        </button>
-                    ))}
-                </div>
+        <div className="portfolio-summary tw:mb-ui-xl">
+            <div className="portfolio-summary__header tw:ui-row tw:justify-between tw:mb-ui-lg tw:flex-wrap tw:gap-ui-md tw:[@media(max-width:640px)]:flex-col tw:[@media(max-width:640px)]:items-start">
+                <h2 className="portfolio-summary__title tw:text-[length:var(--font-size-2xl)] tw:font-bold tw:text-main tw:m-0">Resumen del Portfolio</h2>
+                <DashboardSegments appearance="summary" className="portfolio-summary__tabs" options={tabs.map(tab => ({ value: tab.key, label: tab.label }))} value={activeTab} onChange={onPeriodChange} />
             </div>
-            {periodDates?.baseDate && <p className="portfolio-summary__dates">Periodo efectivo{periodDates.monthlyBase ? ' con cierre mensual' : ''}: {new Date(periodDates.baseDate).toLocaleDateString('es-ES')} — {periodDates.endDate ? new Date(periodDates.endDate).toLocaleDateString('es-ES') : 'sin cierre'}.</p>}
-            {periodDates?.incompleteSince && <div className="portfolio-summary__calculation"><DashboardInfo title="Periodo pendiente de completar" label={`${activeTab==='YTD' ? 'YTD' : 'Periodo'} pendiente de completar`}>
+            {periodDates?.baseDate && <p className="portfolio-summary__dates tw:text-[.8rem] tw:text-secondary">Periodo efectivo{periodDates.monthlyBase ? ' con cierre mensual' : ''}: {new Date(periodDates.baseDate).toLocaleDateString('es-ES')} — {periodDates.endDate ? new Date(periodDates.endDate).toLocaleDateString('es-ES') : 'sin cierre'}.</p>}
+            {periodDates?.incompleteSince && <div className="portfolio-summary__calculation tw:mt-[.5rem] tw:text-[.8rem] tw:text-secondary tw:leading-[1.5] tw:[&_summary]:cursor-pointer tw:[&_summary]:p-[.65rem_0] tw:[&_summary:focus-visible]:[outline:2px_solid_var(--accent-primary)] tw:[&_summary:focus-visible]:outline-offset-2 tw:[&_summary:focus-visible]:rounded-[var(--radius-sm)] tw:[&_p]:m-[.25rem_0_.5rem]"><DashboardInfo title="Periodo pendiente de completar" label={`${activeTab==='YTD' ? 'YTD' : 'Periodo'} pendiente de completar`}>
                 <p>Datos pendientes de verificar desde {new Date(periodDates.incompleteSince).toLocaleDateString('es-ES')}. Se conserva el último tramo calculable.</p>
             </DashboardInfo></div>}
-            {activeTab === '1D' && !Number.isFinite(periodChange.value) && <p className="portfolio-summary__dates">La variación diaria necesita valoraciones comparables o precios de hoy con cierre anterior. En Mis Activos puedes ver la última variación disponible y su fecha.</p>}
+            {activeTab === '1D' && !Number.isFinite(periodChange.value) && <p className="portfolio-summary__dates tw:text-[.8rem] tw:text-secondary">La variación diaria necesita valoraciones comparables o precios de hoy con cierre anterior. En Mis Activos puedes ver la última variación disponible y su fecha.</p>}
 
-            <div className="portfolio-summary__grid">
+            <div className="portfolio-summary__grid tw:grid tw:grid-cols-[repeat(auto-fit,minmax(240px,1fr))] tw:gap-ui-md tw:[@media(max-width:640px)]:grid-cols-[1fr]">
                 <MetricCard
                     title="Coste de posiciones abiertas"
                     value={formatCurrency(metrics.totalInvested)}
@@ -146,19 +135,18 @@ export function PortfolioSummary({ metrics, period: activeTab, onPeriodChange, e
                     icon={<BarChart3 size={20} />}
                 />
             </div>
-            {metrics.resultUnavailableReason && <div className="portfolio-summary__calculation"><DashboardInfo title="Resultados no disponibles" label="Realizado y total: ver motivo">
+            {metrics.resultUnavailableReason && <div className="portfolio-summary__calculation tw:mt-[.5rem] tw:text-[.8rem] tw:text-secondary tw:leading-[1.5] tw:[&_summary]:cursor-pointer tw:[&_summary]:p-[.65rem_0] tw:[&_summary:focus-visible]:[outline:2px_solid_var(--accent-primary)] tw:[&_summary:focus-visible]:outline-offset-2 tw:[&_summary:focus-visible]:rounded-[var(--radius-sm)] tw:[&_p]:m-[.25rem_0_.5rem]"><DashboardInfo title="Resultados no disponibles" label="Realizado y total: ver motivo">
                 <p>{metrics.resultUnavailableReason}</p>
-                {metrics.deletionReviews?.filter(r=>!r.discarded).map(r=><div key={r.id} className="portfolio-summary__deletion-review">
-                    <strong>{r.name}</strong>
-                    {r.canDiscard && onCorrectDeletion ? <Button variant="secondary" disabled={saving} onClick={()=>setReviewId(r.id)}>Era un registro erróneo</Button>
-                    : <p>Este registro necesita revisar sus compras y ventas.</p>}
+                {metrics.deletionReviews?.filter(r => !r.discarded).map(r => <DashboardReviewRow key={r.id} labelAs="strong" label={<>{r.name}</>}>
+                    {r.canDiscard && onCorrectDeletion ? <Button variant="secondary" disabled={saving} onClick={() => setReviewId(r.id)}>Era un registro erróneo</Button>
+                        : <p>Este registro necesita revisar sus compras y ventas.</p>}
                     <p>Si lo vendiste, hace falta registrar la venta real con su fecha e importe.</p>
-                </div>)}
+                </DashboardReviewRow>)}
             </DashboardInfo></div>}
-            {metrics.deletionReviews?.some(r=>r.discarded) && <details className="portfolio-summary__calculation"><summary>Registros corregidos</summary>
-                {metrics.deletionReviews.filter(r=>r.discarded).map(r=><div key={r.id} className="portfolio-summary__deletion-review"><span>{r.name} · excluido del cálculo</span>
-                    {onCorrectDeletion && <Button variant="secondary" disabled={saving} onClick={()=>void correct(r.id,false)}>Deshacer corrección</Button>}
-                </div>)}
+            {metrics.deletionReviews?.some(r=>r.discarded) && <details className="portfolio-summary__calculation tw:mt-[.5rem] tw:text-[.8rem] tw:text-secondary tw:leading-[1.5] tw:[&_summary]:cursor-pointer tw:[&_summary]:p-[.65rem_0] tw:[&_summary:focus-visible]:[outline:2px_solid_var(--accent-primary)] tw:[&_summary:focus-visible]:outline-offset-2 tw:[&_summary:focus-visible]:rounded-[var(--radius-sm)] tw:[&_p]:m-[.25rem_0_.5rem]"><summary>Registros corregidos</summary>
+                {metrics.deletionReviews.filter(r => r.discarded).map(r => <DashboardReviewRow key={r.id} labelAs="span" label={<>{r.name} · excluido del cálculo</>}>
+                    {onCorrectDeletion && <Button variant="secondary" disabled={saving} onClick={() => void correct(r.id, false)}>Deshacer corrección</Button>}
+                </DashboardReviewRow>)}
             </details>}
             {reviewError && <p role="alert">{reviewError}</p>}
             <ConfirmDialog isOpen={!!review} onClose={()=>{if(!saving)setReviewId(null);}} onConfirm={()=>{if(review)void correct(review.id,true);}} loading={saving}

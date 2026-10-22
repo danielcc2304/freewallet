@@ -11,9 +11,9 @@ const recorded=process.env.FREEWALLET_STOCK_PROVIDER_FIXTURES;
 const browser=await puppeteer.launch({headless:true,args:['--no-sandbox']});
 const errors:string[]=[], requests:string[]=[];
 let repaired=false;
-const summary=(symbol:string)=>({quoteSummary:{result:[{price:{symbol,currency:'USD',marketCap:{raw:1e9}},defaultKeyStatistics:{trailingEps:{raw:.001234},enterpriseToEbitda:{raw:20},mostRecentQuarter:{raw:1782777600}},summaryDetail:{trailingPE:{raw:30},dividendYield:{raw:0},dividendRate:{raw:0}},financialData:{financialCurrency:symbol==='MIXED'?'EUR':'USD',ebitda:{raw:2e9},profitMargins:{raw:.125},returnOnEquity:{raw:-.2},debtToEquity:{raw:51.72}}}]}});
+const summary=(symbol:string)=>({quoteSummary:{result:[{price:{symbol,currency:'USD',marketCap:{raw:1e9}},summaryProfile:{longBusinessSummary:'Synthetic business description for the complete JSON fixture.'},defaultKeyStatistics:{trailingEps:{raw:.001234},enterpriseToEbitda:{raw:20},mostRecentQuarter:{raw:1782777600}},summaryDetail:{trailingPE:{raw:30},dividendYield:{raw:0},dividendRate:{raw:0}},financialData:{financialCurrency:symbol==='MIXED'?'EUR':'USD',ebitda:{raw:2e9},profitMargins:{raw:.125},returnOnEquity:{raw:-.2},debtToEquity:{raw:51.72}}}]}});
 try {
- const page=await browser.newPage();page.on('pageerror',e=>errors.push(String(e)));
+ const page=await browser.newPage();page.setDefaultNavigationTimeout(60000);page.on('pageerror',e=>errors.push(String(e)));
  await page.setViewport({width:1280,height:900});
  await page.evaluateOnNewDocument((assets,version)=>{
   localStorage.setItem('freewallet_portfolio_v1',JSON.stringify({version:1,assets,transactions:[]}));
@@ -21,7 +21,7 @@ try {
  },assets,version);
  await page.setRequestInterception(true);
  page.on('request',r=>{void(async()=>{
-  const url=new URL(r.url());requests.push(url.pathname);
+  const url=new URL(r.url());requests.push(url.pathname+url.search);
   if(url.pathname.includes('/fundamentals-timeseries/')){
    const symbol=decodeURIComponent(url.pathname.split('/').at(-1)!);
    const target=['B02.F','AMP.MC','OHLA.MC'].includes(symbol);
@@ -50,7 +50,7 @@ try {
   if(url.pathname.includes('/finance/chart/')){
    const symbol=decodeURIComponent(url.pathname.split('/').at(-1)!);
    const empty=symbol==='EMPTY'&&!repaired;
-   const payload=empty?{chart:{result:[]}}:{chart:{result:[{meta:{symbol,currency:'USD',regularMarketPrice:120,fiftyTwoWeekHigh:200,fiftyTwoWeekLow:80},timestamp:[1790683200,1790769600],indicators:{quote:[{close:[100,120]}]}}]}};
+   const payload=empty?{chart:{result:[]}}:{chart:{result:[{meta:{symbol,currency:'USD',regularMarketTime:Math.floor(Date.now()/1000),regularMarketPrice:120,fiftyTwoWeekHigh:200,fiftyTwoWeekLow:80},timestamp:[1790683200,1790769600],indicators:{quote:[{close:[100,120]}]}}]}};
    await r.respond({status:200,contentType:'application/json',body:JSON.stringify(payload)});return;
   }
   if(url.pathname.startsWith('/__market')||url.pathname.startsWith('/__finect')){await r.respond({status:200,contentType:'application/json',body:'{}'});return;}
@@ -74,18 +74,23 @@ try {
  await(await page.$('.asset-detail__metrics-section'))!.screenshot({path:'/tmp/freewallet-stock-fundamentals.png'});
  await page.click('.modal__close');await open('MIXED');
  const mixed=await cards();assert.match(mixed['EBITDA (12 meses)'],/EUR/);assert.match(mixed['BPA (12 meses)'],/USD/);
- assert.ok(!requests.some(path=>path.includes('/yahoo-site/quote/MIXED/')),'Working JSON source does not need HTML');
+ assert.ok(!requests.some(path=>path.includes('/yahoo-site/quote/MIXED/')),'Complete JSON includes metrics and company description without HTML fallback');
+ assert.match(await page.$eval('.asset-detail__company p',node=>node.textContent||''),/Synthetic business description/);
  await page.click('.modal__close');await open('PARTIAL');
  assert.match((await cards())['EBITDA (12 meses)'],/USD/);
  assert.equal((await cards()).ROE,'10%','Available primary metrics take precedence over fallbacks');
  assert.ok(requests.some(path=>path.includes('/yahoo-site/quote/PARTIAL/')),'Partial results still recover missing EBITDA');
  await page.click('.modal__close');await open('EMPTY');
  assert.equal(Object.keys(await cards()).length,0);assert.match(await page.$eval('.metrics-empty',el=>el.textContent||''),/no disponibles/);
- const chartRequests=requests.filter(path=>path.includes('/finance/chart/EMPTY')).length;
+ await page.waitForFunction(()=>!document.querySelector('.asset-detail .chart-overlay .spinner-sm'));
+ const quoteRequests=()=>requests.filter(path=>path.includes('/finance/chart/EMPTY')&&new URL(path,origin).searchParams.get('interval')==='1m').length;
+ const historicalRequests=()=>requests.filter(path=>path.includes('/finance/chart/EMPTY')&&new URL(path,origin).searchParams.get('interval')!=='1m').length;
+ const quotesBefore=quoteRequests(),historyBefore=historicalRequests();
  repaired=true;await page.click('.asset-detail__metrics-note .btn');
  await page.waitForFunction(()=>document.querySelector('.asset-detail__metrics-section')?.textContent?.includes('USD'));
  assert.match((await cards())['EBITDA (12 meses)'],/USD/);
- assert.equal(requests.filter(path=>path.includes('/finance/chart/EMPTY')).length,chartRequests+1,'Fundamental retry only refreshes its quote, not the chart');
+ assert.equal(quoteRequests(),quotesBefore+1,'Fundamental retry refreshes its quote once');
+ assert.equal(historicalRequests(),historyBefore,'Fundamental retry does not reload the historical chart');
  for(const symbol of ['NXTE.XD','AMP.MC','OHLA.MC']){
   await page.click('.modal__close');await open(symbol);
   const metrics=await cards();assert.match(metrics['EBITDA (12 meses)'],/EUR$/);assert.match(metrics['BPA (12 meses)'],/EUR$/);

@@ -2,40 +2,20 @@
 .portfolio-excel-insights { @apply tw:min-w-[0]; }
 .portfolio-excel-insights__source { @apply tw:inline-flex tw:items-center tw:gap-[.35rem] tw:text-muted tw:text-[length:.72rem] tw:max-w-[210px] tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap; }
 .portfolio-excel-insights__kpis { @apply tw:grid tw:grid-cols-[repeat(6,_minmax(0,_1fr))] tw:gap-[.65rem]; }
-.portfolio-excel-insights__kpis > div { @apply tw:relative tw:grid tw:gap-[.3rem] tw:min-w-[0] tw:p-[.8rem] tw:ui-border tw:rounded-control tw:ui-fill-muted; }
-.portfolio-excel-insights__kpis .portfolio-excel-insights__missing { @apply tw:absolute tw:top-[0] tw:right-[0]; }
-.portfolio-excel-insights__kpi-icon { @apply tw:inline-flex tw:text-accent; }
-.portfolio-excel-insights__kpis span, .portfolio-excel-insights__kpis small { @apply tw:text-muted tw:text-[length:.72rem]; }
-.portfolio-excel-insights__kpis strong { @apply tw:text-main tw:text-[length:.95rem] tw:wrap-anywhere; }
-.portfolio-excel-insights__kpis .is-positive, .portfolio-excel-insights__control-row .is-ok { @apply tw:text-positive; }
-.portfolio-excel-insights__kpis .is-negative, .portfolio-excel-insights__control-row .is-warn { @apply tw:text-negative; }
-.portfolio-excel-insights__kpis .is-warning { color: var(--color-warning); }
+.portfolio-excel-insights__control-row .is-ok { @apply tw:text-positive; }
+.portfolio-excel-insights__control-row .is-warn { @apply tw:text-negative; }
 .portfolio-excel-insights__benchmark-portfolio { @apply tw:flex tw:justify-between tw:flex-wrap tw:gap-[.5rem] tw:m-[1rem_0] tw:p-[.85rem] tw:ui-border tw:rounded-[9px] tw:ui-fill-surface; }
 .portfolio-excel-insights__benchmark-portfolio span { @apply tw:text-muted tw:text-[length:.8rem]; }
 .portfolio-excel-insights__benchmark-portfolio strong { @apply tw:text-main; }
 .portfolio-excel-insights__comparison-dates { @apply tw:m-[1rem_0_.25rem] tw:text-main tw:text-[length:.8rem]; }
 .portfolio-excel-insights__benchmark-kpis { @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[.65rem] tw:m-[1rem_0]; }
-.portfolio-excel-insights__benchmark-kpis > div { @apply tw:grid tw:gap-[.3rem] tw:p-[.75rem] tw:ui-border tw:rounded-[9px] tw:ui-fill-muted; }
-.portfolio-excel-insights__benchmark-kpis span { @apply tw:text-muted tw:text-[length:.72rem]; }
-.portfolio-excel-insights__benchmark-kpis strong { @apply tw:text-main tw:text-[length:.95rem]; }
-.portfolio-excel-insights__tabs { @apply tw:flex tw:flex-wrap tw:gap-[.35rem] tw:m-[1rem_0] tw:p-[.3rem] tw:rounded-[10px] tw:ui-fill-muted; }
-.portfolio-excel-insights__tabs button { @apply tw:inline-flex tw:items-center tw:gap-[.35rem]; border: 0; @apply tw:rounded-[7px] tw:p-[.45rem_.7rem] tw:ui-fill-transparent tw:text-muted tw:cursor-pointer tw:text-[length:.76rem]; }
-.portfolio-excel-insights__tabs button:hover, .portfolio-excel-insights__tabs button.is-active { background: var(--accent-primary); color: white; }
-.portfolio-excel-insights__panel, .portfolio-excel-insights__mini-chart, .portfolio-excel-insights__control-column { @apply tw:min-w-[0] tw:p-[1rem] tw:ui-border tw:rounded-control tw:ui-fill-muted; }
 .portfolio-excel-insights__panel-heading { @apply tw:flex tw:justify-between tw:gap-[1rem] tw:items-start; }
 .portfolio-excel-insights__panel-actions { @apply tw:grid; justify-items: end; @apply tw:gap-[.55rem]; }
-.portfolio-excel-insights__benchmark-mode { @apply tw:flex tw:flex-wrap tw:gap-[.2rem] tw:p-[.2rem] tw:rounded-[8px] tw:ui-fill-surface; }
-.portfolio-excel-insights__benchmark-mode button { @apply tw:min-h-[44px]; border: 0; @apply tw:rounded-[6px] tw:p-[.4rem_.65rem] tw:ui-fill-transparent tw:text-muted tw:cursor-pointer; font: inherit; @apply tw:text-[length:.8rem]; }
-.portfolio-excel-insights__benchmark-mode button:hover, .portfolio-excel-insights__benchmark-mode button.is-active { background: var(--accent-primary); color: white; }
-.portfolio-excel-insights__benchmark-mode button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 .portfolio-excel-insights__period-summary { @apply tw:grid; justify-items: end; @apply tw:gap-[.1rem] tw:text-right; }
 .portfolio-excel-insights__period-summary span, .portfolio-excel-insights__period-summary small { @apply tw:text-muted tw:text-[length:.68rem]; }
 .portfolio-excel-insights__period-summary strong { @apply tw:text-positive tw:text-[length:.9rem]; }
 .portfolio-excel-insights__period-summary strong.is-negative { @apply tw:text-negative; }
 .portfolio-excel-insights__period-summary strong:empty { @apply tw:hidden; }
-.portfolio-excel-insights__periods { @apply tw:flex tw:gap-[.2rem] tw:p-[.2rem] tw:rounded-[8px] tw:ui-fill-surface; }
-.portfolio-excel-insights__periods button { border: 0; @apply tw:rounded-[6px] tw:p-[.3rem_.5rem] tw:ui-fill-transparent tw:text-muted tw:cursor-pointer tw:text-[length:.7rem]; }
-.portfolio-excel-insights__periods button:hover, .portfolio-excel-insights__periods button.is-active { background: var(--accent-primary); color: white; }
 .portfolio-excel-insights__panel-heading h3, .portfolio-excel-insights__mini-chart h3, .portfolio-excel-insights__control-column h3 { @apply tw:ui-row tw:gap-[.4rem] tw:m-[0_0_.35rem] tw:text-[length:.95rem]; }
 .portfolio-excel-insights__panel-heading p { @apply tw:m-[0] tw:text-muted tw:text-[length:.75rem]; }
 .portfolio-excel-insights__chart-note { @apply tw:m-[.75rem_0_0] tw:text-muted tw:text-[length:.72rem]; line-height: 1.45; }
@@ -46,8 +26,6 @@
 .portfolio-excel-insights__allocation, .portfolio-excel-insights__controls { @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[1rem]; }
 .portfolio-excel-insights__controls { @apply tw:grid-cols-[repeat(3,_minmax(0,_1fr))]; }
 .portfolio-excel-insights__stats { @apply tw:grid tw:grid-cols-[repeat(6,_minmax(0,_1fr))] tw:gap-[.5rem] tw:mt-[.85rem]; }
-.portfolio-excel-insights__stats span { @apply tw:grid tw:gap-[.2rem] tw:p-[.6rem] tw:text-muted tw:text-[length:.7rem] tw:ui-border tw:rounded-[8px]; }
-.portfolio-excel-insights__stats strong { @apply tw:text-main tw:text-[length:.85rem]; }
 .portfolio-excel-insights__control-column > p { @apply tw:text-muted tw:text-[length:.78rem]; }
 .portfolio-excel-insights__control-row, .portfolio-excel-insights__objective-row, .portfolio-excel-insights__movement-row { @apply tw:ui-row tw:justify-between tw:gap-[.7rem] tw:p-[.55rem_0]; border-top: 1px solid var(--border-primary); @apply tw:text-secondary tw:text-[length:.75rem]; }
 .portfolio-excel-insights__control-row svg { @apply tw:flex-[0_0_auto] tw:text-muted; }
@@ -67,14 +45,7 @@
     .portfolio-excel-insights__panel-heading { @apply tw:grid-cols-[minmax(0,_1fr)]; }
     .portfolio-excel-insights__panel-actions { @apply tw:w-full tw:min-w-[0]; justify-items: stretch; }
     .portfolio-excel-insights__period-summary { justify-items: start; @apply tw:text-left; }
-    .portfolio-excel-insights__periods { @apply tw:grid tw:grid-cols-[repeat(6,_minmax(0,_1fr))] tw:w-full tw:min-w-[0]; }
-    .portfolio-excel-insights__benchmark-mode { @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:w-full; }
-    .portfolio-excel-insights__benchmark-mode button { @apply tw:min-w-[0]; }
-    .portfolio-excel-insights__periods button { @apply tw:min-w-[0]; padding-inline: .2rem; @apply tw:whitespace-nowrap; }
 }
-.portfolio-excel-insights__periods button { @apply tw:min-h-[44px]; }
-.portfolio-excel-insights__periods button:focus-visible, .portfolio-excel-insights__tabs button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
-
 
 .portfolio-excel-insights__workbook-notice { @apply tw:ui-row tw:gap-[.85rem] tw:mb-[1rem] tw:p-[1rem] tw:ui-border tw:rounded-control tw:ui-fill-muted tw:text-main; }
 .portfolio-excel-insights__workbook-notice > svg { @apply tw:shrink-[0]; color: var(--color-warning); }
@@ -99,16 +70,6 @@
 .portfolio-excel-insights__block progress::-webkit-progress-bar { @apply tw:ui-fill-surface; }
 .portfolio-excel-insights__block progress::-webkit-progress-value { background: #10b981; }
 .portfolio-excel-insights__block progress::-moz-progress-bar { background: #10b981; }
-
-.portfolio-excel-insights__block-toggle { @apply tw:relative tw:ui-row tw:gap-[10px] tw:min-h-[44px] tw:m-[8px_0] tw:cursor-pointer; }
-.portfolio-excel-insights__block-toggle input { @apply tw:absolute tw:w-[36px] tw:h-[20px] tw:opacity-[0]; }
-.portfolio-excel-insights__switch-track { @apply tw:inline-flex tw:items-center tw:w-[36px] tw:h-[20px] tw:shrink-[0] tw:p-[3px] tw:box-border tw:rounded-[20px]; background: #64748b; transition: background 150ms; }
-.portfolio-excel-insights__switch-track > span { @apply tw:w-[14px] tw:h-[14px] tw:rounded-[50%]; background: white; box-shadow: 0 1px 3px #0003; transition: transform 150ms; }
-.portfolio-excel-insights__block-toggle input:checked + .portfolio-excel-insights__switch-track { background: #10b981; }
-.portfolio-excel-insights__block-toggle input:checked + .portfolio-excel-insights__switch-track > span { transform: translateX(16px); }
-.portfolio-excel-insights__block-toggle input:focus-visible + .portfolio-excel-insights__switch-track { outline: 2px solid var(--text-primary); outline-offset: 3px; }
-.portfolio-excel-insights__block-toggle.is-subtle { @apply tw:text-[length:12px] tw:text-muted tw:m-[0]; }
-@media (prefers-reduced-motion: reduce) { .portfolio-excel-insights__switch-track, .portfolio-excel-insights__switch-track > span { transition: none; } }
 .portfolio-excel-insights__block-categories { @apply tw:mb-[20px]; }
 .portfolio-excel-insights__block-categories summary { @apply tw:cursor-pointer tw:mb-[12px]; }
 .portfolio-excel-insights__block-categories label { @apply tw:grid tw:gap-[6px] tw:m-[12px_0]; }

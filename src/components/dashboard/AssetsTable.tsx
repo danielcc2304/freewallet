@@ -1,3 +1,4 @@
+import { DashboardFilterField } from './ui/DashboardFilterField';
 import { Fragment, memo, useId, useState, useMemo, useLayoutEffect } from 'react';
 import { ArrowLeftRight, ArrowUpDown, Trash2, ChevronUp, ChevronDown, Eye, EyeOff, Pencil, PencilOff, PlusCircle, MinusCircle } from 'lucide-react';
 import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../ui';
@@ -171,8 +172,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
             key={asset.id}
             data-position-kind={asset.isGroup?'group':isLot?'lot':'asset'}
             onClick={() => onViewDetails?.(asset)}
-            className={`clickable-row ${isLot ? 'assets-table__lot-row' : ''}`}
-        >
+            className={`clickable-row ${isLot ? 'assets-table__lot-row' : ''}`}>
             <td className="assets-table__column--asset">
                 <div className="assets-table__asset">
                     <button type="button" className="assets-table__name assets-table__open" onClick={e => { e.stopPropagation(); onViewDetails?.(asset); }} aria-label={`Ver detalles de ${asset.name}`}>{asset.name}</button>
@@ -223,8 +223,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
                         className={`assets-table__change ${asset.changePercent > 0
                             ? 'assets-table__change--positive'
                             : asset.changePercent < 0 ? 'assets-table__change--negative' : ''
-                            }`}
-                    >
+                            }`}>
                         {formatPercent(asset.changePercent)}
                     </span>
                     <span className="assets-table__gain-value">
@@ -355,8 +354,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
                                 onClick={() => setShowMobileDetails((current) => !current)}
                                 icon={showMobileDetails ? <EyeOff size={16} /> : <Eye size={16} />}
                                 aria-pressed={showMobileDetails}
-                                title={showMobileDetails ? 'Ocultar información adicional' : 'Ver toda la información'}
-                            >
+                                title={showMobileDetails ? 'Ocultar información adicional' : 'Ver toda la información'}>
                                 {showMobileDetails ? 'Ocultar' : 'Ver todo'}
                             </Button>
                             {hasActionHandlers && (
@@ -366,8 +364,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
                                     onClick={() => setShowMobileActions((current) => !current)}
                                     icon={showMobileActions ? <PencilOff size={16} /> : <Pencil size={16} />}
                                     aria-pressed={showMobileActions}
-                                    title={showMobileActions ? 'Ocultar acciones' : 'Editar y gestionar activos'}
-                                >
+                                    title={showMobileActions ? 'Ocultar acciones' : 'Editar y gestionar activos'}>
                                     {showMobileActions ? 'Cerrar' : 'Editar'}
                                 </Button>
                             )}
@@ -376,12 +373,10 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
                 />
                 <CardContent>
                     <div className="assets-table__filters">
-                        <div>
-                            <label htmlFor={`${filterId}-query`}>Buscar activo</label>
+                        <DashboardFilterField controlId={`${filterId}-query`} label="Buscar activo">
                             <input id={`${filterId}-query`} type="search" placeholder="Nombre, símbolo o ISIN" value={query} onChange={e => setQuery(e.target.value)} />
-                        </div>
-                        <div>
-                            <label htmlFor={`${filterId}-type`}>Tipo de activo</label>
+                        </DashboardFilterField>
+                        <DashboardFilterField controlId={`${filterId}-type`} label="Tipo de activo">
                             <select id={`${filterId}-type`} value={assetType} onChange={e => setAssetType(e.target.value as Asset['type'] | 'all')}>
                                 <option value="all">Todos</option>
                                 <option value="fund">Fondos</option>
@@ -390,7 +385,7 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
                                 <option value="crypto">Criptomonedas</option>
                                 <option value="cash">Liquidez</option>
                             </select>
-                        </div>
+                        </DashboardFilterField>
                         {(query || assetType !== 'all') && <Button variant="ghost" size="sm" onClick={() => { setQuery(''); setAssetType('all'); }}>Limpiar filtros</Button>}
                     </div>
                     {(query || assetType !== 'all') && <p className="assets-table__filter-count" role="status">{sortedAssets.length} de {processedAssets.length} activos · Los pesos se calculan sobre toda tu cartera.</p>}

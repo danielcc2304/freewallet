@@ -1,3 +1,5 @@
+import { DashboardMetric } from './ui/DashboardMetric';
+import { DashboardPanel } from './ui/DashboardPanel';
 import { useMemo } from 'react';
 import { AlertTriangle, ArrowDownRight, ArrowUpRight, BarChart3, Coins, Gauge, Layers3, ShieldCheck, WalletCards } from 'lucide-react';
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
@@ -81,23 +83,22 @@ export function PortfolioAnalytics({ assets, now }: { assets: Asset[]; now: numb
             <CardHeader title="Análisis avanzado" subtitle="Rentabilidad, riesgo y control operativo de la cartera viva" />
             <CardContent>
                 <div className="portfolio-analytics__kpis">
-                    <div><ArrowUpRight size={17} /><span>Rentabilidad total</span><strong className={analytics.totalReturn >= 0 ? 'is-positive' : 'is-negative'}>{percent(analytics.totalReturn)}</strong></div>
-                    <div><Gauge size={17} /><span>Rentabilidad anualizada (mín. 1 año)</span><strong>{Number.isFinite(analytics.annualized) ? percent(analytics.annualized) : 'N/D'}</strong></div>
-                    <div><BarChart3 size={17} /><span>Volatilidad anualizada</span><strong>{analytics.series.length > 1 ? `${analytics.volatility.toFixed(2)}%` : 'N/D'}</strong></div>
-                    <div><ArrowDownRight size={17} /><span>Máximo drawdown</span><strong className="is-negative">{analytics.series.length > 1 ? `${analytics.maxDrawdown.toFixed(2)}%` : 'N/D'}</strong></div>
-                    <div><ShieldCheck size={17} /><span>Días positivos</span><strong>{analytics.series.length > 1 ? `${analytics.positiveDays.toFixed(0)}%` : 'N/D'}</strong></div>
-                    <div><Gauge size={17} /><span>Ratio Sharpe</span><strong>{Number.isFinite(analytics.sharpe) ? analytics.sharpe.toFixed(2) : 'N/D'}</strong></div>
-                    <div><Gauge size={17} /><span>Ratio Sortino</span><strong>{Number.isFinite(analytics.sortino) ? analytics.sortino.toFixed(2) : 'N/D'}</strong></div>
-                    <div><ArrowUpRight size={17} /><span>Mejor mes</span><strong>{analytics.bestMonth ? percent(analytics.bestMonth.value) : 'N/D'}</strong></div>
-                    <div><ArrowDownRight size={17} /><span>Peor mes</span><strong>{analytics.worstMonth ? percent(analytics.worstMonth.value) : 'N/D'}</strong></div>
-                    <div><BarChart3 size={17} /><span>Meses negativos</span><strong>{analytics.monthCount ? analytics.negativeMonths + ' de ' + analytics.monthCount : 'N/D'}</strong></div>
-                    <div><WalletCards size={17} /><span>Compras registradas</span><strong>{currency(analytics.buys)}</strong></div>
-                    <div><Coins size={17} /><span>Ventas registradas</span><strong>{currency(analytics.sells)}</strong></div>
+                    <DashboardMetric variant="analytics" label="Rentabilidad total" value={<>{percent(analytics.totalReturn)}</>} icon={<ArrowUpRight size={17} />} valueClassName={analytics.totalReturn >= 0 ? 'is-positive' : 'is-negative'} />
+                    <DashboardMetric variant="analytics" label="Rentabilidad anualizada (mín. 1 año)" value={<>{Number.isFinite(analytics.annualized) ? percent(analytics.annualized) : 'N/D'}</>} icon={<Gauge size={17} />} />
+                    <DashboardMetric variant="analytics" label="Volatilidad anualizada" value={<>{analytics.series.length > 1 ? `${analytics.volatility.toFixed(2)}%` : 'N/D'}</>} icon={<BarChart3 size={17} />} />
+                    <DashboardMetric variant="analytics" label="Máximo drawdown" value={<>{analytics.series.length > 1 ? `${analytics.maxDrawdown.toFixed(2)}%` : 'N/D'}</>} icon={<ArrowDownRight size={17} />} valueClassName="is-negative" />
+                    <DashboardMetric variant="analytics" label="Días positivos" value={<>{analytics.series.length > 1 ? `${analytics.positiveDays.toFixed(0)}%` : 'N/D'}</>} icon={<ShieldCheck size={17} />} />
+                    <DashboardMetric variant="analytics" label="Ratio Sharpe" value={<>{Number.isFinite(analytics.sharpe) ? analytics.sharpe.toFixed(2) : 'N/D'}</>} icon={<Gauge size={17} />} />
+                    <DashboardMetric variant="analytics" label="Ratio Sortino" value={<>{Number.isFinite(analytics.sortino) ? analytics.sortino.toFixed(2) : 'N/D'}</>} icon={<Gauge size={17} />} />
+                    <DashboardMetric variant="analytics" label="Mejor mes" value={<>{analytics.bestMonth ? percent(analytics.bestMonth.value) : 'N/D'}</>} icon={<ArrowUpRight size={17} />} />
+                    <DashboardMetric variant="analytics" label="Peor mes" value={<>{analytics.worstMonth ? percent(analytics.worstMonth.value) : 'N/D'}</>} icon={<ArrowDownRight size={17} />} />
+                    <DashboardMetric variant="analytics" label="Meses negativos" value={<>{analytics.monthCount ? analytics.negativeMonths + ' de ' + analytics.monthCount : 'N/D'}</>} icon={<BarChart3 size={17} />} />
+                    <DashboardMetric variant="analytics" label="Compras registradas" value={<>{currency(analytics.buys)}</>} icon={<WalletCards size={17} />} />
+                    <DashboardMetric variant="analytics" label="Ventas registradas" value={<>{currency(analytics.sells)}</>} icon={<Coins size={17} />} />
                 </div>
 
                 <div className="portfolio-analytics__body">
-                    <section className="portfolio-analytics__chart">
-                        <h3>Rentabilidad observada ajustada por operaciones</h3>
+                    <DashboardPanel className="portfolio-analytics__chart" constrain={false}><h3>Rentabilidad observada ajustada por operaciones</h3>
                         {analytics.series.length > 1 ? (
                             <ResponsiveContainer width="100%" height={230}>
                                 <AreaChart data={analytics.series} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
@@ -109,18 +110,15 @@ export function PortfolioAnalytics({ assets, now }: { assets: Asset[]; now: numb
                                     <Area type="monotone" dataKey="cumulativeReturn" stroke="#10b981" fill="url(#analyticsReturn)" strokeWidth={2} name="Rentabilidad acumulada" />
                                 </AreaChart>
                             </ResponsiveContainer>
-                        ) : <div className="portfolio-analytics__empty">Necesitamos más snapshots para calcular riesgo y rentabilidad histórica.</div>}
-                    </section>
-                    <section className="portfolio-analytics__allocation">
-                        <h3><Layers3 size={16} /> Distribución por tipo</h3>
+                        ) : <div className="portfolio-analytics__empty">Necesitamos más snapshots para calcular riesgo y rentabilidad histórica.</div>}</DashboardPanel>
+                    <DashboardPanel className="portfolio-analytics__allocation" constrain={false}><h3><Layers3 size={16} /> Distribución por tipo</h3>
                         {analytics.allocations.map(([type, value]) => (
                             <div className="portfolio-analytics__allocation-row" key={type}>
                                 <span>{{ stock: 'Acciones', fund: 'Fondos', etf: 'ETF', crypto: 'Cripto' }[type] || type}</span><div><i style={{ width: `${analytics.currentValue ? value / analytics.currentValue * 100 : 0}%` }} /></div><strong>{analytics.currentValue ? (value / analytics.currentValue * 100).toFixed(1) : '0.0'}%</strong>
                             </div>
                         ))}
                         <h3 className="portfolio-analytics__leaders-title">Mayores posiciones</h3>
-                        {analytics.leaders.map((leader) => <div className="portfolio-analytics__leader" key={leader.symbol}><span><strong>{leader.symbol}</strong><small>{leader.name}</small></span><b>{currency(leader.value)}</b></div>)}
-                    </section>
+                        {analytics.leaders.map((leader) => <div className="portfolio-analytics__leader" key={leader.symbol}><span><strong>{leader.symbol}</strong><small>{leader.name}</small></span><b>{currency(leader.value)}</b></div>)}</DashboardPanel>
                 </div>
 
                 <div className={`portfolio-analytics__alerts ${alerts.length ? 'has-alerts' : ''}`}>

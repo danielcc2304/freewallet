@@ -1,8 +1,5 @@
 @reference "../../styles/module-theme.css";
 .portfolio-benchmark__grid { @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(155px,_1fr))] tw:gap-[.65rem]; }
-.portfolio-benchmark__grid > div { @apply tw:grid tw:gap-[.35rem] tw:p-[.8rem] tw:ui-border tw:rounded-control tw:ui-fill-muted tw:min-w-[0]; }
-.portfolio-benchmark__grid svg { @apply tw:text-accent; }
-.portfolio-benchmark__grid span, .portfolio-benchmark p, .portfolio-benchmark__loading { @apply tw:text-muted tw:text-[length:.75rem]; }
-.portfolio-benchmark__grid strong { @apply tw:text-main tw:wrap-anywhere; }
+.portfolio-benchmark p, .portfolio-benchmark__loading { @apply tw:text-muted tw:text-[length:.75rem]; }
 .portfolio-benchmark p { @apply tw:m-[.9rem_0_0]; line-height: 1.5; }
 .portfolio-benchmark__loading { @apply tw:ui-row tw:gap-[.5rem] tw:min-h-[80px] tw:justify-center; }

@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-22 - Tailwind: componentes reutilizables del Dashboard
+- Funcionalidad:
+  - Comparte indicadores, paneles, selectores, interruptores, filtros, campos de traspaso, métricas ampliadas, filas de corrección y acciones flotantes mediante nueve componentes React con estructura y estilos Tailwind.
+  - Aplica la composición al resumen, evolución, Benchmark, asignación, riesgo, controles, tabla de activos y detalles de posiciones/subyacentes.
+- Resumen:
+  - Reduce el CSS del Dashboard de 1.804 a 1.457 líneas y retira las hojas del resumen y calidad de datos. Conserva los cálculos, consultas, correcciones, operaciones y materiales Liquid Glass.
+  - Mantiene las pestañas con su navegación por teclado y añade comprobación de flechas, Inicio/Fin, foco y relación con el panel. Habilita las suites específicas existentes para ejecución aislada.
+- Archivos:
+  - src/components/dashboard/ui; src/components/dashboard/{AssetDetail,AssetsTable,FundTransferDialog,PortfolioAnalytics,PortfolioBenchmark,PortfolioComposition,PortfolioDataQuality,PortfolioExcelInsights,PortfolioHealth,UnderlyingAssetDetail}.tsx y sus CSS; PortfolioSummary/PortfolioSummary.tsx; src/pages/Dashboard; scripts/run-tests.mjs; scripts/test-dashboard-quality-ui.ts; scripts/test-stock-fundamentals-ui.ts; README.md; docs/tailwind-migration.md; docs/tailwind-module-inventory.md
+
 ### 2026-10-22 - Tailwind: bonos, IRPF y ficha de fondos
 - Funcionalidad:
   - Compone campos, casillas, paneles, desplegables, resultados destacados, bloques de datos, tarjetas educativas, tablas, distribuciones y documentos mediante componentes React con estructura y estilos Tailwind.

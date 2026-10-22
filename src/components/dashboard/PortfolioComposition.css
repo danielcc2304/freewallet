@@ -36,53 +36,6 @@
 }
 
 /* Breakdown Toggle */
-.breakdown-toggle__label {
-    @apply tw:ui-row tw:gap-ui-sm tw:cursor-pointer tw:text-[length:var(--font-size-sm)] tw:text-secondary tw:ui-border tw:p-[.35rem_.45rem_.35rem_.75rem] tw:rounded-[var(--radius-full)] tw:ui-fill-muted;
-    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
-    font: inherit;
-    @apply tw:text-left;
-    transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.breakdown-toggle__label:hover {
-    @apply tw:text-main;
-    border-color: var(--border-secondary);
-    background: var(--bg-card-hover);
-}
-
-.breakdown-toggle__slider {
-    @apply tw:shrink-[0] tw:relative tw:w-[44px] tw:h-[24px] tw:ui-border-strong;
-    background: rgba(127, 143, 158, .2);
-    @apply tw:rounded-[var(--radius-full)];
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .18);
-    transition: background var(--transition-fast), border-color var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.breakdown-toggle__slider::before {
-    content: '';
-    @apply tw:absolute tw:top-[3px] tw:left-[3px] tw:w-[18px] tw:h-[18px];
-    border: 1px solid rgba(255, 255, 255, .4);
-    background: var(--text-muted);
-    @apply tw:rounded-[50%];
-    box-shadow: 0 2px 5px rgba(0, 0, 0, .2), inset 0 1px 0 rgba(255, 255, 255, .4);
-    transition: transform var(--transition-fast), background var(--transition-fast), box-shadow var(--transition-fast);
-}
-
-.breakdown-toggle__label[aria-pressed="true"] .breakdown-toggle__slider {
-    background: var(--accent-primary);
-    border-color: var(--border-accent);
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, .16), 0 0 0 2px rgba(16, 185, 129, .08);
-}
-
-.breakdown-toggle__label[aria-pressed="true"] .breakdown-toggle__slider::before {
-    transform: translateX(20px);
-    background: white;
-}
-
-.breakdown-toggle__label:focus-visible {
-    outline: 2px solid var(--accent-primary);
-    outline-offset: 3px;
-}
 
 .portfolio-composition__breakdown-status {
     @apply tw:m-[var(--spacing-sm)_0_0] tw:text-muted tw:text-[length:var(--font-size-xs)];

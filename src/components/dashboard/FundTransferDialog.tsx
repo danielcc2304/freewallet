@@ -1,3 +1,4 @@
+import { DashboardFormField } from './ui/DashboardFormField';
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { Button, Modal } from '../ui';
 import type { Asset } from '../../types/types';
@@ -131,51 +132,45 @@ export function FundTransferDialog({ source, destinations, onClose, onSubmit }: 
                     <Button type="button" variant={newFund ? 'primary' : 'secondary'} aria-pressed={newFund} disabled={saving} onClick={() => { setNewFund(true); setDestinationExecutionPriceInput(''); }}>Nuevo fondo</Button>
                 </div>
                 {newFund ? <div className="fund-transfer__new-fund">
-                    <label className="fund-transfer__field">
-                        <span>ISIN del nuevo fondo</span>
-                        <input value={isin} maxLength={12} autoCapitalize="characters" placeholder="IE00…" required disabled={saving}
-                            onChange={event => {
-                                lookup.current?.abort(); lookup.current = null; setLookingUp(false);
-                                setIsin(event.target.value.replace(/\s/g, '').toUpperCase());
-                                setName(''); setLookupPrice(undefined); setLookupDate(undefined); setLookupNotice('');
-                                setDestinationExecutionPriceInput('');
-                            }} />
-                    </label>
+                        <DashboardFormField label="ISIN del nuevo fondo">
+                            <input value={isin} maxLength={12} autoCapitalize="characters" placeholder="IE00…" required disabled={saving}
+                                onChange={event => {
+                                    lookup.current?.abort(); lookup.current = null; setLookingUp(false);
+                                    setIsin(event.target.value.replace(/\s/g, '').toUpperCase());
+                                    setName(''); setLookupPrice(undefined); setLookupDate(undefined); setLookupNotice('');
+                                    setDestinationExecutionPriceInput('');
+                                }} />
+                        </DashboardFormField>
                     <Button type="button" variant="secondary" loading={lookingUp} disabled={saving || lookingUp || !isApiEnabled() || !validIsin || sameSource || !!matching} onClick={findFund}>Buscar fondo por ISIN</Button>
                     {isin.length === 12 && !validIsin && <p className="fund-transfer__error" role="alert">Revisa el ISIN: el formato o el dígito de control no es válido.</p>}
                     {sameSource && <p className="fund-transfer__error" role="alert">El destino debe ser distinto al fondo de origen.</p>}
                     {matching && <p role="status">Este fondo ya está en tu cartera. <Button type="button" variant="ghost" onClick={() => { setDestinationId(matching.id); setNewFund(false); setDestinationExecutionPriceInput(''); }}>Usar fondo existente</Button></p>}
                     {lookupNotice && <p role="status">{lookupNotice}</p>}
-                    <label className="fund-transfer__field">
-                        <span>Nombre del fondo</span>
-                        <input value={name} maxLength={200} placeholder="Nombre y clase del fondo" required disabled={saving} onChange={event => setName(event.target.value)} />
-                    </label>
+                        <DashboardFormField label="Nombre del fondo">
+                            <input value={name} maxLength={200} placeholder="Nombre y clase del fondo" required disabled={saving} onChange={event => setName(event.target.value)} />
+                        </DashboardFormField>
                     <small>Se añadirá a tu cartera al registrar el traspaso. Puedes completar los datos manualmente.</small>
-                </div> : <label className="fund-transfer__field">
-                    <span>Fondo de destino</span>
-                    <select value={destinationId} onChange={event => { setDestinationId(event.target.value); setDestinationExecutionPriceInput(''); }} required>
-                        {destinations.map(asset => <option key={asset.id} value={asset.id}>{asset.name} · {asset.symbol}</option>)}
-                    </select>
-                </label>}
-                <label className="fund-transfer__field">
-                    <span>Importe estimado (€)</span>
-                    <input type="text" inputMode="decimal" placeholder="0,00" value={amountInput} disabled={transferAll}
-                        onChange={event => setAmountInput(event.target.value)} aria-describedby="fund-transfer-availability" />
-                    <small id="fund-transfer-availability">El importe elige cuántas participaciones de origen trasladar según la última valoración: {currency(availableValue)} · origen {quoteDate(source)}{destination ? ` · destino ${quoteDate(destination)}` : ''}.</small>
-                </label>
+                    </div> : <DashboardFormField label="Fondo de destino">
+                        <select value={destinationId} onChange={event => { setDestinationId(event.target.value); setDestinationExecutionPriceInput(''); }} required>
+                            {destinations.map(asset => <option key={asset.id} value={asset.id}>{asset.name} · {asset.symbol}</option>)}
+                        </select>
+                    </DashboardFormField>}
+                    <DashboardFormField label="Importe estimado (€)">
+                        <input type="text" inputMode="decimal" placeholder="0,00" value={amountInput} disabled={transferAll}
+                            onChange={event => setAmountInput(event.target.value)} aria-describedby="fund-transfer-availability" />
+                        <small id="fund-transfer-availability">El importe elige cuántas participaciones de origen trasladar según la última valoración: {currency(availableValue)} · origen {quoteDate(source)}{destination ? ` · destino ${quoteDate(destination)}` : ''}.</small>
+                    </DashboardFormField>
                 <div className="fund-transfer__execution-grid">
-                    <label className="fund-transfer__field">
-                        <span>Precio real de venta del origen (€/participación)</span>
-                        <input type="text" inputMode="decimal" placeholder={Number.isFinite(sourcePrice) ? unitPrice(sourcePrice) : 'Última valoración'} value={sourceExecutionPriceInput}
-                            onChange={event => setSourceExecutionPriceInput(event.target.value)} />
-                        <small>En blanco: última valoración {Number.isFinite(sourcePrice) ? unitPrice(sourcePrice) : 'no disponible'}.</small>
-                    </label>
-                    <label className="fund-transfer__field">
-                        <span>Precio real de compra del destino (€/participación)</span>
-                        <input type="text" inputMode="decimal" placeholder={Number.isFinite(destinationPrice) ? unitPrice(destinationPrice) : 'Última valoración'} value={destinationExecutionPriceInput}
-                            onChange={event => setDestinationExecutionPriceInput(event.target.value)} />
-                        <small>En blanco: última valoración {Number.isFinite(destinationPrice) ? unitPrice(destinationPrice) : 'no disponible'}.</small>
-                    </label>
+                        <DashboardFormField label="Precio real de venta del origen (€/participación)">
+                            <input type="text" inputMode="decimal" placeholder={Number.isFinite(sourcePrice) ? unitPrice(sourcePrice) : 'Última valoración'} value={sourceExecutionPriceInput}
+                                onChange={event => setSourceExecutionPriceInput(event.target.value)} />
+                            <small>En blanco: última valoración {Number.isFinite(sourcePrice) ? unitPrice(sourcePrice) : 'no disponible'}.</small>
+                        </DashboardFormField>
+                        <DashboardFormField label="Precio real de compra del destino (€/participación)">
+                            <input type="text" inputMode="decimal" placeholder={Number.isFinite(destinationPrice) ? unitPrice(destinationPrice) : 'Última valoración'} value={destinationExecutionPriceInput}
+                                onChange={event => setDestinationExecutionPriceInput(event.target.value)} />
+                            <small>En blanco: última valoración {Number.isFinite(destinationPrice) ? unitPrice(destinationPrice) : 'no disponible'}.</small>
+                        </DashboardFormField>
                 </div>
                 <label className="fund-transfer__full">
                     <input type="checkbox" checked={transferAll} onChange={event => { setTransferAll(event.target.checked); setAmountInput(''); }} />

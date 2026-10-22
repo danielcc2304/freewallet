@@ -1,3 +1,4 @@
+import { DashboardSwitch } from './ui/DashboardSwitch';
 import { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { Button, Card, CardHeader, CardContent } from '../ui';
 import { DonutChart, Heatmap } from '../charts';
@@ -268,8 +269,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                 type="button"
                 className={`portfolio-composition__exposure-row ${exposure.isResidual ? 'portfolio-composition__exposure-row--residual' : ''}`}
                 onClick={() => handleExposureClick(exposure)}
-                disabled={!canOpen}
-            >
+                disabled={!canOpen}>
                 <span className="portfolio-composition__exposure-name">
                     <strong>{getExposureDisplayName(exposure)}</strong>
                     <small>{exposure.isResidual ? 'Resto no desglosado' : `${exposure.symbol && exposure.symbol !== exposure.name ? `${exposure.symbol} · ` : ''}${getExposureSourceLabel(exposure)}${exposure.hasApproximateMatch || exposure.id.includes('approximate-name:') ? ' · coincidencia aproximada por nombre' : ''}`}</small>
@@ -292,17 +292,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                 title="Composición del Portfolio"
                 subtitle="Distribución de activos por valor y rendimiento"
                 action={
-                    <div className="breakdown-toggle">
-                        <button
-                            type="button"
-                            className="breakdown-toggle__label"
-                            aria-pressed={showBreakdown}
-                            onClick={() => setShowBreakdown((visible) => !visible)}
-                        >
-                            <span>Desglosar fondos</span>
-                            <span className="breakdown-toggle__slider" />
-                        </button>
-                    </div>
+                    <DashboardSwitch appearance="composition" label="Desglosar fondos" checked={showBreakdown} onChange={setShowBreakdown} />
                 }
             />
             <CardContent>

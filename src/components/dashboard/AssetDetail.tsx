@@ -1,3 +1,6 @@
+import { DashboardMetric } from './ui/DashboardMetric';
+import { DashboardSegments } from './ui/DashboardSegments';
+import { DashboardFundamentalCard } from './ui/DashboardFundamentalCard';
 import { useState, useEffect, useRef } from 'react';
 import type { PointerEvent as ReactPointerEvent } from 'react';
 import {
@@ -411,18 +414,18 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
 
             {group && <p className="asset-detail__group-note">Posición agrupada · {group.lots.length} registros{group.estimatedCount?' · incluye valoraciones estimadas':group.mixedPrices?' · precio medio de valoración':''}.</p>}
             {!marketOnly && <div className="asset-detail__position-grid">
-                <div><span>Cantidad</span><strong>{formatQuantity(asset)}</strong></div>
-                {asset.type === 'cash' && asset.cashTae !== undefined && <div><span>TAE de la cuenta</span><strong>{asset.cashTae.toLocaleString('es-ES', { maximumFractionDigits: 4 })} %</strong></div>}
-                <div><span>Precio medio</span><strong>{formatValue(asset.purchasePrice, 'price')}</strong></div>
-                <div><span>Capital invertido</span><strong>{formatValue(investedValue, 'currency')}</strong></div>
-                <div><span>Valor actual</span><strong>{formatValue(currentValue, 'currency')}</strong></div>
-                <div><span>Resultado</span><strong className={positionGain >= 0 ? 'positive' : 'negative'}>{formatValue(positionGain, 'currency')}</strong></div>
-                <div><span>Rentabilidad</span><strong className={positionReturn >= 0 ? 'positive' : 'negative'}>{formatValue(positionReturn, 'percent')}</strong></div>
-                <div><span>Peso en cartera</span><strong>{portfolioWeight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong></div>
-                <div><span>Consulta al proveedor</span><strong>{quoteDateLabel(asset.lastCheckedAt)}</strong></div>
-                <div><span>Lectura en la app</span><strong>{quoteDateLabel(asset.lastReadAt)}</strong></div>
-                <div><span>Origen</span><strong>{asset.quoteSource || 'No disponible'}{asset.quoteSource==='Google Finance' && marketChoices.length>1 ? ' · Madrid/BME' : ''}{asset.quoteOrigin === 'batch' ? ' · batch' : ''}</strong></div>
-                <div><span>{group?.mixedDates?'Fechas de valoración':'Fecha del precio'}</span><strong>{group?.mixedDates?'Ver registros individuales':quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)}</strong></div>
+                <DashboardMetric variant="position" label="Cantidad" value={<>{formatQuantity(asset)}</>} />
+                {asset.type === 'cash' && asset.cashTae !== undefined && <DashboardMetric variant="position" label="TAE de la cuenta" value={<>{asset.cashTae.toLocaleString('es-ES', { maximumFractionDigits: 4 })} %</>} />}
+                <DashboardMetric variant="position" label="Precio medio" value={<>{formatValue(asset.purchasePrice, 'price')}</>} />
+                <DashboardMetric variant="position" label="Capital invertido" value={<>{formatValue(investedValue, 'currency')}</>} />
+                <DashboardMetric variant="position" label="Valor actual" value={<>{formatValue(currentValue, 'currency')}</>} />
+                <DashboardMetric variant="position" label="Resultado" value={<>{formatValue(positionGain, 'currency')}</>} valueClassName={positionGain >= 0 ? 'positive' : 'negative'} />
+                <DashboardMetric variant="position" label="Rentabilidad" value={<>{formatValue(positionReturn, 'percent')}</>} valueClassName={positionReturn >= 0 ? 'positive' : 'negative'} />
+                <DashboardMetric variant="position" label="Peso en cartera" value={<>{portfolioWeight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</>} />
+                <DashboardMetric variant="position" label="Consulta al proveedor" value={<>{quoteDateLabel(asset.lastCheckedAt)}</>} />
+                <DashboardMetric variant="position" label="Lectura en la app" value={<>{quoteDateLabel(asset.lastReadAt)}</>} />
+                <DashboardMetric variant="position" label="Origen" value={<>{asset.quoteSource || 'No disponible'}{asset.quoteSource === 'Google Finance' && marketChoices.length > 1 ? ' · Madrid/BME' : ''}{asset.quoteOrigin === 'batch' ? ' · batch' : ''}</>} />
+                <DashboardMetric variant="position" label={<>{group?.mixedDates ? 'Fechas de valoración' : 'Fecha del precio'}</>} value={<>{group?.mixedDates ? 'Ver registros individuales' : quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)}</>} />
             </div>}
             {!marketOnly && group && <section className="asset-detail__purchases" aria-label="Registros de compra">
                 <h3>Tus compras · {group.lots.length} registros</h3>
@@ -466,18 +469,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                         <TrendingUp size={18} />
                         {isFund ? 'Precio de participación' : 'Histórico de precio'}
                     </div>
-                    <div className="asset-detail__period-selector">
-                        {periods.map((p) => (
-                            <button
-                                key={p.value}
-                                type="button" aria-pressed={selectedPeriod === p.value}
-                                className={`period-btn ${selectedPeriod === p.value ? 'active' : ''}`}
-                                onClick={() => setSelectedPeriod(p.value)}
-                            >
-                                {p.label}
-                            </button>
-                        ))}
-                    </div>
+                    <DashboardSegments appearance="chart" className="asset-detail__period-selector" options={periods} value={selectedPeriod} onChange={setSelectedPeriod} />
                 </div>
                 <div className="asset-detail__period-performance" aria-live="polite">
                     <span>Variación del precio {selectedPeriod === 'ALL' ? 'histórica' : selectedPeriod}</span>
@@ -493,8 +485,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                     onPointerDown={handlePointerStart}
                     onPointerMove={handlePointerMove}
                     onPointerUp={handlePointerEnd}
-                    onPointerCancel={handlePointerEnd}
-                >
+                    onPointerCancel={handlePointerEnd}>
                     {loadingChart && <div className="chart-overlay"><div className="spinner-sm" /><span>Preparando histórico…</span></div>}
                     {!loadingChart && chartData.length < 2 && (
                         <div className="chart-overlay error-state">
@@ -506,8 +497,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                     {canDrawChart && <ResponsiveContainer width="100%" height={240}>
                         <AreaChart
                             data={chartData}
-                    margin={{ top: 10, right: 8, left: 0, bottom: 4 }}
-                        >
+                    margin={{ top: 10, right: 8, left: 0, bottom: 4 }}>
                             <defs>
                                 <linearGradient id="assetColor" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.3} />
@@ -625,15 +615,9 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                             <div className="metrics-empty">{apiEnabled ? 'Datos ampliados no disponibles.' : 'Consulta de datos desactivada.'}</div>
                         )}
                         {visibleMetricItems.map((item, idx) => (
-                            <div key={idx} className="metric-card">
-                                <div className="metric-card__header">
-                                    <span className="metric-card__icon">{item.icon}</span>
-                                    <span className="metric-card__label">{item.label}</span>
-                                </div>
-                                <div className="metric-card__value">{item.value}</div>
-                                <div className="metric-card__category">{item.category}</div>
-                                {'asOf' in item && typeof item.asOf==='string' && <small className="asset-detail__metric-date">{'derived' in item && item.derived===true ? 'Calculado · ' : ''}{item.asOf}</small>}
-                            </div>
+                            <DashboardFundamentalCard key={idx} icon={item.icon} label={item.label} value={item.value} category={item.category}>
+                                {'asOf' in item && typeof item.asOf === 'string' && <small className="asset-detail__metric-date">{'derived' in item && item.derived === true ? 'Calculado · ' : ''}{item.asOf}</small>}
+                            </DashboardFundamentalCard>
                         ))}
                     </div>
                 )}

@@ -20,7 +20,7 @@ const smokeTests = [
     'test-fund-chart-ui.ts', 'test-fund-information-ui.ts',
     'test-news-layout-comments-ui.ts', 'test-news-article-editor-ui.ts', 'test-portfolio-ui.ts',
 ];
-const available = smoke ? (only ? [...smokeTests, 'test-tailwind-modules-ui.ts', 'test-calculator-dashboard-usability.ts'] : smokeTests) : readdirSync('scripts').filter(name =>
+const available = smoke ? (only ? [...smokeTests, 'test-tailwind-modules-ui.ts', 'test-calculator-dashboard-usability.ts', 'test-stock-fundamentals-ui.ts', 'test-fund-breakdown-ui.ts', 'test-dashboard-results-ui.ts', 'test-fund-transfer-ui.ts'] : smokeTests) : readdirSync('scripts').filter(name =>
     /^test-.*\.(ts|mjs)$/.test(name) && name !== 'test-dashboard-bundle.ts' && !name.endsWith('-ui.ts') && !readFileSync(join('scripts', name), 'utf8').includes("from 'puppeteer'"),
 ).sort();
 const files = only ? available.filter(name => name === only) : available;

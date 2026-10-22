@@ -29,6 +29,18 @@ try {
     for(const width of [320,390,600,1280]){
         await page.setViewport({width,height:900});await page.goto(origin,{waitUntil:'networkidle2'});
         await page.waitForSelector('.portfolio-data-quality');
+        // Shared tabs preserve roving keyboard focus and their associated panel.
+        const firstTab = await page.$('.portfolio-excel-insights__tabs [role=tab]');assert.ok(firstTab);
+        await firstTab.focus();await page.keyboard.press('ArrowRight');
+        await page.waitForFunction(()=>document.querySelector('.portfolio-excel-insights__tabs [aria-selected=true]')?.textContent?.includes('Benchmark'));
+        assert.ok(await page.$eval('.portfolio-excel-insights__tabs [aria-selected=true]',node=>document.activeElement===node));
+        await page.keyboard.press('End');
+        await page.waitForFunction(()=>document.querySelector('.portfolio-excel-insights__tabs [aria-selected=true]')?.textContent?.includes('Controles'));
+        await page.keyboard.press('Home');
+        await page.waitForFunction(()=>document.querySelector('.portfolio-excel-insights__tabs [aria-selected=true]')?.textContent?.includes('Evolución'));
+        const activeTab=await page.$eval('.portfolio-excel-insights__tabs [aria-selected=true]',node=>node.id);
+        assert.equal(await page.$eval('.portfolio-excel-insights [role=tabpanel]',node=>node.getAttribute('aria-labelledby')),activeTab);
+
         assert.equal(await page.$('.dashboard__header details'),null,'Header status is not a disclosure');
         const info=await page.$('button[aria-label="Actualización de precios"]');assert.ok(info);
         const headerHeight=await page.$eval('.dashboard__header',n=>n.getBoundingClientRect().height);
@@ -63,6 +75,7 @@ try {
         }
         if(width===1280){
             await page.evaluate(()=>{document.documentElement.dataset.theme='light';document.documentElement.dataset.appearance='liquid-glass';});
+            await page.addStyleTag({content:'*,*::before,*::after{transition:none!important;animation:none!important}'});
             await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
             await page.screenshot({path:join(tmpdir(),'freewallet-dashboard-header-clean.png')});
         }

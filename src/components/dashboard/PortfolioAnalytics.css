@@ -1,13 +1,6 @@
 @reference "../../styles/module-theme.css";
 .portfolio-analytics__kpis { @apply tw:grid tw:grid-cols-[repeat(7,_minmax(0,_1fr))] tw:gap-[.65rem]; }
-.portfolio-analytics__kpis > div { @apply tw:grid tw:gap-[.35rem] tw:min-w-[0] tw:p-[.8rem] tw:ui-border tw:rounded-control tw:ui-fill-muted; }
-.portfolio-analytics__kpis svg { @apply tw:text-accent; }
-.portfolio-analytics__kpis span { @apply tw:text-muted tw:text-[length:.72rem]; }
-.portfolio-analytics__kpis strong { @apply tw:text-main tw:text-[length:.95rem] tw:wrap-anywhere; }
-.portfolio-analytics__kpis .is-positive { @apply tw:text-positive; }
-.portfolio-analytics__kpis .is-negative { @apply tw:text-negative; }
 .portfolio-analytics__body { @apply tw:grid tw:grid-cols-[minmax(0,_1.5fr)_minmax(260px,_1fr)] tw:gap-[1rem] tw:mt-[1.25rem]; }
-.portfolio-analytics__chart, .portfolio-analytics__allocation { @apply tw:p-[1rem] tw:ui-border tw:rounded-control tw:ui-fill-muted; }
 .portfolio-analytics h3 { @apply tw:ui-row tw:gap-[.4rem] tw:m-[0_0_.8rem] tw:text-main tw:text-[length:.95rem]; }
 .portfolio-analytics__empty { @apply tw:min-h-[230px] tw:grid tw:place-items-center tw:text-muted tw:text-center; }
 .portfolio-analytics__allocation-row { @apply tw:grid tw:grid-cols-[72px_1fr_48px] tw:items-center tw:gap-[.5rem] tw:m-[.7rem_0] tw:text-secondary tw:text-[length:.8rem]; }

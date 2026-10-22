@@ -1,3 +1,4 @@
+import { DashboardMetric } from './ui/DashboardMetric';
 import { useEffect, useMemo, useState } from 'react';
 import { Activity, Loader2 } from 'lucide-react';
 import { AssetDetail } from './AssetDetail';
@@ -124,10 +125,7 @@ export function UnderlyingAssetDetail({ holding, parentAsset, exposure }: Underl
                 </div>
                 <div className="underlying-detail__context-grid">
                     {contextItems.map((item) => (
-                        <div key={item.label}>
-                            <span>{item.label}</span>
-                            <strong>{item.value}</strong>
-                        </div>
+                        <DashboardMetric variant="context" key={item.label} label={item.label} value={item.value} />
                     ))}
                 </div>
                 <p className="underlying-detail__context-note">

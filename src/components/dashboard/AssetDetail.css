@@ -61,19 +61,6 @@
     @apply tw:grid tw:grid-cols-[repeat(4,_minmax(0,_1fr))] tw:gap-[0.75rem] tw:min-w-[0] tw:w-full tw:box-border;
 }
 
-.asset-detail__position-grid > div {
-    @apply tw:grid tw:gap-[0.3rem] tw:min-w-[0] tw:overflow-hidden tw:p-[0.85rem] tw:ui-border-default tw:rounded-[10px];
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.asset-detail__position-grid span {
-    @apply tw:text-muted tw:text-[length:0.72rem];
-}
-
-.asset-detail__position-grid strong {
-    @apply tw:text-[length:0.92rem] tw:wrap-anywhere tw:min-w-[0];
-}
-
 .asset-detail .positive { @apply tw:text-positive; }
 .asset-detail .negative { @apply tw:text-negative; }
 
@@ -93,10 +80,6 @@
     @apply tw:text-secondary tw:min-w-[0];
 }
 
-.asset-detail__period-selector {
-    @apply tw:flex tw:flex-wrap tw:gap-[0.25rem] tw:ui-fill-muted tw:p-[0.25rem] tw:rounded-[8px] tw:max-w-full;
-}
-
 .asset-detail__period-performance {
     @apply tw:flex tw:items-baseline tw:flex-wrap tw:gap-[0.35rem_0.65rem] tw:m-[-0.35rem_0_0.8rem] tw:text-muted tw:text-[length:0.75rem];
 }
@@ -108,25 +91,6 @@
 .asset-detail__period-performance strong.positive { @apply tw:text-positive; }
 .asset-detail__period-performance strong.negative { @apply tw:text-negative; }
 .asset-detail__period-performance small { @apply tw:text-muted; }
-
-.period-btn {
-    @apply tw:p-[0.25rem_0.75rem];
-    border: none;
-    @apply tw:ui-fill-transparent tw:text-secondary tw:text-[length:0.75rem];
-    font-weight: 600;
-    @apply tw:rounded-[6px] tw:cursor-pointer;
-    transition: all 0.2s;
-}
-
-.period-btn:hover {
-    @apply tw:text-main;
-    background: rgba(255, 255, 255, 0.05);
-}
-
-.period-btn.active {
-    background: var(--accent-primary);
-    color: white;
-}
 
 .asset-detail__chart-container {
     @apply tw:relative tw:isolate tw:overflow-hidden tw:h-[240px] tw:min-w-[0] tw:w-full;
@@ -243,38 +207,6 @@
     @apply tw:rounded-[10px] tw:text-muted;
 }
 
-.asset-detail .metric-card {
-    @apply tw:ui-stack tw:gap-ui-sm tw:ui-fill-panel tw:ui-border-default tw:p-[1rem] tw:rounded-[12px];
-    transition: transform 0.2s, border-color 0.2s;
-    @apply tw:min-w-[0];
-}
-
-.asset-detail .metric-card:hover {
-    transform: translateY(-2px);
-    border-color: var(--accent-primary);
-}
-
-.asset-detail .metric-card__header {
-    @apply tw:justify-between tw:ui-row tw:gap-[0.5rem] tw:text-secondary tw:mb-[0.5rem];
-}
-
-.asset-detail .metric-card__label {
-    @apply tw:text-[length:0.75rem];
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.025em;
-}
-
-.asset-detail .metric-card__icon {
-    @apply tw:flex tw:text-accent tw:opacity-[0.8];
-}
-
-.asset-detail .metric-card__value {
-    @apply tw:text-[length:1.25rem];
-    font-weight: 700;
-    @apply tw:mb-[0.25rem] tw:wrap-anywhere;
-}
-
 .asset-detail__fund-sections { @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[1rem] tw:min-w-[0]; }
 .asset-detail__fund-sections section { @apply tw:min-w-[0] tw:p-[1rem] tw:ui-border-default tw:rounded-[12px]; background: rgba(255,255,255,.02); }
 .asset-detail__fund-sections h3 { @apply tw:m-[0_0_.75rem] tw:text-[length:.95rem]; }
@@ -283,12 +215,6 @@
 .asset-detail__holding-list > div { @apply tw:flex tw:justify-between tw:gap-[.75rem] tw:text-secondary tw:text-[length:.8rem]; }
 .asset-detail__holding-list span { @apply tw:min-w-[0] tw:wrap-anywhere; }
 .asset-detail__holding-list strong { @apply tw:text-main tw:whitespace-nowrap; }
-
-.asset-detail .metric-card__category {
-    @apply tw:text-[length:0.65rem] tw:text-muted;
-    background: rgba(255, 255, 255, 0.05);
-    @apply tw:p-[0.1rem_0.4rem] tw:rounded-[4px] tw:inline-block;
-}
 
 .asset-detail__footer {
     @apply tw:ui-row tw:gap-[0.5rem] tw:text-muted tw:text-[length:0.75rem] tw:mt-[0.5rem] tw:pt-[1rem];
@@ -379,7 +305,6 @@
 
     .asset-detail__fund-sections { @apply tw:grid-cols-[1fr]; }
 }
-.asset-detail .period-btn { @apply tw:min-h-[44px]; }
 .asset-detail button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 .asset-detail__quote-market {
     @apply tw:grid tw:gap-[.5rem] tw:m-[1rem_0];

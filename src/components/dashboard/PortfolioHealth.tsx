@@ -1,3 +1,4 @@
+import { DashboardMetric } from './ui/DashboardMetric';
 import { AlertTriangle, CheckCircle2, Database, Layers3, ShieldCheck, Target } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '../ui';
 import type { Asset } from '../../types/types';
@@ -39,30 +40,10 @@ export function PortfolioHealth({ assets, now }: { assets: Asset[]; now: number 
             <CardHeader title="Control de cartera" subtitle="Concentración, diversificación y calidad de los datos" />
             <CardContent>
                 <div className="portfolio-health__grid">
-                    <div className="portfolio-health__item">
-                        <Target size={18} />
-                        <span>Mayor posición</span>
-                        <strong>{largest?.asset.symbol || '—'} · {largestWeight.toFixed(1)}%</strong>
-                        <small>Concentración {concentration.toLowerCase()}</small>
-                    </div>
-                    <div className="portfolio-health__item">
-                        <Layers3 size={18} />
-                        <span>Diversificación</span>
-                        <strong>{assets.length} posiciones</strong>
-                        <small>{assetTypes} tipos de activo</small>
-                    </div>
-                    <div className="portfolio-health__item">
-                        <Database size={18} />
-                        <span>Cobertura de precios</span>
-                        <strong>{dataCoverage.toFixed(0)}%</strong>
-                        <small>{updated} de {assets.length} actualizados</small>
-                    </div>
-                    <div className="portfolio-health__item">
-                        <ShieldCheck size={18} />
-                        <span>Estado</span>
-                        <strong>{dataCoverage === 100 ? 'Al día' : 'Revisar datos'}</strong>
-                        <small>{largestWeight > 35 ? 'Posición principal elevada' : 'Sin alertas de concentración'}</small>
-                    </div>
+                    <DashboardMetric variant="health" className="portfolio-health__item" label="Mayor posición" value={<>{largest?.asset.symbol || '—'} · {largestWeight.toFixed(1)}%</>} icon={<Target size={18} />} detail={<>Concentración {concentration.toLowerCase()}</>} />
+                    <DashboardMetric variant="health" className="portfolio-health__item" label="Diversificación" value={<>{assets.length} posiciones</>} icon={<Layers3 size={18} />} detail={<>{assetTypes} tipos de activo</>} />
+                    <DashboardMetric variant="health" className="portfolio-health__item" label="Cobertura de precios" value={<>{dataCoverage.toFixed(0)}%</>} icon={<Database size={18} />} detail={<>{updated} de {assets.length} actualizados</>} />
+                    <DashboardMetric variant="health" className="portfolio-health__item" label="Estado" value={<>{dataCoverage === 100 ? 'Al día' : 'Revisar datos'}</>} icon={<ShieldCheck size={18} />} detail={<>{largestWeight > 35 ? 'Posición principal elevada' : 'Sin alertas de concentración'}</>} />
                 </div>
                 <div className="portfolio-health__checks">
                     {controls.map(control => <div key={control.label} className={control.ok ? 'is-ok' : 'is-warning'}>

@@ -1,3 +1,4 @@
+import { DashboardMetric } from './ui/DashboardMetric';
 import { useEffect, useMemo, useState } from 'react';
 import { Activity, BarChart3, Gauge, Loader2, Scale, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader } from '../ui';
@@ -78,7 +79,7 @@ export function PortfolioBenchmark() {
         <CardHeader title="Comparativa con MSCI World" subtitle="Referencia automática mediante el ETF URTH durante el histórico disponible de tu cartera" />
         <CardContent>
             {loading ? <div className="portfolio-benchmark__loading"><Loader2 className="spinning" size={18} /> Actualizando referencia…</div>
-                : <div className="portfolio-benchmark__grid">{items.map(item => <div key={item.label}>{item.icon}<span>{item.label}</span><strong>{item.value}</strong></div>)}</div>}
+                : <div className="portfolio-benchmark__grid">{items.map(item => <DashboardMetric variant="benchmark" key={item.label} icon={item.icon} label={item.label} value={item.value} />)}</div>}
             <p>Los ratios requieren al menos tres fechas coincidentes. URTH es una aproximación negociable al índice, por lo que puede existir diferencia de seguimiento.</p>
         </CardContent>
     </Card>;

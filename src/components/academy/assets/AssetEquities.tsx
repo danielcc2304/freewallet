@@ -1,3 +1,5 @@
+import { AcademyExplainerCard } from '../ui/AcademyExplainerCard';
+import { AcademyListCard } from '../ui/AcademyListCard';
 import { AcademyCallout } from '../ui/AcademyCallout';
 import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
@@ -162,29 +164,21 @@ export function AssetEquities() {
             <AcademySection title={<><Target size={22} /> Value vs Growth: El Eterno Debate</>} id="section-3" className="asset-page__section">
 
                 <div className="asset-page__versus">
-                    <AcademyPanel variant="comparison" className="versus-card versus-card--value">
-                        <h3>📊 Value (Valor)</h3>
-                        <ul>
+                    <AcademyListCard kind="comparison" title={<>📊 Value (Valor)</>} className="versus-card--value" badge={<>Warren Buffett</>}>
                             <li>Empresas baratas según fundamentales (PER bajo)</li>
                             <li>Suelen pagar dividendos</li>
                             <li>Rendimiento superior a largo plazo históricamente</li>
                             <li>Sectores: banca, energía, utilities</li>
                             <li>Mentalidad: «comprar un euro por 50 céntimos»</li>
-                        </ul>
-                        <div className="versus-card__badge">Warren Buffett</div>
-                    </AcademyPanel>
+                        </AcademyListCard>
                     <div className="versus-divider">VS</div>
-                    <AcademyPanel variant="comparison" className="versus-card versus-card--growth">
-                        <h3>🚀 Growth (Crecimiento)</h3>
-                        <ul>
+                    <AcademyListCard kind="comparison" title={<>🚀 Growth (Crecimiento)</>} className="versus-card--growth" badge={<>Cathie Wood</>}>
                             <li>Empresas con alto crecimiento de ingresos</li>
                             <li>Raramente pagan dividendo (reinvierten todo)</li>
                             <li>Valoraciones elevadas (PER alto)</li>
                             <li>Sectores: tech, biotech, IA</li>
                             <li>Mentalidad: «la empresa del futuro»</li>
-                        </ul>
-                        <div className="versus-card__badge">Cathie Wood</div>
-                    </AcademyPanel>
+                        </AcademyListCard>
                 </div>
             </AcademySection>
 
@@ -216,28 +210,22 @@ export function AssetEquities() {
             <AcademySection title={<><Shield size={22} /> Ventajas y Riesgos</>} id="section-5" className="asset-page__section">
 
                 <AcademyGrid variant="prosCons" className="asset-page__pros-cons">
-                    <AcademyPanel variant="prosCons" className="pc-column pc-column--pros">
-                        <h3><CheckCircle2 size={18} /> Ventajas</h3>
-                        <ul>
+                    <AcademyListCard kind="pros" title={<><CheckCircle2 size={18} /> Ventajas</>}>
                             <li>Mayor rentabilidad histórica a largo plazo vs cualquier otro activo</li>
                             <li>Protección natural contra la inflación</li>
                             <li>Liquidez inmediata en mercados cotizados</li>
                             <li>Posibilidad de ingresos pasivos vía dividendos</li>
                             <li>Accesibilidad: desde 1€ con ETFs fraccionados</li>
                             <li>Fiscalidad favorable en España para fondos indexados (traspaso sin tributar)</li>
-                        </ul>
-                    </AcademyPanel>
-                    <AcademyPanel variant="prosCons" className="pc-column pc-column--cons">
-                        <h3><AlertTriangle size={18} /> Riesgos</h3>
-                        <ul>
+                        </AcademyListCard>
+                    <AcademyListCard kind="cons" title={<><AlertTriangle size={18} /> Riesgos</>}>
                             <li>Caídas del 30-50% son parte del juego</li>
                             <li>Necesitas horizonte mínimo de 7-10 años</li>
                             <li>Stock-picking individual tiene alto riesgo de pérdida permanente</li>
                             <li>El estrés emocional en crisis lleva a vender en el peor momento</li>
                             <li>Rendimientos pasados no garantizan rendimientos futuros</li>
                             <li>Riesgo divisa si inviertes fuera de la Eurozona</li>
-                        </ul>
-                    </AcademyPanel>
+                        </AcademyListCard>
                 </AcademyGrid>
             </AcademySection>
 
@@ -255,38 +243,22 @@ export function AssetEquities() {
             <AcademySection title={<><Clock size={22} /> Métricas para Entender Acciones</>} id="section-7" className="asset-page__section">
 
                 <AcademyGrid variant="metrics" className="asset-page__metrics-grid">
-                    <AcademyPanel variant="explainer" className="metric-explainer">
-                        <h4>PER (Price/Earnings Ratio)</h4>
-                        <p>Cuántos años de beneficios estás pagando. PER 15 = pagas 15 años de beneficio actual. Menor = más barato.</p>
-                        <div className="metric-explainer__range">
+                    <AcademyExplainerCard title={<>PER (Price/Earnings Ratio)</>} range={<>
                             <span className="range-low">PER {'<'} 12 (Barato)</span>
                             <span className="range-high">PER {'>'} 25 (Caro)</span>
-                        </div>
-                    </AcademyPanel>
-                    <AcademyPanel variant="explainer" className="metric-explainer">
-                        <h4>Dividend Yield</h4>
-                        <p>Porcentaje de dividendo anual respecto al precio. Una acción a 100€ que paga 4€ tiene yield del 4%.</p>
-                        <div className="metric-explainer__range">
+                        </>}>Cuántos años de beneficios estás pagando. PER 15 = pagas 15 años de beneficio actual. Menor = más barato.</AcademyExplainerCard>
+                    <AcademyExplainerCard title={<>Dividend Yield</>} range={<>
                             <span className="range-low">{'<'} 2% (Growth)</span>
                             <span className="range-high">{'>'} 4% (Income)</span>
-                        </div>
-                    </AcademyPanel>
-                    <AcademyPanel variant="explainer" className="metric-explainer">
-                        <h4>Beta</h4>
-                        <p>Mide la volatilidad respecto al mercado. Beta 1 = igual al mercado. Beta 1.5 = 50% más volátil.</p>
-                        <div className="metric-explainer__range">
+                        </>}>Porcentaje de dividendo anual respecto al precio. Una acción a 100€ que paga 4€ tiene yield del 4%.</AcademyExplainerCard>
+                    <AcademyExplainerCard title={<>Beta</>} range={<>
                             <span className="range-low">{'<'} 0.8 (Defensivo)</span>
                             <span className="range-high">{'>'} 1.2 (Agresivo)</span>
-                        </div>
-                    </AcademyPanel>
-                    <AcademyPanel variant="explainer" className="metric-explainer">
-                        <h4>Sharpe Ratio</h4>
-                        <p>Retorno por unidad de riesgo asumida. Mayor = mejor relación riesgo/recompensa. Ideal {'>'} 1.</p>
-                        <div className="metric-explainer__range">
+                        </>}>Mide la volatilidad respecto al mercado. Beta 1 = igual al mercado. Beta 1.5 = 50% más volátil.</AcademyExplainerCard>
+                    <AcademyExplainerCard title={<>Sharpe Ratio</>} range={<>
                             <span className="range-low">{'<'} 0.5 (Pobre)</span>
                             <span className="range-high">{'>'} 1.0 (Excelente)</span>
-                        </div>
-                    </AcademyPanel>
+                        </>}>Retorno por unidad de riesgo asumida. Mayor = mejor relación riesgo/recompensa. Ideal {'>'} 1.</AcademyExplainerCard>
                 </AcademyGrid>
             </AcademySection>
 

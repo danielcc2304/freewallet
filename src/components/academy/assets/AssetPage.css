@@ -147,45 +147,6 @@
 
 /* Pros & Cons */
 
-.pc-column--pros {
-    background: rgba(16, 185, 129, 0.04);
-}
-
-.pc-column--cons {
-    background: rgba(239, 68, 68, 0.04);
-}
-
-.pc-column h3 {
-    @apply tw:ui-row tw:gap-[0.5rem] tw:text-[length:1.25rem];
-    font-weight: 700;
-    @apply tw:mb-[1.5rem];
-}
-
-.pc-column--pros h3 {
-    color: #10b981;
-}
-
-.pc-column--cons h3 {
-    color: #ef4444;
-}
-
-.pc-column ul {
-    list-style: none;
-    @apply tw:p-[0] tw:m-[0] tw:ui-stack tw:gap-[1rem];
-}
-
-.pc-column li {
-    @apply tw:text-[length:0.95rem] tw:text-secondary;
-    line-height: 1.5;
-    @apply tw:pl-[1.5rem] tw:relative;
-}
-
-.pc-column li::before {
-    content: '→';
-    @apply tw:absolute tw:left-[0];
-    font-weight: bold;
-}
-
 /* Callouts */
 
 .asset-page__cta-link {
@@ -203,32 +164,6 @@
 /* Versus side by side */
 .asset-page__versus {
     @apply tw:flex tw:items-stretch tw:gap-[2rem];
-}
-
-.versus-card h3 {
-    @apply tw:text-center tw:mb-[1.5rem];
-}
-
-.versus-card ul {
-    list-style: none;
-    @apply tw:p-[0] tw:ui-stack tw:gap-[0.75rem];
-}
-
-.versus-card li {
-    @apply tw:text-[length:0.95rem] tw:text-secondary tw:pl-[1.25rem] tw:relative;
-}
-
-.versus-card li::before {
-    content: '•';
-    @apply tw:absolute tw:left-[0] tw:text-accent;
-}
-
-.versus-card__badge {
-    @apply tw:absolute tw:bottom-[-15px] tw:left-[50%];
-    transform: translateX(-50%);
-    @apply tw:ui-fill-muted tw:ui-border-default tw:p-[0.4rem_1rem] tw:rounded-[100px] tw:text-[length:0.8rem];
-    font-weight: 700;
-    @apply tw:text-accent;
 }
 
 .versus-divider {
@@ -258,23 +193,6 @@
 }
 
 /* Metrics explainers */
-
-.metric-explainer h4 {
-    @apply tw:text-accent tw:mb-[0.5rem];
-    font-weight: 700;
-}
-
-.metric-explainer p {
-    @apply tw:text-[length:0.9rem] tw:text-secondary;
-    line-height: 1.5;
-    @apply tw:mb-[1rem];
-}
-
-.metric-explainer__range {
-    @apply tw:flex tw:justify-between tw:gap-[0.75rem] tw:text-[length:0.75rem];
-    font-weight: 700;
-    @apply tw:text-muted tw:p-[0.5rem] tw:ui-fill-muted tw:rounded-[8px] tw:mt-[auto];
-}
 
 /* Bond specific styles */
 .bond-anatomy {
@@ -1320,9 +1238,6 @@
 .asset-page .subtype-card__footer { @apply tw:mt-[auto] tw:flex-wrap tw:gap-[.5rem]; }
 .asset-page .subtype-card__examples { @apply tw:mt-[auto]; }
 .asset-page .asset-page__pros-cons { @apply tw:gap-[1rem]; }
-.asset-page .versus-card__badge { @apply tw:static; transform: none; @apply tw:block tw:w-[fit-content] tw:m-[1rem_auto_0] tw:text-center; }
-.asset-page .pc-column h3 { @apply tw:m-[0_0_1rem] tw:text-[length:1.1rem]; }
-.asset-page .pc-column li { line-height: 1.65; }
 
 .asset-page .asset-page__final-tip { @apply tw:mt-[2rem] tw:p-[1.5rem] tw:gap-[1rem] tw:text-left tw:items-start; background: var(--guide-tint); }
 .asset-page .asset-page__final-tip > svg { @apply tw:flex-[0_0_28px]; }

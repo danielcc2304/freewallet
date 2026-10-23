@@ -1,3 +1,4 @@
+import { AcademyListCard } from '../ui/AcademyListCard';
 import { AcademyCallout } from '../ui/AcademyCallout';
 import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
@@ -173,26 +174,20 @@ export function AssetCash() {
             <AcademySection title={<><Shield size={22} /> Ventajas y Riesgos</>} id="section-4" className="asset-page__section">
 
                 <AcademyGrid variant="prosCons" className="asset-page__pros-cons">
-                    <AcademyPanel variant="prosCons" className="pc-column pc-column--pros">
-                        <h3><CheckCircle2 size={18} /> Ventajas</h3>
-                        <ul>
+                    <AcademyListCard kind="pros" title={<><CheckCircle2 size={18} /> Ventajas</>}>
                             <li>Disponibilidad inmediata para emergencias</li>
                             <li>Sin volatilidad ni riesgo de mercado</li>
                             <li>Tranquilidad emocional en periodos de crisis</li>
                             <li>Permite aprovechar oportunidades de compra</li>
                             <li>Imprescindible como fondo de emergencia</li>
-                        </ul>
-                    </AcademyPanel>
-                    <AcademyPanel variant="prosCons" className="pc-column pc-column--cons">
-                        <h3><AlertTriangle size={18} /> Riesgos</h3>
-                        <ul>
+                        </AcademyListCard>
+                    <AcademyListCard kind="cons" title={<><AlertTriangle size={18} /> Riesgos</>}>
                             <li>Rentabilidad real frecuentemente negativa (inflación)</li>
                             <li>Coste de oportunidad: dinero que no trabaja para ti</li>
                             <li>Tentación de gastar si está demasiado accesible</li>
                             <li>Garantía de depósitos limitada a 100.000€ por entidad</li>
                             <li>Falsa sensación de seguridad (pierdes vs inflación)</li>
-                        </ul>
-                    </AcademyPanel>
+                        </AcademyListCard>
                 </AcademyGrid>
             </AcademySection>
 

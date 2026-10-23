@@ -1,3 +1,4 @@
+import { AcademyListCard } from '../ui/AcademyListCard';
 import { AcademyCallout } from '../ui/AcademyCallout';
 import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
@@ -851,28 +852,22 @@ export function AssetBonds() {
             <AcademySection title={<><Shield size={22} /> Ventajas y Riesgos</>} id="section-12" className="asset-page__section">
 
                 <AcademyGrid variant="prosCons" className="asset-page__pros-cons">
-                    <AcademyPanel variant="prosCons" className="pc-column pc-column--pros">
-                        <h3><CheckCircle2 size={18} /> Ventajas</h3>
-                        <ul>
+                    <AcademyListCard kind="pros" title={<><CheckCircle2 size={18} /> Ventajas</>}>
                             <li>Estabilidad y previsibilidad de rentas</li>
                             <li>Menor volatilidad que acciones</li>
                             <li>Diversificación: baja correlación con RV en periodos normales</li>
                             <li>Protección parcial en caídas bursátiles (flight to quality)</li>
                             <li>Letras del Tesoro: alternativa superior a depósitos bancarios</li>
                             <li>Si mantienes a vencimiento, conoces exactamente tu retorno</li>
-                        </ul>
-                    </AcademyPanel>
-                    <AcademyPanel variant="prosCons" className="pc-column pc-column--cons">
-                        <h3><AlertTriangle size={18} /> Riesgos</h3>
-                        <ul>
+                        </AcademyListCard>
+                    <AcademyListCard kind="cons" title={<><AlertTriangle size={18} /> Riesgos</>}>
                             <li>Rentabilidad real puede no superar inflación</li>
                             <li>Extrema sensibilidad a tipos en bonos largos</li>
                             <li>2022: los bonos largos cayeron ~25% (algo «imposible» según muchos)</li>
                             <li>Riesgo de crédito en emisores privados</li>
                             <li>Liquidez variable según el mercado</li>
                             <li>Fiscalidad: cupones tributan como rendimiento del capital</li>
-                        </ul>
-                    </AcademyPanel>
+                        </AcademyListCard>
                 </AcademyGrid>
             </AcademySection>
 

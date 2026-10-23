@@ -1,3 +1,4 @@
+import { AcademyListCard } from '../ui/AcademyListCard';
 import { AcademyCallout } from '../ui/AcademyCallout';
 import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
@@ -121,24 +122,18 @@ export function AssetCrypto() {
             <AcademySection title={<><Shield size={22} /> Ventajas y Riesgos</>} id="section-4" className="asset-page__section">
 
                 <AcademyGrid variant="prosCons" className="asset-page__pros-cons">
-                    <AcademyPanel variant="prosCons" className="pc-column pc-column--pros">
-                        <h3><CheckCircle2 size={18} /> Ventajas</h3>
-                        <ul>
+                    <AcademyListCard kind="pros" title={<><CheckCircle2 size={18} /> Ventajas</>}>
                             <li>Retorno asimétrico exponencial histórico</li>
                             <li>Suministro limitado (anti-inflación en BTC)</li>
                             <li>Mercado abierto 24/7 sin fronteras</li>
                             <li>Acceso directo sin intermediarios financieros</li>
-                        </ul>
-                    </AcademyPanel>
-                    <AcademyPanel variant="prosCons" className="pc-column pc-column--cons">
-                        <h3><AlertTriangle size={18} /> Riesgos</h3>
-                        <ul>
+                        </AcademyListCard>
+                    <AcademyListCard kind="cons" title={<><AlertTriangle size={18} /> Riesgos</>}>
                             <li>Volatilidad extrema e impredecible</li>
                             <li>Riesgo regulatorio por parte de gobiernos</li>
                             <li>Riesgo de pérdida permanente por errores de seguridad</li>
                             <li>Muchas altcoins son proyectos fallidos o estafas</li>
-                        </ul>
-                    </AcademyPanel>
+                        </AcademyListCard>
                 </AcademyGrid>
             </AcademySection>
 

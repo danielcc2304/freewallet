@@ -82,3 +82,8 @@ Gestión de gastos comparte catorce componentes de interfaz en diez archivos de 
 ### Piezas compartidas entre pantallas
 
 Planificación, Operaciones, Portfolio CSV, Añadir activo y mapa de calor incorporan componentes comunes de `src/components/ui`: indicadores con variantes, cabeceras compactas, campos y ayudas. Las calculadoras reutilizan los mismos indicadores y campos; las tablas de ficha de fondos e IRPF comparten `DataTable` con movimientos e importación de gastos. Las cinco guías de activos componen sus pasos numerados y avisos mediante `AcademyStepCard` y `AcademyCallout`. Se conservan los hooks de estilos necesarios para materiales y ajustes contextuales. Quedan 14.557 líneas en 58 hojas CSS (36,02 % menos frente al inicio).
+
+
+### Tarjetas educativas y estilos antiguos del simulador
+
+Fundamentos compone sus tarjetas de progreso, checklists, catálogo y accesos mediante `AcademyProgressCard`, `AcademyLearningLink` y `AcademyRouteLink`. Sus indicadores utilizan `DataItem`. Las cinco guías de activos utilizan `AcademyListCard` para ventajas, riesgos y comparativas; renta variable utiliza además `AcademyExplainerCard`. El simulador conserva sus estilos actuales y retira 84 selectores de la interfaz anterior sin referencias en los módulos actuales. Quedan 13.762 líneas en 58 hojas CSS, un 39,52 % menos respecto al inicio.

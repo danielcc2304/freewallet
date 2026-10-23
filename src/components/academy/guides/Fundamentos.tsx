@@ -1,3 +1,6 @@
+import { AcademyProgressCard } from '../ui/AcademyProgressCard';
+import { AcademyLearningLink, AcademyRouteLink } from '../ui/AcademyLearningLink';
+import { DataItem } from '../../ui/DataItem';
 import { AcademyPanel } from '../ui/AcademyPanel';
 import { useMemo, useState } from "react";
 import { Link } from "react-router-dom";
@@ -362,18 +365,9 @@ export function Fundamentos() {
       </AcademyPageHeader>
 
       <section className="fundamentos__summary">
-        <article className="fundamentos__summary-card">
-          <span>Completados</span>
-          <strong>{completedCount}</strong>
-        </article>
-        <article className="fundamentos__summary-card">
-          <span>Simuladores</span>
-          <strong>{simulatorModules.length}</strong>
-        </article>
-        <article className="fundamentos__summary-card">
-          <span>Módulos visibles</span>
-          <strong>{MODULES.length}</strong>
-        </article>
+        <DataItem as="article" layout="learningSummary" className="fundamentos__summary-card" label={<>Completados</>} value={<>{completedCount}</>} />
+        <DataItem as="article" layout="learningSummary" className="fundamentos__summary-card" label={<>Simuladores</>} value={<>{simulatorModules.length}</>} />
+        <DataItem as="article" layout="learningSummary" className="fundamentos__summary-card" label={<>Módulos visibles</>} value={<>{MODULES.length}</>} />
       </section>
 
       <AcademyPanel variant="fundamentals" as="section" className="fundamentos__section-block">
@@ -413,36 +407,7 @@ export function Fundamentos() {
               </div>
               <div className="fundamentos__mini-list">
                 {modules.slice(0, levelsExpanded ? modules.length : 2).map((module) => (
-                  <div
-                    key={module.id}
-                    className={`fundamentos__mini-card ${getStatus(module.id) === "done" ? "fundamentos__mini-card--done" : ""}`}
-                  >
-                    <Link
-                      to={module.to}
-                      className="fundamentos__mini-link"
-                      onClick={() => markAsDone(module.id)}
-                    >
-                      <span className="fundamentos__mini-icon">
-                        {module.icon}
-                      </span>
-                      <div>
-                        <strong>{module.title}</strong>
-                        <p>{module.description}</p>
-                      </div>
-                    </Link>
-                    <div className="fundamentos__mini-actions">
-                      <button
-                        type="button"
-                        className={`fundamentos__mini-action fundamentos__mini-action--status ${getStatus(module.id) === "done" ? "fundamentos__mini-action--done" : "fundamentos__mini-action--pending"}`}
-                        aria-pressed={getStatus(module.id) === "done"}
-                        onClick={() => toggleDone(module.id)}
-                      >
-                        {getStatus(module.id) === "done"
-                          ? "Visto"
-                          : "Pendiente"}
-                      </button>
-                    </div>
-                  </div>
+                  <AcademyProgressCard key={module.id} to={module.to} title={module.title} description={module.description} icon={module.icon} done={getStatus(module.id) === "done"} onOpen={() => markAsDone(module.id)} onToggle={() => toggleDone(module.id)} />
                 ))}
               </div>
             </article>
@@ -464,15 +429,15 @@ export function Fundamentos() {
                 {goal.modules.map((moduleId) => {
                   const module = modulesById[moduleId];
                   return (
-                    <Link
+                    <AcademyRouteLink
                       key={module.id}
                       to={module.to}
-                      className="fundamentos__goal-link"
+                      className="fundamentos__goal-link" compactOnMobile
                       onClick={() => markAsDone(module.id)}
                     >
                       <span>{module.icon}</span>
                       <span>{module.title}</span>
-                    </Link>
+                    </AcademyRouteLink>
                   );
                 })}
               </div>
@@ -490,23 +455,12 @@ export function Fundamentos() {
         </div>
         <div className="fundamentos__checklist-grid">
           {CHECKLIST_LINKS.map((checklist) => (
-            <Link
-              key={checklist.title}
-              to={checklist.to}
-              className="fundamentos__checklist-card"
-              onClick={() => {
+            <AcademyLearningLink key={checklist.title} to={checklist.to} onClick={() => {
                 const module = MODULES.find((item) => item.to === checklist.to);
                 if (module) {
                   markAsDone(module.id);
                 }
-              }}
-            >
-              <h3>{checklist.title}</h3>
-              <p>{checklist.description}</p>
-              <span className="fundamentos__checklist-cta">
-                {checklist.cta}
-              </span>
-            </Link>
+              }} variant="checklist" title={checklist.title} description={checklist.description} cta={checklist.cta} />
           ))}
         </div>
       </AcademyPanel>
@@ -521,21 +475,7 @@ export function Fundamentos() {
         </div>
         <div className="fundamentos__sections">
           {simulatorModules.map((module) => (
-            <Link
-              key={module.id}
-              to={module.to}
-              className="fundamentos__card"
-              onClick={() => markAsDone(module.id)}
-            >
-              <div className="fundamentos__card-icon">{module.icon}</div>
-              <h3 className="fundamentos__card-title">{module.title}</h3>
-              <p className="fundamentos__card-description">
-                {module.description}
-              </p>
-              <div className="fundamentos__card-meta">
-                <span className="fundamentos__card-badge">{module.level}</span>
-              </div>
-            </Link>
+            <AcademyLearningLink key={module.id} to={module.to} onClick={() => markAsDone(module.id)} variant="catalog" title={module.title} description={module.description} icon={module.icon} badge={module.level} />
           ))}
         </div>
       </AcademyPanel>
@@ -573,21 +513,21 @@ export function Fundamentos() {
           mercado y crisis.
         </p>
         <div className="fundamentos__next-links">
-          <Link to="/academy/glossary" className="fundamentos__next-link">
+          <AcademyRouteLink to="/academy/glossary" className="fundamentos__next-link">
             📚 Empezar por glosario
-          </Link>
-          <Link
+          </AcademyRouteLink>
+          <AcademyRouteLink
             to="/academy/investor-profile-test"
             className="fundamentos__next-link"
           >
             🎯 Definir perfil inversor
-          </Link>
-          <Link to="/portfolio-csv" className="fundamentos__next-link">
+          </AcademyRouteLink>
+          <AcademyRouteLink to="/portfolio-csv" className="fundamentos__next-link">
             📊 Analizar mi cartera real
-          </Link>
-          <Link to="/academy/crisis" className="fundamentos__next-link">
+          </AcademyRouteLink>
+          <AcademyRouteLink to="/academy/crisis" className="fundamentos__next-link">
             📉 Prepararme para crisis
-          </Link>
+          </AcademyRouteLink>
         </div>
       </AcademyPanel>
     </div>

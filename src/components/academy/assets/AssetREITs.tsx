@@ -1,3 +1,4 @@
+import { AcademyListCard } from '../ui/AcademyListCard';
 import { AcademyCallout } from '../ui/AcademyCallout';
 import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
@@ -126,26 +127,20 @@ export function AssetREITs() {
             <AcademySection title={<><Shield size={22} /> Ventajas y Riesgos</>} id="section-3" className="asset-page__section">
 
                 <AcademyGrid variant="prosCons" className="asset-page__pros-cons">
-                    <AcademyPanel variant="prosCons" className="pc-column pc-column--pros">
-                        <h3><CheckCircle2 size={18} /> Ventajas</h3>
-                        <ul>
+                    <AcademyListCard kind="pros" title={<><CheckCircle2 size={18} /> Ventajas</>}>
                             <li>Alta yield (dividendos constantes y crecientes)</li>
                             <li>Protección natural contra la inflación vía rentas</li>
                             <li>Diversificación geográfica y sectorial masiva</li>
                             <li>Liquidez inmediata (vendes en segundos, no meses)</li>
                             <li>Sin costes de mantenimiento ni gestión de inquilinos</li>
-                        </ul>
-                    </AcademyPanel>
-                    <AcademyPanel variant="prosCons" className="pc-column pc-column--cons">
-                        <h3><AlertTriangle size={18} /> Riesgos</h3>
-                        <ul>
+                        </AcademyListCard>
+                    <AcademyListCard kind="cons" title={<><AlertTriangle size={18} /> Riesgos</>}>
                             <li>Muy sensibles a subidas de tipos de interés</li>
                             <li>Ciclos inmobiliarios largos y a veces volátiles</li>
                             <li>Correlación media-alta con la bolsa en grandes crisis</li>
                             <li>Fiscalidad de dividendos (no son tan eficientes como fondos de acumulación)</li>
                             <li>Riesgo de concentración si el sector elegido sufre (ej. oficinas post-COVID)</li>
-                        </ul>
-                    </AcademyPanel>
+                        </AcademyListCard>
                 </AcademyGrid>
             </AcademySection>
 

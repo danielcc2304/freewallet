@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-23 - Tailwind: tarjetas educativas y limpieza de estilos antiguos
+- Funcionalidad:
+  - Reutiliza tarjetas completas de progreso, enlaces de aprendizaje y accesos a módulos en Fundamentos; comparte sus indicadores con `DataItem`.
+  - Comparte listas de ventajas/riesgos/comparativas y explicaciones con rangos de referencia en las cinco guías de activos.
+- Resumen:
+  - Retira 371 líneas de estilos migrados y 424 de la antigua interfaz de Estrategia y cartera: 795 líneas de CSS y 164 declaraciones `@apply` menos. Quedan 13.762 líneas de CSS fuente, un 39,52 % menos que al inicio.
+  - Conserva progreso y persistencia, navegación nativa, modelos y cálculos. La limpieza del simulador retira 84 selectores sin referencias en los módulos actuales.
+- Archivos:
+  - src/components/academy/ui/{AcademyProgressCard,AcademyLearningLink,AcademyListCard,AcademyExplainerCard}.tsx; src/components/ui/DataItem.tsx; Fundamentos; guías de activos; PortfolioBuilder.css; README.md; documentación de Tailwind.
+
 ### 2026-10-22 - Tailwind: piezas compartidas entre módulos
 - Funcionalidad:
   - Reutiliza `DataItem`, `DataTable`, `FormField`, `FieldHint` y `PageHeading` entre calculadoras, Planificación, Operaciones, Portfolio, Añadir activo, mapa de calor y gastos.

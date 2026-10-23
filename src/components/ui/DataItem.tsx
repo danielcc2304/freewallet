@@ -7,7 +7,7 @@ interface DataItemProps {
     label: ReactNode;
     value: ReactNode;
     detail?: ReactNode;
-    layout?: 'metric' | 'identity' | 'fee' | 'detail' | 'planning' | 'transactions' | 'csv' | 'heatmap';
+    layout?: 'metric' | 'identity' | 'fee' | 'detail' | 'planning' | 'transactions' | 'csv' | 'heatmap' | 'learningSummary';
     valueAs?: 'strong' | 'span' | 'div';
     className?: string;
     labelClassName?: string;
@@ -16,6 +16,7 @@ interface DataItemProps {
 }
 
 const roots = {
+    learningSummary: 'tw:p-[.75rem_.9rem] tw:ui-fill-surface tw:ui-border-default tw:rounded-[14px] tw:grid tw:place-content-center tw:justify-items-center tw:gap-[.35rem] tw:min-h-[68px] tw:text-center tw:[@media(max-width:480px)]:min-h-[60px] tw:[@media(max-width:480px)]:p-[.5rem_.45rem] tw:[@media(max-width:480px)]:gap-[.2rem]',
     planning: 'tw:grid tw:gap-[.3rem]',
     transactions: 'tw:ui-stack tw:gap-[.35rem]',
     csv: 'tw:ui-fill-surface tw:ui-border tw:rounded-[14px] tw:p-[.9rem] tw:ui-stack tw:gap-[.3rem]',
@@ -26,6 +27,7 @@ const roots = {
     detail: 'tw:ui-fill-surface tw:ui-border-default tw:p-[1.5rem] tw:rounded-[20px] tw:ui-stack tw:gap-[.75rem] tw:justify-center tw:h-full',
 };
 const labels = {
+    learningSummary: 'tw:text-muted tw:text-[.76rem] tw:leading-[1.2] tw:max-w-none tw:uppercase tw:tracking-[.04em] tw:[@media(max-width:480px)]:text-[.62rem] tw:[@media(max-width:480px)]:leading-none',
     planning: 'tw:text-secondary tw:text-[.875rem]',
     transactions: 'tw:text-secondary tw:text-[.875rem]',
     csv: 'tw:text-muted tw:text-[length:var(--font-size-xs)]',
@@ -36,6 +38,7 @@ const labels = {
     detail: 'tw:text-[.75rem] tw:text-secondary tw:uppercase tw:font-bold',
 };
 const values = {
+    learningSummary: 'tw:text-[1.3rem] tw:text-main tw:leading-none tw:whitespace-nowrap tw:[@media(max-width:480px)]:text-[1.05rem]',
     planning: 'tw:text-[1.4rem]',
     transactions: 'tw:text-[1.75rem] tw:leading-none',
     csv: 'tw:text-[length:var(--font-size-lg)] tw:text-main tw:font-bold',

@@ -246,3 +246,22 @@ La comparación de gastos pasa otros 96 estados (cinco pestañas, seis editores 
 
 
 La suite de usabilidad de calculadoras y Dashboard pasa sobre producción, incluida la asociación accesible de los campos, entradas inválidas, aportaciones y retiradas, persistencia y resultados en tres anchos de pantalla.
+
+
+## Duodécima fase: tarjetas educativas con estructura compartida
+
+`AcademyProgressCard` reúne el enlace a la lección, icono, título, descripción y botón de progreso de Fundamentos. El estado y su persistencia continúan en Fundamentos: el componente recibe `done`, `onOpen` y `onToggle`, mantiene `aria-pressed` y conserva el botón separado del enlace. `AcademyLearningLink` comparte las fichas del catálogo y las checklists, con icono, título, descripción y distintivo o llamada a la acción; `AcademyRouteLink` comparte los accesos breves, incluida la variante de espaciado móvil. Todos siguen siendo enlaces nativos de React Router. Los tres indicadores superiores reutilizan una variante de `DataItem`.
+
+`AcademyListCard` comparte título, lista y distintivo opcional para las diez tarjetas de ventajas/riesgos y las dos comparativas de las cinco guías de activos. Mantiene los elementos `ul`/`li`, los iconos y los contenidos originales. `AcademyExplainerCard` reúne concepto, explicación y rango en las cuatro tarjetas de métricas de renta variable. Las superficies siguen utilizando `AcademyPanel`; los ajustes por contenedor y los materiales específicos permanecen en sus hojas de estilos.
+
+Se retiran 371 líneas de CSS sustituidas por estas estructuras y 424 líneas de la interfaz antigua de Estrategia y cartera. La limpieza de `PortfolioBuilder.css` elimina 84 selectores sin referencias en los módulos actuales, contrastando sus clases con los archivos TS/TSX/JS/JSX de `src`; conserva las clases que aún aparecen en otros módulos y las reglas de la interfaz actual. No se crean componentes para estilos sin consumidores.
+
+El CSS fuente total pasa de 14.557 a 13.762 líneas en 58 archivos: 795 líneas y 164 declaraciones `@apply` menos. La reducción acumulada frente a las 22.753 líneas iniciales es del 39,52 %. Son cifras de fuente, con limpieza de espacios vacíos; no representan una reducción equivalente del tamaño descargado.
+
+
+La comparación sobre el build de producción cubre siete rutas y tres estados de Fundamentos (ruta completa, plegada y con progreso), en dos anchos y cuatro combinaciones de tema/apariencia: 72 estados y 19.124 elementos. Coinciden todas las propiedades medidas; no se presenta como una comparación píxel a píxel. El recorrido responsive pasa otras 84 combinaciones de siete rutas, tres anchos y cuatro temas/apariencias sin errores de ejecución ni desbordamientos. Se revisó la captura móvil de Fundamentos en Liquid Glass.
+
+Pasan TypeScript, ESLint de los módulos modificados, build sin prerender y presupuesto de carga (655,00 kB de JavaScript inicial). Las declaraciones fuera de JSX de los seis módulos consumidores permanecen iguales. La prueba de progreso verifica marcar/desmarcar, contadores, persistencia al recargar, plegado/desplegado, navegación que marca la lección, enlaces nativos del catálogo/checklists y tamaños 320/390/768/1280 en Liquid Glass. Las pruebas financieras de modelos y asignación de cartera pasan.
+
+
+La suite funcional de Estrategia y cartera y su simulador pasa sobre producción: filtros de plazo/riesgo, objetivos táctiles, límites de comparación, persistencia de pesos e importe, normalización explícita, traspaso de los siete bloques al simulador, hipótesis editables, validación, restauración 60/40 y navegación de regreso. Comprueba ambos módulos en cinco anchos y los temas/apariencias existentes.

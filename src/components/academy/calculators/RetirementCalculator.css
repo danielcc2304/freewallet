@@ -10,28 +10,6 @@
     @apply tw:flex tw:justify-between tw:items-start tw:gap-[2rem];
 }
 
-.retirement__title-group {
-    @apply tw:ui-row tw:gap-[1.5rem];
-}
-
-.retirement__title-icon {
-    @apply tw:min-w-[54px] tw:w-[54px] tw:h-[54px] tw:p-[10px];
-    background: rgba(139, 92, 246, 0.1);
-    color: #8b5cf6;
-    @apply tw:rounded-[12px];
-}
-
-.retirement__title {
-    @apply tw:text-[length:2rem];
-    font-weight: 800;
-    @apply tw:text-main tw:m-[0];
-}
-
-.retirement__subtitle {
-    @apply tw:text-[length:1.1rem] tw:text-secondary tw:m-[0.25rem_0_0_0];
-    line-height: 1.5;
-}
-
 .retirement__summary-badge {
     @apply tw:ui-fill-surface tw:ui-border-default tw:rounded-[12px] tw:p-[0.75rem_1.25rem] tw:ui-stack tw:items-end;
 }
@@ -88,93 +66,9 @@
     @apply tw:min-w-[0];
 }
 
-.retirement__note {
-    --calculator-card-bg: rgba(59, 130, 246, 0.05);
-    --calculator-card-border: rgba(59, 130, 246, 0.1);
-    --calculator-card-padding: 0.95rem 1rem;
-    --calculator-card-radius: 12px;
-    @apply tw:flex tw:gap-[0.75rem] tw:items-start;
-}
-
-.retirement__note p {
-    @apply tw:text-[length:0.85rem] tw:m-[0] tw:text-secondary;
-    line-height: 1.4;
-}
-
-.retirement__note svg {
-    color: #3b82f6;
-    @apply tw:shrink-[0];
-}
-
 /* Main Content */
 .retirement__metrics {
     @apply tw:grid tw:grid-cols-[1fr_1fr] tw:gap-[1.5rem] tw:mb-[2rem];
-}
-
-.retirement__chart-box {
-    --calculator-card-padding: 1.75rem;
-    --calculator-card-radius: 16px;
-    @apply tw:mb-[2rem];
-}
-
-@media (max-width: 640px) {
-    .retirement__chart-box {
-        @apply tw:p-[1rem_0.5rem];
-    }
-}
-
-.retirement__chart-header {
-    @apply tw:ui-row tw:justify-between tw:mb-[1.5rem];
-}
-
-.retirement__chart-title {
-    @apply tw:text-[length:1.1rem];
-    font-weight: 700;
-    @apply tw:m-[0];
-}
-
-.retirement__chart-legend {
-    @apply tw:flex tw:gap-[1.5rem] tw:mb-[1.5rem];
-}
-
-.legend-item {
-    @apply tw:ui-row tw:gap-[0.5rem] tw:text-[length:0.85rem];
-    font-weight: 600;
-    @apply tw:text-secondary;
-}
-
-.dot {
-    @apply tw:w-[10px] tw:h-[10px] tw:rounded-[50%];
-}
-
-.dot.nominal {
-    background: #3b82f6;
-}
-
-.dot.real {
-    background: #8b5cf6;
-}
-
-.retirement__insight {
-    --calculator-card-bg: var(--bg-tertiary);
-    --calculator-card-padding: 1.25rem;
-    --calculator-card-radius: 16px;
-    @apply tw:ui-row tw:gap-[1.25rem];
-}
-
-.retirement__insight-icon {
-    color: #10b981;
-    @apply tw:w-[24px] tw:h-[24px] tw:shrink-[0];
-}
-
-.retirement__insight-content h4 {
-    @apply tw:m-[0_0_0.5rem_0] tw:text-[length:1rem];
-    font-weight: 700;
-}
-
-.retirement__insight-content p {
-    @apply tw:m-[0] tw:text-[length:0.9rem] tw:text-secondary;
-    line-height: 1.5;
 }
 
 /* Tooltip */

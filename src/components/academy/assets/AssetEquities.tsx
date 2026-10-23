@@ -1,3 +1,4 @@
+import { AssetCategoryCard } from '../ui/AssetCategoryCard';
 import { AcademyExplainerCard } from '../ui/AcademyExplainerCard';
 import { AcademyListCard } from '../ui/AcademyListCard';
 import { AcademyCallout } from '../ui/AcademyCallout';
@@ -137,25 +138,10 @@ export function AssetEquities() {
 
                 <AcademyGrid variant="subtypes" className="asset-page__subtype-grid">
                     {SUB_TYPES.map((type) => (
-                        <AcademyPanel variant="subtype" key={type.title} className="subtype-card" style={{ '--subtype-color': type.color } as React.CSSProperties}>
-                            <div className="subtype-card__header">
-                                <div className="subtype-card__dot" />
-                                <h3>{type.title}</h3>
-                            </div>
-                            <p className="subtype-card__desc">{type.desc}</p>
-                            <div className="subtype-card__examples">
-                                <span className="subtype-card__tag-label">Ejemplos:</span>
-                                <div className="subtype-card__tags">
-                                    {type.examples.map((ex, i) => (
-                                        <span key={i} className="subtype-card__tag">{ex}</span>
-                                    ))}
-                                </div>
-                            </div>
-                            <div className="subtype-card__footer">
+                        <AssetCategoryCard key={type.title} style={{ '--subtype-color': type.color } as React.CSSProperties} title={<>{type.title}</>} description={<>{type.desc}</>} examplesLabel={<>Ejemplos:</>} examples={type.examples} footer={<>
                                 <span>Riesgo: <strong>{type.risk}</strong></span>
                                 <span>Retorno: <strong>{type.returnRange}</strong></span>
-                            </div>
-                        </AcademyPanel>
+                            </>} />
                     ))}
                 </AcademyGrid>
             </AcademySection>

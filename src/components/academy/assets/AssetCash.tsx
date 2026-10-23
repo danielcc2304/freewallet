@@ -1,10 +1,10 @@
+import { AssetCategoryCard } from '../ui/AssetCategoryCard';
 import { AcademyListCard } from '../ui/AcademyListCard';
 import { AcademyCallout } from '../ui/AcademyCallout';
 import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
 import { AcademySection } from '../ui/AcademySection';
 import { AcademyGrid } from '../ui/AcademyGrid';
-import { AcademyPanel } from '../ui/AcademyPanel';
 import { Link } from 'react-router-dom';
 import {
     Wallet, ArrowLeft, Globe, CheckCircle2, AlertTriangle,
@@ -109,17 +109,10 @@ export function AssetCash() {
 
                 <AcademyGrid variant="subtypes" className="asset-page__subtype-grid">
                     {CASH_INSTRUMENTS.map((inst) => (
-                        <AcademyPanel variant="subtype" key={inst.name} className="subtype-card" style={{ '--subtype-color': inst.color } as React.CSSProperties}>
-                            <div className="subtype-card__header">
-                                <span style={{ fontSize: '1.5rem' }}>{inst.icon}</span>
-                                <h3>{inst.name}</h3>
-                            </div>
-                            <p className="subtype-card__desc">{inst.desc}</p>
-                            <div className="subtype-card__footer">
+                        <AssetCategoryCard key={inst.name} style={{ '--subtype-color': inst.color } as React.CSSProperties} icon={<span style={{ fontSize: '1.5rem' }}>{inst.icon}</span>} title={<>{inst.name}</>} description={<>{inst.desc}</>} footer={<>
                                 <span>Yield: <strong>{inst.yield}</strong></span>
                                 <span>Liquidez: <strong>{inst.liquidity}</strong></span>
-                            </div>
-                        </AcademyPanel>
+                            </>} />
                     ))}
                 </AcademyGrid>
             </AcademySection>

@@ -1,10 +1,10 @@
+import { AssetCategoryCard } from '../ui/AssetCategoryCard';
 import { AcademyListCard } from '../ui/AcademyListCard';
 import { AcademyCallout } from '../ui/AcademyCallout';
 import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
 import { AcademySection } from '../ui/AcademySection';
 import { AcademyGrid } from '../ui/AcademyGrid';
-import { AcademyPanel } from '../ui/AcademyPanel';
 import { Link } from 'react-router-dom';
 import {
     Coins, ArrowLeft, Globe, CheckCircle2, AlertTriangle,
@@ -91,16 +91,9 @@ export function AssetCrypto() {
 
                 <AcademyGrid variant="subtypes" className="asset-page__subtype-grid">
                     {CRYPTO_CATEGORIES.map((cat) => (
-                        <AcademyPanel variant="subtype" key={cat.title} className="subtype-card" style={{ '--subtype-color': cat.color } as React.CSSProperties}>
-                            <div className="subtype-card__header">
-                                <div className="subtype-card__dot" />
-                                <h3>{cat.title}</h3>
-                            </div>
-                            <p className="subtype-card__desc">{cat.desc}</p>
-                            <div className="subtype-card__footer">
+                        <AssetCategoryCard key={cat.title} style={{ '--subtype-color': cat.color } as React.CSSProperties} title={<>{cat.title}</>} description={<>{cat.desc}</>} footer={<>
                                 <span>Principales: <strong>{cat.ticker}</strong></span>
-                            </div>
-                        </AcademyPanel>
+                            </>} />
                     ))}
                 </AcademyGrid>
             </AcademySection>

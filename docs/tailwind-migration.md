@@ -286,3 +286,21 @@ Pasan TypeScript, ESLint de los módulos modificados, build sin prerender y pres
 
 
 La prueba funcional pasa edición y persistencia de categorías/pesos al recargar, advertencia de suma objetivo, apertura/cancelación del selector de archivo, petición real de la plantilla y restauración de la demo. Comprueba tamaños 320/390/768/1280 en Liquid Glass, esperando la estabilización del layout tras cambiar de ancho. Se revisó la captura móvil de Portfolio.
+
+
+## Decimocuarta fase: estructuras compartidas en diez módulos
+
+Interés compuesto, FIRE y jubilación comparten `CalculatorToolHeading`, `CalculatorChoice`, `CalculatorOption`, `CalculatorChart`, `CalculatorLegend`, `CalculatorNotice` y `CalculatorYearDetail`. Las piezas reúnen su marcado y estilos Tailwind, no solo clases sueltas. Los consumidores conservan las series de gráficos, formatos, expresiones financieras, selección y callbacks. Las tarjetas de teoría de FIRE reutilizan una variante de `CalculatorEducationCard`; los indicadores del detalle anual reutilizan `DataItem`.
+
+La ficha de fondos compone su formulario, ejemplo, estado vacío, carga, errores, nota de procedencia y filas de posiciones mediante las cuatro piezas de `CalculatorLookup`. Conserva inputs, validación, estados accesibles, cancelación de peticiones y consultas Finect. El spinner utiliza su animación original, que permanece en CSS.
+
+`JourneyPhase`, `JourneyTextSection`, `JourneyChecklist`, `JourneyAllocation`, `JourneyNotice` y `JourneyGuideLink` componen las etapas del viaje inversor y sus detalles a partir de los mismos datos. Conservan la apertura de etapas, conectores, iconos, listas y enlaces nativos. `AssetCategoryCard` comparte encabezado, descripción, ejemplos y pie opcional de renta variable, liquidez, inmobiliario cotizado y criptoactivos. `BondCategoryCard` comparte encabezado, riesgo, descripción y duración de los subtipos de renta fija.
+
+Los estilos ordinarios de estas estructuras pasan a los componentes y sus mapas de variantes; se mantienen las reglas contextuales de material, contenedor, gráficos y animaciones. Las variantes conservan la precedencia de estados seleccionados, bordes de categorías y medidas móviles. Los selectores arbitrarios con hooks BEM usan `String.raw` para conservar los escapes de los guiones bajos durante la extracción y en el navegador.
+
+Se retiran 1.069 líneas de CSS fuente y 240 declaraciones `@apply`. El total pasa de 13.621 a 12.552 líneas en 58 hojas: reducción acumulada del 44,83 % frente a las 22.753 líneas iniciales. Estas cifras describen el código fuente, no un ahorro equivalente en el paquete descargado. Las declaraciones de lógica fuera de JSX de los diez módulos consumidores permanecen iguales.
+
+
+La comparación sobre producción cubre quince rutas y estados adicionales de interés compuesto, FIRE, viaje inversor y ficha de fondos: 200 estados en dos anchos y cuatro combinaciones de tema/apariencia. Coinciden las propiedades medidas de 38.704 elementos y el desbordamiento horizontal; no se presenta como una comparación píxel a píxel. La revisión responsive de los diez módulos modificados pasa otras 120 combinaciones de tres anchos y cuatro temas/apariencias, sin errores de ejecución ni desbordamientos. Se revisaron capturas de móvil y escritorio en Liquid Glass.
+
+Pasan TypeScript, ESLint de los archivos modificados y añadidos, build sin prerender y presupuesto de carga. Las pruebas existentes de interés compuesto, asignación de cartera, bonos —incluida la verificación independiente de CoreWeave con Decimal— e IRPF pasan. La suite de usabilidad de calculadoras y Dashboard verifica controles accesibles, entradas inválidas, retiradas, persistencia y escenarios. La ficha de fondos pasa sus pruebas con consultas simuladas, clase exacta, valores cero/ausentes, comisiones, histórico, composición, documentos, tooltip accesible y dieciséis combinaciones responsive/tema. Las consultas a proveedores y el comportamiento financiero permanecen en sus módulos originales.

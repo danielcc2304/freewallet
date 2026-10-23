@@ -1,3 +1,7 @@
+import { CalculatorLegend } from './CalculatorLegend';
+import { CalculatorNotice } from './CalculatorNotice';
+import { CalculatorChart } from './CalculatorChart';
+import { CalculatorToolHeading } from './CalculatorToolHeading';
 import { CalculatorField } from './CalculatorField';
 import { CalculatorResultCard } from './CalculatorResultCard';
 import { useEffect, useMemo, useState } from 'react';
@@ -140,15 +144,9 @@ export function RetirementCalculator() {
     return (
         <div className="retirement">
             <AcademyPageHeader className="retirement__header" section="Herramientas">
-                <div className="retirement__title-group">
-                    <div className="retirement__icon-container">
+                <CalculatorToolHeading appearance="retirement" icon={<div className="retirement__icon-container">
                         <Calendar className="retirement__title-icon" />
-                    </div>
-                    <div>
-                        <h1 className="retirement__title">Planificador de Jubilación</h1>
-                        <p className="retirement__subtitle">¿Cuánto valdrán tus ahorros cuando te retires?</p>
-                    </div>
-                </div>
+                    </div>} title={<>Planificador de Jubilación</>} description={<>¿Cuánto valdrán tus ahorros cuando te retires?</>} />
                 <div className="retirement__summary-badge">
                     <span className="retirement__summary-label">Objetivo en {yearsToRetire} años</span>
                     <span className="retirement__summary-value">{calculationError ? 'N/D' : formatRetirementCurrency(finalNominal)}</span>
@@ -223,10 +221,7 @@ export function RetirementCalculator() {
                         </div>
                     </CalculatorCard>
 
-                    <CalculatorCard className="retirement__note">
-                        <Info size={16} />
-                        <p>La inflación reduce tu poder adquisitivo. 100.000€ en el futuro no comprarán lo mismo que hoy.</p>
-                    </CalculatorCard>
+                    <CalculatorNotice appearance="retirement" icon={<Info size={16} />}>La inflación reduce tu poder adquisitivo. 100.000€ en el futuro no comprarán lo mismo que hoy.</CalculatorNotice>
                 </aside>
 
                 <main className="retirement__main">
@@ -240,13 +235,7 @@ export function RetirementCalculator() {
                                 slotClasses={{ label: 'retirement__metric-label', value: 'retirement__metric-value', description: 'retirement__metric-desc', content: 'retirement__metric-info', icon: 'retirement__metric-icon' }} />
                     </div>
 
-                    <CalculatorCard className="retirement__chart-box">
-                        <h3 className="retirement__chart-title">Evolución del Patrimonio</h3>
-                        <div className="retirement__chart-legend">
-                            <span className="legend-item"><span className="dot nominal"></span> Valor Futuro</span>
-                            <span className="legend-item"><span className="dot real"></span> Poder Adquisitivo</span>
-                        </div>
-                        <div className="retirement__chart-wrapper">
+                    <CalculatorChart appearance="retirement" title={<>Evolución del Patrimonio</>} legend={<CalculatorLegend appearance="retirement" items={[{ label: <> Valor Futuro</>, tone: 'blue' },{ label: <> Poder Adquisitivo</>, tone: 'green' }]} />}>
                             <ResponsiveContainer width="100%" height={350}>
                                 <AreaChart data={projectionData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
                                     <defs>
@@ -302,19 +291,12 @@ export function RetirementCalculator() {
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
-                        </div>
-                    </CalculatorCard>
+                        </CalculatorChart>
 
-                    <CalculatorCard className="retirement__insight">
-                        <BadgeInfo className="retirement__insight-icon" />
-                        <div className="retirement__insight-content">
-                            <h4>Proyección de Retirada</h4>
-                            <p>
+                    <CalculatorNotice appearance="insight" icon={<BadgeInfo  />} title={<>Proyección de Retirada</>}>
                                 Con un capital de <strong>{formatRetirementCurrency(finalReal)}</strong> (ajustado), podrías retirar aproximadamente
                                 <strong> {formatRetirementCurrency(finalReal * 0.04 / 12)}/mes</strong> como referencia inicial al aplicar el 4% anual. Es una simulación, no una garantía de duración del capital.
-                            </p>
-                        </div>
-                    </CalculatorCard>
+                            </CalculatorNotice>
                     </>}
                     <ScenarioComparison current={calculationError ? null : {
                         parametersKey: JSON.stringify([ageNum, retAgeNum, savingsNum, contributionNum, returnNum, inflationNum]),

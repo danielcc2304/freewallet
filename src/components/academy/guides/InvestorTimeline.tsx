@@ -1,6 +1,7 @@
-import { AcademyPanel } from '../ui/AcademyPanel';
+import { JourneyNotice, JourneyGuideLink } from '../ui/JourneyPhase';
+import { JourneyPhase, JourneyTextSection, JourneyChecklist, JourneyAllocation } from '../ui/JourneyPhase';
 import { useState } from 'react';
-import { Check, AlertCircle, TrendingUp } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { TIMELINE_PHASES } from '../../../data/academyData';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
@@ -25,96 +26,32 @@ export function InvestorTimeline() {
                 </p>
             </AcademyPageHeader>
 
-            <div className="timeline__disclaimer">
+            <JourneyNotice>
                 <strong>⚠️ Importante:</strong> Esta línea temporal es una guía orientativa.
                 <strong> No todos los inversores pasan por estas fases en orden ni a la misma velocidad.</strong>
                 Tu situación personal, objetivos y circunstancias determinan tu propio ritmo.
-            </div>
+            </JourneyNotice>
 
             <div className="timeline__container">
                 {/* Regular phases */}
                 {regularPhases.map((phase, index) => (
-                    <div
-                        key={phase.id}
-                        className={`timeline__phase ${expandedPhase === phase.id ? 'timeline__phase--expanded' : ''}`}
-                    >
-                        <div className="timeline__phase-marker">
-                            <div className="timeline__phase-number">{phase.phase}</div>
-                            {index < regularPhases.length - 1 && (
-                                <div className="timeline__phase-connector" />
-                            )}
-                        </div>
+                    <JourneyPhase key={phase.id} number={phase.phase} title={phase.title} duration={phase.duration} connected={index < regularPhases.length - 1} expanded={expandedPhase === phase.id} onToggle={() => togglePhase(phase.id)}>
+                        <JourneyTextSection appearance="objective" title={<>🎯 Objetivo:</>}>{phase.objective}</JourneyTextSection>
 
-                        <AcademyPanel variant="timeline" className="timeline__phase-content">
-                            <button
-                                className="timeline__phase-header"
-                                onClick={() => togglePhase(phase.id)}
-                            >
-                                <div className="timeline__phase-header-text">
-                                    <h3 className="timeline__phase-title">{phase.title}</h3>
-                                    <span className="timeline__phase-duration">{phase.duration}</span>
-                                </div>
-                                <TrendingUp className="timeline__phase-icon" size={24} />
-                            </button>
+                        {phase.checklist && (
+                            <JourneyChecklist title="✅ Checklist:" items={phase.checklist} />
+                        )}
 
-                            {expandedPhase === phase.id && (
-                                <div className="timeline__phase-details">
-                                    <div className="timeline__phase-objective">
-                                        <strong>🎯 Objetivo:</strong> {phase.objective}
-                                    </div>
+                        {phase.strategy && (
+                            <JourneyTextSection appearance="strategy" title={<>📊 Estrategia:</>}>{phase.strategy}</JourneyTextSection>
+                        )}
 
-                                    {phase.checklist && (
-                                        <div className="timeline__phase-checklist">
-                                            <strong>✅ Checklist:</strong>
-                                            <ul>
-                                                {phase.checklist.map((item, i) => (
-                                                    <li key={i}>
-                                                        <Check size={16} className="timeline__check-icon" />
-                                                        {item}
-                                                    </li>
-                                                ))}
-                                            </ul>
-                                        </div>
-                                    )}
+                        {phase.allocation && (
+                            <JourneyAllocation title="📈 Asset Allocation sugerida:" items={[['Conservador:', phase.allocation.conservative], ['Moderado:', phase.allocation.moderate], ['Agresivo:', phase.allocation.aggressive]]} />
+                        )}
 
-                                    {phase.strategy && (
-                                        <div className="timeline__phase-strategy">
-                                            <strong>📊 Estrategia:</strong> {phase.strategy}
-                                        </div>
-                                    )}
-
-                                    {phase.allocation && (
-                                        <div className="timeline__phase-allocation">
-                                            <strong>📈 Asset Allocation sugerida:</strong>
-                                            <div className="timeline__allocation-options">
-                                                <div className="timeline__allocation-option">
-                                                    <span className="timeline__allocation-label">Conservador:</span>
-                                                    <span className="timeline__allocation-value">{phase.allocation.conservative}</span>
-                                                </div>
-                                                <div className="timeline__allocation-option">
-                                                    <span className="timeline__allocation-label">Moderado:</span>
-                                                    <span className="timeline__allocation-value">{phase.allocation.moderate}</span>
-                                                </div>
-                                                <div className="timeline__allocation-option">
-                                                    <span className="timeline__allocation-label">Agresivo:</span>
-                                                    <span className="timeline__allocation-value">{phase.allocation.aggressive}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div className="timeline__phase-errors">
-                                        <strong>⚠️ Errores comunes:</strong>
-                                        <ul>
-                                            {phase.commonErrors.map((err, i) => (
-                                                <li key={i}>{err}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                </div>
-                            )}
-                        </AcademyPanel>
-                    </div>
+                        <JourneyChecklist appearance="errors" title="⚠️ Errores comunes:" items={phase.commonErrors} />
+                    </JourneyPhase>
                 ))}
             </div>
 
@@ -194,18 +131,9 @@ export function InvestorTimeline() {
                 <h3>Siguiente paso segun tu momento</h3>
                 <p>Usa esta guia como punto de partida y baja luego a riesgo, crisis o construccion de cartera.</p>
                 <div className="timeline__guide-links">
-                    <Link to="/academy/crisis" className="timeline__guide-link">
-                        <strong>Mercado y crisis</strong>
-                        <span>Para saber que esperar cuando llegue una caida fuerte.</span>
-                    </Link>
-                    <Link to="/academy/scenarios" className="timeline__guide-link">
-                        <strong>Qué hacer si...</strong>
-                        <span>Para convertir teoria en decisiones practicas.</span>
-                    </Link>
-                    <Link to="/academy/portfolio" className="timeline__guide-link">
-                        <strong>Construir cartera</strong>
-                        <span>Para traducir tu fase inversora en una asignacion real.</span>
-                    </Link>
+                    <JourneyGuideLink to="/academy/crisis" title={<>Mercado y crisis</>} description={<>Para saber que esperar cuando llegue una caida fuerte.</>} />
+                    <JourneyGuideLink to="/academy/scenarios" title={<>Qué hacer si...</>} description={<>Para convertir teoria en decisiones practicas.</>} />
+                    <JourneyGuideLink to="/academy/portfolio" title={<>Construir cartera</>} description={<>Para traducir tu fase inversora en una asignacion real.</>} />
                 </div>
             </section>
         </div>

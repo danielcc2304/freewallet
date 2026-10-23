@@ -1,3 +1,11 @@
+import { CalculatorDataItem } from './CalculatorDataItem';
+import { CalculatorLegend } from './CalculatorLegend';
+import { CalculatorYearDetail } from './CalculatorYearDetail';
+import { CalculatorNotice } from './CalculatorNotice';
+import { CalculatorChart } from './CalculatorChart';
+import { CalculatorOption } from './CalculatorOption';
+import { CalculatorChoice } from './CalculatorChoice';
+import { CalculatorToolHeading } from './CalculatorToolHeading';
 import { CalculatorField } from './CalculatorField';
 import { CalculatorResultCard } from './CalculatorResultCard';
 import { useEffect, useState, useMemo } from 'react';
@@ -312,37 +320,22 @@ export function CompoundInterestCalc() {
     return (
         <div className="compound">
             <AcademyPageHeader className="compound__header" section="Herramientas">
-                <div className="compound__title-group">
-                    <TrendingUp className="compound__title-icon" size={32} />
-                    <div className="compound__title-content">
-                        <h1 className="compound__title">Calculadora de Interés Compuesto</h1>
-                        <p className="compound__description">
+                <CalculatorToolHeading appearance="compound" icon={<TrendingUp className="compound__title-icon" size={32} />} title={<>Calculadora de Interés Compuesto</>} description={<>
                             Visualiza el poder del interés compuesto. Tu capital trabajando para ti a lo largo del tiempo.
-                        </p>
-                    </div>
-                </div>
+                        </>} />
             </AcademyPageHeader>
 
             {/* Calculation Mode Selector */}
             <div className="compound__mode-selector">
-                <button
-                    className={`compound__mode-btn ${calculationMode === 'normal' ? 'compound__mode-btn--active' : ''}`}
-                    onClick={() => setCalculationMode('normal')}>
-                    <TrendingUp size={20} />
+                <CalculatorChoice appearance="compound" selected={calculationMode === 'normal'} onClick={() => setCalculationMode('normal')} icon={<TrendingUp size={20} />} label={<>
                     Calcular Capital Final
-                </button>
-                <button
-                    className={`compound__mode-btn ${calculationMode === 'timeToGoal' ? 'compound__mode-btn--active' : ''}`}
-                    onClick={() => setCalculationMode('timeToGoal')}>
-                    <Calendar size={20} />
+                </>} />
+                <CalculatorChoice appearance="compound" selected={calculationMode === 'timeToGoal'} onClick={() => setCalculationMode('timeToGoal')} icon={<Calendar size={20} />} label={<>
                     Tiempo para Objetivo
-                </button>
-                <button
-                    className={`compound__mode-btn ${calculationMode === 'requiredContribution' ? 'compound__mode-btn--active' : ''}`}
-                    onClick={() => setCalculationMode('requiredContribution')}>
-                    <Target size={20} />
+                </>} />
+                <CalculatorChoice appearance="compound" selected={calculationMode === 'requiredContribution'} onClick={() => setCalculationMode('requiredContribution')} icon={<Target size={20} />} label={<>
                     Aportación Necesaria
-                </button>
+                </>} />
             </div>
 
             <div className="compound__container">
@@ -443,7 +436,7 @@ export function CompoundInterestCalc() {
                                     <div className="calc__input-group">
                                         <label>Tipo de rentabilidad</label>
                                         <div className="compound__radio-group">
-                                            <label className="compound__radio">
+                                            <CalculatorOption>
                                                 <input
                                                     type="radio"
                                                     name="interest-rate-type"
@@ -451,8 +444,8 @@ export function CompoundInterestCalc() {
                                                     onChange={() => setInterestRateType('cagr')}
                                                 />
                                                 <span>Rentabilidad anual efectiva (CAGR)</span>
-                                            </label>
-                                            <label className="compound__radio">
+                                            </CalculatorOption>
+                                            <CalculatorOption>
                                                 <input
                                                     type="radio"
                                                     name="interest-rate-type"
@@ -460,15 +453,15 @@ export function CompoundInterestCalc() {
                                                     onChange={() => setInterestRateType('tin')}
                                                 />
                                                 <span>Tasa nominal anual (TIN)</span>
-                                            </label>
+                                            </CalculatorOption>
                                         </div>
                                     </div>
 
                                     {interestRateType === 'tin' && (
-                                        <CalculatorField controlId="compounding-frequency" label="Frecuencia de capitalización" icon={<Calendar size={18} />} afterControl={<><p className="compound__rate-equivalence">
+                                        <CalculatorField controlId="compounding-frequency" label="Frecuencia de capitalización" icon={<Calendar size={18} />} afterControl={<><CalculatorNotice appearance="rate">
                                             Rentabilidad anual efectiva equivalente:{' '}
                                             <strong>{formatPercent(effectiveAnnualRatePercent)}</strong>
-                                        </p></>}>
+                                        </CalculatorNotice></>}>
                                             <select
                                                 id="compounding-frequency"
                                                 value={compoundingFrequency}
@@ -487,16 +480,16 @@ export function CompoundInterestCalc() {
                                     )}
 
                                     {interestRateType === 'cagr' && (
-                                        <p className="compound__rate-equivalence">
+                                        <CalculatorNotice appearance="rate">
                                             Rentabilidad efectiva anual:{' '}
                                             <strong>{formatPercent(effectiveAnnualRatePercent)}</strong>
-                                        </p>
+                                        </CalculatorNotice>
                                     )}
 
                                     <div className="calc__input-group">
                                         <label>Retiradas Anuales</label>
                                         <div className="compound__radio-group">
-                                            <label className="compound__radio">
+                                            <CalculatorOption>
                                                 <input
                                                     type="radio"
                                                     name="withdrawal"
@@ -504,8 +497,8 @@ export function CompoundInterestCalc() {
                                                     onChange={() => setWithdrawalType('none')}
                                                 />
                                                 <span>Sin retiradas</span>
-                                            </label>
-                                            <label className="compound__radio">
+                                            </CalculatorOption>
+                                            <CalculatorOption>
                                                 <input
                                                     type="radio"
                                                     name="withdrawal"
@@ -513,8 +506,8 @@ export function CompoundInterestCalc() {
                                                     onChange={() => setWithdrawalType('percentage')}
                                                 />
                                                 <span>% del capital</span>
-                                            </label>
-                                            <label className="compound__radio">
+                                            </CalculatorOption>
+                                            <CalculatorOption>
                                                 <input
                                                     type="radio"
                                                     name="withdrawal"
@@ -522,7 +515,7 @@ export function CompoundInterestCalc() {
                                                     onChange={() => setWithdrawalType('fixed')}
                                                 />
                                                 <span>Cantidad fija</span>
-                                            </label>
+                                            </CalculatorOption>
                                         </div>
                                     </div>
 
@@ -614,21 +607,11 @@ export function CompoundInterestCalc() {
                     )}
 
                     {/* Chart */}
-                    <CalculatorCard className="compound__chart">
-                        <div className="compound__chart-header">
-                            <h4>Evolución Temporal</h4>
-                            <div className="compound__chart-legend" aria-label="Leyenda del gráfico">
-                                <span className="compound__chart-legend-item">
-                                    <span className="compound__chart-legend-dot compound__chart-legend-dot--blue" />
+                    <CalculatorChart appearance="compound" title={<>Evolución Temporal</>} legend={<CalculatorLegend appearance="compound" items={[{ label: <>
                                     Capital Aportado
-                                </span>
-                                <span className="compound__chart-legend-item">
-                                    <span className="compound__chart-legend-dot compound__chart-legend-dot--green" />
+                                </>, tone: 'blue' },{ label: <>
                                     Saldo Disponible
-                                </span>
-                            </div>
-                        </div>
-                        <div className="compound__chart-canvas">
+                                </>, tone: 'green' }]} />}>
                             <ResponsiveContainer width="100%" height="100%">
                                 <AreaChart data={chartData} margin={{ top: 10, right: 30, left: 10, bottom: 0 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-color)" />
@@ -673,8 +656,7 @@ export function CompoundInterestCalc() {
                                     />
                                 </AreaChart>
                             </ResponsiveContainer>
-                        </div>
-                    </CalculatorCard>
+                        </CalculatorChart>
 
                     <CalculatorCard className="compound__breakdown">
                         <div>
@@ -696,75 +678,24 @@ export function CompoundInterestCalc() {
                                 const isOpen = expandedYear === row.year;
 
                                 return (
-                                    <article key={row.year} className={`compound__detail-item ${isOpen ? 'compound__detail-item--open' : ''}`}>
-                                        <button
-                                            type="button"
-                                            className="compound__detail-summary"
-                                            onClick={() => setExpandedYear(isOpen ? null : row.year)}>
-                                            <div className="compound__detail-summary-main">
-                                                <span className="compound__detail-year">Año {row.year}</span>
-                                                <strong className="compound__detail-total">{formatCurrency(row.endingBalance)}</strong>
-                                            </div>
-                                            <div className="compound__detail-summary-side">
-                                                <span className="compound__detail-yield">{formatCurrency(row.grossInterestEarned)}</span>
-                                                <span className="compound__detail-yield-label">Rendimiento</span>
-                                            </div>
-                                            {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                                        </button>
-
-                                        {isOpen && (
-                                            <div className="compound__detail-body">
-                                                <div className="compound__detail-grid">
-                                                    <div className="compound__detail-metric">
-                                                        <span>Saldo inicial</span>
-                                                        <strong>{formatCurrency(row.startingBalance)}</strong>
-                                                    </div>
-                                                    <div className="compound__detail-metric">
-                                                        <span>Saldo final</span>
-                                                        <strong>{formatCurrency(row.endingBalance)}</strong>
-                                                    </div>
-                                                    <div className="compound__detail-metric">
-                                                        <span>Cambio de saldo</span>
-                                                        <strong>{formatCurrency(row.balanceChange)}</strong>
-                                                    </div>
-                                                    <div className="compound__detail-metric">
-                                                        <span>Aportes totales hasta el momento</span>
-                                                        <strong>{formatCurrency(row.totalContributed)}</strong>
-                                                    </div>
-                                                    <div className="compound__detail-metric">
-                                                        <span>Todos los depósitos hasta ahora</span>
-                                                        <strong>{formatCurrency(row.totalDeposits)}</strong>
-                                                    </div>
-                                                    <div className="compound__detail-metric">
-                                                        <span>Depósitos este año</span>
-                                                        <strong>{formatCurrency(row.yearlyDeposits)}</strong>
-                                                    </div>
+                                    <CalculatorYearDetail key={row.year} expanded={isOpen} onToggle={() => setExpandedYear(isOpen ? null : row.year)} label={<>Año {row.year}</>} value={<>{formatCurrency(row.endingBalance)}</>} gain={<>{formatCurrency(row.grossInterestEarned)}</>} gainLabel={<>Rendimiento</>}>
+                                                    <CalculatorDataItem layout="calculatorYear" label={<>Saldo inicial</>} value={<>{formatCurrency(row.startingBalance)}</>} />
+                                                    <CalculatorDataItem layout="calculatorYear" label={<>Saldo final</>} value={<>{formatCurrency(row.endingBalance)}</>} />
+                                                    <CalculatorDataItem layout="calculatorYear" label={<>Cambio de saldo</>} value={<>{formatCurrency(row.balanceChange)}</>} />
+                                                    <CalculatorDataItem layout="calculatorYear" label={<>Aportes totales hasta el momento</>} value={<>{formatCurrency(row.totalContributed)}</>} />
+                                                    <CalculatorDataItem layout="calculatorYear" label={<>Todos los depósitos hasta ahora</>} value={<>{formatCurrency(row.totalDeposits)}</>} />
+                                                    <CalculatorDataItem layout="calculatorYear" label={<>Depósitos este año</>} value={<>{formatCurrency(row.yearlyDeposits)}</>} />
                                                     {withdrawalType !== 'none' && (
-                                                        <div className="compound__detail-metric">
-                                                            <span>Retirada este año</span>
-                                                            <strong>{formatCurrency(row.withdrawalAmount)}</strong>
-                                                        </div>
+                                                        <CalculatorDataItem layout="calculatorYear" label={<>Retirada este año</>} value={<>{formatCurrency(row.withdrawalAmount)}</>} />
                                                     )}
-                                                    <div className="compound__detail-metric">
-                                                        <span>Intereses recibidos hasta ahora</span>
-                                                        <strong className="compound__detail-positive">{formatCurrency(row.totalInterest)}</strong>
-                                                    </div>
-                                                    <div className="compound__detail-metric">
-                                                        <span>Intereses generados este año</span>
-                                                        <strong className="compound__detail-positive">
+                                                    <CalculatorDataItem layout="calculatorYear" label={<>Intereses recibidos hasta ahora</>} value={<>{formatCurrency(row.totalInterest)}</>} valueClassName="compound__detail-positive" />
+                                                    <CalculatorDataItem layout="calculatorYear" label={<>Intereses generados este año</>} value={<>
                                                             {formatCurrency(row.grossInterestEarned)}
-                                                        </strong>
-                                                    </div>
-                                                    <div className="compound__detail-metric">
-                                                        <span>Intereses menos retiradas del año</span>
-                                                        <strong>
+                                                        </>} valueClassName="compound__detail-positive" />
+                                                    <CalculatorDataItem layout="calculatorYear" label={<>Intereses menos retiradas del año</>} value={<>
                                                             {formatCurrency(row.interestEarned)}
-                                                        </strong>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-                                    </article>
+                                                        </>} />
+                                                </CalculatorYearDetail>
                                 );
                             })}
                         </div>
@@ -773,10 +704,10 @@ export function CompoundInterestCalc() {
                 </div>
             </div>
 
-            <div className="compound__disclaimer">
+            <CalculatorNotice appearance="compound">
                 ⚠️ Esta calculadora es solo educativa. Los resultados asumen rentabilidad constante, lo cual es irreal.
                 Los mercados fluctúan. Consulta un asesor antes de tomar decisiones de inversión.
-            </div>
+            </CalculatorNotice>
         </div>
     );
 }

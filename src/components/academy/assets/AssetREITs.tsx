@@ -1,10 +1,10 @@
+import { AssetCategoryCard } from '../ui/AssetCategoryCard';
 import { AcademyListCard } from '../ui/AcademyListCard';
 import { AcademyCallout } from '../ui/AcademyCallout';
 import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
 import { AcademySection } from '../ui/AcademySection';
 import { AcademyGrid } from '../ui/AcademyGrid';
-import { AcademyPanel } from '../ui/AcademyPanel';
 import { Link } from 'react-router-dom';
 import {
     Building2, ArrowLeft, Globe, Zap, CheckCircle2, AlertTriangle,
@@ -98,21 +98,7 @@ export function AssetREITs() {
 
                 <AcademyGrid variant="subtypes" className="asset-page__subtype-grid">
                     {REIT_TYPES.map((type) => (
-                        <AcademyPanel variant="subtype" key={type.title} className="subtype-card" style={{ '--subtype-color': type.color } as React.CSSProperties}>
-                            <div className="subtype-card__header">
-                                <type.icon size={24} color={type.color} />
-                                <h3>{type.title}</h3>
-                            </div>
-                            <p className="subtype-card__desc">{type.desc}</p>
-                            <div className="subtype-card__examples">
-                                <span className="subtype-card__tag-label">Principales REITs:</span>
-                                <div className="subtype-card__tags">
-                                    {type.examples.map((ex, i) => (
-                                        <span key={i} className="subtype-card__tag">{ex}</span>
-                                    ))}
-                                </div>
-                            </div>
-                        </AcademyPanel>
+                        <AssetCategoryCard key={type.title} style={{ '--subtype-color': type.color } as React.CSSProperties} icon={<type.icon size={24} color={type.color} />} title={<>{type.title}</>} description={<>{type.desc}</>} examplesLabel={<>Principales REITs:</>} examples={type.examples} />
                     ))}
                 </AcademyGrid>
 

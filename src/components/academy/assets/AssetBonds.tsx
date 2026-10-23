@@ -1,3 +1,4 @@
+import { BondCategoryCard } from '../ui/BondCategoryCard';
 import { AcademyListCard } from '../ui/AcademyListCard';
 import { AcademyCallout } from '../ui/AcademyCallout';
 import { AcademyStepCard } from '../ui/AcademyStepCard';
@@ -474,18 +475,9 @@ export function AssetBonds() {
                         </div>
                         <AcademyGrid variant="bondSubtypes" className="bond-type-block__subtypes">
                             {type.subtypes.map(sub => (
-                                <AcademyPanel variant="bondSubtype" key={sub.name} className="bond-subtype">
-                                    <div className="bond-subtype__header">
-                                        <h4>{sub.name}</h4>
-                                        <span className={`bond-subtype__risk bond-subtype__risk--${sub.risk.toLowerCase().replace(/[^a-z]/g, '')}`}>
-                                            {sub.risk}
-                                        </span>
-                                    </div>
-                                    <p>{sub.desc}</p>
-                                    <span className="bond-subtype__duration">
+                                <BondCategoryCard key={sub.name} title={sub.name} risk={sub.risk} description={<>{sub.desc}</>} duration={<>
                                         <Clock size={14} /> {sub.duration}
-                                    </span>
-                                </AcademyPanel>
+                                    </>} />
                             ))}
                         </AcademyGrid>
                     </div>

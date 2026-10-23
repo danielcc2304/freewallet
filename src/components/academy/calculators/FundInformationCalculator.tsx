@@ -1,3 +1,4 @@
+import { CalculatorSearchPanel, CalculatorEmptyState, CalculatorFeedback, CalculatorHolding } from './CalculatorLookup';
 import { CalculatorTable } from './CalculatorTable';
 import { CalculatorAllocationCard } from './CalculatorAllocationCard';
 import { CalculatorDocumentLink } from './CalculatorDocumentLink';
@@ -359,10 +360,7 @@ function FundResults({ fund }: { fund: FinectFundRelevance }) {
                 <Section icon={<ShieldCheck size={20} />} title="Principales posiciones">
                     <div className="fund-info__holdings-list">
                         {fund.holdings.map((holding) => (
-                            <div className="fund-info__holding" key={holding.name}>
-                                <span>{holding.name}</span>
-                                <strong>{formatPercentage(holding.weight)}</strong>
-                            </div>
+                            <CalculatorHolding key={holding.name} name={holding.name} weight={formatPercentage(holding.weight)} />
                         ))}
                     </div>
                 </Section>
@@ -385,12 +383,9 @@ function FundResults({ fund }: { fund: FinectFundRelevance }) {
                 </Section>
             )}
 
-            <div className="fund-info__result-footnote">
-                <Info size={16} />
-                <span>
+            <CalculatorFeedback appearance="footnote" icon={<Info size={16} />}>
                     Información orientativa consultada en Finect. Comprueba siempre la documentación oficial antes de tomar una decisión.
-                </span>
-            </div>
+                </CalculatorFeedback>
         </div>
     );
 }
@@ -444,16 +439,10 @@ export function FundInformationCalculator() {
                 </p>
             </AcademyPageHeader>
 
-            <section className="fund-info__search-card">
-                <div className="fund-info__search-title">
-                    <Search size={20} />
-                    <div>
-                        <h2>Busca una clase concreta</h2>
-                        <p>La consulta comprueba el ISIN exacto para no confundir divisa o cobertura.</p>
-                    </div>
-                </div>
-
-                <form className="fund-info__form" onSubmit={handleSubmit}>
+            <CalculatorSearchPanel icon={<Search size={20} />} title={<>Busca una clase concreta</>} description={<>La consulta comprueba el ISIN exacto para no confundir divisa o cobertura.</>} onSubmit={handleSubmit} sample={<>
+                    <span>¿Quieres probarla?</span>
+                    <button type="button" onClick={() => setIsin(SAMPLE_ISIN)}>{SAMPLE_ISIN}</button>
+                </>}>
                     <Input
                         label="ISIN del fondo"
                         value={isin}
@@ -474,36 +463,20 @@ export function FundInformationCalculator() {
                         icon={<Sparkles size={18} />}>
                         Consultar Finect
                     </Button>
-                </form>
-
-                <div className="fund-info__sample">
-                    <span>¿Quieres probarla?</span>
-                    <button type="button" onClick={() => setIsin(SAMPLE_ISIN)}>{SAMPLE_ISIN}</button>
-                </div>
-            </section>
+                </CalculatorSearchPanel>
 
             {error && !error.includes('ISIN válido') && (
-                <div className="fund-info__alert" role="alert">
-                    <CircleAlert size={19} />
-                    <span>{error}</span>
-                </div>
+                <CalculatorFeedback appearance="error" icon={<CircleAlert size={19} />}>{error}</CalculatorFeedback>
             )}
 
             {loading && (
-                <div className="fund-info__loading" role="status" aria-live="polite">
-                    <span className="fund-info__loading-spinner" />
-                    <span>Consultando la ficha pública de Finect…</span>
-                </div>
+                <CalculatorFeedback appearance="loading">Consultando la ficha pública de Finect…</CalculatorFeedback>
             )}
 
             {fund ? (
                 <FundResults fund={fund} />
             ) : !loading && !error ? (
-                <section className="fund-info__empty-state">
-                    <div className="fund-info__empty-icon"><Search size={28} /></div>
-                    <h2>Introduce un ISIN para empezar</h2>
-                    <p>Verás identidad de la clase, costes, riesgo, rentabilidades, composición y documentación cuando estén disponibles.</p>
-                </section>
+                <CalculatorEmptyState icon={<><Search size={28} /></>} title={<>Introduce un ISIN para empezar</>}>Verás identidad de la clase, costes, riesgo, rentabilidades, composición y documentación cuando estén disponibles.</CalculatorEmptyState>
             ) : null}
         </div>
     );

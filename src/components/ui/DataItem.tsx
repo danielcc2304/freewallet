@@ -9,7 +9,7 @@ interface DataItemProps {
     label: ReactNode;
     value: ReactNode;
     detail?: ReactNode;
-    layout?: 'metric' | 'identity' | 'fee' | 'detail' | 'planning' | 'transactions' | 'csv' | 'heatmap' | 'learningSummary' | 'portfolioAdvanced' | 'portfolioFlow' | 'portfolioDaily';
+    layout?: 'calculatorYear' | 'metric' | 'identity' | 'fee' | 'detail' | 'planning' | 'transactions' | 'csv' | 'heatmap' | 'learningSummary' | 'portfolioAdvanced' | 'portfolioFlow' | 'portfolioDaily';
     valueAs?: 'strong' | 'span' | 'div';
     className?: string;
     labelClassName?: string;
@@ -18,6 +18,7 @@ interface DataItemProps {
 }
 
 const roots = {
+    calculatorYear: "compound__detail-metric tw:min-w-[0] tw:p-[0.85rem_0.9rem] tw:rounded-[12px] tw:ui-fill-canvas tw:ui-border-default tw:ui-stack tw:gap-[0.35rem] tw:[&_span]:text-[length:0.8rem] tw:[&_span]:text-secondary tw:[&_span]:[line-height:1.4] tw:[&_strong]:text-[length:1rem] tw:[&_strong]:text-main tw:[&_strong]:wrap-anywhere tw:[@media(max-width:768px)]:p-[0.75rem] tw:[@media(max-width:768px)]:[&_span]:text-[length:0.76rem] tw:[@media(max-width:768px)]:[&_strong]:text-[length:0.92rem] tw:[@media(max-width:480px)]:[&&]:p-[0.65rem] tw:[@media(max-width:480px)]:[&&]:rounded-[10px] tw:[@media(max-width:480px)]:[&&]:[&_span]:text-[length:0.72rem] tw:[@media(max-width:480px)]:[&&]:[&_strong]:text-[length:0.86rem]",
     portfolioAdvanced: 'tw:min-w-0 tw:ui-stack tw:gap-[.25rem] tw:p-[.8rem] tw:ui-border tw:rounded-[10px] tw:ui-fill-muted',
     portfolioFlow: 'tw:grid tw:gap-[.3rem] tw:p-[.85rem] tw:ui-border-strong tw:rounded-[12px] tw:bg-[rgba(255,255,255,.02)]',
     portfolioDaily: 'tw:grid tw:grid-cols-[auto_1fr] tw:items-center tw:gap-x-[.4rem] tw:gap-y-[.2rem] tw:text-secondary tw:text-[length:var(--font-size-xs)] tw:[&_svg]:text-accent tw:[&_svg]:row-span-2',
@@ -32,6 +33,7 @@ const roots = {
     detail: 'tw:ui-fill-surface tw:ui-border-default tw:p-[1.5rem] tw:rounded-[20px] tw:ui-stack tw:gap-[.75rem] tw:justify-center tw:h-full',
 };
 const labels = {
+    calculatorYear: '',
     portfolioAdvanced: 'tw:text-secondary tw:text-[length:var(--font-size-xs)] tw:leading-[1.35]',
     portfolioFlow: 'tw:text-muted tw:text-[.78rem]',
     portfolioDaily: '',
@@ -46,6 +48,7 @@ const labels = {
     detail: 'tw:text-[.75rem] tw:text-secondary tw:uppercase tw:font-bold',
 };
 const values = {
+    calculatorYear: '',
     portfolioAdvanced: 'tw:text-main tw:text-[length:var(--font-size-lg)] tw:leading-[1.1] tw:wrap-anywhere',
     portfolioFlow: '',
     portfolioDaily: 'tw:text-main tw:text-[length:var(--font-size-sm)] tw:wrap-anywhere',

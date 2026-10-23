@@ -92,3 +92,8 @@ Fundamentos compone sus tarjetas de progreso, checklists, catálogo y accesos me
 ### Portfolio y estados de Operaciones
 
 Portfolio utiliza `PortfolioPanel` y `PortfolioButton` para tarjetas de análisis y acciones, y `DataItem` para sus indicadores, estadísticas, flujos y datos diarios. `StatusPill` comparte sus estados de control con los distintivos de Operaciones. Se conservan los materiales Liquid Glass, gráficos y tablas específicas. El total queda en 13.621 líneas en 58 hojas CSS: 40,14 % menos frente al inicio.
+
+
+### Calculadoras, etapas y categorías de activos
+
+Interés compuesto, FIRE y jubilación comparten cabeceras con icono, opciones nativas, marcos de gráficos, leyendas, avisos y detalle anual. La ficha de fondos comparte estructura de búsqueda, estados y posiciones. El viaje inversor compone etapas, listas, asignaciones y accesos mediante componentes propios de Academia. Las cinco guías de activos comparten tarjetas completas de categorías y subtipos de bonos. Las piezas incorporan marcado y estilos Tailwind, conservando CSS contextual de materiales y contenedores. Esta fase retira 1.069 líneas y 240 declaraciones `@apply`: quedan 12.552 líneas en 58 hojas, un 44,83 % menos de CSS fuente respecto al inicio.

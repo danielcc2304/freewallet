@@ -12,6 +12,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-23 - Tailwind: calculadoras, viaje inversor y categorías de activos
+- Funcionalidad:
+  - Comparte cabeceras, opciones, gráficos, leyendas, avisos y detalle anual con estructura y estilos Tailwind en interés compuesto, FIRE y jubilación.
+  - Comparte búsqueda, estados de carga/error/vacío y posiciones de la ficha de fondos; compone las etapas, listas y asignaciones del viaje del inversor.
+  - Reutiliza tarjetas completas de categorías en las cinco guías de activos, incluidas las variantes de riesgo y duración de bonos.
+- Resumen:
+  - Retira 1.069 líneas de CSS fuente y 240 declaraciones `@apply` en diez módulos. Quedan 12.552 líneas en 58 hojas: 44,83 % menos frente al inicio de la migración.
+  - Conserva cálculos, consultas, controles nativos, persistencia y contenido. Mantiene CSS contextual para materiales Liquid Glass, contenedores y gráficos específicos.
+- Archivos:
+  - src/components/academy/calculators/{CalculatorToolHeading,CalculatorChoice,CalculatorOption,CalculatorChart,CalculatorLegend,CalculatorNotice,CalculatorYearDetail,CalculatorLookup,CalculatorEducationCard}; sus consumidores y estilos; src/components/academy/ui/{JourneyPhase,AssetCategoryCard,BondCategoryCard}; InvestorTimeline; cinco guías de activos; src/components/ui/DataItem.tsx; README.md; documentación de Tailwind.
+
 ### 2026-10-23 - Tailwind: tarjetas de Portfolio y estados de operaciones
 - Funcionalidad:
   - Comparte tarjetas completas de análisis con títulos, descripciones y estados mediante `PortfolioPanel`, y sus acciones mediante `PortfolioButton`.

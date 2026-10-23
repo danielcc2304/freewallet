@@ -1,3 +1,6 @@
+import { PortfolioPanel } from './ui/PortfolioPanel';
+import { PortfolioButton } from './ui/PortfolioButton';
+import { StatusPill } from '../../components/ui/StatusPill';
 import { DataItem } from '../../components/ui/DataItem';
 import { migrateLegacyPortfolioHistory } from '../../services/imports/portfolioHistoryImport';
 import { portfolioStorage } from '../../services/portfolioCloudStorage';
@@ -748,15 +751,15 @@ export function PortfolioCsv() {
                     <h3><FileSpreadsheet size={18} /> Excel único</h3>
                     <p>Sube el Excel completo con `Cartera`, `Evolución`, `Diario`, `Movimientos`, `Comparativa`, `Objetivos`, `Control` y `Datos diarios`, o descarga la plantilla actualizada.</p>
                     <div className="portfolio-csv-upload__actions">
-                        <button type="button" className="portfolio-csv-btn" onClick={() => workbookInputRef.current?.click()}>
+                        <PortfolioButton type="button" onClick={() => workbookInputRef.current?.click()}>
                             <Upload size={16} /> Subir Excel
-                        </button>
-                        <button type="button" className="portfolio-csv-btn portfolio-csv-btn--ghost" onClick={downloadWorkbookTemplate}>
+                        </PortfolioButton>
+                        <PortfolioButton type="button" onClick={downloadWorkbookTemplate} ghost>
                             <Download size={16} /> Descargar plantilla
-                        </button>
-                        <button type="button" className="portfolio-csv-btn" onClick={resetToDemo}>
+                        </PortfolioButton>
+                        <PortfolioButton type="button" onClick={resetToDemo}>
                             <RefreshCw size={16} /> Restaurar demo
-                        </button>
+                        </PortfolioButton>
                     </div>
                     <input
                         ref={workbookInputRef}
@@ -792,16 +795,9 @@ export function PortfolioCsv() {
 
             {(workbookControls.length > 0 || objectives.length > 0 || movements.length > 0) && (
                 <section className="portfolio-csv-grid portfolio-csv-grid--workbook">
-                    <article className="portfolio-csv-card">
-                        <div className="portfolio-csv-card__heading-row">
-                            <div>
-                                <h2><ListChecks size={18} /> Estado del Excel</h2>
-                                <p>Controles importados de la hoja `Control`.</p>
-                            </div>
-                            <span className={`portfolio-csv-status portfolio-csv-status--${generalControl?.status || 'neutral'}`}>
+                    <PortfolioPanel title={<><ListChecks size={18} /> Estado del Excel</>} description={<>Controles importados de la hoja `Control`.</>} status={<StatusPill appearance="workbook" tone={generalControl?.status || 'neutral'}>
                                 {generalControl?.value || (warningControls.length ? 'REVISAR' : 'OK')}
-                            </span>
-                        </div>
+                            </StatusPill>}>
                         {workbookControls.length > 0 ? (
                             <div className="portfolio-csv-workbook-controls">
                                 {workbookControls.filter((control) => control !== generalControl).slice(0, 8).map((control) => (
@@ -812,18 +808,12 @@ export function PortfolioCsv() {
                                 ))}
                             </div>
                         ) : <div className="portfolio-csv-empty-state">Este archivo no incluye la hoja `Control`.</div>}
-                    </article>
+                    </PortfolioPanel>
 
-                    <article className="portfolio-csv-card">
-                        <div className="portfolio-csv-card__heading-row">
-                            <div>
-                                <h2><Target size={18} /> Objetivos del Excel</h2>
-                                <p>Pesos objetivo y reparto sugerido de la próxima aportación.</p>
-                            </div>
-                            <span className="portfolio-csv-status portfolio-csv-status--neutral">
+                    <PortfolioPanel title={<><Target size={18} /> Objetivos del Excel</>} description={<>Pesos objetivo y reparto sugerido de la próxima aportación.</>} status={<StatusPill appearance="workbook" tone="neutral">
                                 {objectives.length} activos
-                            </span>
-                        </div>
+                            </StatusPill>}>
+
                         {largestObjectiveGaps.length > 0 ? (
                             <div className="portfolio-csv-objectives">
                                 {largestObjectiveGaps.map((objective) => (
@@ -842,23 +832,16 @@ export function PortfolioCsv() {
                                 )}
                             </div>
                         ) : <div className="portfolio-csv-empty-state">No hay déficits objetivo ni aportaciones pendientes.</div>}
-                    </article>
+                    </PortfolioPanel>
                 </section>
             )}
 
             {movements.length > 0 && (
-                <section className="portfolio-csv-card portfolio-csv-card--full portfolio-csv-movements">
-                    <div className="portfolio-csv-card__heading-row">
-                        <div>
-                            <h2><RefreshCw size={18} /> Movimientos de capital</h2>
-                            <p>Aportaciones y retiradas leídas directamente de la hoja `Movimientos`.</p>
-                        </div>
-                        <span className="portfolio-csv-status portfolio-csv-status--neutral">{movements.length} registros</span>
-                    </div>
+                <PortfolioPanel className="portfolio-csv-movements" as="section" full title={<><RefreshCw size={18} /> Movimientos de capital</>} description={<>Aportaciones y retiradas leídas directamente de la hoja `Movimientos`.</>} status={<StatusPill appearance="workbook" tone="neutral">{movements.length} registros</StatusPill>}>
                     <div className="portfolio-csv-movements__summary">
-                        <div><span>Aportaciones</span><strong>{formatCurrency(totalContributions)}</strong></div>
-                        <div><span>Retiradas</span><strong>{formatCurrency(totalWithdrawals)}</strong></div>
-                        <div><span>Flujo neto</span><strong>{formatCurrency(netMovements)}</strong></div>
+                        <DataItem layout="portfolioFlow" label={<>Aportaciones</>} value={<>{formatCurrency(totalContributions)}</>} />
+                        <DataItem layout="portfolioFlow" label={<>Retiradas</>} value={<>{formatCurrency(totalWithdrawals)}</>} />
+                        <DataItem layout="portfolioFlow" label={<>Flujo neto</>} value={<>{formatCurrency(netMovements)}</>} />
                     </div>
                     <div className="portfolio-csv-movements__list">
                         {recentMovements.map((movement, index) => (
@@ -870,13 +853,11 @@ export function PortfolioCsv() {
                             </div>
                         ))}
                     </div>
-                </section>
+                </PortfolioPanel>
             )}
 
             <section className="portfolio-csv-grid">
-                <article className="portfolio-csv-card">
-                    <h2><Layers3 size={18} /> Composición por activos</h2>
-                    <p>Distribución de pesos por posición.</p>
+                <PortfolioPanel title={<><Layers3 size={18} /> Composición por activos</>} description={<>Distribución de pesos por posición.</>}>
                     <div className="portfolio-csv-chart portfolio-csv-chart--composition">
                         <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
                             <PieChart margin={{ top: 8, right: 8, left: 8, bottom: 8 }}>
@@ -898,11 +879,9 @@ export function PortfolioCsv() {
                             </div>
                         ))}
                     </div>
-                </article>
+                </PortfolioPanel>
 
-                <article className="portfolio-csv-card">
-                    <h2><TrendingUp size={18} /> Asignación por bloques</h2>
-                    <p>Peso agregado por tipo de activo.</p>
+                <PortfolioPanel title={<><TrendingUp size={18} /> Asignación por bloques</>} description={<>Peso agregado por tipo de activo.</>}>
                     <div className="portfolio-csv-chart">
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={categoryAllocationData}>
@@ -922,13 +901,11 @@ export function PortfolioCsv() {
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
-                </article>
+                </PortfolioPanel>
             </section>
 
             <section className="portfolio-csv-grid">
-                <article className="portfolio-csv-card">
-                    <h2><CalendarClock size={18} /> Valor total vs capital invertido</h2>
-                    <p>Separa el efecto mercado del efecto aportaciones.</p>
+                <PortfolioPanel title={<><CalendarClock size={18} /> Valor total vs capital invertido</>} description={<>Separa el efecto mercado del efecto aportaciones.</>}>
                     <div className="portfolio-csv-chart">
                         <ResponsiveContainer width="100%" height={320}>
                             <AreaChart data={evolution}>
@@ -951,10 +928,10 @@ export function PortfolioCsv() {
                             </AreaChart>
                         </ResponsiveContainer>
                     </div>
-                </article>
+                </PortfolioPanel>
 
-                <article className="portfolio-csv-card">
-                    <h2><Layers3 size={18} /> Lectura del benchmark</h2>
+                <PortfolioPanel title={<><Layers3 size={18} /> Lectura del benchmark</>}>
+
                     <ul className="portfolio-csv-insights">
                         <li><span>Cartera acumulada</span><strong>{latestBenchmarkComparison ? formatPct(latestBenchmarkComparison.portfolioAccumPct) : 'N/D'}</strong></li>
                         <li><span>MSCI World acumulado</span><strong>{latestBenchmarkComparison ? formatPct(latestBenchmarkComparison.benchmarkAccumPct) : 'N/D'}</strong></li>
@@ -968,13 +945,13 @@ export function PortfolioCsv() {
                             Un diferencial positivo sostenido indica que la cartera está compensando su riesgo frente al índice de referencia.
                         </p>
                     </div>
-                </article>
+                </PortfolioPanel>
             </section>
 
             <section className="portfolio-csv-grid">
-                <article className="portfolio-csv-card portfolio-csv-card--wide">
-                    <h2><TrendingUp size={18} /> Comparativa vs MSCI World</h2>
-                    <p>Evolución acumulada de la cartera frente al benchmark y diferencia mensual relativa.</p>
+                <PortfolioPanel wide title={<><TrendingUp size={18} /> Comparativa vs MSCI World</>} description={<>Evolución acumulada de la cartera frente al benchmark y diferencia mensual relativa.</>}>
+
+
                     {benchmarkComparison.length > 0 ? (
                         <div className="portfolio-csv-chart portfolio-csv-chart--benchmark">
                             <ResponsiveContainer width="100%" height={isMobile ? 360 : 330}>
@@ -1004,10 +981,10 @@ export function PortfolioCsv() {
                             Añade una hoja `Comparativa` con columnas de rentabilidad mensual y acumulada para activar este análisis.
                         </div>
                     )}
-                </article>
+                </PortfolioPanel>
             </section>
 
-            <section className="portfolio-csv-card portfolio-csv-card--full portfolio-csv-advanced">
+            <PortfolioPanel className="portfolio-csv-advanced" as="section" full>
                 <div className="portfolio-csv-advanced__header">
                     <div>
                         <h2><Activity size={18} /> Estadísticas avanzadas</h2>
@@ -1018,79 +995,29 @@ export function PortfolioCsv() {
                     </span>
                 </div>
                 <div className="portfolio-csv-advanced__grid">
-                    <div className="portfolio-csv-advanced__metric">
-                        <span>Ratio Sharpe</span>
-                        <strong>{formatAdvancedRatio(advancedStats.sharpeRatio)}</strong>
-                        <small>Con €STR como referencia de riesgo</small>
-                    </div>
-                    <div className="portfolio-csv-advanced__metric">
-                        <span>Ratio Sortino</span>
-                        <strong>{formatAdvancedRatio(advancedStats.sortinoRatio)}</strong>
-                        <small>Penaliza solo la volatilidad negativa</small>
-                    </div>
-                    <div className="portfolio-csv-advanced__metric">
-                        <span>Alpha anual</span>
-                        <strong>{formatAdvancedPct(advancedStats.annualAlphaPct)}</strong>
-                        <small>Exceso estimado frente al benchmark</small>
-                    </div>
-                    <div className="portfolio-csv-advanced__metric">
-                        <span>Beta vs MSCI World</span>
-                        <strong>{formatAdvancedRatio(advancedStats.beta)}</strong>
-                        <small>Sensibilidad relativa al mercado</small>
-                    </div>
-                    <div className="portfolio-csv-advanced__metric">
-                        <span>Máximo drawdown</span>
-                        <strong>{formatAdvancedPct(advancedStats.maxDrawdownPct)}</strong>
-                        <small>Peor caída desde un máximo</small>
-                    </div>
-                    <div className="portfolio-csv-advanced__metric">
-                        <span>Information ratio</span>
-                        <strong>{formatAdvancedRatio(advancedStats.informationRatio)}</strong>
-                        <small>Alpha relativo por unidad de tracking error</small>
-                    </div>
-                    <div className="portfolio-csv-advanced__metric">
-                        <span>Tracking error anual</span>
-                        <strong>{formatAdvancedPct(advancedStats.trackingErrorAnnualPct)}</strong>
-                        <small>Desviación frente al benchmark</small>
-                    </div>
-                    <div className="portfolio-csv-advanced__metric">
-                        <span>Correlación</span>
-                        <strong>{formatAdvancedRatio(advancedStats.correlation)}</strong>
-                        <small>Movimiento conjunto con el índice</small>
-                    </div>
-                    <div className="portfolio-csv-advanced__metric">
-                        <span>Rentabilidad anualizada</span>
-                        <strong>{formatAdvancedPct(advancedStats.annualizedReturnPct)}</strong>
-                        <small>Compuesta a partir de los meses cargados</small>
-                    </div>
-                    <div className="portfolio-csv-advanced__metric">
-                        <span>Volatilidad anualizada</span>
-                        <strong>{formatAdvancedPct(advancedStats.annualizedVolatilityPct)}</strong>
-                        <small>Volatilidad mensual anualizada</small>
-                    </div>
-                    <div className="portfolio-csv-advanced__metric">
-                        <span>Ratio Treynor</span>
-                        <strong>{formatAdvancedPct(advancedStats.treynorRatioPct)}</strong>
-                        <small>Exceso de retorno por beta</small>
-                    </div>
-                    <div className="portfolio-csv-advanced__metric">
-                        <span>Mejor mes</span>
-                        <strong>{advancedStats.bestMonth ? formatAdvancedPct(advancedStats.bestMonth.returnPct) : 'N/D'}</strong>
-                        <small>{advancedStats.bestMonth?.period || 'Sin datos'}</small>
-                    </div>
+                    <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Ratio Sharpe</>} value={<>{formatAdvancedRatio(advancedStats.sharpeRatio)}</>} detail={<>Con €STR como referencia de riesgo</>} detailAs="small" />
+                    <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Ratio Sortino</>} value={<>{formatAdvancedRatio(advancedStats.sortinoRatio)}</>} detail={<>Penaliza solo la volatilidad negativa</>} detailAs="small" />
+                    <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Alpha anual</>} value={<>{formatAdvancedPct(advancedStats.annualAlphaPct)}</>} detail={<>Exceso estimado frente al benchmark</>} detailAs="small" />
+                    <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Beta vs MSCI World</>} value={<>{formatAdvancedRatio(advancedStats.beta)}</>} detail={<>Sensibilidad relativa al mercado</>} detailAs="small" />
+                    <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Máximo drawdown</>} value={<>{formatAdvancedPct(advancedStats.maxDrawdownPct)}</>} detail={<>Peor caída desde un máximo</>} detailAs="small" />
+                    <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Information ratio</>} value={<>{formatAdvancedRatio(advancedStats.informationRatio)}</>} detail={<>Alpha relativo por unidad de tracking error</>} detailAs="small" />
+                    <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Tracking error anual</>} value={<>{formatAdvancedPct(advancedStats.trackingErrorAnnualPct)}</>} detail={<>Desviación frente al benchmark</>} detailAs="small" />
+                    <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Correlación</>} value={<>{formatAdvancedRatio(advancedStats.correlation)}</>} detail={<>Movimiento conjunto con el índice</>} detailAs="small" />
+                    <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Rentabilidad anualizada</>} value={<>{formatAdvancedPct(advancedStats.annualizedReturnPct)}</>} detail={<>Compuesta a partir de los meses cargados</>} detailAs="small" />
+                    <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Volatilidad anualizada</>} value={<>{formatAdvancedPct(advancedStats.annualizedVolatilityPct)}</>} detail={<>Volatilidad mensual anualizada</>} detailAs="small" />
+                    <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Ratio Treynor</>} value={<>{formatAdvancedPct(advancedStats.treynorRatioPct)}</>} detail={<>Exceso de retorno por beta</>} detailAs="small" />
+                    <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Mejor mes</>} value={<>{advancedStats.bestMonth ? formatAdvancedPct(advancedStats.bestMonth.returnPct) : 'N/D'}</>} detail={<>{advancedStats.bestMonth?.period || 'Sin datos'}</>} detailAs="small" />
                 </div>
                 <div className="portfolio-csv-advanced__daily">
-                    <div><Gauge size={16} /><span>€STR / libre de riesgo</span><strong>{formatAdvancedPct(advancedStats.riskFreeAnnualPct)}</strong></div>
-                    <div><ShieldCheck size={16} /><span>Observaciones diarias</span><strong>{advancedStats.dailyObservations || 'N/D'}</strong></div>
-                    <div><TrendingUp size={16} /><span>Volatilidad diaria anualizada</span><strong>{formatAdvancedPct(advancedStats.dailyVolatilityAnnualPct)}</strong></div>
-                    <div><CalendarClock size={16} /><span>Último dato diario</span><strong>{advancedStats.latestDailyPoint ? `${formatCurrency(advancedStats.latestDailyPoint.totalValue)} · ${formatAdvancedDate(advancedStats.latestDailyPoint.date)}` : 'N/D'}</strong></div>
+                    <DataItem layout="portfolioDaily" icon={<Gauge size={16} />} label={<>€STR / libre de riesgo</>} value={<>{formatAdvancedPct(advancedStats.riskFreeAnnualPct)}</>} />
+                    <DataItem layout="portfolioDaily" icon={<ShieldCheck size={16} />} label={<>Observaciones diarias</>} value={<>{advancedStats.dailyObservations || 'N/D'}</>} />
+                    <DataItem layout="portfolioDaily" icon={<TrendingUp size={16} />} label={<>Volatilidad diaria anualizada</>} value={<>{formatAdvancedPct(advancedStats.dailyVolatilityAnnualPct)}</>} />
+                    <DataItem layout="portfolioDaily" icon={<CalendarClock size={16} />} label={<>Último dato diario</>} value={<>{advancedStats.latestDailyPoint ? `${formatCurrency(advancedStats.latestDailyPoint.totalValue)} · ${formatAdvancedDate(advancedStats.latestDailyPoint.date)}` : 'N/D'}</>} />
                 </div>
-            </section>
+            </PortfolioPanel>
 
             <section className="portfolio-csv-grid">
-                <article className="portfolio-csv-card">
-                    <h2><AlertTriangle size={18} /> Mapa de riesgo</h2>
-                    <p>Retorno de meses cerrados y drawdown ajustado por aportaciones, con la misma base que Dashboard. El TWR YTD conserva el dato del Excel.</p>
+                <PortfolioPanel title={<><AlertTriangle size={18} /> Mapa de riesgo</>} description={<>Retorno de meses cerrados y drawdown ajustado por aportaciones, con la misma base que Dashboard. El TWR YTD conserva el dato del Excel.</>}>
                     <div className="portfolio-csv-chart portfolio-csv-chart--risk-map">
                         <ResponsiveContainer width="100%" height={320}>
                             <ComposedChart
@@ -1142,10 +1069,10 @@ export function PortfolioCsv() {
                             </ComposedChart>
                         </ResponsiveContainer>
                     </div>
-                </article>
+                </PortfolioPanel>
 
-                <article className="portfolio-csv-card">
-                    <h2><Layers3 size={18} /> Resumen mensual</h2>
+                <PortfolioPanel title={<><Layers3 size={18} /> Resumen mensual</>}>
+
                     <ul className="portfolio-csv-insights">
                         <li><span>Concentracion Top 3</span><strong>{formatPct(topConcentration)} ({concentrationLevel})</strong></li>
                         <li><span>Mejor mes registrado</span><strong>{bestMonth ? `${bestMonth.period} (${formatPct(bestMonth.monthlyReturnPct)})` : 'N/D'}</strong></li>
@@ -1158,13 +1085,11 @@ export function PortfolioCsv() {
                             Si sube la concentración y empeora el drawdown, revisa rebalanceo y riesgo antes de aumentar exposición.
                         </p>
                     </div>
-                </article>
+                </PortfolioPanel>
             </section>
 
             <section className="portfolio-csv-grid">
-                <article className="portfolio-csv-card">
-                    <h2><AlertTriangle size={18} /> Checks automáticos</h2>
-                    <p>Lectura rápida de concentración, liquidez y consistencia del CSV actual.</p>
+                <PortfolioPanel title={<><AlertTriangle size={18} /> Checks automáticos</>} description={<>Lectura rápida de concentración, liquidez y consistencia del CSV actual.</>}>
                     <div className="portfolio-csv-checks">
                         {riskChecks.map((check) => (
                             <div key={check.title} className={`portfolio-csv-check portfolio-csv-check--${check.tone}`}>
@@ -1176,11 +1101,9 @@ export function PortfolioCsv() {
                             </div>
                         ))}
                     </div>
-                </article>
+                </PortfolioPanel>
 
-                <article className="portfolio-csv-card">
-                    <h2><Layers3 size={18} /> Buckets por objetivo</h2>
-                    <p>Agrupa las posiciones por horizonte: largo plazo, medio plazo y liquidez.</p>
+                <PortfolioPanel title={<><Layers3 size={18} /> Buckets por objetivo</>} description={<>Agrupa las posiciones por horizonte: largo plazo, medio plazo y liquidez.</>}>
                     <div className="portfolio-csv-chart">
                         <ResponsiveContainer width="100%" height={300}>
                             <BarChart data={bucketAllocationData}>
@@ -1197,12 +1120,10 @@ export function PortfolioCsv() {
                             <li key={row.name}><span>{row.name}</span><strong>{formatPct(row.weight)}</strong></li>
                         ))}
                     </ul>
-                </article>
+                </PortfolioPanel>
             </section>
 
-            <section className="portfolio-csv-card portfolio-csv-card--full">
-                <h2><FileSpreadsheet size={18} /> Tabla de control de posiciones</h2>
-                <p>Corrige categorías cuando la heurística falle.</p>
+            <PortfolioPanel as="section" full title={<><FileSpreadsheet size={18} /> Tabla de control de posiciones</>} description={<>Corrige categorías cuando la heurística falle.</>}>
                 <div className="portfolio-csv-controls-table">
                     <div className="portfolio-csv-controls-table__head">
                         <span>Activo</span>
@@ -1224,11 +1145,9 @@ export function PortfolioCsv() {
                         </div>
                     ))}
                 </div>
-            </section>
+            </PortfolioPanel>
             <section className="portfolio-csv-grid">
-                <article className="portfolio-csv-card">
-                    <h2><TrendingUp size={18} /> Asignación objetivo</h2>
-                    <p>Define el peso deseado para cada bloque.</p>
+                <PortfolioPanel title={<><TrendingUp size={18} /> Asignación objetivo</>} description={<>Define el peso deseado para cada bloque.</>}>
                     <div className="portfolio-csv-targets">
                         {(Object.keys(BUCKET_LABELS) as HoldingBucket[]).map((bucket) => (
                             <label key={bucket} className="portfolio-csv-targets__item">
@@ -1249,11 +1168,9 @@ export function PortfolioCsv() {
                         <span>Suma objetivo</span>
                         <strong>{formatPct(totalTargetWeight)}</strong>
                     </div>
-                </article>
+                </PortfolioPanel>
 
-                <article className="portfolio-csv-card">
-                    <h2><Layers3 size={18} /> Desviación vs Objetivo</h2>
-                    <p>Lectura practica para saber que bloque pesa de mas o de menos respecto al plan.</p>
+                <PortfolioPanel title={<><Layers3 size={18} /> Desviación vs Objetivo</>} description={<>Lectura practica para saber que bloque pesa de mas o de menos respecto al plan.</>}>
                     <div className="portfolio-csv-plan-table">
                         <div className="portfolio-csv-plan-table__head">
                             <span>Bucket</span>
@@ -1285,7 +1202,7 @@ export function PortfolioCsv() {
                                 .join(' | ') || 'la cartera ya está cerca del objetivo definido.'}
                         </p>
                     </div>
-                </article>
+                </PortfolioPanel>
             </section>
         </div>
     );

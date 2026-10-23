@@ -62,36 +62,6 @@
     @apply tw:grid tw:gap-[0.75rem];
 }
 
-.transactions__badge {
-    @apply tw:inline-flex tw:items-center tw:gap-[0.4rem] tw:w-[fit-content] tw:p-[0.35rem_0.65rem] tw:rounded-[999px] tw:text-[length:0.75rem];
-    font-weight: 700;
-}
-
-.transactions__badge--buy {
-    background: rgba(16, 185, 129, 0.12);
-    color: #10b981;
-}
-
-.transactions__badge--sell {
-    background: rgba(245, 158, 11, 0.12);
-    color: #f59e0b;
-}
-
-.transactions__badge--transfer {
-    background: rgba(139, 92, 246, 0.12);
-    color: #8b5cf6;
-}
-
-.transactions__badge--edit {
-    background: rgba(59, 130, 246, 0.12);
-    color: #3b82f6;
-}
-
-.transactions__badge--delete {
-    background: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
-}
-
 .transactions-item__title {
     @apply tw:flex tw:flex-wrap tw:items-baseline tw:gap-[0.6rem] tw:m-[0] tw:text-[length:1rem];
 }

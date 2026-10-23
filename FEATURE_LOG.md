@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-23 - Tailwind: tarjetas de Portfolio y estados de operaciones
+- Funcionalidad:
+  - Comparte tarjetas completas de análisis con títulos, descripciones y estados mediante `PortfolioPanel`, y sus acciones mediante `PortfolioButton`.
+  - Reutiliza `StatusPill` en Portfolio y Operaciones; extiende `DataItem` para estadísticas, movimientos y datos diarios con iconos y detalles semánticos.
+- Resumen:
+  - Retira 141 líneas de CSS y 25 declaraciones `@apply`. Quedan 13.621 líneas de CSS fuente, un 40,14 % menos frente al inicio.
+  - Mantiene los cálculos y formatos, controles nativos, filtros, estados vacíos y almacenamiento en sus módulos originales.
+- Archivos:
+  - src/pages/PortfolioCsv/ui; PortfolioCsv.tsx; PortfolioCsv.css; src/components/ui/{StatusPill,DataItem}.tsx; Transactions.tsx; Transactions.css; README.md; documentación de Tailwind.
+
 ### 2026-10-23 - Tailwind: tarjetas educativas y limpieza de estilos antiguos
 - Funcionalidad:
   - Reutiliza tarjetas completas de progreso, enlaces de aprendizaje y accesos a módulos en Fundamentos; comparte sus indicadores con `DataItem`.

@@ -9,33 +9,6 @@
     @apply tw:items-stretch;
 }
 
-.portfolio-csv-card__heading-row {
-    @apply tw:flex tw:items-start tw:justify-between tw:gap-[1rem];
-}
-
-.portfolio-csv-card__heading-row h2,
-.portfolio-csv-card__heading-row p {
-    @apply tw:mt-[0];
-}
-
-.portfolio-csv-status {
-    @apply tw:flex-[0_0_auto] tw:p-[0.35rem_0.65rem] tw:ui-border-strong tw:rounded-[999px] tw:text-secondary tw:text-[length:0.72rem];
-    font-weight: 800;
-    letter-spacing: 0.04em;
-}
-
-.portfolio-csv-status--ok {
-    border-color: rgba(16, 185, 129, 0.35);
-    background: rgba(16, 185, 129, 0.1);
-    color: #34d399;
-}
-
-.portfolio-csv-status--warn {
-    border-color: rgba(245, 158, 11, 0.4);
-    background: rgba(245, 158, 11, 0.1);
-    color: #fbbf24;
-}
-
 .portfolio-csv-workbook-controls,
 .portfolio-csv-objectives,
 .portfolio-csv-movements__list {
@@ -74,27 +47,11 @@
     @apply tw:flex tw:justify-between tw:pt-[0.25rem];
 }
 
-.portfolio-csv-movements {
-    @apply tw:mb-[1.25rem];
-}
-
 .portfolio-csv-movements__summary {
     @apply tw:grid tw:grid-cols-[repeat(3,_minmax(0,_1fr))] tw:gap-[0.75rem] tw:mt-[1rem];
 }
 
-.portfolio-csv-movements__summary > div {
-    @apply tw:grid tw:gap-[0.3rem] tw:p-[0.85rem] tw:ui-border-strong tw:rounded-[12px];
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.portfolio-csv-movements__summary span {
-    @apply tw:text-muted tw:text-[length:0.78rem];
-}
-
 @media (max-width: 700px) {
-    .portfolio-csv-card__heading-row {
-        @apply tw:items-start;
-    }
 
     .portfolio-csv-movements__summary {
         @apply tw:grid-cols-[1fr];
@@ -156,21 +113,6 @@
     @apply tw:ui-row tw:gap-[0.5rem] tw:flex-wrap;
 }
 
-.portfolio-csv-btn {
-    @apply tw:inline-flex tw:items-center tw:gap-[0.4rem] tw:rounded-[10px] tw:ui-border-strong tw:ui-fill-muted tw:text-main;
-    font-weight: 600;
-    @apply tw:p-[0.5rem_0.75rem];
-}
-
-.portfolio-csv-btn:hover {
-    border-color: var(--accent-primary);
-    @apply tw:text-accent;
-}
-
-.portfolio-csv-btn--ghost {
-    @apply tw:ui-fill-transparent;
-}
-
 .portfolio-csv-error {
     @apply tw:inline-flex tw:items-center tw:gap-[0.45rem] tw:p-[0.55rem_0.75rem] tw:rounded-[10px] tw:mb-[1rem];
     color: #ef4444;
@@ -184,27 +126,6 @@
 
 .portfolio-csv-grid {
     @apply tw:grid tw:grid-cols-[repeat(2,_minmax(280px,_1fr))] tw:gap-[0.9rem] tw:mb-[0.9rem];
-}
-
-.portfolio-csv-card {
-    @apply tw:ui-fill-surface tw:ui-border tw:rounded-[14px] tw:p-[1rem];
-}
-
-.portfolio-csv-card--full {
-    @apply tw:mb-[0.9rem];
-}
-
-.portfolio-csv-card--wide {
-    @apply tw:col-[span_2];
-}
-
-.portfolio-csv-card h2 {
-    @apply tw:m-[0_0_0.5rem] tw:text-[length:var(--font-size-lg)] tw:ui-row tw:gap-[0.4rem];
-}
-
-.portfolio-csv-card p {
-    @apply tw:m-[0_0_0.7rem] tw:text-secondary tw:text-[length:var(--font-size-sm)];
-    line-height: 1.55;
 }
 
 .portfolio-csv-chart {
@@ -473,41 +394,9 @@
     @apply tw:grid tw:grid-cols-[repeat(4,_minmax(0,_1fr))] tw:gap-[0.65rem];
 }
 
-.portfolio-csv-advanced__metric {
-    @apply tw:min-w-[0] tw:ui-stack tw:gap-[0.25rem] tw:p-[0.8rem] tw:ui-border tw:rounded-[10px] tw:ui-fill-muted;
-}
-
-.portfolio-csv-advanced__metric span,
-.portfolio-csv-advanced__metric small {
-    @apply tw:text-secondary tw:text-[length:var(--font-size-xs)];
-    line-height: 1.35;
-}
-
-.portfolio-csv-advanced__metric small {
-    @apply tw:text-muted;
-}
-
-.portfolio-csv-advanced__metric strong {
-    @apply tw:text-main tw:text-[length:var(--font-size-lg)];
-    line-height: 1.1;
-    @apply tw:wrap-anywhere;
-}
-
 .portfolio-csv-advanced__daily {
     @apply tw:grid tw:grid-cols-[repeat(4,_minmax(0,_1fr))] tw:gap-[0.65rem] tw:mt-[0.65rem] tw:pt-[0.65rem];
     border-top: 1px solid var(--border-primary);
-}
-
-.portfolio-csv-advanced__daily > div {
-    @apply tw:grid tw:grid-cols-[auto_1fr] tw:items-center tw:gap-x-[0.4rem] tw:gap-y-[0.2rem] tw:text-secondary tw:text-[length:var(--font-size-xs)];
-}
-
-.portfolio-csv-advanced__daily svg {
-    @apply tw:text-accent tw:row-[span_2];
-}
-
-.portfolio-csv-advanced__daily strong {
-    @apply tw:text-main tw:text-[length:var(--font-size-sm)] tw:wrap-anywhere;
 }
 
 @media (max-width: 1180px) {
@@ -516,7 +405,7 @@
     }
 
     .portfolio-csv-advanced__grid,
-    .portfolio-csv-advanced__daily {
+.portfolio-csv-advanced__daily {
         @apply tw:grid-cols-[repeat(2,_minmax(0,_1fr))];
     }
 }
@@ -617,7 +506,7 @@
     }
 
     .portfolio-csv-advanced__grid,
-    .portfolio-csv-advanced__daily {
+.portfolio-csv-advanced__daily {
         @apply tw:grid-cols-[1fr];
     }
 

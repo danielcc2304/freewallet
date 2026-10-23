@@ -1,3 +1,4 @@
+import { StatusPill } from '../../components/ui/StatusPill';
 import { DataItem } from '../../components/ui/DataItem';
 import { PageHeading } from '../../components/ui/PageHeading';
 import { useMemo, useState } from 'react';
@@ -161,10 +162,7 @@ export function Transactions() {
                                 return (
                                     <article key={transaction.id} className="transactions-item">
                                         <div className="transactions-item__main">
-                                            <div className={`transactions__badge ${meta.className}`}>
-                                                <Icon size={14} />
-                                                <span>{meta.label}</span>
-                                            </div>
+                                            <StatusPill as="div" appearance="transaction" tone={transaction.type} className={meta.className} icon={<Icon size={14} />}>{meta.label}</StatusPill>
                                             <div>
                                                 <h3 className="transactions-item__title">
                                                     {transaction.assetSymbol}

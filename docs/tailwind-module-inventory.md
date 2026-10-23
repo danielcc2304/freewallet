@@ -87,3 +87,8 @@ Planificación, Operaciones, Portfolio CSV, Añadir activo y mapa de calor incor
 ### Tarjetas educativas y estilos antiguos del simulador
 
 Fundamentos compone sus tarjetas de progreso, checklists, catálogo y accesos mediante `AcademyProgressCard`, `AcademyLearningLink` y `AcademyRouteLink`. Sus indicadores utilizan `DataItem`. Las cinco guías de activos utilizan `AcademyListCard` para ventajas, riesgos y comparativas; renta variable utiliza además `AcademyExplainerCard`. El simulador conserva sus estilos actuales y retira 84 selectores de la interfaz anterior sin referencias en los módulos actuales. Quedan 13.762 líneas en 58 hojas CSS, un 39,52 % menos respecto al inicio.
+
+
+### Portfolio y estados de Operaciones
+
+Portfolio utiliza `PortfolioPanel` y `PortfolioButton` para tarjetas de análisis y acciones, y `DataItem` para sus indicadores, estadísticas, flujos y datos diarios. `StatusPill` comparte sus estados de control con los distintivos de Operaciones. Se conservan los materiales Liquid Glass, gráficos y tablas específicas. El total queda en 13.621 líneas en 58 hojas CSS: 40,14 % menos frente al inicio.

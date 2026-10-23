@@ -265,3 +265,24 @@ Pasan TypeScript, ESLint de los módulos modificados, build sin prerender y pres
 
 
 La suite funcional de Estrategia y cartera y su simulador pasa sobre producción: filtros de plazo/riesgo, objetivos táctiles, límites de comparación, persistencia de pesos e importe, normalización explícita, traspaso de los siete bloques al simulador, hipótesis editables, validación, restauración 60/40 y navegación de regreso. Comprueba ambos módulos en cinco anchos y los temas/apariencias existentes.
+
+
+## Decimotercera fase: análisis de Portfolio y estados de Operaciones
+
+`PortfolioPanel` reúne la superficie, título, descripción y fila opcional de estado de las tarjetas de análisis. Conserva los elementos `article`/`section`, las variantes de ancho completo/doble columna y las clases contextuales que utilizan los gráficos y los materiales Liquid Glass. Los párrafos y títulos del contenido conservan sus estilos, incluidos los que pertenecen a cabeceras específicas. `PortfolioButton` comparte la estructura y estilos de las acciones de subir Excel, descargar plantilla y restaurar demo, manteniendo controles y callbacks nativos.
+
+`StatusPill` comparte los estados de control del Excel y los cinco tipos de operaciones. Mantiene sus variantes de presentación, colores, iconos, etiquetas y elementos originales (`span` en Portfolio, `div` con etiqueta interna en Operaciones). Las etiquetas y la lógica que determina el estado permanecen en los consumidores.
+
+`DataItem` añade iconos opcionales y un elemento configurable para el detalle. Sus nuevas variantes conservan el marcado y estilos de las doce estadísticas avanzadas, tres resúmenes de movimientos y cuatro datos diarios de Portfolio. Los detalles de estadísticas siguen siendo `small`; los consumidores conservan cálculos, valores ausentes y formatos. Las variantes anteriores mantienen sus valores por defecto.
+
+Se retiran 141 líneas de CSS y 25 declaraciones `@apply`: el total pasa de 13.762 a 13.621 líneas en 58 hojas. La reducción acumulada frente a las 22.753 líneas iniciales es del 40,14 %. Estas cifras describen el código fuente, no una reducción equivalente de descarga. Los gráficos, tablas y ajustes específicos de la pantalla conservan CSS donde corresponde.
+
+
+La comparación sobre el build final de producción pasa 72 estados y 21.888 elementos: Portfolio de demostración, cambio válido de categoría, edición de pesos objetivo, los cinco tipos de operaciones, filtros y ausencia de resultados, más controles Excel OK/aviso/neutro y movimientos importados. Se comparan dos anchos y cuatro combinaciones de tema/apariencia. Los casos de controles y movimientos utilizan una copia aislada de la versión anterior como referencia. Coinciden todas las propiedades medidas; no se presenta como una comparación píxel a píxel.
+
+La revisión de los casos adicionales conserva la precedencia de los bordes de estado frente al borde base y el margen efectivo de la sección de movimientos. El estado se expresa mediante `data-tone` para que el estilo de color tenga la especificidad necesaria, sin alterar sus etiquetas. Se retira una regla de margen de movimientos que la variante de ancho completo ya sobrescribía en la versión anterior.
+
+Pasan TypeScript, ESLint de los módulos modificados, build sin prerender y presupuesto de carga (655,04 kB de JavaScript inicial). Las declaraciones de lógica fuera del JSX de Portfolio y Operaciones se conservan. Pasan las pruebas existentes de rentabilidad, flujos, calendario, procedencia, paridad con el Excel y continuidad del histórico. El recorrido responsive pasa 24 combinaciones de ambas pantallas, tres anchos y cuatro temas/apariencias, sin errores de ejecución ni desbordamientos horizontales.
+
+
+La prueba funcional pasa edición y persistencia de categorías/pesos al recargar, advertencia de suma objetivo, apertura/cancelación del selector de archivo, petición real de la plantilla y restauración de la demo. Comprueba tamaños 320/390/768/1280 en Liquid Glass, esperando la estabilización del layout tras cambiar de ancho. Se revisó la captura móvil de Portfolio.

@@ -326,3 +326,24 @@ Pasan las pruebas existentes de posiciones agrupadas, cuentas remuneradas, funda
 
 
 El recorrido responsive pasa 132 combinaciones de once rutas, tres anchos (320/390/1280) y cuatro temas/apariencias, sin errores de ejecución ni desbordamientos. La prueba de pulido de Dashboard y mapa de calor pasa sobre el servidor de desarrollo porque importa también los servicios TypeScript: comprueba controles móviles, contraste de YTM con transiciones desactivadas durante la medición, Nasdaq, sus 101 posiciones, actualización/fallback y estado de error. Se contrastó el color estable de la tarjeta de bonos con el build anterior y el nuevo. Las animaciones de la aplicación se conservan. Se revisaron capturas móviles de Dashboard y gastos en Liquid Glass claro y oscuro.
+
+
+## Decimosexta fase: guías, simuladores, navegación y edición
+
+Se amplía la migración a 17 módulos, conservando el diseño y los flujos existentes:
+
+- **Guías:** Fundamentos, Glosario, Errores, Escenarios, Riesgo, Estrategias, Fiscalidad, Valoración y Recursos. `AcademyGuideParts`, `AcademyToolLink`, `AcademyLearningParts` y `AcademyGlossary` reúnen marcado y estilos de encabezados, navegación interna, avisos, fichas, comparativas, ejemplos y búsqueda. Encabezados numerados, navegación y avisos equivalentes usan una receta común. `AcademyVideoCard` incorpora sus efectos y movimiento reducido.
+- **Simuladores:** perfil inversor, construcción de cartera, Crisis, asignación y Market Timing. `AcademyQuiz`, `AcademySimulatorParts` y `AcademyTiming` separan preguntas, resultados, decisiones, impacto, filtros, controles y resúmenes de la lógica original. El reloj, las órdenes, las hipótesis y las fórmulas permanecen en los módulos originales.
+- **Navegación y Dashboard:** `SidebarParts` conserva enlaces nativos de React Router, etiquetas de cuenta, grupos y navegación móvil. `CompositionParts` mantiene las filas de exposición y los `details` independientes y cerrados inicialmente para mapa de calor y fondos; los identificadores, importes, procedencia y agrupación siguen calculándose en `PortfolioComposition`.
+- **Noticias:** `EditorControls` comparte barra, grupos, formato, botones, campos y panel de enlaces. Conserva referencias, selección y eventos de Tiptap, foco, cierre, deshacer/rehacer y edición desactivada. El contenido HTML generado por Tiptap conserva su CSS específico.
+
+Los mapas estáticos `.styles.ts` se colocan junto a los componentes propietarios; no generan nombres de utilidades dinámicos ni cambian las clases de integración con Liquid Glass. La precedencia de estados, bordes y consultas responsive se verifica frente al build anterior. No se añade una dependencia al proyecto ni se cambian datos o backend.
+
+Se retiran **1.285 líneas de CSS fuente y 422 declaraciones `@apply`**: se pasa de 11.614 a 10.329 líneas en 58 hojas. La reducción acumulada frente al inicio es del **54,60 %**. Estas cifras describen mantenimiento de código fuente, no ahorro de descarga: las utilidades globales y las hojas por ruta se redistribuyen durante la convivencia.
+
+### Validación de esta fase
+
+Las declaraciones ajenas a JSX de los 16 consumidores modificados conservan su lógica. La extracción de la barra editorial se contrasta además con pruebas de edición, enlaces, foco y deshacer/rehacer. Pasan los cálculos existentes de estrategia/asignación, impacto de crisis, Market Timing y exposición consolidada; las pruebas de navegador ejercitan filtros, comparación, persistencia, normalización, escenarios, reintentos de proveedores y las tres rondas del juego. Se ejecutan también TypeScript, ESLint de los archivos modificados, build sin prerender y presupuesto de carga diferida.
+
+
+El contraste con el build anterior coincide en **248 estados**: 160 de pantallas y estados principales, 48 de navegación/filtros/decisiones y 40 del editor. Compara nodos, etiquetas, clases de integración y 19 propiedades calculadas en 390/1280 px y las cuatro combinaciones de tema/apariencia; no es una comparación píxel a píxel. Para la referencia del juego se fija semilla y reloj únicamente en la prueba visual; la prueba funcional existente usa el reloj real y completa las tres rondas. El recorrido responsive pasa **18 rutas y 216 combinaciones** en 320/390/1280 px, sin desbordamientos ni errores de ejecución. Se revisa también una captura móvil de Riesgo en Liquid Glass.

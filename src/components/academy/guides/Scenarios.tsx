@@ -1,3 +1,4 @@
+import { AcademyIdentityHeading, AcademyScenarioSection, AcademyActionCard } from '../ui/AcademyGuideParts';
 import { AcademyGrid } from '../ui/AcademyGrid';
 import { AcademyPanel } from '../ui/AcademyPanel';
 import {
@@ -66,19 +67,14 @@ export function Scenarios() {
             <AcademyGrid variant="scenarios" className="scenarios__grid">
                 {SCENARIOS.map((scenario) => (
                     <AcademyPanel variant="scenario" as="article" key={scenario.id} className="scenario-card">
-                        <header className="scenario-card__header">
-                            <div className="scenario-card__emoji">{scenario.emoji}</div>
-                            <h2 className="scenario-card__title">{scenario.title}</h2>
-                        </header>
+                        <AcademyIdentityHeading variant="scenario" emoji={<>{scenario.emoji}</>} title={<>{scenario.title}</>} />
 
                         <div className="scenario-card__content">
                             {scenario.sections.map((section, idx) => (
-                                <section key={idx} className="scenario-section">
-                                    <h3>
+                                <AcademyScenarioSection title={<>
                                         {idx === 0 ? <Info size={18} /> : <Target size={18} />}
                                         {section.title}
-                                    </h3>
-                                    <div className="scenario-section__content">
+                                    </>}>
                                         {typeof section.content === 'string' ? (
                                             <p>{section.content}</p>
                                         ) : (
@@ -86,21 +82,14 @@ export function Scenarios() {
                                                 {section.content.map((action, actionIdx) => {
                                                     const Icon = IconMap[action.icon] || Info;
                                                     return (
-                                                        <div key={actionIdx} className={`action-card ${action.type}`}>
-                                                            <div className="action-card__icon">
+                                                        <AcademyActionCard key={actionIdx} tone={action.type as 'do' | 'dont'} icon={<>
                                                                 <Icon size={20} />
-                                                            </div>
-                                                            <div className="action-card__text">
-                                                                <h4>{action.title}</h4>
-                                                                <p>{action.description}</p>
-                                                            </div>
-                                                        </div>
+                                                            </>} title={<>{action.title}</>}>{action.description}</AcademyActionCard>
                                                     );
                                                 })}
                                             </div>
                                         )}
-                                    </div>
-                                </section>
+                                    </AcademyScenarioSection>
                             ))}
                         </div>
                     </AcademyPanel>

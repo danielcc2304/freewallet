@@ -3,8 +3,6 @@
 .market-timing-game__header { @apply tw:mb-[1.25rem]; }
 .market-timing-game__header h1 { @apply tw:text-[length:clamp(1.55rem,_3vw,_2.35rem)]; }
 .market-timing-game__header p { @apply tw:text-secondary; line-height: 1.6; }
-.timing-goal { @apply tw:flex tw:items-start tw:gap-[.65rem] tw:p-[.9rem_1rem]; background: rgba(16, 185, 129, .08); border: 1px solid rgba(16, 185, 129, .2); @apply tw:rounded-[12px] tw:text-main; line-height: 1.5; }
-.timing-goal svg { @apply tw:shrink-[0] tw:mt-[.15rem] tw:text-accent; }
 .timing-board { @apply tw:min-w-[0] tw:p-[1.5rem] tw:ui-fill-surface tw:ui-border-strong tw:rounded-[18px]; box-shadow: var(--shadow-md); scroll-margin-top: 1rem; }
 .timing-round-header { @apply tw:ui-row tw:justify-between tw:gap-[.75rem] tw:text-[length:.9rem] tw:text-secondary; }
 .timing-clock { font-variant-numeric: tabular-nums; @apply tw:text-main; font-weight: 700; @apply tw:whitespace-nowrap; }
@@ -13,22 +11,9 @@
 .timing-progress::-webkit-progress-value { background: var(--accent-primary); }
 .timing-progress::-moz-progress-bar { background: var(--accent-primary); }
 .timing-stats strong { font-variant-numeric: tabular-nums; }
-.timing-intro { @apply tw:max-w-[640px] tw:m-[1.5rem_auto_.5rem] tw:text-center; }
-.timing-intro h2 { @apply tw:text-[length:1.3rem] tw:text-main; }
-.timing-intro p { @apply tw:text-secondary; line-height: 1.65; }
-.timing-intro .btn { @apply tw:mt-[.65rem]; }
-.timing-quote { @apply tw:ui-row tw:justify-between tw:gap-[.75rem] tw:mb-[.5rem] tw:text-secondary tw:text-[length:.8rem]; }
-.timing-quote strong { @apply tw:text-main tw:text-[length:1.25rem]; font-variant-numeric: tabular-nums; }
 .timing-chart { @apply tw:w-full tw:min-w-[0] tw:h-[280px]; }
 .timing-chart-note { @apply tw:m-[.4rem_0_.8rem] tw:text-[length:.7rem] tw:text-muted; }
-.timing-wallet { @apply tw:flex tw:flex-wrap tw:gap-[.45rem_1.25rem] tw:mb-[.9rem] tw:text-secondary tw:text-[length:.75rem]; }
-.timing-wallet strong { @apply tw:text-main; font-variant-numeric: tabular-nums; }
 .timing-controls { @apply tw:pt-[.9rem]; border-top: 1px solid var(--border-primary); }
-.timing-portions { @apply tw:flex tw:gap-[.4rem]; border: 0; @apply tw:m-[0_0_.85rem] tw:p-[0]; }
-.timing-portions legend { @apply tw:mb-[.4rem] tw:text-[length:.7rem] tw:text-secondary; }
-.timing-portions button { @apply tw:min-w-[64px] tw:min-h-[44px] tw:ui-border-strong tw:rounded-[8px] tw:ui-fill-muted tw:text-secondary; font: inherit; @apply tw:text-[length:.85rem] tw:cursor-pointer; }
-.timing-portions button[aria-pressed='true'] { border-color: var(--accent-primary); background: rgba(16, 185, 129, .12); @apply tw:text-accent; font-weight: 700; }
-.timing-portions:disabled button { @apply tw:opacity-[.5] tw:cursor-not-allowed; }
 .timing-trade-buttons { @apply tw:grid tw:grid-cols-[1fr_1fr_auto] tw:gap-[.65rem]; }
 .timing-trade-buttons .btn { @apply tw:min-h-[44px]; }
 .timing-sell:not(:disabled) { @apply tw:text-main; border-color: rgba(245, 158, 11, .5); }
@@ -38,16 +23,9 @@
 .timing-results h2 { @apply tw:m-[0_0_.6rem] tw:text-[length:1.4rem] tw:text-main; }
 .timing-results p { @apply tw:text-secondary; line-height: 1.6; }
 .timing-round-list { @apply tw:grid tw:gap-[.6rem] tw:m-[1rem_0]; }
-.timing-round-result { @apply tw:grid tw:grid-cols-[.65fr_1fr_1fr_1fr] tw:gap-[.65rem] tw:items-center tw:p-[.75rem] tw:ui-fill-muted tw:ui-border tw:rounded-[10px] tw:text-[length:.75rem]; }
-.timing-round-result > * { @apply tw:min-w-[0] tw:wrap-anywhere; }
-.timing-round-result span { @apply tw:text-secondary; }
-.timing-round-result b { @apply tw:block tw:mt-[.15rem] tw:text-main; font-variant-numeric: tabular-nums; }
 .timing-result-costs { @apply tw:text-[length:.75rem]; }
 .market-timing-game .positive, .market-timing-game .positive b { @apply tw:text-positive; }
 .market-timing-game .negative, .market-timing-game .negative b { @apply tw:text-negative; }
-.timing-rules { @apply tw:mt-[1rem] tw:p-[.9rem_1rem] tw:ui-fill-surface tw:ui-border tw:rounded-[12px] tw:text-secondary tw:text-[length:.85rem]; }
-.timing-rules summary { @apply tw:cursor-pointer; font-weight: 600; @apply tw:text-main tw:min-h-[24px]; }
-.timing-rules p { line-height: 1.65; }
 .market-timing-game :is(a, button, summary):focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
 html[data-appearance='liquid-glass'] :is(.timing-board, .timing-results, .timing-rules) { background: color-mix(in srgb, var(--bg-secondary) 88%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
 @media (max-width: 700px) {
@@ -59,7 +37,5 @@ html[data-appearance='liquid-glass'] :is(.timing-board, .timing-results, .timing
     .timing-trade-buttons .btn:last-child { @apply tw:col-span-full tw:min-h-[44px] tw:p-[.35rem]; }
     .timing-trade-buttons .btn { @apply tw:pl-[.65rem] tw:pr-[.65rem] tw:text-[length:.8rem]; }
     .timing-shortcuts { @apply tw:hidden; }
-    .timing-round-result { @apply tw:grid-cols-[1fr_1fr]; }
     .timing-results { @apply tw:p-[1rem]; }
-    .timing-goal { @apply tw:text-[length:.85rem]; }
 }

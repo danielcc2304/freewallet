@@ -1,3 +1,4 @@
+import {AcademyLearningHeading,AcademyLearningGoal,AcademyLearningToggle} from '../ui/AcademyLearningParts';
 import { AcademyProgressCard } from '../ui/AcademyProgressCard';
 import { AcademyLearningLink, AcademyRouteLink } from '../ui/AcademyLearningLink';
 import { DataItem } from '../../ui/DataItem';
@@ -371,33 +372,20 @@ export function Fundamentos() {
       </section>
 
       <AcademyPanel variant="fundamentals" as="section" className="fundamentos__section-block">
-        <div className="fundamentos__section-head">
-          <div className="fundamentos__section-head-row">
-            <h2>Ruta guiada por nivel</h2>
-            <button
-              type="button"
-              className="fundamentos__collapse-toggle"
-              onClick={() => setLevelsExpanded((current) => !current)}
-              aria-expanded={levelsExpanded}
-              aria-label={
+        <AcademyLearningHeading title={<>Ruta guiada por nivel</>} description={<>
+            Empieza por la base, sube de nivel y usa el progreso para no
+            perder el hilo.
+          </>} action={<AcademyLearningToggle type="button" onClick={() => setLevelsExpanded((current) => !current)} aria-expanded={levelsExpanded} aria-label={
                 levelsExpanded
                   ? "Mostrar menos modulos por nivel"
                   : "Mostrar todos los modulos por nivel"
-              }
-              title={levelsExpanded ? "Mostrar menos" : "Mostrar todos"}
-            >
+              } title={levelsExpanded ? "Mostrar menos" : "Mostrar todos"}>
               {levelsExpanded ? (
                 <ChevronUp size={16} />
               ) : (
                 <ChevronDown size={16} />
               )}
-            </button>
-          </div>
-          <p>
-            Empieza por la base, sube de nivel y usa el progreso para no
-            perder el hilo.
-          </p>
-        </div>
+            </AcademyLearningToggle>} />
         <div className="fundamentos__level-grid">
           {levelSections.map(({ level, modules }) => (
             <article key={level} className="fundamentos__level-card">
@@ -416,16 +404,10 @@ export function Fundamentos() {
       </AcademyPanel>
 
       <AcademyPanel variant="fundamentals" as="section" className="fundamentos__section-block">
-        <div className="fundamentos__section-head">
-          <h2>Academia por objetivo</h2>
-          <p>Atajos prácticos para entrar por intención.</p>
-        </div>
+        <AcademyLearningHeading title={<>Academia por objetivo</>} description={<>Atajos prácticos para entrar por intención.</>}  />
         <div className="fundamentos__goal-grid">
           {GOALS.map((goal) => (
-            <article key={goal.title} className="fundamentos__goal-card">
-              <h3>{goal.title}</h3>
-              <p>{goal.description}</p>
-              <div className="fundamentos__goal-links">
+            <AcademyLearningGoal key={goal.title} title={<>{goal.title}</>} description={<>{goal.description}</>}>
                 {goal.modules.map((moduleId) => {
                   const module = modulesById[moduleId];
                   return (
@@ -440,19 +422,15 @@ export function Fundamentos() {
                     </AcademyRouteLink>
                   );
                 })}
-              </div>
-            </article>
+              </AcademyLearningGoal>
           ))}
         </div>
       </AcademyPanel>
 
       <AcademyPanel variant="fundamentals" as="section" className="fundamentos__section-block">
-        <div className="fundamentos__section-head">
-          <h2>Checklists visuales</h2>
-          <p>
+        <AcademyLearningHeading title={<>Checklists visuales</>} description={<>
             Accesos directos a tres módulos clave para revisar lo esencial sin rodeos.
-          </p>
-        </div>
+          </>}  />
         <div className="fundamentos__checklist-grid">
           {CHECKLIST_LINKS.map((checklist) => (
             <AcademyLearningLink key={checklist.title} to={checklist.to} onClick={() => {
@@ -466,13 +444,10 @@ export function Fundamentos() {
       </AcademyPanel>
 
       <AcademyPanel variant="fundamentals" as="section" className="fundamentos__section-block">
-        <div className="fundamentos__section-head">
-          <h2>Centro de simuladores</h2>
-          <p>
+        <AcademyLearningHeading title={<>Centro de simuladores</>} description={<>
             Todo lo interactivo en un solo sitio para descubrirlo sin depender
             del sidebar.
-          </p>
-        </div>
+          </>}  />
         <div className="fundamentos__sections">
           {simulatorModules.map((module) => (
             <AcademyLearningLink key={module.id} to={module.to} onClick={() => markAsDone(module.id)} variant="catalog" title={module.title} description={module.description} icon={module.icon} badge={module.level} />

@@ -1,3 +1,4 @@
+import {AcademyTimingIntro,AcademyTimingQuote,AcademyTimingWallet,AcademyTimingPortions,AcademyTimingRound,AcademyTimingRules,AcademyTimingGoal} from '../ui/AcademyTiming';
 import { AcademyMetric } from '../ui/AcademyMetric';
 import { AcademyGrid } from '../ui/AcademyGrid';
 import { useEffect, useReducer, useRef, useState } from 'react';
@@ -81,7 +82,7 @@ export function MarketTimingGame() {
                 <p>Tres mercados distintos. El mismo capital. Tus decisiones frente a diez compras programadas.</p>
             </AcademyPageHeader>
 
-            <p className="timing-goal"><Trophy size={18} aria-hidden="true" /> Gana 2 de 3 rondas y suma al menos 100 € de ventaja sobre el DCA.</p>
+            <AcademyTimingGoal icon={<Trophy size={18} aria-hidden="true" />}> Gana 2 de 3 rondas y suma al menos 100 € de ventaja sobre el DCA.</AcademyTimingGoal>
 
             <div className="timing-board" ref={board}>
                 <div className="timing-round-header">
@@ -98,15 +99,10 @@ export function MarketTimingGame() {
                 </AcademyGrid>
 
                 {ready ? (
-                    <div className="timing-intro">
-                        <h2>Pon a prueba tus decisiones en tres rondas.</h2>
-                        <p>Empiezas cada ronda con 10.000 €. El mercado puede cambiar de dirección; no conocerás las próximas cotizaciones.</p>
-                        <p>Puedes invertir por partes. Cada orden tarda dos sesiones en ejecutarse y hay un breve descanso entre operaciones.</p>
-                        <Button size="lg" icon={<Play size={18} />} onClick={start}>Empezar reto</Button>
-                    </div>
+                    <AcademyTimingIntro title={<>Pon a prueba tus decisiones en tres rondas.</>}><p>Empiezas cada ronda con 10.000 €. El mercado puede cambiar de dirección; no conocerás las próximas cotizaciones.</p><p>Puedes invertir por partes. Cada orden tarda dos sesiones en ejecutarse y hay un breve descanso entre operaciones.</p><Button size="lg" icon={<Play size={18} />} onClick={start}>Empezar reto</Button></AcademyTimingIntro>
                 ) : (
                     <>
-                        <div className="timing-quote"><span>Precio del activo · sesión {game.tick} / {TIMING_RULES.ticks}</span><strong>{money(price)}</strong></div>
+                        <AcademyTimingQuote label={<>Precio del activo · sesión {game.tick} / {TIMING_RULES.ticks}</>} value={<>{money(price)}</>} />
                         <div className="timing-chart" aria-label="Evolución del precio simulado">
                             <ResponsiveContainer width="100%" height="100%">
                                 <ComposedChart data={game.history} margin={{ top: 12, right: 12, left: 0, bottom: 0 }}>
@@ -121,13 +117,10 @@ export function MarketTimingGame() {
                             </ResponsiveContainer>
                         </div>
                         <p className="timing-chart-note">Precio en EUR. Puntos verdes: compras; naranjas: ventas.</p>
-                        <div className="timing-wallet"><span>Efectivo: <strong>{money(game.player.cash)}</strong></span><span>Invertido: <strong>{money(game.player.shares * price)}</strong></span><span>Caída máxima: <strong>{game.drawdown.toFixed(1).replace('.', ',')}%</strong></span></div>
+                        <AcademyTimingWallet items={[{label:<>Efectivo: </>,value:<>{money(game.player.cash)}</>},{label:<>Invertido: </>,value:<>{money(game.player.shares * price)}</>},{label:<>Caída máxima: </>,value:<>{game.drawdown.toFixed(1).replace('.', ',')}%</>}]} />
 
                         {!roundEnded && <div className="timing-controls">
-                            <fieldset className="timing-portions" disabled={!running}>
-                                <legend>Parte del efectivo que compras o de la posición que vendes</legend>
-                                {([0.25, 0.5, 1] as TradeFraction[]).map(value => <button key={value} type="button" aria-pressed={fraction === value} onClick={() => setFraction(value)}>{value * 100}%</button>)}
-                            </fieldset>
+                            <AcademyTimingPortions disabled={!running} legend={<>Parte del efectivo que compras o de la posición que vendes</>}>{([0.25, 0.5, 1] as TradeFraction[]).map(value => <button key={value} type="button" aria-pressed={fraction === value} onClick={() => setFraction(value)}>{value * 100}%</button>)}</AcademyTimingPortions>
                             <div className="timing-trade-buttons">
                                 <Button className="timing-buy" icon={<TrendingUp size={18} />} disabled={!timingOrderAvailable(game, 'buy')} onClick={() => dispatch({ type: 'order', side: 'buy', fraction })}>Comprar {fraction * 100}%</Button>
                                 <Button className="timing-sell" variant="secondary" icon={<TrendingDown size={18} />} disabled={!timingOrderAvailable(game, 'sell')} onClick={() => dispatch({ type: 'order', side: 'sell', fraction })}>Vender {fraction * 100}%</Button>
@@ -144,23 +137,14 @@ export function MarketTimingGame() {
                 <h2 id="timing-result-title">{finished ? score.won ? '¡Reto superado!' : 'Esta vez no has superado el reto' : latestResult.edge > 1 ? 'Ronda a tu favor' : latestResult.edge < -1 ? 'Ronda para el DCA' : 'Ronda empatada'}</h2>
                 <p>{score.wins} de {game.results.length} rondas ganadas · Ventaja acumulada: <strong className={direction(score.edge)}>{signedMoney(score.edge)}</strong></p>
                 <div className="timing-round-list">
-                    {game.results.map(result => <div className="timing-round-result" key={result.round}>
-                        <strong>Ronda {result.round}</strong>
-                        <span>Tú <b>{money(result.playerValue)}</b></span><span>DCA <b>{money(result.dcaValue)}</b></span>
-                        <span className={direction(result.edge)}>Ventaja <b>{signedMoney(result.edge)}</b></span>
-                    </div>)}
+                    {game.results.map(result => <AcademyTimingRound key={result.round} title={<>Ronda {result.round}</>} items={[{label:<>Tú </>,value:<>{money(result.playerValue)}</>},{label:<>DCA </>,value:<>{money(result.dcaValue)}</>},{label:<>Ventaja </>,value:<>{signedMoney(result.edge)}</>,className:direction(result.edge)}]} />)}
                 </div>
                 <p className="timing-result-costs">Esta ronda: {latestResult.trades} órdenes · Comisiones pagadas: tú {money(latestResult.fees)}, DCA {money(latestResult.dcaFees)} · Caída máxima: {latestResult.drawdown.toFixed(1).replace('.', ',')}%.</p>
                 {finished && <p>Una buena partida no demuestra que puedas anticipar el mercado de forma repetible. El DCA reparte las entradas; no garantiza una rentabilidad superior.</p>}
                 <Button icon={finished ? <RotateCcw size={18} /> : <ArrowRight size={18} />} onClick={finished ? start : () => dispatch({ type: 'next' })}>{finished ? 'Nueva partida' : 'Siguiente ronda'}</Button>
             </section>}
 
-            <details className="timing-rules">
-                <summary>Reglas y comparación</summary>
-                <p>3 rondas de 30 segundos. Cada una comprime 75 sesiones simuladas y empieza con 10.000 € para ambas estrategias. El DCA compra 1.000 € en diez fechas fijas, desde la primera sesión.</p>
-                <p>Tienes 8 órdenes por ronda. Se ejecutan dos sesiones después de enviarlas, al precio que haya entonces, con cuatro sesiones de descanso desde la última ejecución. Ambas estrategias pagan un 0,15% de comisión y un 0,10% de diferencial por compra o venta.</p>
-                <p>Se compara efectivo más participaciones al último precio, descontando los costes pagados. La caída máxima mide cuánto retrocedió tu cartera desde su máximo. Cambiar de pestaña pausa la partida; el mercado simulado no sigue sin ti.</p>
-            </details>
+            <AcademyTimingRules summary={<>Reglas y comparación</>}><p>3 rondas de 30 segundos. Cada una comprime 75 sesiones simuladas y empieza con 10.000 € para ambas estrategias. El DCA compra 1.000 € en diez fechas fijas, desde la primera sesión.</p><p>Tienes 8 órdenes por ronda. Se ejecutan dos sesiones después de enviarlas, al precio que haya entonces, con cuatro sesiones de descanso desde la última ejecución. Ambas estrategias pagan un 0,15% de comisión y un 0,10% de diferencial por compra o venta.</p><p>Se compara efectivo más participaciones al último precio, descontando los costes pagados. La caída máxima mide cuánto retrocedió tu cartera desde su máximo. Cambiar de pestaña pausa la partida; el mercado simulado no sigue sin ti.</p></AcademyTimingRules>
         </div>
     );
 }

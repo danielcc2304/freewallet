@@ -1,5 +1,7 @@
+import {AcademyToolLink} from '../ui/AcademyToolLink';
+import { AcademyNumberedHeading, AcademyRoadmap, AcademyInsight, AcademyCopyDetail } from '../ui/AcademyGuideParts';
 import { AcademyGrid } from '../ui/AcademyGrid';
-import { AcademyPanel, AcademyLinkCard } from '../ui/AcademyPanel';
+import { AcademyPanel } from '../ui/AcademyPanel';
 import { Shield, AlertTriangle, Layers, Clock, Globe, BarChart, Zap, Scale, ArrowRight } from 'lucide-react';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './RiskManagement.css';
@@ -26,7 +28,7 @@ const DIVERSIFICATION = [
     { icon: BarChart, title: 'Por sectores', description: 'Tecnología, salud, energía o consumo responden de forma diferente al ciclo económico.' },
 ];
 function SectionHeading({ number, id, title, description }: { number: string; id: string; title: string; description: string }) {
-    return <div className="risk-mgmt__section-heading"><span className="risk-mgmt__number" aria-hidden="true">{number}</span><div><h2 id={id}>{title}</h2><p>{description}</p></div></div>;
+    return <AcademyNumberedHeading variant="risk" number={number} headingId={id} title={title} description={description} decorative />;
 }
 function correlationBand(value: number) {
     return value >= .6 ? 'high' : value >= .3 ? 'medium' : value > -.1 ? 'neutral' : 'low';
@@ -38,11 +40,7 @@ export function RiskManagement() {
             <AcademyPageHeader section="Construir">
                 <h1>Gestión del riesgo</h1>
                 <p>Entiende qué puede afectar a tu patrimonio y construye una cartera que puedas mantener, también cuando el mercado cae.</p>
-                <nav className="risk-mgmt__roadmap" aria-label="Secciones de gestión del riesgo">
-                    <a href="#risk-types"><Shield size={18} aria-hidden="true" /> Identifica los riesgos</a>
-                    <a href="#risk-diversification"><Layers size={18} aria-hidden="true" /> Diversifica</a>
-                    <a href="#risk-currency"><Globe size={18} aria-hidden="true" /> Revisa la divisa</a>
-                </nav>
+                <AcademyRoadmap variant="risk" aria-label="Secciones de gestión del riesgo" items={[{href:"#risk-types",content:<><Shield size={18} aria-hidden="true" /> Identifica los riesgos</>},{href:"#risk-diversification",content:<><Layers size={18} aria-hidden="true" /> Diversifica</>},{href:"#risk-currency",content:<><Globe size={18} aria-hidden="true" /> Revisa la divisa</>}]} />
             </AcademyPageHeader>
 
             <section className="risk-mgmt__section" aria-labelledby="risk-volatility-title">
@@ -52,13 +50,13 @@ export function RiskManagement() {
                         <span className="risk-mgmt__icon"><BarChart size={24} aria-hidden="true" /></span>
                         <h3>Volatilidad</h3>
                         <p>Es la fluctuación de los precios. Puede generar pérdidas temporales y poner a prueba tu tolerancia al riesgo.</p>
-                        <div className="risk-mgmt__takeaway"><strong>Qué revisar</strong>Si necesitarás ese dinero antes de que tu inversión tenga tiempo para recuperarse.</div>
+                        <AcademyCopyDetail variant="riskTakeaway" label={<>Qué revisar</>}>Si necesitarás ese dinero antes de que tu inversión tenga tiempo para recuperarse.</AcademyCopyDetail>
                     </AcademyPanel>
                     <AcademyPanel variant="risk" as="article" className="risk-mgmt__card risk-mgmt__comparison risk-mgmt__comparison--loss">
                         <span className="risk-mgmt__icon"><AlertTriangle size={24} aria-hidden="true" /></span>
                         <h3>Pérdida permanente</h3>
                         <p>Ocurre cuando el capital no se recupera: por una quiebra, una venta forzada o el deterioro duradero de una inversión.</p>
-                        <div className="risk-mgmt__takeaway"><strong>Qué revisar</strong>La calidad del activo, la concentración y tu reserva para imprevistos.</div>
+                        <AcademyCopyDetail variant="riskTakeaway" label={<>Qué revisar</>}>La calidad del activo, la concentración y tu reserva para imprevistos.</AcademyCopyDetail>
                     </AcademyPanel>
                 </AcademyGrid>
             </section>
@@ -68,7 +66,7 @@ export function RiskManagement() {
                 <AcademyGrid variant="risk" className="risk-mgmt__grid">
                     {RISK_TYPES.map(({icon: Icon,title,description,action}) => <AcademyPanel variant="risk" as="article" className="risk-mgmt__card" key={title}>
                         <span className="risk-mgmt__icon"><Icon size={24} aria-hidden="true" /></span><h3>{title}</h3><p>{description}</p>
-                        <div className="risk-mgmt__action"><strong>Cómo gestionarlo</strong><p>{action}</p></div>
+                        <AcademyCopyDetail variant="riskAction" label={<>Cómo gestionarlo</>}>{action}</AcademyCopyDetail>
                     </AcademyPanel>)}
                 </AcademyGrid>
             </section>
@@ -115,15 +113,15 @@ export function RiskManagement() {
                     <AcademyPanel variant="risk" as="article" className="risk-mgmt__card risk-mgmt__currency"><span className="risk-mgmt__tag">Hedged</span><h3>Con cobertura de divisa</h3><p>Utiliza derivados para reducir el efecto del cambio de moneda. La cobertura tiene costes y puede no ser perfecta.</p><ul><li>Puede ayudar a estabilizar la renta fija global en EUR.</li><li>Revisa qué monedas cubre y el coste total.</li><li>No elimina el riesgo de mercado ni el de crédito.</li></ul></AcademyPanel>
                     <AcademyPanel variant="risk" as="article" className="risk-mgmt__card risk-mgmt__currency"><span className="risk-mgmt__tag">Unhedged</span><h3>Sin cobertura de divisa</h3><p>El movimiento de las monedas puede aumentar o reducir tu rentabilidad en euros.</p><ul><li>Mantienes la exposición al tipo de cambio.</li><li>Evitas el coste específico de la cobertura.</li><li>Valora el horizonte y la moneda de tus futuros gastos.</li></ul></AcademyPanel>
                 </AcademyGrid>
-                <aside className="risk-mgmt__insight"><Globe size={20} aria-hidden="true" /><p>Cuanto más próximo esté un gasto en euros, más importante es limitar la incertidumbre de la divisa en el dinero reservado para ese objetivo.</p></aside>
+                <AcademyInsight variant="risk" icon={<Globe size={20} aria-hidden="true" />}>Cuanto más próximo esté un gasto en euros, más importante es limitar la incertidumbre de la divisa en el dinero reservado para ese objetivo.</AcademyInsight>
             </section>
 
             <section className="risk-mgmt__section" aria-labelledby="risk-tools-title">
                 <SectionHeading number="06" id="risk-tools-title" title="Llévalo a tu cartera" description="Define tus límites antes de que llegue una caída." />
                 <AcademyGrid variant="risk" className="risk-mgmt__grid risk-mgmt__grid--three">
-                    <AcademyLinkCard variant="risk" to="/academy/portfolio" className="risk-mgmt__card risk-mgmt__tool"><Layers size={24} aria-hidden="true" /><h3>Estrategia y cartera</h3><p>Elige una distribución coherente con tus objetivos y tolerancia a pérdidas.</p><span>Definir mi cartera <ArrowRight size={18} aria-hidden="true" /></span></AcademyLinkCard>
-                    <AcademyLinkCard variant="risk" to="/academy/crisis" className="risk-mgmt__card risk-mgmt__tool"><BarChart size={24} aria-hidden="true" /><h3>Mercado y crisis</h3><p>Explora qué significaría una caída para tu capital y tus decisiones.</p><span>Explorar escenarios <ArrowRight size={18} aria-hidden="true" /></span></AcademyLinkCard>
-                    <AcademyLinkCard variant="risk" to="/" className="risk-mgmt__card risk-mgmt__tool"><Shield size={24} aria-hidden="true" /><h3>Tu Dashboard</h3><p>Revisa la asignación y la concentración de tus posiciones actuales.</p><span>Ver mi cartera <ArrowRight size={18} aria-hidden="true" /></span></AcademyLinkCard>
+                    <AcademyToolLink to="/academy/portfolio" variant="risk" icon={<Layers size={24} aria-hidden="true" />}  title={<>Estrategia y cartera</>} description={<>Elige una distribución coherente con tus objetivos y tolerancia a pérdidas.</>} action={<>Definir mi cartera <ArrowRight size={18} aria-hidden="true" /></>} />
+                    <AcademyToolLink to="/academy/crisis" variant="risk" icon={<BarChart size={24} aria-hidden="true" />}  title={<>Mercado y crisis</>} description={<>Explora qué significaría una caída para tu capital y tus decisiones.</>} action={<>Explorar escenarios <ArrowRight size={18} aria-hidden="true" /></>} />
+                    <AcademyToolLink to="/" variant="risk" icon={<Shield size={24} aria-hidden="true" />}  title={<>Tu Dashboard</>} description={<>Revisa la asignación y la concentración de tus posiciones actuales.</>} action={<>Ver mi cartera <ArrowRight size={18} aria-hidden="true" /></>} />
                 </AcademyGrid>
             </section>
         </div>

@@ -4,24 +4,8 @@
     container-type: inline-size;
     @apply tw:text-main tw:wrap-anywhere;
 }
-.strategies__roadmap { @apply tw:flex tw:flex-wrap tw:gap-[.6rem] tw:mt-[1.5rem]; }
-.strategies__roadmap a {
-    @apply tw:inline-flex tw:items-center tw:gap-[.5rem] tw:min-h-[44px] tw:p-[.5rem_.85rem] tw:ui-border-default tw:rounded-[10px] tw:text-main tw:ui-fill-surface;
-    text-decoration: none;
-    @apply tw:text-[length:.85rem];
-}
 .strategies :is(a):focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 4px; }
-.strategies__roadmap a:hover { border-color: var(--accent-primary); }
 .strategies__section { @apply tw:mt-[2.5rem]; scroll-margin-top: 1.5rem; }
-.strategies__section-heading { @apply tw:flex tw:items-start tw:gap-[.85rem] tw:mb-[1.25rem]; }
-.strategies__number {
-    @apply tw:grid tw:place-items-center tw:flex-[0_0_38px] tw:h-[38px] tw:rounded-[11px];
-    background: rgba(var(--accent-rgb), .1);
-    @apply tw:text-accent tw:text-[length:.85rem];
-    font-weight: 800;
-}
-.strategies__section-heading h2 { @apply tw:text-[length:clamp(1.2rem,_2.2vw,_1.6rem)]; line-height: 1.35; @apply tw:m-[0_0_.4rem]; }
-.strategies__section-heading p { @apply tw:m-[0] tw:text-secondary tw:text-[length:.95rem]; line-height: 1.6; }
 .strategies__grid { @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[1rem]; }
 .strategies__approach-card { @apply tw:ui-stack; border-top: 3px solid var(--accent-primary) !important; }
 .strategies .strategies__approach-card--active { border-top-color: #8b5cf6 !important; }
@@ -30,51 +14,27 @@
 .strategies__approach-card--active .strategies__icon { color: #a78bfa; background: rgba(139, 92, 246, .12); }
 html[data-theme='light'] .strategies__approach-card--active .strategies__icon { color: #7c3aed; }
 .strategies__tag, .strategies__term { @apply tw:text-[length:.8rem] tw:text-secondary; line-height: 1.5; }
-.strategies :is(.strategies__approach-card, .strategies__entry-card, .strategies__tool-card) h3 { @apply tw:text-[length:1.2rem]; line-height: 1.35; @apply tw:m-[0_0_.75rem]; }
-.strategies :is(.strategies__approach-card, .strategies__entry-card, .strategies__tool-card) p { @apply tw:text-[length:.95rem]; line-height: 1.7; @apply tw:text-secondary tw:m-[0]; }
-.strategies__facts { @apply tw:m-[1.25rem_0] tw:grid tw:gap-[.9rem]; }
-.strategies__facts > div { border-top: 1px solid var(--border-color); @apply tw:pt-[.75rem]; }
-.strategies__facts dt { @apply tw:text-[length:.85rem]; font-weight: 700; @apply tw:mb-[.3rem]; }
-.strategies__facts dd { @apply tw:text-[length:.9rem]; line-height: 1.6; @apply tw:text-secondary tw:m-[0]; }
 .strategies__takeaway { @apply tw:mt-[auto] tw:p-[.9rem_1rem] tw:rounded-[10px] tw:ui-fill-muted tw:text-[length:.85rem]; line-height: 1.6; }
-.strategies__insight { @apply tw:flex tw:items-start tw:gap-[.75rem] tw:p-[1rem] tw:mt-[1rem]; border-left: 3px solid var(--accent-primary); @apply tw:rounded-[0_10px_10px_0]; background: rgba(var(--accent-rgb), .05); }
-.strategies__insight svg { @apply tw:flex-[0_0_20px] tw:mt-[.15rem] tw:text-accent; }
-.strategies__insight p { @apply tw:m-[0] tw:text-[length:.9rem]; line-height: 1.65; @apply tw:text-secondary; }
 .strategies__entry-card > .strategies__icon { @apply tw:mb-[1rem]; }
 .strategies__term { @apply tw:block tw:m-[-.25rem_0_.75rem]; }
-.strategies__entry-detail { @apply tw:mt-[1rem] tw:pt-[.9rem]; border-top: 1px solid var(--border-color); }
-.strategies__entry-detail strong { @apply tw:text-[length:.85rem] tw:block tw:mb-[.3rem]; }
 .strategies__chart-heading { @apply tw:ui-row tw:justify-between tw:flex-wrap tw:gap-[.5rem] tw:mb-[1.5rem]; }
 .strategies__chart-heading h3 { @apply tw:m-[0] tw:text-[length:1.1rem]; }
 .strategies__chart-heading > span { @apply tw:text-[length:.75rem] tw:text-secondary; }
 .strategies__balance-grid { @apply tw:grid tw:grid-cols-[repeat(3,_minmax(0,_1fr))] tw:gap-[1.25rem]; }
-.strategies__balance-stage h4 { @apply tw:m-[0_0_.75rem] tw:text-[length:.9rem]; }
-.strategies__balance-bar { @apply tw:flex tw:rounded-[8px] tw:overflow-hidden tw:h-[42px]; }
-.strategies__balance-bar span { @apply tw:grid tw:place-items-center; background: #047857; color: #fff; font-weight: 700; @apply tw:text-[length:.85rem]; }
-.strategies__balance-bar span + span { background: #1d4ed8; }
-.strategies__balance-stage p { @apply tw:text-[length:.85rem]; line-height: 1.6; @apply tw:text-secondary tw:m-[.65rem_0_0]; }
 .strategies__legend { @apply tw:flex tw:flex-wrap tw:gap-[1rem] tw:mt-[1rem] tw:text-[length:.8rem] tw:text-secondary; }
 .strategies__legend span { @apply tw:ui-row tw:gap-[.45rem]; }
 .strategies__legend i { @apply tw:w-[9px] tw:h-[9px] tw:rounded-[3px]; background: #047857; }
 .strategies__legend span + span i { background: #1d4ed8; }
-.strategies__rules { @apply tw:grid tw:grid-cols-[repeat(3,_minmax(0,_1fr))] tw:gap-[1rem]; list-style: none; @apply tw:p-[1.25rem_0_0] tw:m-[1.25rem_0_0]; border-top: 1px solid var(--border-color); }
-.strategies__rules li { @apply tw:flex tw:items-start tw:gap-[.65rem]; }
-.strategies__rules svg { @apply tw:flex-[0_0_20px] tw:mt-[.1rem] tw:text-accent; }
-.strategies__rules strong { @apply tw:text-[length:.9rem]; }
-.strategies__rules p { @apply tw:m-[.4rem_0_0] tw:text-[length:.85rem]; line-height: 1.65; @apply tw:text-secondary; }
 .strategies__tools { @apply tw:grid tw:grid-cols-[repeat(3,_minmax(0,_1fr))] tw:gap-[1rem]; }
-.strategies .strategies__tool-card { @apply tw:ui-stack tw:gap-[.75rem]; text-decoration: none; @apply tw:text-main; }
-.strategies__tool-card > svg { @apply tw:text-accent; }
-.strategies .strategies__tool-card h3 { @apply tw:m-[0] tw:text-[length:1.05rem]; }
-.strategies__tool-card > span { @apply tw:mt-[auto] tw:pt-[.5rem] tw:min-h-[44px] tw:ui-row tw:gap-[.5rem]; font-weight: 700; @apply tw:text-[length:.85rem] tw:text-accent; }
-.strategies__tool-card > span svg { @apply tw:shrink-[0]; }
-.strategies .strategies__tool-card:hover { border-color: var(--accent-primary); }
 
 @container (max-width: 680px) {
-    .strategies__grid, .strategies__balance-grid, .strategies__rules, .strategies__tools { @apply tw:grid-cols-[1fr]; }
+    .strategies__grid, .strategies__balance-grid, .strategies__tools { @apply tw:grid-cols-[1fr]; }
     .strategies__section { @apply tw:mt-[2rem]; }
     .strategies__balance-grid { @apply tw:gap-[1rem]; }
 }
 @media (max-width: 1024px) {
     .strategies__section { scroll-margin-top: 5rem; }
 }
+
+.strategies :is(.strategies__approach-card, .strategies__entry-card) h3 { @apply tw:text-[length:1.2rem]; line-height: 1.35; @apply tw:m-[0_0_.75rem]; }
+.strategies :is(.strategies__approach-card, .strategies__entry-card) p { @apply tw:text-[length:.95rem]; line-height: 1.7; @apply tw:text-secondary tw:m-[0]; }

@@ -55,7 +55,6 @@
     @apply tw:text-main tw:opacity-[0.85];
 }
 
-
 /* Compensation Card */
 
 .tax-info__card-header {
@@ -98,55 +97,7 @@
     @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[1.5rem];
 }
 
-.tax-info .comparison-card {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:rounded-[20px] tw:p-[2rem];
-}
-
-.tax-info .comparison-card .header {
-    @apply tw:ui-row tw:gap-[1rem] tw:mb-[1.5rem] tw:text-accent;
-}
-
-.tax-info .comparison-card .header h3 {
-    @apply tw:m-[0] tw:text-[length:1.35rem];
-    font-weight: 800;
-    @apply tw:text-main;
-}
-
-.tax-info .comparison-card ul {
-    list-style: none;
-    @apply tw:p-[0] tw:m-[0] tw:ui-stack tw:gap-[1rem];
-}
-
-.tax-info .comparison-card li {
-    @apply tw:text-[length:0.95rem] tw:text-secondary;
-    line-height: 1.5;
-}
-
-.tax-info .comparison-card li strong {
-    @apply tw:text-main tw:block tw:mb-[0.25rem];
-}
-
 /* Two clearly separated tools: investment taxes and employment income. */
-
-.tax-info__tool-card {
-    text-decoration: none;
-    transition: border-color .2s;
-}
-
-.tax-info__tool-card:hover { border-color: var(--accent-primary); }
-.tax-info__tool-card:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 4px; }
-.tax-info__tool-icon {
-    @apply tw:grid tw:place-items-center tw:w-[44px] tw:h-[44px] tw:rounded-[12px] tw:text-accent;
-    background: rgba(var(--accent-rgb), .1);
-}
-.tax-info__tool-category { @apply tw:text-[length:.8rem]; font-weight: 600; @apply tw:text-secondary; }
-.tax-info__tool-card h3 { @apply tw:m-[0] tw:text-[length:1.2rem]; line-height: 1.35; }
-.tax-info__tool-card p { @apply tw:m-[0_0_.25rem] tw:text-secondary tw:text-[length:.95rem]; line-height: 1.65; }
-.tax-info__tool-action {
-    @apply tw:ui-row tw:gap-[.5rem] tw:min-h-[44px] tw:mt-[auto] tw:text-accent tw:text-[length:.9rem];
-    font-weight: 700;
-}
-.tax-info__tool-action svg { @apply tw:shrink-[0]; }
 
 @media (max-width: 768px) {
     .tax-info__title {
@@ -161,7 +112,6 @@
         @apply tw:flex-col tw:gap-[1rem];
     }
 
-
 }
 
 @media (max-width: 480px) {
@@ -172,12 +122,8 @@
 .tax-info > section > p { @apply tw:text-secondary; line-height: 1.7; }
 .tax-info .tax-info__card > p { @apply tw:text-secondary; line-height: 1.7; }
 .tax-info__section-title { @apply tw:text-[length:clamp(1.2rem,_2.3vw,_1.6rem)]; line-height: 1.35; @apply tw:mt-[2.5rem]; }
-.tax-info :is(.tax-info__card, .comparison-card) { @apply tw:p-[clamp(1rem,_2.5vw,_1.5rem)]; }
-.tax-info :is(.tax-info__card-header, .comparison-card .header) { @apply tw:items-start; }
-.tax-info :is(.tax-info__card-header, .comparison-card .header) > svg { @apply tw:shrink-[0]; }
 
 @container (max-width: 620px) {
     .tax-info__tools-grid, .tax-info__two-cols { @apply tw:grid-cols-[1fr]; }
     .tax-info .compensation-viz { @apply tw:flex-col tw:gap-[.75rem] tw:p-[1rem]; }
-    .tax-info__tool-card { @apply tw:p-[1.25rem]; }
 }

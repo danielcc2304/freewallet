@@ -1,3 +1,4 @@
+import {CompositionDisclosure,CompositionExposureRow,CompositionGroupHeading} from './CompositionParts';
 import { DashboardSwitch } from './ui/DashboardSwitch';
 import { useEffect, useEffectEvent, useMemo, useState } from 'react';
 import { Button, Card, CardHeader, CardContent } from '../ui';
@@ -264,21 +265,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
     const renderExposureRow = (exposure: ConsolidatedPortfolioExposure) => {
         const canOpen = !exposure.isResidual && Boolean(onHoldingClick || exposure.hasDirectPosition);
         return (
-            <button
-                key={exposure.id}
-                type="button"
-                className={`portfolio-composition__exposure-row ${exposure.isResidual ? 'portfolio-composition__exposure-row--residual' : ''}`}
-                onClick={() => handleExposureClick(exposure)}
-                disabled={!canOpen}>
-                <span className="portfolio-composition__exposure-name">
-                    <strong>{getExposureDisplayName(exposure)}</strong>
-                    <small>{exposure.isResidual ? 'Resto no desglosado' : `${exposure.symbol && exposure.symbol !== exposure.name ? `${exposure.symbol} · ` : ''}${getExposureSourceLabel(exposure)}${exposure.hasApproximateMatch || exposure.id.includes('approximate-name:') ? ' · coincidencia aproximada por nombre' : ''}`}</small>
-                </span>
-                <span className="portfolio-composition__exposure-value">
-                    <strong>{exposure.weight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong>
-                    <small>{new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(exposure.value)}</small>
-                </span>
-            </button>
+            <CompositionExposureRow key={exposure.id} type="button" onClick={() => handleExposureClick(exposure)} disabled={!canOpen} residual={exposure.isResidual} name={<>{getExposureDisplayName(exposure)}</>} source={<>{exposure.isResidual ? 'Resto no desglosado' : `${exposure.symbol && exposure.symbol !== exposure.name ? `${exposure.symbol} · ` : ''}${getExposureSourceLabel(exposure)}${exposure.hasApproximateMatch || exposure.id.includes('approximate-name:') ? ' · coincidencia aproximada por nombre' : ''}`}</>} weight={<>{exposure.weight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</>} amount={<>{new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(exposure.value)}</>} />
         );
     };
 
@@ -299,10 +286,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                 <div className="portfolio-composition__content">
                     <div className="portfolio-composition__heatmap">
                         {showBreakdown ? (
-                            <details className="portfolio-composition__heatmap-details">
-                                <summary>Mapa de calor</summary>
-                                <Heatmap data={heatmapData} showBreakdown onItemClick={handleHeatmapClick} />
-                            </details>
+                            <CompositionDisclosure variant="heatmap" title={<>Mapa de calor</>}><Heatmap data={heatmapData} showBreakdown onItemClick={handleHeatmapClick} /></CompositionDisclosure>
                         ) : (
                             <>
                                 <h4 className="portfolio-composition__section-title">Mapa de Calor</h4>
@@ -333,10 +317,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                                 <div className="portfolio-composition__exposure-sections">
                                     {identifiedExposures.length > 0 && (
                                         <section className="portfolio-composition__exposure-group">
-                                            <div className="portfolio-composition__exposure-group-header">
-                                                <h5>Exposición identificada</h5>
-                                                <span>{identifiedExposures.length} posiciones</span>
-                                            </div>
+                                            <CompositionGroupHeading title={<>Exposición identificada</>}  total={<>{identifiedExposures.length} posiciones</>} />
                                             <div className="portfolio-composition__exposure-list">
                                                 {identifiedExposures.map(renderExposureRow)}
                                             </div>
@@ -344,13 +325,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                                     )}
                                     {residualExposures.length > 0 && (
                                         <section className="portfolio-composition__exposure-group portfolio-composition__exposure-group--residual">
-                                            <div className="portfolio-composition__exposure-group-header">
-                                                <div>
-                                                    <h5>No desglosados</h5>
-                                                    <p>Parte de los fondos sin posiciones detalladas.</p>
-                                                </div>
-                                                <span>{residualExposures.reduce((sum, exposure) => sum + exposure.weight, 0).toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</span>
-                                            </div>
+                                            <CompositionGroupHeading title={<>No desglosados</>} description={<>Parte de los fondos sin posiciones detalladas.</>} total={<>{residualExposures.reduce((sum, exposure) => sum + exposure.weight, 0).toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</>} />
                                             <div className="portfolio-composition__exposure-list">
                                                 {residualExposures.map(renderExposureRow)}
                                             </div>
@@ -370,13 +345,11 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                     </div>
                     {showBreakdown && <div className="portfolio-composition__distributions">
                         {fundDetails.map(({ asset, isin, holdings, source, groups, loading, failed, coverage }) => (
-                            <details key={asset.id} className="portfolio-composition__breakdown-groups" data-fund-id={asset.id}>
-                                <summary>{asset.name}<span>
+                            <CompositionDisclosure key={asset.id} data-fund-id={asset.id} variant="fund" title={<>{asset.name}</>} hint={<>
                                     {holdings.length ? `${holdings.length} posiciones · ${coverage.toLocaleString('es-ES', { maximumFractionDigits: 2 })}% identificado · ${source === 'provider' ? 'Finect' : 'guardado'}`
                                         : groups.length ? 'Distribución disponible · sin posiciones publicadas'
                                         : loading ? 'Consultando…' : failed ? 'Consulta fallida' : !isin ? 'Falta el ISIN' : !apiEnabled ? 'Sin desglose guardado' : 'Sin desglose publicado'}
-                                </span></summary>
-                                <div className="portfolio-composition__distribution-grid">
+                                </>}>
                                     {!!holdings.length && <section><h5>Posiciones del fondo</h5><ul>
                                         {holdings.map((h, i) => <li key={`${h.isin || h.symbol}-${i}`}><span>{h.name}</span><strong>{h.percentage.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%</strong></li>)}
                                     </ul><p>{Math.max(0, 100 - coverage).toLocaleString('es-ES', { maximumFractionDigits: 2 })}% sin posiciones identificadas.</p></section>}
@@ -388,8 +361,7 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                                     {!isin && apiEnabled && <p>Añade el ISIN para consultar el desglose.</p>}
                                     {!loading && !failed && isin && apiEnabled && !holdings.length && !groups.length && <p>Finect no publica posiciones ni distribuciones para este fondo.</p>}
                                     {!apiEnabled && <p>Consultas desactivadas. Se muestra la información guardada.</p>}
-                                </div>
-                            </details>
+                                </CompositionDisclosure>
                         ))}
                     </div>}
                 </div>

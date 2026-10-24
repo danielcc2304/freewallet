@@ -223,6 +223,8 @@ Portfolio compone sus tarjetas de análisis y acciones mediante `PortfolioPanel`
 
 Las celdas y fichas de activos de Dashboard, las preferencias de Ajustes, los controles nativos de Ajustes/Portfolio, los resultados de Añadir activo, las filas y menús de gastos y los controles del mapa de calor comparten también marcado y estilos Tailwind. Las guías reutilizan fichas de geografía y bonos, relaciones inversas, crédito, checklists y consejos.
 
+Las guías de Riesgo, Estrategias, Fiscalidad, Escenarios, Errores y Valoración comparten encabezados, avisos, ejemplos y accesos completos. Fundamentos, Glosario y Recursos reutilizan también tarjetas y controles; perfil inversor, construcción de cartera, Crisis, asignación y Market Timing separan sus piezas visuales de los cálculos. El sidebar, los desplegables y filas de exposición del Dashboard y la barra del editor de noticias utilizan componentes con estructura y estilos Tailwind. La migración acumulada retira el 54,60 % de las líneas de CSS fuente; no equivale a una reducción del mismo porcentaje en la descarga.
+
 Los selectores de los módulos densos conservan su cascada. El reset, los materiales Liquid Glass y el contenido enriquecido mantienen CSS específico. No se activa Preflight ni un `important` global. [Arquitectura y pruebas](docs/tailwind-migration.md) · [Inventario por módulo](docs/tailwind-module-inventory.md).
 
 ## Scripts

@@ -5,23 +5,6 @@
 .resources-page__source { @apply tw:inline-flex tw:items-center tw:gap-[.4rem] tw:min-h-[44px] tw:mt-[.75rem] tw:text-[length:.9rem]; font-weight: 700; }
 .resources-page__source svg { @apply tw:shrink-[0]; }
 .resources-page__grid { @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(min(100%,_280px),_1fr))] tw:gap-[1.25rem]; }
-.resource-card__link { text-decoration: none; }
-.resource-card__preview { background: linear-gradient(135deg, rgba(var(--accent-rgb), .15), rgba(59, 130, 246, .16)), var(--bg-tertiary); }
-.resource-card__preview img { transition: transform .2s ease; }
-.resource-card__preview::after { content: ''; @apply tw:absolute tw:inset-[0]; background: linear-gradient(transparent 55%, rgba(0, 0, 0, .35)); @apply tw:pointer-events-none; }
-.resource-card__play { transform: translate(-50%, -50%); border: 1px solid rgba(255, 255, 255, .5); background: rgba(0, 0, 0, .7); color: #fff; }
-.resource-card__play svg { @apply tw:ml-[3px]; }
-.resource-card__video-label { background: rgba(0, 0, 0, .8); color: #fff; font-weight: 600; }
-.resource-card__content h2 { line-height: 1.4; }
-.resource-card__content p { line-height: 1.65; }
-.resource-card__action { font-weight: 700; }
-.resource-card__action svg { @apply tw:text-accent tw:shrink-[0]; }
-.resource-card:has(.resource-card__link:hover), .resource-card:has(.resource-card__link:focus-visible) { border-color: var(--accent-primary); }
-.resource-card__link:is(:hover, :focus-visible) .resource-card__preview img { transform: scale(1.025); }
 .resources-page :is(a, button):focus-visible { outline: 2px solid var(--accent-primary); outline-offset: -3px; }
 .resources-page__footer { @apply tw:mt-[1.5rem]; }
 .resources-page__back { @apply tw:inline-flex tw:items-center tw:gap-[.5rem] tw:min-h-[44px] tw:p-[.75rem_1.1rem]; background: var(--accent-primary); color: #fff; border: 0; @apply tw:rounded-[10px]; font: inherit; @apply tw:text-[length:.9rem]; font-weight: 700; @apply tw:cursor-pointer; }
-@media (prefers-reduced-motion: reduce) {
-    .resource-card__preview img { transition: none; }
-    .resource-card__link:is(:hover, :focus-visible) .resource-card__preview img { transform: none; }
-}

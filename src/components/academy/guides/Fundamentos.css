@@ -57,17 +57,11 @@
     text-transform: uppercase;
 }
 
-.fundamentos__spotlight h2,
-.fundamentos__section-head h2,
-.fundamentos__next h3,
-.interact-card__content h3 {
+.fundamentos__spotlight h2, .fundamentos__next h3, .interact-card__content h3 {
     @apply tw:m-[0_0_0.55rem] tw:text-[length:1.4rem] tw:text-main;
 }
 
-.fundamentos__spotlight p,
-.fundamentos__section-head p,
-.fundamentos__next p,
-.interact-card__content p {
+.fundamentos__spotlight p, .fundamentos__next p, .interact-card__content p {
     @apply tw:m-[0];
     line-height: 1.65;
     @apply tw:text-secondary;
@@ -99,35 +93,11 @@
     transform: translateY(-2px);
 }
 
-.fundamentos__section-block,
-.fundamentos__next,
-.interact-card {
+.fundamentos__section-block, .fundamentos__next, .interact-card {
     @apply tw:p-[var(--academy-space-card-lg)];
 }
 
-.fundamentos__section-head {
-    @apply tw:mb-[var(--academy-space-stack)];
-}
-
-.fundamentos__section-head-row {
-    @apply tw:ui-row tw:justify-between tw:gap-[0.75rem];
-}
-
-.fundamentos__collapse-toggle {
-    @apply tw:w-[34px] tw:h-[34px] tw:ui-border-default tw:rounded-[10px] tw:ui-fill-muted tw:text-secondary tw:inline-flex tw:items-center tw:justify-center tw:cursor-pointer;
-    transition: all 0.2s ease;
-    @apply tw:shrink-[0];
-}
-
-.fundamentos__collapse-toggle:hover {
-    @apply tw:text-main;
-    border-color: var(--accent-primary);
-}
-
-.fundamentos__level-grid,
-.fundamentos__goal-grid,
-.fundamentos__checklist-grid,
-.fundamentos__sections {
+.fundamentos__level-grid, .fundamentos__goal-grid, .fundamentos__checklist-grid, .fundamentos__sections {
     @apply tw:grid tw:gap-[var(--academy-space-stack)];
 }
 
@@ -135,8 +105,7 @@
     @apply tw:grid-cols-[1fr] tw:gap-[1.35rem];
 }
 
-.fundamentos__level-card,
-.fundamentos__goal-card {
+.fundamentos__level-card {
     @apply tw:ui-border-default tw:rounded-[14px] tw:ui-fill-muted tw:p-[var(--academy-space-card)];
 }
 
@@ -152,8 +121,7 @@
     @apply tw:p-[0.25rem_0_0_0.2rem];
 }
 
-.fundamentos__level-head h3,
-.fundamentos__goal-card h3 {
+.fundamentos__level-head h3 {
     @apply tw:m-[0] tw:text-main;
 }
 
@@ -165,27 +133,8 @@
     @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(250px,_1fr))] tw:gap-[0.65rem];
 }
 
-.fundamentos__goal-grid,
-.fundamentos__checklist-grid,
-.fundamentos__sections {
+.fundamentos__goal-grid, .fundamentos__checklist-grid, .fundamentos__sections {
     @apply tw:grid-cols-[repeat(auto-fit,_minmax(260px,_1fr))];
-}
-
-.fundamentos__goal-card {
-    border: 0;
-    @apply tw:rounded-[0] tw:ui-fill-transparent tw:p-[0];
-}
-
-.fundamentos__goal-card p {
-    @apply tw:m-[0_0_1rem] tw:text-secondary;
-}
-
-.fundamentos__goal-card h3 {
-    @apply tw:pl-[0.2rem];
-}
-
-.fundamentos__goal-links {
-    @apply tw:grid tw:gap-[0.65rem];
 }
 
 .fundamentos__sections {
@@ -248,10 +197,7 @@
         @apply tw:grid-cols-[repeat(3,_minmax(0,_1fr))] tw:gap-[0.45rem];
     }
 
-    .fundamentos__section-block,
-    .fundamentos__next,
-    .interact-card,
-    .fundamentos__spotlight {
+    .fundamentos__section-block, .fundamentos__next, .interact-card, .fundamentos__spotlight {
         @apply tw:p-[var(--academy-space-card-lg)];
     }
 }

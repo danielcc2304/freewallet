@@ -33,63 +33,9 @@
     box-shadow: 0 10px 30px rgba(239, 68, 68, 0.1);
 }
 
-.error-detail-card__header {
-    @apply tw:ui-row tw:gap-[var(--academy-space-stack)];
-}
-
-.error-detail-card__emoji {
-    @apply tw:text-[length:2.5rem] tw:ui-fill-muted tw:w-[64px] tw:h-[64px] tw:ui-row tw:justify-center tw:rounded-[16px];
-}
-
-.error-detail-card__title {
-    @apply tw:text-[length:1.5rem];
-    font-weight: 800;
-    @apply tw:m-[0] tw:text-main tw:wrap-anywhere;
-}
-
 .error-detail-card__desc {
     @apply tw:text-[length:1rem] tw:text-secondary;
     line-height: 1.5;
-}
-
-.error-sub-box.consequence {
-    background: rgba(239, 68, 68, 0.05);
-    border: 1px solid rgba(239, 68, 68, 0.1);
-}
-
-.error-sub-box.solution {
-    background: rgba(16, 185, 129, 0.05);
-    border: 1px solid rgba(16, 185, 129, 0.1);
-}
-
-.error-sub-box h5 {
-    @apply tw:m-[0_0_0.5rem] tw:ui-row tw:gap-[0.5rem] tw:text-[length:0.85rem];
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-}
-
-.error-sub-box.consequence h5 {
-    color: #ef4444;
-}
-
-.error-sub-box.solution h5 {
-    color: #10b981;
-}
-
-.error-sub-box p {
-    @apply tw:m-[0] tw:text-[length:0.85rem];
-    line-height: 1.4;
-    @apply tw:text-secondary;
-}
-
-.error-detail-card__footer {
-    @apply tw:mt-[auto] tw:pt-[1rem];
-    border-top: 1px solid var(--border-color);
-    @apply tw:text-[length:0.8rem] tw:text-secondary tw:ui-row tw:gap-[0.5rem] tw:flex-wrap;
-}
-
-.error-detail-card__footer svg {
-    @apply tw:shrink-[0];
 }
 
 @media (max-width: 768px) {
@@ -128,23 +74,7 @@
         @apply tw:p-[0_1rem_3rem];
     }
 
-    .error-detail-card__header {
-        @apply tw:gap-[0.8rem];
-    }
-
-    .error-detail-card__emoji {
-        @apply tw:w-[52px] tw:h-[52px] tw:text-[length:2rem];
-    }
-
-    .error-detail-card__title {
-        @apply tw:text-[length:1.2rem];
-    }
-
     .error-detail-card {
         @apply tw:p-[var(--academy-space-card)] tw:gap-[var(--academy-space-stack)];
-    }
-
-    .error-sub-box {
-        @apply tw:p-[0.85rem];
     }
 }

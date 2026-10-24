@@ -4,18 +4,8 @@
     container-type: inline-size;
     @apply tw:wrap-anywhere;
 }
-.risk-mgmt__roadmap { @apply tw:flex tw:flex-wrap tw:gap-[.6rem] tw:mt-[1.5rem]; }
-.risk-mgmt__roadmap a {
-    @apply tw:inline-flex tw:items-center tw:gap-[.5rem] tw:min-h-[44px] tw:p-[.5rem_.85rem] tw:ui-border-default tw:rounded-[10px] tw:text-main tw:ui-fill-surface; text-decoration: none; @apply tw:text-[length:.85rem];
-}
 .risk-mgmt :is(a, [tabindex]):focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 4px; }
-.risk-mgmt__roadmap a:hover { border-color: var(--accent-primary); }
-.risk-mgmt__roadmap svg { @apply tw:shrink-[0] tw:text-accent; }
 .risk-mgmt__section { @apply tw:mt-[2.5rem]; scroll-margin-top: 1.5rem; }
-.risk-mgmt__section-heading { @apply tw:flex tw:items-start tw:gap-[.85rem] tw:mb-[1.25rem]; }
-.risk-mgmt__number { @apply tw:grid tw:place-items-center tw:flex-[0_0_38px] tw:h-[38px] tw:rounded-[11px]; background: rgba(var(--accent-rgb), .1); @apply tw:text-accent tw:text-[length:.85rem]; font-weight: 800; }
-.risk-mgmt__section-heading h2 { @apply tw:text-[length:clamp(1.2rem,_2.2vw,_1.6rem)]; line-height: 1.35; @apply tw:m-[0_0_.4rem]; }
-.risk-mgmt__section-heading p { @apply tw:m-[0] tw:text-secondary tw:text-[length:.95rem]; line-height: 1.6; }
 .risk-mgmt__grid--three { @apply tw:grid-cols-[repeat(3,_minmax(0,_1fr))]; }
 .risk-mgmt__card h3 { @apply tw:text-[length:1.15rem]; line-height: 1.4; @apply tw:m-[0_0_.75rem]; }
 .risk-mgmt__card p { @apply tw:text-[length:.95rem]; line-height: 1.7; @apply tw:text-secondary tw:m-[0]; }
@@ -24,11 +14,6 @@
 .risk-mgmt__comparison--loss { border-top-color: #f59e0b; }
 .risk-mgmt__comparison--loss .risk-mgmt__icon { color: #fbbf24; background: rgba(245, 158, 11, .1); }
 html[data-theme='light'] .risk-mgmt__comparison--loss .risk-mgmt__icon { color: #92400e; }
-.risk-mgmt__takeaway { @apply tw:mt-[auto] tw:pt-[1rem] tw:text-[length:.85rem]; line-height: 1.6; @apply tw:text-secondary; }
-.risk-mgmt__takeaway strong { @apply tw:block tw:text-main tw:pt-[.9rem]; border-top: 1px solid var(--border-color); @apply tw:mb-[.3rem]; }
-.risk-mgmt__action { border-top: 1px solid var(--border-color); @apply tw:mt-[1.25rem] tw:pt-[.9rem]; }
-.risk-mgmt__action strong { @apply tw:block tw:mb-[.3rem] tw:text-[length:.85rem]; }
-.risk-mgmt__action p { @apply tw:text-[length:.9rem]; }
 .risk-mgmt__correlations { @apply tw:mt-[1rem]; }
 .risk-mgmt__matrix-heading { @apply tw:flex tw:justify-between tw:items-baseline tw:flex-wrap tw:gap-[.5rem] tw:mb-[.75rem]; }
 .risk-mgmt__matrix-heading h3 { @apply tw:m-[0]; }
@@ -63,15 +48,6 @@ html[data-theme='light'] .risk-mgmt__correlation--low { color: #047857; }
 .risk-mgmt__horizons p { @apply tw:text-[length:.9rem]; }
 .risk-mgmt__currency ul { @apply tw:pl-[1.2rem] tw:m-[1rem_0_0] tw:text-secondary tw:text-[length:.9rem]; line-height: 1.65; }
 .risk-mgmt__currency li + li { @apply tw:mt-[.4rem]; }
-.risk-mgmt__insight { @apply tw:flex tw:items-start tw:gap-[.75rem] tw:p-[1rem] tw:mt-[1rem]; border-left: 3px solid var(--accent-primary); @apply tw:rounded-[0_10px_10px_0]; background: rgba(var(--accent-rgb), .05); }
-.risk-mgmt__insight svg { @apply tw:flex-[0_0_20px] tw:mt-[.15rem] tw:text-accent; }
-.risk-mgmt__insight p { @apply tw:m-[0] tw:text-[length:.9rem]; line-height: 1.65; @apply tw:text-secondary; }
-.risk-mgmt .risk-mgmt__tool { @apply tw:ui-stack tw:gap-[.75rem]; text-decoration: none; @apply tw:text-main; }
-.risk-mgmt__tool > svg { @apply tw:text-accent; }
-.risk-mgmt .risk-mgmt__tool h3 { @apply tw:m-[0] tw:text-[length:1.05rem]; }
-.risk-mgmt__tool > span { @apply tw:ui-row tw:gap-[.5rem] tw:min-h-[44px] tw:mt-[auto] tw:pt-[.5rem] tw:text-[length:.85rem]; font-weight: 700; @apply tw:text-accent; }
-.risk-mgmt__tool > span svg { @apply tw:shrink-[0]; }
-.risk-mgmt__tool:hover { border-color: var(--accent-primary); }
 html[data-appearance='liquid-glass'] .risk-mgmt__card {
     background: linear-gradient(145deg, rgba(255, 255, 255, .035), transparent 34%), var(--glass-content);
     border-color: var(--border-primary);
@@ -79,7 +55,6 @@ html[data-appearance='liquid-glass'] .risk-mgmt__card {
 }
 html[data-appearance='liquid-glass'] .risk-mgmt__comparison { border-top-color: var(--accent-primary); }
 html[data-appearance='liquid-glass'] .risk-mgmt__comparison--loss { border-top-color: #f59e0b; }
-html[data-appearance='liquid-glass'] .risk-mgmt__tool:hover { border-color: var(--accent-primary); }
 @container (max-width: 680px) {
     .risk-mgmt__grid, .risk-mgmt__horizons { @apply tw:grid-cols-[1fr]; }
     .risk-mgmt__section { @apply tw:mt-[2rem]; }

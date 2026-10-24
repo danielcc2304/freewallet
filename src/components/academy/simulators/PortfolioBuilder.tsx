@@ -1,3 +1,4 @@
+import {AcademyModelFilter,AcademyModelMetadata,AcademyModelMix,AcademyModelActions,AcademyAllocationBar} from '../ui/AcademySimulatorParts';
 import { AcademyControlField } from '../ui/AcademyControlField';
 import { AcademyPanel, AcademyLinkCard } from '../ui/AcademyPanel';
 import { AcademyGrid } from '../ui/AcademyGrid';
@@ -23,8 +24,7 @@ function initialState(query:URLSearchParams){
 }
 function scrollTo(id:string){requestAnimationFrame(()=>document.getElementById(id)?.scrollIntoView({behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'instant':'smooth',block:'start'}));}
 function AllocationBar({allocation}:{allocation:Allocation}){
-    return <div className="strategy-bar" role="img" aria-label={ASSET_CLASSES.filter(asset=>allocation[asset.key]>0).map(asset=>`${asset.name}: ${percent(allocation[asset.key])}`).join(', ')}>
-        {ASSET_CLASSES.filter(asset=>allocation[asset.key]>0).map(asset=><span key={asset.key} style={{width:`${allocation[asset.key]}%`,background:asset.color}}/>)}</div>;
+    return <AcademyAllocationBar label={ASSET_CLASSES.filter(asset=>allocation[asset.key]>0).map(asset=>`${asset.name}: ${percent(allocation[asset.key])}`).join(', ')} segments={ASSET_CLASSES.filter(asset=>allocation[asset.key]>0).map(asset=>({key:asset.key,width:allocation[asset.key],color:asset.color}))} />;
 }
 
 export function PortfolioBuilder(){
@@ -77,17 +77,17 @@ export function PortfolioBuilder(){
                     {label:'Horizonte',value:horizon,options:HORIZON_FILTERS,setter:setHorizon},
                     {label:'Estilo',value:style,options:STYLE_FILTERS,setter:setStyle},
                     {label:'Riesgo orientativo',value:risk,options:RISK_FILTERS,setter:setRisk},
-                ].map(group=><fieldset className="strategy-filter-group" key={group.label}><legend>{group.label}</legend><div className="portfolio-builder__filter-options">{group.options.map(option=><button key={option.value} type="button" aria-pressed={group.value===option.value} className={`portfolio-builder__filter-chip${group.value===option.value?' portfolio-builder__filter-chip--active':''}`} onClick={()=>filterChanged(group.setter,option.value)}>{option.label}</button>)}</div></fieldset>)}
+                ].map(group=><fieldset className="strategy-filter-group" key={group.label}><legend>{group.label}</legend><div className="portfolio-builder__filter-options">{group.options.map(option=><AcademyModelFilter key={option.value} type="button" aria-pressed={group.value===option.value} onClick={()=>filterChanged(group.setter,option.value)} selected={group.value===option.value}>{option.label}</AcademyModelFilter>)}</div></fieldset>)}
                 {(horizon!=='all'||style!=='all'||risk!=='all')&&<button type="button" className="portfolio-builder__filters-reset" onClick={clearFilters}>Limpiar filtros</button>}
             </div>
             {!filtered.length&&<div className="portfolio-builder__empty" role="status"><h3>No hay modelos con esta combinación</h3><p>Amplía los filtros. Un horizonte corto limita las opciones con riesgo de pérdida de capital.</p></div>}
             <AcademyGrid variant="models" className="strategy-model-grid">{visible.map(item=>{
                 const weights=modelAllocation(item);const checked=compared.includes(item.id);
                 return <AcademyPanel variant="workspace" as="article" className={`strategy-model${selected===item.id?' strategy-model--selected':''}`} key={item.id}>
-                    <div className="strategy-model__meta"><span>{CATEGORIES.find(category=>category.id===item.category)?.name}</span><span>{RISK_FILTERS.find(filter=>filter.value===item.risk)?.label}</span></div>
-                    <h3>{item.title}</h3><p>{item.desc}</p><p className="strategy-model__mix">Plazo del modelo: {item.horizons.map(value=>HORIZON_FILTERS.find(filter=>filter.value===value)?.label).join(' / ')}</p><AllocationBar allocation={weights}/>
-                    <p className="strategy-model__mix">{ASSET_CLASSES.filter(asset=>weights[asset.key]>0).map(asset=>`${asset.name} ${percent(weights[asset.key])}`).join(' · ')}</p>
-                    <div className="strategy-model__actions"><button type="button" className="strategy-button" onClick={()=>choose(item)}>{selected===item.id?<Check size={16}/>:<PieChartIcon size={16}/>}Personalizar</button><button type="button" className="strategy-button strategy-button--secondary" aria-pressed={checked} aria-label={`Comparar ${item.title}`} disabled={!checked&&compared.length>=3} onClick={()=>setCompared(current=>current.includes(item.id)?current.filter(id=>id!==item.id):current.length<3?[...current,item.id]:current)}>{checked?'Quitar de comparación':'Comparar'}</button></div>
+                    <AcademyModelMetadata category={<>{CATEGORIES.find(category=>category.id===item.category)?.name}</>} risk={<>{RISK_FILTERS.find(filter=>filter.value===item.risk)?.label}</>} />
+                    <h3>{item.title}</h3><p>{item.desc}</p><AcademyModelMix>Plazo del modelo: {item.horizons.map(value=>HORIZON_FILTERS.find(filter=>filter.value===value)?.label).join(' / ')}</AcademyModelMix><AllocationBar allocation={weights}/>
+                    <AcademyModelMix>{ASSET_CLASSES.filter(asset=>weights[asset.key]>0).map(asset=>`${asset.name} ${percent(weights[asset.key])}`).join(' · ')}</AcademyModelMix>
+                    <AcademyModelActions><button type="button" className="strategy-button" onClick={()=>choose(item)}>{selected===item.id?<Check size={16}/>:<PieChartIcon size={16}/>}Personalizar</button><button type="button" className="strategy-button strategy-button--secondary" aria-pressed={checked} aria-label={`Comparar ${item.title}`} disabled={!checked&&compared.length>=3} onClick={()=>setCompared(current=>current.includes(item.id)?current.filter(id=>id!==item.id):current.length<3?[...current,item.id]:current)}>{checked?'Quitar de comparación':'Comparar'}</button></AcademyModelActions>
                 </AcademyPanel>;
             })}</AcademyGrid>
             {filtered.length>6&&<button type="button" className="strategy-button strategy-show-more" aria-expanded={showAll} onClick={()=>setShowAll(value=>!value)}><ChevronDown size={17}/>{showAll?'Mostrar menos':`Ver los ${filtered.length} modelos`}</button>}

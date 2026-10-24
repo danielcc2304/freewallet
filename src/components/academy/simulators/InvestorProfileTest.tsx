@@ -1,10 +1,10 @@
+import { AcademyQuizIntro, AcademyQuizQuestion, AcademyQuizResult, AcademyQuizButton, AcademyQuizLink, AcademyQuizChoice, AcademyQuizRecommendation, AcademyQuizActions } from '../ui/AcademyQuiz';
 import { AcademyPanel } from '../ui/AcademyPanel';
 import { useState } from 'react';
 import {
     Target, ArrowRight, RotateCcw, Shield, Scale,
     TrendingUp, PieChart, CheckCircle2, ChevronRight, type LucideIcon
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './InvestorProfileTest.css';
 
@@ -136,75 +136,37 @@ export function InvestorProfileTest() {
 
             <AcademyPanel variant="quiz" className="quiz-card">
                 {step === 'start' && (
-                    <div className="quiz-start">
-                        <div className="quiz-start__icon">
+                    <AcademyQuizIntro icon={<>
                             <Target size={40} />
-                        </div>
-                        <h2>¿Estás listo para conocerte?</h2>
-                        <p>Este test de 5 preguntas analizará tu tolerancia al riesgo y horizonte temporal para sugerirte una distribución de activos ideal.</p>
-                        <button className="quiz-button" onClick={handleStart}>
+                        </>} title={<>¿Estás listo para conocerte?</>} description={<>Este test de 5 preguntas analizará tu tolerancia al riesgo y horizonte temporal para sugerirte una distribución de activos ideal.</>}><AcademyQuizButton onClick={handleStart} >
                             Empezar Test <ArrowRight size={20} style={{ marginLeft: '8px' }} />
-                        </button>
-                    </div>
+                        </AcademyQuizButton></AcademyQuizIntro>
                 )}
 
                 {step === 'quiz' && (
-                    <div className="quiz-question">
-                        <span className="quiz-question__step">Pregunta {currentQuestion + 1} de {QUESTIONS.length}</span>
-                        <h2 className="quiz-question__text">{QUESTIONS[currentQuestion].text}</h2>
-
-                        <div className="quiz-options">
+                    <AcademyQuizQuestion step={<>Pregunta {currentQuestion + 1} de {QUESTIONS.length}</>} title={<>{QUESTIONS[currentQuestion].text}</>} progress={(currentQuestion / QUESTIONS.length) * 100}>
                             {QUESTIONS[currentQuestion].options.map((option, idx) => (
-                                <button
-                                    key={idx}
-                                    className="quiz-option"
-                                    onClick={() => handleAnswer(option.score)}
-                                >
+                                <AcademyQuizChoice key={idx} onClick={() => handleAnswer(option.score)}>
                                     {option.text}
-                                </button>
+                                </AcademyQuizChoice>
                             ))}
-                        </div>
-
-                        <div className="quiz-progress">
-                            <div
-                                className="quiz-progress__bar"
-                                style={{ width: `${((currentQuestion) / QUESTIONS.length) * 100}%` }}
-                            ></div>
-                        </div>
-                    </div>
+                        </AcademyQuizQuestion>
                 )}
 
                 {step === 'result' && (
-                    <div className="quiz-result">
-                        <div className={`quiz-result__badge quiz-result__badge--${profile.type.toLowerCase()}`}>
+                    <AcademyQuizResult badge={<>
                             <ProgressIcon size={16} />
                             Perfil {profile.type}
-                        </div>
-                        <h2 className="quiz-result__title">Eres un inversor {profile.type}</h2>
-                        <p className="quiz-result__desc">{profile.desc}</p>
-
-                        <div className="suggested-portfolio">
-                            <h3><PieChart size={20} color="var(--accent-primary)" /> Tu Cartera Recomendada</h3>
-                            <div className="portfolio-preview">
-                                <div className="portfolio-preview__info">
-                                    <span className="portfolio-preview__label">Asignación de Activos</span>
-                                    <span className="portfolio-preview__value">{profile.auth}</span>
-                                </div>
-                                <Link to="/academy/portfolio" className="quiz-button">
+                        </>} type={profile.type.toLowerCase() as 'conservador' | 'moderado' | 'agresivo'} title={<>Eres un inversor {profile.type}</>} description={<>{profile.desc}</>}><AcademyQuizRecommendation title={<><PieChart size={20} color="var(--accent-primary)" /> Tu Cartera Recomendada</>} label={<>Asignación de Activos</>} value={<>{profile.auth}</>} action={<AcademyQuizLink to="/academy/portfolio" >
                                     Ver Mi Estrategia <ChevronRight size={18} />
-                                </Link>
-                            </div>
-                        </div>
-
-                        <div className="quiz-result__actions" style={{ marginTop: '3rem' }}>
-                            <button className="quiz-button button--secondary" onClick={handleStart}>
+                                </AcademyQuizLink>} /><AcademyQuizActions style={{ marginTop: '3rem' }}>
+                            <AcademyQuizButton onClick={handleStart} secondary>
                                 <RotateCcw size={18} /> Repetir Test
-                            </button>
-                            <Link to="/academy" className="quiz-button" style={{ textDecoration: 'none' }}>
+                            </AcademyQuizButton>
+                            <AcademyQuizLink to="/academy" style={{ textDecoration: 'none' }} >
                                 <CheckCircle2 size={18} /> Finalizar
-                            </Link>
-                        </div>
-                    </div>
+                            </AcademyQuizLink>
+                        </AcademyQuizActions></AcademyQuizResult>
                 )}
             </AcademyPanel>
         </div>

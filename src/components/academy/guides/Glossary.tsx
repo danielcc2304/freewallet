@@ -1,5 +1,5 @@
+import {AcademyGlossarySearch,AcademyGlossaryFilter,AcademyGlossaryCard} from '../ui/AcademyGlossary';
 import { AcademyGrid } from '../ui/AcademyGrid';
-import { AcademyPanel } from '../ui/AcademyPanel';
 import { useState, useMemo } from 'react';
 import { Search, Info } from 'lucide-react';
 import { GLOSSARY } from '../../../data/academyData';
@@ -34,25 +34,13 @@ export function Glossary() {
             </AcademyPageHeader>
 
             <div className="glossary-controls">
-                <div className="glossary-search">
-                    <Search className="icon" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Buscar término (ej. Dividendos, PER...)"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                </div>
+                <AcademyGlossarySearch icon={<Search className="icon" size={20} />} type="text" placeholder="Buscar término (ej. Dividendos, PER...)" value={search} onChange={(e) => setSearch(e.target.value)} />
 
                 <div className="glossary-filters">
                     {categories.map(cat => (
-                        <button
-                            key={cat}
-                            className={`filter-chip ${activeCategory === cat ? 'active' : ''}`}
-                            onClick={() => setActiveCategory(cat)}
-                        >
+                        <AcademyGlossaryFilter key={cat} onClick={() => setActiveCategory(cat)} selected={activeCategory === cat}>
                             {cat}
-                        </button>
+                        </AcademyGlossaryFilter>
                     ))}
                 </div>
             </div>
@@ -60,22 +48,7 @@ export function Glossary() {
             <AcademyGrid variant="glossary" className="glossary-grid">
                 {filteredTerms.length > 0 ? (
                     filteredTerms.map((item) => (
-                        <AcademyPanel variant="glossary" as="article" key={item.id} className="glossary-card">
-                            <span className="glossary-card__category">{item.category}</span>
-                            <h2 className="glossary-card__term">{item.term}</h2>
-                            <p className="glossary-card__def">{item.definition}</p>
-
-                            {item.relatedTerms && item.relatedTerms.length > 0 && (
-                                <div className="glossary-card__related">
-                                    <h5>Relacionado</h5>
-                                    <div className="related-tags">
-                                        {item.relatedTerms.map(tag => (
-                                            <span key={tag} className="tag">{tag}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </AcademyPanel>
+                        <AcademyGlossaryCard key={item.id} category={item.category} term={item.term} definition={item.definition} related={item.relatedTerms} />
                     ))
                 ) : (
                     <div className="glossary-empty">

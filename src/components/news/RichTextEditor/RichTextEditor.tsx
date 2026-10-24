@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import {ToolbarButton,ToolbarDivider,EditorToolbar,EditorToolbarGroup,EditorFormatSelect,EditorLinkPanel,EditorLinkFields,EditorLinkActions,EditorLinkButton} from './EditorControls';
+import { useEffect, useId, useRef, useState, type FormEvent } from 'react';
 import Link from '@tiptap/extension-link';
 import Placeholder from '@tiptap/extension-placeholder';
 import { FontSize, TextStyle } from '@tiptap/extension-text-style';
@@ -302,45 +303,31 @@ export function RichTextEditor({
 
     return (
         <div className={`rich-text-editor ${disabled ? 'rich-text-editor--disabled' : ''}`}>
-            <div className="rich-text-editor__toolbar" role="toolbar" aria-label="Formato del texto">
-                <div className="rich-text-editor__group">
+            <EditorToolbar role="toolbar" aria-label="Formato del texto" >
+                <EditorToolbarGroup  >
                     <label className="rich-text-editor__sr-only" htmlFor={formatId}>Formato de bloque</label>
-                    <select
-                        id={formatId}
-                        className="rich-text-editor__format"
-                        aria-label="Tipo de bloque"
-                        value={currentBlock}
-                        disabled={disabled || !editor}
-                        onChange={(event) => changeBlock(event.target.value)}
-                    >
+                    <EditorFormatSelect id={formatId} aria-label="Tipo de bloque" value={currentBlock} disabled={disabled || !editor} onChange={(event) => changeBlock(event.target.value)} >
                         <option value="p">Párrafo</option>
                         <option value="h2">Título 2</option>
                         <option value="h3">Título 3</option>
                         <option value="blockquote">Cita</option>
                         <option value="codeBlock">Código</option>
-                    </select>
-                </div>
+                    </EditorFormatSelect>
+                </EditorToolbarGroup>
 
-                <div className="rich-text-editor__group">
+                <EditorToolbarGroup  >
                     <label className="rich-text-editor__sr-only" htmlFor={fontSizeId}>Tamaño de letra</label>
-                    <select
-                        id={fontSizeId}
-                        className="rich-text-editor__format rich-text-editor__format--font-size"
-                        aria-label="Tamaño de letra"
-                        value={selectedFontSize}
-                        disabled={disabled || !editor}
-                        onChange={(event) => changeFontSize(event.target.value)}
-                    >
+                    <EditorFormatSelect id={fontSizeId} aria-label="Tamaño de letra" value={selectedFontSize} disabled={disabled || !editor} onChange={(event) => changeFontSize(event.target.value)} fontSize>
                         <option value="">Tamaño</option>
                         {FONT_SIZE_OPTIONS.map(({ value, label }) => (
                             <option key={value} value={value}>{label}</option>
                         ))}
-                    </select>
-                </div>
+                    </EditorFormatSelect>
+                </EditorToolbarGroup>
 
                 <ToolbarDivider />
 
-                <div className="rich-text-editor__group" aria-label="Énfasis">
+                <EditorToolbarGroup aria-label="Énfasis" >
                     <ToolbarButton label="Negrita" shortcut="Ctrl+B" active={editor?.isActive('bold')} disabled={disabled || !editor} onClick={() => run(() => editor?.chain().focus().toggleBold().run() ?? false)}>
                         <Bold size={16} strokeWidth={2.25} />
                     </ToolbarButton>
@@ -353,11 +340,11 @@ export function RichTextEditor({
                     <ToolbarButton label="Tachado" active={editor?.isActive('strike')} disabled={disabled || !editor} onClick={() => run(() => editor?.chain().focus().toggleStrike().run() ?? false)}>
                         <Strikethrough size={16} strokeWidth={2.25} />
                     </ToolbarButton>
-                </div>
+                </EditorToolbarGroup>
 
                 <ToolbarDivider />
 
-                <div className="rich-text-editor__group" aria-label="Listas y bloques">
+                <EditorToolbarGroup aria-label="Listas y bloques" >
                     <ToolbarButton label="Lista con viñetas" active={editor?.isActive('bulletList')} disabled={disabled || !editor} onClick={() => run(() => editor?.chain().focus().toggleBulletList().run() ?? false)}>
                         <List size={16} strokeWidth={2.25} />
                     </ToolbarButton>
@@ -373,11 +360,11 @@ export function RichTextEditor({
                     <ToolbarButton label="Separador horizontal" disabled={disabled || !editor} onClick={() => run(() => editor?.chain().focus().setHorizontalRule().run() ?? false)}>
                         <Minus size={16} strokeWidth={2.25} />
                     </ToolbarButton>
-                </div>
+                </EditorToolbarGroup>
 
                 <ToolbarDivider />
 
-                <div className="rich-text-editor__group" aria-label="Enlaces y edición">
+                <EditorToolbarGroup aria-label="Enlaces y edición" >
                     <ToolbarButton label="Añadir o editar enlace" shortcut="Ctrl+K" active={linkIsActive} disabled={disabled || !editor} onClick={openLinkPanel}>
                         <LinkIcon size={16} strokeWidth={2.25} />
                     </ToolbarButton>
@@ -387,110 +374,51 @@ export function RichTextEditor({
                     <ToolbarButton label="Limpiar formato" disabled={disabled || !editor} onClick={clearFormatting}>
                         <RemoveFormatting size={16} strokeWidth={2.25} />
                     </ToolbarButton>
-                </div>
+                </EditorToolbarGroup>
 
                 <ToolbarDivider />
 
-                <div className="rich-text-editor__group rich-text-editor__group--history" aria-label="Historial">
+                <EditorToolbarGroup aria-label="Historial" className="rich-text-editor__group--history">
                     <ToolbarButton label="Deshacer" shortcut="Ctrl+Z" disabled={disabled || !editor || !editor.can().undo()} onClick={() => run(() => editor?.chain().focus().undo().run() ?? false)}>
                         <Undo2 size={16} strokeWidth={2.25} />
                     </ToolbarButton>
                     <ToolbarButton label="Rehacer" shortcut="Ctrl+Y" disabled={disabled || !editor || !editor.can().redo()} onClick={() => run(() => editor?.chain().focus().redo().run() ?? false)}>
                         <Redo2 size={16} strokeWidth={2.25} />
                     </ToolbarButton>
-                </div>
-            </div>
+                </EditorToolbarGroup>
+            </EditorToolbar>
 
             {linkPanelOpen && !disabled && (
-                <form
-                    className="rich-text-editor__link-panel"
-                    aria-label="Configurar enlace"
-                    onSubmit={applyLink}
-                    onKeyDown={(event) => {
+                <EditorLinkPanel aria-label="Configurar enlace" onSubmit={applyLink} onKeyDown={(event) => {
                         if (event.key === 'Escape') {
                             event.preventDefault();
                             closeLinkPanel();
                         }
-                    }}
-                >
-                    <div className="rich-text-editor__link-fields">
-                        <label htmlFor={linkUrlId}>URL</label>
-                        <input
-                            ref={linkInputRef}
-                            id={linkUrlId}
-                            type="text"
-                            inputMode="url"
-                            value={linkUrl}
-                            placeholder="https://ejemplo.com"
-                            autoComplete="off"
-                            spellCheck={false}
-                            onChange={(event) => setLinkUrl(event.target.value)}
-                        />
-                        <label htmlFor={linkTextId}>Texto visible</label>
-                        <input
-                            id={linkTextId}
-                            type="text"
-                            value={linkText}
-                            placeholder="Texto del enlace"
-                            disabled={hasSelectedText}
-                            onChange={(event) => setLinkText(event.target.value)}
-                        />
-                    </div>
-                    <div className="rich-text-editor__link-actions">
+                    }} >
+                    <EditorLinkFields url={{ref:linkInputRef,id:linkUrlId,type:"text",inputMode:"url",value:linkUrl,placeholder:"https://ejemplo.com",autoComplete:"off",spellCheck:false,onChange:(event) => setLinkUrl(event.target.value)}} text={{id:linkTextId,type:"text",value:linkText,placeholder:"Texto del enlace",disabled:hasSelectedText,onChange:(event) => setLinkText(event.target.value)}} />
+                    <EditorLinkActions  >
                         {linkIsActive && (
-                            <button type="button" className="rich-text-editor__link-button rich-text-editor__link-button--danger" onMouseDown={(event) => event.preventDefault()} onClick={removeLink}>
+                            <EditorLinkButton type="button" onMouseDown={(event) => event.preventDefault()} onClick={removeLink} tone="danger">
                                 <Unlink size={15} />
                                 Quitar
-                            </button>
+                            </EditorLinkButton>
                         )}
-                        <button type="button" className="rich-text-editor__link-button" onMouseDown={(event) => event.preventDefault()} onClick={closeLinkPanel}>
+                        <EditorLinkButton type="button" onMouseDown={(event) => event.preventDefault()} onClick={closeLinkPanel} tone="default">
                             Cancelar
-                        </button>
-                        <button type="submit" className="rich-text-editor__link-button rich-text-editor__link-button--primary">
+                        </EditorLinkButton>
+                        <EditorLinkButton type="submit" tone="primary">
                             Aplicar enlace
-                        </button>
-                        <button type="button" className="rich-text-editor__link-close" aria-label="Cerrar panel de enlace" onMouseDown={(event) => event.preventDefault()} onClick={closeLinkPanel}>
+                        </EditorLinkButton>
+                        <EditorLinkButton type="button" aria-label="Cerrar panel de enlace" onMouseDown={(event) => event.preventDefault()} onClick={closeLinkPanel} tone="close">
                             <X size={16} />
-                        </button>
-                    </div>
+                        </EditorLinkButton>
+                    </EditorLinkActions>
                     {hasSelectedText && <span className="rich-text-editor__link-hint">Se usará el texto seleccionado.</span>}
                     {linkError && <span className="rich-text-editor__link-error" role="alert">{linkError}</span>}
-                </form>
+                </EditorLinkPanel>
             )}
 
             <EditorContent editor={editor} className="rich-text-editor__content" />
         </div>
     );
-}
-
-interface ToolbarButtonProps {
-    label: string;
-    shortcut?: string;
-    active?: boolean;
-    disabled?: boolean;
-    onClick: () => void;
-    children: ReactNode;
-}
-
-function ToolbarButton({ label, shortcut, active = false, disabled = false, onClick, children }: ToolbarButtonProps) {
-    const title = shortcut ? `${label} (${shortcut})` : label;
-
-    return (
-        <button
-            type="button"
-            className={`rich-text-editor__button ${active ? 'rich-text-editor__button--active' : ''}`}
-            aria-label={label}
-            aria-pressed={active}
-            title={title}
-            disabled={disabled}
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={onClick}
-        >
-            {children}
-        </button>
-    );
-}
-
-function ToolbarDivider() {
-    return <span className="rich-text-editor__separator" aria-hidden="true" />;
 }

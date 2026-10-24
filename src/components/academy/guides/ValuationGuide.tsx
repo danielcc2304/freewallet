@@ -1,4 +1,4 @@
-import { AcademyPanel } from '../ui/AcademyPanel';
+import { AcademyValuationFormula, AcademyWorkedExample, AcademyCheckItem, AcademyExampleMetric } from '../ui/AcademyGuideParts';
 import { AcademyGrid } from '../ui/AcademyGrid';
 import { Link } from 'react-router-dom';
 import {
@@ -17,21 +17,7 @@ interface MetricProps {
 }
 
 const Metric = ({ title, formula, description, benchmarks }: MetricProps) => (
-    <AcademyPanel variant="valuation" className="metric-card">
-        <div className="metric-card__header">
-            <h3 className="metric-card__title">{title}</h3>
-        </div>
-        <div className="metric-card__formula">{formula}</div>
-        <p className="metric-card__desc">{description}</p>
-        <div className="metric-card__benchmarks">
-            {benchmarks.map((b, i) => (
-                <div key={i} className={`benchmark benchmark--${b.type}`}>
-                    <span>{b.label}</span>
-                    <strong>{b.value}</strong>
-                </div>
-            ))}
-        </div>
-    </AcademyPanel>
+    <AcademyValuationFormula title={title} formula={formula} description={description} benchmarks={benchmarks} />
 );
 
 export function ValuationGuide() {
@@ -229,73 +215,35 @@ export function ValuationGuide() {
             <section className="valuation-guide__section">
                 <h2><Zap size={24} /> Ejemplos: El Bueno vs El Malo</h2>
 
-                <div className="example-box example-box--good">
-                    <div className="example-box__header">
-                        <CheckCircle2 size={24} color="#10b981" />
-                        <h3 className="example-box__title">Empresa A: "La Máquina de Generar Valor" (Ej: Tipo Microsoft/Apple)</h3>
-                    </div>
-                    <div className="example-box__grid">
-                        <div className="example-metric">
-                            <span className="example-metric__label">Margen Bruto</span>
-                            <span className="example-metric__value">75%</span>
-                        </div>
-                        <div className="example-metric">
-                            <span className="example-metric__label">ROIC</span>
-                            <span className="example-metric__value">35%</span>
-                        </div>
-                        <div className="example-metric">
-                            <span className="example-metric__label">D. Neta / EBITDA</span>
-                            <span className="example-metric__value">-0.5x (Tiene caja)</span>
-                        </div>
-                        <div className="example-metric">
-                            <span className="example-metric__label">FCF</span>
-                            <span className="example-metric__value">Creciente</span>
-                        </div>
-                    </div>
-                    <div className="example-box__conclusion">
+                <AcademyWorkedExample tone="good" icon={<CheckCircle2 size={24} color="#10b981" />} title={<>Empresa A: "La Máquina de Generar Valor" (Ej: Tipo Microsoft/Apple)</>} conclusion={<>
                         Negocio ligero en activos, con fosos defensivos y que no necesita deuda para crecer. Genera tanta caja que recompra acciones o paga dividendos sin esfuerzo.
-                    </div>
-                </div>
+                    </>}>
+                        <AcademyExampleMetric label={<>Margen Bruto</>} value={<>75%</>} />
+                        <AcademyExampleMetric label={<>ROIC</>} value={<>35%</>} />
+                        <AcademyExampleMetric label={<>D. Neta / EBITDA</>} value={<>-0.5x (Tiene caja)</>} />
+                        <AcademyExampleMetric label={<>FCF</>} value={<>Creciente</>} />
+                    </AcademyWorkedExample>
 
-                <div className="example-box example-box--bad">
-                    <div className="example-box__header">
-                        <AlertCircle size={24} color="#ef4444" />
-                        <h3 className="example-box__title">Empresa B: "Múltiplos Baratos, Calidad Floja" (Ej: Telefónica)</h3>
-                    </div>
-                    <div className="example-box__grid">
-                        <div className="example-metric">
-                            <span className="example-metric__label">Margen Operativo</span>
-                            <span className="example-metric__value">13%</span>
-                        </div>
-                        <div className="example-metric">
-                            <span className="example-metric__label">ROE</span>
-                            <span className="example-metric__value">-2.3%</span>
-                        </div>
-                        <div className="example-metric">
-                            <span className="example-metric__label">Deuda / Patrimonio</span>
-                            <span className="example-metric__value">201%</span>
-                        </div>
-                        <div className="example-metric">
-                            <span className="example-metric__label">Current Ratio</span>
-                            <span className="example-metric__value">0.84</span>
-                        </div>
-                    </div>
-                    <div className="example-box__conclusion">
+                <AcademyWorkedExample tone="bad" icon={<AlertCircle size={24} color="#ef4444" />} title={<>Empresa B: "Múltiplos Baratos, Calidad Floja" (Ej: Telefónica)</>} conclusion={<>
                         Múltiplos bajos no bastan. Aunque sigue generando caja, el beneficio neto es negativo, el ROE está en rojo, la deuda pesa mucho sobre el balance y la liquidez de corto plazo es justa. Caso clásico de empresa que puede parecer barata pero no ofrece una calidad acorde.
-                    </div>
-                </div>
+                    </>}>
+                        <AcademyExampleMetric label={<>Margen Operativo</>} value={<>13%</>} />
+                        <AcademyExampleMetric label={<>ROE</>} value={<>-2.3%</>} />
+                        <AcademyExampleMetric label={<>Deuda / Patrimonio</>} value={<>201%</>} />
+                        <AcademyExampleMetric label={<>Current Ratio</>} value={<>0.84</>} />
+                    </AcademyWorkedExample>
             </section>
 
             {/* Checklist */}
             <section className="valuation-guide__section">
                 <h2><Search size={24} /> Checklist Rápido de Calidad</h2>
                 <div className="checklist-grid">
-                    <div className="checklist-item"><CheckCircle2 size={18} /> ROIC {">"} WACC</div>
-                    <div className="checklist-item"><CheckCircle2 size={18} /> FCF Positivo y creciente</div>
-                    <div className="checklist-item"><CheckCircle2 size={18} /> BPA Diluido creciendo (+10% anual)</div>
-                    <div className="checklist-item"><CheckCircle2 size={18} /> Deuda Neta {"<"} 2x EBITDA</div>
-                    <div className="checklist-item"><CheckCircle2 size={18} /> Margen Operativo constante o al alza</div>
-                    <div className="checklist-item"><CheckCircle2 size={18} /> Dividendos cubiertos por FCF (no por deuda)</div>
+                    <AcademyCheckItem icon={<CheckCircle2 size={18} />}> ROIC {">"} WACC</AcademyCheckItem>
+                    <AcademyCheckItem icon={<CheckCircle2 size={18} />}> FCF Positivo y creciente</AcademyCheckItem>
+                    <AcademyCheckItem icon={<CheckCircle2 size={18} />}> BPA Diluido creciendo (+10% anual)</AcademyCheckItem>
+                    <AcademyCheckItem icon={<CheckCircle2 size={18} />}> Deuda Neta {"<"} 2x EBITDA</AcademyCheckItem>
+                    <AcademyCheckItem icon={<CheckCircle2 size={18} />}> Margen Operativo constante o al alza</AcademyCheckItem>
+                    <AcademyCheckItem icon={<CheckCircle2 size={18} />}> Dividendos cubiertos por FCF (no por deuda)</AcademyCheckItem>
                 </div>
             </section>
             <section className="valuation-guide__section valuation-guide__next">

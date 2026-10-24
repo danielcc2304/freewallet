@@ -23,98 +23,11 @@
     @apply tw:ui-stack tw:gap-[1rem] tw:mb-[1.5rem] tw:sticky tw:top-[1rem] tw:z-[10] tw:ui-fill-canvas tw:p-[1rem_0];
 }
 
-.glossary-search {
-    @apply tw:relative tw:max-w-[600px] tw:m-[0_auto] tw:w-full;
-}
-
-.glossary-search .icon {
-    @apply tw:absolute tw:left-[1.25rem] tw:top-[50%];
-    transform: translateY(-50%);
-    @apply tw:text-secondary;
-}
-
-.glossary-search input {
-    @apply tw:w-full tw:p-[1rem_1rem_1rem_3.5rem] tw:rounded-[16px] tw:ui-border-default tw:ui-fill-surface tw:text-main tw:text-[length:1.1rem];
-    outline: none;
-    transition: all 0.2s;
-}
-
-.glossary-search input:focus {
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 4px rgba(var(--accent-rgb), 0.1);
-}
-
 .glossary-filters {
     @apply tw:flex tw:justify-center tw:gap-[0.75rem] tw:flex-wrap;
 }
 
-.filter-chip {
-    @apply tw:p-[0.5rem_1.25rem] tw:rounded-[20px] tw:ui-border-default tw:ui-fill-surface tw:text-secondary tw:text-[length:0.9rem];
-    font-weight: 600;
-    @apply tw:cursor-pointer;
-    transition: all 0.2s;
-}
-
-.filter-chip:hover {
-    border-color: var(--accent-primary);
-}
-
-.filter-chip.active {
-    background: var(--accent-primary);
-    color: white;
-    border-color: var(--accent-primary);
-}
-
 /* Glossary Grid */
-
-.glossary-card {
-    transition: all 0.3s ease;
-}
-
-.glossary-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--accent-primary);
-    box-shadow: var(--shadow-md);
-}
-
-.glossary-card__category {
-    @apply tw:text-[length:0.75rem];
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-weight: 700;
-    @apply tw:text-accent;
-    background: rgba(var(--accent-rgb), 0.1);
-    @apply tw:p-[2px_8px] tw:rounded-[4px] tw:w-[fit-content];
-}
-
-.glossary-card__term {
-    @apply tw:text-[length:1.5rem];
-    font-weight: 800;
-    @apply tw:m-[0] tw:text-main;
-}
-
-.glossary-card__def {
-    @apply tw:m-[0] tw:text-[length:0.95rem] tw:text-secondary;
-    line-height: 1.6;
-}
-
-.glossary-card__related {
-    @apply tw:mt-[auto] tw:pt-[1rem];
-    border-top: 1px solid var(--border-color);
-}
-
-.glossary-card__related h5 {
-    @apply tw:text-[length:0.75rem] tw:text-secondary tw:m-[0_0_0.5rem];
-    text-transform: uppercase;
-}
-
-.related-tags {
-    @apply tw:flex tw:flex-wrap tw:gap-[0.5rem];
-}
-
-.tag {
-    @apply tw:text-[length:0.75rem] tw:ui-fill-muted tw:text-secondary tw:p-[2px_8px] tw:rounded-[4px];
-}
 
 .glossary-empty {
     @apply tw:text-center tw:p-[4rem] tw:text-secondary tw:col-span-full;
@@ -135,31 +48,6 @@
 
     .glossary-filters {
         @apply tw:gap-[.5rem];
-    }
-
-    .filter-chip {
-        @apply tw:min-h-[2.25rem] tw:p-[.42rem_.78rem] tw:text-[length:.78rem];
-    }
-
-    .glossary-card {
-        @apply tw:gap-[.7rem] tw:p-[1.2rem] tw:rounded-[16px];
-    }
-
-    .glossary-card__term {
-        @apply tw:text-[length:1.3rem];
-    }
-
-    .glossary-card__def {
-        @apply tw:text-[length:.88rem];
-        line-height: 1.55;
-    }
-
-    .glossary-card__related {
-        @apply tw:pt-[.75rem];
-    }
-
-    .tag {
-        @apply tw:max-w-full tw:wrap-anywhere;
     }
 }
 

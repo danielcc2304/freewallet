@@ -60,112 +60,11 @@
     box-shadow: var(--shadow-md);
 }
 
-.metric-card__header {
-    @apply tw:ui-row tw:justify-between tw:mb-[1rem];
-}
-
-.metric-card__title {
-    @apply tw:text-[length:1.1rem];
-    font-weight: 700;
-    @apply tw:text-main;
-}
-
-.metric-card__formula {
-    @apply tw:ui-fill-muted tw:p-[0.75rem] tw:rounded-[8px];
-    font-family: 'JetBrains Mono', monospace;
-    @apply tw:text-[length:0.85rem] tw:text-accent tw:mb-[1rem];
-    border: 1px dashed var(--border-color);
-}
-
-.metric-card__desc {
-    @apply tw:text-[length:0.9rem] tw:text-secondary;
-    line-height: 1.5;
-    @apply tw:mb-[1rem];
-}
-
-.metric-card__benchmarks {
-    @apply tw:ui-stack tw:gap-[0.5rem];
-}
-
-.benchmark {
-    @apply tw:flex tw:justify-between tw:text-[length:0.85rem] tw:p-[0.4rem_0.75rem] tw:rounded-[6px];
-}
-
-.benchmark--good {
-    background: rgba(16, 185, 129, 0.1);
-    color: #10b981;
-}
-
-.benchmark--neutral {
-    background: rgba(245, 158, 11, 0.1);
-    color: #f59e0b;
-}
-
-.benchmark--bad {
-    background: rgba(239, 68, 68, 0.1);
-    color: #ef4444;
-}
-
 /* Examples Section */
-.example-box {
-    @apply tw:ui-fill-surface tw:rounded-[20px] tw:p-[2rem] tw:ui-border-default tw:mb-[2rem];
-}
-
-.example-box--good {
-    border-left: 6px solid #10b981;
-}
-
-.example-box--bad {
-    border-left: 6px solid #ef4444;
-}
-
-.example-box__header {
-    @apply tw:ui-row tw:gap-[1rem] tw:mb-[1.5rem];
-}
-
-.example-box__title {
-    @apply tw:text-[length:1.25rem];
-    font-weight: 700;
-}
-
-.example-box__grid {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(150px,_1fr))] tw:gap-[1.5rem];
-}
-
-.example-metric {
-    @apply tw:ui-stack tw:gap-[0.25rem];
-}
-
-.example-metric__label {
-    @apply tw:text-[length:0.8rem];
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-}
-
-.example-metric__value {
-    @apply tw:text-[length:1.1rem];
-    font-weight: 600;
-}
-
-.example-box__conclusion {
-    @apply tw:mt-[1.5rem] tw:pt-[1.5rem];
-    border-top: 1px solid var(--border-color);
-    font-style: italic;
-    @apply tw:text-secondary;
-}
 
 /* Checklist Styling */
 .checklist-grid {
     @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(250px,_1fr))] tw:gap-[1rem];
-}
-
-.checklist-item {
-    @apply tw:ui-fill-muted tw:p-[1rem] tw:rounded-[12px] tw:ui-row tw:gap-[0.75rem];
-    font-weight: 500;
-}
-
-.checklist-item svg {
-    color: #10b981;
 }
 
 .valuation-guide__next-grid {

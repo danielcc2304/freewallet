@@ -1,5 +1,6 @@
+import {AcademyToolLink,AcademyTaxComparison} from '../ui/AcademyToolLink';
 import { AcademyGrid } from '../ui/AcademyGrid';
-import { AcademyPanel, AcademyLinkCard } from '../ui/AcademyPanel';
+import { AcademyPanel } from '../ui/AcademyPanel';
 import { Receipt, ShieldCheck, Landmark, ArrowDownRight, ArrowUpRight, Scale, Calculator, ArrowRight } from 'lucide-react';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './Taxation.css';
@@ -75,48 +76,24 @@ export function Taxation() {
             <section className="tax-info__comparison">
                 <h2 className="tax-info__section-title">3. Fondos vs. ETFs: El "Diferimiento"</h2>
                 <div className="tax-info__two-cols">
-                    <div className="comparison-card fund">
-                        <div className="header">
-                            <ShieldCheck size={28} />
-                            <h3>Fondos de Inversión</h3>
-                        </div>
-                        <ul>
+                    <AcademyTaxComparison kind="fund" icon={<ShieldCheck size={28} />} title={<>Fondos de Inversión</>}>
                             <li><strong>Traspasabilidad:</strong> Puedes mover dinero de un fondo a otro sin pagar impuestos.</li>
                             <li><strong>Interés Compuesto:</strong> Los impuestos que no pagas siguen trabajando para ti.</li>
                             <li><strong>Tributación:</strong> Solo pagas al vender definitivamente (reintegro).</li>
-                        </ul>
-                    </div>
-                    <div className="comparison-card etf">
-                        <div className="header">
-                            <Landmark size={28} />
-                            <h3>ETFs / Acciones</h3>
-                        </div>
-                        <ul>
+                        </AcademyTaxComparison>
+                    <AcademyTaxComparison kind="etf" icon={<Landmark size={28} />} title={<>ETFs / Acciones</>}>
                             <li><strong>Sin Traspaso:</strong> Vender para comprar otro activo implica pasar por Hacienda.</li>
                             <li><strong>Eficiencia:</strong> Menor que los fondos tradicionales en España por la fricción fiscal.</li>
                             <li><strong>Dividendos:</strong> Tributan anualmente al recibirse (retención del 19%).</li>
-                        </ul>
-                    </div>
+                        </AcademyTaxComparison>
                 </div>
             </section>
 
             <section className="tax-info__tools" aria-labelledby="tax-tools-title">
                 <h2 id="tax-tools-title" className="tax-info__section-title">Ponlo en práctica</h2>
                 <AcademyGrid variant="taxTools" className="tax-info__tools-grid">
-                    <AcademyLinkCard variant="taxTool" to="/academy/taxes" className="tax-info__tool-card">
-                        <span className="tax-info__tool-icon"><Receipt size={24} aria-hidden="true" /></span>
-                        <span className="tax-info__tool-category">Inversiones</span>
-                        <h3>Simulador fiscal</h3>
-                        <p>Estima los impuestos sobre tus beneficios y compara el efecto del diferimiento fiscal.</p>
-                        <span className="tax-info__tool-action">Abrir simulador <ArrowRight size={18} aria-hidden="true" /></span>
-                    </AcademyLinkCard>
-                    <AcademyLinkCard variant="taxTool" to="/academy/salary-calculator" className="tax-info__tool-card">
-                        <span className="tax-info__tool-icon"><Calculator size={24} aria-hidden="true" /></span>
-                        <span className="tax-info__tool-category">Sueldo e IRPF</span>
-                        <h3>Calculadora de IRPF y sueldo neto</h3>
-                        <p>Estima tu sueldo neto, retención de IRPF y cotizaciones según tu salario, comunidad y situación personal.</p>
-                        <span className="tax-info__tool-action">Calcular sueldo neto <ArrowRight size={18} aria-hidden="true" /></span>
-                    </AcademyLinkCard>
+                    <AcademyToolLink to="/academy/taxes" variant="tax" icon={<><Receipt size={24} aria-hidden="true" /></>} category={<>Inversiones</>} title={<>Simulador fiscal</>} description={<>Estima los impuestos sobre tus beneficios y compara el efecto del diferimiento fiscal.</>} action={<>Abrir simulador <ArrowRight size={18} aria-hidden="true" /></>} />
+                    <AcademyToolLink to="/academy/salary-calculator" variant="tax" icon={<><Calculator size={24} aria-hidden="true" /></>} category={<>Sueldo e IRPF</>} title={<>Calculadora de IRPF y sueldo neto</>} description={<>Estima tu sueldo neto, retención de IRPF y cotizaciones según tu salario, comunidad y situación personal.</>} action={<>Calcular sueldo neto <ArrowRight size={18} aria-hidden="true" /></>} />
                 </AcademyGrid>
             </section>
         </div>

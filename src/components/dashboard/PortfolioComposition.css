@@ -8,26 +8,10 @@
 }
 
 .portfolio-composition__heatmap { grid-area: heatmap; @apply tw:min-w-[0]; }
-.portfolio-composition__heatmap-details { @apply tw:min-w-[0] tw:p-ui-md tw:ui-border tw:rounded-control; }
-.portfolio-composition__heatmap-details summary { @apply tw:cursor-pointer tw:min-h-[44px]; align-content: center; font-weight: 600; @apply tw:text-main; }
-.portfolio-composition__heatmap-details summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; @apply tw:rounded-[var(--radius-sm)]; }
-.portfolio-composition__heatmap-details[open] summary { @apply tw:mb-ui-md; }
 .portfolio-composition__donut { grid-area: donut; @apply tw:min-w-[0]; }
 .portfolio-composition__consolidated { @apply tw:col-span-full tw:min-w-[0]; }
 .portfolio-composition__distributions { @apply tw:col-span-full tw:grid tw:gap-ui-md tw:min-w-[0]; }
 .portfolio-composition__distributions:empty { @apply tw:hidden; }
-.portfolio-composition__breakdown-groups { @apply tw:min-w-[0] tw:ui-border tw:rounded-control tw:ui-fill-muted; }
-.portfolio-composition__breakdown-groups summary { @apply tw:cursor-pointer tw:p-ui-md tw:text-main; font-weight: 600; @apply tw:wrap-anywhere; }
-.portfolio-composition__breakdown-groups summary span { @apply tw:block tw:mt-ui-xs tw:text-[length:var(--font-size-xs)] tw:text-secondary; font-weight: 400; }
-.portfolio-composition__breakdown-groups summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; @apply tw:rounded-control; }
-.portfolio-composition__distribution-grid { @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(min(100%,_240px),_1fr))] tw:gap-ui-lg tw:p-[0_var(--spacing-md)_var(--spacing-md)]; }
-.portfolio-composition__distribution-grid section { @apply tw:min-w-[0]; }
-.portfolio-composition__distribution-grid h5 { @apply tw:m-[0_0_var(--spacing-sm)] tw:text-main tw:text-[length:var(--font-size-sm)]; }
-.portfolio-composition__distribution-grid ul { list-style: none; @apply tw:p-[0] tw:m-[0] tw:grid tw:gap-ui-xs; }
-.portfolio-composition__distribution-grid li { @apply tw:grid tw:grid-cols-[minmax(0,_1fr)_auto] tw:items-baseline tw:gap-ui-sm; padding-block: var(--spacing-xs); border-bottom: 1px solid var(--border-primary); @apply tw:text-secondary tw:text-[length:var(--font-size-sm)]; }
-.portfolio-composition__distribution-grid li span { @apply tw:wrap-anywhere; }
-.portfolio-composition__distribution-grid li strong { @apply tw:text-main; font-variant-numeric: tabular-nums; @apply tw:whitespace-nowrap; }
-.portfolio-composition__distribution-grid p { @apply tw:text-[length:var(--font-size-xs)] tw:text-muted; }
 
 .portfolio-composition__section-title {
     @apply tw:text-[length:var(--font-size-base)];
@@ -54,8 +38,7 @@
     @apply tw:m-[0] tw:text-main tw:text-[length:var(--font-size-base)];
 }
 
-.portfolio-composition__consolidated-header p,
-.portfolio-composition__consolidated-note {
+.portfolio-composition__consolidated-header p, .portfolio-composition__consolidated-note {
     @apply tw:m-[var(--spacing-xs)_0_0] tw:text-muted tw:text-[length:var(--font-size-xs)];
     line-height: 1.45;
 }
@@ -83,80 +66,6 @@
     border-top: 1px solid var(--border-primary);
 }
 
-.portfolio-composition__exposure-group-header {
-    @apply tw:flex tw:items-baseline tw:justify-between tw:gap-ui-md;
-}
-
-.portfolio-composition__exposure-group-header h5 {
-    @apply tw:m-[0] tw:text-secondary tw:text-[length:var(--font-size-xs)];
-    font-weight: 700;
-    letter-spacing: .4px;
-    text-transform: uppercase;
-}
-
-.portfolio-composition__exposure-group-header p {
-    @apply tw:m-[2px_0_0] tw:text-muted tw:text-[length:var(--font-size-xs)];
-}
-
-.portfolio-composition__exposure-group-header > span {
-    @apply tw:flex-[0_0_auto] tw:text-muted tw:text-[length:var(--font-size-xs)] tw:whitespace-nowrap;
-}
-
-.portfolio-composition__exposure-group--residual .portfolio-composition__exposure-group-header h5 {
-    @apply tw:text-muted;
-}
-
-.portfolio-composition__exposure-row {
-    @apply tw:ui-row tw:justify-between tw:gap-ui-md tw:w-full tw:min-w-[0] tw:p-[0.65rem_0.7rem];
-    border: 1px solid transparent;
-    @apply tw:rounded-[var(--radius-sm)] tw:ui-fill-transparent tw:text-main tw:text-left;
-    font: inherit;
-    @apply tw:cursor-pointer;
-    transition: background var(--transition-fast), border-color var(--transition-fast);
-}
-
-.portfolio-composition__exposure-row:hover:not(:disabled),
-.portfolio-composition__exposure-row:focus-visible:not(:disabled) {
-    border-color: var(--border-secondary);
-    @apply tw:ui-fill-muted;
-}
-
-.portfolio-composition__exposure-row:disabled {
-    @apply tw:cursor-default tw:opacity-[0.78];
-}
-
-.portfolio-composition__exposure-row--residual {
-    background: rgba(255, 255, 255, 0.015);
-}
-
-.portfolio-composition__exposure-name,
-.portfolio-composition__exposure-value {
-    @apply tw:grid tw:min-w-[0] tw:gap-[0.15rem];
-}
-
-.portfolio-composition__exposure-name {
-    @apply tw:flex-[1_1_auto];
-}
-
-.portfolio-composition__exposure-name strong {
-    @apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap tw:text-[length:var(--font-size-sm)];
-}
-
-.portfolio-composition__exposure-name small,
-.portfolio-composition__exposure-value small {
-    @apply tw:wrap-anywhere tw:text-muted tw:text-[length:var(--font-size-xs)];
-}
-
-.portfolio-composition__exposure-value {
-    @apply tw:flex-[0_0_auto];
-    justify-items: end;
-    @apply tw:text-right;
-}
-
-.portfolio-composition__exposure-value strong {
-    @apply tw:text-accent tw:text-[length:var(--font-size-sm)];
-}
-
 .portfolio-composition__consolidated-note {
     @apply tw:m-[0];
 }
@@ -168,26 +77,6 @@
 
     .portfolio-composition__consolidated-header > span {
         @apply tw:whitespace-normal;
-    }
-
-    .portfolio-composition__exposure-row {
-        @apply tw:gap-ui-sm;
-        padding-inline: 0.35rem;
-    }
-
-    .portfolio-composition__exposure-group-header {
-        @apply tw:items-start;
-    }
-
-    .portfolio-composition__exposure-group-header > span {
-        @apply tw:whitespace-nowrap;
-    }
-
-    .portfolio-composition__exposure-name strong {
-        @apply tw:whitespace-normal;
-        display: -webkit-box;
-        -webkit-box-orient: vertical;
-        -webkit-line-clamp: 2;
     }
 }
 

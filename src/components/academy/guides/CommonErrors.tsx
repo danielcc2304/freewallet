@@ -1,3 +1,5 @@
+import { AcademyErrorFooter } from '../ui/AcademyGuideParts';
+import { AcademyIdentityHeading, AcademyErrorDetail } from '../ui/AcademyGuideParts';
 import { AcademyGrid } from '../ui/AcademyGrid';
 import { AcademyPanel } from '../ui/AcademyPanel';
 import { AlertCircle, CheckCircle2, XCircle } from 'lucide-react';
@@ -19,27 +21,17 @@ export function CommonErrors() {
             <AcademyGrid variant="errors" className="errors-page__grid">
                 {COMMON_ERRORS.map((error) => (
                     <AcademyPanel variant="error" as="article" key={error.id} className="error-detail-card">
-                        <header className="error-detail-card__header">
-                            <div className="error-detail-card__emoji">{error.emoji}</div>
-                            <h2 className="error-detail-card__title">{error.title}</h2>
-                        </header>
+                        <AcademyIdentityHeading variant="error" emoji={<>{error.emoji}</>} title={<>{error.title}</>} />
 
                         <p className="error-detail-card__desc">{error.desc}</p>
 
                         <AcademyGrid variant="errorDetails" className="error-detail-card__grid">
-                            <AcademyPanel variant="errorDetail" className="error-sub-box consequence">
-                                <h5><XCircle size={14} /> Consecuencia</h5>
-                                <p>{error.consequence}</p>
-                            </AcademyPanel>
-                            <AcademyPanel variant="errorDetail" className="error-sub-box solution">
-                                <h5><CheckCircle2 size={14} /> Solución</h5>
-                                <p>{error.solution}</p>
-                            </AcademyPanel>
+                            <AcademyErrorDetail tone="consequence" title={<><XCircle size={14} /> Consecuencia</>}>{error.consequence}</AcademyErrorDetail>
+                            <AcademyErrorDetail tone="solution" title={<><CheckCircle2 size={14} /> Solución</>}>{error.solution}</AcademyErrorDetail>
                         </AcademyGrid>
 
-                        <div className="error-detail-card__footer">
-                            <AlertCircle size={14} /> Evitar esto mejora tu rentabilidad a largo plazo.
-                        </div>
+                        <AcademyErrorFooter icon={<AlertCircle size={14} />}> Evitar esto mejora tu rentabilidad a largo plazo.
+                        </AcademyErrorFooter>
                     </AcademyPanel>
                 ))}
             </AcademyGrid>

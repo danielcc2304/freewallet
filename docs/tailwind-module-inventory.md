@@ -102,3 +102,10 @@ Interés compuesto, FIRE y jubilación comparten cabeceras con icono, opciones n
 ### Posiciones, preferencias, controles y registros
 
 Dashboard compone sus celdas y el encabezado/detalle de activos mediante `DashboardAssetCells` y `DashboardAssetOverview`. Ajustes utiliza preferencias y controles nativos compartidos; Portfolio reutiliza los mismos controles y añade filas de posiciones y objetivos. Añadir activo comparte sus avisos y resultados, y reutiliza `ActionGroup` para acciones. Las cinco guías comparten más fichas y explicaciones de activos; el mapa de calor comparte opciones, leyenda y resúmenes. Gastos comparte registros, búsqueda, mes, calendario, exportación y ayuda de importación. Los datos y estados permanecen en sus consumidores. Se retiran 938 líneas y 272 declaraciones `@apply`: quedan 11.614 líneas de CSS fuente en 58 hojas, un 48,96 % menos respecto al inicio.
+
+
+### Guías, simuladores, navegación y editor
+
+La decimosexta fase amplía la composición a 17 módulos. Las guías comparten encabezados numerados, enlaces internos, avisos, acciones, fichas y ejemplos; el glosario comparte búsqueda, filtros y tarjetas completas. Fundamentos comparte encabezados y objetivos; Recursos termina de trasladar al componente de vídeo sus efectos y estados. Los simuladores componen preguntas, resultados, controles, decisiones, impacto y leyendas con componentes React. Sidebar y Dashboard comparten sus enlaces, acciones, filas de exposición y desplegables nativos; el editor comparte controles de formato y enlaces, manteniendo el CSS del contenido generado por Tiptap.
+
+Se retiran 1.285 líneas y 422 declaraciones `@apply`: quedan 10.329 líneas de CSS fuente en 58 hojas, un 54,60 % menos respecto a las 22.753 iniciales. Los mapas estáticos de utilidades pertenecen a los componentes que componen el marcado; los encabezados, avisos y mapas de enlaces idénticos comparten una receta. Se conservan las reglas contextuales, materiales, tablas y contenido enriquecido que aún necesitan CSS.

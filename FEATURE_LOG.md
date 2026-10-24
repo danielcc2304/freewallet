@@ -12,6 +12,20 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-24 - Tailwind: guías, simuladores, sidebar y composición
+- Funcionalidad:
+  - Amplía la migración a 17 módulos: Fundamentos, Glosario, Errores, Escenarios, Riesgo, Estrategias, Fiscalidad, Valoración, Recursos, test de perfil, construcción de cartera, Crisis, asignación, Market Timing, sidebar, composición del Dashboard y editor de noticias.
+  - Comparte encabezados, navegación interna, avisos, fichas, ejemplos, tarjetas de herramientas, preguntas/resultados, filtros, decisiones, exposición y desplegables nativos mediante componentes React con estructura y utilidades Tailwind.
+  - Completa los estilos del componente de vídeo existente y separa los controles reutilizables de Tiptap de los estilos de su contenido enriquecido.
+- Resumen:
+  - Retira 1.285 líneas de CSS fuente y 422 declaraciones `@apply`. Quedan 10.329 líneas en 58 hojas: reducción acumulada del 54,60 % respecto al inicio; esta cifra no mide el tamaño descargado.
+  - Mantiene cálculos, datos, consultas, persistencia, controles nativos y callbacks en los módulos originales; conserva las clases usadas por Liquid Glass y las pruebas.
+  - Validación: TypeScript, ESLint, build sin prerender, presupuesto de carga diferida, pruebas de cálculos y recorridos de estrategia/asignación, desglose de fondos y juego. Coinciden 248 estados por propiedades calculadas; pasan 216 combinaciones responsive en 18 rutas, incluidos temas claro/oscuro, estándar/Liquid Glass.
+- Archivos:
+  - `src/components/academy/guides/*`, `src/components/academy/simulators/*`, `src/components/academy/ui/*`.
+  - `src/components/dashboard/CompositionParts*`, `src/components/dashboard/PortfolioComposition.*`, `src/components/layout/Sidebar/*`, `src/components/news/RichTextEditor/*`.
+  - `README.md`, `docs/tailwind-migration.md`, `docs/tailwind-module-inventory.md`.
+
 ### 2026-10-23 - Tailwind: posiciones, controles y estructuras compartidas
 - Funcionalidad:
   - Comparte celdas de activos, variaciones, pesos, datos móviles, cabeceras y secciones del detalle en Dashboard.

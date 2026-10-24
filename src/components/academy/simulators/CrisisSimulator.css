@@ -10,12 +10,8 @@
 .crisis h2 { @apply tw:text-[length:clamp(1.2rem,_2.2vw,_1.6rem)] tw:m-[0_0_1rem]; }
 .crisis__selector { @apply tw:m-[2rem_0_1.25rem]; }
 .crisis__selector h2 { @apply tw:text-[length:1rem]; }
-.crisis__tab { @apply tw:ui-stack tw:items-start tw:gap-[.25rem] tw:min-h-[76px] tw:p-[1rem] tw:ui-border-default tw:rounded-[14px] tw:ui-fill-surface tw:text-main tw:cursor-pointer tw:text-left; }
-.crisis__tab:hover { border-color: var(--accent-primary); }
 .crisis .crisis__tab--active { border-color: var(--accent-primary); box-shadow: inset 0 0 0 1px var(--accent-primary); }
 .crisis__tab--active .crisis__tab-name { color: inherit; }
-.crisis__tab-year { @apply tw:text-[length:1.3rem]; font-weight: 800; }
-.crisis__tab-name { @apply tw:text-[length:.8rem]; line-height: 1.4; @apply tw:text-secondary; }
 .crisis :is(a, button, input, [tabindex]):focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 4px; }
 .crisis__eyebrow { @apply tw:block tw:text-[length:.75rem]; font-weight: 700; @apply tw:text-secondary tw:mb-[.5rem]; }
 .crisis__copy { @apply tw:text-secondary tw:text-[length:.95rem]; line-height: 1.7; @apply tw:m-[0_0_1.25rem]; }
@@ -24,37 +20,15 @@
 .crisis__stat:first-child > svg { color: var(--error-color, #ef4444); }
 .crisis__stat > span { line-height: 1.5; }
 .crisis__footnote { @apply tw:text-[length:.8rem] tw:text-secondary; line-height: 1.65; @apply tw:m-[1rem_0_0]; }
-.crisis__insight { @apply tw:flex tw:items-start tw:gap-[.75rem] tw:p-[1rem] tw:m-[1.25rem_0_2rem]; border-left: 3px solid var(--accent-primary); @apply tw:rounded-[0_12px_12px_0]; background: rgba(var(--accent-rgb), .05); }
-.crisis__insight svg { @apply tw:flex-[0_0_20px] tw:mt-[.15rem] tw:text-accent; }
-.crisis__insight p { @apply tw:m-[0] tw:text-[length:.9rem] tw:text-secondary; line-height: 1.65; }
-.crisis__insight strong { @apply tw:text-main; }
-.crisis__section-heading { @apply tw:flex tw:items-start tw:gap-[.85rem] tw:mb-[1.5rem]; }
-.crisis__section-heading h2 { @apply tw:m-[0_0_.4rem]; }
-.crisis__section-heading p { @apply tw:text-secondary tw:text-[length:.9rem]; line-height: 1.6; @apply tw:m-[0]; }
-.crisis__icon { @apply tw:grid tw:place-items-center tw:flex-[0_0_44px] tw:h-[44px] tw:rounded-[12px] tw:text-accent; background: rgba(var(--accent-rgb), .08); }
 .crisis__input-group label { font-weight: 600; line-height: 1.5; }
 .crisis__input-wrapper:focus-within { border-color: var(--accent-primary); }
 .crisis__input-wrapper input { font: inherit; border: 0; }
 .crisis__impact { @apply tw:p-[1.25rem] tw:rounded-[12px] tw:ui-fill-muted; }
-.crisis__impact-row { @apply tw:grid tw:grid-cols-[minmax(0,_1fr)_auto] tw:gap-[.5rem_1rem] tw:mb-[1rem] tw:items-baseline; }
-.crisis__impact-row > span { @apply tw:text-[length:.85rem] tw:text-secondary; line-height: 1.5; }
-.crisis__impact-row > strong { @apply tw:text-[length:1.1rem]; }
-.crisis__bar { @apply tw:col-span-full tw:h-[12px] tw:rounded-[6px] tw:overflow-hidden; background: color-mix(in srgb, var(--text-primary) 8%, transparent); }
-.crisis__bar > span { @apply tw:block tw:h-full; background: #2563eb; @apply tw:rounded-[inherit]; }
 .crisis__impact-row--low .crisis__bar > span { background: #e11d48; }
 .crisis__impact > p { @apply tw:text-[length:.9rem]; line-height: 1.65; @apply tw:text-secondary tw:m-[0]; }
 .crisis__impact > p strong { @apply tw:text-main; }
 .crisis__decision-title { @apply tw:m-[1.5rem_0_1rem] tw:text-[length:1.1rem]; }
-.crisis__scenario { @apply tw:ui-stack tw:items-start tw:gap-[.75rem] tw:min-w-[0] tw:p-[1rem] tw:ui-border-default tw:rounded-[12px] tw:ui-fill-muted tw:text-main; font: inherit; @apply tw:text-left tw:cursor-pointer; }
-.crisis__scenario:hover { border-color: var(--accent-primary); }
 .crisis .crisis__scenario--selected { border-color: var(--accent-primary); box-shadow: inset 0 0 0 1px var(--accent-primary); }
-.crisis__scenario-title { @apply tw:text-[length:.95rem]; font-weight: 700; }
-.crisis__scenario-label { @apply tw:mt-[auto]; }
-.crisis__scenario > span:not(.crisis__scenario-title) { @apply tw:text-[length:.8rem]; line-height: 1.6; @apply tw:text-secondary; }
-.crisis__scenario > strong { @apply tw:text-[length:1.35rem]; }
-.crisis__explanation { @apply tw:mt-[1rem] tw:p-[1rem]; border-left: 3px solid var(--accent-primary); background: rgba(var(--accent-rgb), .05); @apply tw:rounded-[0_10px_10px_0]; }
-.crisis__explanation > strong { @apply tw:text-[length:.95rem]; }
-.crisis__explanation p { @apply tw:text-secondary tw:text-[length:.9rem]; line-height: 1.7; @apply tw:m-[.5rem_0_0]; }
 .crisis__comparison, .crisis__next { @apply tw:mt-[2.5rem]; }
 .crisis__table-wrapper { @apply tw:overflow-x-auto tw:ui-border-default tw:rounded-[14px] tw:ui-fill-surface; }
 .crisis__table { @apply tw:w-full tw:min-w-[600px] tw:border-collapse tw:text-left; }
@@ -66,24 +40,13 @@
 .crisis__table tbody th small { @apply tw:block tw:text-[length:.7rem] tw:mt-[.25rem]; }
 .crisis__table-row--selected { background: rgba(var(--accent-rgb), .06); }
 .crisis__next-links { @apply tw:grid tw:grid-cols-[repeat(3,_minmax(0,_1fr))] tw:gap-[1rem]; }
-.crisis .crisis__next-card { @apply tw:ui-stack tw:items-start tw:gap-[.75rem] tw:text-main; text-decoration: none; }
-.crisis__next-card > svg { @apply tw:text-accent; }
-.crisis__next-card h3 { @apply tw:text-[length:1.1rem] tw:m-[0]; }
-.crisis__next-card p { @apply tw:text-[length:.9rem] tw:text-secondary; line-height: 1.65; @apply tw:m-[0]; }
-.crisis__next-card > span { @apply tw:ui-row tw:gap-[.5rem] tw:min-h-[44px] tw:mt-[auto] tw:pt-[.5rem] tw:text-[length:.85rem]; font-weight: 700; }
-.crisis__next-card > span svg { @apply tw:shrink-[0] tw:text-accent; }
-.crisis .crisis__next-card:hover { border-color: var(--accent-primary); }
 
 @container (max-width: 700px) {
     .crisis__stats, .crisis__inputs, .crisis__scenarios, .crisis__next-links { @apply tw:grid-cols-[1fr]; }
     .crisis__stat { @apply tw:grid-cols-[20px_minmax(0,_1fr)_auto] tw:items-center tw:gap-[.65rem]; }
     .crisis__stat strong { @apply tw:text-[length:1.05rem]; }
-    .crisis__tab { @apply tw:p-[.8rem_.65rem]; }
     .crisis__tab--active .crisis__tab-name { color: inherit; }
-.crisis__tab-year { @apply tw:text-[length:1.15rem]; }
     .crisis__impact { @apply tw:p-[1rem]; }
-    .crisis__impact-row { @apply tw:grid-cols-[1fr]; }
-    .crisis__bar { @apply tw:col-[auto]; }
 }
 @container (max-width: 360px) {
     .crisis__stat { @apply tw:grid-cols-[20px_minmax(0,_1fr)]; }

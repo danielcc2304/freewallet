@@ -409,3 +409,20 @@ Se retiran **293 líneas de CSS fuente y 119 declaraciones `@apply`**. Las cuatr
 Pasan los cálculos unitarios de IRPF, bonos y asignación de cartera, incluida la validación independiente de CoreWeave mediante Decimal de 50 dígitos. Las declaraciones ajenas a JSX de las tres calculadoras conservan su lógica. Los recorridos de navegador verifican 12/14 pagas, familiares, escenarios, descarga CSV, fechas y modos limpio/sucio de bonos, consultas de fondos interceptadas, ceros válidos, datos ausentes, ISIN erróneos, ayudas accesibles, filtros y persistencia de la estrategia.
 
 Se comparan **64 estados** con el build anterior: cuatro pantallas, formularios familiares/escenarios y bonos avanzados (48 combinaciones en 390/1280 px y cuatro temas/apariencias), más 16 estados de la ficha de fondo cargada en 320/390/768/1440 px. Se comparan nodos, etiquetas y propiedades calculadas; no es una comparación píxel a píxel. La prioridad de las utilidades conserva el color del total de nómina y los márgenes de escenarios y campos avanzados. El recorrido responsive adicional verifica **48 combinaciones** en 320/390/1280 px sin errores ni desbordamientos. Pasan TypeScript, ESLint, compilación y el presupuesto de carga inicial; calculadoras y SDK editorial permanecen fuera del arranque.
+
+
+## Vigésima fase: simuladores y Heatmap de mercados
+
+Se continúa con Estrategia y cartera, el Simulador de cartera y el Heatmap de mercados:
+
+- `AcademySimulationPageHeader` compone las cabeceras sobre el componente de Academia existente, manteniendo títulos, icono y disposición propios de cada pantalla.
+- `AcademySimulationWorkspace` comparte encabezados de sección, filtros con `fieldset`/`legend`, campos con `label` nativo, tablas semánticas, leyendas, avisos, estados vacíos, totales y desplegables `details`. Los formularios conservan validaciones, controles, eventos e identificadores en los consumidores.
+- `HeatmapWorkspace` reutiliza `DataItem` y `Button` para componer métricas y refresco; comparte controles, contenedor del gráfico, carga/error, selección, extremos, sectores y pie. El `ref` de React 19 y los atributos/eventos permanecen en el mismo `div` nativo: no se añade un contenedor al gráfico. La clasificación, agrupación y geometría del Treemap permanecen en `MarketHeatmap`.
+
+Se retiran **341 líneas de CSS fuente y 98 declaraciones `@apply`**. Las tres hojas pasan de 647 a 306 líneas y el total de 8.274 a **7.933 líneas en 58 hojas**: reducción acumulada del **65,13 %** respecto a las 22.753 iniciales. No equivale a una reducción de descarga. Se mantienen reglas generales, materiales contextuales de Liquid Glass, animaciones y estilos específicos del SVG; no cambian backend, proveedores, dependencias ni versión.
+
+### Validación de esta fase
+
+Las declaraciones ajenas a JSX de los tres consumidores conservan su lógica. Pasan las pruebas de asignación y el recorrido de estrategia/simulador: filtros, comparaciones, pesos e importe persistentes, normalización explícita, enlace entre pantallas, hipótesis editables, errores y restablecimiento 60/40. Un recorrido con cotizaciones interceptadas verifica selección, referencia del contenedor, tamaño y etiquetas de sectores a 320/768/1280 px, cambio de índice y refresco efectivo, sin llamar a servicios externos.
+
+Se comparan **64 estados** con el build anterior: pantallas base, comparación de modelos y simulador inválido/desplegado (40); Heatmap cargado y con selección (16), y carga pendiente (8). Coinciden nodos, etiquetas, clases de integración y 19 propiedades calculadas en 390/1280 px y las cuatro combinaciones de tema/apariencia; no es una comparación píxel a píxel. Se preserva la prioridad de los breakpoints de 400 y 520 px para mantener una columna en los controles y sectores pequeños. El recorrido responsive adicional pasa **36 combinaciones** en 320/390/1280 px sin desbordamientos ni errores. Pasan TypeScript, ESLint, compilación y presupuesto de carga inicial; calculadoras y SDK editorial siguen fuera del arranque.

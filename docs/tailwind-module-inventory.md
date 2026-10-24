@@ -130,3 +130,10 @@ Se retiran 582 líneas y 228 declaraciones `@apply`: las cuatro hojas afectadas 
 La decimonovena fase amplía la composición en IRPF, Bonos, Ficha de fondos y Estrategia y cartera. `CalculatorGrid` comparte rejillas; `CalculatorBreakdown` y piezas de nómina mantienen filas semánticas, familias, resumen y liquidación. Las comparaciones de pagas y escenarios poseen estructura y recetas en `CalculatorComparison`. `CalculatorFundIdentity` reúne identidad, etiquetas, fuente y ayuda accesible de riesgo; `AcademyAssetGuideCard` compone los bloques de inversión sobre las superficies existentes.
 
 Se retiran 293 líneas de CSS y 119 declaraciones `@apply`: las cuatro hojas pasan de 716 a 423 líneas. Quedan 8.274 líneas en 58 hojas, un 63,64 % menos respecto a las 22.753 iniciales. Se conservan reglas globales de lectura, materiales contextuales, animaciones y calendario/controles financieros. La comparación cubre 64 estados de estilos y el recorrido responsive adicional, 48 combinaciones.
+
+
+### Simuladores y Heatmap de mercados
+
+La vigésima fase comparte cabeceras mediante `AcademySimulationPageHeader` y estructura de formularios, encabezados, filtros, tablas, leyendas y avisos mediante `AcademySimulationWorkspace`. Se aplica a Estrategia y cartera y al Simulador de cartera. `HeatmapWorkspace` compone métricas, controles, contenedor del gráfico, carga/error, selección, sectores, pie y acciones sobre las piezas existentes. Conserva el contenedor nativo y su referencia; el SVG y la lógica del Treemap permanecen en su módulo.
+
+Se retiran 341 líneas de CSS y 98 declaraciones `@apply`: las tres hojas pasan de 647 a 306 líneas. Quedan 7.933 líneas en 58 hojas, un 65,13 % menos respecto a las 22.753 iniciales. La comparación cubre 64 estados de estilos y el recorrido responsive adicional, 36 combinaciones. Se conservan los estilos globales y materiales que todavía necesitan CSS.

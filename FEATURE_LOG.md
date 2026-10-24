@@ -12,6 +12,19 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-24 - Tailwind: simuladores y Heatmap de mercados
+- Funcionalidad:
+  - Comparte cabeceras de Estrategia y cartera y Simulador de cartera sobre `AcademyPageHeader`.
+  - Extrae encabezados de sección, campos, grupos de filtros, tablas, leyendas, avisos, desplegables nativos y estados vacíos de ambos simuladores.
+  - Compone el espacio de trabajo del Heatmap: controles, métricas, contenedor del gráfico, estados de carga/error, selección, extremos, sectores, pie y acciones flotantes; reutiliza `DataItem` y `Button`.
+- Resumen:
+  - Retira 341 líneas de CSS fuente y 98 declaraciones `@apply`. Las tres hojas pasan de 647 a 306 líneas; quedan 7.933 líneas en 58 hojas, una reducción acumulada del 65,13 %. No representa ahorro equivalente de descarga.
+  - Conserva cálculos, fuentes, consultas, persistencia y calendario de refresco. La referencia de React permanece en el mismo contenedor del gráfico.
+  - Verifica 64 estados de estilos calculados y 36 combinaciones responsive, filtros y asignación, selección, redimensionado, cambio de índice y refresco del Heatmap, TypeScript, ESLint y build.
+- Archivos:
+  - `src/components/academy/simulators/{PortfolioBuilder,AssetAllocationSim}.*`, `src/components/academy/tools/MarketHeatmap.*`.
+  - `src/components/academy/ui/AcademySimulationPageHeader*`, `AcademySimulationWorkspace*`, `Academy{Allocation,Strategy}{Header,Workspace}.styles.ts`, `HeatmapWorkspace*`.
+
 ### 2026-10-24 - Tailwind: calculadoras y tarjetas de estrategia
 - Funcionalidad:
   - Comparte rejillas de campos y resultados entre IRPF, bonos y ficha de fondos mediante `CalculatorGrid`.

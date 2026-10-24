@@ -123,3 +123,10 @@ Se retiran 1.180 líneas y 296 declaraciones `@apply`: quedan 9.149 líneas en 5
 La decimoctava fase amplía las piezas de interfaz en cinco consumidores: Gestión de gastos, su revisión de importaciones, Portfolio, el análisis histórico del Dashboard y el detalle de activos. `ExpenseOverview` y `ExpenseFeedback` comparten distribuciones, tarjetas, barras, estados y controles; `PortfolioAnalysis` y `PortfolioImportPresentation` componen leyendas, planificación, tooltips, gráficos y el aviso de transición. `HistoricalAnalysis` comparte filas, encabezados, estados y bloques con progreso nativo; `DashboardAssetChart` mantiene referencias de DOM, eventos de puntero y las secciones de fondos.
 
 Se retiran 582 líneas y 228 declaraciones `@apply`: las cuatro hojas afectadas pasan de 1.035 a 453 líneas. Quedan 8.567 líneas en 58 hojas, un 62,35 % menos respecto a las 22.753 iniciales. Las reglas ópticas de Liquid Glass, animaciones, consultas generales y gráficos específicos que aún necesitan CSS se conservan.
+
+
+### Calculadoras y tarjetas de estrategia
+
+La decimonovena fase amplía la composición en IRPF, Bonos, Ficha de fondos y Estrategia y cartera. `CalculatorGrid` comparte rejillas; `CalculatorBreakdown` y piezas de nómina mantienen filas semánticas, familias, resumen y liquidación. Las comparaciones de pagas y escenarios poseen estructura y recetas en `CalculatorComparison`. `CalculatorFundIdentity` reúne identidad, etiquetas, fuente y ayuda accesible de riesgo; `AcademyAssetGuideCard` compone los bloques de inversión sobre las superficies existentes.
+
+Se retiran 293 líneas de CSS y 119 declaraciones `@apply`: las cuatro hojas pasan de 716 a 423 líneas. Quedan 8.274 líneas en 58 hojas, un 63,64 % menos respecto a las 22.753 iniciales. Se conservan reglas globales de lectura, materiales contextuales, animaciones y calendario/controles financieros. La comparación cubre 64 estados de estilos y el recorrido responsive adicional, 48 combinaciones.

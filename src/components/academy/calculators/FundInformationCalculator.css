@@ -20,120 +20,11 @@
     @apply tw:ui-stack tw:gap-[var(--fund-info-gap)];
 }
 
-.fund-info__fund-hero {
-    @apply tw:flex tw:items-start tw:justify-between tw:gap-ui-lg tw:p-ui-xl;
-    background:
-        radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.14), transparent 45%),
-        radial-gradient(circle at 90% 20%, rgba(59, 130, 246, 0.14), transparent 42%),
-        var(--bg-secondary);
-    @apply tw:ui-border tw:rounded-panel;
-}
-
-.fund-info__fund-hero-copy {
-    @apply tw:min-w-[0];
-}
-
-.fund-info__fund-hero h2 {
-    @apply tw:m-[var(--spacing-md)_0_var(--spacing-xs)] tw:text-[length:clamp(1.35rem,_2.8vw,_2rem)] tw:wrap-anywhere;
-}
-
-.fund-info__badge-row {
-    @apply tw:ui-row tw:flex-wrap tw:gap-ui-xs;
-}
-
-.fund-info__badge {
-    @apply tw:inline-flex tw:items-center tw:min-h-[24px] tw:p-[0.2rem_0.55rem] tw:text-secondary tw:ui-fill-muted tw:ui-border-strong tw:rounded-[var(--radius-full)] tw:text-[length:var(--font-size-xs)];
-    font-weight: 700;
-}
-
-.fund-info__badge--accent {
-    @apply tw:text-accent;
-    background: rgba(var(--accent-rgb), 0.1);
-    border-color: rgba(var(--accent-rgb), 0.22);
-}
-
-.fund-info__risk-help {
-    @apply tw:relative tw:inline-flex;
-}
-
-.fund-info__risk-trigger {
-    @apply tw:inline-flex tw:items-center tw:gap-[0.3rem] tw:min-h-[24px] tw:p-[0.2rem_0.55rem] tw:text-secondary tw:ui-fill-muted tw:ui-border-strong tw:rounded-[var(--radius-full)];
-    font: inherit;
-    @apply tw:text-[length:var(--font-size-xs)];
-    font-weight: 700;
-    @apply tw:cursor-help;
-}
-
-.fund-info__risk-trigger:hover,
-.fund-info__risk-trigger:focus-visible {
-    @apply tw:text-accent;
-    border-color: rgba(var(--accent-rgb), 0.45);
-    outline: none;
-}
-
-.fund-info__risk-tooltip {
-    @apply tw:absolute tw:z-[20] tw:top-[calc(100%_+_0.65rem)] tw:left-[0] tw:ui-stack tw:gap-[0.3rem] tw:w-[min(310px,_calc(100vw_-_2rem))] tw:p-[0.75rem_0.85rem] tw:text-secondary tw:ui-fill-panel tw:ui-border-strong tw:rounded-control;
-    box-shadow: var(--shadow-lg);
-    @apply tw:text-[length:var(--font-size-xs)];
-    line-height: 1.45;
-    @apply tw:opacity-[0] tw:invisible tw:pointer-events-none;
-    transform: translateY(-4px);
-    transition: opacity var(--transition-fast), transform var(--transition-fast), visibility var(--transition-fast);
-}
-
-.fund-info__risk-tooltip::before {
-    @apply tw:absolute tw:top-[-6px] tw:left-[1.2rem] tw:w-[10px] tw:h-[10px];
-    content: '';
-    @apply tw:ui-fill-panel;
-    border-top: 1px solid var(--border-secondary);
-    border-left: 1px solid var(--border-secondary);
-    transform: rotate(45deg);
-}
-
-.fund-info__risk-tooltip strong {
-    @apply tw:text-main tw:text-[length:var(--font-size-sm)];
-}
-
-.fund-info__risk-tooltip small {
-    @apply tw:text-muted tw:text-[length:inherit];
-}
-
-.fund-info__risk-help:hover .fund-info__risk-tooltip,
-.fund-info__risk-trigger:focus + .fund-info__risk-tooltip {
-    @apply tw:opacity-[1] tw:visible;
-    transform: translateY(0);
-}
-
-.fund-info__class-name {
-    @apply tw:m-[0_0_var(--spacing-sm)] tw:text-secondary tw:wrap-anywhere;
-}
-
-.fund-info__fund-hero code,
 .fund-info__data-item code {
     @apply tw:text-accent;
     font-family: 'JetBrains Mono', monospace;
     @apply tw:text-[length:var(--font-size-sm)];
     letter-spacing: 0.02em;
-}
-
-.fund-info__source-link {
-    @apply tw:inline-flex tw:items-center tw:gap-ui-xs tw:shrink-[0] tw:text-accent tw:text-[length:var(--font-size-sm)];
-    font-weight: 700;
-    @apply tw:whitespace-nowrap;
-}
-
-.fund-info__source-link:hover {
-    color: var(--accent-secondary);
-}
-
-.fund-info__metric-grid,
-.fund-info__data-grid,
-.fund-info__fee-grid {
-    @apply tw:grid tw:gap-ui-md;
-}
-
-.fund-info__metric-grid--summary {
-    @apply tw:grid-cols-[repeat(auto-fit,_minmax(170px,_1fr))];
 }
 
 .fund-info__subheading {
@@ -146,44 +37,13 @@
     letter-spacing: 0.03em;
 }
 
-.fund-info__data-grid {
-    @apply tw:grid-cols-[repeat(3,_minmax(0,_1fr))];
-}
-
 .fund-info__features {
     @apply tw:pt-ui-lg tw:mt-ui-lg;
     border-top: 1px solid var(--border-primary);
 }
 
-.fund-info__feature-list {
-    @apply tw:flex tw:flex-wrap tw:gap-ui-sm tw:mt-ui-sm;
-}
-
-.fund-info__feature {
-    @apply tw:inline-flex tw:items-center tw:gap-ui-xs tw:p-[0.4rem_0.6rem] tw:text-secondary;
-    background: rgba(var(--accent-rgb), 0.08);
-    border: 1px solid rgba(var(--accent-rgb), 0.18);
-    @apply tw:rounded-[var(--radius-full)] tw:text-[length:var(--font-size-xs)];
-}
-
-.fund-info__feature svg {
-    @apply tw:text-accent;
-}
-
-.fund-info__fee-grid {
-    @apply tw:grid-cols-[repeat(4,_minmax(0,_1fr))];
-}
-
 .fund-info__table-note {
     @apply tw:m-[var(--spacing-md)_0_0] tw:text-muted tw:text-[length:var(--font-size-xs)];
-}
-
-.fund-info__breakdown-grid {
-    @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-ui-lg;
-}
-
-.fund-info__holdings-list {
-    @apply tw:ui-stack tw:gap-ui-sm;
 }
 
 .fund-info__description {
@@ -201,10 +61,6 @@
     line-height: 1.7;
 }
 
-.fund-info__documents {
-    @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-ui-sm;
-}
-
 .fund-info__sr-only {
     @apply tw:absolute tw:w-[1px] tw:h-[1px] tw:p-[0] tw:m-[-1px] tw:overflow-hidden;
     clip: rect(0, 0, 0, 0);
@@ -212,46 +68,9 @@
     border: 0;
 }
 
-@media (max-width: 900px) {
-    .fund-info__fee-grid {
-        @apply tw:grid-cols-[repeat(2,_minmax(0,_1fr))];
-    }
-
-    .fund-info__data-grid {
-        @apply tw:grid-cols-[repeat(2,_minmax(0,_1fr))];
-    }
-}
-
 @media (max-width: 640px) {
-    .fund-info__fund-hero {
-        @apply tw:flex-col;
-    }
-
-    .fund-info__fund-hero {
-        @apply tw:p-ui-lg;
-    }
-
-    .fund-info__metric-grid--summary,
-.fund-info__data-grid,
-.fund-info__fee-grid,
-.fund-info__breakdown-grid,
-.fund-info__documents {
-        @apply tw:grid-cols-[1fr];
-    }
-
-    .fund-info__source-link {
-        @apply tw:whitespace-normal;
-    }
 
     /* Keep the historical metrics as a real table for accessibility, but fit
        all four columns to the viewport so this section does not create a
        nested horizontal touch scroller. */
-
-    .fund-info__risk-tooltip {
-        @apply tw:right-[0] tw:left-[auto];
-    }
-
-    .fund-info__risk-tooltip::before {
-        @apply tw:right-[1.2rem] tw:left-[auto];
-    }
 }

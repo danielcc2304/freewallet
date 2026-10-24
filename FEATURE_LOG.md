@@ -12,6 +12,19 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-24 - Tailwind: calculadoras y tarjetas de estrategia
+- Funcionalidad:
+  - Comparte rejillas de campos y resultados entre IRPF, bonos y ficha de fondos mediante `CalculatorGrid`.
+  - Extrae desgloses semánticos, grupos familiares, resumen de nómina, liquidación fiscal y tarjetas de comparación de pagas y escenarios.
+  - Compone la identidad del fondo, etiquetas, características, enlace a la fuente y ayuda accesible de riesgo; comparte tarjetas completas de bloques de inversión mediante `AcademyAssetGuideCard`.
+- Resumen:
+  - Retira 293 líneas de CSS fuente y 119 declaraciones `@apply`. Las cuatro hojas pasan de 716 a 423 líneas; quedan 8.274 líneas en 58 hojas, un 63,64 % menos respecto al inicio. Esta medida no representa ahorro de descarga.
+  - Conserva calendarios, cálculos, consultas, persistencia, controles nativos, navegación y materiales de Liquid Glass.
+  - Verifica cálculos de IRPF, bonos y asignación, la regresión independiente de CoreWeave, recorridos funcionales, 64 estados de estilos calculados y 48 combinaciones responsive, TypeScript, ESLint y build.
+- Archivos:
+  - `src/components/academy/calculators/{SalaryCalculator,BondCalculator,FundInformationCalculator}.*`, `CalculatorGrid`, `CalculatorBreakdown`, `CalculatorComparison`, `CalculatorFundIdentity` y sus recetas Tailwind.
+  - `src/components/academy/simulators/PortfolioBuilder.*`, `src/components/academy/ui/AcademyAssetGuideCard*`.
+
 ### 2026-10-24 - Tailwind: gastos, importación y análisis histórico
 - Funcionalidad:
   - Extrae componentes con estructura y estilos Tailwind para distribuciones, leyendas, barras mensuales, cuentas, categorías, objetivos, paginación, estado de guardado y avisos de gastos.

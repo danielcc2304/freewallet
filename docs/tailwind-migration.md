@@ -391,3 +391,21 @@ La prueba de once fondos contaba también una consulta cancelada, reproduciéndo
 
 
 Coinciden **136 estados distintos** con el build anterior: las cinco pestañas de gastos; Portfolio y su aviso; Dashboard y sus detalles de acción/fondo, desglose y pestañas de evolución/benchmark/asignación/riesgo/controles; tooltip y objetivos modificados de Portfolio. Se comparan nodos, etiquetas, clases de integración y 19 propiedades calculadas en 390/1280 px y las cuatro combinaciones de tema/apariencia, con datos sintéticos y fecha fija. No es una comparación píxel a píxel. El recorrido responsive pasa **seis rutas y 72 combinaciones** en 320/390/1280 px, sin errores de ejecución ni desbordamientos. Las pruebas de gastos cubren también editores a 768 px.
+
+
+## Decimonovena fase: calculadoras y bloques de estrategia
+
+Se continúa en cuatro consumidores: IRPF y sueldo neto, Bonos, Ficha de fondos y Estrategia y cartera.
+
+- `CalculatorGrid` comparte rejillas nativas de campos, resultados, documentos, composición y escenarios, con las mismas consultas responsive y clases de integración.
+- `CalculatorBreakdown` y sus filas conservan `dl`, `dt` y `dd`; las piezas de nómina comparten grupos familiares con `fieldset`/`legend`, resumen, valor fiscal y liquidación. `CalculatorPaymentCard` y `CalculatorScenarioCard` poseen estructura y estilos de las comparaciones, manteniendo sus botones y valores en el consumidor.
+- `CalculatorFundIdentity` compone identidad, etiquetas, enlace a la fuente y ayuda de riesgo. Conserva foco de teclado, `aria-describedby`, tooltip, enlaces y contenido formateado.
+- `AcademyAssetGuideCard` reutiliza las superficies `AcademyPanel`/`AcademyLinkCard` y compone icono, título, descripción, riesgo y acceso a la guía. Se mantienen enlaces nativos, identificadores y colores por bloque.
+
+Se retiran **293 líneas de CSS fuente y 119 declaraciones `@apply`**. Las cuatro hojas pasan de 716 a 423 líneas; el total pasa de 8.567 a **8.274 líneas en 58 hojas**. La reducción acumulada respecto a las 22.753 líneas iniciales es del **63,64 %**, sin inferir una reducción equivalente de la descarga. Se mantienen las reglas generales, animaciones y materiales contextuales que aún requieren CSS; no cambian las dependencias, la versión, los proveedores ni la base de datos.
+
+### Validación de esta fase
+
+Pasan los cálculos unitarios de IRPF, bonos y asignación de cartera, incluida la validación independiente de CoreWeave mediante Decimal de 50 dígitos. Las declaraciones ajenas a JSX de las tres calculadoras conservan su lógica. Los recorridos de navegador verifican 12/14 pagas, familiares, escenarios, descarga CSV, fechas y modos limpio/sucio de bonos, consultas de fondos interceptadas, ceros válidos, datos ausentes, ISIN erróneos, ayudas accesibles, filtros y persistencia de la estrategia.
+
+Se comparan **64 estados** con el build anterior: cuatro pantallas, formularios familiares/escenarios y bonos avanzados (48 combinaciones en 390/1280 px y cuatro temas/apariencias), más 16 estados de la ficha de fondo cargada en 320/390/768/1440 px. Se comparan nodos, etiquetas y propiedades calculadas; no es una comparación píxel a píxel. La prioridad de las utilidades conserva el color del total de nómina y los márgenes de escenarios y campos avanzados. El recorrido responsive adicional verifica **48 combinaciones** en 320/390/1280 px sin errores ni desbordamientos. Pasan TypeScript, ESLint, compilación y el presupuesto de carga inicial; calculadoras y SDK editorial permanecen fuera del arranque.

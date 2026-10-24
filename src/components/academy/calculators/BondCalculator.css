@@ -18,10 +18,6 @@
     @apply tw:text-[length:1.125rem] tw:text-secondary;
 }
 
-.bond-calc__grid {
-    @apply tw:grid tw:grid-cols-[minmax(330px,_1.08fr)_minmax(0,_1.42fr)] tw:gap-[2rem] tw:mb-[3rem];
-}
-
 /* Inputs Section */
 .bond-calc__inputs {
     @apply tw:ui-fill-surface tw:ui-border-default tw:rounded-[16px] tw:p-[1.75rem] tw:ui-stack tw:gap-[1rem] tw:h-[fit-content] tw:sticky tw:top-[1rem];
@@ -43,10 +39,6 @@
 
 .bond-calc__inputs .calc__input-group:last-child {
     @apply tw:mb-[0];
-}
-
-.bond-calc__maturity-grid {
-    @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[0.625rem];
 }
 
 .bond-calc__advanced {
@@ -84,44 +76,12 @@
     }
 }
 
-.bond-calc__advanced-grid {
-    @apply tw:grid tw:grid-cols-[1fr] tw:gap-[0.75rem] tw:mt-[0];
-}
-
-.bond-calc__advanced-grid .calc__input-group {
-    @apply tw:mb-[0];
-}
-
-.bond-calc__advanced-grid .calc__input-wrapper {
-    @apply tw:min-h-[54px];
-}
-
-.bond-calc__advanced-grid .calc__input-wrapper input[type="date"],
-.bond-calc__advanced-grid .calc__input-wrapper select {
-    @apply tw:text-left;
-}
-
-.bond-calc__advanced-grid .calc__input-wrapper input[type="date"] {
-    color-scheme: dark;
-    @apply tw:cursor-pointer;
-}
-
-.bond-calc__advanced-grid
-    .calc__input-wrapper
-    input[type="date"]::-webkit-calendar-picker-indicator {
-    @apply tw:cursor-pointer tw:opacity-[0.9];
-}
-
 /* Results Section */
 .bond-calc__results {
     @apply tw:ui-stack tw:gap-[1.5rem] tw:h-full;
 }
 
 /* The shared glass material replaces the gradient; use its matching text palette. */
-
-.result-details {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(180px,_1fr))] tw:gap-[1rem] tw:flex-[1];
-}
 
 .detail-box__value {
     @apply tw:text-[length:1.2rem];
@@ -169,9 +129,6 @@
 }
 
 /* Educational Content */
-.bond-calc-edu {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(300px,_1fr))] tw:gap-[1.5rem] tw:mt-[2rem];
-}
 .bond-calc__calculation-details dl {
     @apply tw:grid tw:grid-cols-[minmax(0,_1fr)_minmax(0,_1fr)] tw:gap-[0.6rem_1rem] tw:m-[1rem_0];
 }
@@ -183,29 +140,8 @@
 }
 
 @media (max-width: 850px) {
-    .bond-calc__grid {
-        @apply tw:grid-cols-[1fr];
-    }
 
     .bond-calc__inputs {
         @apply tw:static tw:top-[auto];
-    }
-
-    .bond-calc-edu {
-        @apply tw:gap-[1.25rem] tw:mt-[1.5rem];
-    }
-
-    .bond-calc__advanced-grid {
-        @apply tw:grid-cols-[1fr];
-    }
-}
-
-@media (max-width: 480px) {
-    .bond-calc__maturity-grid {
-        @apply tw:grid-cols-[1fr];
-    }
-
-    .bond-calc-edu {
-        @apply tw:gap-[1rem];
     }
 }

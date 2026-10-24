@@ -1,6 +1,7 @@
+import { AcademyAssetGuideCard } from '../ui/AcademyAssetGuideCard';
 import {AcademyModelFilter,AcademyModelMetadata,AcademyModelMix,AcademyModelActions,AcademyAllocationBar} from '../ui/AcademySimulatorParts';
 import { AcademyControlField } from '../ui/AcademyControlField';
-import { AcademyPanel, AcademyLinkCard } from '../ui/AcademyPanel';
+import { AcademyPanel } from '../ui/AcademyPanel';
 import { AcademyGrid } from '../ui/AcademyGrid';
 import {useEffect,useState,type CSSProperties} from 'react';
 import {ArrowRight,Check,ChevronDown,Coins,Building2,Gem,Landmark,PieChart as PieChartIcon,RotateCcw,Scale,TrendingUp,Wallet} from 'lucide-react';
@@ -120,21 +121,7 @@ export function PortfolioBuilder(){
                     const Icon=icons[asset.key];
                     const titleId=`strategy-asset-${asset.key}-title`;
                     const descriptionId=`strategy-asset-${asset.key}-description`;
-                    const content=<>
-                        <div className="strategy-asset__header">
-                            <span className="strategy-asset__icon" aria-hidden="true"><Icon size={23}/></span>
-                            <h3 id={titleId}>{asset.name}</h3>
-                        </div>
-                        <p id={descriptionId} className="strategy-asset__description">{asset.desc}</p>
-                        <div className="strategy-asset__footer">
-                            <div className="strategy-asset__risk"><span>Riesgo</span><strong>{asset.risk}</strong></div>
-                            {asset.path&&<span className="strategy-asset__guide">Ver guía <ArrowRight size={16} aria-hidden="true"/></span>}
-                        </div>
-                    </>;
-                    const style={'--asset-color':asset.color} as CSSProperties;
-                    return asset.path
-                        ?<AcademyLinkCard variant="workspace" key={asset.key} className="strategy-asset strategy-asset--linked" style={style} to={asset.path} aria-labelledby={titleId} aria-describedby={descriptionId}>{content}</AcademyLinkCard>
-                        :<AcademyPanel variant="workspace" as="article" key={asset.key} className="strategy-asset" style={style} aria-labelledby={titleId}>{content}</AcademyPanel>;
+                    return <AcademyAssetGuideCard key={asset.key} to={asset.path} color={asset.color} titleId={titleId} descriptionId={descriptionId} icon={<Icon size={23}/>} title={asset.name} description={asset.desc} risk={asset.risk} guide={<>Ver guía <ArrowRight size={16} aria-hidden="true"/></>} />;
                 })}
             </AcademyGrid>
         </section>

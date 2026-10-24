@@ -1,3 +1,4 @@
+import { CalculatorGrid } from './CalculatorGrid';
 import { CalculatorHeroMetric } from './CalculatorHeroMetric';
 import { CalculatorEducationCard } from './CalculatorEducationCard';
 import { CalculatorField } from './CalculatorField';
@@ -282,7 +283,7 @@ export function BondCalculator() {
                 </p>
             </AcademyPageHeader>
 
-            <div className="bond-calc__grid">
+            <CalculatorGrid variant="bond-grid">
                 <div className="bond-calc__inputs">
                     <div className="bond-calc__inputs-header">
                         <h3>Parámetros</h3>
@@ -321,7 +322,7 @@ export function BondCalculator() {
                     {!advancedEnabled && (
                         <div className="calc__input-group">
                             <label>Vencimiento</label>
-                            <div className="bond-calc__maturity-grid">
+                            <CalculatorGrid variant="bond-maturity-grid">
                                 <div className="calc__input-wrapper">
                                     <Landmark size={18} />
                                     <input
@@ -347,7 +348,7 @@ export function BondCalculator() {
                                     />
                                     <span className="unit">meses</span>
                                 </div>
-                            </div>
+                            </CalculatorGrid>
                         </div>
                     )}
 
@@ -382,7 +383,7 @@ export function BondCalculator() {
 
                         {advancedEnabled && (
                             <div className="bond-calc__advanced-content">
-                                <div className="bond-calc__advanced-grid">
+                                <CalculatorGrid variant="bond-advanced-grid">
                                     <CalculatorField
                                         controlId="bond-settlement-date"
                                         label="Fecha de liquidacion"
@@ -509,7 +510,7 @@ export function BondCalculator() {
                                             </option>
                                         </select>
                                     </CalculatorField>
-                                </div>
+                                </CalculatorGrid>
                                 <CalculatorDisclosure
                                     appearance="plain"
                                     className="bond-calc__calculation-details"
@@ -522,7 +523,7 @@ export function BondCalculator() {
                                         devengo permite calcular el primer cupón
                                         proporcional.
                                     </p>
-                                    <div className="bond-calc__advanced-grid">
+                                    <CalculatorGrid variant="bond-advanced-grid">
                                         <CalculatorField
                                             controlId="bond-first-coupon"
                                             label="Primer cupón contractual"
@@ -554,7 +555,7 @@ export function BondCalculator() {
                                                 }
                                             />
                                         </CalculatorField>
-                                    </div>
+                                    </CalculatorGrid>
 
                                 </CalculatorDisclosure>
                             </div>
@@ -583,7 +584,7 @@ export function BondCalculator() {
                                         : 'Estimación con precio limpio y cupones anuales regulares. Usa fechas para precisar el cálculo.'}</>}
                                 />
 
-                            <div className="result-details">
+                            <CalculatorGrid variant="result-details">
                                     <CalculatorDataItem
                                         layout="detail"
                                         className="detail-box"
@@ -662,7 +663,7 @@ export function BondCalculator() {
                                             value={<>{calculation.nextCouponDate ?? '--'}</>}
                                         />
                                 )}
-                            </div>
+                            </CalculatorGrid>
                                 <CalculatorDataItem
                                     layout="detail"
                                     className="detail-box"
@@ -761,9 +762,9 @@ export function BondCalculator() {
                         </>
                     )}
                 </div>
-            </div>
+            </CalculatorGrid>
 
-            <div className="bond-calc-edu">
+            <CalculatorGrid variant="bond-calc-edu">
                 <CalculatorEducationCard
                     icon={<HelpCircle size={20} />}
                     title={<>¿Qué es la TIR / YTM?</>}>
@@ -789,7 +790,7 @@ export function BondCalculator() {
                     de <strong>duración</strong> (que el precio caiga mucho
                     ante subidas de tipos si el plazo es largo).
                 </CalculatorEducationCard>
-            </div>
+            </CalculatorGrid>
         </div>
     );
 }

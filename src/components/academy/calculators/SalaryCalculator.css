@@ -4,52 +4,28 @@
 .salary-calc__header h1 { @apply tw:text-[length:clamp(1.6rem,_2.5vw,_2.35rem)]; letter-spacing: -.035em; line-height: 1.2; }
 .salary-calc__header p { @apply tw:text-secondary tw:mt-[.65rem]; }
 .salary-calc__year { @apply tw:inline-block tw:mt-[.8rem] tw:text-[length:.8rem]; font-weight: 650; @apply tw:text-accent; }
-.salary-calc__layout { @apply tw:grid tw:grid-cols-[minmax(0,_1fr)_minmax(0,_1fr)]; align-items: start; @apply tw:gap-[1.5rem]; }
 .salary-calc__form, .salary-calc__results { @apply tw:min-w-[0] tw:ui-stack tw:gap-[1rem]; }
 .salary-calc h2 { @apply tw:text-[length:1.12rem]; font-weight: 750; line-height: 1.35; }
 .salary-calc h3 { @apply tw:text-[length:1rem] tw:m-[1.5rem_0_.6rem]; }
 .salary-calc h4 { @apply tw:text-[length:.9rem] tw:m-[.6rem_0]; }
-.salary-calc__fields { @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[1rem]; }
 .salary-calc__hint, .salary-calc__privacy { @apply tw:text-[length:.79rem] tw:text-secondary; line-height: 1.6; }
 .salary-calc__hint { @apply tw:m-[.75rem_0]; }
 .salary-calc input:focus-visible, .salary-calc select:focus-visible, .salary-calc button:focus-visible, .salary-calc summary:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
 .salary-calc__segmented { @apply tw:flex tw:p-[.3rem] tw:gap-[.35rem] tw:ui-fill-muted tw:ui-border-strong tw:rounded-[14px]; }
 .salary-calc__segmented button { @apply tw:flex-[1] tw:min-h-[44px] tw:p-[.6rem] tw:ui-fill-transparent; border: 0; @apply tw:rounded-[10px]; font: inherit; @apply tw:text-[length:.9rem]; font-weight: 650; @apply tw:text-secondary tw:cursor-pointer; }
 .salary-calc__segmented button[aria-pressed=true] { background: var(--accent-primary); color: #071b14; }
-.salary-calc__person { @apply tw:min-w-[0] tw:ui-border-strong tw:rounded-[14px] tw:p-[1rem] tw:mb-[1rem]; }
-.salary-calc__person legend { @apply tw:p-[0_.4rem] tw:text-[length:.85rem]; font-weight: 650; }
-.salary-calc__person .salary-calc__fields { @apply tw:grid-cols-[1fr] tw:gap-[.25rem]; }
 .salary-calc__button, .salary-calc__text-button { @apply tw:inline-flex tw:justify-center tw:items-center tw:gap-[.5rem] tw:min-h-[44px] tw:rounded-[12px] tw:p-[.7rem_1rem]; font: inherit; @apply tw:text-[length:.85rem]; font-weight: 650; @apply tw:cursor-pointer; }
 .salary-calc__button { color: #071b14; background: var(--accent-primary); border: 1px solid transparent; }
 .salary-calc__button--secondary { @apply tw:text-main tw:ui-fill-muted; border-color: var(--border-secondary); }
 .salary-calc__text-button { @apply tw:self-start tw:pl-[.2rem] tw:ui-fill-transparent; border: 0; @apply tw:text-secondary; }
 .salary-calc button:disabled { @apply tw:opacity-[.5] tw:cursor-not-allowed; }
 .salary-calc__privacy { @apply tw:p-[0_.2rem]; }
-.salary-calc__hero-footer { @apply tw:grid tw:grid-cols-[1fr_1fr] tw:gap-[.8rem]; border-top: 1px solid var(--border-secondary); @apply tw:mt-[1.3rem] tw:pt-[1.1rem]; }
-.salary-calc__hero-footer span { @apply tw:text-[length:.77rem] tw:text-secondary; }
-.salary-calc__hero-footer b { @apply tw:block tw:text-main tw:text-[length:1.07rem] tw:mt-[.25rem]; }
 .salary-calc__distribution { @apply tw:flex tw:gap-[3px] tw:h-[15px] tw:rounded-[10px] tw:overflow-hidden tw:m-[1.2rem_0] tw:ui-fill-muted; }
 .salary-calc__distribution span { @apply tw:min-w-[0]; }
 .salary-calc__distribution--net, .salary-calc__dot--net { background: var(--accent-primary); }
 .salary-calc__distribution--irpf, .salary-calc__dot--irpf { background: #8b5cf6; }
 .salary-calc__distribution--ss, .salary-calc__dot--ss { background: #3b82f6; }
 .salary-calc__dot { @apply tw:inline-block tw:w-[9px] tw:h-[9px] tw:rounded-[50%] tw:mr-[.55rem]; }
-.salary-calc__breakdown { @apply tw:text-[length:.85rem]; }
-.salary-calc__breakdown > div { @apply tw:flex tw:justify-between tw:items-baseline tw:gap-[.85rem] tw:p-[.65rem_0]; border-bottom: 1px solid var(--border-primary); }
-.salary-calc__breakdown dt { @apply tw:text-secondary tw:min-w-[0]; }
-.salary-calc__breakdown dd { @apply tw:text-right; font-weight: 650; font-variant-numeric: tabular-nums; @apply tw:whitespace-nowrap; }
-.salary-calc__breakdown dd small { @apply tw:block tw:text-[length:.71rem]; font-weight: 400; @apply tw:text-secondary; }
-.salary-calc__breakdown .salary-calc__total { border-bottom: 0; @apply tw:pt-[.85rem]; }
-.salary-calc__total dd, .salary-calc__total dt { @apply tw:text-main; font-weight: 750; }
-.salary-calc__payment-comparison { @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,1fr))] tw:gap-[.7rem] tw:mt-[1rem]; }
-.salary-calc__payment-comparison > div { @apply tw:p-[.9rem] tw:ui-border-strong tw:rounded-[14px] tw:ui-fill-surface tw:min-w-[0]; }
-.salary-calc__payment-comparison > .is-selected { border-color: var(--accent-primary); }
-.salary-calc__payment-comparison span, .salary-calc__payment-comparison small { @apply tw:block tw:text-[length:.76rem] tw:text-secondary; }
-.salary-calc__payment-comparison strong { @apply tw:block tw:text-[length:1.22rem] tw:m-[.35rem_0]; letter-spacing: -.025em; }
-.salary-calc__tax-value { @apply tw:m-[1rem_0]; }
-.salary-calc__tax-value > span, .salary-calc__tax-value small { @apply tw:block tw:text-secondary tw:text-[length:.79rem]; }
-.salary-calc__tax-value > strong { @apply tw:block tw:text-[length:1.75rem]; line-height: 1.4; }
-.salary-calc__settlement { @apply tw:flex tw:justify-between tw:gap-[.75rem] tw:p-[.9rem_1rem] tw:rounded-[12px] tw:ui-fill-muted tw:text-[length:.84rem]; }
 .salary-calc__tax .salary-calc__fold { @apply tw:rounded-[14px] tw:mt-[1rem]; }
 .salary-calc__error { @apply tw:flex tw:items-start tw:gap-[.8rem]; background: rgba(245,158,11,.08); border: 1px solid rgba(245,158,11,.3); @apply tw:rounded-[18px] tw:p-[1.2rem]; }
 .salary-calc__error > svg { @apply tw:shrink-[0]; color: var(--color-warning); }
@@ -58,19 +34,9 @@
 .salary-calc__notes p + p { @apply tw:mt-[.7rem]; }
 .salary-calc__actions { @apply tw:flex tw:flex-wrap tw:gap-[.65rem]; }
 .salary-calc__current-bracket { background: rgba(var(--accent-rgb), .1); }
-.salary-calc__scales { @apply tw:grid tw:gap-[1rem]; }
 .salary-calc__scenarios { @apply tw:m-[1.5rem_0]; }
-.salary-calc__scenario-grid { @apply tw:grid tw:grid-cols-[repeat(3,_minmax(0,1fr))] tw:gap-[1rem] tw:mt-[1rem]; }
-.salary-calc__scenario-grid article { @apply tw:min-w-[0] tw:ui-fill-surface tw:ui-border-strong tw:rounded-[15px] tw:p-[1.1rem]; }
-.salary-calc__scenario-grid article > div { @apply tw:ui-row tw:justify-between; }
-.salary-calc__scenario-grid h3 { @apply tw:m-[0]; }
-.salary-calc__scenario-grid button { @apply tw:ui-fill-transparent; border: 0; @apply tw:text-secondary tw:min-w-[44px] tw:min-h-[44px] tw:cursor-pointer; }
-.salary-calc__scenario-grid p { @apply tw:text-secondary tw:text-[length:.78rem] tw:m-[.6rem_0]; }
-.salary-calc__scenario-grid article > strong { @apply tw:block tw:text-[length:1.4rem]; }
-.salary-calc__scenario-grid article > strong small { @apply tw:block; font-weight: 400; @apply tw:text-[length:.74rem] tw:text-secondary; }
 .salary-calc > .salary-calc__fold { @apply tw:mt-[1.5rem]; }
 .salary-calc__sources { @apply tw:ui-stack tw:items-start tw:gap-[.7rem] tw:text-[length:.85rem]; }
 .salary-calc a { @apply tw:text-accent; text-decoration: underline; text-underline-offset: 3px; }
-@media (max-width: 1100px) { .salary-calc__fields { @apply tw:grid-cols-[1fr] tw:gap-[.35rem]; } }
-@media (max-width: 800px) { .salary-calc { @apply tw:p-[1rem_.5rem]; } .salary-calc__layout { @apply tw:grid-cols-[1fr] tw:gap-[1.25rem]; } .salary-calc__fields { @apply tw:grid-cols-[repeat(2,_minmax(0,_1fr))]; } .salary-calc__scenario-grid { @apply tw:grid-cols-[1fr]; } }
-@media (max-width: 480px) { .salary-calc { @apply tw:p-[.7rem_0]; } .salary-calc__fields { @apply tw:grid-cols-[1fr]; } .salary-calc__payment-comparison > div { @apply tw:p-[.7rem]; } .salary-calc__payment-comparison strong { @apply tw:text-[length:1.1rem]; } .salary-calc__breakdown { @apply tw:text-[length:.8rem]; } .salary-calc__actions { @apply tw:flex-col; } }
+@media (max-width: 800px) { .salary-calc { @apply tw:p-[1rem_.5rem]; } }
+@media (max-width: 480px) { .salary-calc { @apply tw:p-[.7rem_0]; } .salary-calc__actions { @apply tw:flex-col; } }

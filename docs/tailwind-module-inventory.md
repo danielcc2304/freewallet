@@ -137,3 +137,10 @@ Se retiran 293 líneas de CSS y 119 declaraciones `@apply`: las cuatro hojas pas
 La vigésima fase comparte cabeceras mediante `AcademySimulationPageHeader` y estructura de formularios, encabezados, filtros, tablas, leyendas y avisos mediante `AcademySimulationWorkspace`. Se aplica a Estrategia y cartera y al Simulador de cartera. `HeatmapWorkspace` compone métricas, controles, contenedor del gráfico, carga/error, selección, sectores, pie y acciones sobre las piezas existentes. Conserva el contenedor nativo y su referencia; el SVG y la lógica del Treemap permanecen en su módulo.
 
 Se retiran 341 líneas de CSS y 98 declaraciones `@apply`: las tres hojas pasan de 647 a 306 líneas. Quedan 7.933 líneas en 58 hojas, un 65,13 % menos respecto a las 22.753 iniciales. La comparación cubre 64 estados de estilos y el recorrido responsive adicional, 36 combinaciones. Se conservan los estilos globales y materiales que todavía necesitan CSS.
+
+
+### Tabla de activos, formulario y proyección FIRE
+
+La vigesimoprimera fase aplica componentes con estructura y Tailwind a Mis activos, Añadir activo y FIRE. `DashboardAssetsGrid` compone tabla y controles responsive sobre `Card`/`Button`; `InvestmentForm` posee tarjeta, formulario, búsqueda y confirmación; `CalculatorProjection` y las variantes de `CalculatorGrid` reúnen la presentación de FIRE. Se mantienen controles y tablas nativos, agrupación, operaciones y cálculos.
+
+Se retiran 512 líneas de CSS y 108 declaraciones `@apply`, incluida `AssetsTable.css` completa y los estilos sin consumidores del antiguo aviso de desarrollo. Las tres hojas pasan de 569 a 57 líneas; quedan 7.421 líneas en 57 hojas, un 67,38 % menos que las 22.753 iniciales. Coinciden 72 estados de estilos y pasan 72 combinaciones responsive adicionales, incluidas las tres calculadoras que comparten rejillas. Se conservan animaciones y el tooltip financiero donde todavía necesitan CSS.

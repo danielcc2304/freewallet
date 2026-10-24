@@ -1,3 +1,5 @@
+import { CalculatorGrid } from './CalculatorGrid';
+import { CalculatorProjectionHeader, CalculatorHorizonBadge, CalculatorProjectionSection, CalculatorProjectionResults, CalculatorOptionalInputs, CalculatorProjectionOptions, CalculatorProjectionHint } from './CalculatorProjection';
 
 import { CalculatorNotice } from './CalculatorNotice';
 import { CalculatorEducationCard } from './CalculatorEducationCard';
@@ -12,7 +14,6 @@ import { Info, TrendingUp, Wallet, ShieldCheck, Flame, Banknote } from 'lucide-r
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { getRateConversion } from './compoundInterestUtils';
 import { validateCalculatorInputs } from './calculatorValidation';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './FIRECalculator.css';
 import { ScenarioComparison } from './ScenarioComparison';
 
@@ -312,25 +313,16 @@ export function FIRECalculator() {
 
     return (
         <div className="fire">
-            <AcademyPageHeader className="fire__header" section="Herramientas">
+            <CalculatorProjectionHeader section="Herramientas">
                 <CalculatorToolHeading appearance="fire" icon={<Flame className="fire__title-icon" />} title={<>Calculadora FIRE</>} description={<>Independencia Financiera, Jubilación Temprana</>} />
-                <div className="fire__years-badge">
-                    <span className="fire__years-value">{calculationError ? 'N/D' : yearsToFIRE < 100 ? yearsToFIRE.toFixed(1) : '∞'}</span>
-                    <span className="fire__years-label">Años para FIRE</span>
-                    {includeInflation && !calculationError && (
-                        <div className="fire__years-compare">
+                <CalculatorHorizonBadge value={<>{calculationError ? 'N/D' : yearsToFIRE < 100 ? yearsToFIRE.toFixed(1) : '∞'}</>} label={<>Años para FIRE</>} comparison={includeInflation && !calculationError && <>
                             <span>Sin inflación: {yearsToFIREWithoutInflation < 100 ? `${yearsToFIREWithoutInflation.toFixed(1)}` : '∞'}</span>
                             <span>Con inflación: {yearsToFIREWithInflation < 100 ? `${yearsToFIREWithInflation.toFixed(1)}` : '∞'}</span>
-                        </div>
-                    )}
-                </div>
-            </AcademyPageHeader>
+                        </>} />
+            </CalculatorProjectionHeader>
 
-            <div className="fire__grid">
-                <section className="fire__inputs">
-                    <h2 className="fire__section-title">Parámetros de Simulación</h2>
-
-                    <CalculatorField controlId="firecalculator-monthlyExpenses" label="Gastos Mensuales" icon={<Wallet size={18} />} unit="€" afterControl={<><input
+            <CalculatorGrid variant="fire-grid" >
+                <CalculatorProjectionSection inputs  title={<>Parámetros de Simulación</>}><CalculatorField controlId="firecalculator-monthlyExpenses" label="Gastos Mensuales" icon={<Wallet size={18} />} unit="€" afterControl={<><input
                         type="range"
                         aria-label="Gastos mensuales (deslizador)"
                         min="500"
@@ -347,9 +339,7 @@ export function FIRECalculator() {
                             value={monthlyExpenses}
                             onChange={(e) => setMonthlyExpenses(e.target.value === '' ? '' : Number(e.target.value))}
                         />
-                    </CalculatorField>
-
-                    <CalculatorField controlId="firecalculator-monthlySavings" label="Ahorro Mensual" icon={<Banknote size={18} />} unit="€" afterControl={<><input
+                    </CalculatorField><CalculatorField controlId="firecalculator-monthlySavings" label="Ahorro Mensual" icon={<Banknote size={18} />} unit="€" afterControl={<><input
                         type="range"
                         aria-label="Ahorro mensual (deslizador)"
                         min="0"
@@ -366,18 +356,14 @@ export function FIRECalculator() {
                             value={monthlySavings}
                             onChange={(e) => setMonthlySavings(e.target.value === '' ? '' : Number(e.target.value))}
                         />
-                    </CalculatorField>
-
-                    <CalculatorField controlId="firecalculator-currentSavings" label="Capital Actual" icon={<Banknote size={18} />} unit="€">
+                    </CalculatorField><CalculatorField controlId="firecalculator-currentSavings" label="Capital Actual" icon={<Banknote size={18} />} unit="€">
                         <input
                             id="firecalculator-currentSavings"
                             type="number"
                             value={currentSavings}
                             onChange={(e) => setCurrentSavings(e.target.value === '' ? '' : Number(e.target.value))}
                         />
-                    </CalculatorField>
-
-                    <div className="fire__input-grid">
+                    </CalculatorField><CalculatorGrid variant="fire-fields" >
                         <CalculatorField controlId="firecalculator-annualReturn" label="Rentab. Anual (CAGR)" icon={<TrendingUp size={18} />} unit="%">
                             <input
                                 id="firecalculator-annualReturn"
@@ -394,20 +380,14 @@ export function FIRECalculator() {
                                 onChange={(e) => setWithdrawalRate(e.target.value === '' ? '' : Number(e.target.value))}
                             />
                         </CalculatorField>
-                    </div>
-
-                    <div className="fire__optional-card">
-                        <CalculatorOption appearance="fire" control={<input
+                    </CalculatorGrid><CalculatorOptionalInputs control={<CalculatorOption appearance="fire" control={<input
                                 type="checkbox"
                                 checked={includeInflation}
                                 onChange={(e) => setIncludeInflation(e.target.checked)}
-                            />} label={<>Ajustar por inflación</>} description={<>Activa la proyección en euros de hoy o con objetivo ajustado por inflación.</>} />
-
-                        {includeInflation && (
-                            <div className="fire__optional-content">
-                                <CalculatorField controlId="firecalculator-inflationRate" label="Inflación Anual" icon={<Info size={18} />} unit="%" afterControl={<><small className="fire__input-hint">
+                            />} label={<>Ajustar por inflación</>} description={<>Activa la proyección en euros de hoy o con objetivo ajustado por inflación.</>} />} enabled={includeInflation}>
+                                <CalculatorField controlId="firecalculator-inflationRate" label="Inflación Anual" icon={<Info size={18} />} unit="%" afterControl={<><CalculatorProjectionHint >
                                     Rentabilidad real estimada: {calculationError || !Number.isFinite(realAnnualReturn) ? 'N/D' : `${realAnnualReturn.toFixed(2)}% anual`}.
-                                </small></>}>
+                                </CalculatorProjectionHint></>}>
                                     <input
                                         id="firecalculator-inflationRate"
                                         type="number"
@@ -416,30 +396,21 @@ export function FIRECalculator() {
                                     />
                                 </CalculatorField>
 
-                                <div className="calc__input-group fire__optional-group">
-                                    <label>Modo de Proyección</label>
-                                    <div className="fire__projection-toggle">
+                                <CalculatorProjectionOptions label={<>Modo de Proyección</>} hint={<>
+                                        Euros de hoy = valor constante actual. Ajustado por inflación = capital futuro necesario para mantener ese nivel de gasto.
+                                    </>}><CalculatorGrid variant="fire-projection" >
                                         <CalculatorChoice appearance="fire" selected={projectionMode === 'nominal'} type="button" onClick={() => setProjectionMode('nominal')} label={<>
                                             Ajustado
                                             </>} description={<>Por inflación</>} />
                                         <CalculatorChoice appearance="fire" selected={projectionMode === 'real'} type="button" onClick={() => setProjectionMode('real')} label={<>
                                             Euros de hoy
                                             </>} description={<>Valor constante</>} />
-                                    </div>
-                                    <small className="fire__input-hint">
-                                        Euros de hoy = valor constante actual. Ajustado por inflación = capital futuro necesario para mantener ese nivel de gasto.
-                                    </small>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                                    </CalculatorGrid></CalculatorProjectionOptions>
+                            </CalculatorOptionalInputs><CalculatorNotice appearance="fire" icon={<Info size={16} />}>La <strong>Regla del 4%</strong> sugiere que puedes retirar el 4% de tu capital anualmente ajustado por inflación durante 30 años sin agotar tus fondos.</CalculatorNotice></CalculatorProjectionSection>
 
-                    <CalculatorNotice appearance="fire" icon={<Info size={16} />}>La <strong>Regla del 4%</strong> sugiere que puedes retirar el 4% de tu capital anualmente ajustado por inflación durante 30 años sin agotar tus fondos.</CalculatorNotice>
-                </section>
-
-                <main className="fire__results">
+                <CalculatorProjectionResults >
                     {calculationError ? <p role="alert">{calculationError}</p> : <>
-                    <div className="fire__metrics">
+                    <CalculatorGrid variant="fire-metrics" >
                             <CalculatorResultCard layout="centered" className="fire__metric-card fire__metric-card--lean" accent="amber"
                                 label="Lean FIRE (80%)" value={<>{formatFIRECurrency(displayedLeanFireNumber)}</>} description={<>{metricDescriptor}</>}
                                 slotClasses={{ label: 'fire__metric-label', value: 'fire__metric-value', description: 'fire__metric-desc' }} />
@@ -449,7 +420,7 @@ export function FIRECalculator() {
                             <CalculatorResultCard layout="centered" className="fire__metric-card fire__metric-card--fat" accent="purple"
                                 label="Fat FIRE (150%)" value={<>{formatFIRECurrency(displayedFatFireNumber)}</>} description={<>{metricDescriptor}</>}
                                 slotClasses={{ label: 'fire__metric-label', value: 'fire__metric-value', description: 'fire__metric-desc' }} />
-                    </div>
+                    </CalculatorGrid>
 
                     <CalculatorChart appearance="fire" title={<>Proyección de Patrimonio vs Objetivo</>} badge={<>{projectionDescriptor}</>}>
                             <ResponsiveContainer width="100%" height="100%">
@@ -518,17 +489,14 @@ export function FIRECalculator() {
                             { label: 'Tiempo hasta FIRE', value: Number.isFinite(yearsToFIRE) ? `${yearsToFIRE.toLocaleString('es-ES', { maximumFractionDigits: 1 })} ${yearsToFIRE === 1 ? 'año' : 'años'}` : 'No se alcanza en 100 años' },
                         ],
                     }} />
-                </main>
-            </div>
+                </CalculatorProjectionResults>
+            </CalculatorGrid>
 
-            <section className="fire__theory">
-                <h2 className="fire__section-title">Entendiendo el camino al FIRE</h2>
-                <div className="fire__theory-grid">
+            <CalculatorProjectionSection className="fire__theory"  title={<>Entendiendo el camino al FIRE</>}><CalculatorGrid variant="fire-theory" >
                     <CalculatorEducationCard appearance="fire" icon={<Wallet  />} title={<>La Regla de los 25</>}>Tu número FIRE es multiplicar tus gastos anuales por 25. Eso equivale a retirar aproximadamente un 4% anual.</CalculatorEducationCard>
                     <CalculatorEducationCard appearance="fire" icon={<TrendingUp  />} title={<>La Tasa de Ahorro</>}>Es el factor más determinante. Cuanto mayor sea el porcentaje que ahorras sobre tus ingresos netos, más rápido alcanzarás la libertad.</CalculatorEducationCard>
                     <CalculatorEducationCard appearance="fire" icon={<ShieldCheck  />} title={<>Fase de Retirada</>}>Al llegar a FIRE, el rendimiento de tus inversiones debería cubrir tus gastos, permitiéndote decidir si quieres seguir trabajando.</CalculatorEducationCard>
-                </div>
-            </section>
+                </CalculatorGrid></CalculatorProjectionSection>
         </div>
     );
 }

@@ -12,6 +12,20 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-24 - Tailwind: tabla de activos, formulario y proyección FIRE
+- Funcionalidad:
+  - Comparte la tabla responsive de Mis activos: tarjeta, filas, celdas, filtros, ordenación, detalles y acciones móviles, estimaciones y botones sobre las piezas existentes.
+  - Compone formulario de inversión, búsqueda, disponibilidad, filas de campos y éxito con `Card`, `CardHeader` y `CardContent`.
+  - Amplía `CalculatorGrid` y extrae encabezado, horizonte, paneles, opciones de inflación y ayudas de FIRE.
+- Resumen:
+  - Retira 512 líneas de CSS fuente y 108 declaraciones `@apply`, incluida la hoja `AssetsTable.css` completa y estilos sin consumidores del antiguo aviso de desarrollo de Añadir activo.
+  - Las tres hojas pasan de 569 a 57 líneas; quedan 7.421 líneas en 57 hojas, una reducción acumulada del 67,38 %. La cifra no equivale a ahorro de descarga.
+  - Conserva cálculos, operaciones, persistencia, eventos y controles nativos. Coinciden 72 estados de estilos y pasan 72 combinaciones responsive, pruebas de agrupación, efectivo/TAE y calculadoras, TypeScript, ESLint y build.
+- Archivos:
+  - `src/components/dashboard/AssetsTable.tsx`, `src/components/dashboard/ui/DashboardAssetsGrid*`; elimina `AssetsTable.css`.
+  - `src/pages/AddInvestment/AddInvestment.*`, `src/components/ui/InvestmentForm*`.
+  - `src/components/academy/calculators/{FIRECalculator,CalculatorGrid,CalculatorProjection}*`, `CalculatorFIRELayout.styles.ts`.
+
 ### 2026-10-24 - Tailwind: simuladores y Heatmap de mercados
 - Funcionalidad:
   - Comparte cabeceras de Estrategia y cartera y Simulador de cartera sobre `AcademyPageHeader`.

@@ -1,3 +1,4 @@
+import { InvestmentForm, InvestmentFieldsRow, InvestmentAvailability, InvestmentSearchArea, InvestmentSearchResults, InvestmentSearchLoading, InvestmentSuccess } from '../../components/ui/InvestmentForm';
 import { ActionGroup } from '../../components/ui/ActionGroup';
 import { InvestmentSearchOption, InvestmentSelection, InvestmentQuote, InvestmentNotice, InvestmentTotal } from '../../components/ui/InvestmentFeedback';
 import { FormField, FieldHint } from '../../components/ui/FormField';
@@ -6,7 +7,7 @@ import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
 import type { DashboardNavigationContext } from '../../components/layout/MainLayout/dashboardNavigation';
 import axios from 'axios';
 import { Search, Coins, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp, Wrench, Loader2 } from 'lucide-react';
-import { Card, CardHeader, CardContent, Input, Button, inputStyles } from '../../components/ui';
+import { Input, Button, inputStyles } from '../../components/ui';
 import { searchSymbol, getQuote, getAssetChartData } from '../../services/apiService';
 import { OPERATION_CURRENCIES, historicalOperationRate, operationEuroPrice } from '../../services/operationCurrency';
 import { normalizeQuoteToEuro } from '../../services/portfolioQuoteService';
@@ -538,23 +539,13 @@ export function AddInvestment() {
 
     if (submitSuccess) {
         return (
-            <div className="add-investment add-investment--success">
-                <Card className="success-card">
-                    <CardContent>
-                        <div className="success-content">
-                            <div className="success-content__icon">
+            <InvestmentSuccess icon={<>
                                 <Check size={48} />
-                            </div>
-                            <h2>
+                            </>} title={<>
                                 {isEditMode ? '¡Activo Actualizado!' :
                                     isDcaMode ? '¡Compra Añadida!' : isSellMode ? '¡Venta registrada!' : '¡Inversión Añadida!'}
-                            </h2>
-                            <p>{formData.name || formData.symbol} se ha {isEditMode ? 'actualizado' :
-                                (isDcaMode ? 'promediado' : isSellMode ? 'actualizado tras la venta' : 'añadido')} correctamente</p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+                            </>}>{formData.name || formData.symbol} se ha {isEditMode ? 'actualizado' :
+                                (isDcaMode ? 'promediado' : isSellMode ? 'actualizado tras la venta' : 'añadido')} correctamente</InvestmentSuccess>
         );
     }
 
@@ -584,13 +575,7 @@ export function AddInvestment() {
                 </Button>
             </div>
 
-            <Card className="add-investment__form-card">
-                <CardHeader
-                    title={getPageTitle()}
-                    subtitle={getPageSubtitle()}
-                />
-                <CardContent>
-                    <form onSubmit={handleSubmit} className="add-investment__form">
+            <InvestmentForm title={getPageTitle()} subtitle={getPageSubtitle()} onSubmit={handleSubmit}>
                         {!apiEnabled && (
                             <InvestmentNotice appearance="manual" icon={<Wrench size={16} />}><span>
                                     Las APIs estan desactivadas. Esta pantalla funciona en modo manual mientras el dashboard sigue en construccion.
@@ -627,7 +612,7 @@ export function AddInvestment() {
                         <FormField className="form-group form-group--search" label={<>Busca el activo</>} labelClassName="form-label">
 
                             <FieldHint className="form-hint">Escribe el nombre, ticker o ISIN. Te mostraremos coincidencias mientras escribes.</FieldHint>
-                            <div className="search-container">
+                            <InvestmentSearchArea >
                                 <Input
                                     placeholder="Apple, AAPL, Fidelity, IE00BYX5NX33…"
                                     value={searchQuery}
@@ -642,14 +627,14 @@ export function AddInvestment() {
                                     aria-controls="investment-search-results"
                                 />
                                 {showResults && searchResults.length > 0 && (
-                                    <ul id="investment-search-results" className="search-results" role="listbox">
+                                    <InvestmentSearchResults id="investment-search-results" role="listbox">
                                         {searchResults.map((result, index) => (
                                             <InvestmentSearchOption selected={index === highlightedResult} key={result.symbol} role="option" aria-selected={index === highlightedResult} onMouseEnter={() => setHighlightedResult(index)} onMouseDown={(event) => event.preventDefault()} onPointerDown={(event) => event.preventDefault()} onClick={() => void handleSelectResult(result)} symbol={<>{result.symbol}</>} name={<>{result.name}</>} kind={<>{assetTypes.find((type) => type.value === result.type)?.label || result.type}</>} />
                                         ))}
-                                    </ul>
+                                    </InvestmentSearchResults>
                                 )}
                                 {isSearching && (
-                                    <div className="search-loading"><Loader2 size={16} className="search-loading__spinner" /> Buscando coincidencias…</div>
+                                    <InvestmentSearchLoading icon={<Loader2 size={16} className="search-loading__spinner" />}> Buscando coincidencias…</InvestmentSearchLoading>
                                 )}
                                 {/* No results found - show manual entry option */}
                                 {!manualMode && !isSearching && searchQuery.trim().length >= 1 && !targetAsset && (
@@ -667,7 +652,7 @@ export function AddInvestment() {
                                                     : 'Puedes añadir este activo manualmente.'}
                                             </InvestmentNotice>
                                 )}
-                            </div>
+                            </InvestmentSearchArea>
                             {/* Selected asset indicator */}
                             {formData.name && !manualMode && (
                                 <InvestmentSelection icon={<Check size={17} />} symbol={<>{formData.symbol}</>} name={<>{formData.name}</>} kind={<>
@@ -720,9 +705,9 @@ export function AddInvestment() {
                             <FieldHint className="form-hint">La cartera se contabiliza en euros. La liquidez se registra en EUR.</FieldHint>
                         </FormField>
                         {isSellMode && assetToSell && (
-                            <p className="position-availability">Disponible para vender: <strong>{assetToSell.quantity}</strong> participaciones</p>
+                            <InvestmentAvailability label="Disponible para vender: " value={<>{assetToSell.quantity}</>} />
                         )}
-                        <div className="form-row">
+                        <InvestmentFieldsRow >
                             <FormField className="form-group">
                                 <Input
                                     label={`${isSellMode ? 'Precio de venta' : 'Precio de compra'} (${currency})`}
@@ -762,7 +747,7 @@ export function AddInvestment() {
                                     error={errors.purchaseDate}
                                 />
                             </FormField>
-                        </div>
+                        </InvestmentFieldsRow>
 
                         {formData.type === 'cash' && !isSellMode && !isDcaMode && <FormField className="form-group">
                             <Input label="TAE de la cuenta (%)" type="number" min="0" step="any" placeholder="Ej. 2,5" value={formData.cashTae}
@@ -805,9 +790,7 @@ export function AddInvestment() {
                                     isDcaMode ? 'Añadir compra' : isSellMode ? 'Registrar venta' : 'Añadir inversión'}
                             </Button>
                         </ActionGroup>
-                    </form>
-                </CardContent>
-            </Card>
+                    </InvestmentForm>
         </div>
     );
 }

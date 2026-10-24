@@ -1,9 +1,15 @@
+import { fireLayoutStyle } from './CalculatorFIRELayout.styles';
 import type { HTMLAttributes } from 'react';
 import { cn } from '../../../utils/cn';
 import { SalaryCalculatorLayout } from './SalaryCalculatorLayout.styles';
 import { BondCalculatorLayout } from './BondCalculatorLayout.styles';
 import { FundInformationCalculatorLayout } from './FundInformationCalculatorLayout.styles';
 const layouts = {
+'fire-grid':fireLayoutStyle('fire__grid'),
+'fire-fields':fireLayoutStyle('fire__input-grid'),
+'fire-metrics':fireLayoutStyle('fire__metrics'),
+'fire-theory':fireLayoutStyle('fire__theory-grid'),
+'fire-projection':fireLayoutStyle('fire__projection-toggle'),
     'payroll-layout': SalaryCalculatorLayout('salary-calc__layout'),
     'payroll-fields': SalaryCalculatorLayout('salary-calc__fields'),
     'payroll-payment-comparison': SalaryCalculatorLayout('salary-calc__payment-comparison'),

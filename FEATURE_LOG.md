@@ -12,6 +12,18 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-23 - Tailwind: posiciones, controles y estructuras compartidas
+- Funcionalidad:
+  - Comparte celdas de activos, variaciones, pesos, datos móviles, cabeceras y secciones del detalle en Dashboard.
+  - Reutiliza controles nativos entre Ajustes y Portfolio, `FormField` en Ajustes y `ActionGroup` en Añadir activo; extrae preferencias, resultados de búsqueda, selección, cotización y avisos.
+  - Comparte fichas y tarjetas de las cinco guías de activos, controles del mapa de calor, filas de posiciones y objetivos de Portfolio, y filas, calendario, buscador, selector mensual, exportación y ayuda de importación de gastos.
+- Resumen:
+  - Retira 938 líneas de CSS fuente y 272 declaraciones `@apply`. Quedan 11.614 líneas en 58 hojas: reducción acumulada del 48,96 % respecto al inicio.
+  - Mantiene datos, cálculos, consultas, controles nativos, referencias, callbacks y almacenamiento en los módulos originales.
+  - Estabiliza la prueba de regreso al Dashboard esperando que las acciones y los lotes estén visibles antes de continuar.
+- Archivos:
+  - src/components/dashboard/{AssetsTable,AssetDetail,ui}; src/components/ui/{PreferenceOption,InvestmentFeedback,NativeControl,ActionGroup}; src/components/academy/{assets,tools/MarketHeatmap,ui}; src/pages/{AddInvestment,Settings,PortfolioCsv}; src/components/expenses/{ExpenseManager,ExpenseImportDialog,ui}; scripts/{test-dashboard-edit-return-ui,test-dashboard-market-polish}.ts; README.md; documentación de Tailwind.
+
 ### 2026-10-23 - Tailwind: calculadoras, viaje inversor y categorías de activos
 - Funcionalidad:
   - Comparte cabeceras, opciones, gráficos, leyendas, avisos y detalle anual con estructura y estilos Tailwind en interés compuesto, FIRE y jubilación.

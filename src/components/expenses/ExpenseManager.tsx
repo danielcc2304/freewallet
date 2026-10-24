@@ -1,3 +1,7 @@
+import { ExpenseCalendarDay } from './ui/ExpenseRecords';
+
+import { ExpenseMonthPicker, ExpenseExportMenu, ExpenseRecordRow, ExpenseBudgetNumber, ExpenseSearch } from './ui/ExpenseRecords';
+
 import { DataTable } from '../ui/DataTable';
 import { ExpenseProgress as Progress } from './ui/ExpenseProgress';
 import { ExpenseEmptyState as Empty } from './ui/ExpenseEmptyState';
@@ -350,18 +354,21 @@ export default function ExpenseManager() {
     };
     const toolbar = (
         <div className="expense-toolbar">
-            <div className="expense-month">
-                <button
+            <ExpenseMonthPicker previous={<button
                     type="button"
                     aria-label="Mes anterior"
                     disabled={month <= '2000-01'}
                     onClick={() => changeMonth(shiftMonth(month, -1))}
                 >
                     <ChevronLeft size={18} />
-                </button>
-                <label>
-                    <span className="expense-sr">Mes seleccionado</span>
-                    <input
+                </button>} next={<button
+                    type="button"
+                    aria-label="Mes siguiente"
+                    disabled={month >= '2199-12'}
+                    onClick={() => changeMonth(shiftMonth(month, 1))}
+                >
+                    <ChevronRight size={18} />
+                </button>} label={<>Mes seleccionado</>} control={<input
                         type="month"
                         min="2000-01"
                         max="2199-12"
@@ -369,17 +376,7 @@ export default function ExpenseManager() {
                         onChange={(e) => {
                             if (e.target.value) changeMonth(e.target.value);
                         }}
-                    />
-                </label>
-                <button
-                    type="button"
-                    aria-label="Mes siguiente"
-                    disabled={month >= '2199-12'}
-                    onClick={() => changeMonth(shiftMonth(month, 1))}
-                >
-                    <ChevronRight size={18} />
-                </button>
-            </div>
+                    />} />
             <ExpenseActions variant="toolbar" className="expense-toolbar-actions">
                 <ExpenseButton variant="secondary"
                     type="button"
@@ -396,18 +393,13 @@ export default function ExpenseManager() {
                     <FileUp size={16} />
                     Importar
                 </ExpenseButton>
-                <details
-                    className="expense-export-menu"
-                    onClick={(event) => {
+                <ExpenseExportMenu onClick={(event) => {
                         if ((event.target as Element).closest('button'))
                             event.currentTarget.open = false;
-                    }}
-                >
-                    <summary>
+                    }} summary={<>
                         <Download size={16} />
                         Exportar
-                    </summary>
-                    <div>
+                    </>}>
                         <button onClick={exportBackup}>
                             Exportar copia completa (JSON)
                         </button>
@@ -435,8 +427,7 @@ export default function ExpenseManager() {
                         >
                             Descargar plantilla CSV
                         </button>
-                    </div>
-                </details>
+                    </ExpenseExportMenu>
                 <ExpenseButton
                     className="expense-btn"
                     disabled={!editable}
@@ -545,7 +536,7 @@ export default function ExpenseManager() {
                                 : 0;
                         return (
                             <ExpenseCard className="expense-goal" key={g.id}>
-                                <div className="expense-row">
+                                <ExpenseRecordRow >
                                     <h3>{g.name}</h3>
                                     <ExpenseActions variant="row" className="expense-row-actions">
                                         <ExpenseIconButton
@@ -581,7 +572,7 @@ export default function ExpenseManager() {
                                             <Trash2 size={15} />
                                         </ExpenseIconButton>
                                     </ExpenseActions>
-                                </div>
+                                </ExpenseRecordRow>
                                 <strong>
                                     {money(g.savedCents)}{' '}
                                     <small>de {money(g.targetCents)}</small>
@@ -894,13 +885,10 @@ export default function ExpenseManager() {
                             </ExpensePanelHeading>
                             {stats.budget ? (
                                 <>
-                                    <div className="expense-budget-number">
-                                        <strong>{money(stats.expenses)}</strong>
-                                        <span>
+                                    <ExpenseBudgetNumber value={<>{money(stats.expenses)}</>}>
                                             de {money(stats.budget.limitCents)}{' '}
                                             previstos
-                                        </span>
-                                    </div>
+                                        </ExpenseBudgetNumber>
                                     <Progress
                                         value={stats.expenses}
                                         limit={stats.budget.limitCents}
@@ -1049,20 +1037,12 @@ export default function ExpenseManager() {
                             {pending.length ? (
                                 <div className="expense-upcoming">
                                     {pending.slice(0, 5).map((p) => (
-                                        <div
-                                            className="expense-row"
-                                            key={`${p.rule.id}:${p.date}`}
-                                        >
-                                            <div>
-                                                <strong>{p.rule.title}</strong>
-                                                <small>
+                                        <ExpenseRecordRow key={`${p.rule.id}:${p.date}`} title={<>{p.rule.title}</>} detail={<>
                                                     {dayLabel(p.date)} ·{' '}
                                                     {p.date < today
                                                         ? 'Pendiente de confirmar'
                                                         : 'Previsto'}
-                                                </small>
-                                            </div>
-                                            <strong
+                                                </>}><strong
                                                 className={
                                                     p.rule.kind === 'income'
                                                         ? 'expense-positive'
@@ -1073,8 +1053,7 @@ export default function ExpenseManager() {
                                                     ? '+'
                                                     : '−'}
                                                 {money(p.rule.amountCents)}
-                                            </strong>
-                                        </div>
+                                            </strong></ExpenseRecordRow>
                                     ))}
                                 </div>
                             ) : (
@@ -1109,19 +1088,9 @@ export default function ExpenseManager() {
                                               )
                                         : 0;
                                 return (
-                                    <div
-                                        key={date}
-                                        className={
-                                            cents > 0
-                                                ? 'expense-calendar-day expense-calendar-day--spent'
-                                                : 'expense-calendar-day'
-                                        }
-                                    >
-                                        <span>{i + 1}</span>
-                                        <strong>
+                                    <ExpenseCalendarDay key={date} spent={cents > 0} label={<>{i + 1}</>} value={<>
                                             {cents ? money(cents) : '—'}
-                                        </strong>
-                                    </div>
+                                        </>} />
                                 );
                             })}
                         </div>
@@ -1154,21 +1123,7 @@ export default function ExpenseManager() {
                         </ExpenseActions>
                     </ExpensePanelHeading>
                     <div className="expense-filters">
-                        <label className="expense-search">
-                            <Search size={17} />
-                            <span className="expense-sr">
-                                Buscar concepto o nota
-                            </span>
-                            <input
-                                type="search"
-                                value={query}
-                                onChange={(e) => {
-                                    setQuery(e.target.value);
-                                    setPage(0);
-                                }}
-                                placeholder="Buscar concepto o nota"
-                            />
-                        </label>
+                        <ExpenseSearch icon={<Search size={17} />} label="Buscar concepto o nota" type="search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(0); }} placeholder="Buscar concepto o nota" />
                         <ExpenseField labelProps={{ className: 'expense-sr' }} label={<>
                                 Tipo de movimiento
                              </>} className="expense-field">
@@ -1261,20 +1216,15 @@ export default function ExpenseManager() {
                                             className="expense-mobile-entry"
                                             key={e.id}
                                         >
-                                            <div className="expense-row">
-                                                <div>
-                                                    <strong>
+                                            <ExpenseRecordRow  title={<>
                                                         {e.description}
-                                                    </strong>
-                                                    <small>
+                                                    </>} detail={<>
                                                         {dayLabel(e.date)} ·{' '}
                                                         {kindLabels[e.kind]}
                                                         {e.date > today
                                                             ? ' · Previsto'
                                                             : ''}
-                                                    </small>
-                                                </div>
-                                                <strong
+                                                    </>}><strong
                                                     className={
                                                         e.kind === 'income' ||
                                                         e.kind === 'refund'
@@ -1288,9 +1238,8 @@ export default function ExpenseManager() {
                                                           ? ''
                                                           : '+'}
                                                     {money(e.amountCents)}
-                                                </strong>
-                                            </div>
-                                            <div className="expense-row">
+                                                </strong></ExpenseRecordRow>
+                                            <ExpenseRecordRow >
                                                 <p className="expense-hint">
                                                     {accountName(e.accountId)}
                                                     {e.toAccountId
@@ -1336,7 +1285,7 @@ export default function ExpenseManager() {
                                                         <Trash2 size={16} />
                                                     </ExpenseIconButton>
                                                 </ExpenseActions>
-                                            </div>
+                                            </ExpenseRecordRow>
                                             {e.tags.length > 0 && (
                                                 <small>
                                                     {e.tags.join(' · ')}
@@ -1587,16 +1536,13 @@ export default function ExpenseManager() {
                             </ExpensePanelHeading>
                             {stats.budget ? (
                                 <>
-                                    <div className="expense-budget-number">
-                                        <strong>
+                                    <ExpenseBudgetNumber value={<>
                                             {money(stats.budget.limitCents)}
-                                        </strong>
-                                        <span>
+                                        </>}>
                                             {stats.budget.month === 'default'
                                                 ? 'Presupuesto base'
                                                 : 'Presupuesto de este mes'}
-                                        </span>
-                                    </div>
+                                        </ExpenseBudgetNumber>
                                     <Progress
                                         value={stats.expenses}
                                         limit={stats.budget.limitCents}
@@ -1716,7 +1662,7 @@ export default function ExpenseManager() {
                                         className="expense-allocation"
                                         key={group}
                                     >
-                                        <div className="expense-row">
+                                        <ExpenseRecordRow >
                                             <span>{groupLabels[group]}</span>
                                             <strong>
                                                 {money(cents)}{' '}
@@ -1727,7 +1673,7 @@ export default function ExpenseManager() {
                                                         : 'sin ingresos'}
                                                 </small>
                                             </strong>
-                                        </div>
+                                        </ExpenseRecordRow>
                                         <Progress
                                             value={cents}
                                             limit={target}
@@ -1737,7 +1683,7 @@ export default function ExpenseManager() {
                                 );
                             })}
                             <div className="expense-allocation">
-                                <div className="expense-row">
+                                <ExpenseRecordRow >
                                     <span>
                                         Ahorro disponible + inversión registrada
                                     </span>
@@ -1756,7 +1702,7 @@ export default function ExpenseManager() {
                                                     ),
                                         )}
                                     </strong>
-                                </div>
+                                </ExpenseRecordRow>
                                 <p className="expense-hint">
                                     Referencia:{' '}
                                     {stats.income
@@ -1791,7 +1737,7 @@ export default function ExpenseManager() {
                                         className="expense-category-card"
                                         key={c.id}
                                     >
-                                        <div className="expense-row">
+                                        <ExpenseRecordRow >
                                             <span>
                                                 <i
                                                     className="expense-color-dot"
@@ -1814,7 +1760,7 @@ export default function ExpenseManager() {
                                             >
                                                 <Pencil size={15} />
                                             </ExpenseIconButton>
-                                        </div>
+                                        </ExpenseRecordRow>
                                         <strong>
                                             {money(c.cents)}
                                             <small>
@@ -1881,21 +1827,13 @@ export default function ExpenseManager() {
                         {pending.length ? (
                             <div className="expense-upcoming">
                                 {pending.map((p) => (
-                                    <div
-                                        className="expense-row expense-due-row"
-                                        key={`${p.rule.id}:${p.date}`}
-                                    >
-                                        <div>
-                                            <strong>{p.rule.title}</strong>
-                                            <small>
+                                    <ExpenseRecordRow key={`${p.rule.id}:${p.date}`} className="expense-due-row" title={<>{p.rule.title}</>} detail={<>
                                                 {dayLabel(p.date)} ·{' '}
                                                 {accountName(p.rule.accountId)}
                                                 {p.date < today
                                                     ? ' · Pendiente'
                                                     : ''}
-                                            </small>
-                                        </div>
-                                        <strong
+                                            </>}><strong
                                             className={
                                                 p.rule.kind === 'income'
                                                     ? 'expense-positive'
@@ -1906,8 +1844,7 @@ export default function ExpenseManager() {
                                                 ? '+'
                                                 : '−'}
                                             {money(p.rule.amountCents)}
-                                        </strong>
-                                        <ExpenseActions variant="toolbar" className="expense-actions">
+                                        </strong><ExpenseActions variant="toolbar" className="expense-actions">
                                             <ExpenseButton variant="secondary"
                                                 className="expense-btn expense-btn--secondary"
                                                 disabled={!editable}
@@ -1953,8 +1890,7 @@ export default function ExpenseManager() {
                                             >
                                                 Omitir
                                             </ExpenseButton>
-                                        </ExpenseActions>
-                                    </div>
+                                        </ExpenseActions></ExpenseRecordRow>
                                 ))}
                             </div>
                         ) : (
@@ -1968,13 +1904,7 @@ export default function ExpenseManager() {
                         <ExpensePanelTitle>Tus reglas recurrentes</ExpensePanelTitle>
                         {book.recurring.length ? (
                             book.recurring.map((r) => (
-                                <div
-                                    className="expense-row expense-rule-row"
-                                    key={r.id}
-                                >
-                                    <div>
-                                        <strong>{r.title}</strong>
-                                        <small>
+                                <ExpenseRecordRow key={r.id} className="expense-rule-row" title={<>{r.title}</>} detail={<>
                                             {money(r.amountCents)} ·{' '}
                                             {
                                                 {
@@ -1994,9 +1924,7 @@ export default function ExpenseManager() {
                                             {r.endDate
                                                 ? ` · Hasta ${dayLabel(r.endDate)}`
                                                 : ''}
-                                        </small>
-                                    </div>
-                                    <ExpenseActions variant="row" className="expense-row-actions">
+                                        </>}><ExpenseActions variant="row" className="expense-row-actions">
                                         <ExpenseIconButton
                                             disabled={
                                                 !editable ||
@@ -2056,8 +1984,7 @@ export default function ExpenseManager() {
                                         >
                                             <Trash2 size={16} />
                                         </ExpenseIconButton>
-                                    </ExpenseActions>
-                                </div>
+                                    </ExpenseActions></ExpenseRecordRow>
                             ))
                         ) : (
                             <Empty title="Automatiza los recordatorios">
@@ -2090,7 +2017,7 @@ export default function ExpenseManager() {
                         <ExpenseGrid variant="accounts" className="expense-accounts">
                             {book.accounts.map((a) => (
                                 <ExpenseCard as="article" className="expense-account" key={a.id}>
-                                    <div className="expense-row">
+                                    <ExpenseRecordRow >
                                         <span className="expense-account-icon">
                                             <WalletCards size={23} />
                                         </span>
@@ -2171,7 +2098,7 @@ export default function ExpenseManager() {
                                                     : 'Archivar'}
                                             </ExpenseIconButton>
                                         </ExpenseActions>
-                                    </div>
+                                    </ExpenseRecordRow>
                                     <h3>{a.name}</h3>
                                     <strong
                                         className={

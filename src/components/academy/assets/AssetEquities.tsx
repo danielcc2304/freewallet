@@ -1,3 +1,5 @@
+import { AcademyFactCard, AcademyFinalTip } from '../ui/AcademyAssetExplainers';
+
 import { AssetCategoryCard } from '../ui/AssetCategoryCard';
 import { AcademyExplainerCard } from '../ui/AcademyExplainerCard';
 import { AcademyListCard } from '../ui/AcademyListCard';
@@ -6,7 +8,6 @@ import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
 import { AcademySection } from '../ui/AcademySection';
 import { AcademyGrid } from '../ui/AcademyGrid';
-import { AcademyPanel } from '../ui/AcademyPanel';
 import { Link } from 'react-router-dom';
 import {
     TrendingUp, ArrowLeft, Globe, Zap, CheckCircle2, AlertTriangle,
@@ -176,11 +177,7 @@ export function AssetEquities() {
                 </p>
                 <AcademyGrid variant="geography" className="asset-page__geo-grid">
                     {GEOGRAPHIC_ZONES.map(zone => (
-                        <AcademyPanel variant="geography" key={zone.name} className="geo-card" style={{ borderLeftColor: zone.color }}>
-                            <h4 style={{ color: zone.color }}>{zone.name}</h4>
-                            <p className="geo-card__region">{zone.region}</p>
-                            <p className="geo-card__weight">{zone.weight}</p>
-                        </AcademyPanel>
+                        <AcademyFactCard appearance="geography" key={zone.name} style={{ borderLeftColor: zone.color }} labelStyle={{ color: zone.color }} label={<>{zone.name}</>} value={<>{zone.region}</>} description={<>{zone.weight}</>} />
                     ))}
                 </AcademyGrid>
 
@@ -265,17 +262,11 @@ export function AssetEquities() {
             </AcademySection>
 
             {/* Final tip */}
-            <section className="asset-page__final-tip">
-                <Lightbulb size={28} />
-                <div>
-                    <h3>Consejo Final</h3>
-                    <p>
+            <AcademyFinalTip as="section" icon={<Lightbulb size={28} />} title={<>Consejo Final</>}>
                         Para la mayoría de inversores, un <strong>ETF indexado global (MSCI World o FTSE All-World)</strong> es
                         la forma más eficiente de acceder a renta variable. Simplicidad, diversificación máxima y costes
                         mínimos. No intentes batir al mercado: únete a él.
-                    </p>
-                </div>
-            </section>
+                    </AcademyFinalTip>
         </div>
     );
 }

@@ -1,3 +1,4 @@
+import { ExpenseImportHelp } from './ui/ExpenseRecords';
 import { DataTable } from '../ui/DataTable';
 import { ExpenseField } from './ui/ExpenseField';
 import { ExpenseCheckbox } from './ui/ExpenseCheckbox';
@@ -278,9 +279,7 @@ export function ExpenseImportDialog({
                     </select>
                 </ExpenseField>
             </ExpenseGrid>
-            <details className="expense-import-help">
-                <summary>¿Qué significa cada dato de esta pantalla?</summary>
-                <div className="expense-import-help__content">
+            <ExpenseImportHelp summary={<>¿Qué significa cada dato de esta pantalla?</>}>
                     {document.format === 'excel' && (
                         <p>
                             <strong>Hoja del Excel:</strong> elige la pestaña
@@ -369,8 +368,7 @@ export function ExpenseImportDialog({
                         pulsar
                         «Importar movimientos».
                     </p>
-                </div>
-            </details>
+                </ExpenseImportHelp>
             <ExpenseCheckbox className="expense-check">
                 <input
                     type="checkbox"

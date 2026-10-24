@@ -36,7 +36,10 @@ try {
         await page.select('.assets-table__filters select', 'stock');
         await page.click('.assets-table__column--asset .assets-table__sort');
         if (width < 768) await page.click('.assets-table__mobile-toolbar button[title="Editar y gestionar activos"]');
+        // A real user can only manage the group after the responsive actions have rendered.
+        await page.waitForSelector('button[aria-label="Gestionar registros de NXTE.XD"]', { visible: true });
         await page.click('button[aria-label="Gestionar registros de NXTE.XD"]');
+        await page.waitForSelector('tr[data-position-kind="lot"]');
         if (width < 768) await page.click('.assets-table__mobile-toolbar button[title="Ver toda la información"]');
 
         for (const [operation, exit] of [

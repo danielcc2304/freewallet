@@ -1,3 +1,5 @@
+import { NativeControl } from '../../components/ui/NativeControl';
+import { PortfolioHoldingControl, PortfolioTargetField, PortfolioTargetTotal } from './ui/PortfolioControls';
 import { PortfolioPanel } from './ui/PortfolioPanel';
 import { PortfolioButton } from './ui/PortfolioButton';
 import { StatusPill } from '../../components/ui/StatusPill';
@@ -1131,18 +1133,11 @@ export function PortfolioCsv() {
                         <span>Categoría</span>
                     </div>
                     {holdings.map((holding) => (
-                        <div key={holding.asset} className="portfolio-csv-controls-table__row">
-                            <div className="portfolio-csv-controls-table__asset">
-                                <strong>{holding.asset}</strong>
-                                <small>{formatCurrency(holding.amount)}</small>
-                            </div>
-                            <strong>{formatPct(holding.weight)}</strong>
-                            <select className="portfolio-csv-select" value={holding.category} onChange={(event) => setHoldingCategoryOverride(holding.asset, event.target.value as HoldingCategory)}>
+                        <PortfolioHoldingControl key={holding.asset} name={<>{holding.asset}</>} detail={<>{formatCurrency(holding.amount)}</>} weight={<>{formatPct(holding.weight)}</>}><NativeControl appearance="portfolio" as="select" value={holding.category} onChange={(event) => setHoldingCategoryOverride(holding.asset, event.target.value as HoldingCategory)}>
                                 {Object.entries(CATEGORY_LABELS).map(([value, label]) => (
                                     <option key={value} value={value}>{label}</option>
                                 ))}
-                            </select>
-                        </div>
+                            </NativeControl></PortfolioHoldingControl>
                     ))}
                 </div>
             </PortfolioPanel>
@@ -1150,24 +1145,10 @@ export function PortfolioCsv() {
                 <PortfolioPanel title={<><TrendingUp size={18} /> Asignación objetivo</>} description={<>Define el peso deseado para cada bloque.</>}>
                     <div className="portfolio-csv-targets">
                         {(Object.keys(BUCKET_LABELS) as HoldingBucket[]).map((bucket) => (
-                            <label key={bucket} className="portfolio-csv-targets__item">
-                                <span>{BUCKET_LABELS[bucket]}</span>
-                                <input
-                                    className="portfolio-csv-select"
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    step="0.5"
-                                    value={bucketTargets[bucket] ?? 0}
-                                    onChange={(event) => setBucketTarget(bucket, event.target.value)}
-                                />
-                            </label>
+                            <PortfolioTargetField key={bucket} type="number" min="0" max="100" step="0.5" value={bucketTargets[bucket] ?? 0} onChange={(event) => setBucketTarget(bucket, event.target.value)} label={<>{BUCKET_LABELS[bucket]}</>} />
                         ))}
                     </div>
-                    <div className={`portfolio-csv-targets__total ${Math.abs(totalTargetWeight - 100) > 0.01 ? 'portfolio-csv-targets__total--warn' : ''}`}>
-                        <span>Suma objetivo</span>
-                        <strong>{formatPct(totalTargetWeight)}</strong>
-                    </div>
+                    <PortfolioTargetTotal warning={Math.abs(totalTargetWeight - 100) > 0.01} label={<>Suma objetivo</>}>{formatPct(totalTargetWeight)}</PortfolioTargetTotal>
                 </PortfolioPanel>
 
                 <PortfolioPanel title={<><Layers3 size={18} /> Desviación vs Objetivo</>} description={<>Lectura practica para saber que bloque pesa de mas o de menos respecto al plan.</>}>

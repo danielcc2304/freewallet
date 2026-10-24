@@ -64,35 +64,6 @@
     box-shadow: var(--shadow-lg);
 }
 
-.search-results__item {
-    @apply tw:grid tw:grid-cols-[minmax(0,_1fr)_auto] tw:items-center tw:gap-ui-md tw:p-[0.75rem] tw:rounded-[var(--radius-sm)] tw:cursor-pointer;
-    transition: background var(--transition-fast);
-}
-
-.search-results__item:hover,
-.search-results__item--active {
-    @apply tw:ui-fill-muted;
-}
-
-.search-results__identity {
-    @apply tw:grid tw:gap-[0.15rem] tw:min-w-[0];
-}
-
-.search-results__symbol {
-    font-weight: 600;
-    @apply tw:text-accent;
-}
-
-.search-results__name {
-    @apply tw:text-secondary tw:whitespace-nowrap tw:overflow-hidden tw:text-ellipsis;
-}
-
-.search-results__type {
-    @apply tw:text-[length:var(--font-size-xs)] tw:text-muted;
-    text-transform: uppercase;
-    @apply tw:p-[0.25rem_0.5rem] tw:rounded-[999px] tw:ui-fill-panel;
-}
-
 .search-loading {
     @apply tw:absolute tw:top-[100%] tw:left-[0] tw:right-[0] tw:p-ui-sm tw:ui-fill-surface tw:ui-border-strong tw:rounded-control tw:mt-ui-xs tw:ui-row tw:justify-center tw:gap-[0.5rem] tw:text-muted;
 }
@@ -102,69 +73,10 @@
 }
 
 /* Selected Asset */
-.selected-asset {
-    @apply tw:ui-row tw:gap-ui-sm tw:p-[var(--spacing-sm)_var(--spacing-md)];
-    background: var(--color-positive-bg);
-    @apply tw:rounded-control tw:mt-ui-sm;
-    border: 1px solid color-mix(in srgb, var(--color-positive) 28%, transparent);
-    @apply tw:text-positive;
-}
-
-.selected-asset__content {
-    @apply tw:grid tw:gap-[0.1rem] tw:min-w-[0];
-    border: 1px solid color-mix(in srgb, var(--color-positive) 28%, transparent);
-    @apply tw:text-positive;
-}
-
-.selected-asset__content {
-    @apply tw:grid tw:gap-[0.1rem] tw:min-w-[0];
-}
-
-.selected-asset__symbol {
-    font-weight: 600;
-    @apply tw:text-positive;
-}
-
-.selected-asset__name {
-    @apply tw:text-secondary tw:text-[length:var(--font-size-sm)] tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;
-}
 
 /* No Results Found */
-.no-results {
-    @apply tw:flex tw:items-start tw:gap-ui-md tw:p-ui-md tw:ui-fill-surface;
-    border: 1px solid var(--color-warning);
-    @apply tw:rounded-control tw:mt-ui-xs;
-}
-
-.no-results>svg {
-    color: var(--color-warning);
-    @apply tw:shrink-[0] tw:mt-[2px];
-}
-
-.no-results__text {
-    @apply tw:flex-[1];
-}
-
-.no-results__text p {
-    @apply tw:m-[0];
-    font-weight: 500;
-    @apply tw:text-main;
-}
-
-.no-results__text span {
-    @apply tw:text-[length:var(--font-size-sm)] tw:text-muted;
-}
 
 /* Manual Mode Badge */
-.manual-mode-badge {
-    @apply tw:ui-row tw:gap-ui-sm tw:p-[var(--spacing-sm)_var(--spacing-md)];
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
-    border: 1px solid rgba(139, 92, 246, 0.3);
-    @apply tw:rounded-control tw:mt-ui-sm;
-    color: var(--accent-tertiary);
-    @apply tw:text-[length:var(--font-size-sm)];
-    font-weight: 500;
-}
 
 .add-investment__notice {
     @apply tw:ui-stack tw:gap-ui-md tw:text-secondary;
@@ -224,58 +136,8 @@
 }
 
 /* Current Price Banner */
-.current-price-banner {
-    @apply tw:ui-row tw:justify-between tw:p-ui-md;
-    background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(22, 163, 74, 0.1));
-    border: 1px solid rgba(34, 197, 94, 0.3);
-    @apply tw:rounded-control tw:mt-ui-sm;
-}
-
-.current-price-banner__label {
-    @apply tw:text-[length:var(--font-size-sm)];
-    font-weight: 500;
-    @apply tw:text-secondary;
-}
-
-.current-price-banner__value {
-    @apply tw:inline-flex tw:items-center tw:gap-[0.45rem] tw:text-[length:var(--font-size-lg)];
-    font-weight: 600;
-    @apply tw:text-positive;
-}
-
-.quote-warning {
-    @apply tw:ui-row tw:gap-[0.55rem] tw:p-[0.75rem_0.9rem] tw:rounded-control;
-    border: 1px solid color-mix(in srgb, var(--color-warning) 40%, transparent);
-    background: color-mix(in srgb, var(--color-warning) 9%, transparent);
-    @apply tw:text-secondary tw:text-[length:var(--font-size-sm)];
-}
-
-.quote-warning svg {
-    @apply tw:flex-[0_0_auto];
-    color: var(--color-warning);
-}
-
-.operation-total {
-    @apply tw:ui-row tw:justify-between tw:gap-[1rem] tw:p-[0.85rem_1rem] tw:mt-[-0.45rem] tw:rounded-control tw:ui-fill-muted tw:ui-border tw:text-[length:var(--font-size-sm)] tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;
-}
-
-.selected-asset__type {
-    @apply tw:ml-[auto] tw:p-[0.25rem_0.55rem] tw:rounded-[999px];
-    background: color-mix(in srgb, var(--color-positive) 14%, transparent);
-    @apply tw:text-positive tw:text-[length:var(--font-size-xs)];
-    font-weight: 700;
-    @apply tw:whitespace-nowrap;
-}
-
-.operation-total strong {
-    @apply tw:text-main tw:text-[length:var(--font-size-base)] tw:whitespace-nowrap;
-}
 
 /* Form Actions */
-.form-actions {
-    @apply tw:flex tw:gap-ui-md tw:justify-end tw:pt-ui-md;
-    border-top: 1px solid var(--border-primary);
-}
 
 /* Success State */
 .add-investment--success {
@@ -323,22 +185,6 @@
         @apply tw:grid-cols-[1fr] tw:items-stretch;
     }
 
-    .form-actions {
-        @apply tw:flex-col-reverse;
-    }
-
-    .form-actions button {
-        @apply tw:w-full;
-    }
-
-    .no-results {
-        @apply tw:flex-col tw:text-center;
-    }
-
-    .no-results>svg {
-        @apply tw:m-[0_auto];
-    }
-
     .add-investment__notice-title {
         @apply tw:text-[length:1.6rem];
     }
@@ -353,9 +199,5 @@
 
     .add-investment__notice-links a {
         @apply tw:p-[0.9rem_1rem];
-    }
-
-    .operation-total {
-        @apply tw:items-start tw:flex-col;
     }
 }

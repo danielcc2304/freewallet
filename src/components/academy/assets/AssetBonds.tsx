@@ -1,3 +1,5 @@
+import { AcademyFactCard, AcademyDirectionalCard, AcademyCreditCard, AcademyTextCard, AcademyFinalTip } from '../ui/AcademyAssetExplainers';
+
 import { BondCategoryCard } from '../ui/BondCategoryCard';
 import { AcademyListCard } from '../ui/AcademyListCard';
 import { AcademyCallout } from '../ui/AcademyCallout';
@@ -275,36 +277,12 @@ export function AssetBonds() {
                 <div className="bond-anatomy">
                     <h3>Anatomía de un Bono</h3>
                     <AcademyGrid variant="bondAnatomy" className="bond-anatomy__grid">
-                        <AcademyPanel variant="bondAnatomy" className="bond-anatomy__item">
-                            <span className="bond-anatomy__label">Nominal (Face Value)</span>
-                            <span className="bond-anatomy__value">1.000€</span>
-                            <span className="bond-anatomy__desc">Lo que te devuelven al vencimiento</span>
-                        </AcademyPanel>
-                        <AcademyPanel variant="bondAnatomy" className="bond-anatomy__item">
-                            <span className="bond-anatomy__label">Cupón</span>
-                            <span className="bond-anatomy__value">3.5%</span>
-                            <span className="bond-anatomy__desc">Interés anual que recibes</span>
-                        </AcademyPanel>
-                        <AcademyPanel variant="bondAnatomy" className="bond-anatomy__item">
-                            <span className="bond-anatomy__label">Vencimiento</span>
-                            <span className="bond-anatomy__value">10 años</span>
-                            <span className="bond-anatomy__desc">Plazo hasta recuperar el nominal</span>
-                        </AcademyPanel>
-                        <AcademyPanel variant="bondAnatomy" className="bond-anatomy__item">
-                            <span className="bond-anatomy__label">Precio</span>
-                            <span className="bond-anatomy__value">98.50</span>
-                            <span className="bond-anatomy__desc">Lo que pagas hoy (puede ser {'≠'} 100)</span>
-                        </AcademyPanel>
-                        <AcademyPanel variant="bondAnatomy" className="bond-anatomy__item">
-                            <span className="bond-anatomy__label">Yield (TIR)</span>
-                            <span className="bond-anatomy__value">3.67%</span>
-                            <span className="bond-anatomy__desc">Rentabilidad real si mantienes a vencimiento</span>
-                        </AcademyPanel>
-                        <AcademyPanel variant="bondAnatomy" className="bond-anatomy__item">
-                            <span className="bond-anatomy__label">Rating</span>
-                            <span className="bond-anatomy__value">AA+</span>
-                            <span className="bond-anatomy__desc">Calidad crediticia del emisor</span>
-                        </AcademyPanel>
+                        <AcademyFactCard appearance="bond" label={<>Nominal (Face Value)</>} value={<>1.000€</>} description={<>Lo que te devuelven al vencimiento</>} />
+                        <AcademyFactCard appearance="bond" label={<>Cupón</>} value={<>3.5%</>} description={<>Interés anual que recibes</>} />
+                        <AcademyFactCard appearance="bond" label={<>Vencimiento</>} value={<>10 años</>} description={<>Plazo hasta recuperar el nominal</>} />
+                        <AcademyFactCard appearance="bond" label={<>Precio</>} value={<>98.50</>} description={<>Lo que pagas hoy (puede ser {'≠'} 100)</>} />
+                        <AcademyFactCard appearance="bond" label={<>Yield (TIR)</>} value={<>3.67%</>} description={<>Rentabilidad real si mantienes a vencimiento</>} />
+                        <AcademyFactCard appearance="bond" label={<>Rating</>} value={<>AA+</>} description={<>Calidad crediticia del emisor</>} />
                     </AcademyGrid>
                 </div>
             </AcademySection>
@@ -320,22 +298,8 @@ export function AssetBonds() {
                 </div>
 
                 <div className="inverse-relationship">
-                    <div className="inverse-card inverse-card--up">
-                        <TrendingUp size={32} />
-                        <h4>Tipos Suben</h4>
-                        <div className="inverse-card__arrow">→</div>
-                        <TrendingDown size={32} />
-                        <h4>Precio Baja</h4>
-                        <p>Los bonos nuevos pagan más, así que los viejos pierden atractivo.</p>
-                    </div>
-                    <div className="inverse-card inverse-card--down">
-                        <TrendingDown size={32} />
-                        <h4>Tipos Bajan</h4>
-                        <div className="inverse-card__arrow">→</div>
-                        <TrendingUp size={32} />
-                        <h4>Precio Sube</h4>
-                        <p>Los bonos existentes con cupones altos se vuelven más valiosos.</p>
-                    </div>
+                    <AcademyDirectionalCard direction="up" fromIcon={<TrendingUp size={32} />} from={<>Tipos Suben</>} connector={<>→</>} toIcon={<TrendingDown size={32} />} to={<>Precio Baja</>}>Los bonos nuevos pagan más, así que los viejos pierden atractivo.</AcademyDirectionalCard>
+                    <AcademyDirectionalCard direction="down" fromIcon={<TrendingDown size={32} />} from={<>Tipos Bajan</>} connector={<>→</>} toIcon={<TrendingUp size={32} />} to={<>Precio Sube</>}>Los bonos existentes con cupones altos se vuelven más valiosos.</AcademyDirectionalCard>
                 </div>
 
                 <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>¿Por qué importa?</>}>
@@ -536,18 +500,7 @@ export function AssetBonds() {
 
                 <div className="credit-spreads-grid">
                     {CREDIT_SPREAD_REGIMES.map((regime) => (
-                        <div
-                            key={regime.name}
-                            className="credit-spread-card"
-                            style={{ '--spread-color': regime.color } as React.CSSProperties}
-                        >
-                            <h3>{regime.name}</h3>
-                            <span className="credit-spread-card__range">{regime.range}</span>
-                            <p>{regime.meaning}</p>
-                            <div className="credit-spread-card__implication">
-                                <strong>Lectura práctica:</strong> {regime.implication}
-                            </div>
-                        </div>
+                        <AcademyCreditCard key={regime.name} style={{ '--spread-color': regime.color } as React.CSSProperties} title={<>{regime.name}</>} range={<>{regime.range}</>} description={<>{regime.meaning}</>} implicationLabel={<>Lectura práctica:</>} implication={<>{regime.implication}</>} />
                     ))}
                 </div>
 
@@ -687,10 +640,7 @@ export function AssetBonds() {
                 </div>
                 <div className="bond-checklist-grid">
                     {BOND_ETF_CHECKLIST.map((item) => (
-                        <div key={item.title} className="bond-checklist-item">
-                            <h4>{item.title}</h4>
-                            <p>{item.desc}</p>
-                        </div>
+                        <AcademyTextCard appearance="checklist" key={item.title} title={<>{item.title}</>}><p>{item.desc}</p></AcademyTextCard>
                     ))}
                 </div>
 
@@ -831,11 +781,7 @@ export function AssetBonds() {
 
                 <div className="bond-mistakes-grid">
                     {COMMON_BOND_ERRORS.map((item) => (
-                        <article key={item.mistake} className="bond-mistake-card">
-                            <h4>{item.mistake}</h4>
-                            <p><strong>Qué pasa:</strong> {item.impact}</p>
-                            <p><strong>Cómo evitarlo:</strong> {item.fix}</p>
-                        </article>
+                        <AcademyTextCard appearance="mistake" key={item.mistake} title={<>{item.mistake}</>}><p><strong>Qué pasa:</strong> {item.impact}</p><p><strong>Cómo evitarlo:</strong> {item.fix}</p></AcademyTextCard>
                     ))}
                 </div>
             </AcademySection>
@@ -875,18 +821,12 @@ export function AssetBonds() {
             </AcademySection>
 
             {/* Final tip */}
-            <section className="asset-page__final-tip">
-                <Lightbulb size={28} />
-                <div>
-                    <h3>Consejo Final</h3>
-                    <p>
+            <AcademyFinalTip as="section" icon={<Lightbulb size={28} />} title={<>Consejo Final</>}>
                         En un entorno de tipos altos, las <strong>Letras del Tesoro y los bonos de corto plazo</strong> son
                         tu mejor refugio en renta fija. Ofrecen rentabilidad decente sin el riesgo de duración.
                         Si quieres RF a largo plazo, usa ETFs indexados y acepta la volatilidad temporal.
                         <strong> La renta fija NO es fija si vendes antes del vencimiento.</strong>
-                    </p>
-                </div>
-            </section>
+                    </AcademyFinalTip>
         </div>
     );
 }

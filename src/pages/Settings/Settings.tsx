@@ -1,3 +1,8 @@
+
+import { FormField } from '../../components/ui/FormField';
+import { NativeControl } from '../../components/ui/NativeControl';
+
+import { PreferenceOption, PreferenceField, PreferenceSwitch } from '../../components/ui/PreferenceOption';
 import { Sun, Moon, Monitor, Trash2, Database, Info, Power } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../../components/ui';
@@ -66,17 +71,7 @@ export function Settings() {
                 <CardContent>
                     <div className="settings__theme-options">
                         {themeOptions.map((option) => (
-                            <button
-                                key={option.value}
-                                className={`theme-option ${themeMode === option.value ? 'theme-option--active' : ''}`}
-                                onClick={() => setThemeMode(option.value)}
-                            >
-                                <div className="theme-option__icon">{option.icon}</div>
-                                <span className="theme-option__label">{option.label}</span>
-                                {themeMode === option.value && (
-                                    <span className="theme-option__check">✓</span>
-                                )}
-                            </button>
+                            <PreferenceOption appearance="theme" selected={themeMode === option.value} key={option.value} onClick={() => setThemeMode(option.value)} icon={<>{option.icon}</>} title={<>{option.label}</>} />
                         ))}
                     </div>
                     <p className="settings__hint">
@@ -95,38 +90,8 @@ export function Settings() {
                             </p>
                         </div>
                         <div className="settings__appearance-options" role="group" aria-label="Estilo de interfaz">
-                            <button
-                                type="button"
-                                className={`appearance-option ${appearance === 'standard' ? 'appearance-option--active' : ''}`}
-                                onClick={() => setAppearance('standard')}
-                                aria-pressed={appearance === 'standard'}
-                            >
-                                <span className="appearance-option__visual appearance-option__visual--standard" aria-hidden="true">
-                                    <span />
-                                    <span />
-                                </span>
-                                <span className="appearance-option__copy">
-                                    <strong>Estándar</strong>
-                                    <small>Superficies sólidas y directas</small>
-                                </span>
-                                {appearance === 'standard' && <span className="appearance-option__check">✓</span>}
-                            </button>
-                            <button
-                                type="button"
-                                className={`appearance-option ${appearance === 'liquid-glass' ? 'appearance-option--active' : ''}`}
-                                onClick={() => setAppearance('liquid-glass')}
-                                aria-pressed={appearance === 'liquid-glass'}
-                            >
-                                <span className="appearance-option__visual appearance-option__visual--glass" aria-hidden="true">
-                                    <span />
-                                    <span />
-                                </span>
-                                <span className="appearance-option__copy">
-                                    <strong>Liquid Glass</strong>
-                                    <small>Controles flotantes, profundidad y refracción</small>
-                                </span>
-                                {appearance === 'liquid-glass' && <span className="appearance-option__check">✓</span>}
-                            </button>
+                            <PreferenceOption appearance="interface" selected={appearance === 'standard'} type="button" onClick={() => setAppearance('standard')} aria-pressed={appearance === 'standard'} preview="standard" title={<>Estándar</>} description={<>Superficies sólidas y directas</>} />
+                            <PreferenceOption appearance="interface" selected={appearance === 'liquid-glass'} type="button" onClick={() => setAppearance('liquid-glass')} aria-pressed={appearance === 'liquid-glass'} preview="glass" title={<>Liquid Glass</>} description={<>Controles flotantes, profundidad y refracción</>} />
                         </div>
                         <p className="settings__hint">
                             {appearance === 'liquid-glass'
@@ -180,45 +145,18 @@ export function Settings() {
                 />
                 <CardContent>
                     <div className="settings__api-config">
-                        <div className="settings__toggle-card">
-                            <div className="settings__toggle-copy">
-                                <div className="settings__toggle-title">
+                        <PreferenceField title={<>
                                     <Power size={18} />
                                     <span>Activar peticiones a APIs</span>
-                                </div>
-                                <p className="settings__hint">
+                                </>} description={<>
                                     Por defecto estara desactivado. Mientras el dashboard sigue en construccion,
                                     puedes mantener el modo manual y activar las APIs solo cuando quieras probarlo.
-                                </p>
-                            </div>
-                            <button
-                                type="button"
-                                className={`settings__toggle ${apiEnabled ? 'settings__toggle--active' : ''}`}
-                                onClick={handleApiToggle}
-                                disabled={saving}
-                                role="switch"
-                                aria-label="Activar peticiones a APIs"
-                                aria-checked={apiEnabled}
-                            >
-                                <span className="settings__toggle-thumb" aria-hidden="true" />
-                            </button>
-                        </div>
+                                </>}><PreferenceSwitch checked={apiEnabled} type="button" onClick={handleApiToggle} disabled={saving} role="switch" aria-label="Activar peticiones a APIs" aria-checked={apiEnabled} /></PreferenceField>
 
-                        <div className="settings__input-group">
-                            <label htmlFor="finnhub-key">Finnhub API Key</label>
-                            <input
-                                id="finnhub-key"
-                                type="password"
-                                className="settings__input"
-                                value={finnhubKey}
-                                onChange={(e) => setFinnhubKey(e.target.value)}
-                                placeholder="Pega aquí tu clave de Finnhub"
-                            />
-                            <p className="settings__hint">
+                        <FormField className="settings__input-group" controlId="finnhub-key" label={<>Finnhub API Key</>}><NativeControl appearance="settings" as="input" id="finnhub-key" type="password" value={finnhubKey} onChange={(e) => setFinnhubKey(e.target.value)} placeholder="Pega aquí tu clave de Finnhub" /><p className="settings__hint">
                                 Esta clave se usa como respaldo cuando Yahoo Finance no devuelve datos.
                                 Consigue una gratis en <a href="https://finnhub.io/" target="_blank" rel="noreferrer" style={{ color: 'var(--accent-primary)', textDecoration: 'none' }}>finnhub.io</a>.
-                            </p>
-                        </div>
+                            </p></FormField>
                         <Button
                             variant="primary"
                             icon={<Info size={16} />}

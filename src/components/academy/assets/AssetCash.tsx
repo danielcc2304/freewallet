@@ -1,3 +1,5 @@
+import { AcademyFinalTip } from '../ui/AcademyAssetExplainers';
+
 import { AssetCategoryCard } from '../ui/AssetCategoryCard';
 import { AcademyListCard } from '../ui/AcademyListCard';
 import { AcademyCallout } from '../ui/AcademyCallout';
@@ -201,17 +203,11 @@ export function AssetCash() {
                 </AcademyGrid>
             </AcademySection>
 
-            <section className="asset-page__final-tip">
-                <Lightbulb size={28} />
-                <div>
-                    <h3>Consejo Final</h3>
-                    <p>
+            <AcademyFinalTip as="section" icon={<Lightbulb size={28} />} title={<>Consejo Final</>}>
                         El cash no es una inversión, es un <strong>seguro</strong>. Tener demasiado te empobrece lentamente
                         (inflación), pero tener muy poco te obliga a malvender inversiones en el peor momento.
                         <strong> Encuentra tu equilibrio: 3-6 meses de gastos es la regla de oro.</strong>
-                    </p>
-                </div>
-            </section>
+                    </AcademyFinalTip>
         </div>
     );
 }

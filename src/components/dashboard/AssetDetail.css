@@ -8,55 +8,6 @@
     @apply tw:ui-stack tw:items-center tw:justify-center tw:p-[3rem] tw:gap-[1rem] tw:text-secondary;
 }
 
-.asset-detail__header {
-    @apply tw:flex tw:justify-between tw:items-start tw:gap-[1rem] tw:min-w-[0] tw:w-full tw:box-border tw:overflow-hidden tw:pb-[1.5rem];
-    border-bottom: 1px solid var(--border-color);
-}
-
-.asset-detail__title-group,
-.asset-detail__price-group {
-    @apply tw:min-w-[0];
-}
-
-.asset-detail__title-group {
-    @apply tw:flex-[1_1_0] tw:overflow-visible;
-}
-
-.asset-detail__symbol {
-    @apply tw:text-[length:2rem];
-    font-weight: 800;
-    line-height: 1;
-    @apply tw:mb-[0.25rem] tw:text-accent;
-}
-
-.asset-detail__name {
-    @apply tw:text-[length:1rem] tw:text-secondary tw:wrap-anywhere;
-}
-
-.asset-detail__price-group {
-    @apply tw:text-right tw:flex-[0_0_min(42%,_14rem)] tw:w-[min(42%,_14rem)] tw:max-w-[42%] tw:overflow-hidden;
-}
-
-.asset-detail__price {
-    @apply tw:text-[length:1.75rem];
-    font-weight: 700;
-    @apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;
-}
-
-.asset-detail__change {
-    @apply tw:ui-row tw:justify-end tw:gap-[0.25rem] tw:text-[length:0.875rem];
-    font-weight: 600;
-    @apply tw:min-w-[0] tw:overflow-hidden tw:whitespace-nowrap tw:text-ellipsis;
-}
-
-.asset-detail__change.positive {
-    @apply tw:text-positive;
-}
-
-.asset-detail__change.negative {
-    @apply tw:text-negative;
-}
-
 .asset-detail__position-grid {
     @apply tw:grid tw:grid-cols-[repeat(4,_minmax(0,_1fr))] tw:gap-[0.75rem] tw:min-w-[0] tw:w-full tw:box-border;
 }
@@ -80,18 +31,6 @@
     @apply tw:text-secondary tw:min-w-[0];
 }
 
-.asset-detail__period-performance {
-    @apply tw:flex tw:items-baseline tw:flex-wrap tw:gap-[0.35rem_0.65rem] tw:m-[-0.35rem_0_0.8rem] tw:text-muted tw:text-[length:0.75rem];
-}
-
-.asset-detail__period-performance strong {
-    @apply tw:text-[length:1rem];
-}
-
-.asset-detail__period-performance strong.positive { @apply tw:text-positive; }
-.asset-detail__period-performance strong.negative { @apply tw:text-negative; }
-.asset-detail__period-performance small { @apply tw:text-muted; }
-
 .asset-detail__chart-container {
     @apply tw:relative tw:isolate tw:overflow-hidden tw:h-[240px] tw:min-w-[0] tw:w-full;
     user-select: none;
@@ -112,24 +51,6 @@
 
 .chart-overlay > span {
     @apply tw:text-muted tw:text-[length:0.8rem];
-}
-
-.asset-detail__chart-legend {
-    @apply tw:ui-row tw:justify-between tw:gap-[1rem] tw:mt-[0.7rem] tw:text-secondary tw:text-[length:0.75rem];
-}
-
-.asset-detail__chart-legend span:first-child {
-    @apply tw:inline-flex tw:items-center tw:gap-[0.4rem];
-    font-weight: 600;
-}
-
-.asset-detail__legend-line {
-    @apply tw:w-[22px] tw:h-[3px] tw:rounded-[99px];
-    background: var(--accent-primary);
-}
-
-.asset-detail__chart-axis-hint {
-    @apply tw:text-muted;
 }
 
 .asset-detail__chart-source {
@@ -183,16 +104,6 @@
     @apply tw:ui-stack tw:items-center tw:justify-center tw:p-[3rem] tw:gap-[1rem] tw:text-secondary;
 }
 
-.asset-detail__company {
-    @apply tw:min-w-[0] tw:p-[1.25rem] tw:ui-border-default tw:rounded-[12px];
-    background: rgba(255, 255, 255, 0.02);
-}
-
-.asset-detail__company .section-title { @apply tw:m-[0_0_.75rem]; }
-.asset-detail__company p { @apply tw:m-[0] tw:text-secondary; line-height: 1.6; @apply tw:wrap-anywhere; }
-.asset-detail__company a { @apply tw:inline-block tw:mt-[.6rem] tw:text-muted tw:text-[length:.75rem]; }
-.asset-detail__company a:hover { @apply tw:text-accent; }
-
 .metrics-grid {
     @apply tw:grid tw:grid-cols-[repeat(4,_minmax(0,_1fr))] tw:gap-[1rem];
 }
@@ -215,11 +126,6 @@
 .asset-detail__holding-list > div { @apply tw:flex tw:justify-between tw:gap-[.75rem] tw:text-secondary tw:text-[length:.8rem]; }
 .asset-detail__holding-list span { @apply tw:min-w-[0] tw:wrap-anywhere; }
 .asset-detail__holding-list strong { @apply tw:text-main tw:whitespace-nowrap; }
-
-.asset-detail__footer {
-    @apply tw:ui-row tw:gap-[0.5rem] tw:text-muted tw:text-[length:0.75rem] tw:mt-[0.5rem] tw:pt-[1rem];
-    border-top: 1px solid var(--border-color);
-}
 
 .spinner {
     @apply tw:w-[2rem] tw:h-[2rem];
@@ -269,28 +175,6 @@
         @apply tw:grid-cols-[repeat(2,_minmax(0,_1fr))];
     }
 
-    .asset-detail__header {
-        @apply tw:flex-col tw:gap-[1rem];
-    }
-
-    .asset-detail__title-group,
-    .asset-detail__price-group {
-        /* Desktop width bases become height constraints in a column. */
-        @apply tw:flex-[0_0_auto];
-    }
-
-    .asset-detail__price-group {
-        @apply tw:text-left tw:max-w-full tw:w-full;
-    }
-
-    .asset-detail__change {
-        @apply tw:justify-start;
-    }
-
-    .asset-detail__chart-legend {
-        @apply tw:items-start tw:flex-col;
-    }
-
     .asset-detail__chart-selection button {
         @apply tw:ml-[0];
     }
@@ -319,6 +203,8 @@
 .asset-detail__purchases h3 { @apply tw:text-[length:var(--font-size-base)] tw:mb-[.75rem]; }
 .asset-detail__purchases-scroll { @apply tw:overflow-x-auto; }
 .asset-detail__purchases table { @apply tw:w-full tw:border-collapse tw:text-[length:var(--font-size-sm)]; }
-.asset-detail__purchases th, .asset-detail__purchases td { @apply tw:p-[.65rem_.5rem] tw:text-right tw:whitespace-nowrap; border-bottom: 1px solid var(--border-primary); }
+.asset-detail__purchases th,
+.asset-detail__purchases td { @apply tw:p-[.65rem_.5rem] tw:text-right tw:whitespace-nowrap; border-bottom: 1px solid var(--border-primary); }
 .asset-detail__purchases th { @apply tw:text-secondary; font-weight: 500; }
-.asset-detail__purchases th:first-child, .asset-detail__purchases td:first-child { @apply tw:text-left; }
+.asset-detail__purchases th:first-child,
+.asset-detail__purchases td:first-child { @apply tw:text-left; }

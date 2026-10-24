@@ -1,3 +1,5 @@
+
+import { HeatmapOptions, HeatmapOption, HeatmapIndexIntro, HeatmapLegend, HeatmapSelection, HeatmapSectorRow } from '../ui/HeatmapControls';
 import { DataItem } from '../../ui/DataItem';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -449,49 +451,30 @@ export function MarketHeatmap() {
                 <div className="market-heatmap__toolbar">
                     <div>
                         <span className="market-heatmap__toolbar-label" id="market-heatmap-index-title">Índice</span>
-                        <div className="market-heatmap__tabs" role="tablist" aria-label="Seleccionar índice">
+                        <HeatmapOptions appearance="index" role="tablist" aria-label="Seleccionar índice">
                             {MARKET_HEATMAP_INDICES.map((index) => (
-                                <button
-                                    key={index.id}
-                                    type="button"
-                                    role="tab"
-                                    aria-selected={selectedIndex === index.id}
-                                    className={`market-heatmap__tab ${selectedIndex === index.id ? 'market-heatmap__tab--active' : ''}`}
-                                    onClick={() => handleIndexChange(index.id)}
-                                >
+                                <HeatmapOption appearance="index" selected={selectedIndex === index.id} key={index.id} type="button" role="tab" aria-selected={selectedIndex === index.id} onClick={() => handleIndexChange(index.id)}>
                                     {index.shortLabel}
-                                </button>
+                                </HeatmapOption>
                             ))}
-                        </div>
+                        </HeatmapOptions>
                     </div>
                     <div>
                         <span className="market-heatmap__toolbar-label">Detalle</span>
-                        <div className="market-heatmap__display-options" role="group" aria-label="Número de componentes visibles">
+                        <HeatmapOptions appearance="display" role="group" aria-label="Número de componentes visibles">
                             {DISPLAY_OPTIONS.map((option) => (
-                                <button
-                                    key={option.value}
-                                    type="button"
-                                    aria-pressed={displayCount === option.value}
-                                    className={`market-heatmap__display-option ${displayCount === option.value ? 'market-heatmap__display-option--active' : ''}`}
-                                    onClick={() => {
+                                <HeatmapOption appearance="display" selected={displayCount === option.value} key={option.value} type="button" aria-pressed={displayCount === option.value} onClick={() => {
                                         setDisplayCount(option.value);
                                         setSelectedCompany(null);
-                                    }}
-                                >
+                                    }}>
                                     {option.label}
-                                </button>
+                                </HeatmapOption>
                             ))}
-                        </div>
+                        </HeatmapOptions>
                     </div>
                 </div>
 
-                <div className="market-heatmap__index-intro">
-                    <div>
-                        <h2>{indexDefinition.label}</h2>
-                        <p>{indexDefinition.description}</p>
-                    </div>
-                    <span>{(currentQuotes?.constituents.length || indexDefinition.totalHoldings).toLocaleString('es-ES')} componentes</span>
-                </div>
+                <HeatmapIndexIntro title={<>{indexDefinition.label}</>} description={<>{indexDefinition.description}</>} badge={<>{(currentQuotes?.constituents.length || indexDefinition.totalHoldings).toLocaleString('es-ES')} componentes</>} />
 
                 <div className="market-heatmap__metrics" aria-live="polite">
                     <DataItem layout="heatmap" className="market-heatmap__metric" label={<>ETF de referencia · {indexDefinition.proxySymbol}</>} value={<>
@@ -561,11 +544,7 @@ export function MarketHeatmap() {
                     </div>
                 </div>
 
-                <div className="market-heatmap__legend" aria-label="Escala de rendimiento diario">
-                    <span>-4% o menos</span>
-                    <div className="market-heatmap__legend-scale" />
-                    <span>+4% o más</span>
-                </div>
+                <HeatmapLegend lower={<>-4% o menos</>} upper={<>+4% o más</>} />
 
                 {isCompleting && currentQuotes?.missingCount ? (
                     <p className="market-heatmap__completion-status" aria-live="polite">
@@ -576,12 +555,7 @@ export function MarketHeatmap() {
                 {(selectedCompany || strongest || weakest) && (
                     <div className="market-heatmap__details" aria-live="polite">
                         {selectedCompany ? (
-                            <div className="market-heatmap__selected-company">
-                                <span>Selección</span>
-                                <strong>{selectedCompany.name} · {selectedCompany.displaySymbol || selectedCompany.symbol}</strong>
-                                <small>{selectedCompany.sector} · {selectedCompany.country} · peso {selectedCompany.weight.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%</small>
-                                <b className={selectedCompany.changePercent < 0 ? 'is-negative' : 'is-positive'}>{formatPercent(selectedCompany.changePercent)}</b>
-                            </div>
+                            <HeatmapSelection label={<>Selección</>} title={<>{selectedCompany.name} · {selectedCompany.displaySymbol || selectedCompany.symbol}</>} detail={<>{selectedCompany.sector} · {selectedCompany.country} · peso {selectedCompany.weight.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%</>} value={<>{formatPercent(selectedCompany.changePercent)}</>} valueClassName={selectedCompany.changePercent < 0 ? 'is-negative' : 'is-positive'} />
                         ) : (
                             <p className="market-heatmap__selection-hint">Selecciona una compañía para ver su detalle.</p>
                         )}
@@ -603,11 +577,7 @@ export function MarketHeatmap() {
                         </div>
                         <div className="market-heatmap__sector-list">
                             {sectorSummary.map((sector) => (
-                                <div className="market-heatmap__sector-item" key={sector.sector}>
-                                    <strong>{sector.sector}</strong>
-                                    <span>{sector.weight.toLocaleString('es-ES', { maximumFractionDigits: 1 })}%</span>
-                                    <small>{sector.count.toLocaleString('es-ES')} valores · <b className={sector.changePercent < 0 ? 'is-negative' : 'is-positive'}>{formatPercent(sector.changePercent)}</b></small>
-                                </div>
+                                <HeatmapSectorRow key={sector.sector} title={<>{sector.sector}</>} weight={<>{sector.weight.toLocaleString('es-ES', { maximumFractionDigits: 1 })}%</>}>{sector.count.toLocaleString('es-ES')} valores · <b className={sector.changePercent < 0 ? 'is-negative' : 'is-positive'}>{formatPercent(sector.changePercent)}</b></HeatmapSectorRow>
                             ))}
                         </div>
                     </section>

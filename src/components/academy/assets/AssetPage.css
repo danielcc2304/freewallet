@@ -114,24 +114,6 @@
 
 /* Geographic zones */
 
-.geo-card {
-    border-left: 4px solid var(--accent-primary);
-}
-
-.geo-card h4 {
-    @apply tw:mb-[0.4rem];
-    font-weight: 700;
-}
-
-.geo-card__region {
-    @apply tw:text-[length:0.85rem];
-    font-weight: 600;
-}
-
-.geo-card__weight {
-    @apply tw:text-[length:0.8rem] tw:text-muted;
-}
-
 /* Metrics explainers */
 
 /* Bond specific styles */
@@ -143,50 +125,8 @@
     @apply tw:text-center tw:mb-[1.5rem] tw:text-[length:1.25rem];
 }
 
-.bond-anatomy__label {
-    @apply tw:text-[length:0.7rem];
-    text-transform: uppercase;
-    @apply tw:text-muted;
-    letter-spacing: 0.05em;
-    @apply tw:mb-[0.25rem];
-}
-
-.bond-anatomy__value {
-    @apply tw:text-[length:1.25rem];
-    font-weight: 800;
-    color: #10b981;
-    @apply tw:mb-[0.25rem];
-}
-
-.bond-anatomy__desc {
-    @apply tw:text-[length:0.75rem] tw:text-secondary;
-}
-
 .inverse-relationship {
     @apply tw:flex tw:gap-[1.5rem] tw:m-[2rem_0];
-}
-
-.inverse-card {
-    @apply tw:flex-[1] tw:ui-row tw:justify-center tw:p-[2rem] tw:rounded-[20px] tw:gap-[1rem] tw:text-center tw:flex-wrap tw:ui-border-default;
-}
-
-.inverse-card--up {
-    background: rgba(239, 68, 68, 0.05);
-    color: #ef4444;
-}
-
-.inverse-card--down {
-    background: rgba(16, 185, 129, 0.05);
-    color: #10b981;
-}
-
-.inverse-card__arrow {
-    @apply tw:text-[length:1.5rem];
-    font-weight: 900;
-}
-
-.inverse-card p {
-    @apply tw:w-full tw:text-[length:0.9rem] tw:text-secondary tw:mt-[0.5rem];
 }
 
 .duration-visual {
@@ -381,56 +321,9 @@
     @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(240px,_1fr))] tw:gap-[var(--academy-space-stack)] tw:mt-[2rem];
 }
 
-.credit-spread-card {
-    @apply tw:ui-fill-surface tw:ui-border-default;
-    border-top: 4px solid var(--spread-color);
-    @apply tw:rounded-[18px] tw:p-[1.25rem];
-}
-
-.credit-spread-card h3 {
-    @apply tw:m-[0_0_0.5rem] tw:text-[length:1.05rem];
-    font-weight: 700;
-}
-
-.credit-spread-card__range {
-    @apply tw:inline-block;
-    background: rgba(15, 23, 42, 0.06);
-    @apply tw:rounded-[999px] tw:p-[0.2rem_0.6rem] tw:text-[length:0.75rem];
-    font-weight: 800;
-    @apply tw:text-main tw:mb-[0.75rem];
-}
-
-.credit-spread-card p {
-    @apply tw:m-[0_0_0.85rem] tw:text-[length:0.9rem] tw:text-secondary;
-    line-height: 1.5;
-}
-
-.credit-spread-card__implication {
-    @apply tw:pt-[0.85rem];
-    border-top: 1px dashed var(--border-color);
-    @apply tw:text-[length:0.85rem] tw:text-secondary;
-    line-height: 1.45;
-}
-
 /* Bond checklist */
 .bond-checklist-grid {
     @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(220px,_1fr))] tw:gap-[1rem] tw:mt-[1.5rem];
-}
-
-.bond-checklist-item {
-    @apply tw:ui-fill-surface tw:ui-border-default;
-    border-left: 4px solid var(--accent-primary);
-    @apply tw:rounded-[14px] tw:p-[1rem_1.1rem];
-}
-
-.bond-checklist-item h4 {
-    @apply tw:m-[0_0_0.4rem] tw:text-[length:0.95rem];
-    font-weight: 700;
-}
-
-.bond-checklist-item p {
-    @apply tw:m-[0] tw:text-[length:0.85rem] tw:text-secondary;
-    line-height: 1.45;
 }
 
 /* Spread simulator */
@@ -716,48 +609,7 @@
     @apply tw:mt-[1.5rem] tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(260px,_1fr))] tw:gap-[1rem];
 }
 
-.bond-mistake-card {
-    @apply tw:ui-fill-surface tw:ui-border-default;
-    border-left: 4px solid #f59e0b;
-    @apply tw:rounded-[12px] tw:p-[1rem];
-}
-
-.bond-mistake-card h4 {
-    @apply tw:m-[0_0_0.55rem] tw:text-[length:0.95rem];
-    font-weight: 700;
-}
-
-.bond-mistake-card p {
-    @apply tw:m-[0_0_0.45rem] tw:text-[length:0.84rem] tw:text-secondary;
-    line-height: 1.45;
-}
-
-.bond-mistake-card p:last-child {
-    @apply tw:mb-[0];
-}
-
 /* Common end sections */
-.asset-page__final-tip {
-    background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), rgba(var(--accent-rgb), 0.05));
-    border: 1px solid var(--accent-primary);
-    @apply tw:p-[3rem] tw:rounded-[24px] tw:ui-row tw:gap-[2rem] tw:mt-[6rem];
-}
-
-.asset-page__final-tip svg {
-    @apply tw:text-accent;
-}
-
-.asset-page__final-tip h3 {
-    @apply tw:text-[length:1.5rem];
-    font-weight: 800;
-    @apply tw:mb-[0.5rem];
-}
-
-.asset-page__final-tip p {
-    @apply tw:text-[length:1.1rem] tw:text-secondary;
-    line-height: 1.6;
-    @apply tw:m-[0];
-}
 
 /* Bond specific types list */
 .bond-type-block {
@@ -893,20 +745,6 @@
 }
 
 /* Final tip */
-.asset-page__final-tip {
-    background: linear-gradient(135deg, rgba(var(--accent-rgb), 0.1), rgba(var(--accent-rgb), 0.05));
-    @apply tw:p-[3rem] tw:rounded-[24px] tw:ui-row tw:gap-[var(--academy-space-section)] tw:ui-border-default tw:mt-[4rem];
-}
-
-.asset-page__final-tip h3 {
-    @apply tw:mb-[0.5rem];
-    font-weight: 700;
-}
-
-.asset-page__final-tip p {
-    @apply tw:m-[0] tw:text-secondary;
-    line-height: 1.6;
-}
 
 /* CTA Box */
 .cta-box {
@@ -1001,10 +839,6 @@
 
     .spread-sim__controls {
         @apply tw:grid-cols-[1fr];
-    }
-
-    .asset-page__final-tip {
-        @apply tw:flex-col tw:text-center tw:p-[2rem];
     }
 }
 

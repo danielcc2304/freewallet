@@ -9,7 +9,6 @@
 }
 
 .market-heatmap__toolbar,
-.market-heatmap__index-intro,
 .market-heatmap__details,
 .market-heatmap__footer,
 .market-heatmap__footer > div {
@@ -27,52 +26,11 @@
     text-transform: uppercase;
 }
 
-.market-heatmap__tabs {
-    @apply tw:inline-flex tw:flex-wrap tw:max-w-full tw:p-[3px] tw:ui-border tw:rounded-[11px] tw:ui-fill-canvas;
-}
-
-.market-heatmap__tab,
-.market-heatmap__display-option,
 .market-heatmap__error button {
     border: 0;
     font: inherit;
     @apply tw:cursor-pointer;
     transition: color var(--transition-fast), background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
-}
-
-.market-heatmap__tab {
-    @apply tw:p-[0.62rem_0.9rem] tw:rounded-[8px] tw:text-secondary tw:ui-fill-transparent tw:text-[length:var(--font-size-sm)];
-    font-weight: 600;
-    @apply tw:whitespace-nowrap;
-}
-
-.market-heatmap__tab:hover,
-.market-heatmap__tab:focus-visible {
-    @apply tw:text-main;
-}
-
-.market-heatmap__tab--active {
-    @apply tw:text-main tw:ui-fill-muted;
-    box-shadow: var(--shadow-sm);
-}
-
-.market-heatmap__display-options {
-    @apply tw:inline-flex tw:p-[3px] tw:ui-border tw:rounded-[11px] tw:ui-fill-canvas;
-}
-
-.market-heatmap__display-option {
-    @apply tw:min-w-[3.4rem] tw:p-[0.62rem_0.75rem] tw:rounded-[8px] tw:text-secondary tw:ui-fill-transparent tw:text-[length:var(--font-size-sm)];
-    font-weight: 600;
-}
-
-.market-heatmap__display-option:hover,
-.market-heatmap__display-option:focus-visible {
-    @apply tw:text-main;
-}
-
-.market-heatmap__display-option--active {
-    @apply tw:text-main tw:ui-fill-muted;
-    box-shadow: var(--shadow-sm);
 }
 
 .market-heatmap__refresh-icon--spinning {
@@ -81,24 +39,6 @@
 
 @keyframes marketHeatmapSpin {
     to { transform: rotate(360deg); }
-}
-
-.market-heatmap__index-intro {
-    @apply tw:items-start tw:pb-[1rem];
-    border-bottom: 1px solid var(--border-primary);
-}
-
-.market-heatmap__index-intro h2 {
-    @apply tw:m-[0_0_0.25rem] tw:text-[length:clamp(1.3rem,_2vw,_1.7rem)];
-}
-
-.market-heatmap__index-intro p {
-    @apply tw:m-[0] tw:text-secondary tw:text-[length:var(--font-size-sm)];
-}
-
-.market-heatmap__index-intro > span {
-    @apply tw:flex-[0_0_auto] tw:p-[0.35rem_0.6rem] tw:rounded-[var(--radius-full)] tw:text-muted tw:ui-fill-muted tw:text-[length:var(--font-size-xs)];
-    font-weight: 600;
 }
 
 .market-heatmap__metrics {
@@ -133,35 +73,6 @@
 
 .market-heatmap__sector-list {
     @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(180px,_1fr))] tw:gap-[0.45rem];
-}
-
-.market-heatmap__sector-item {
-    @apply tw:grid tw:grid-cols-[minmax(0,_1fr)_auto] tw:gap-[0.2rem_0.65rem] tw:min-w-[0] tw:p-[0.65rem_0.75rem];
-    border-left: 2px solid var(--accent-primary);
-    @apply tw:ui-fill-muted;
-}
-
-.market-heatmap__sector-item strong,
-.market-heatmap__sector-item > span {
-    @apply tw:overflow-hidden tw:text-ellipsis;
-}
-
-.market-heatmap__sector-item strong {
-    @apply tw:text-main tw:text-[length:var(--font-size-xs)];
-    line-height: 1.25;
-}
-
-.market-heatmap__sector-item > span {
-    @apply tw:whitespace-nowrap tw:text-secondary tw:text-[length:var(--font-size-xs)];
-    font-weight: 700;
-}
-
-.market-heatmap__sector-item small {
-    @apply tw:col-span-full tw:text-muted tw:text-[length:0.68rem];
-}
-
-.market-heatmap__sector-item small b {
-    font-weight: 700;
 }
 
 .market-heatmap .is-positive {
@@ -268,15 +179,6 @@
     font-weight: 700;
 }
 
-.market-heatmap__legend {
-    @apply tw:ui-row tw:justify-center tw:gap-[0.65rem] tw:m-[0.75rem_0_1rem] tw:text-muted tw:text-[length:0.7rem];
-}
-
-.market-heatmap__legend-scale {
-    @apply tw:w-[min(240px,_42vw)] tw:h-[8px] tw:rounded-[var(--radius-full)];
-    background: linear-gradient(90deg, hsl(0 69% 26%), hsl(0 69% 34%), #374151 50%, hsl(153 70% 30%), hsl(153 70% 22%));
-}
-
 .market-heatmap__completion-status {
     @apply tw:m-[-0.25rem_0_0.85rem] tw:text-muted tw:text-[length:var(--font-size-xs)] tw:text-center;
 }
@@ -284,29 +186,6 @@
 .market-heatmap__details {
     @apply tw:min-h-[70px] tw:p-[0.85rem_1rem];
     border-block: 1px solid var(--border-primary);
-}
-
-.market-heatmap__selected-company {
-    @apply tw:grid tw:grid-cols-[auto_minmax(0,_1fr)_auto] tw:items-baseline tw:gap-[0.1rem_0.65rem] tw:min-w-[0];
-}
-
-.market-heatmap__selected-company > span {
-    @apply tw:col-span-full tw:text-muted tw:text-[length:0.65rem];
-    font-weight: 700;
-    letter-spacing: 0.07em;
-    text-transform: uppercase;
-}
-
-.market-heatmap__selected-company strong {
-    @apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;
-}
-
-.market-heatmap__selected-company small {
-    @apply tw:text-muted;
-}
-
-.market-heatmap__selected-company b {
-    @apply tw:col-[3] tw:row-[2_/_span_2] tw:self-center tw:text-[length:var(--font-size-lg)];
 }
 
 .market-heatmap__selection-hint {
@@ -357,27 +236,10 @@
 
 @media (max-width: 820px) {
     .market-heatmap__toolbar,
-    .market-heatmap__footer,
-    .market-heatmap__details,
-    .market-heatmap__sector-summary-header {
+.market-heatmap__footer,
+.market-heatmap__details,
+.market-heatmap__sector-summary-header {
         @apply tw:items-stretch tw:flex-col;
-    }
-
-    .market-heatmap__tabs {
-        @apply tw:grid tw:grid-cols-[repeat(2,_1fr)] tw:w-full;
-    }
-
-    .market-heatmap__tab {
-        padding-inline: 0.55rem;
-        @apply tw:whitespace-normal;
-    }
-
-    .market-heatmap__display-options {
-        @apply tw:w-full;
-    }
-
-    .market-heatmap__display-option {
-        @apply tw:flex-[1];
     }
 
     .market-heatmap__metrics {
@@ -406,14 +268,6 @@
         @apply tw:p-[0.8rem] tw:rounded-[14px];
     }
 
-    .market-heatmap__index-intro {
-        @apply tw:grid;
-    }
-
-    .market-heatmap__index-intro > span {
-        justify-self: start;
-    }
-
     .market-heatmap__metrics {
         @apply tw:grid-cols-[1fr_1fr];
     }
@@ -432,18 +286,6 @@
 
     .market-heatmap__canvas {
         @apply tw:h-[580px];
-    }
-
-    .market-heatmap__selected-company {
-        @apply tw:grid-cols-[minmax(0,_1fr)_auto];
-    }
-
-    .market-heatmap__selected-company small {
-        @apply tw:col-span-full;
-    }
-
-    .market-heatmap__selected-company b {
-        @apply tw:col-[2] tw:row-[2];
     }
 
     .market-heatmap__floating-actions {

@@ -1,3 +1,5 @@
+import { AcademyFinalTip } from '../ui/AcademyAssetExplainers';
+
 import { AssetCategoryCard } from '../ui/AssetCategoryCard';
 import { AcademyListCard } from '../ui/AcademyListCard';
 import { AcademyCallout } from '../ui/AcademyCallout';
@@ -130,17 +132,11 @@ export function AssetCrypto() {
                 </AcademyGrid>
             </AcademySection>
 
-            <section className="asset-page__final-tip">
-                <Lightbulb size={28} />
-                <div>
-                    <h3>Consejo Final</h3>
-                    <p>
+            <AcademyFinalTip as="section" icon={<Lightbulb size={28} />} title={<>Consejo Final</>}>
                         Si decides invertir en criptoactivos, hazlo con una posición pequeña (<strong>1-5% de tu cartera total</strong>).
                         Céntrate en proyectos con valor real comprobado como Bitcoin o Ethereum.
                         <strong> Si no puedes dormir con una caída del 50%, este activo no es para ti.</strong>
-                    </p>
-                </div>
-            </section>
+                    </AcademyFinalTip>
         </div>
     );
 }

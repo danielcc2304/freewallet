@@ -61,6 +61,8 @@ try{
         if(width===390)await (await page.$('.assets-table'))!.screenshot({path:join(tmpdir(),'freewallet-dashboard-controls-test.png')});
     }
     await page.goto(`${origin}/academy/bond-calculator`,{waitUntil:'networkidle2'});
+    // Compare settled palettes rather than an intermediate colour transition.
+    await page.addStyleTag({content:'*,*::before,*::after{transition:none!important;animation:none!important}'});
     for(const theme of ['light','dark'])for(const appearance of ['standard','liquid-glass']){
         await page.evaluate((t,a)=>{document.documentElement.dataset.theme=t;document.documentElement.dataset.appearance=a;},theme,appearance);
         await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));

@@ -32,43 +32,6 @@
     @apply tw:grid tw:grid-cols-[repeat(3,_1fr)] tw:gap-ui-md tw:mb-ui-md;
 }
 
-.theme-option {
-    @apply tw:ui-stack tw:items-center tw:gap-ui-sm tw:p-ui-lg tw:ui-fill-muted;
-    border: 2px solid transparent;
-    @apply tw:rounded-panel tw:cursor-pointer;
-    transition: all var(--transition-base);
-    @apply tw:relative;
-}
-
-.theme-option:hover {
-    @apply tw:ui-fill-canvas;
-    border-color: var(--border-secondary);
-}
-
-.theme-option--active {
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(59, 130, 246, 0.1));
-    border-color: var(--accent-primary);
-}
-
-.theme-option__icon {
-    @apply tw:w-[48px] tw:h-[48px] tw:ui-row tw:justify-center tw:ui-fill-surface tw:rounded-control tw:text-secondary;
-}
-
-.theme-option--active .theme-option__icon {
-    background: var(--accent-primary);
-    color: white;
-}
-
-.theme-option__label {
-    font-weight: 500;
-    @apply tw:text-main;
-}
-
-.theme-option__check {
-    @apply tw:absolute tw:top-[var(--spacing-sm)] tw:right-[var(--spacing-sm)] tw:text-accent;
-    font-weight: 600;
-}
-
 .settings__hint {
     @apply tw:text-[length:var(--font-size-sm)] tw:text-muted tw:m-[0];
 }
@@ -94,74 +57,6 @@
 
 .settings__appearance-options {
     @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-ui-md;
-}
-
-.appearance-option {
-    @apply tw:relative tw:ui-row tw:gap-ui-md tw:min-w-[0] tw:p-ui-md tw:ui-border tw:rounded-panel tw:ui-fill-muted tw:text-main tw:text-left;
-    transition: all var(--transition-base);
-}
-
-.appearance-option:hover {
-    border-color: var(--border-secondary);
-    background: var(--bg-card-hover);
-    transform: translateY(-1px);
-}
-
-.appearance-option--active {
-    border-color: var(--accent-primary);
-    box-shadow: 0 0 0 1px var(--accent-primary), var(--shadow-sm);
-}
-
-.appearance-option__visual {
-    @apply tw:relative tw:grid tw:flex-[0_0_52px] tw:gap-[4px] tw:w-[52px] tw:h-[42px] tw:p-[6px] tw:overflow-hidden tw:rounded-[10px];
-}
-
-.appearance-option__visual span {
-    @apply tw:block tw:rounded-[4px];
-}
-
-.appearance-option__visual--standard {
-    @apply tw:ui-fill-surface tw:ui-border-strong;
-}
-
-.appearance-option__visual--standard span:first-child {
-    @apply tw:w-[75%] tw:ui-fill-muted;
-}
-
-.appearance-option__visual--standard span:last-child {
-    @apply tw:w-[52%];
-    background: var(--accent-primary);
-}
-
-.appearance-option__visual--glass {
-    background:
-        radial-gradient(circle at 15% 20%, rgba(16, 185, 129, .8), transparent 48%),
-        radial-gradient(circle at 90% 80%, rgba(59, 130, 246, .8), transparent 50%),
-        #172334;
-    border: 1px solid rgba(255, 255, 255, .22);
-}
-
-.appearance-option__visual--glass span {
-    @apply tw:relative tw:z-[1];
-    background: rgba(255, 255, 255, .7);
-}
-
-.appearance-option__copy {
-    @apply tw:grid tw:gap-[2px] tw:min-w-[0];
-}
-
-.appearance-option__copy strong {
-    @apply tw:text-[length:var(--font-size-sm)];
-}
-
-.appearance-option__copy small {
-    @apply tw:text-muted tw:text-[length:var(--font-size-xs)];
-    line-height: 1.4;
-}
-
-.appearance-option__check {
-    @apply tw:absolute tw:top-[var(--spacing-sm)] tw:right-[var(--spacing-sm)] tw:text-accent;
-    font-weight: 700;
 }
 
 /* Data Section */
@@ -226,43 +121,6 @@
     @apply tw:ui-stack tw:gap-ui-lg;
 }
 
-.settings__toggle-card {
-    @apply tw:ui-row tw:justify-between tw:gap-ui-md tw:p-ui-md tw:ui-surface;
-}
-
-.settings__toggle-copy {
-    @apply tw:ui-stack tw:gap-ui-xs;
-}
-
-.settings__toggle-title {
-    @apply tw:ui-row tw:gap-ui-sm;
-    font-weight: 600;
-    @apply tw:text-main;
-}
-
-.settings__toggle {
-    @apply tw:relative tw:inline-flex tw:items-center tw:justify-start tw:shrink-[0] tw:w-[66px] tw:min-w-[66px] tw:min-h-[44px] tw:p-[7px] tw:ui-border-strong tw:rounded-[999px] tw:ui-fill-muted tw:text-muted tw:cursor-pointer;
-    transition: all var(--transition-base);
-}
-
-.settings__toggle--active {
-    background: rgba(59, 130, 246, 0.14);
-    border-color: rgba(59, 130, 246, 0.35);
-    @apply tw:text-accent;
-}
-
-.settings__toggle-thumb {
-    @apply tw:w-[24px] tw:h-[24px] tw:rounded-[50%];
-    background: var(--text-primary);
-    transform: translateX(0);
-    transition: transform var(--transition-base), background var(--transition-base);
-}
-
-.settings__toggle--active .settings__toggle-thumb {
-    transform: translateX(26px);
-    background: var(--accent-primary);
-}
-
 .settings__input-group {
     @apply tw:ui-stack tw:gap-ui-xs;
 }
@@ -272,36 +130,10 @@
     @apply tw:text-[length:var(--font-size-sm)] tw:text-secondary;
 }
 
-.settings__input {
-    @apply tw:p-ui-md tw:ui-fill-surface tw:ui-border-strong tw:rounded-control tw:text-main;
-    font-family: inherit;
-    @apply tw:text-[length:var(--font-size-base)];
-    transition: all var(--transition-base);
-}
-
-.settings__input:focus {
-    outline: none;
-    border-color: var(--accent-primary);
-    @apply tw:ui-fill-muted;
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
-}
-
 /* Responsive */
 @media (max-width: 640px) {
     .settings__theme-options {
         @apply tw:grid-cols-[1fr];
-    }
-
-    .theme-option {
-        @apply tw:flex-row tw:p-ui-md;
-    }
-
-    .theme-option__icon {
-        @apply tw:w-[40px] tw:h-[40px];
-    }
-
-    .theme-option__label {
-        @apply tw:flex-[1] tw:text-left;
     }
 
     .settings__appearance-options {
@@ -314,13 +146,5 @@
 
     .settings__actions button {
         @apply tw:w-full;
-    }
-
-    .settings__toggle-card {
-        @apply tw:flex-col tw:items-stretch;
-    }
-
-    .settings__toggle {
-        @apply tw:self-end;
     }
 }

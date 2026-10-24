@@ -1,3 +1,5 @@
+import { ActionGroup } from '../../components/ui/ActionGroup';
+import { InvestmentSearchOption, InvestmentSelection, InvestmentQuote, InvestmentNotice, InvestmentTotal } from '../../components/ui/InvestmentFeedback';
 import { FormField, FieldHint } from '../../components/ui/FormField';
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
@@ -590,12 +592,9 @@ export function AddInvestment() {
                 <CardContent>
                     <form onSubmit={handleSubmit} className="add-investment__form">
                         {!apiEnabled && (
-                            <div className="manual-mode-badge">
-                                <Wrench size={16} />
-                                <span>
+                            <InvestmentNotice appearance="manual" icon={<Wrench size={16} />}><span>
                                     Las APIs estan desactivadas. Esta pantalla funciona en modo manual mientras el dashboard sigue en construccion.
-                                </span>
-                            </div>
+                                </span></InvestmentNotice>
                         )}
 
                         {/* DCA Current Position Info */}
@@ -645,22 +644,7 @@ export function AddInvestment() {
                                 {showResults && searchResults.length > 0 && (
                                     <ul id="investment-search-results" className="search-results" role="listbox">
                                         {searchResults.map((result, index) => (
-                                            <li
-                                                key={result.symbol}
-                                                className={`search-results__item ${index === highlightedResult ? 'search-results__item--active' : ''}`}
-                                                role="option"
-                                                aria-selected={index === highlightedResult}
-                                                onMouseEnter={() => setHighlightedResult(index)}
-                                                onMouseDown={(event) => event.preventDefault()}
-                                                onPointerDown={(event) => event.preventDefault()}
-                                                onClick={() => void handleSelectResult(result)}
-                                            >
-                                                <span className="search-results__identity">
-                                                    <strong className="search-results__symbol">{result.symbol}</strong>
-                                                    <span className="search-results__name">{result.name}</span>
-                                                </span>
-                                                <span className="search-results__type">{assetTypes.find((type) => type.value === result.type)?.label || result.type}</span>
-                                            </li>
+                                            <InvestmentSearchOption selected={index === highlightedResult} key={result.symbol} role="option" aria-selected={index === highlightedResult} onMouseEnter={() => setHighlightedResult(index)} onMouseDown={(event) => event.preventDefault()} onPointerDown={(event) => event.preventDefault()} onClick={() => void handleSelectResult(result)} symbol={<>{result.symbol}</>} name={<>{result.name}</>} kind={<>{assetTypes.find((type) => type.value === result.type)?.label || result.type}</>} />
                                         ))}
                                     </ul>
                                 )}
@@ -669,17 +653,7 @@ export function AddInvestment() {
                                 )}
                                 {/* No results found - show manual entry option */}
                                 {!manualMode && !isSearching && searchQuery.trim().length >= 1 && !targetAsset && (
-                                    <div className="no-results">
-                                        <AlertCircle size={18} />
-                                        <div className="no-results__text">
-                                            <p>{noResultsFound ? `No se encontró "${searchQuery}"` : '¿Quieres registrar un activo o una cuenta manualmente?'}</p>
-                                            <span>
-                                                {isISIN(searchQuery)
-                                                    ? 'ISIN no encontrado en la base de datos, pero puedes añadirlo manualmente.'
-                                                    : 'Puedes añadir este activo manualmente.'}
-                                            </span>
-                                        </div>
-                                        <Button
+                                    <InvestmentNotice appearance="noResults" icon={<AlertCircle size={18} />} title={<>{noResultsFound ? `No se encontró "${searchQuery}"` : '¿Quieres registrar un activo o una cuenta manualmente?'}</>} action={<Button
                                             type="button"
                                             variant="secondary"
                                             size="sm"
@@ -687,22 +661,18 @@ export function AddInvestment() {
                                             icon={<Edit3 size={14} />}
                                         >
                                             Añadir manualmente
-                                        </Button>
-                                    </div>
+                                        </Button>}>
+                                                {isISIN(searchQuery)
+                                                    ? 'ISIN no encontrado en la base de datos, pero puedes añadirlo manualmente.'
+                                                    : 'Puedes añadir este activo manualmente.'}
+                                            </InvestmentNotice>
                                 )}
                             </div>
                             {/* Selected asset indicator */}
                             {formData.name && !manualMode && (
-                                <div className="selected-asset">
-                                    <Check size={17} />
-                                    <span className="selected-asset__content">
-                                        <strong className="selected-asset__symbol">{formData.symbol}</strong>
-                                        <span className="selected-asset__name">{formData.name}</span>
-                                    </span>
-                                    <span className="selected-asset__type">
+                                <InvestmentSelection icon={<Check size={17} />} symbol={<>{formData.symbol}</>} name={<>{formData.name}</>} kind={<>
                                         {assetTypes.find((type) => type.value === formData.type)?.label || formData.type}
-                                    </span>
-                                </div>
+                                    </>} />
                             )}
                         </FormField>
 
@@ -730,18 +700,14 @@ export function AddInvestment() {
 
                         {/* Current Price Display */}
                         {(currentPrice !== null || loadingPrice) && !manualMode && (
-                            <div className="current-price-banner">
-                                <div className="current-price-banner__label">Cotización de referencia</div>
-                                <div className="current-price-banner__value">
+                            <InvestmentQuote label={<>Cotización de referencia</>} value={<>
                                     {loadingPrice ? <><Loader2 size={16} className="search-loading__spinner" /> Consultando…</> : `${currentPrice?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 6 })} EUR`}
-                                </div>
-                            </div>
+                                </>} />
                         )}
 
                         {priceLookupFailed && !loadingPrice && (
-                            <div className="quote-warning" role="status">
-                                <AlertCircle size={16} /> No se pudo obtener la cotización ahora. Puedes introducir el precio manualmente.
-                            </div>
+                            <InvestmentNotice appearance="warning" icon={<AlertCircle size={16} />}> No se pudo obtener la cotización ahora. Puedes introducir el precio manualmente.
+                            </InvestmentNotice>
                         )}
 
                         {/* Price, Quantity, Date in row */}
@@ -817,15 +783,12 @@ export function AddInvestment() {
                             </FormField>
                         )}
                         {operationTotal > 0 && (
-                            <div className="operation-total" aria-live="polite">
-                                <span>{isSellMode ? 'Importe estimado de la venta' : 'Importe de la operación'}</span>
-                                <strong>{operationTotal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {currency}</strong>
-                            </div>
+                            <InvestmentTotal label={<span>{isSellMode ? 'Importe estimado de la venta' : 'Importe de la operación'}</span>}>{operationTotal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {currency}</InvestmentTotal>
                         )}
 
                         {/* Submit */}
                         {errors.save && <p role="alert">{errors.save}</p>}
-                        <div className="form-actions">
+                        <ActionGroup appearance="investment">
                             <Button
                                 type="button"
                                 variant="secondary"
@@ -841,7 +804,7 @@ export function AddInvestment() {
                                 {isEditMode ? 'Guardar Cambios' :
                                     isDcaMode ? 'Añadir compra' : isSellMode ? 'Registrar venta' : 'Añadir inversión'}
                             </Button>
-                        </div>
+                        </ActionGroup>
                     </form>
                 </CardContent>
             </Card>

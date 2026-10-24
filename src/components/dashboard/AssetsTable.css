@@ -3,16 +3,12 @@
 .assets-table {
     @apply tw:w-full;
 }
-
-.assets-table__lots-toggle { @apply tw:inline-flex tw:items-center tw:gap-[.3rem] tw:p-[.25rem_0] tw:min-h-[32px]; border: 0; background: none; @apply tw:text-secondary; font: inherit; @apply tw:text-[length:var(--font-size-xs)] tw:cursor-pointer; }
-.assets-table__lots-toggle:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
 .assets-table__lot-row { @apply tw:ui-fill-surface; }
 .assets-table__lot-row .assets-table__asset { @apply tw:pl-[.8rem]; border-left: 2px solid var(--border-primary); }
 
 .assets-table__filters { @apply tw:flex tw:gap-[1rem] tw:flex-wrap; align-items: end; @apply tw:mb-[1rem]; }
 .assets-table__filters > div:first-child { @apply tw:grow-[2]; }
 .assets-table__filter-count { @apply tw:text-[length:var(--font-size-sm)] tw:text-secondary tw:mb-[1rem]; }
-.assets-table__variation-date { @apply tw:text-[length:.7rem]; }
 
 .assets-table__wrapper {
     @apply tw:overflow-x-auto tw:m-[0_calc(-1_*_var(--spacing-lg))] tw:p-[0_var(--spacing-lg)];
@@ -28,11 +24,6 @@
 .assets-table__column--gain {
     @apply tw:text-right tw:whitespace-nowrap;
 }
-
-.assets-table__today {
-    @apply tw:ui-stack tw:items-end tw:gap-[2px];
-}
-.assets-table__today small { @apply tw:text-muted; }
 
 /* Header */
 .assets-table__table th {
@@ -78,28 +69,6 @@
 }
 
 /* Asset cell */
-.assets-table__asset {
-    @apply tw:ui-stack tw:min-w-[0];
-}
-
-.assets-table__identifiers {
-    @apply tw:flex tw:flex-wrap tw:gap-[0_var(--spacing-xs)] tw:min-w-[0];
-}
-
-.assets-table__symbol {
-    @apply tw:text-[length:var(--font-size-xs)] tw:text-muted;
-}
-
-.assets-table__isin {
-    @apply tw:text-[length:var(--font-size-xs)] tw:text-muted tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;
-}
-
-.assets-table__name {
-    @apply tw:order-[1];
-    font-weight: 600;
-    @apply tw:text-main;
-    line-height: 1.35;
-}
 
 /* Value */
 .assets-table__value {
@@ -108,9 +77,6 @@
 }
 
 /* Gain */
-.assets-table__gain {
-    @apply tw:ui-stack;
-}
 
 .assets-table__table tr:last-child td {
     border-bottom: none;
@@ -125,37 +91,7 @@
     background-color: rgba(255, 255, 255, 0.03);
 }
 
-.assets-table__change {
-    font-weight: 600;
-}
-
-.assets-table__change--positive {
-    @apply tw:text-positive;
-}
-
-.assets-table__change--negative {
-    @apply tw:text-negative;
-}
-
-.assets-table__gain-value {
-    @apply tw:text-[length:var(--font-size-xs)] tw:text-muted;
-}
-
 /* Weight */
-.assets-table__weight {
-    @apply tw:ui-row tw:gap-ui-sm;
-}
-
-.assets-table__weight-bar {
-    @apply tw:w-[60px] tw:h-[6px] tw:ui-fill-muted tw:rounded-[var(--radius-full)] tw:overflow-hidden;
-}
-
-.assets-table__weight-fill {
-    @apply tw:h-full;
-    background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
-    @apply tw:rounded-[var(--radius-full)];
-    transition: width var(--transition-base);
-}
 
 /* Empty state */
 .assets-table__empty {
@@ -192,17 +128,17 @@
     }
 
     .assets-table__table thead,
-    .assets-table__table tbody {
+.assets-table__table tbody {
         @apply tw:block;
     }
 
     .assets-table__table thead tr,
-    .assets-table__table tbody tr {
+.assets-table__table tbody tr {
         @apply tw:grid tw:grid-cols-[minmax(0,_1.45fr)_minmax(68px,_.85fr)_minmax(72px,_.9fr)_minmax(78px,_1fr)] tw:w-full;
     }
 
     .assets-table__table th,
-    .assets-table__table td {
+.assets-table__table td {
         @apply tw:min-w-[0] tw:p-[var(--spacing-sm)_.2rem] tw:text-[length:.7rem];
     }
 
@@ -211,22 +147,8 @@
         line-height: 1.2;
     }
 
-    .assets-table__today {
-        @apply tw:ui-stack tw:items-end tw:gap-[2px];
-        line-height: 1.2;
-    }
-
-    .assets-table__today strong {
-        @apply tw:text-[length:var(--font-size-xs)];
-        font-weight: 700;
-    }
-
-    .assets-table__today small {
-        @apply tw:text-muted tw:text-[length:.64rem];
-    }
-
     .assets-table__table--show-details thead tr,
-    .assets-table__table--show-details tbody tr {
+.assets-table__table--show-details tbody tr {
         @apply tw:grid-cols-[repeat(3,_minmax(0,_1fr))];
     }
     .assets-table__table--show-details .assets-table__column--asset { @apply tw:col-span-full; }
@@ -240,7 +162,7 @@
     }
 
     .assets-table__table .assets-table__optional,
-    .assets-table__table .assets-table__actions-header {
+.assets-table__table .assets-table__actions-header {
         @apply tw:hidden;
     }
 
@@ -261,55 +183,18 @@
     }
 
     .assets-table__table .assets-table__mobile-details-cell,
-    .assets-table__table .assets-table__actions-cell {
+.assets-table__table .assets-table__actions-cell {
         @apply tw:col-span-full tw:hidden tw:pt-[0] tw:whitespace-normal;
     }
 
     .assets-table__table--show-details .assets-table__mobile-details-cell,
-    .assets-table__table--show-actions .assets-table__actions-cell {
+.assets-table__table--show-actions .assets-table__actions-cell {
         @apply tw:block;
-    }
-
-    .assets-table__mobile-details {
-        @apply tw:flex tw:flex-wrap tw:items-baseline tw:gap-x-ui-md tw:gap-y-[2px] tw:mt-ui-xs tw:p-[var(--spacing-xs)_var(--spacing-sm)] tw:ui-fill-muted tw:rounded-[var(--radius-sm)];
-    }
-
-    .assets-table__mobile-details > div {
-        @apply tw:inline-flex tw:items-baseline tw:gap-[4px] tw:min-w-[0];
-    }
-
-    .assets-table__mobile-details span {
-        @apply tw:text-muted tw:text-[length:.65rem] tw:whitespace-nowrap;
-    }
-
-    .assets-table__mobile-details strong {
-        @apply tw:overflow-hidden tw:text-main tw:text-[length:var(--font-size-xs)] tw:text-ellipsis tw:whitespace-nowrap;
     }
 
     .assets-table__table--show-actions .assets-table__actions {
         @apply tw:flex tw:mt-ui-xs tw:pt-ui-xs;
         border-top: 1px solid var(--border-primary);
-    }
-
-    .assets-table__name {
-        @apply tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;
-    }
-
-    .assets-table__identifiers {
-        @apply tw:flex-col tw:gap-[0];
-    }
-
-    .assets-table__symbol,
-    .assets-table__isin {
-        @apply tw:max-w-full tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;
-    }
-
-    .assets-table__gain {
-        @apply tw:items-end;
-    }
-
-    .assets-table__gain-value {
-        @apply tw:whitespace-nowrap;
     }
 
     .assets-table__actions {
@@ -320,12 +205,6 @@
         @apply tw:w-[44px] tw:min-w-[44px] tw:min-h-[44px] tw:p-[0];
     }
 }
-.assets-table__sort, .assets-table__open {
-    border: 0; @apply tw:ui-fill-transparent; color: inherit; font: inherit; @apply tw:cursor-pointer tw:text-left;
-}
-.assets-table__sort { @apply tw:inline-flex tw:items-center tw:gap-[.35rem] tw:min-h-[44px]; }
-.assets-table__open { @apply tw:p-[0] tw:min-h-[44px]; }
-.assets-table__sort:focus-visible, .assets-table__open:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; @apply tw:rounded-[4px]; }
 
 .assets-table__estimated {
     @apply tw:block tw:text-[length:.7rem];

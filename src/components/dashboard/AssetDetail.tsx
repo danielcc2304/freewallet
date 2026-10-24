@@ -1,3 +1,4 @@
+import { DashboardAssetHeader, DashboardPeriodPerformance, DashboardChartLegend, DashboardCompanySection, DashboardDetailFootnote } from './ui/DashboardAssetOverview';
 import { DashboardMetric } from './ui/DashboardMetric';
 import { DashboardSegments } from './ui/DashboardSegments';
 import { DashboardFundamentalCard } from './ui/DashboardFundamentalCard';
@@ -396,21 +397,12 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
     return (
         <div className={`asset-detail ${isFund ? 'asset-detail--fund' : ''}`}>
             {/* Header info - Always visible (from props) */}
-            <div className="asset-detail__header">
-                <div className="asset-detail__title-group">
-                    <h2 className="asset-detail__symbol">{asset.symbol}</h2>
-                    <p className="asset-detail__name">{asset.name}</p>
-                </div>
-                <div className="asset-detail__price-group">
-                    <div className="asset-detail__price">
+            <DashboardAssetHeader symbol={<>{asset.symbol}</>} name={<>{asset.name}</>} price={<>
                         {formatValue(group?.estimatedCount ? undefined : marketOnly ? asset.currentPrice : assetPrice(asset), 'price')}
-                    </div>
-                    <div className={`asset-detail__change ${hasPreviousClose ? priceChange >= 0 ? 'positive' : 'negative' : ''}`}>
+                    </>} tone={hasPreviousClose ? priceChange >= 0 ? 'positive' : 'negative' : ''}>
                         {hasPreviousClose ? <>{priceChange >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
                             {formatValue(priceChange, 'price')} ({formatValue(priceChangePercent, 'percent')})</> : 'Cambio diario no disponible'}
-                    </div>
-                </div>
-            </div>
+                    </DashboardAssetHeader>
 
             {group && <p className="asset-detail__group-note">Posición agrupada · {group.lots.length} registros{group.estimatedCount?' · incluye valoraciones estimadas':group.mixedPrices?' · precio medio de valoración':''}.</p>}
             {!marketOnly && <div className="asset-detail__position-grid">
@@ -471,13 +463,9 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                     </div>
                     <DashboardSegments appearance="chart" className="asset-detail__period-selector" options={periods} value={selectedPeriod} onChange={setSelectedPeriod} />
                 </div>
-                <div className="asset-detail__period-performance" aria-live="polite">
-                    <span>Variación del precio {selectedPeriod === 'ALL' ? 'histórica' : selectedPeriod}</span>
-                    <strong className={chartPeriodReturn !== null && chartPeriodReturn < 0 ? 'negative' : 'positive'}>
+                <DashboardPeriodPerformance label={<>Variación del precio {selectedPeriod === 'ALL' ? 'histórica' : selectedPeriod}</>} value={<>
                         {canDrawChart && chartPeriodReturn !== null ? `${chartPeriodReturn >= 0 ? '+' : ''}${chartPeriodReturn.toFixed(2)}%` : 'N/D'}
-                    </strong>
-                    {canDrawChart && chartPeriodStart && chartPeriodEnd && <small>{chartPeriodStart.date} → {chartPeriodEnd.date}</small>}
-                </div>
+                    </>} valueClassName={chartPeriodReturn !== null && chartPeriodReturn < 0 ? 'negative' : 'positive'}>{canDrawChart && chartPeriodStart && chartPeriodEnd && <small>{chartPeriodStart.date} → {chartPeriodEnd.date}</small>}</DashboardPeriodPerformance>
 
                 <div
                     ref={chartContainerRef}
@@ -575,10 +563,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                         )}
                     </div>
                 )}
-                <div className="asset-detail__chart-legend">
-                    <span><i className="asset-detail__legend-line" /> {isFund ? 'Precio participación' : 'Precio'}</span>
-                    <span className="asset-detail__chart-axis-hint">Eje vertical: {chartData[0]?.currency || asset.currency || 'EUR'} · Eje horizontal: fecha. {marketOnly ? 'Histórico en su divisa de origen.' : `Histórico en su divisa de origen; la posición se valora en ${asset.currency || 'EUR'}.`}</span>
-                </div>
+                <DashboardChartLegend label={<>{isFund ? 'Precio participación' : 'Precio'}</>} hint={<>Eje vertical: {chartData[0]?.currency || asset.currency || 'EUR'} · Eje horizontal: fecha. {marketOnly ? 'Histórico en su divisa de origen.' : `Histórico en su divisa de origen; la posición se valora en ${asset.currency || 'EUR'}.`}</>} />
                {!isFund && chartData[0]?.sourceSymbol && chartData[0].sourceSymbol !== asset.symbol && <p className="asset-detail__chart-source">
                    Histórico de {chartData[0].sourceSymbol}, cotización alternativa de la misma empresa. El precio de tu posición se consulta en {selectedMarket?.label ?? asset.symbol}.
                </p>}
@@ -591,11 +576,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
            </div>
 
             {asset.type === 'stock' && (
-                <section className="asset-detail__company" aria-label="Sobre la empresa">
-                    <h3 className="section-title"><Building2 size={18} />Sobre la empresa</h3>
-                    <p>{company?.description || (loadingFundamentals ? 'Cargando descripción…' : 'Descripción no disponible.')}</p>
-                    {company && <a href={company.url} target="_blank" rel="noopener noreferrer">Fuente: {company.source}</a>}
-                </section>
+                <DashboardCompanySection aria-label="Sobre la empresa" title={<><Building2 size={18} />Sobre la empresa</>}><p>{company?.description || (loadingFundamentals ? 'Cargando descripción…' : 'Descripción no disponible.')}</p>{company && <a href={company.url} target="_blank" rel="noopener noreferrer">Fuente: {company.source}</a>}</DashboardCompanySection>
             )}
 
             {/* Metrics Grid */}
@@ -636,10 +617,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                 </div>
             )}
 
-            <div className="asset-detail__footer">
-                <Info size={14} />
-                <p>{isFund ? 'Ficha obtenida de Finect e histórico de mercado de la clase encontrada por ISIN.' : 'Datos de Yahoo Finance. Los financieros corresponden al último periodo publicado.'}</p>
-            </div>
+            <DashboardDetailFootnote icon={<Info size={14} />}>{isFund ? 'Ficha obtenida de Finect e histórico de mercado de la clase encontrada por ISIN.' : 'Datos de Yahoo Finance. Los financieros corresponden al último periodo publicado.'}</DashboardDetailFootnote>
         </div>
     );
 }

@@ -1,3 +1,5 @@
+import { AcademyFinalTip } from '../ui/AcademyAssetExplainers';
+
 import { AssetCategoryCard } from '../ui/AssetCategoryCard';
 import { AcademyListCard } from '../ui/AcademyListCard';
 import { AcademyCallout } from '../ui/AcademyCallout';
@@ -138,17 +140,11 @@ export function AssetREITs() {
                 </AcademyGrid>
             </AcademySection>
 
-            <section className="asset-page__final-tip">
-                <Lightbulb size={28} />
-                <div>
-                    <h3>Para tu cartera</h3>
-                    <p>
+            <AcademyFinalTip as="section" icon={<Lightbulb size={28} />} title={<>Para tu cartera</>}>
                         Los REITs son el complemento perfecto para una cartera diversificada, aportando una descorrelación
                         parcial con las acciones tradicionales y un flujo de caja real. <strong>Un 5-10% de exposición
                             suele ser suficiente para la mayoría de perfiles.</strong>
-                    </p>
-                </div>
-            </section>
+                    </AcademyFinalTip>
         </div>
     );
 }

@@ -97,3 +97,8 @@ Portfolio utiliza `PortfolioPanel` y `PortfolioButton` para tarjetas de análisi
 ### Calculadoras, etapas y categorías de activos
 
 Interés compuesto, FIRE y jubilación comparten cabeceras con icono, opciones nativas, marcos de gráficos, leyendas, avisos y detalle anual. La ficha de fondos comparte estructura de búsqueda, estados y posiciones. El viaje inversor compone etapas, listas, asignaciones y accesos mediante componentes propios de Academia. Las cinco guías de activos comparten tarjetas completas de categorías y subtipos de bonos. Las piezas incorporan marcado y estilos Tailwind, conservando CSS contextual de materiales y contenedores. Esta fase retira 1.069 líneas y 240 declaraciones `@apply`: quedan 12.552 líneas en 58 hojas, un 44,83 % menos de CSS fuente respecto al inicio.
+
+
+### Posiciones, preferencias, controles y registros
+
+Dashboard compone sus celdas y el encabezado/detalle de activos mediante `DashboardAssetCells` y `DashboardAssetOverview`. Ajustes utiliza preferencias y controles nativos compartidos; Portfolio reutiliza los mismos controles y añade filas de posiciones y objetivos. Añadir activo comparte sus avisos y resultados, y reutiliza `ActionGroup` para acciones. Las cinco guías comparten más fichas y explicaciones de activos; el mapa de calor comparte opciones, leyenda y resúmenes. Gastos comparte registros, búsqueda, mes, calendario, exportación y ayuda de importación. Los datos y estados permanecen en sus consumidores. Se retiran 938 líneas y 272 declaraciones `@apply`: quedan 11.614 líneas de CSS fuente en 58 hojas, un 48,96 % menos respecto al inicio.

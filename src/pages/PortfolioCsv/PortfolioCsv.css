@@ -9,37 +9,28 @@
     @apply tw:items-stretch;
 }
 
-.portfolio-csv-workbook-controls,
-.portfolio-csv-objectives,
-.portfolio-csv-movements__list {
+.portfolio-csv-workbook-controls, .portfolio-csv-objectives, .portfolio-csv-movements__list {
     @apply tw:grid tw:gap-[0.7rem] tw:mt-[1.1rem];
 }
 
-.portfolio-csv-workbook-control,
-.portfolio-csv-objective,
-.portfolio-csv-movements__list > div {
+.portfolio-csv-workbook-control, .portfolio-csv-objective, .portfolio-csv-movements__list > div {
     @apply tw:ui-row tw:justify-between tw:gap-[1rem] tw:pb-[0.65rem];
     border-bottom: 1px solid var(--border-secondary);
 }
 
-.portfolio-csv-workbook-control span,
-.portfolio-csv-objective small,
-.portfolio-csv-movements__list small {
+.portfolio-csv-workbook-control span, .portfolio-csv-objective small, .portfolio-csv-movements__list small {
     @apply tw:text-muted;
 }
 
-.portfolio-csv-workbook-control--ok,
-.portfolio-csv-value--positive {
+.portfolio-csv-workbook-control--ok, .portfolio-csv-value--positive {
     color: #34d399;
 }
 
-.portfolio-csv-workbook-control--warn,
-.portfolio-csv-value--negative {
+.portfolio-csv-workbook-control--warn, .portfolio-csv-value--negative {
     color: #f87171;
 }
 
-.portfolio-csv-objective > div,
-.portfolio-csv-movements__list span {
+.portfolio-csv-objective > div, .portfolio-csv-movements__list span {
     @apply tw:grid tw:gap-[0.2rem];
 }
 
@@ -58,59 +49,8 @@
     }
 }
 
-.portfolio-csv-hero {
-    @apply tw:relative tw:mb-[1.4rem] tw:p-[2rem] tw:rounded-[18px] tw:ui-border;
-    background:
-        radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.18), transparent 45%),
-        radial-gradient(circle at 90% 20%, rgba(59, 130, 246, 0.18), transparent 42%),
-        var(--bg-secondary);
-    @apply tw:overflow-hidden;
-}
-
-.portfolio-csv-hero__badge {
-    @apply tw:inline-flex tw:text-[length:var(--font-size-xs)];
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    @apply tw:p-[0.3rem_0.6rem] tw:rounded-[var(--radius-full)] tw:ui-border-strong tw:mb-[0.8rem] tw:text-accent;
-    font-weight: 700;
-}
-
-.portfolio-csv-hero h1 {
-    @apply tw:m-[0_0_0.65rem] tw:text-[length:clamp(1.6rem,_2.3vw,_2.4rem)] tw:max-w-[820px];
-}
-
-.portfolio-csv-hero p {
-    @apply tw:m-[0] tw:max-w-[820px] tw:text-secondary;
-    line-height: 1.7;
-}
-
 .portfolio-csv-upload {
     @apply tw:grid tw:grid-cols-[minmax(0,_1fr)] tw:gap-[0.9rem] tw:mb-[1rem];
-}
-
-.portfolio-csv-upload__card {
-    @apply tw:ui-fill-surface tw:ui-border tw:rounded-[14px] tw:p-[1rem] tw:ui-stack tw:gap-[0.55rem];
-}
-
-.portfolio-csv-upload__card--utility {
-    background: linear-gradient(140deg, var(--bg-secondary), var(--bg-tertiary));
-}
-
-.portfolio-csv-upload__card h3 {
-    @apply tw:text-[length:var(--font-size-base)] tw:m-[0] tw:ui-row tw:gap-[0.4rem];
-}
-
-.portfolio-csv-upload__card p {
-    @apply tw:m-[0] tw:text-secondary tw:text-[length:var(--font-size-sm)];
-    line-height: 1.5;
-}
-
-.portfolio-csv-upload__card small {
-    @apply tw:text-muted tw:text-[length:var(--font-size-xs)];
-}
-
-.portfolio-csv-upload__actions {
-    @apply tw:ui-row tw:gap-[0.5rem] tw:flex-wrap;
 }
 
 .portfolio-csv-error {
@@ -126,50 +66,6 @@
 
 .portfolio-csv-grid {
     @apply tw:grid tw:grid-cols-[repeat(2,_minmax(280px,_1fr))] tw:gap-[0.9rem] tw:mb-[0.9rem];
-}
-
-.portfolio-csv-chart {
-    @apply tw:w-full tw:h-[320px];
-}
-
-.portfolio-csv-chart--composition {
-    @apply tw:mb-[0.55rem];
-}
-
-.portfolio-csv-chart .recharts-default-legend {
-    margin: 0 !important;
-    padding: 0.45rem 0 !important;
-}
-
-.portfolio-csv-chart--benchmark {
-    @apply tw:h-[330px];
-}
-
-.portfolio-csv-empty-state {
-    border: 1px dashed var(--border-secondary);
-    @apply tw:rounded-[10px] tw:p-[1rem] tw:ui-fill-muted tw:text-secondary tw:text-[length:var(--font-size-sm)];
-    line-height: 1.55;
-}
-
-.portfolio-csv-pie-legend {
-    @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[0.45rem];
-}
-
-.portfolio-csv-pie-legend__item {
-    @apply tw:grid tw:grid-cols-[auto_1fr_auto] tw:items-center tw:gap-[0.45rem] tw:ui-border tw:rounded-[10px] tw:p-[0.45rem_0.55rem] tw:ui-fill-muted;
-}
-
-.portfolio-csv-pie-legend__dot {
-    @apply tw:w-[9px] tw:h-[9px] tw:rounded-[50%];
-}
-
-.portfolio-csv-pie-legend__name {
-    @apply tw:text-secondary tw:text-[length:var(--font-size-xs)] tw:overflow-hidden tw:text-ellipsis tw:whitespace-nowrap;
-}
-
-.portfolio-csv-pie-legend__weight {
-    @apply tw:text-main tw:text-[length:var(--font-size-xs)];
-    font-weight: 600;
 }
 
 .portfolio-csv-page .recharts-cartesian-axis-tick-value {
@@ -189,81 +85,12 @@
     color: var(--text-secondary) !important;
 }
 
-.portfolio-csv-insights {
-    list-style: none;
-    @apply tw:p-[0] tw:m-[0] tw:ui-stack tw:gap-[0.55rem];
-}
-
-.portfolio-csv-insights li {
-    @apply tw:ui-row tw:justify-between tw:gap-[0.8rem] tw:ui-border tw:rounded-[10px] tw:p-[0.65rem_0.75rem] tw:ui-fill-muted;
-}
-
-.portfolio-csv-insights span {
-    @apply tw:text-secondary tw:text-[length:var(--font-size-sm)];
-}
-
-.portfolio-csv-insights strong {
-    @apply tw:text-main tw:text-[length:var(--font-size-sm)] tw:text-right;
-}
-
-.portfolio-csv-note {
-    @apply tw:mt-[0.75rem];
-    border: 1px dashed var(--border-secondary);
-    @apply tw:rounded-[10px] tw:p-[0.7rem];
-    background: rgba(16, 185, 129, 0.06);
-}
-
-.portfolio-csv-note p {
-    @apply tw:m-[0] tw:text-secondary tw:text-[length:var(--font-size-sm)];
-    line-height: 1.6;
-}
-
 .portfolio-csv-checks {
     @apply tw:grid tw:gap-[0.7rem];
 }
 
-.portfolio-csv-check {
-    @apply tw:ui-border tw:rounded-[10px] tw:p-[0.75rem] tw:ui-fill-muted;
-}
-
-.portfolio-csv-check--good {
-    background: rgba(16, 185, 129, 0.08);
-}
-
-.portfolio-csv-check--warn {
-    background: rgba(245, 158, 11, 0.1);
-}
-
-.portfolio-csv-check__top {
-    @apply tw:ui-row tw:justify-between tw:gap-[0.75rem] tw:mb-[0.35rem];
-}
-
-.portfolio-csv-check__title {
-    @apply tw:text-secondary tw:text-[length:var(--font-size-sm)];
-}
-
-.portfolio-csv-check__value {
-    @apply tw:text-main tw:text-[length:var(--font-size-base)];
-}
-
-.portfolio-csv-check p {
-    @apply tw:m-[0] tw:text-secondary tw:text-[length:var(--font-size-sm)];
-    line-height: 1.5;
-}
-
 .portfolio-csv-controls-table {
     @apply tw:grid tw:gap-[0.55rem];
-}
-
-.portfolio-csv-controls-table__head {
-    @apply tw:grid tw:grid-cols-[minmax(220px,_2fr)_minmax(90px,_0.7fr)_minmax(180px,_1fr)] tw:items-center tw:gap-[0.75rem];
-}
-
-.portfolio-csv-controls-table__head {
-    @apply tw:text-muted tw:text-[length:var(--font-size-xs)];
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    @apply tw:p-[0_0.25rem];
 }
 
 .portfolio-csv-targets {
@@ -274,90 +101,8 @@
     @apply tw:grid tw:gap-[0.55rem];
 }
 
-.portfolio-csv-plan-table__head,
-.portfolio-csv-plan-table__row {
-    @apply tw:grid tw:grid-cols-[minmax(140px,_1.2fr)_repeat(3,_minmax(80px,_0.8fr))] tw:gap-[0.75rem] tw:items-center;
-}
-
-.portfolio-csv-plan-table__head {
-    @apply tw:text-muted tw:text-[length:var(--font-size-xs)];
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    @apply tw:p-[0_0.25rem];
-}
-
-.portfolio-csv-plan-table__row {
-    @apply tw:ui-border tw:rounded-[10px] tw:p-[0.7rem_0.75rem] tw:ui-fill-muted;
-}
-
-.portfolio-csv-plan-table__bucket {
-    @apply tw:text-main;
-}
-
-.portfolio-csv-plan-table__delta--over {
-    color: #ef4444;
-    font-weight: 700;
-}
-
-.portfolio-csv-plan-table__delta--under {
-    color: #10b981;
-    font-weight: 700;
-}
-
-.portfolio-csv-tooltip {
-    @apply tw:min-w-[190px] tw:ui-fill-surface tw:ui-border-strong tw:rounded-[10px] tw:p-[0.55rem_0.65rem];
-    box-shadow: var(--shadow-md);
-}
-
-.portfolio-csv-tooltip__label {
-    @apply tw:text-[length:var(--font-size-xs)] tw:text-main;
-    font-weight: 700;
-    @apply tw:mb-[0.35rem];
-}
-
-.portfolio-csv-tooltip__rows {
-    @apply tw:ui-stack tw:gap-[0.28rem];
-}
-
-.portfolio-csv-tooltip__row {
-    @apply tw:grid tw:grid-cols-[auto_1fr_auto] tw:items-center tw:gap-[0.4rem];
-}
-
-.portfolio-csv-tooltip__dot {
-    @apply tw:w-[9px] tw:h-[9px] tw:rounded-[50%];
-}
-
-.portfolio-csv-tooltip__name {
-    @apply tw:text-secondary tw:text-[length:var(--font-size-xs)];
-}
-
-.portfolio-csv-tooltip__value {
-    @apply tw:text-main tw:text-[length:var(--font-size-xs)];
-}
-
 .portfolio-csv-advanced {
     @apply tw:mb-[0.9rem];
-}
-
-.portfolio-csv-advanced__header {
-    @apply tw:flex tw:items-start tw:justify-between tw:gap-[1rem] tw:mb-[0.9rem];
-}
-
-.portfolio-csv-advanced__header h2 {
-    @apply tw:mb-[0.35rem];
-}
-
-.portfolio-csv-advanced__header p {
-    @apply tw:mb-[0];
-}
-
-.portfolio-csv-advanced__source {
-    @apply tw:flex-[0_0_auto] tw:p-[0.45rem_0.65rem];
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    @apply tw:rounded-[999px];
-    background: rgba(16, 185, 129, 0.08);
-    @apply tw:text-accent tw:text-[length:var(--font-size-xs)];
-    font-weight: 700;
 }
 
 .portfolio-csv-advanced__grid {
@@ -374,8 +119,7 @@
         @apply tw:grid-cols-[repeat(3,_1fr)];
     }
 
-    .portfolio-csv-advanced__grid,
-.portfolio-csv-advanced__daily {
+    .portfolio-csv-advanced__grid, .portfolio-csv-advanced__daily {
         @apply tw:grid-cols-[repeat(2,_minmax(0,_1fr))];
     }
 }
@@ -399,115 +143,21 @@
         @apply tw:p-[0_0_2.3rem];
     }
 
-    .portfolio-csv-hero {
-        @apply tw:p-[1.15rem];
-    }
-
     .portfolio-csv-kpis {
         @apply tw:grid-cols-[repeat(2,_1fr)];
-    }
-
-    .portfolio-csv-chart {
-        @apply tw:h-[276px];
-    }
-
-    .portfolio-csv-chart--benchmark {
-        @apply tw:h-[360px];
-    }
-
-    .portfolio-csv-chart .recharts-responsive-container {
-        margin: 0 !important;
-    }
-
-    .portfolio-csv-pie-legend {
-        @apply tw:grid-cols-[1fr];
-    }
-
-    .portfolio-csv-insights li {
-        @apply tw:flex-col tw:items-start;
-    }
-
-    .portfolio-csv-controls-table__head {
-        @apply tw:hidden;
     }
 
     .portfolio-csv-targets {
         @apply tw:grid-cols-[1fr];
     }
 
-    .portfolio-csv-plan-table__head {
-        @apply tw:hidden;
-    }
-
-    .portfolio-csv-plan-table__row {
-        @apply tw:grid-cols-[1fr] tw:gap-[0.55rem];
-    }
-
-    .portfolio-csv-plan-table__bucket {
-        @apply tw:pb-[0.35rem];
-        border-bottom: 1px solid var(--border-primary);
-    }
-
-    .portfolio-csv-plan-table__row span {
-        @apply tw:ui-row tw:justify-between tw:gap-[0.8rem] tw:text-[length:var(--font-size-sm)];
-    }
-
-    .portfolio-csv-plan-table__row span::before {
-        content: attr(data-label);
-        @apply tw:text-muted tw:text-[length:var(--font-size-xs)];
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-    }
-
     .portfolio-csv-card {
         @apply tw:p-[0.85rem_0.7rem];
     }
 
-    .portfolio-csv-advanced__header {
-        @apply tw:flex-col;
-    }
-
-    .portfolio-csv-advanced__source {
-        @apply tw:self-start;
-    }
-
-    .portfolio-csv-advanced__grid,
-.portfolio-csv-advanced__daily {
+    .portfolio-csv-advanced__grid, .portfolio-csv-advanced__daily {
         @apply tw:grid-cols-[1fr];
-    }
-
-    .portfolio-csv-chart--risk-map {
-        @apply tw:ml-[0];
     }
 }
 
 /* Matches the informational hero dialogs used in the Academy fund radar. */
-.portfolio-csv-notice {
-    @apply tw:ui-stack tw:items-center tw:gap-[1rem] tw:p-[.5rem_0] tw:text-secondary tw:text-center;
-    line-height: 1.65;
-    @apply tw:wrap-anywhere;
-}
-.portfolio-csv-notice__icon {
-    @apply tw:grid tw:place-items-center tw:w-[96px] tw:h-[96px] tw:rounded-[50%] tw:text-accent;
-    background: rgba(var(--accent-rgb), .1);
-    border: 1px solid rgba(var(--accent-rgb), .18);
-}
-.portfolio-csv-notice h2 { @apply tw:m-[0] tw:text-[length:clamp(1.35rem,_4vw,_1.85rem)]; line-height: 1.25; font-weight: 800; @apply tw:text-main; }
-.portfolio-csv-notice p { @apply tw:max-w-[430px] tw:m-[0] tw:text-[length:1rem]; }
-.portfolio-csv-notice strong { @apply tw:text-main; font-weight: 600; }
-.portfolio-csv-notice .portfolio-csv-notice__note { @apply tw:text-[length:.85rem]; }
-.portfolio-csv-notice__dashboard {
-    @apply tw:inline-flex tw:items-center tw:justify-center tw:gap-[.65rem] tw:min-h-[48px] tw:w-full tw:p-[.75rem_1rem] tw:ui-border-default tw:rounded-[12px] tw:ui-fill-muted tw:text-main;
-    text-decoration: none;
-    font-weight: 600;
-}
-.portfolio-csv-notice__dashboard svg { @apply tw:shrink-[0]; }
-.portfolio-csv-notice__dashboard:hover { border-color: var(--accent-primary); }
-.portfolio-csv-notice__dashboard:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 3px; }
-@media (max-width: 480px) {
-    .portfolio-csv-notice { @apply tw:gap-[.85rem]; }
-    .portfolio-csv-notice__icon { @apply tw:w-[72px] tw:h-[72px]; }
-    .portfolio-csv-notice__icon svg { @apply tw:w-[34px] tw:h-[34px]; }
-    .portfolio-csv-notice p { @apply tw:text-[length:.9rem]; }
-    .portfolio-csv-notice .portfolio-csv-notice__note { @apply tw:text-[length:.8rem]; }
-}

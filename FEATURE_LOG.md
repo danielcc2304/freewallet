@@ -12,6 +12,22 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-24 - Tailwind: gastos, importación y análisis histórico
+- Funcionalidad:
+  - Extrae componentes con estructura y estilos Tailwind para distribuciones, leyendas, barras mensuales, cuentas, categorías, objetivos, paginación, estado de guardado y avisos de gastos.
+  - Comparte los controles de revisión de importaciones CSV/Excel y las cabeceras, leyendas, comprobaciones, filas de planificación, tooltips, gráficos y aviso de transición de Portfolio.
+  - Compone los encabezados, resúmenes, controles y bloques de asignación del análisis histórico del Dashboard; el detalle de activos comparte marcos de gráficos, estados de histórico, fuentes y secciones de fondos.
+- Resumen:
+  - Retira 582 líneas de CSS fuente y 228 declaraciones `@apply`. Quedan 8.567 líneas en 58 hojas: reducción acumulada del 62,35 % respecto al inicio. Esta cifra no equivale a ahorro de descarga.
+  - Conserva cálculos, importación, sincronización, persistencia y eventos de puntero en sus módulos originales; mantiene etiquetas nativas y clases de integración con Liquid Glass.
+  - Coinciden 136 estados visuales distintos y pasan 72 combinaciones responsive, las pruebas funcionales de gastos, acciones y once fondos, TypeScript, ESLint y build.
+  - Estabiliza la prueba de once fondos: distingue consultas canceladas, espera las activas y exige una nueva redirección canónica al reintentar.
+- Archivos:
+  - `src/components/expenses/ExpenseManager.*`, `src/components/expenses/ExpenseImportDialog.tsx`, `src/components/expenses/ui/ExpenseOverview*`, `src/components/expenses/ui/ExpenseFeedback*` y sus mapas de estilos.
+  - `src/pages/PortfolioCsv/PortfolioCsv.*`, `src/pages/PortfolioCsv/ui/PortfolioAnalysis*`, `src/pages/PortfolioCsv/ui/PortfolioImportPresentation*` y sus mapas de estilos.
+  - `src/components/dashboard/AssetDetail.*`, `src/components/dashboard/PortfolioExcelInsights.*`, `src/components/dashboard/ui/DashboardAssetChart*`, `src/components/dashboard/ui/HistoricalAnalysis*` y sus mapas de estilos.
+  - `scripts/test-fund-chart-ui.ts`, `README.md`, `docs/tailwind-migration.md`, `docs/tailwind-module-inventory.md`.
+
 ### 2026-10-24 - Tailwind: guías de activos, objetivos y recorrido
 - Funcionalidad:
   - Amplía la composición en las cinco guías de activos, Interés compuesto, Tu viaje como inversor y Novedades.

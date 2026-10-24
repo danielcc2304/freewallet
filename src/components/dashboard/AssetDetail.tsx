@@ -1,3 +1,4 @@
+import {DashboardAssetChart,DashboardAssetChartViewport,DashboardAssetChartLoading,DashboardAssetChartEmpty,DashboardAssetChartSelection,DashboardAssetChartSource,DashboardFundSections,DashboardFundText,DashboardFundHoldings,DashboardFundHoldingRow} from './ui/DashboardAssetChart';
 import { DashboardAssetHeader, DashboardPeriodPerformance, DashboardChartLegend, DashboardCompanySection, DashboardDetailFootnote } from './ui/DashboardAssetOverview';
 import { DashboardMetric } from './ui/DashboardMetric';
 import { DashboardSegments } from './ui/DashboardSegments';
@@ -455,32 +456,15 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
             {/* Chart Section */}
             {!marketOnly && !hasValidPrice(asset) && <p role="status">Valor estimado al coste: no hay una cotización válida.</p>}
             {!apiEnabled && <p role="status">{asset.type === 'cash' ? 'Saldo de liquidez registrado; no requiere consultas de mercado.' : 'Consultas externas desactivadas. Los datos de tu posición siguen disponibles.'}</p>}
-            <div className="asset-detail__chart-section">
-                <div className="asset-detail__chart-header">
-                    <div className="asset-detail__chart-title">
+            <DashboardAssetChart title={<>
                         <TrendingUp size={18} />
                         {isFund ? 'Precio de participación' : 'Histórico de precio'}
-                    </div>
-                    <DashboardSegments appearance="chart" className="asset-detail__period-selector" options={periods} value={selectedPeriod} onChange={setSelectedPeriod} />
-                </div>
-                <DashboardPeriodPerformance label={<>Variación del precio {selectedPeriod === 'ALL' ? 'histórica' : selectedPeriod}</>} value={<>
+                    </>} selector={<DashboardSegments appearance="chart" className="asset-detail__period-selector" options={periods} value={selectedPeriod} onChange={setSelectedPeriod} />}><DashboardPeriodPerformance label={<>Variación del precio {selectedPeriod === 'ALL' ? 'histórica' : selectedPeriod}</>} value={<>
                         {canDrawChart && chartPeriodReturn !== null ? `${chartPeriodReturn >= 0 ? '+' : ''}${chartPeriodReturn.toFixed(2)}%` : 'N/D'}
-                    </>} valueClassName={chartPeriodReturn !== null && chartPeriodReturn < 0 ? 'negative' : 'positive'}>{canDrawChart && chartPeriodStart && chartPeriodEnd && <small>{chartPeriodStart.date} → {chartPeriodEnd.date}</small>}</DashboardPeriodPerformance>
-
-                <div
-                    ref={chartContainerRef}
-                    className="asset-detail__chart-container"
-                    onPointerDown={handlePointerStart}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerEnd}
-                    onPointerCancel={handlePointerEnd}>
-                    {loadingChart && <div className="chart-overlay"><div className="spinner-sm" /><span>Preparando histórico…</span></div>}
+                    </>} valueClassName={chartPeriodReturn !== null && chartPeriodReturn < 0 ? 'negative' : 'positive'}>{canDrawChart && chartPeriodStart && chartPeriodEnd && <small>{chartPeriodStart.date} → {chartPeriodEnd.date}</small>}</DashboardPeriodPerformance><DashboardAssetChartViewport ref={chartContainerRef} onPointerDown={handlePointerStart} onPointerMove={handlePointerMove} onPointerUp={handlePointerEnd} onPointerCancel={handlePointerEnd}>
+                    {loadingChart && <DashboardAssetChartLoading spinner={<div className="spinner-sm" />} label={<>Preparando histórico…</>} />}
                     {!loadingChart && chartData.length < 2 && (
-                        <div className="chart-overlay error-state">
-                            <p>{!apiEnabled ? 'Consulta de histórico desactivada.' : chartData.length === 1 ? 'Recopilando datos del histórico…' : 'Datos históricos no disponibles.'}</p>
-                            <small>{!apiEnabled ? 'No se han realizado llamadas al proveedor.' : chartData.length === 1 ? 'Necesitamos al menos dos cotizaciones para dibujar la evolución.' : 'El proveedor no ha devuelto un histórico utilizable para este periodo.'}</small>
-                            {apiEnabled && <Button variant="secondary" icon={<RefreshCw size={16} />} type="button" onClick={() => setRetry(n => n + 1)}>Reintentar consulta</Button>}
-                        </div>
+                        <DashboardAssetChartEmpty title={<>{!apiEnabled ? 'Consulta de histórico desactivada.' : chartData.length === 1 ? 'Recopilando datos del histórico…' : 'Datos históricos no disponibles.'}</>} description={<>{!apiEnabled ? 'No se han realizado llamadas al proveedor.' : chartData.length === 1 ? 'Necesitamos al menos dos cotizaciones para dibujar la evolución.' : 'El proveedor no ha devuelto un histórico utilizable para este periodo.'}</>} action={apiEnabled && <Button variant="secondary" icon={<RefreshCw size={16} />} type="button" onClick={() => setRetry(n => n + 1)}>Reintentar consulta</Button>} />
                     )}
                     {canDrawChart && <ResponsiveContainer width="100%" height={240}>
                         <AreaChart
@@ -549,9 +533,8 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                             />
                         </AreaChart>
                     </ResponsiveContainer>}
-                </div>
-                {canDrawChart && (
-                    <div className={`asset-detail__chart-selection ${selectedChange !== null ? (selectedChange >= 0 ? 'positive' : 'negative') : ''}`}>
+                </DashboardAssetChartViewport>{canDrawChart && (
+                    <DashboardAssetChartSelection tone={selectedChange !== null ? (selectedChange >= 0 ? 'positive' : 'negative') : ''}>
                         {selectedChange !== null && selectedStart && selectedEnd ? (
                             <>
                                 <strong>{selectedChange >= 0 ? 'Mejora' : 'Drawdown'} {selectedChange >= 0 ? '+' : ''}{selectedChange.toFixed(2)}%</strong>
@@ -561,19 +544,15 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                         ) : (
                             <span>Ordenador: arrastra. Móvil: coloca dos dedos sobre los puntos para medir la mejora o el drawdown.</span>
                         )}
-                    </div>
-                )}
-                <DashboardChartLegend label={<>{isFund ? 'Precio participación' : 'Precio'}</>} hint={<>Eje vertical: {chartData[0]?.currency || asset.currency || 'EUR'} · Eje horizontal: fecha. {marketOnly ? 'Histórico en su divisa de origen.' : `Histórico en su divisa de origen; la posición se valora en ${asset.currency || 'EUR'}.`}</>} />
-               {!isFund && chartData[0]?.sourceSymbol && chartData[0].sourceSymbol !== asset.symbol && <p className="asset-detail__chart-source">
+                    </DashboardAssetChartSelection>
+                )}<DashboardChartLegend label={<>{isFund ? 'Precio participación' : 'Precio'}</>} hint={<>Eje vertical: {chartData[0]?.currency || asset.currency || 'EUR'} · Eje horizontal: fecha. {marketOnly ? 'Histórico en su divisa de origen.' : `Histórico en su divisa de origen; la posición se valora en ${asset.currency || 'EUR'}.`}</>} />{!isFund && chartData[0]?.sourceSymbol && chartData[0].sourceSymbol !== asset.symbol && <DashboardAssetChartSource>
                    Histórico de {chartData[0].sourceSymbol}, cotización alternativa de la misma empresa. El precio de tu posición se consulta en {selectedMarket?.label ?? asset.symbol}.
-               </p>}
-               {isFund && (
-                   <p className="asset-detail__chart-source">
+               </DashboardAssetChartSource>}{isFund && (
+                   <DashboardAssetChartSource>
                        {chartData[0]?.sourceSymbol ? `Histórico ${chartData[0].source==='Financial Times'?'Financial Times':'Yahoo'} · ${chartData[0].sourceSymbol}. ` : ''}
                        Clase identificada por ISIN. Finect aporta la ficha y la última valoración.
-                   </p>
-               )}
-           </div>
+                   </DashboardAssetChartSource>
+               )}</DashboardAssetChart>
 
             {asset.type === 'stock' && (
                 <DashboardCompanySection aria-label="Sobre la empresa" title={<><Building2 size={18} />Sobre la empresa</>}><p>{company?.description || (loadingFundamentals ? 'Cargando descripción…' : 'Descripción no disponible.')}</p>{company && <a href={company.url} target="_blank" rel="noopener noreferrer">Fuente: {company.source}</a>}</DashboardCompanySection>
@@ -609,12 +588,12 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
             </div>
 
             {isFund && fundData && (
-                <div className="asset-detail__fund-sections">
-                    {(fundData.description || fundData.strategy) && <section><h3>Política de inversión</h3><p>{fundData.strategy || fundData.description}</p></section>}
-                    {!!fundData.benchmarks.length && <section><h3>Índices de referencia</h3><p>{fundData.benchmarks.join(' · ')}</p></section>}
-                    {!!fundData.holdings.length && <section><h3>Principales posiciones</h3><div className="asset-detail__holding-list">{fundData.holdings.slice(0, 10).map(item => <div key={item.name}><span>{item.name}</span><strong>{item.weight.toFixed(2)}%</strong></div>)}</div></section>}
-                    {fundData.breakdowns.map(group => <section key={group.type}><h3>{group.type}</h3><div className="asset-detail__holding-list">{group.items.slice(0, 10).map(item => <div key={item.label}><span>{item.label}</span><strong>{item.value.toFixed(2)}%</strong></div>)}</div></section>)}
-                </div>
+                <DashboardFundSections>
+                    {(fundData.description || fundData.strategy) && <DashboardFundText title={<>Política de inversión</>}>{fundData.strategy || fundData.description}</DashboardFundText>}
+                    {!!fundData.benchmarks.length && <DashboardFundText title={<>Índices de referencia</>}>{fundData.benchmarks.join(' · ')}</DashboardFundText>}
+                    {!!fundData.holdings.length && <DashboardFundHoldings  title={<>Principales posiciones</>}>{fundData.holdings.slice(0, 10).map(item => <DashboardFundHoldingRow key={item.name} label={<>{item.name}</>} value={<>{item.weight.toFixed(2)}%</>} />)}</DashboardFundHoldings>}
+                    {fundData.breakdowns.map(group => <DashboardFundHoldings key={group.type} title={<>{group.type}</>}>{group.items.slice(0, 10).map(item => <DashboardFundHoldingRow key={item.label} label={<>{item.label}</>} value={<>{item.value.toFixed(2)}%</>} />)}</DashboardFundHoldings>)}
+                </DashboardFundSections>
             )}
 
             <DashboardDetailFootnote icon={<Info size={14} />}>{isFund ? 'Ficha obtenida de Finect e histórico de mercado de la clase encontrada por ISIN.' : 'Datos de Yahoo Finance. Los financieros corresponden al último periodo publicado.'}</DashboardDetailFootnote>

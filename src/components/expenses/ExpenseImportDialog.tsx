@@ -1,3 +1,4 @@
+import {ExpenseImportSummary,ExpenseImportCategorySelect,ExpenseImportPagination,ExpenseFeedback} from './ui/ExpenseFeedback';
 import { ExpenseImportHelp } from './ui/ExpenseRecords';
 import { DataTable } from '../ui/DataTable';
 import { ExpenseField } from './ui/ExpenseField';
@@ -382,14 +383,11 @@ export function ExpenseImportDialog({
                 destino. Desmarca esta opción para incluir movimientos distintos
                 con esos mismos datos.
             </p>
-            <div className="expense-import-summary">
-                <strong>{valid.length} para importar</strong>
-                <span>
+            <ExpenseImportSummary value={<>{valid.length} para importar</>} detail={<>
                     {invalid.length} filas inválidas ·{' '}
                     {skipDuplicates ? duplicates.length : 0} coincidencias
                     omitidas
-                </span>
-            </div>
+                </>} />
             <DataTable appearance="expenses">
                 <thead>
                     <tr>
@@ -429,11 +427,7 @@ export function ExpenseImportDialog({
                                 <td className="expense-import__category-cell">
                                     {row.entry?.categoryId ? (
                                         <>
-                                            <select
-                                                className="expense-import__category-select"
-                                                aria-label={`Categoría para la fila ${row.line}`}
-                                                value={row.entry.categoryId}
-                                                onChange={(event) =>
+                                            <ExpenseImportCategorySelect aria-label={`Categoría para la fila ${row.line}`} value={row.entry.categoryId} onChange={(event) =>
                                                     setCategoryOverrides(
                                                         (current) => ({
                                                             ...current,
@@ -442,8 +436,7 @@ export function ExpenseImportDialog({
                                                                     .value,
                                                         }),
                                                     )
-                                                }
-                                            >
+                                                }>
                                                 {book.categories.map(
                                                     (category) => (
                                                         <option
@@ -454,7 +447,7 @@ export function ExpenseImportDialog({
                                                         </option>
                                                     ),
                                                 )}
-                                            </select>
+                                            </ExpenseImportCategorySelect>
                                             <small>
                                                 {categoryOverrides[row.line]
                                                     ? 'Revisada'
@@ -475,16 +468,11 @@ export function ExpenseImportDialog({
                 </tbody>
             </DataTable>
             {reviewBbvaCategories && preview.length > previewPageSize && (
-                <div
-                    className="expense-import__pagination"
-                    aria-label="Páginas de la importación"
-                >
-                    <span>
+                <ExpenseImportPagination aria-label="Páginas de la importación" label={<>
                         {previewStart + 1}–
                         {Math.min(previewStart + previewPageSize, preview.length)}{' '}
                         de {preview.length}
-                    </span>
-                    <ExpenseButton variant="secondary"
+                    </>} previous={<ExpenseButton variant="secondary"
                         type="button"
                         className="expense-btn expense-btn--secondary"
                         disabled={activePreviewPage === 0}
@@ -493,8 +481,7 @@ export function ExpenseImportDialog({
                         }
                     >
                         Anterior
-                    </ExpenseButton>
-                    <ExpenseButton variant="secondary"
+                    </ExpenseButton>} next={<ExpenseButton variant="secondary"
                         type="button"
                         className="expense-btn expense-btn--secondary"
                         disabled={activePreviewPage >= previewPageCount - 1}
@@ -505,8 +492,7 @@ export function ExpenseImportDialog({
                         }
                     >
                         Siguiente
-                    </ExpenseButton>
-                </div>
+                    </ExpenseButton>} />
             )}
             {!reviewBbvaCategories && preview.length > previewPageSize && (
                 <p className="expense-hint">
@@ -520,9 +506,9 @@ export function ExpenseImportDialog({
                 </p>
             )}
             {error && (
-                <p className="expense-error" role="alert">
+                <ExpenseFeedback role="alert" as="p" appearance="error">
                     {error}
-                </p>
+                </ExpenseFeedback>
             )}
             <ExpenseActions variant="form" className="expense-form-actions">
                 <ExpenseButton variant="secondary"

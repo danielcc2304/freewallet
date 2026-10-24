@@ -30,9 +30,15 @@ const recorded=process.env.FREEWALLET_FUND_PROVIDER_FIXTURES;
 const browser=await puppeteer.launch({headless:true,executablePath:process.env.PUPPETEER_EXECUTABLE_PATH??'/usr/bin/chromium',args:['--no-sandbox']});
 const errors:string[]=[], searches:string[]=[], charts:string[]=[];
 let failDws=true,failRobeco=true,ftLookups=0,ftRedirects=0;
+const cancelledFtLookups=new Set<unknown>();
 const body=(name:string)=>readFileSync(join(recorded!,name),'utf8');
 try{
- const page=await browser.newPage();page.setDefaultTimeout(60000);page.setDefaultNavigationTimeout(60000);page.on('pageerror',e=>errors.push(String(e)));
+ const page=await browser.newPage();
+ // Mutable intercepted fixtures must exercise the redirect on every attempt.
+ await page.setCacheEnabled(false);
+ page.setDefaultTimeout(60000);page.setDefaultNavigationTimeout(60000);page.on('pageerror',e=>errors.push(String(e)));
+ // Rapid period changes may abort a lookup before its redirect can start.
+ page.on('requestfailed',request=>{const url=new URL(request.url());if(url.pathname==='/__market/ft/funds/tearsheet/summary'&&url.searchParams.get('s')==='LU0329355670'&&request.failure()?.errorText==='net::ERR_ABORTED')cancelledFtLookups.add(request);});
  await page.setViewport({width:1280,height:900});
  await page.evaluateOnNewDocument((assets,version,now)=>{
   Date.now=()=>now;
@@ -128,16 +134,20 @@ try{
  }
  for(const [isin,,symbol] of funds.slice(1)){
   await page.click('.modal__close');await open(isin);
+  let redirectsBeforeRetry=0;
   if(isin==='LU0329355670'){
-   await page.waitForSelector('.chart-overlay.error-state .btn');failRobeco=false;
+   await page.waitForSelector('.chart-overlay.error-state .btn');redirectsBeforeRetry=ftRedirects;failRobeco=false;
    await page.click('.chart-overlay.error-state .btn');
   }
   await page.waitForFunction(symbol=>document.querySelector('.asset-detail__chart-source')?.textContent?.includes(symbol),{},symbol);
   await page.waitForSelector('.asset-detail__chart-container .recharts-wrapper');
   assert.doesNotMatch(await page.$eval('.asset-detail__period-performance',el=>el.textContent||''),/N\/D/);
   if(isin==='LU0329355670'){
+   // Rendering the chart can precede a concurrent identity lookup finishing.
+   await page.waitForNetworkIdle({idleTime:150,timeout:10000});
    assert.ok(ftLookups>=2,'Retry resolves FT identity again rather than retaining a failed attempt');
-   assert.equal(ftRedirects,ftLookups,'The browser must follow FT’s canonical ISIN/currency redirect, including on retry');
+   assert.ok(ftRedirects>redirectsBeforeRetry,'Manual retry must follow a fresh canonical redirect');
+   assert.equal(ftRedirects,ftLookups-cancelledFtLookups.size,'Every non-cancelled lookup follows FT’s canonical ISIN/currency redirect');
    assert.ok(await page.$eval('.asset-detail__chart-source',el=>el.textContent?.includes('Financial Times')));
    for(const period of ['1D','7D','3M','YTD','Máx']){
     await page.$$eval('.period-btn',(buttons,period)=>(buttons.find(el=>el.textContent===period) as HTMLElement).click(),period);

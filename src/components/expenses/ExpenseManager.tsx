@@ -1,3 +1,5 @@
+import {ExpenseFeedback,ExpenseSaveStatus} from './ui/ExpenseFeedback';
+import {ExpenseDistribution,ExpenseLegendItem,ExpenseFactList,ExpenseChartLegend,ExpenseBarChart,ExpenseMonthBars,ExpenseSummaryCard,ExpenseColorDot,ExpenseAccountIcon,ExpensePagination,ExpenseGettingStarted} from './ui/ExpenseOverview';
 import { ExpenseCalendarDay } from './ui/ExpenseRecords';
 
 import { ExpenseMonthPicker, ExpenseExportMenu, ExpenseRecordRow, ExpenseBudgetNumber, ExpenseSearch } from './ui/ExpenseRecords';
@@ -5,7 +7,7 @@ import { ExpenseMonthPicker, ExpenseExportMenu, ExpenseRecordRow, ExpenseBudgetN
 import { DataTable } from '../ui/DataTable';
 import { ExpenseProgress as Progress } from './ui/ExpenseProgress';
 import { ExpenseEmptyState as Empty } from './ui/ExpenseEmptyState';
-import { ExpensePanelHeading, ExpensePanelTitle, ExpensePanel, ExpenseCard } from './ui/ExpensePanel';
+import { ExpensePanelHeading, ExpensePanelTitle, ExpensePanel } from './ui/ExpensePanel';
 import { ExpenseSegments } from './ui/ExpenseSegments';
 import { ExpenseMetric } from './ui/ExpenseMetric';
 import { ExpenseField } from './ui/ExpenseField';
@@ -442,10 +444,10 @@ export default function ExpenseManager() {
     if (!book || status === 'loading')
         return (
             <div className="expense-manager">
-                <div className="expense-loading" role="status">
+                <ExpenseFeedback role="status" as="div" appearance="loading">
                     <LoaderCircle className="expense-spinner" size={28} />
                     Cargando tus gastos…
-                </div>
+                </ExpenseFeedback>
             </div>
         );
     const stats = summary!;
@@ -535,8 +537,7 @@ export default function ExpenseManager() {
                                   )
                                 : 0;
                         return (
-                            <ExpenseCard className="expense-goal" key={g.id}>
-                                <ExpenseRecordRow >
+                            <ExpenseSummaryCard key={g.id} appearance="goal" header={<>
                                     <h3>{g.name}</h3>
                                     <ExpenseActions variant="row" className="expense-row-actions">
                                         <ExpenseIconButton
@@ -572,16 +573,13 @@ export default function ExpenseManager() {
                                             <Trash2 size={15} />
                                         </ExpenseIconButton>
                                     </ExpenseActions>
-                                </ExpenseRecordRow>
-                                <strong>
+                                </>}  summary={<>
                                     {money(g.savedCents)}{' '}
                                     <small>de {money(g.targetCents)}</small>
-                                </strong>
-                                <Progress
+                                </>}  progress={<Progress
                                     value={g.savedCents}
                                     limit={g.targetCents}
-                                />
-                                <p className="expense-hint">
+                                />} detail={<>
                                     {remaining === 0
                                         ? 'Objetivo alcanzado'
                                         : `${money(remaining)} por reservar`}
@@ -591,8 +589,7 @@ export default function ExpenseManager() {
                                     {months && remaining
                                         ? ` · ${money(Math.ceil(remaining / months))}/mes orientativos`
                                         : ''}
-                                </p>
-                            </ExpenseCard>
+                                </>} />
                         );
                     })}
                 </ExpenseGrid>
@@ -609,14 +606,7 @@ export default function ExpenseManager() {
                     <h1>Gastos y presupuesto</h1>
                     <p>Decide dónde va tu dinero.</p>
                 </div>
-                <span className="expense-status">
-                    <span
-                        className={
-                            saving
-                                ? 'expense-status-dot expense-status-dot--busy'
-                                : 'expense-status-dot'
-                        }
-                    />
+                <ExpenseSaveStatus busy={saving}>
                     {saving
                         ? 'Guardando…'
                         : status === 'ready'
@@ -624,14 +614,14 @@ export default function ExpenseManager() {
                               ? 'Sincronizado con tu cuenta'
                               : 'Guardado en este dispositivo'
                           : 'Guardado pendiente'}
-                </span>
+                </ExpenseSaveStatus>
             </AcademyPageHeader>
             {toolbar}
             {readingFile && (
-                <p className="expense-notice" role="status">
+                <ExpenseFeedback role="status" as="p" appearance="notice">
                     <LoaderCircle className="expense-spinner" size={16} />
                     Leyendo archivo…
-                </p>
+                </ExpenseFeedback>
             )}
             <input
                 ref={fileRef}
@@ -644,7 +634,7 @@ export default function ExpenseManager() {
                 }}
             />
             {status !== 'ready' && !saving && (
-                <div className="expense-sync-error" role="alert">
+                <ExpenseFeedback role="alert" as="div" appearance="sync">
                     <strong>{syncError}</strong>
                     <ExpenseActions variant="toolbar" className="expense-actions">
                         <ExpenseButton variant="secondary"
@@ -682,10 +672,10 @@ export default function ExpenseManager() {
                         </ExpenseButton>
                         {cloud && <Link to="/account">Mi cuenta</Link>}
                     </ExpenseActions>
-                </div>
+                </ExpenseFeedback>
             )}
             {notice && (
-                <div className="expense-notice" role="status">
+                <ExpenseFeedback role="status" as="div" appearance="notice">
                     <Check size={17} />
                     {notice}
                     <button
@@ -694,12 +684,12 @@ export default function ExpenseManager() {
                     >
                         <X size={15} />
                     </button>
-                </div>
+                </ExpenseFeedback>
             )}
             {error && (
-                <p className="expense-error" role="alert">
+                <ExpenseFeedback role="alert" as="p" appearance="error">
                     {error}
-                </p>
+                </ExpenseFeedback>
             )}
             <ExpenseSegments aria-label="Secciones de gastos" value={tab} options={tabs.map(t => ({ value: t.id, label: t.label, icon: <t.icon size={17} /> }))} onChange={setTab} />
             {tab === 'overview' && (
@@ -747,15 +737,10 @@ export default function ExpenseManager() {
                             </>} />
                     </ExpenseGrid>
                     {!book.entries.length && (
-                        <div className="expense-start">
-                            <div>
-                                <h2>Tu mes empieza con un movimiento</h2>
-                                <p>
+                        <ExpenseGettingStarted title={<>Tu mes empieza con un movimiento</>} description={<>
                                     Registra un gasto, añade tus ingresos o
                                     importa el extracto de tu banco.
-                                </p>
-                            </div>
-                            <ExpenseActions variant="toolbar" className="expense-actions">
+                                </>} actions={<ExpenseActions variant="toolbar" className="expense-actions">
                                 <ExpenseButton
                                     className="expense-btn"
                                     disabled={!editable}
@@ -772,8 +757,7 @@ export default function ExpenseManager() {
                                     <FileUp size={17} />
                                     Importar extracto
                                 </ExpenseButton>
-                            </ExpenseActions>
-                        </div>
+                            </ExpenseActions>} />
                     )}
                     <ExpenseGrid variant="columns" className="expense-two-col">
                         <ExpensePanel className="expense-panel">
@@ -787,58 +771,28 @@ export default function ExpenseManager() {
                                 </ExpenseButton>
                             </ExpensePanelHeading>
                             {positiveTotal ? (
-                                <div className="expense-distribution">
-                                    <div
-                                        className="expense-donut"
-                                        style={{
-                                            background: `conic-gradient(${gradient})`,
-                                        }}
-                                        role="img"
-                                        aria-label={activeCategories
+                                <ExpenseDistribution gradient={`conic-gradient(${gradient})`} label={activeCategories
                                             .map(
                                                 (c) =>
                                                     `${c.name}: ${money(c.cents)}`,
                                             )
-                                            .join(', ')}
-                                    >
-                                        <div>
-                                            <span>Por categorías</span>
-                                            <strong>
+                                            .join(', ')} value={<>
                                                 {money(positiveTotal)}
-                                            </strong>
-                                        </div>
-                                    </div>
-                                    <ul className="expense-legend">
+                                            </>}>
                                         {activeCategories
                                             .slice(0, 6)
                                             .map((c) => (
-                                                <li key={c.id}>
-                                                    <span>
-                                                        <i
-                                                            style={{
-                                                                background:
-                                                                    c.color,
-                                                            }}
-                                                        />
-                                                        {c.name}
-                                                    </span>
-                                                    <strong>
-                                                        {money(c.cents)}
-                                                        <small>
+                                                <ExpenseLegendItem key={c.id} color={c.color} label={c.name} value={money(c.cents)} detail={<>
                                                             {(
                                                                 (c.cents /
                                                                     positiveTotal) *
                                                                 100
                                                             ).toFixed(0)}{' '}
                                                             %
-                                                        </small>
-                                                    </strong>
-                                                </li>
+                                                        </>} />
                                             ))}
                                         {activeCategories.length > 6 && (
-                                            <li>
-                                                <span>Resto de categorías</span>
-                                                <strong>
+                                            <ExpenseLegendItem label={<>Resto de categorías</>} value={<>
                                                     {money(
                                                         activeCategories
                                                             .slice(6)
@@ -848,11 +802,9 @@ export default function ExpenseManager() {
                                                                 0,
                                                             ),
                                                     )}
-                                                </strong>
-                                            </li>
+                                                </>} />
                                         )}
-                                    </ul>
-                                </div>
+                                    </ExpenseDistribution>
                             ) : (
                                 <Empty title="Aún no hay gasto neto positivo">
                                     Las categorías aparecerán cuando registres
@@ -907,31 +859,14 @@ export default function ExpenseManager() {
                                     reparte límites por categoría.
                                 </p>
                             )}
-                            <dl className="expense-facts">
-                                <div>
-                                    <dt>Recurrentes pendientes del mes</dt>
-                                    <dd>{money(commitments)}</dd>
-                                </div>
-                                <div>
-                                    <dt>Ingresos recurrentes pendientes</dt>
-                                    <dd>{money(expectedIncome)}</dd>
-                                </div>
-                                <div>
-                                    <dt>Balance si se cumplen los previstos</dt>
-                                    <dd>
+                            <ExpenseFactList semantic={true} items={[{label:<>Recurrentes pendientes del mes</>,value:<>{money(commitments)}</>},{label:<>Ingresos recurrentes pendientes</>,value:<>{money(expectedIncome)}</>},{label:<>Balance si se cumplen los previstos</>,value:<>
                                         {money(
                                             stats.net -
                                                 commitments +
                                                 expectedIncome +
                                                 plannedNet,
                                         )}
-                                    </dd>
-                                </div>
-                                <div>
-                                    <dt>Saldo total de cuentas hoy</dt>
-                                    <dd>{money(allBalance)}</dd>
-                                </div>
-                            </dl>
+                                    </>},{label:<>Saldo total de cuentas hoy</>,value:<>{money(allBalance)}</>}]} />
                             <p className="expense-hint">
                                 Los previstos incluyen vencimientos sin
                                 confirmar y movimientos futuros registrados. No
@@ -954,61 +889,29 @@ export default function ExpenseManager() {
                                     6 meses · solo registrados
                                 </span>
                             </ExpensePanelHeading>
-                            <div className="expense-chart-legend">
-                                <span>
-                                    <i />
+                            <ExpenseChartLegend items={[<>
                                     Ingresos
-                                </span>
-                                <span>
-                                    <i />
+                                </>,<>
                                     Gastos netos
-                                </span>
-                            </div>
-                            <div
-                                className="expense-bar-chart"
-                                role="img"
-                                aria-label={chart
-                                    .map(
-                                        (c) =>
-                                            `${monthLabel(c.month)}: ingresos ${money(c.income)}, gastos netos ${money(c.expenses)}`,
-                                    )
-                                    .join('; ')}
-                            >
+                                </>]} />
+                            <ExpenseBarChart>
                                 {chart.map((c) => (
-                                    <div
-                                        className="expense-bar-month"
-                                        key={c.month}
-                                    >
-                                        <div className="expense-bar-pair">
-                                            <span
-                                                title={`Ingresos: ${money(c.income)}`}
-                                                style={{
+                                    <ExpenseMonthBars key={c.month} income={{title:`Ingresos: ${money(c.income)}`,style:{
                                                     height: `${(c.income / maxBar) * 100}%`,
-                                                }}
-                                            />
-                                            <span
-                                                title={`Gastos netos: ${money(c.expenses)}`}
-                                                style={{
+                                                }}} spend={{title:`Gastos netos: ${money(c.expenses)}`,style:{
                                                     height: `${(Math.abs(c.expenses) / maxBar) * 100}%`,
-                                                }}
-                                                className={
-                                                    c.expenses < 0
+                                                },className:c.expenses < 0
                                                         ? 'expense-bar-refund'
-                                                        : ''
-                                                }
-                                            />
-                                        </div>
-                                        <small>
+                                                        : ''}} label={<>
                                             {new Intl.DateTimeFormat('es-ES', {
                                                 month: 'short',
                                                 timeZone: 'UTC',
                                             }).format(
                                                 new Date(`${c.month}-01`),
                                             )}
-                                        </small>
-                                    </div>
+                                        </>} />
                                 ))}
-                            </div>
+                            </ExpenseBarChart>
                             {stats.expenses && previous.expenses > 0 ? (
                                 <p className="expense-hint">
                                     {money(stats.expenses - previous.expenses)}{' '}
@@ -1479,25 +1382,21 @@ export default function ExpenseManager() {
                                         ))}
                                 </tbody>
                             </DataTable>
-                            <div className="expense-pagination">
-                                <ExpenseButton variant="secondary"
+                            <ExpensePagination previous={<ExpenseButton variant="secondary"
                                     className="expense-btn expense-btn--secondary"
                                     disabled={safePage === 0}
                                     onClick={() => setPage(safePage - 1)}
                                 >
                                     Anterior
-                                </ExpenseButton>
-                                <span>
+                                </ExpenseButton>} label={<>
                                     {safePage + 1} / {pageCount}
-                                </span>
-                                <ExpenseButton variant="secondary"
+                                </>} next={<ExpenseButton variant="secondary"
                                     className="expense-btn expense-btn--secondary"
                                     disabled={safePage + 1 >= pageCount}
                                     onClick={() => setPage(safePage + 1)}
                                 >
                                     Siguiente
-                                </ExpenseButton>
-                            </div>
+                                </ExpenseButton>} />
                         </>
                     ) : (
                         <Empty
@@ -1547,20 +1446,11 @@ export default function ExpenseManager() {
                                         value={stats.expenses}
                                         limit={stats.budget.limitCents}
                                     />
-                                    <div className="expense-facts">
-                                        <div>
-                                            <span>Gasto neto</span>
-                                            <strong>
+                                    <ExpenseFactList semantic={false} items={[{label:<>Gasto neto</>,value:<>
                                                 {money(stats.expenses)}
-                                            </strong>
-                                        </div>
-                                        <div>
-                                            <span>Disponible</span>
-                                            <strong>
+                                            </>},{label:<>Disponible</>,value:<>
                                                 {money(stats.remaining!)}
-                                            </strong>
-                                        </div>
-                                    </div>
+                                            </>}]} />
                                     <ExpenseActions variant="toolbar" className="expense-actions">
                                         <ExpenseButton variant="secondary"
                                             className="expense-btn expense-btn--secondary"
@@ -1733,18 +1623,9 @@ export default function ExpenseManager() {
                                         (l) => l.categoryId === c.id,
                                     )?.limitCents ?? 0;
                                 return (
-                                    <ExpenseCard
-                                        className="expense-category-card"
-                                        key={c.id}
-                                    >
-                                        <ExpenseRecordRow >
+                                    <ExpenseSummaryCard key={c.id} appearance="category" header={<>
                                             <span>
-                                                <i
-                                                    className="expense-color-dot"
-                                                    style={{
-                                                        background: c.color,
-                                                    }}
-                                                />
+                                                <ExpenseColorDot color={c.color} />
                                                 {c.name}
                                             </span>
                                             <ExpenseIconButton
@@ -1760,27 +1641,23 @@ export default function ExpenseManager() {
                                             >
                                                 <Pencil size={15} />
                                             </ExpenseIconButton>
-                                        </ExpenseRecordRow>
-                                        <strong>
+                                        </>}  summary={<>
                                             {money(c.cents)}
                                             <small>
                                                 {limit
                                                     ? ` / ${money(limit)}`
                                                     : ' · sin límite'}
                                             </small>
-                                        </strong>
-                                        <Progress
+                                        </>}  progress={<Progress
                                             value={c.cents}
                                             limit={limit}
                                             color={c.color}
-                                        />
-                                        <p className="expense-hint">
+                                        />} detail={<>
                                             {groupLabels[c.group]}
                                             {limit && c.cents > limit
                                                 ? ` · Exceso: ${money(c.cents - limit)}`
                                                 : ''}
-                                        </p>
-                                    </ExpenseCard>
+                                        </>} />
                                 );
                             })}
                         </ExpenseGrid>
@@ -2016,11 +1893,10 @@ export default function ExpenseManager() {
                         </p>
                         <ExpenseGrid variant="accounts" className="expense-accounts">
                             {book.accounts.map((a) => (
-                                <ExpenseCard as="article" className="expense-account" key={a.id}>
-                                    <ExpenseRecordRow >
-                                        <span className="expense-account-icon">
+                                <ExpenseSummaryCard as="article" key={a.id} appearance="account" header={<>
+                                        <ExpenseAccountIcon>
                                             <WalletCards size={23} />
-                                        </span>
+                                        </ExpenseAccountIcon>
                                         <ExpenseActions variant="row" className="expense-row-actions">
                                             <ExpenseIconButton
                                                 aria-label={`Editar cuenta ${a.name}`}
@@ -2098,21 +1974,14 @@ export default function ExpenseManager() {
                                                     : 'Archivar'}
                                             </ExpenseIconButton>
                                         </ExpenseActions>
-                                    </ExpenseRecordRow>
-                                    <h3>{a.name}</h3>
-                                    <strong
-                                        className={
-                                            accountBalance(book, a.id, today) <
-                                            0
-                                                ? 'expense-negative'
-                                                : ''
-                                        }
-                                    >
+                                    </>} title={<>{a.name}</>} summary={<>
                                         {money(
                                             accountBalance(book, a.id, today),
                                         )}
-                                    </strong>
-                                    <small>
+                                    </>} summaryProps={{className:accountBalance(book, a.id, today) <
+                                            0
+                                                ? 'expense-negative'
+                                                : ''}}  detail={<>
                                         {
                                             {
                                                 bank: 'Cuenta bancaria',
@@ -2121,8 +1990,7 @@ export default function ExpenseManager() {
                                             }[a.type]
                                         }
                                         {a.archived ? ' · Archivada' : ''}
-                                    </small>
-                                </ExpenseCard>
+                                    </>} />
                             ))}
                         </ExpenseGrid>
                     </ExpensePanel>

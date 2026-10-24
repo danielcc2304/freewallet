@@ -16,82 +16,6 @@
 .asset-detail .negative { @apply tw:text-negative; }
 
 /* Chart Section */
-.asset-detail__chart-section {
-    background: rgba(255, 255, 255, 0.02);
-    @apply tw:rounded-[12px] tw:p-[1.25rem] tw:ui-border-default tw:min-w-[0] tw:w-full tw:box-border tw:max-w-full tw:overflow-hidden;
-}
-
-.asset-detail__chart-header {
-    @apply tw:ui-row tw:justify-between tw:flex-wrap tw:gap-[0.75rem] tw:min-w-[0] tw:mb-[1rem];
-}
-
-.asset-detail__chart-title {
-    @apply tw:ui-row tw:gap-[0.5rem];
-    font-weight: 600;
-    @apply tw:text-secondary tw:min-w-[0];
-}
-
-.asset-detail__chart-container {
-    @apply tw:relative tw:isolate tw:overflow-hidden tw:h-[240px] tw:min-w-[0] tw:w-full;
-    user-select: none;
-    touch-action: pan-y;
-    cursor: crosshair;
-}
-
-.asset-detail__chart-container .recharts-wrapper,
-.asset-detail__chart-container .recharts-surface {
-    touch-action: pan-y;
-}
-
-.chart-overlay {
-    @apply tw:absolute tw:inset-[0] tw:ui-fill-muted;
-    backdrop-filter: blur(2px);
-    @apply tw:ui-row tw:justify-center tw:z-[10] tw:rounded-[8px];
-}
-
-.chart-overlay > span {
-    @apply tw:text-muted tw:text-[length:0.8rem];
-}
-
-.asset-detail__chart-source {
-    @apply tw:m-[0.55rem_0_0] tw:text-muted tw:text-[length:0.7rem];
-    line-height: 1.45;
-}
-
-.asset-detail__chart-selection {
-    @apply tw:ui-row tw:flex-wrap tw:gap-[0.45rem_0.75rem] tw:min-h-[2.25rem] tw:mt-[0.65rem] tw:p-[0.55rem_0.7rem] tw:ui-border-default tw:rounded-[8px];
-    background: rgba(255, 255, 255, 0.025);
-    @apply tw:text-muted tw:text-[length:0.75rem];
-}
-
-.asset-detail__chart-selection strong {
-    @apply tw:text-main tw:text-[length:0.82rem];
-}
-
-.asset-detail__chart-selection.positive {
-    border-color: rgba(34, 197, 94, 0.45);
-}
-
-.asset-detail__chart-selection.positive strong {
-    @apply tw:text-positive;
-}
-
-.asset-detail__chart-selection.negative {
-    border-color: rgba(239, 68, 68, 0.45);
-}
-
-.asset-detail__chart-selection.negative strong {
-    @apply tw:text-negative;
-}
-
-.asset-detail__chart-selection button {
-    @apply tw:ml-[auto] tw:p-[0.2rem_0.45rem] tw:ui-border-default tw:rounded-[5px] tw:ui-fill-transparent tw:text-secondary tw:text-[length:0.7rem] tw:cursor-pointer;
-}
-
-.asset-detail__chart-selection button:hover {
-    @apply tw:text-main;
-    border-color: var(--accent-primary);
-}
 
 /* Metrics Grid */
 .section-title {
@@ -118,15 +42,6 @@
     @apply tw:rounded-[10px] tw:text-muted;
 }
 
-.asset-detail__fund-sections { @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[1rem] tw:min-w-[0]; }
-.asset-detail__fund-sections section { @apply tw:min-w-[0] tw:p-[1rem] tw:ui-border-default tw:rounded-[12px]; background: rgba(255,255,255,.02); }
-.asset-detail__fund-sections h3 { @apply tw:m-[0_0_.75rem] tw:text-[length:.95rem]; }
-.asset-detail__fund-sections p { @apply tw:m-[0] tw:text-secondary; line-height: 1.55; @apply tw:wrap-anywhere; }
-.asset-detail__holding-list { @apply tw:grid tw:gap-[.55rem]; }
-.asset-detail__holding-list > div { @apply tw:flex tw:justify-between tw:gap-[.75rem] tw:text-secondary tw:text-[length:.8rem]; }
-.asset-detail__holding-list span { @apply tw:min-w-[0] tw:wrap-anywhere; }
-.asset-detail__holding-list strong { @apply tw:text-main tw:whitespace-nowrap; }
-
 .spinner {
     @apply tw:w-[2rem] tw:h-[2rem];
     border: 3px solid rgba(255, 255, 255, 0.1);
@@ -149,17 +64,6 @@
     }
 }
 
-.chart-overlay.error-state {
-    @apply tw:flex-col tw:gap-[0.5rem] tw:text-muted tw:text-center tw:p-[1rem] tw:box-border tw:cursor-default;
-}
-
-.chart-overlay.error-state .btn { @apply tw:min-h-[44px] tw:mt-[.5rem]; }
-
-.chart-overlay.error-state p {
-    font-weight: 600;
-    @apply tw:text-secondary;
-}
-
 @media (max-width: 1024px) {
     .metrics-grid {
         @apply tw:grid-cols-[repeat(3,_1fr)];
@@ -174,20 +78,6 @@
     .asset-detail__position-grid {
         @apply tw:grid-cols-[repeat(2,_minmax(0,_1fr))];
     }
-
-    .asset-detail__chart-selection button {
-        @apply tw:ml-[0];
-    }
-
-    .asset-detail__chart-section {
-        @apply tw:p-[0.85rem];
-    }
-
-    .asset-detail__chart-container {
-        @apply tw:w-[calc(100%_+_0.9rem)] tw:ml-[-0.45rem];
-    }
-
-    .asset-detail__fund-sections { @apply tw:grid-cols-[1fr]; }
 }
 .asset-detail button:focus-visible { outline: 2px solid var(--accent-primary); outline-offset: 2px; }
 .asset-detail__quote-market {
@@ -203,8 +93,6 @@
 .asset-detail__purchases h3 { @apply tw:text-[length:var(--font-size-base)] tw:mb-[.75rem]; }
 .asset-detail__purchases-scroll { @apply tw:overflow-x-auto; }
 .asset-detail__purchases table { @apply tw:w-full tw:border-collapse tw:text-[length:var(--font-size-sm)]; }
-.asset-detail__purchases th,
-.asset-detail__purchases td { @apply tw:p-[.65rem_.5rem] tw:text-right tw:whitespace-nowrap; border-bottom: 1px solid var(--border-primary); }
+.asset-detail__purchases th, .asset-detail__purchases td { @apply tw:p-[.65rem_.5rem] tw:text-right tw:whitespace-nowrap; border-bottom: 1px solid var(--border-primary); }
 .asset-detail__purchases th { @apply tw:text-secondary; font-weight: 500; }
-.asset-detail__purchases th:first-child,
-.asset-detail__purchases td:first-child { @apply tw:text-left; }
+.asset-detail__purchases th:first-child, .asset-detail__purchases td:first-child { @apply tw:text-left; }

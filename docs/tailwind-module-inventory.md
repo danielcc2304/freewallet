@@ -116,3 +116,10 @@ Se retiran 1.285 líneas y 422 declaraciones `@apply`: quedan 10.329 líneas de 
 La decimoséptima fase amplía las piezas con estructura y utilidades Tailwind a ocho pantallas: las cinco guías de activos, Interés compuesto, Tu viaje como inversor y Novedades. `AcademyAssetReading` reúne cabeceras y lectura; `AcademyAssetBars`, `AcademyBondParts` y `AcademyBondExperiments` comparten gráficos ilustrativos, barras, ratings, curvas, escalones y controles. `AcademyMetric` conserva su marcado y recibe la receta de sus indicadores de cabecera. `CalculatorGoal`, `JourneySupport` y `ReleaseNotes` comparten las opciones/objetivos, apoyo en crisis y entradas del historial.
 
 Se retiran 1.180 líneas y 296 declaraciones `@apply`: quedan 9.149 líneas en 58 hojas CSS, un 59,79 % menos respecto a las 22.753 iniciales. Las cuatro hojas afectadas pasan de 1.736 a 556 líneas. Se mantienen el reset, las consultas contextuales, los materiales, los diagramas nativos y las animaciones que aún necesitan CSS.
+
+
+### Gastos, importación y análisis histórico
+
+La decimoctava fase amplía las piezas de interfaz en cinco consumidores: Gestión de gastos, su revisión de importaciones, Portfolio, el análisis histórico del Dashboard y el detalle de activos. `ExpenseOverview` y `ExpenseFeedback` comparten distribuciones, tarjetas, barras, estados y controles; `PortfolioAnalysis` y `PortfolioImportPresentation` componen leyendas, planificación, tooltips, gráficos y el aviso de transición. `HistoricalAnalysis` comparte filas, encabezados, estados y bloques con progreso nativo; `DashboardAssetChart` mantiene referencias de DOM, eventos de puntero y las secciones de fondos.
+
+Se retiran 582 líneas y 228 declaraciones `@apply`: las cuatro hojas afectadas pasan de 1.035 a 453 líneas. Quedan 8.567 líneas en 58 hojas, un 62,35 % menos respecto a las 22.753 iniciales. Las reglas ópticas de Liquid Glass, animaciones, consultas generales y gráficos específicos que aún necesitan CSS se conservan.

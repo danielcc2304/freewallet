@@ -368,3 +368,26 @@ El contraste de las declaraciones ajenas a JSX confirma que las ocho pantallas c
 
 
 Coinciden **160 estados** frente al build anterior: 64 de las ocho pantallas y 96 de controles y desplegables. Incluyen modos de estrés/High Yield, cambios de spread, pesos de duración a cero, opciones avanzadas, objetivo pendiente/alcanzado/imposible, aportación necesaria, etapas expandidas/cerradas y archivos del historial. Se comparan nodos, etiquetas, clases de integración y 19 propiedades calculadas en 390/1280 px con tema claro/oscuro y apariencia estándar/Liquid Glass, manteniendo las mismas entradas del historial para el contraste. No es una comparación píxel a píxel. El recorrido responsive pasa **12 rutas y 144 combinaciones** en 320/390/1280 px, incluyendo Dashboard y los tres simuladores que comparten `AcademyMetric`, sin errores de ejecución ni desbordamientos. Se revisa una captura móvil de la guía de bonos en Liquid Glass.
+
+
+## Decimoctava fase: gastos, importación y análisis histórico
+
+Se amplía la composición en cinco consumidores:
+
+- **Gestión de gastos:** `ExpenseOverview` comparte distribución y leyenda, hechos resumidos, gráfico mensual, tarjetas de cuentas/objetivos/categorías, paginación y acceso inicial. Reutiliza `ExpenseCard` y `ExpenseRecordRow`, manteniendo las mismas etiquetas y la información formateada por el consumidor. `ExpenseFeedback` comparte estado de guardado y avisos, revisión de categorías y paginación de importaciones.
+- **Portfolio:** `PortfolioAnalysis` compone cabecera, subida de Excel, leyendas, listas, comprobaciones, cabeceras y filas de planificación, tooltip y encabezado de estadísticas. `PortfolioImportPresentation` comparte marcos de gráficos y el contenido del aviso de transición al Dashboard, con el mismo `input` nativo y su referencia para importar archivos.
+- **Análisis histórico del Dashboard:** `HistoricalAnalysis` reúne encabezados, acciones, resumen del periodo, comparación, filas de control/operaciones/posiciones, progreso nativo, estados y vinculación del histórico. Los cálculos de rendimiento, asignación y riesgo permanecen en `PortfolioExcelInsights`.
+- **Detalle de activos:** `DashboardAssetChart` compone marco, viewport, carga, histórico no disponible, selección y fuentes; mantiene secciones y filas de fondos. Las referencias y los eventos se pasan al mismo `div` nativo. Se conservan selección con ratón/dos dedos, limpieza del tramo y desplazamiento vertical mediante `pan-y`.
+
+Se conservan datos, consultas, normalización, cálculos, persistencia y sincronización; no se modifican backend, base de datos, versión ni dependencias. Se mantienen clases de integración con Liquid Glass, semántica de controles y animaciones existentes.
+
+Se retiran **582 líneas de CSS fuente y 228 declaraciones `@apply`**. Las cuatro hojas afectadas pasan de 1.035 a 453 líneas; el total pasa de 9.149 a **8.567 líneas en 58 hojas**. La reducción acumulada respecto a las 22.753 líneas iniciales es del **62,35 %**, una medida del código fuente, no del ahorro de descarga.
+
+### Validación de esta fase
+
+Las declaraciones ajenas a JSX de los cinco consumidores conservan su lógica. Pasan los tests de gastos, Excel BBVA, continuidad del libro y periodos de cartera. El recorrido de gastos pasa en estándar y Liquid Glass: edición/cancelación/eliminación, transferencias, devoluciones, ingresos, presupuestos, recurrentes, objetivos, importación CSV/Excel, duplicados, persistencia y tamaños móviles. Pasan fundamentales bursátiles y base de precios históricos; una comprobación adicional verifica arrastre con ratón, limpiar selección, `pan-y` y selección con dos dedos.
+
+La prueba de once fondos contaba también una consulta cancelada, reproduciéndose el fallo en el build anterior. El test registra las cancelaciones, desactiva la caché de las respuestas interceptadas y espera la red: exige que cada consulta no cancelada siga la redirección y que el reintento produzca una nueva. No se modifica el proveedor.
+
+
+Coinciden **136 estados distintos** con el build anterior: las cinco pestañas de gastos; Portfolio y su aviso; Dashboard y sus detalles de acción/fondo, desglose y pestañas de evolución/benchmark/asignación/riesgo/controles; tooltip y objetivos modificados de Portfolio. Se comparan nodos, etiquetas, clases de integración y 19 propiedades calculadas en 390/1280 px y las cuatro combinaciones de tema/apariencia, con datos sintéticos y fecha fija. No es una comparación píxel a píxel. El recorrido responsive pasa **seis rutas y 72 combinaciones** en 320/390/1280 px, sin errores de ejecución ni desbordamientos. Las pruebas de gastos cubren también editores a 768 px.

@@ -1,3 +1,5 @@
+import {AcademyGuideCta} from '../ui/AcademyBondParts';
+import {AcademyAssetHero,AcademyAssetBackLink,AcademyAssetText,AcademyAssetInlineLink} from '../ui/AcademyAssetReading';
 import { AcademyFactCard, AcademyFinalTip } from '../ui/AcademyAssetExplainers';
 
 import { AssetCategoryCard } from '../ui/AssetCategoryCard';
@@ -8,12 +10,10 @@ import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
 import { AcademySection } from '../ui/AcademySection';
 import { AcademyGrid } from '../ui/AcademyGrid';
-import { Link } from 'react-router-dom';
 import {
     TrendingUp, ArrowLeft, Globe, Zap, CheckCircle2, AlertTriangle,
     Lightbulb, BarChart3, PieChart, Clock, Target, Shield
 } from 'lucide-react';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import { AssetGuideNav } from './AssetGuideNav';
 import './AssetPage.css';
 
@@ -79,25 +79,20 @@ const GEOGRAPHIC_ZONES = [
 export function AssetEquities() {
     return (
         <div className="asset-page asset-page--equities" style={{ '--asset-color': '#3b82f6' } as React.CSSProperties}>
-            <Link to="/academy/portfolio" className="asset-page__back">
+            <AcademyAssetBackLink to="/academy/portfolio">
                 <ArrowLeft size={18} /> Estrategia y cartera
-            </Link>
+            </AcademyAssetBackLink>
 
-            <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#3b82f6' } as React.CSSProperties}>
-                <div className="asset-page__hero-icon">
+            <AcademyAssetHero style={{ '--hero-color': '#3b82f6' } as React.CSSProperties} icon={<>
                     <TrendingUp size={48} />
-                </div>
-                <h1>Renta Variable (Acciones)</h1>
-                <p className="asset-page__hero-sub">
+                </>} title={<>Renta Variable (Acciones)</>} description={<>
                     El motor de crecimiento de cualquier cartera a largo plazo. Entiende sus variantes,
                     riesgos y cómo elegir la exposición correcta para ti.
-                </p>
-                <div className="asset-page__hero-stats">
+                </>}>
                     <AcademyMetric variant="hero" label={<>Retorno histórico anual</>} value={<>7-10%</>} valueProps={{"className":"hero-stat__value"}} />
                     <AcademyMetric variant="hero" label={<>Volatilidad típica</>} value={<>15-20%</>} valueProps={{"className":"hero-stat__value"}} />
                     <AcademyMetric variant="hero" label={<>Horizonte recomendado</>} value={<>7+ años</>} valueProps={{"className":"hero-stat__value"}} />
-                </div>
-            </AcademyPageHeader>
+                </AcademyAssetHero>
 
             <AssetGuideNav sections={[
                 { id: 'section-1', label: 'Conceptos' },
@@ -113,7 +108,7 @@ export function AssetEquities() {
             {/* What is it */}
             <AcademySection title={<><Globe size={22} /> ¿Qué es la Renta Variable?</>} id="section-1" className="asset-page__section">
 
-                <div className="asset-page__text-block">
+                <AcademyAssetText >
                     <p>
                         Comprar acciones es comprar <strong>una fracción de propiedad real de una empresa</strong>.
                         Si la empresa crece, tu participación se revaloriza. Si la empresa reparte beneficios,
@@ -125,7 +120,7 @@ export function AssetEquities() {
                         (descontando inflación) de aproximadamente el <strong>5-7% anual</strong>. Sin embargo,
                         en periodos cortos puedes ver caídas del 30-50% que requieren <strong>fortaleza emocional</strong>.
                     </p>
-                </div>
+                </AcademyAssetText>
 
                 <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>Dato clave</>}>
                     <p>El S&P 500 ha caído más de un 20% en 12 ocasiones desde 1929, pero siempre ha recuperado máximos históricos. La paciencia es el superpoder del inversor en acciones.</p>
@@ -183,9 +178,9 @@ export function AssetEquities() {
 
                 <AcademyCallout tone="warning" icon={<AlertTriangle size={20} />} title={<>Sesgo doméstico (Home Bias)</>}>
                     <p>Los inversores tienden a sobreponderar su propio país. España representa solo el ~0.6% del mercado mundial. Si inviertes solo en el IBEX35, estás concentrando riesgo innecesariamente.</p>
-                    <Link to="/academy/risk" className="asset-page__cta-link">
+                    <AcademyAssetInlineLink to="/academy/risk">
                         Ver guía de riesgo de divisa y cobertura →
-                    </Link>
+                    </AcademyAssetInlineLink>
                 </AcademyCallout>
             </AcademySection>
 
@@ -247,18 +242,12 @@ export function AssetEquities() {
 
             {/* Deep Dive CTA */}
             <AcademySection id="section-8" className="asset-page__section asset-page__section--cta">
-                <div className="cta-box">
-                    <div className="cta-box__content">
-                        <h3>🔍 ¿Quieres aprender a valorar empresas como un profesional?</h3>
-                        <p>
+                <AcademyGuideCta to="/academy/valuation" title={<>🔍 ¿Quieres aprender a valorar empresas como un profesional?</>} description={<>
                             Hemos preparado una guía detallada donde exploramos métricas avanzadas (ROIC, FCF Yield, Deuda/EBITDA)
                             y te enseñamos a distinguir entre un gran negocio y una trampa de valor.
-                        </p>
-                        <Link to="/academy/valuation" className="cta-box__button">
+                        </>} action={<>
                             Ver Guía de Valoración <Zap size={18} />
-                        </Link>
-                    </div>
-                </div>
+                        </>} />
             </AcademySection>
 
             {/* Final tip */}

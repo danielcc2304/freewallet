@@ -1,3 +1,6 @@
+import {AcademyAssetVisual} from '../ui/AcademyBondParts';
+import {AcademyAssetBar} from '../ui/AcademyAssetBars';
+import {AcademyAssetHero,AcademyAssetBackLink,AcademyAssetText,AcademyAssetInlineLink} from '../ui/AcademyAssetReading';
 import { AcademyFinalTip } from '../ui/AcademyAssetExplainers';
 
 import { AssetCategoryCard } from '../ui/AssetCategoryCard';
@@ -7,12 +10,10 @@ import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
 import { AcademySection } from '../ui/AcademySection';
 import { AcademyGrid } from '../ui/AcademyGrid';
-import { Link } from 'react-router-dom';
 import {
     Wallet, ArrowLeft, Globe, CheckCircle2, AlertTriangle,
     Lightbulb, BarChart3, Clock, Shield, Activity
 } from 'lucide-react';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import { AssetGuideNav } from './AssetGuideNav';
 import './AssetPage.css';
 
@@ -58,25 +59,20 @@ const CASH_INSTRUMENTS = [
 export function AssetCash() {
     return (
         <div className="asset-page asset-page--cash" style={{ '--asset-color': '#06b6d4' } as React.CSSProperties}>
-            <Link to="/academy/portfolio" className="asset-page__back">
+            <AcademyAssetBackLink to="/academy/portfolio">
                 <ArrowLeft size={18} /> Estrategia y cartera
-            </Link>
+            </AcademyAssetBackLink>
 
-            <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#64748b' } as React.CSSProperties}>
-                <div className="asset-page__hero-icon">
+            <AcademyAssetHero style={{ '--hero-color': '#64748b' } as React.CSSProperties} icon={<>
                     <Wallet size={48} />
-                </div>
-                <h1>Liquidez</h1>
-                <p className="asset-page__hero-sub">
+                </>} title={<>Liquidez</>} description={<>
                     El oxígeno de tu cartera. La liquidez te da tranquilidad, capacidad de reacción ante oportunidades
                     y es el primer pilar de toda estrategia financiera sólida.
-                </p>
-                <div className="asset-page__hero-stats">
+                </>}>
                     <AcademyMetric variant="hero" label={<>Rendimiento actual</>} value={<>0-2%</>} valueProps={{"className":"hero-stat__value"}} />
                     <AcademyMetric variant="hero" label={<>Volatilidad</>} value={<>0%</>} valueProps={{"className":"hero-stat__value"}} />
                     <AcademyMetric variant="hero" label={<>Disponibilidad</>} value={<>Inmediato</>} valueProps={{"className":"hero-stat__value"}} />
-                </div>
-            </AcademyPageHeader>
+                </AcademyAssetHero>
 
             <AssetGuideNav sections={[
                 { id: 'section-1', label: 'Para qué sirve' },
@@ -88,7 +84,7 @@ export function AssetCash() {
 
             <AcademySection title={<><Globe size={22} /> ¿Por qué tener Liquidez?</>} id="section-1" className="asset-page__section">
 
-                <div className="asset-page__text-block">
+                <AcademyAssetText >
                     <p>
                         La liquidez no es una inversión, es un <strong>colchón de seguridad</strong>. Su función no es
                         generar rentabilidad, sino <strong>darte estabilidad emocional y capacidad de respuesta</strong>.
@@ -98,7 +94,7 @@ export function AssetCash() {
                         el mercado ha caído) para cubrir gastos inesperados. Es la diferencia entre sobrevivir una crisis
                         y salir reforzado de ella.
                     </p>
-                </div>
+                </AcademyAssetText>
 
                 <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>Regla de los 3-6 meses</>}>
                     <p>Mantén entre 3 y 6 meses de gastos indispensables en liquidez. Si tienes ingresos variables o eres autónomo, sube a 6-12 meses. Este colchón debe ser intocable salvo emergencias reales.</p>
@@ -121,16 +117,14 @@ export function AssetCash() {
 
             <AcademySection title={<><AlertTriangle size={22} /> El Enemigo Silencioso: La Inflación</>} id="section-3" className="asset-page__section">
 
-                <div className="asset-page__text-block">
+                <AcademyAssetText >
                     <p>
                         Si la inflación es del 3% y tu cuenta paga un 1%, estás <strong>perdiendo un 2% de poder adquisitivo cada año</strong>.
                         10.000€ hoy comprarán lo mismo que 8.170€ dentro de 10 años con inflación del 2%.
                     </p>
-                </div>
+                </AcademyAssetText>
 
-                <div className="inflation-visual">
-                    <h3>Erosión del poder adquisitivo: 10.000€ con inflación del 3%</h3>
-                    <div className="inflation-bars">
+                <AcademyAssetVisual variant="inflation" title={<>Erosión del poder adquisitivo: 10.000€ con inflación del 3%</>}>
                         {[
                             { year: 'Año 0', value: 10000, pct: 100 },
                             { year: 'Año 3', value: 9135, pct: 91 },
@@ -139,22 +133,15 @@ export function AssetCash() {
                             { year: 'Año 20', value: 5438, pct: 54 },
                             { year: 'Año 30', value: 4012, pct: 40 },
                         ].map(item => (
-                            <div key={item.year} className="inflation-bar">
-                                <span className="inflation-bar__label">{item.year}</span>
-                                <div className="inflation-bar__track">
-                                    <div className="inflation-bar__fill" style={{ width: `${item.pct}%` }} />
-                                </div>
-                                <span className="inflation-bar__value">{item.value.toLocaleString('es-ES')}€</span>
-                            </div>
+                            <AcademyAssetBar key={item.year} variant="inflation" label={<>{item.year}</>} value={<>{item.value.toLocaleString('es-ES')}€</>} fillStyle={{ width: `${item.pct}%` }}  />
                         ))}
-                    </div>
-                </div>
+                    </AcademyAssetVisual>
 
                 <AcademyCallout tone="warning" icon={<Activity size={24} />} title={<>¿Quieres ver cómo afecta la inflación a tus propios ahorros?</>} style={{ marginTop: '2rem' }}>
                     <p>
                         Usa nuestro simulador interactivo para calcular cuánto poder adquisitivo perderás en el tiempo si no inviertes tu dinero.
                     </p>
-                    <Link to="/academy/inflation-predator" className="asset-page__cta-link" style={{
+                    <AcademyAssetInlineLink to="/academy/inflation-predator" style={{
                         display: 'inline-block',
                         marginTop: '0.5rem',
                         color: 'var(--accent-primary)',
@@ -162,7 +149,7 @@ export function AssetCash() {
                         textDecoration: 'none'
                     }}>
                         Ir al Depredador de la Inflación →
-                    </Link>
+                    </AcademyAssetInlineLink>
                 </AcademyCallout>
             </AcademySection>
 
@@ -188,13 +175,13 @@ export function AssetCash() {
 
             <AcademySection title={<><Clock size={22} /> Estrategia de Escalera (Ladder)</>} id="section-5" className="asset-page__section">
 
-                <div className="asset-page__text-block">
+                <AcademyAssetText >
                     <p>
                         Una forma inteligente de gestionar liquidez es crear una «escalera» de vencimientos.
                         Divides tu cash entre instrumentos con diferentes plazos para maximizar rentabilidad
                         sin perder accesibilidad total.
                     </p>
-                </div>
+                </AcademyAssetText>
 
                 <AcademyGrid variant="steps" className="asset-page__steps">
                     <AcademyStepCard number={'1'} title={'Inmediato (33%)'}>Cuenta remunerada para gastos inesperados. Disponibilidad instantánea.</AcademyStepCard>

@@ -1,5 +1,5 @@
+import {ReleaseLogHeading,ReleaseLogSummary,ReleaseNoteCard,ReleaseNoteSection,ReleaseNoteFiles} from './ReleaseNotes';
 import { CalendarDays, FileText, Sparkles } from 'lucide-react';
-import type { CSSProperties } from 'react';
 import featureLogMarkdown from '../../../FEATURE_LOG.md?raw';
 import { APP_NAME, APP_VERSION } from '../../constants/app';
 import './FeatureLog.css';
@@ -77,20 +77,7 @@ function renderInlineText(text: string) {
 
 function FeatureLogSectionList({ section }: { section: FeatureLogSection }) {
     return (
-        <section className="feature-log-entry__section">
-            <h3 className="feature-log-entry__section-title">{section.label}</h3>
-            <ul className="feature-log-entry__list">
-                {section.items.map((item, index) => (
-                    <li
-                        key={`${section.label}-${index}-${item.text}`}
-                        className="feature-log-entry__item"
-                        style={{ '--feature-log-indent': `${item.depth * 1.1}rem` } as CSSProperties}
-                    >
-                        {renderInlineText(item.text)}
-                    </li>
-                ))}
-            </ul>
-        </section>
+        <ReleaseNoteSection label={section.label} items={section.items} renderText={renderInlineText} />
     );
 }
 
@@ -99,31 +86,16 @@ const featureLogEntries = parseFeatureLog(featureLogMarkdown);
 export function FeatureLog() {
     return (
         <div className="feature-log">
-            <header className="feature-log__header">
-                <div className="feature-log__title-row">
-                    <div className="feature-log__title-icon">
+            <header className="feature-log__header"><ReleaseLogHeading icon={<>
                         <Sparkles size={28} />
-                    </div>
-                    <div>
-                        <p className="feature-log__eyebrow">{APP_NAME} v{APP_VERSION}</p>
-                        <h1 className="feature-log__title">Novedades</h1>
-                    </div>
-                </div>
-                <p className="feature-log__subtitle">
+                    </>} eyebrow={<>{APP_NAME} v{APP_VERSION}</>} title={<>Novedades</>} subtitle={<>
                     Listado de mejoras publicadas.
-                </p>
-            </header>
+                </>} /></header>
 
             <div className="feature-log__summary" aria-label="Resumen del registro">
-                <div className="feature-log__summary-item">
-                    <FileText size={18} />
-                    <span>{featureLogEntries.length} entradas</span>
-                </div>
+                <ReleaseLogSummary icon={<FileText size={18} />}>{featureLogEntries.length} entradas</ReleaseLogSummary>
                 {featureLogEntries[0] && (
-                    <div className="feature-log__summary-item">
-                        <CalendarDays size={18} />
-                        <span>Ultima update: {featureLogEntries[0].date}</span>
-                    </div>
+                    <ReleaseLogSummary icon={<CalendarDays size={18} />}>Ultima update: {featureLogEntries[0].date}</ReleaseLogSummary>
                 )}
             </div>
 
@@ -134,23 +106,9 @@ export function FeatureLog() {
                     const files = entry.sections.find((section) => section.label === 'Archivos');
 
                     return (
-                        <article key={`${entry.date}-${entry.title}`} className="feature-log-entry">
-                            <div className="feature-log-entry__meta">
-                                <time dateTime={entry.date}>{entry.date}</time>
-                            </div>
-
-                            <h2 className="feature-log-entry__title">{entry.title}</h2>
-
-                            {functionality && <FeatureLogSectionList section={functionality} />}
-                            {summary && <FeatureLogSectionList section={summary} />}
-
-                            {files && (
-                                <details className="feature-log-entry__files">
-                                    <summary>Archivos modificados</summary>
-                                    <FeatureLogSectionList section={files} />
-                                </details>
-                            )}
-                        </article>
+                        <ReleaseNoteCard key={`${entry.date}-${entry.title}`} date={entry.date} title={entry.title}>{functionality && <FeatureLogSectionList section={functionality} />}{summary && <FeatureLogSectionList section={summary} />}{files && (
+                                <ReleaseNoteFiles summary={<>Archivos modificados</>}><FeatureLogSectionList section={files} /></ReleaseNoteFiles>
+                            )}</ReleaseNoteCard>
                     );
                 })}
             </div>

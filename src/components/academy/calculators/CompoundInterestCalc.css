@@ -48,28 +48,6 @@
 }
 
 /* ===== ADVANCED OPTIONS ===== */
-.compound__advanced {
-    border-top: 1px solid var(--border-color);
-    @apply tw:pt-[1.5rem] tw:mt-[1.5rem];
-}
-
-.compound__advanced-toggle {
-    @apply tw:w-full tw:ui-fill-transparent;
-    border: none;
-    @apply tw:p-[0.75rem_0] tw:cursor-pointer tw:ui-row tw:justify-between;
-    font-weight: 500;
-    @apply tw:text-accent;
-    transition: opacity 0.2s ease;
-}
-
-.compound__advanced-toggle:hover {
-    @apply tw:opacity-[0.8];
-}
-
-.compound__advanced-content {
-    @apply tw:mt-[1rem];
-    animation: slideDown 0.3s ease;
-}
 
 @keyframes slideDown {
     from {
@@ -97,100 +75,8 @@
 }
 
 /* ===== GOAL RESULT ===== */
-.compound__goal-result {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:rounded-[24px] tw:p-[2.5rem] tw:text-center tw:relative tw:overflow-hidden tw:w-full tw:max-w-full tw:box-border;
-}
-
-.compound__goal-result::before {
-    content: '';
-    @apply tw:absolute tw:top-[0] tw:left-[0] tw:right-[0] tw:h-[4px];
-    background: var(--accent-primary);
-}
-
-.compound__goal-result--achieved {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.05) 100%);
-    border-color: rgba(16, 185, 129, 0.3);
-}
-
-.compound__goal-result--achieved::before {
-    background: #10b981;
-}
-
-.compound__goal-achieved {
-    @apply tw:ui-stack tw:items-center tw:gap-[1rem];
-}
-
-.compound__goal-badge {
-    @apply tw:text-[length:4rem];
-    line-height: 1;
-}
-
-.compound__goal-achieved h3 {
-    @apply tw:text-[length:1.75rem];
-    font-weight: 800;
-    color: #10b981;
-    @apply tw:m-[0];
-}
-
-.compound__goal-pending {
-    @apply tw:ui-stack tw:items-center tw:gap-[1.5rem];
-}
-
-.compound__goal-years-vibe {
-    @apply tw:ui-stack tw:items-center;
-}
-
-.compound__goal-years-vibe .number {
-    @apply tw:text-[length:5rem];
-    font-weight: 900;
-    @apply tw:text-accent;
-    line-height: 1;
-    letter-spacing: -2px;
-}
-
-.compound__goal-years-vibe .label {
-    @apply tw:text-[length:1rem];
-    font-weight: 700;
-    @apply tw:text-secondary;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    @apply tw:mt-[0.5rem];
-}
-
-.compound__goal-text {
-    @apply tw:max-w-[400px] tw:m-[0_auto];
-}
-
-.compound__goal-text p {
-    @apply tw:text-[length:1.1rem] tw:text-secondary;
-    line-height: 1.6;
-    @apply tw:m-[0];
-}
-
-.compound__goal-text .highlight {
-    @apply tw:text-main;
-    font-weight: 700;
-}
-
-.compound__goal-icon {
-    @apply tw:text-[length:3rem] tw:mb-[1rem];
-}
-
-.compound__goal-years {
-    @apply tw:text-[length:3.5rem];
-    font-weight: 900;
-    @apply tw:text-accent tw:mb-[1rem];
-    letter-spacing: -1px;
-}
 
 /* ===== CHART ===== */
-
-@media (max-width: 640px) {
-
-    .compound__goal-years-vibe .number {
-        @apply tw:text-[length:3.5rem];
-    }
-}
 
 /* ===== BREAKDOWN ===== */
 .compound__breakdown {
@@ -235,31 +121,6 @@
     @apply tw:text-main tw:whitespace-nowrap;
 }
 
-.compound__detail {
-    --calculator-card-padding: 1.5rem;
-    --calculator-card-radius: 16px;
-    @apply tw:w-full tw:min-w-[0] tw:overflow-hidden;
-}
-
-.compound__detail-header {
-    @apply tw:flex tw:items-start tw:justify-between tw:gap-[1rem] tw:mb-[1rem];
-}
-
-.compound__detail-header h4 {
-    @apply tw:text-[length:1.125rem];
-    font-weight: 600;
-    @apply tw:text-main tw:m-[0_0_0.35rem_0];
-}
-
-.compound__detail-header p {
-    @apply tw:m-[0] tw:text-secondary;
-    line-height: 1.5;
-}
-
-.compound__detail-list {
-    @apply tw:ui-stack tw:gap-[0.85rem];
-}
-
 .compound__detail-positive {
     color: #10b981;
     font-weight: 700;
@@ -280,10 +141,7 @@
         @apply tw:col-[1] tw:row-[1] tw:h-full;
     }
 
-    .compound__result-cards,
-.compound__goal-result,
-.compound__breakdown,
-.compound__detail {
+    .compound__result-cards, .compound__breakdown {
         @apply tw:col-span-full;
     }
 }
@@ -309,18 +167,12 @@
 
 @media (max-width: 768px) {
 
-    .compound__inputs,
-.compound__breakdown,
-.compound__detail {
+    .compound__inputs, .compound__breakdown {
         @apply tw:p-[1rem];
     }
 
     .compound__result-cards {
         @apply tw:grid-cols-[1fr];
-    }
-
-    .compound__goal-years {
-        @apply tw:text-[length:2.25rem];
     }
 
     .compound__breakdown-label-row {
@@ -332,13 +184,5 @@
 
     .compound__breakdown-bar {
         @apply tw:h-[44px] tw:text-[length:1rem];
-    }
-
-    .compound__detail {
-        @apply tw:p-[0.875rem];
-    }
-
-    .compound__detail-header p {
-        @apply tw:text-[length:0.9rem];
     }
 }

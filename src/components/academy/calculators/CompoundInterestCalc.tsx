@@ -1,3 +1,4 @@
+import {CalculatorAdvancedOptions,CalculatorGoalPanel,CalculatorGoalAchieved,CalculatorGoalPending,CalculatorMonthlyGoal,CalculatorYearlyResults} from './CalculatorGoal';
 import { CalculatorDataItem } from './CalculatorDataItem';
 import { CalculatorLegend } from './CalculatorLegend';
 import { CalculatorYearDetail } from './CalculatorYearDetail';
@@ -422,17 +423,7 @@ export function CompoundInterestCalc() {
 
                     {/* Advanced Options */}
                     {calculationMode === 'normal' && (
-                        <div className="compound__advanced">
-                            <button
-                                type="button"
-                                className="compound__advanced-toggle"
-                                onClick={() => setShowAdvanced(!showAdvanced)}>
-                                <span>Opciones Avanzadas</span>
-                                {showAdvanced ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
-                            </button>
-
-                            {showAdvanced && (
-                                <div className="compound__advanced-content">
+                        <CalculatorAdvancedOptions expanded={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)} label={<>Opciones Avanzadas</>} icon={showAdvanced ? <ChevronUp size={18} /> : <ChevronDown size={18} />}>
                                     <div className="calc__input-group">
                                         <label>Tipo de rentabilidad</label>
                                         <div className="compound__radio-group">
@@ -535,9 +526,7 @@ export function CompoundInterestCalc() {
                                             />
                                         </CalculatorField>
                                     )}
-                                </div>
-                            )}
-                        </div>
+                                </CalculatorAdvancedOptions>
                     )}
                 </CalculatorCard>
 
@@ -568,42 +557,23 @@ export function CompoundInterestCalc() {
                     )}
 
                     {calculationMode === 'timeToGoal' && timeToGoalYears !== null && (
-                        <div className={`compound__goal-result ${timeToGoalYears <= 0 ? 'compound__goal-result--achieved' : ''}`}>
+                        <CalculatorGoalPanel achieved={timeToGoalYears <= 0}>
                             {!Number.isFinite(timeToGoalYears) ? <p role="status">No se alcanza el objetivo en los próximos 100 años con estos parámetros.</p> : timeToGoalYears <= 0 ? (
-                                <div className="compound__goal-achieved">
-                                    <div className="compound__goal-badge">🎉</div>
-                                    <div className="compound__goal-content">
-                                        <h3>¡Objetivo Conseguido!</h3>
-                                        <p>Tu patrimonio actual ya supera los {formatCurrency(Number(targetAmount) || 0)}.</p>
-                                    </div>
-                                </div>
+                                <CalculatorGoalAchieved badge={<>🎉</>} title={<>¡Objetivo Conseguido!</>} description={<>Tu patrimonio actual ya supera los {formatCurrency(Number(targetAmount) || 0)}.</>} />
                             ) : (
-                                <div className="compound__goal-pending">
-                                    <div className="compound__goal-years-vibe">
-                                        <div className="number">{timeToGoalYears.toFixed(1)}</div>
-                                        <div className="label">Años restantes</div>
-                                    </div>
-                                    <div className="compound__goal-text">
+                                <CalculatorGoalPending value={<>{timeToGoalYears.toFixed(1)}</>} label={<>Años restantes</>}>
                                         <p>Para alcanzar <span className="highlight">{formatCurrency(Number(targetAmount) || 0)}</span> aportando <span className="highlight">{formatCurrency(Number(monthlyContribution) || 0)}</span> al mes.</p>
-                                    </div>
-                                </div>
+                                    </CalculatorGoalPending>
                             )}
-                        </div>
+                        </CalculatorGoalPanel>
                     )}
 
                     {calculationMode === 'requiredContribution' && requiredMonthlyAmount !== null && (
-                        <div className="compound__goal-result">
-                            <div className="compound__goal-icon">💼</div>
-                            <div className="compound__goal-content">
-                                <h3>Necesitas aportar mensualmente:</h3>
-                                <div className="compound__goal-years">
+                        <CalculatorMonthlyGoal icon={<>💼</>} title={<>Necesitas aportar mensualmente:</>} value={<>
                                     {formatCurrency(requiredMonthlyAmount)}
-                                </div>
-                                <p className="compound__goal-details">
+                                </>} description={<>
                                     Para alcanzar {formatCurrency(Number(targetAmount) || 0)} en {years} años al {annualRate}% (desde {formatCurrency(Number(initialCapital) || 0)})
-                                </p>
-                            </div>
-                        </div>
+                                </>} />
                     )}
 
                     {/* Chart */}
@@ -665,15 +635,7 @@ export function CompoundInterestCalc() {
                             <small>Las retiradas pueden incluir tu capital inicial; no se restan de los intereses generados.</small>
                         </div>
                     </CalculatorCard>
-                    <CalculatorCard className="compound__detail">
-                        <div className="compound__detail-header">
-                            <div>
-                                <h4>Detalle año a año</h4>
-                                <p>Cada fila resume saldo total y rendimiento del año.</p>
-                            </div>
-                        </div>
-
-                        <div className="compound__detail-list">
+                    <CalculatorYearlyResults title={<>Detalle año a año</>} description={<>Cada fila resume saldo total y rendimiento del año.</>}>
                             {yearlyDetailRows.map((row) => {
                                 const isOpen = expandedYear === row.year;
 
@@ -698,8 +660,7 @@ export function CompoundInterestCalc() {
                                                 </CalculatorYearDetail>
                                 );
                             })}
-                        </div>
-                    </CalculatorCard>
+                        </CalculatorYearlyResults>
                     </>}
                 </div>
             </div>

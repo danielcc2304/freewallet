@@ -1,8 +1,8 @@
+import { Link } from 'react-router-dom';
+import {JourneyCrisis,JourneyCrisisColumn,JourneyNextSection,JourneyNextLink} from '../ui/JourneySupport';
 import { JourneyNotice, JourneyGuideLink } from '../ui/JourneyPhase';
 import { JourneyPhase, JourneyTextSection, JourneyChecklist, JourneyAllocation } from '../ui/JourneyPhase';
 import { useState } from 'react';
-import { AlertCircle } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { TIMELINE_PHASES } from '../../../data/academyData';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './InvestorTimeline.css';
@@ -65,77 +65,30 @@ export function InvestorTimeline() {
 
             {/* Crisis phase - special styling */}
             {crisisPhase && (
-                <div className="timeline__crisis">
-                    <div className="timeline__crisis-header">
-                        <AlertCircle size={28} className="timeline__crisis-icon" />
-                        <div>
-                            <h3 className="timeline__crisis-title">{crisisPhase.title}</h3>
-                            <p className="timeline__crisis-subtitle">{crisisPhase.duration}</p>
-                        </div>
-                    </div>
+                <JourneyCrisis  title={crisisPhase.title} duration={crisisPhase.duration} objective={crisisPhase.objective} errors={crisisPhase.commonErrors}>
+                            <JourneyCrisisColumn title={<>❌ Qué NO hacer:</>} items={[<>Vender por pánico</>,<>Mirar la cartera cada hora</>,<>Leer noticias sensacionalistas</>]} />
 
-                    <div className="timeline__crisis-content">
-                        <div className="timeline__crisis-objective">
-                            <strong>🎯 Objetivo:</strong> {crisisPhase.objective}
-                        </div>
-
-                        <div className="timeline__crisis-actions">
-                            <div className="timeline__crisis-column">
-                                <h4>❌ Qué NO hacer:</h4>
-                                <ul>
-                                    <li>Vender por pánico</li>
-                                    <li>Mirar la cartera cada hora</li>
-                                    <li>Leer noticias sensacionalistas</li>
-                                </ul>
-                            </div>
-
-                            <div className="timeline__crisis-column">
-                                <h4>✅ Qué SÍ hacer:</h4>
-                                <ul>
-                                    <li>Mantener DCA (o aumentar si tienes liquidez)</li>
-                                    <li>Recordar tu horizonte temporal</li>
-                                    <li>Revisar <a href="/academy/crisis">casos históricos</a></li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <div className="timeline__crisis-errors">
-                            <strong>⚠️ Errores críticos:</strong>
-                            <ul>
-                                {crisisPhase.commonErrors.map((err, i) => (
-                                    <li key={i}>{err}</li>
-                                ))}
-                            </ul>
-                        </div>
-                    </div>
-                </div>
+                            <JourneyCrisisColumn title={<>✅ Qué SÍ hacer:</>} items={[<>Mantener DCA (o aumentar si tienes liquidez)</>,<>Recordar tu horizonte temporal</>,<>Revisar <a href="/academy/crisis">casos históricos</a></>]} />
+                        </JourneyCrisis>
             )}
 
-            <div className="timeline__next">
-                <h3>Continúa aprendiendo</h3>
-                <p>Profundiza en otros aspectos clave para tu journey:</p>
-                <div className="timeline__next-links">
-                    <Link to="/academy/crisis" className="timeline__next-link">
+            <JourneyNextSection appearance="next" title={<>Continúa aprendiendo</>} description={<>Profundiza en otros aspectos clave para tu journey:</>}>
+                    <JourneyNextLink to="/academy/crisis">
                         📊 Ver Crisis Históricas
-                    </Link>
-                    <Link to="/academy/scenarios" className="timeline__next-link">
+                    </JourneyNextLink>
+                    <JourneyNextLink to="/academy/scenarios">
                         🎯 Escenarios Prácticos
-                    </Link>
-                    <Link to="/academy/portfolio" className="timeline__next-link">
+                    </JourneyNextLink>
+                    <JourneyNextLink to="/academy/portfolio">
                         📈 Construir tu Cartera
-                    </Link>
-                </div>
-            </div>
+                    </JourneyNextLink>
+                </JourneyNextSection>
 
-            <section className="timeline__guide-next">
-                <h3>Siguiente paso segun tu momento</h3>
-                <p>Usa esta guia como punto de partida y baja luego a riesgo, crisis o construccion de cartera.</p>
-                <div className="timeline__guide-links">
+            <JourneyNextSection appearance="guide" title={<>Siguiente paso segun tu momento</>} description={<>Usa esta guia como punto de partida y baja luego a riesgo, crisis o construccion de cartera.</>}>
                     <JourneyGuideLink to="/academy/crisis" title={<>Mercado y crisis</>} description={<>Para saber que esperar cuando llegue una caida fuerte.</>} />
                     <JourneyGuideLink to="/academy/scenarios" title={<>Qué hacer si...</>} description={<>Para convertir teoria en decisiones practicas.</>} />
                     <JourneyGuideLink to="/academy/portfolio" title={<>Construir cartera</>} description={<>Para traducir tu fase inversora en una asignacion real.</>} />
-                </div>
-            </section>
+                </JourneyNextSection>
         </div>
     );
 }

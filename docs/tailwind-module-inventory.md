@@ -109,3 +109,10 @@ Dashboard compone sus celdas y el encabezado/detalle de activos mediante `Dashbo
 La decimosexta fase amplía la composición a 17 módulos. Las guías comparten encabezados numerados, enlaces internos, avisos, acciones, fichas y ejemplos; el glosario comparte búsqueda, filtros y tarjetas completas. Fundamentos comparte encabezados y objetivos; Recursos termina de trasladar al componente de vídeo sus efectos y estados. Los simuladores componen preguntas, resultados, controles, decisiones, impacto y leyendas con componentes React. Sidebar y Dashboard comparten sus enlaces, acciones, filas de exposición y desplegables nativos; el editor comparte controles de formato y enlaces, manteniendo el CSS del contenido generado por Tiptap.
 
 Se retiran 1.285 líneas y 422 declaraciones `@apply`: quedan 10.329 líneas de CSS fuente en 58 hojas, un 54,60 % menos respecto a las 22.753 iniciales. Los mapas estáticos de utilidades pertenecen a los componentes que componen el marcado; los encabezados, avisos y mapas de enlaces idénticos comparten una receta. Se conservan las reglas contextuales, materiales, tablas y contenido enriquecido que aún necesitan CSS.
+
+
+### Guías de activos, objetivos y recorrido
+
+La decimoséptima fase amplía las piezas con estructura y utilidades Tailwind a ocho pantallas: las cinco guías de activos, Interés compuesto, Tu viaje como inversor y Novedades. `AcademyAssetReading` reúne cabeceras y lectura; `AcademyAssetBars`, `AcademyBondParts` y `AcademyBondExperiments` comparten gráficos ilustrativos, barras, ratings, curvas, escalones y controles. `AcademyMetric` conserva su marcado y recibe la receta de sus indicadores de cabecera. `CalculatorGoal`, `JourneySupport` y `ReleaseNotes` comparten las opciones/objetivos, apoyo en crisis y entradas del historial.
+
+Se retiran 1.180 líneas y 296 declaraciones `@apply`: quedan 9.149 líneas en 58 hojas CSS, un 59,79 % menos respecto a las 22.753 iniciales. Las cuatro hojas afectadas pasan de 1.736 a 556 líneas. Se mantienen el reset, las consultas contextuales, los materiales, los diagramas nativos y las animaciones que aún necesitan CSS.

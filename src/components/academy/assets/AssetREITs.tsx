@@ -1,3 +1,4 @@
+import {AcademyAssetHero,AcademyAssetBackLink,AcademyAssetText,AcademyAssetInlineLink} from '../ui/AcademyAssetReading';
 import { AcademyFinalTip } from '../ui/AcademyAssetExplainers';
 
 import { AssetCategoryCard } from '../ui/AssetCategoryCard';
@@ -7,12 +8,10 @@ import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
 import { AcademySection } from '../ui/AcademySection';
 import { AcademyGrid } from '../ui/AcademyGrid';
-import { Link } from 'react-router-dom';
 import {
     Building2, ArrowLeft, Globe, Zap, CheckCircle2, AlertTriangle,
     Lightbulb, Home, Building, Factory, Truck, Shield
 } from 'lucide-react';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import { AssetGuideNav } from './AssetGuideNav';
 import './AssetPage.css';
 
@@ -50,25 +49,20 @@ const REIT_TYPES = [
 export function AssetREITs() {
     return (
         <div className="asset-page asset-page--reits" style={{ '--asset-color': '#8b5cf6' } as React.CSSProperties}>
-            <Link to="/academy/portfolio" className="asset-page__back">
+            <AcademyAssetBackLink to="/academy/portfolio">
                 <ArrowLeft size={18} /> Estrategia y cartera
-            </Link>
+            </AcademyAssetBackLink>
 
-            <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#8b5cf6' } as React.CSSProperties}>
-                <div className="asset-page__hero-icon">
+            <AcademyAssetHero style={{ '--hero-color': '#8b5cf6' } as React.CSSProperties} icon={<>
                     <Building2 size={48} />
-                </div>
-                <h1>Inmobiliario cotizado</h1>
-                <p className="asset-page__hero-sub">
+                </>} title={<>Inmobiliario cotizado</>} description={<>
                     Inversión inmobiliaria profesional con la liquidez de una acción. Descubre cómo
                     generar rentas periódicas sin las complicaciones de gestionar un piso.
-                </p>
-                <div className="asset-page__hero-stats">
+                </>}>
                     <AcademyMetric variant="hero" label={<>Retorno histórico total</>} value={<>6-8%</>} valueProps={{"className":"hero-stat__value"}} />
                     <AcademyMetric variant="hero" label={<>Volatilidad</>} value={<>12-18%</>} valueProps={{"className":"hero-stat__value"}} />
                     <AcademyMetric variant="hero" label={<>Horizonte recomendado</>} value={<>5+ años</>} valueProps={{"className":"hero-stat__value"}} />
-                </div>
-            </AcademyPageHeader>
+                </AcademyAssetHero>
 
             <AssetGuideNav sections={[
                 { id: 'section-1', label: 'Conceptos' },
@@ -79,7 +73,7 @@ export function AssetREITs() {
 
             <AcademySection title={<><Globe size={22} /> ¿Qué son los REITs?</>} id="section-1" className="asset-page__section">
 
-                <div className="asset-page__text-block">
+                <AcademyAssetText >
                     <p>
                         Los <strong>REITs</strong> (Real Estate Investment Trusts), conocidos en España como <strong>SOCIMIs</strong>,
                         son empresas que poseen, operan o financian bienes raíces que generan ingresos.
@@ -89,7 +83,7 @@ export function AssetREITs() {
                         como cualquier acción. Esto permite al pequeño inversor participar de grandes proyectos
                         inmobiliarios (rascacielos, centros logísticos, hospitales) con capitales muy reducidos.
                     </p>
-                </div>
+                </AcademyAssetText>
 
                 <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>La Regla del 90%</>}>
                     <p>Por ley, los REITs deben repartir al menos el 90% de sus beneficios imponibles en forma de dividendos a sus accionistas. Esto los convierte en activos ideales para quienes buscan flujo de caja.</p>
@@ -106,9 +100,9 @@ export function AssetREITs() {
 
                 <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>REITs globales = también riesgo divisa</>} style={{ marginTop: '1.5rem' }}>
                     <p>Si compras REITs USA o globales desde EUR, parte del resultado vendrá de la moneda. Decide conscientemente si quieres versión cubierta (hedged) o no cubierta.</p>
-                    <Link to="/academy/risk" className="asset-page__cta-link">
+                    <AcademyAssetInlineLink to="/academy/risk">
                         Revisar cuándo cubrir divisa →
-                    </Link>
+                    </AcademyAssetInlineLink>
                 </AcademyCallout>
             </AcademySection>
 

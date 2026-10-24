@@ -12,6 +12,20 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-24 - Tailwind: guías de activos, objetivos y recorrido
+- Funcionalidad:
+  - Amplía la composición en las cinco guías de activos, Interés compuesto, Tu viaje como inversor y Novedades.
+  - Comparte cabeceras, navegación interna, lectura, métricas, barras de duración/inflación, ratings, curvas, controles y experimentos de renta fija, escalones de vencimiento y accesos a otras guías.
+  - Extrae opciones avanzadas, objetivos y detalle anual de Interés compuesto, los bloques de apoyo del viaje inversor y las entradas, secciones y archivos del historial de versiones.
+- Resumen:
+  - Retira 1.180 líneas de CSS fuente y 296 declaraciones `@apply`. Quedan 9.149 líneas en 58 hojas: reducción acumulada del 59,79 % frente al inicio; no mide el ahorro de descarga.
+  - Conserva los cálculos, datos, persistencia, controles nativos, callbacks y clases de Liquid Glass. Las declaraciones ajenas a JSX de las ocho pantallas conservan su lógica.
+  - Pasan TypeScript, ESLint, build sin prerender, presupuesto de carga diferida, pruebas de interés compuesto e integridad de calculadoras y el recorrido funcional de calculadoras/Dashboard. Coinciden 160 estados comparados y pasan 144 combinaciones responsive en 12 rutas.
+- Archivos:
+  - `src/components/academy/assets/*`, `src/components/academy/ui/AcademyAsset*`, `src/components/academy/ui/AcademyBond*`, `src/components/academy/ui/AcademyMetric.tsx`.
+  - `src/components/academy/calculators/CalculatorGoal*`, `src/components/academy/calculators/CompoundInterestCalc.*`, `src/components/academy/ui/JourneySupport*`, `src/components/academy/guides/InvestorTimeline.*`.
+  - `src/pages/FeatureLog/*`, `README.md`, `docs/tailwind-migration.md`, `docs/tailwind-module-inventory.md`.
+
 ### 2026-10-24 - Tailwind: guías, simuladores, sidebar y composición
 - Funcionalidad:
   - Amplía la migración a 17 módulos: Fundamentos, Glosario, Errores, Escenarios, Riesgo, Estrategias, Fiscalidad, Valoración, Recursos, test de perfil, construcción de cartera, Crisis, asignación, Market Timing, sidebar, composición del Dashboard y editor de noticias.

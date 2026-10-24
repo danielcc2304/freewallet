@@ -1,3 +1,4 @@
+import {AcademyAssetHero,AcademyAssetBackLink,AcademyAssetText} from '../ui/AcademyAssetReading';
 import { AcademyFinalTip } from '../ui/AcademyAssetExplainers';
 
 import { AssetCategoryCard } from '../ui/AssetCategoryCard';
@@ -7,12 +8,10 @@ import { AcademyStepCard } from '../ui/AcademyStepCard';
 import { AcademyMetric } from '../ui/AcademyMetric';
 import { AcademySection } from '../ui/AcademySection';
 import { AcademyGrid } from '../ui/AcademyGrid';
-import { Link } from 'react-router-dom';
 import {
     Coins, ArrowLeft, Globe, CheckCircle2, AlertTriangle,
     Lightbulb, Shield, Database, Lock
 } from 'lucide-react';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import { AssetGuideNav } from './AssetGuideNav';
 import './AssetPage.css';
 
@@ -46,25 +45,20 @@ const CRYPTO_CATEGORIES = [
 export function AssetCrypto() {
     return (
         <div className="asset-page asset-page--crypto" style={{ '--asset-color': '#f59e0b' } as React.CSSProperties}>
-            <Link to="/academy/portfolio" className="asset-page__back">
+            <AcademyAssetBackLink to="/academy/portfolio">
                 <ArrowLeft size={18} /> Estrategia y cartera
-            </Link>
+            </AcademyAssetBackLink>
 
-            <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#f59e0b' } as React.CSSProperties}>
-                <div className="asset-page__hero-icon">
+            <AcademyAssetHero style={{ '--hero-color': '#f59e0b' } as React.CSSProperties} icon={<>
                     <Coins size={48} />
-                </div>
-                <h1>Criptoactivos</h1>
-                <p className="asset-page__hero-sub">
+                </>} title={<>Criptoactivos</>} description={<>
                     La frontera tecnológica de las finanzas. Descubre el potencial de la descentralización
                     y cómo gestionar el activo más volátil que existe hoy en día.
-                </p>
-                <div className="asset-page__hero-stats">
+                </>}>
                     <AcademyMetric variant="hero" label={<>Retorno esperado</>} value={<>Impredecible</>} valueProps={{"className":"hero-stat__value"}} />
                     <AcademyMetric variant="hero" label={<>Volatilidad anual</>} value={<>50-80%</>} valueProps={{"className":"hero-stat__value"}} />
                     <AcademyMetric variant="hero" label={<>Disponibilidad mercado</>} value={<>365 / 24 / 7</>} valueProps={{"className":"hero-stat__value"}} />
-                </div>
-            </AcademyPageHeader>
+                </AcademyAssetHero>
 
             <AssetGuideNav sections={[
                 { id: 'section-1', label: 'Conceptos' },
@@ -75,14 +69,14 @@ export function AssetCrypto() {
 
             <AcademySection title={<><Globe size={22} /> ¿Por qué invertir en Cripto?</>} id="section-1" className="asset-page__section">
 
-                <div className="asset-page__text-block">
+                <AcademyAssetText >
                     <p>
                         Invertir en criptoactivos no es solo comprar "monedas", es comprar <strong>opcionalidad sobre una nueva infraestructura tecnológica</strong>: la Blockchain.
                     </p>
                     <p>
                         Bitcoin, en particular, se ha comportado históricamente como un activo descorrelacionado, permitiendo mejorar el perfil de riesgo/recompensa de carteras tradicionales gracias a su escasez matemática programada.
                     </p>
-                </div>
+                </AcademyAssetText>
 
                 <AcademyCallout tone="warning" icon={<AlertTriangle size={20} />} title={<>Advertencia de Volatilidad</>}>
                     <p>Las caídas de más del 80% han sucedido varias veces en la historia de Bitcoin. Invertir aquí requiere una tolerancia al riesgo extrema y un horizonte temporal largo.</p>
@@ -102,11 +96,11 @@ export function AssetCrypto() {
 
             <AcademySection title={<><Lock size={22} /> Custodia: El Gran Diferenciador</>} id="section-3" className="asset-page__section">
 
-                <div className="asset-page__text-block">
+                <AcademyAssetText >
                     <p>
                         A diferencia de las acciones, donde siempre hay un custodio, en cripto tú puedes ser tu propio banco ("Self-Custody").
                     </p>
-                </div>
+                </AcademyAssetText>
                 <AcademyGrid variant="steps" className="asset-page__steps">
                     <AcademyStepCard number={'1'} title={'Exchange (Custodiado)'}>Plataformas como Coinbase o Kraken. Fácil de usar pero dependes de la empresa.</AcademyStepCard>
                     <AcademyStepCard number={'2'} title={'ETFs de Bitcoin Spot'} badgeTone="recommended" badge={'Recomendado'}>La opción más sencilla para el inversor tradicional. Compras Bitcoin en la bolsa regulada.</AcademyStepCard>

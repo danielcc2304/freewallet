@@ -42,129 +42,13 @@
 }
 
 /* ===== CRISIS PHASE ===== */
-.timeline__crisis {
-    background: rgba(239, 68, 68, 0.05);
-    border: 2px solid var(--error-color, #ef4444);
-    @apply tw:rounded-[16px] tw:p-[2rem] tw:mb-[3rem];
-}
 
-.timeline__crisis-header {
-    @apply tw:ui-row tw:gap-[1rem] tw:mb-[1.5rem];
-}
-
-.timeline__crisis-icon {
-    color: var(--error-color, #ef4444);
-}
-
-.timeline__crisis-title {
-    @apply tw:text-[length:1.5rem];
-    font-weight: 700;
-    @apply tw:text-main tw:m-[0];
-}
-
-.timeline__crisis-subtitle {
-    @apply tw:text-[length:0.95rem] tw:text-secondary tw:m-[0.25rem_0_0];
-}
-
-.timeline__crisis-content {
-    @apply tw:ui-stack tw:gap-[1.5rem];
-}
-
-.timeline__crisis-objective,
 .timeline__crisis-error {
     line-height: 1.7;
     @apply tw:text-secondary;
 }
 
-.timeline__crisis-objective strong,
-.timeline__crisis-errors strong {
-    @apply tw:block tw:mb-[0.5rem] tw:text-main;
-}
-
-.timeline__crisis-errors ul {
-    list-style: none;
-    @apply tw:p-[0] tw:m-[0];
-}
-
-.timeline__crisis-errors li {
-    @apply tw:relative tw:pl-[1.25rem] tw:mb-[0.4rem] tw:text-secondary;
-}
-
-.timeline__crisis-errors li::before {
-    content: "•";
-    @apply tw:absolute tw:left-[0];
-    color: var(--error-color, #ef4444);
-    font-weight: bold;
-}
-
-.timeline__crisis-actions {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(250px,_1fr))] tw:gap-[1.5rem];
-}
-
-.timeline__crisis-column h4 {
-    @apply tw:text-[length:1.125rem];
-    font-weight: 600;
-    @apply tw:text-main tw:m-[0_0_1rem_0];
-}
-
-.timeline__crisis-column ul {
-    list-style: none;
-    @apply tw:p-[0] tw:m-[0];
-}
-
-.timeline__crisis-column li {
-    @apply tw:relative tw:p-[0.5rem_0_0.5rem_1.25rem] tw:text-secondary;
-    line-height: 1.6;
-}
-
-.timeline__crisis-column li::before {
-    content: "•";
-    @apply tw:absolute tw:left-[0] tw:text-main;
-    font-weight: 700;
-}
-
-.timeline__crisis-column a {
-    @apply tw:text-accent;
-    text-decoration: none;
-}
-
-.timeline__crisis-column a:hover {
-    text-decoration: underline;
-}
-
 /* ===== NEXT SECTION ===== */
-.timeline__next {
-    @apply tw:ui-fill-surface tw:rounded-[12px] tw:p-[2rem] tw:ui-border-default;
-}
-
-.timeline__next h3 {
-    @apply tw:text-[length:1.375rem];
-    font-weight: 600;
-    @apply tw:text-main tw:m-[0_0_0.5rem_0];
-}
-
-.timeline__next p {
-    @apply tw:text-secondary tw:m-[0_0_1.5rem_0];
-    line-height: 1.6;
-}
-
-.timeline__next-links {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(220px,_1fr))] tw:gap-[1rem];
-}
-
-.timeline__next-link {
-    @apply tw:p-[1rem_1.25rem] tw:ui-fill-muted tw:rounded-[8px] tw:text-main;
-    text-decoration: none;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    @apply tw:text-center;
-}
-
-.timeline__next-link:hover {
-    background: rgba(var(--accent-rgb), 0.1);
-    @apply tw:text-accent;
-    transform: translateY(-2px);
-}
 
 /* ===== ERRORS CTA ===== */
 .timeline__errors-cta {
@@ -190,53 +74,10 @@
     text-decoration: underline;
 }
 
-.timeline__guide-next {
-    @apply tw:mt-[1.5rem] tw:ui-fill-surface tw:ui-border-default tw:rounded-[12px] tw:p-[2rem];
-}
-
-.timeline__guide-next h3 {
-    @apply tw:text-[length:1.375rem];
-    font-weight: 600;
-    @apply tw:text-main tw:m-[0_0_0.5rem_0];
-}
-
-.timeline__guide-next p {
-    @apply tw:text-secondary tw:m-[0_0_1.5rem_0];
-    line-height: 1.6;
-}
-
-.timeline__guide-links {
-    @apply tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(220px,_1fr))] tw:gap-[1rem];
-}
-
 /* ===== RESPONSIVE ===== */
 @media (max-width: 768px) {
     .timeline__title {
         @apply tw:text-[length:1.85rem];
-    }
-
-    .timeline__crisis {
-        @apply tw:p-[1.5rem];
-    }
-
-    .timeline__crisis-actions {
-        @apply tw:grid-cols-[1fr];
-    }
-
-    .timeline__next-links {
-        @apply tw:grid-cols-[1fr];
-    }
-
-    .timeline__next {
-        @apply tw:p-[1.5rem];
-    }
-
-    .timeline__guide-next {
-        @apply tw:p-[1.5rem];
-    }
-
-    .timeline__guide-links {
-        @apply tw:grid-cols-[1fr];
     }
 }
 

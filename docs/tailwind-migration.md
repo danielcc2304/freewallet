@@ -347,3 +347,24 @@ Las declaraciones ajenas a JSX de los 16 consumidores modificados conservan su l
 
 
 El contraste con el build anterior coincide en **248 estados**: 160 de pantallas y estados principales, 48 de navegación/filtros/decisiones y 40 del editor. Compara nodos, etiquetas, clases de integración y 19 propiedades calculadas en 390/1280 px y las cuatro combinaciones de tema/apariencia; no es una comparación píxel a píxel. Para la referencia del juego se fija semilla y reloj únicamente en la prueba visual; la prueba funcional existente usa el reloj real y completa las tres rondas. El recorrido responsive pasa **18 rutas y 216 combinaciones** en 320/390/1280 px, sin desbordamientos ni errores de ejecución. Se revisa también una captura móvil de Riesgo en Liquid Glass.
+
+
+## Decimoséptima fase: guías de activos, objetivos y recorrido
+
+Esta fase amplía la composición en ocho pantallas, conservando los controles y el diseño:
+
+- **Las cinco guías de activos:** `AcademyAssetReading` comparte el encabezado, los enlaces internos y de regreso, la lectura y los accesos. `AssetGuideNav` mantiene su nombre de compatibilidad; `AcademyMetric` reutiliza sus indicadores y añade la receta de cabecera sin duplicar su marcado.
+- **Experimentos de renta fija y liquidez:** `AcademyAssetBars` comparte barras de duración e inflación y distribución por plazos; `AcademyBondParts` reúne ratings, curvas, escalones, métricas y controles; `AcademyBondExperiments` compone los grupos de simulación y duración. El diagrama de convexidad permanece como SVG nativo. Los cálculos de spread, duración agregada, normalización y valores de los controles siguen en `AssetBonds`.
+- **Interés compuesto:** `CalculatorGoal` compone opciones avanzadas, objetivo alcanzado, tiempo pendiente, aportación necesaria y lista de resultados anuales. Se conservan los estados de objetivo imposible, tipos de rentabilidad y retiradas; el motor y la persistencia permanecen en la calculadora original.
+- **Recorrido e historial:** `JourneySupport` reúne el apoyo durante crisis, columnas de acciones y siguientes pasos; `ReleaseNotes` compone cabeceras, resúmenes, entradas, listas y archivos desplegables. El análisis del Markdown, el formato del texto y los datos del historial siguen en `FeatureLog`.
+
+Las piezas incluyen estructura y mapas estáticos de utilidades, con clases de integración para Liquid Glass y las pruebas. Los controles siguen siendo enlaces, botones, rangos y desplegables nativos. No se cambian datos, backend, versiones ni dependencias del proyecto.
+
+Se retiran **1.180 líneas de CSS fuente y 296 declaraciones `@apply`**: las cuatro hojas afectadas pasan de 1.736 a 556 líneas y el total de la aplicación pasa de 10.329 a **9.149 líneas en 58 hojas**. La reducción acumulada frente a las 22.753 líneas iniciales es del **59,79 %**; no representa el mismo ahorro en bytes descargados.
+
+### Validación de esta fase
+
+El contraste de las declaraciones ajenas a JSX confirma que las ocho pantallas conservan su lógica. Pasan los tests de interés compuesto e integridad de calculadoras, incluido objetivo imposible, cálculo inverso y límite de retiradas. El recorrido funcional existente de calculadoras/Dashboard verifica contabilidad de retiradas, controles accesibles, entradas vacías, escenarios inmutables y persistencia. Pasan también TypeScript, ESLint de los archivos modificados, build sin prerender y el presupuesto de carga diferida.
+
+
+Coinciden **160 estados** frente al build anterior: 64 de las ocho pantallas y 96 de controles y desplegables. Incluyen modos de estrés/High Yield, cambios de spread, pesos de duración a cero, opciones avanzadas, objetivo pendiente/alcanzado/imposible, aportación necesaria, etapas expandidas/cerradas y archivos del historial. Se comparan nodos, etiquetas, clases de integración y 19 propiedades calculadas en 390/1280 px con tema claro/oscuro y apariencia estándar/Liquid Glass, manteniendo las mismas entradas del historial para el contraste. No es una comparación píxel a píxel. El recorrido responsive pasa **12 rutas y 144 combinaciones** en 320/390/1280 px, incluyendo Dashboard y los tres simuladores que comparten `AcademyMetric`, sin errores de ejecución ni desbordamientos. Se revisa una captura móvil de la guía de bonos en Liquid Glass.

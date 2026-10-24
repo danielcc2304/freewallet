@@ -1,3 +1,4 @@
+import {assetReadingStyle as assetStyle} from './AcademyAssetReading.styles';
 import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '../../../utils/cn';
 
@@ -36,12 +37,12 @@ const details = {
 };
 /** Receives formatted values; financial calculations and state stay in their original modules. */
 export function AcademyMetric({ variant, label, value, detail, icon, valueProps }: AcademyMetricProps) {
-    const labelNode = <span className={cn(variant === 'hero' ? 'hero-stat__label' : variant === 'allocation' ? 'label' : undefined, labels[variant])}>{label}</span>;
-    const valueClass = cn(values[variant], valueProps?.className ?? (variant === 'hero' ? 'hero-stat__value' : variant === 'allocation' ? 'value' : undefined));
+    const labelNode = <span className={cn(variant === 'hero' ? assetStyle('hero-stat__label') : variant === 'allocation' ? 'label' : undefined, labels[variant])}>{label}</span>;
+    const valueClass = cn(values[variant], variant === 'hero' && assetStyle('hero-stat__value'), valueProps?.className ?? (variant === 'hero' ? 'hero-stat__value' : variant === 'allocation' ? 'value' : undefined));
     const valueNode = variant === 'hero' || variant === 'allocation'
         ? <span {...valueProps} className={valueClass}>{value}</span>
         : <strong {...valueProps} className={valueClass}>{value}</strong>;
-    return <div className={cn(variant === 'hero' ? 'hero-stat' : variant === 'allocation' ? 'alloc-sim__stat-card' : variant === 'crisis' ? 'crisis__stat' : undefined, roots[variant])}>
+    return <div className={cn(variant === 'hero' ? assetStyle('hero-stat') : variant === 'allocation' ? 'alloc-sim__stat-card' : variant === 'crisis' ? 'crisis__stat' : undefined, roots[variant])}>
         {icon}
         {variant === 'hero' ? <>{valueNode}{labelNode}</> : <>{labelNode}{valueNode}</>}
         {detail != null && (variant === 'allocation' ? <p className={cn('desc', details[variant])}>{detail}</p> : <small className={details[variant]}>{detail}</small>)}

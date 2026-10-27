@@ -76,21 +76,25 @@
     position: relative;
 }
 
-.search-results {
+.search-dropdown {
     position: absolute;
-    top: 100%;
+    top: calc(100% + var(--spacing-xs));
     left: 0;
     right: 0;
+    z-index: 60;
+    max-height: min(360px, 52vh);
+    overflow-y: auto;
     background: var(--bg-secondary);
     border: 1px solid var(--border-secondary);
     border-radius: var(--radius-md);
-    margin-top: var(--spacing-xs);
-    max-height: 320px;
-    padding: 0.4rem;
-    overflow-y: auto;
-    z-index: 50;
-    list-style: none;
     box-shadow: var(--shadow-lg);
+}
+
+.search-results {
+    position: static;
+    margin: 0;
+    padding: 0.4rem;
+    list-style: none;
 }
 
 .search-results__item {
@@ -137,20 +141,100 @@
 }
 
 .search-loading {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
     padding: var(--spacing-sm);
-    background: var(--bg-secondary);
-    border: 1px solid var(--border-secondary);
-    border-radius: var(--radius-md);
-    margin-top: var(--spacing-xs);
     display: flex;
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
     color: var(--text-muted);
+}
+
+.search-dropdown__empty {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 0.9rem;
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.search-dropdown__footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--spacing-sm);
+    padding: 0.45rem 0.65rem 0.45rem 0.9rem;
+    border-top: 1px solid var(--border-primary);
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.cash-shortcut,
+.cash-entry-summary {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: 0.65rem 0.8rem;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    background: color-mix(in srgb, var(--accent-primary) 5%, var(--bg-secondary));
+}
+
+.cash-shortcut {
+    margin-bottom: var(--spacing-sm);
+}
+
+.cash-shortcut__icon {
+    display: grid;
+    place-items: center;
+    width: 2rem;
+    height: 2rem;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--accent-primary) 12%, transparent);
+    color: var(--accent-primary);
+}
+
+.cash-shortcut__copy,
+.cash-entry-summary__copy {
+    display: grid;
+    gap: 0.1rem;
+    flex: 1;
+    min-width: 0;
+}
+
+.cash-shortcut__copy strong,
+.cash-entry-summary__copy strong {
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+
+.cash-shortcut__copy small,
+.cash-entry-summary__copy small {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    line-height: 1.4;
+}
+
+.cash-shortcut > button,
+.cash-entry-summary > button {
+    flex: 0 0 auto;
+}
+
+.cash-entry-summary {
+    justify-content: space-between;
+}
+
+.cash-entry-summary__copy {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.cash-entry-summary__copy > svg {
+    flex: 0 0 auto;
+    color: var(--accent-primary);
 }
 
 .search-loading__spinner {
@@ -195,39 +279,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-}
-
-/* No Results Found */
-.no-results {
-    display: flex;
-    align-items: flex-start;
-    gap: var(--spacing-md);
-    padding: var(--spacing-md);
-    background: var(--bg-secondary);
-    border: 1px solid var(--color-warning);
-    border-radius: var(--radius-md);
-    margin-top: var(--spacing-xs);
-}
-
-.no-results>svg {
-    color: var(--color-warning);
-    flex-shrink: 0;
-    margin-top: 2px;
-}
-
-.no-results__text {
-    flex: 1;
-}
-
-.no-results__text p {
-    margin: 0;
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
-.no-results__text span {
-    font-size: var(--font-size-sm);
-    color: var(--text-muted);
 }
 
 /* Manual Mode Badge */
@@ -490,13 +541,26 @@
         width: 100%;
     }
 
-    .no-results {
-        flex-direction: column;
-        text-align: center;
+    .cash-shortcut {
+        flex-wrap: wrap;
     }
 
-    .no-results>svg {
-        margin: 0 auto;
+    .cash-shortcut__copy {
+        min-width: calc(100% - 3rem);
+    }
+
+    .cash-shortcut > button {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .cash-entry-summary {
+        align-items: flex-start;
+        flex-wrap: wrap;
+    }
+
+    .cash-entry-summary > button {
+        margin-left: 2rem;
     }
 
     .add-investment__notice-title {

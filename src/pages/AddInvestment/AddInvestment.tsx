@@ -2,7 +2,7 @@ import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
 import type { DashboardNavigationContext } from '../../components/layout/MainLayout/dashboardNavigation';
 import axios from 'axios';
-import { Search, Coins, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp, Wrench, Loader2 } from 'lucide-react';
+import { Search, Coins, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp, Wrench, Loader2, Wallet } from 'lucide-react';
 import { Card, CardHeader, CardContent, Input, Button } from '../../components/ui';
 import { searchSymbol, getQuote, getAssetChartData } from '../../services/apiService';
 import { OPERATION_CURRENCIES, historicalOperationRate, operationEuroPrice } from '../../services/operationCurrency';
@@ -105,6 +105,7 @@ export function AddInvestment() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [manualMode, setManualMode] = useState(!!targetAsset);
+    const [cashEntryMode, setCashEntryMode] = useState(false);
     const [noResultsFound, setNoResultsFound] = useState(false);
     const [currentPrice, setCurrentPrice] = useState<number | null>(null);
     const [loadingPrice, setLoadingPrice] = useState(false);
@@ -247,6 +248,7 @@ export function AddInvestment() {
         if (!targetAsset) {
             setFormData(prev => ({ ...prev, name: '' }));
             setManualMode(false);
+            setCashEntryMode(false);
         }
         setSearchResults(localPredictions);
         setHighlightedResult(0);
@@ -257,6 +259,7 @@ export function AddInvestment() {
     const handleSelectResult = async (result: SearchResult) => {
         quoteRequestRef.current?.abort();
         selectedSearchSymbolRef.current = result.symbol;
+        setCashEntryMode(false);
         setFormData({
             symbol: result.symbol,
             name: result.name,
@@ -348,6 +351,7 @@ export function AddInvestment() {
     };
 
     const handleManualEntry = () => {
+        setCashEntryMode(false);
         const query = searchQuery.trim().toUpperCase();
         if (isISIN(query)) {
             setFormData(prev => ({
@@ -366,6 +370,43 @@ export function AddInvestment() {
         setManualMode(true);
         setShowResults(false);
         setNoResultsFound(false);
+    };
+
+    const handleAddCash = () => {
+        quoteRequestRef.current?.abort();
+        selectedSearchSymbolRef.current = null;
+        setSearchQuery('');
+        setSearchResults([]);
+        setShowResults(false);
+        setNoResultsFound(false);
+        setCashEntryMode(true);
+        setManualMode(true);
+        setCurrency('EUR');
+        currencyRef.current = 'EUR';
+        setManualEuroTotal('');
+        setCurrentPrice(null);
+        setLoadingPrice(false);
+        setPriceLookupFailed(false);
+        setErrors({});
+        setFormData({
+            symbol: 'CASH-EUR',
+            name: 'Efectivo EUR',
+            type: 'cash',
+            purchasePrice: '1',
+            purchaseDate: accountingDay(Date.now()),
+            quantity: '',
+            isin: '',
+            cashTae: '',
+        });
+    };
+
+    const handleSearchForAsset = () => {
+        setCashEntryMode(false);
+        setManualMode(false);
+        setFormData({
+            symbol: '', name: '', type: 'stock', purchasePrice: '',
+            purchaseDate: accountingDay(Date.now()), quantity: '', isin: '', cashTae: '',
+        });
     };
 
     const handleInputChange = (field: keyof FormData, value: string) => {
@@ -543,11 +584,11 @@ export function AddInvestment() {
                                 <Check size={48} />
                             </div>
                             <h2>
-                                {isEditMode ? '¡Activo Actualizado!' :
+                                {cashEntryMode ? '¡Efectivo añadido!' : isEditMode ? '¡Activo Actualizado!' :
                                     isDcaMode ? '¡Compra Añadida!' : isSellMode ? '¡Venta registrada!' : '¡Inversión Añadida!'}
                             </h2>
-                            <p>{formData.name || formData.symbol} se ha {isEditMode ? 'actualizado' :
-                                (isDcaMode ? 'promediado' : isSellMode ? 'actualizado tras la venta' : 'añadido')} correctamente</p>
+                            <p>{cashEntryMode ? 'El saldo se ha registrado correctamente.' : `${formData.name || formData.symbol} se ha ${isEditMode ? 'actualizado' :
+                                (isDcaMode ? 'promediado' : isSellMode ? 'actualizado tras la venta' : 'añadido')} correctamente`}</p>
                         </div>
                     </CardContent>
                 </Card>
@@ -559,6 +600,7 @@ export function AddInvestment() {
         if (isEditMode) return "Editar Inversión";
         if (isDcaMode) return "Añadir Compra (DCA)";
         if (isSellMode) return "Registrar Venta";
+        if (cashEntryMode) return "Añadir efectivo";
         return "Añadir Inversión";
     };
 
@@ -566,8 +608,12 @@ export function AddInvestment() {
         if (isEditMode) return "Modifica los datos de tu inversión";
         if (isDcaMode) return "Promedia tu precio de compra añadiendo más cantidad";
         if (isSellMode) return "Registra una venta parcial o cierra la posición";
+        if (cashEntryMode) return "Registra directamente el saldo de tu cuenta en euros";
         return "Introduce los datos de tu nueva inversión";
     };
+
+    const showSearchDropdown = !manualMode && !cashEntryMode && !targetAsset
+        && searchQuery.trim().length > 0 && !formData.name;
 
     return (
         <div className="add-investment">
@@ -625,83 +671,92 @@ export function AddInvestment() {
 
                         {/* Symbol / ISIN Search */}
                         <div className="form-group form-group--search">
-                            <label className="form-label">Busca el activo</label>
-                            <p className="form-hint">Escribe el nombre, ticker o ISIN. Te mostraremos coincidencias mientras escribes.</p>
-                            <div className="search-container">
-                                <Input
-                                    placeholder="Apple, AAPL, Fidelity, IE00BYX5NX33…"
-                                    value={searchQuery}
-                                    onChange={(e) => handleSearchChange(e.target.value)}
-                                    onKeyDown={handleSearchKeyDown}
-                                    icon={<Search size={18} />}
-                                    error={errors.symbol}
-                                    disabled={isEditMode || isDcaMode || isSellMode}
-                                    autoComplete="off"
-                                    role="combobox"
-                                    aria-expanded={showResults}
-                                    aria-controls="investment-search-results"
-                                />
-                                {showResults && searchResults.length > 0 && (
-                                    <ul id="investment-search-results" className="search-results" role="listbox">
-                                        {searchResults.map((result, index) => (
-                                            <li
-                                                key={result.symbol}
-                                                className={`search-results__item ${index === highlightedResult ? 'search-results__item--active' : ''}`}
-                                                role="option"
-                                                aria-selected={index === highlightedResult}
-                                                onMouseEnter={() => setHighlightedResult(index)}
-                                                onMouseDown={(event) => event.preventDefault()}
-                                                onPointerDown={(event) => event.preventDefault()}
-                                                onClick={() => void handleSelectResult(result)}
-                                            >
-                                                <span className="search-results__identity">
-                                                    <strong className="search-results__symbol">{result.symbol}</strong>
-                                                    <span className="search-results__name">{result.name}</span>
-                                                </span>
-                                                <span className="search-results__type">{assetTypes.find((type) => type.value === result.type)?.label || result.type}</span>
-                                            </li>
-                                        ))}
-                                    </ul>
-                                )}
-                                {isSearching && (
-                                    <div className="search-loading"><Loader2 size={16} className="search-loading__spinner" /> Buscando coincidencias…</div>
-                                )}
-                                {/* No results found - show manual entry option */}
-                                {!manualMode && !isSearching && searchQuery.trim().length >= 1 && !targetAsset && (
-                                    <div className="no-results">
-                                        <AlertCircle size={18} />
-                                        <div className="no-results__text">
-                                            <p>{noResultsFound ? `No se encontró "${searchQuery}"` : '¿Quieres registrar un activo o una cuenta manualmente?'}</p>
-                                            <span>
-                                                {isISIN(searchQuery)
-                                                    ? 'ISIN no encontrado en la base de datos, pero puedes añadirlo manualmente.'
-                                                    : 'Puedes añadir este activo manualmente.'}
+                            {cashEntryMode ? (
+                                <div className="cash-entry-summary">
+                                    <div className="cash-entry-summary__copy">
+                                        <Wallet size={20} />
+                                        <span><strong>Saldo de efectivo</strong><small>Se registra en euros y puedes añadir el saldo actual de tu cuenta.</small></span>
+                                    </div>
+                                    <Button type="button" variant="ghost" size="sm" onClick={handleSearchForAsset}>Buscar un activo</Button>
+                                </div>
+                            ) : (
+                                <>
+                                    <label className="form-label">Busca el activo</label>
+                                    <p className="form-hint">Escribe el nombre, ticker o ISIN. Te mostraremos coincidencias mientras escribes.</p>
+                                    {!isEditMode && !isDcaMode && !isSellMode && !targetAsset && (
+                                        <div className="cash-shortcut">
+                                            <span className="cash-shortcut__icon"><Wallet size={17} /></span>
+                                            <span className="cash-shortcut__copy"><strong>¿Quieres registrar efectivo?</strong><small>Añade el saldo en euros directamente, sin buscar un activo.</small></span>
+                                            <Button type="button" variant="ghost" size="sm" onClick={handleAddCash}>Añadir efectivo</Button>
+                                        </div>
+                                    )}
+                                    <div className="search-container">
+                                        <Input
+                                            placeholder="Apple, AAPL, Fidelity, IE00BYX5NX33…"
+                                            value={searchQuery}
+                                            onChange={(e) => handleSearchChange(e.target.value)}
+                                            onKeyDown={handleSearchKeyDown}
+                                            icon={<Search size={18} />}
+                                            error={errors.symbol}
+                                            disabled={isEditMode || isDcaMode || isSellMode}
+                                            autoComplete="off"
+                                            role="combobox"
+                                            aria-expanded={showSearchDropdown}
+                                            aria-controls="investment-search-dropdown"
+                                        />
+                                        {showSearchDropdown && (
+                                            <div id="investment-search-dropdown" className="search-dropdown">
+                                                {showResults && searchResults.length > 0 && (
+                                                    <ul id="investment-search-results" className="search-results" role="listbox">
+                                                        {searchResults.map((result, index) => (
+                                                            <li
+                                                                key={result.symbol}
+                                                                className={`search-results__item ${index === highlightedResult ? 'search-results__item--active' : ''}`}
+                                                                role="option"
+                                                                aria-selected={index === highlightedResult}
+                                                                onMouseEnter={() => setHighlightedResult(index)}
+                                                                onMouseDown={(event) => event.preventDefault()}
+                                                                onPointerDown={(event) => event.preventDefault()}
+                                                                onClick={() => void handleSelectResult(result)}
+                                                            >
+                                                                <span className="search-results__identity">
+                                                                    <strong className="search-results__symbol">{result.symbol}</strong>
+                                                                    <span className="search-results__name">{result.name}</span>
+                                                                </span>
+                                                                <span className="search-results__type">{assetTypes.find((type) => type.value === result.type)?.label || result.type}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                                {isSearching && (
+                                                    <div className="search-loading"><Loader2 size={16} className="search-loading__spinner" /> Buscando coincidencias…</div>
+                                                )}
+                                                {!isSearching && noResultsFound && searchResults.length === 0 && (
+                                                    <div className="search-dropdown__empty"><AlertCircle size={15} /> No se encontró “{searchQuery}”.</div>
+                                                )}
+                                                <div className="search-dropdown__footer">
+                                                    <span>{isISIN(searchQuery) ? '¿No aparece ese ISIN?' : '¿No encuentras el activo?'}</span>
+                                                    <Button type="button" variant="ghost" size="sm" onClick={handleManualEntry} icon={<Edit3 size={14} />}>
+                                                        Añadir manualmente
+                                                    </Button>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                    {/* Selected asset indicator */}
+                                    {formData.name && !manualMode && (
+                                        <div className="selected-asset">
+                                            <Check size={17} />
+                                            <span className="selected-asset__content">
+                                                <strong className="selected-asset__symbol">{formData.symbol}</strong>
+                                                <span className="selected-asset__name">{formData.name}</span>
+                                            </span>
+                                            <span className="selected-asset__type">
+                                                {assetTypes.find((type) => type.value === formData.type)?.label || formData.type}
                                             </span>
                                         </div>
-                                        <Button
-                                            type="button"
-                                            variant="secondary"
-                                            size="sm"
-                                            onClick={handleManualEntry}
-                                            icon={<Edit3 size={14} />}
-                                        >
-                                            Añadir manualmente
-                                        </Button>
-                                    </div>
-                                )}
-                            </div>
-                            {/* Selected asset indicator */}
-                            {formData.name && !manualMode && (
-                                <div className="selected-asset">
-                                    <Check size={17} />
-                                    <span className="selected-asset__content">
-                                        <strong className="selected-asset__symbol">{formData.symbol}</strong>
-                                        <span className="selected-asset__name">{formData.name}</span>
-                                    </span>
-                                    <span className="selected-asset__type">
-                                        {assetTypes.find((type) => type.value === formData.type)?.label || formData.type}
-                                    </span>
-                                </div>
+                                    )}
+                                </>
                             )}
                         </div>
 
@@ -709,8 +764,8 @@ export function AddInvestment() {
                         {manualMode && (
                             <div className="form-group">
                                 <Input
-                                    label="Nombre del activo"
-                                    placeholder="Ej: Fidelity MSCI World Index Fund"
+                                    label={cashEntryMode ? 'Nombre de la cuenta' : 'Nombre del activo'}
+                                    placeholder={cashEntryMode ? 'Ej: Cuenta de efectivo' : 'Ej: Fidelity MSCI World Index Fund'}
                                     value={formData.name}
                                     onChange={(e) => handleInputChange('name', e.target.value)}
                                     error={errors.name}
@@ -719,7 +774,7 @@ export function AddInvestment() {
                             </div>
                         )}
 
-                        {manualMode && <div className="form-group">
+                        {manualMode && !cashEntryMode && <div className="form-group">
                             <label className="form-label" htmlFor="asset-type">Tipo de activo</label>
                             <select id="asset-type" className="input" value={formData.type} disabled={isDcaMode || isSellMode}
                                 onChange={event => handleInputChange('type', event.target.value)}>
@@ -744,14 +799,14 @@ export function AddInvestment() {
                         )}
 
                         {/* Price, Quantity, Date in row */}
-                        <div className="form-group">
+                        {formData.type !== 'cash' && <div className="form-group">
                             <label className="form-label" htmlFor="operation-currency">Divisa del precio de la operación</label>
-                            <select className="input" id="operation-currency" value={currency} disabled={formData.type === 'cash' || isSubmitting}
+                            <select className="input" id="operation-currency" value={currency} disabled={isSubmitting}
                                 onChange={e => handleCurrencyChange(e.target.value)}>
                                 {OPERATION_CURRENCIES.map(code => <option key={code} value={code}>{code}</option>)}
                             </select>
                             <p className="form-hint">La cartera se contabiliza en euros. La liquidez se registra en EUR.</p>
-                        </div>
+                        </div>}
                         {isSellMode && assetToSell && (
                             <p className="position-availability">Disponible para vender: <strong>{assetToSell.quantity}</strong> participaciones</p>
                         )}
@@ -838,7 +893,7 @@ export function AddInvestment() {
                                 disabled={isSubmitting}
                             >
                                 {isEditMode ? 'Guardar Cambios' :
-                                    isDcaMode ? 'Añadir compra' : isSellMode ? 'Registrar venta' : 'Añadir inversión'}
+                                    isDcaMode ? 'Añadir compra' : isSellMode ? 'Registrar venta' : cashEntryMode ? 'Añadir saldo' : 'Añadir inversión'}
                             </Button>
                         </div>
                     </form>

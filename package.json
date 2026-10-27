@@ -1,7 +1,7 @@
 {
   "name": "freewallet",
   "private": true,
-  "version": "7.0.1",
+  "version": "7.0.2",
   "type": "module",
   "scripts": {
     "typecheck": "tsc -b",

@@ -12,12 +12,21 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-10-27 - v7.0.2 - Alta de inversiones más sencilla
+- Funcionalidad:
+  - Cartera: registra el saldo de efectivo en euros sin tener que buscar ni elegir un activo.
+  - Cartera: facilita encontrar inversiones por nombre, ticker o ISIN y permite añadirlas manualmente si no aparecen.
+- Resumen:
+  - Añadir efectivo a la cartera y registrar una inversión a mano resulta más sencillo.
+- Archivos:
+  - FEATURE_LOG.md, package.json, package-lock.json, src/constants/app.ts, src/pages/AddInvestment/AddInvestment.tsx, src/pages/AddInvestment/AddInvestment.css
+
 ### 2026-10-18 - v7.0.1 - Fondos: vuelve a mostrar históricos
 - Funcionalidad:
   - Fondos: vuelve a mostrar el histórico de Robeco y otros fondos cuando Financial Times redirige la ficha para indicar la divisa de la clase.
   - Fondos: comprueba el ISIN, la clase, la serie y su moneda antes de mostrar los precios.
 - Resumen:
-  - Corrige la redirección de Financial Times que dejaba el gráfico sin histórico y añade pruebas para distintas clases y monedas.
+  - Corrige un problema que impedía consultar los históricos de algunos fondos cuando su ficha redirigía a otra clase o divisa.
 - Archivos:
   - vercel.json, vite.config.ts, scripts/test-fund-history-proxy.ts, scripts/test-fund-chart-ui.ts, scripts/run-tests.mjs, docs/fund-history.md, FEATURE_LOG.md
 
@@ -28,11 +37,11 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Cartera: al cambiar de mercado, descarta respuestas del anterior y admite la última observación del elegido aunque tenga una hora anterior; mantiene la protección contra precios atrasados dentro de un mismo mercado.
   - Gastos: mantiene el aviso de cambios sin guardar al navegar, permite volver para reintentar o exportar y evita cerrar la sesión de cuenta o editorial mientras haya guardados pendientes.
   - Navegación: carga las pantallas cuando se necesitan, muestra un indicador de carga y permite recuperarse de errores sin perder la navegación; evita recargas automáticas si quedan cambios pendientes.
-  - Calidad: incorpora controles automatizados de lógica, base de datos, navegador, compilación, dependencias e integración de hotfixes antes de promover dev o release.
+
   - SEO: corrige el dominio de producción, permite configurarlo por entorno y excluye de la indexación las vistas previas y preproducción.
 - Resumen:
-  - Incluye mejoras de seguridad en Noticias, coherencia en las cotizaciones de Cartera y navegación más ágil. El backend de cotizaciones ya está aplicado en Supabase; los históricos conservan su mercado real y no se reconstruyen ni se reetiquetan.
-  - Reduce el archivo JavaScript principal de 1.807,92 a 618,32 kB (aproximadamente un 66 %). Actualiza DOMPurify y source-map-js; la auditoría completa de dependencias no detecta vulnerabilidades conocidas.
+  - Protege mejor los artículos, hace más coherentes los precios de la cartera y agiliza la navegación.
+  - La aplicación carga menos código al inicio, así que las pantallas pueden abrirse con mayor rapidez.
 - Archivos:
   - FEATURE_LOG.md, docs/application-audit-fixes.md, .github/workflows/quality.yml, package-lock.json, scripts/run-tests.mjs, scripts/test-application-audit-ui.ts, scripts/test-unified-quote-markets.ts, scripts/test-quote-market-switch.ts, scripts/test-seo.mjs
   - src/utils/newsContent.ts, src/services/pendingChanges.ts, src/services/portfolioQuoteService.ts, src/services/portfolioCloudStorage.ts, src/services/dashboardIntegrity.ts, src/components/ui/PendingChangesGuard.tsx, src/components/ui/RouteView.tsx, src/App.tsx, src/app/routes/academyRoutes.tsx

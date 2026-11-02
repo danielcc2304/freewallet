@@ -1,7 +1,13 @@
+import { learningStructureStyle } from './AcademyLearningStructure.styles';
 import type { HTMLAttributes } from 'react';
 import { cn } from '../../../utils/cn';
 
 const layouts = {
+learningSummary: learningStructureStyle('fundamentos__summary'),
+learningLevels: learningStructureStyle('fundamentos__level-grid'),
+learningGoals: learningStructureStyle('fundamentos__goal-grid'),
+learningChecklist: learningStructureStyle('fundamentos__checklist-grid'),
+learningSections: learningStructureStyle('fundamentos__sections'),
     subtypes: "tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(300px,_1fr))] tw:gap-[1.5rem]",
     prosCons: "tw:grid tw:grid-cols-[1fr_1fr] tw:gap-[2rem]",
     steps: "tw:grid tw:grid-cols-[repeat(auto-fit,_minmax(240px,_1fr))] tw:gap-[1.5rem]",

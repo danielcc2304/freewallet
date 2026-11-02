@@ -144,3 +144,10 @@ Se retiran 341 líneas de CSS y 98 declaraciones `@apply`: las tres hojas pasan 
 La vigesimoprimera fase aplica componentes con estructura y Tailwind a Mis activos, Añadir activo y FIRE. `DashboardAssetsGrid` compone tabla y controles responsive sobre `Card`/`Button`; `InvestmentForm` posee tarjeta, formulario, búsqueda y confirmación; `CalculatorProjection` y las variantes de `CalculatorGrid` reúnen la presentación de FIRE. Se mantienen controles y tablas nativos, agrupación, operaciones y cálculos.
 
 Se retiran 512 líneas de CSS y 108 declaraciones `@apply`, incluida `AssetsTable.css` completa y los estilos sin consumidores del antiguo aviso de desarrollo. Las tres hojas pasan de 569 a 57 líneas; quedan 7.421 líneas en 57 hojas, un 67,38 % menos que las 22.753 iniciales. Coinciden 72 estados de estilos y pasan 72 combinaciones responsive adicionales, incluidas las tres calculadoras que comparten rejillas. Se conservan animaciones y el tooltip financiero donde todavía necesitan CSS.
+
+
+### Fundamentos, Riesgo y Fiscalidad
+
+La vigésima segunda fase compone Fundamentos mediante `AcademyLearningStructure` y cinco variantes de `AcademyGrid`; comparte sus cabeceras con Fiscalidad mediante `AcademyReadingHeader`. `AcademyRiskReading` posee las tarjetas y estructura de la matriz/horizontes/leyenda, y `AcademyToolLink` conserva su receta de lectura. `AcademyTaxReading` reúne tramos y ejemplo fiscal, reutilizando la comparación de fondos/ETF existente.
+
+Se retiran 358 líneas de CSS y 106 declaraciones `@apply`, incluida `Fundamentos.css` y reglas sin consumidores. Las tres hojas pasan de 396 a 38 líneas; quedan 7.063 líneas en 56 hojas, un 68,96 % menos que las 22.753 iniciales. Se verifican 32 estados con 21 propiedades calculadas, 72 combinaciones responsive y la persistencia, navegación y accesibilidad de las guías.

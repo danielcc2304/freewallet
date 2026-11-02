@@ -6,124 +6,16 @@
     @apply tw:wrap-anywhere;
 }
 
-.tax-info__header {
-    @apply tw:mb-[3rem] tw:text-center;
-}
-
-.tax-info__title {
-    @apply tw:text-[length:2.5rem];
-    font-weight: 800;
-    @apply tw:text-main tw:mb-[1rem];
-}
-
-.tax-info__subtitle {
-    @apply tw:text-[length:1.125rem] tw:text-secondary;
-    line-height: 1.6;
-    @apply tw:max-w-[700px] tw:m-[0_auto];
-}
-
-.tax-info__section-title {
-    @apply tw:text-[length:1.75rem];
-    font-weight: 700;
-    @apply tw:m-[3.5rem_0_1.5rem] tw:text-main;
-}
-
 /* Brackets Grid */
-
-.tax-info .bracket-card {
-    @apply tw:ui-fill-surface tw:ui-border-default tw:p-[1.5rem] tw:rounded-[12px] tw:text-center;
-    transition: transform 0.2s;
-}
-
-.tax-info .bracket-card:hover {
-    transform: translateY(-4px);
-    border-color: var(--accent-primary);
-}
-
-.tax-info .bracket-range {
-    @apply tw:block tw:text-[length:0.8rem] tw:text-secondary tw:mb-[0.5rem];
-    font-weight: 600;
-}
-
-.tax-info .bracket-rate {
-    @apply tw:text-[length:1.5rem];
-    font-weight: 800;
-    @apply tw:text-accent;
-}
-
-.tax-info .bracket-card.highlight .bracket-range {
-    @apply tw:text-main tw:opacity-[0.85];
-}
 
 /* Compensation Card */
 
-.tax-info__card-header {
-    @apply tw:ui-row tw:gap-[1rem] tw:mb-[1rem];
-}
-
-.tax-info__card-header .icon {
-    @apply tw:text-accent;
-}
-
-.tax-info__card-header h3 {
-    @apply tw:m-[0] tw:text-[length:1.25rem];
-    font-weight: 700;
-}
-
-.tax-info .compensation-viz {
-    @apply tw:ui-row tw:justify-center tw:gap-[1.5rem] tw:mt-[2rem] tw:p-[1.5rem] tw:ui-fill-muted tw:rounded-[12px];
-}
-
-.tax-info .viz-item {
-    @apply tw:ui-stack tw:items-center tw:gap-[0.5rem];
-    font-weight: 700;
-    @apply tw:text-[length:1rem];
-}
-
-.tax-info .viz-operator {
-    @apply tw:text-[length:1.5rem];
-    font-weight: 800;
-    @apply tw:text-secondary;
-}
-
-.tax-info .viz-item.result {
-    color: #10b981;
-    background: rgba(16, 185, 129, 0.1);
-    @apply tw:p-[0.75rem_1.25rem] tw:rounded-[8px];
-}
-
 /* Comparison Section */
-.tax-info__two-cols {
-    @apply tw:grid tw:grid-cols-[repeat(2,_minmax(0,_1fr))] tw:gap-[1.5rem];
-}
 
 /* Two clearly separated tools: investment taxes and employment income. */
-
-@media (max-width: 768px) {
-    .tax-info__title {
-        @apply tw:text-[length:1.85rem];
-    }
-
-    .tax-info__two-cols {
-        @apply tw:grid-cols-[1fr];
-    }
-
-    .tax-info .compensation-viz {
-        @apply tw:flex-col tw:gap-[1rem];
-    }
-
-}
-
-@media (max-width: 480px) {
-    .tax-info__title {
-        @apply tw:text-[length:1.6rem];
-    }
-}
 .tax-info > section > p { @apply tw:text-secondary; line-height: 1.7; }
 .tax-info .tax-info__card > p { @apply tw:text-secondary; line-height: 1.7; }
-.tax-info__section-title { @apply tw:text-[length:clamp(1.2rem,_2.3vw,_1.6rem)]; line-height: 1.35; @apply tw:mt-[2.5rem]; }
 
 @container (max-width: 620px) {
-    .tax-info__tools-grid, .tax-info__two-cols { @apply tw:grid-cols-[1fr]; }
-    .tax-info .compensation-viz { @apply tw:flex-col tw:gap-[.75rem] tw:p-[1rem]; }
+    .tax-info__tools-grid { @apply tw:grid-cols-[1fr]; }
 }

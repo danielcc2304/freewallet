@@ -1,14 +1,13 @@
+import { AcademyReadingHeader } from '../ui/AcademyReadingHeader';
+import { AcademyGrid } from '../ui/AcademyGrid';
+import { AcademyLearningPage, AcademyLearningSection, AcademyLearningLevel, AcademyLearningFeature, AcademyLearningAction } from '../ui/AcademyLearningStructure';
 import {AcademyLearningHeading,AcademyLearningGoal,AcademyLearningToggle} from '../ui/AcademyLearningParts';
 import { AcademyProgressCard } from '../ui/AcademyProgressCard';
 import { AcademyLearningLink, AcademyRouteLink } from '../ui/AcademyLearningLink';
 import { DataItem } from '../../ui/DataItem';
-import { AcademyPanel } from '../ui/AcademyPanel';
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useAppearance } from "../../../context/AppearanceContext";
-import { AcademyPageHeader } from "../layout/AcademyPageHeader";
-import "./Fundamentos.css";
 
 type AcademyLevel = "Principiante" | "Intermedio" | "Avanzado";
 type ModuleStatus = "pending" | "done";
@@ -356,22 +355,19 @@ export function Fundamentos() {
   };
 
   return (
-    <div className={`fundamentos${isLiquidGlass ? " fundamentos--liquid-glass" : ""}`}>
-      <AcademyPageHeader className="fundamentos__header" section="Aprender">
-        <h1 className="fundamentos__title">Tu mapa para aprender a invertir</h1>
-        <p className="fundamentos__description">
+    <AcademyLearningPage liquidGlass={isLiquidGlass}>
+      <AcademyReadingHeader appearance="learning" section="Aprender" title={<>Tu mapa para aprender a invertir</>} description={<>
           Aprende desde 0 sobre el mundo de la inversión en una ruta guiada para
           perfiles de todo tipo.
-        </p>
-      </AcademyPageHeader>
+        </>} />
 
-      <section className="fundamentos__summary">
+      <AcademyGrid variant="learningSummary" as="section" >
         <DataItem as="article" layout="learningSummary" className="fundamentos__summary-card" label={<>Completados</>} value={<>{completedCount}</>} />
         <DataItem as="article" layout="learningSummary" className="fundamentos__summary-card" label={<>Simuladores</>} value={<>{simulatorModules.length}</>} />
         <DataItem as="article" layout="learningSummary" className="fundamentos__summary-card" label={<>Módulos visibles</>} value={<>{MODULES.length}</>} />
-      </section>
+      </AcademyGrid>
 
-      <AcademyPanel variant="fundamentals" as="section" className="fundamentos__section-block">
+      <AcademyLearningSection >
         <AcademyLearningHeading title={<>Ruta guiada por nivel</>} description={<>
             Empieza por la base, sube de nivel y usa el progreso para no
             perder el hilo.
@@ -386,26 +382,20 @@ export function Fundamentos() {
                 <ChevronDown size={16} />
               )}
             </AcademyLearningToggle>} />
-        <div className="fundamentos__level-grid">
+        <AcademyGrid variant="learningLevels"  >
           {levelSections.map(({ level, modules }) => (
-            <article key={level} className="fundamentos__level-card">
-              <div className="fundamentos__level-head">
-                <h3>{level}</h3>
-                <span>{modules.length} módulos</span>
-              </div>
-              <div className="fundamentos__mini-list">
+            <AcademyLearningLevel key={level} title={<>{level}</>} count={<>{modules.length} módulos</>}>
                 {modules.slice(0, levelsExpanded ? modules.length : 2).map((module) => (
                   <AcademyProgressCard key={module.id} to={module.to} title={module.title} description={module.description} icon={module.icon} done={getStatus(module.id) === "done"} onOpen={() => markAsDone(module.id)} onToggle={() => toggleDone(module.id)} />
                 ))}
-              </div>
-            </article>
+              </AcademyLearningLevel>
           ))}
-        </div>
-      </AcademyPanel>
+        </AcademyGrid>
+      </AcademyLearningSection>
 
-      <AcademyPanel variant="fundamentals" as="section" className="fundamentos__section-block">
+      <AcademyLearningSection >
         <AcademyLearningHeading title={<>Academia por objetivo</>} description={<>Atajos prácticos para entrar por intención.</>}  />
-        <div className="fundamentos__goal-grid">
+        <AcademyGrid variant="learningGoals"  >
           {GOALS.map((goal) => (
             <AcademyLearningGoal key={goal.title} title={<>{goal.title}</>} description={<>{goal.description}</>}>
                 {goal.modules.map((moduleId) => {
@@ -424,14 +414,14 @@ export function Fundamentos() {
                 })}
               </AcademyLearningGoal>
           ))}
-        </div>
-      </AcademyPanel>
+        </AcademyGrid>
+      </AcademyLearningSection>
 
-      <AcademyPanel variant="fundamentals" as="section" className="fundamentos__section-block">
+      <AcademyLearningSection >
         <AcademyLearningHeading title={<>Checklists visuales</>} description={<>
             Accesos directos a tres módulos clave para revisar lo esencial sin rodeos.
           </>}  />
-        <div className="fundamentos__checklist-grid">
+        <AcademyGrid variant="learningChecklist"  >
           {CHECKLIST_LINKS.map((checklist) => (
             <AcademyLearningLink key={checklist.title} to={checklist.to} onClick={() => {
                 const module = MODULES.find((item) => item.to === checklist.to);
@@ -440,54 +430,39 @@ export function Fundamentos() {
                 }
               }} variant="checklist" title={checklist.title} description={checklist.description} cta={checklist.cta} />
           ))}
-        </div>
-      </AcademyPanel>
+        </AcademyGrid>
+      </AcademyLearningSection>
 
-      <AcademyPanel variant="fundamentals" as="section" className="fundamentos__section-block">
+      <AcademyLearningSection >
         <AcademyLearningHeading title={<>Centro de simuladores</>} description={<>
             Todo lo interactivo en un solo sitio para descubrirlo sin depender
             del sidebar.
           </>}  />
-        <div className="fundamentos__sections">
+        <AcademyGrid variant="learningSections"  >
           {simulatorModules.map((module) => (
             <AcademyLearningLink key={module.id} to={module.to} onClick={() => markAsDone(module.id)} variant="catalog" title={module.title} description={module.description} icon={module.icon} badge={module.level} />
           ))}
-        </div>
-      </AcademyPanel>
+        </AcademyGrid>
+      </AcademyLearningSection>
 
-      <AcademyPanel variant="fundamentals" as="section" className="fundamentos__spotlight">
-        <div className="fundamentos__spotlight-copy">
-          <h2>Cómo leer tu cartera real con Portfolio</h2>
-          <p>
+      <AcademyLearningFeature appearance="spotlight" title={<>Cómo leer tu cartera real con Portfolio</>} description={<>
             Si ya tienes una cartera montada, el siguiente paso no siempre es
             otro artículo: muchas veces necesitas aprender a leer tus pesos,
             concentración, buckets y desvíos con datos reales.
-          </p>
-        </div>
-        <div className="fundamentos__spotlight-actions">
-          <Link
-            to="/portfolio-csv"
-            className="fundamentos__button fundamentos__button--primary"
-          >
+          </>}>
+          <AcademyLearningAction appearance="primary" to="/portfolio-csv">
             Abrir Portfolio
-          </Link>
-          <Link
-            to="/academy/portfolio"
-            className="fundamentos__button fundamentos__button--secondary"
-          >
+          </AcademyLearningAction>
+          <AcademyLearningAction appearance="secondary" to="/academy/portfolio">
             Ver estrategia y cartera
-          </Link>
-        </div>
-      </AcademyPanel>
+          </AcademyLearningAction>
+        </AcademyLearningFeature>
 
-      <AcademyPanel variant="fundamentals" className="fundamentos__next">
-        <h3>Siguiente paso recomendado</h3>
-        <p>
+      <AcademyLearningFeature appearance="next" title={<>Siguiente paso recomendado</>} description={<>
           Si vienes totalmente desde cero: glosario, perfil, interés compuesto y
           estrategia. Si ya tienes cartera: Portfolio, gestión del riesgo y
           mercado y crisis.
-        </p>
-        <div className="fundamentos__next-links">
+        </>}>
           <AcademyRouteLink to="/academy/glossary" className="fundamentos__next-link">
             📚 Empezar por glosario
           </AcademyRouteLink>
@@ -503,9 +478,8 @@ export function Fundamentos() {
           <AcademyRouteLink to="/academy/crisis" className="fundamentos__next-link">
             📉 Prepararme para crisis
           </AcademyRouteLink>
-        </div>
-      </AcademyPanel>
-    </div>
+        </AcademyLearningFeature>
+    </AcademyLearningPage>
   );
 }
 

@@ -443,3 +443,21 @@ Se retiran **512 líneas de CSS fuente y 108 declaraciones `@apply`**. Las tres 
 Las declaraciones ajenas a JSX de los tres consumidores conservan su lógica. Pasan integridad de calculadoras y agrupación de posiciones. Los recorridos funcionales verifican filas agrupadas y compras individuales, base media, detalle, clasificación, identificadores originales para editar/comprar/vender/eliminar, efectivo, TAE opcional, valores inválidos, guardado y edición. También pasan controles y persistencia de calculadoras, modos de inflación, escenarios inmutables y métricas de cartera.
 
 Coinciden **72 estados** con el build anterior: pantallas base, tabla móvil con detalles/acciones/compras expandidas, filtros sin coincidencias, alta manual de efectivo y acciones y FIRE con inflación (64); éxito al guardar (8). Se comparan nodos, etiquetas, clases de integración y 19 propiedades calculadas en 390/1280 px y las cuatro combinaciones de tema/apariencia; no es una comparación píxel a píxel. El temporizador de regreso tras guardar se inmoviliza solo en esta captura; el recorrido funcional utiliza el comportamiento real. El recorrido responsive adicional cubre **72 combinaciones** en 320/390/1280 px de Dashboard, Añadir activo, FIRE e IRPF/Bonos/Ficha de fondos, que comparten rejillas. No hay desbordamientos ni errores de ejecución. Pasan TypeScript, ESLint, compilación y presupuesto inicial; calculadoras y SDK editorial siguen fuera del arranque.
+
+
+## Vigésima segunda fase: Fundamentos, Riesgo y Fiscalidad
+
+Se continúa con las tres guías y sus componentes compartidos:
+
+- `AcademyLearningStructure` compone la página, secciones, niveles, bloques destacados, enlaces y siguientes pasos sobre `AcademyPanel`. `AcademyGrid` recibe cinco variantes de aprendizaje; se reutilizan las tarjetas de progreso existentes. Se eliminan reglas sin consumidores del antiguo bloque interactivo, aviso, insignia y grupo de enlaces.
+- `AcademyReadingHeader` comparte el marcado de cabecera de Fundamentos y Fiscalidad sobre `AcademyPageHeader`, con las mismas etiquetas y tipografía.
+- `AcademyRiskReading` reúne tarjetas, encabezados, horizontes, leyenda y matriz. Conserva `table`, `caption`, cabeceras y celdas, así como la región enfocada para desplazamiento horizontal. `AcademyToolLink` incorpora la misma receta de tarjeta para preservar la lectura y los materiales de sus accesos de Riesgo.
+- `AcademyTaxReading` compone tramos, títulos y el ejemplo de compensación. Reutiliza `AcademyTaxComparison` para las fichas existentes de fondos/ETF; sus clases y contenido permanecen intactos.
+
+Se retiran **358 líneas de CSS fuente y 106 declaraciones `@apply`**. Las tres hojas pasan de 396 a 38 líneas y se elimina `Fundamentos.css`. Quedan **7.063 líneas en 56 hojas**, una reducción acumulada del **68,96 %** respecto a las 22.753 iniciales. No equivale a ahorro de descarga. Se conservan el CSS de contenedores, foco y materiales que todavía lo requieren. No cambian backend, dependencias, versión ni contenidos financieros.
+
+### Validación de esta fase
+
+Las declaraciones ajenas a JSX de las tres guías conservan su lógica. El recorrido funcional verifica expansión/contracción por niveles, progreso guardado y restaurado tras recargar, enlaces nativos, 36 celdas de correlación con sus bandas, caption accesible, foco y desplazamiento por teclado, tramos y acceso a las calculadoras fiscales. Las pruebas usan almacenamiento local y bloquean las consultas externas.
+
+Coinciden **32 estados** con el build anterior: Fundamentos abierto y contraído, Riesgo y Fiscalidad, en 390/1280 px y las cuatro combinaciones de tema/apariencia. Se comparan nodos, etiquetas, clases de integración y **21 propiedades calculadas**, incluidos fondos y transformaciones; no es una comparación píxel a píxel. Se preservan prioridades de bordes, tipografía, márgenes y espaciado de contenedor, incluido el borde de pérdida permanente en Liquid Glass. El recorrido responsive cubre **72 combinaciones** en 320/390/1280 px de las tres guías y Estrategia, Bonos y Recursos, que comparten componentes. Pasan TypeScript, ESLint, compilación y presupuesto inicial; calculadoras y SDK editorial permanecen fuera del arranque.

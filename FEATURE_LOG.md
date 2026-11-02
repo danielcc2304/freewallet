@@ -12,6 +12,19 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-11-02 - Tailwind: Fundamentos, Riesgo y Fiscalidad
+- Funcionalidad:
+  - Compone niveles de aprendizaje, rejillas, bloques destacados y siguientes pasos de Fundamentos sobre las piezas de Academia existentes.
+  - Comparte cabeceras de lectura, tarjetas de riesgo, horizontes, leyenda y matriz accesible de correlaciones; conserva también el aspecto de los accesos a herramientas.
+  - Extrae tarjetas de tramos, títulos y ejemplo de compensación fiscal, reutilizando la comparación de fondos y ETF existente.
+- Resumen:
+  - Retira 358 líneas de CSS fuente y 106 declaraciones `@apply`, incluida `Fundamentos.css` completa y reglas sin consumidores de antiguos bloques.
+  - Las tres hojas pasan de 396 a 38 líneas; quedan 7.063 líneas en 56 hojas: reducción acumulada del 68,96 %. Esta cifra no representa ahorro de descarga.
+  - Mantiene contenidos, valores ilustrativos, progreso y navegación. Verifica 32 estados de estilos calculados y 72 combinaciones responsive, persistencia y controles, TypeScript, ESLint y build.
+- Archivos:
+  - `src/components/academy/guides/{Fundamentos,RiskManagement,Taxation}.tsx`, sus hojas restantes y eliminación de `Fundamentos.css`.
+  - `src/components/academy/ui/AcademyLearningStructure*`, `AcademyReadingHeader`, `AcademyRiskReading*`, `AcademyTaxReading*`, `AcademyGrid`, `AcademyToolLink`.
+
 ### 2026-10-24 - Tailwind: tabla de activos, formulario y proyección FIRE
 - Funcionalidad:
   - Comparte la tabla responsive de Mis activos: tarjeta, filas, celdas, filtros, ordenación, detalles y acciones móviles, estimaciones y botones sobre las piezas existentes.

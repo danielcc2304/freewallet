@@ -1,3 +1,4 @@
+import { riskReadingStyle } from './AcademyRiskReading.styles';
 import type { ReactNode } from 'react';
 import type { LinkProps } from 'react-router-dom';
 import { cn } from '../../../utils/cn';
@@ -27,7 +28,7 @@ export function AcademyToolLink({
     const tax = variant === 'tax';
     const root =
         variant === 'risk'
-            ? cn('risk-mgmt__card', riskTool('risk-mgmt__tool'))
+            ? cn(riskReadingStyle('risk-mgmt__card'), riskTool('risk-mgmt__tool'))
             : variant === 'strategy'
               ? strategyTool('strategies__tool-card')
               : tax

@@ -1,3 +1,6 @@
+import { calculatorWorkspaceStyle } from './CalculatorWorkspace.styles';
+import {CalculatorWorkspaceHint,CalculatorWorkspace,CalculatorWorkspaceHeader,CalculatorWorkspaceCard} from './CalculatorWorkspace';
+
 import {CalculatorAdvancedOptions,CalculatorGoalPanel,CalculatorGoalAchieved,CalculatorGoalPending,CalculatorMonthlyGoal,CalculatorYearlyResults} from './CalculatorGoal';
 import { CalculatorDataItem } from './CalculatorDataItem';
 import { CalculatorLegend } from './CalculatorLegend';
@@ -21,9 +24,8 @@ import {
     Tooltip,
     ResponsiveContainer
 } from 'recharts';
-import { CalculatorCard } from './CalculatorCard';
+
 import { validateCalculatorInputs } from './calculatorValidation';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import {
     COMPOUNDING_FREQUENCY_OPTIONS,
     calculateCompoundInterestProjection,
@@ -37,7 +39,6 @@ import {
     type InterestRateType,
     type WithdrawalType
 } from './compoundInterestUtils';
-import './CompoundInterestCalc.css';
 
 type CalculationMode = 'normal' | 'timeToGoal' | 'requiredContribution';
 
@@ -319,15 +320,15 @@ export function CompoundInterestCalc() {
     }, [chartData, initialCapital]);
 
     return (
-        <div className="compound">
-            <AcademyPageHeader className="compound__header" section="Herramientas">
+        <CalculatorWorkspace appearance="compound"  >
+            <CalculatorWorkspaceHeader appearance="compoundHeader" section="Herramientas">
                 <CalculatorToolHeading appearance="compound" icon={<TrendingUp className="compound__title-icon" size={32} />} title={<>Calculadora de Interés Compuesto</>} description={<>
                             Visualiza el poder del interés compuesto. Tu capital trabajando para ti a lo largo del tiempo.
                         </>} />
-            </AcademyPageHeader>
+            </CalculatorWorkspaceHeader>
 
             {/* Calculation Mode Selector */}
-            <div className="compound__mode-selector">
+            <CalculatorWorkspace appearance="compoundModeSelector"  >
                 <CalculatorChoice appearance="compound" selected={calculationMode === 'normal'} onClick={() => setCalculationMode('normal')} icon={<TrendingUp size={20} />} label={<>
                     Calcular Capital Final
                 </>} />
@@ -337,14 +338,11 @@ export function CompoundInterestCalc() {
                 <CalculatorChoice appearance="compound" selected={calculationMode === 'requiredContribution'} onClick={() => setCalculationMode('requiredContribution')} icon={<Target size={20} />} label={<>
                     Aportación Necesaria
                 </>} />
-            </div>
+            </CalculatorWorkspace>
 
-            <div className="compound__container">
+            <CalculatorWorkspace appearance="compoundContainer"  >
                 {/* Inputs Section */}
-                <CalculatorCard className="compound__inputs">
-                    <h3>Parámetros</h3>
-
-                    <CalculatorField controlId="initial" label="Patrimonio Inicial" icon={<Banknote size={18} />} unit="€">
+                <CalculatorWorkspaceCard appearance="compoundInputs"  title={<>Parámetros</>}><CalculatorField controlId="initial" label="Patrimonio Inicial" icon={<Banknote size={18} />} unit="€">
                         <input
                             id="initial"
                             type="number"
@@ -353,9 +351,7 @@ export function CompoundInterestCalc() {
                             min="0"
                             step="1000"
                         />
-                    </CalculatorField>
-
-                    {calculationMode !== 'requiredContribution' && (
+                    </CalculatorField>{calculationMode !== 'requiredContribution' && (
                         <CalculatorField controlId="monthly" label="Aportación Mensual" icon={<Banknote size={18} />} unit="€/mes">
                             <input
                                 id="monthly"
@@ -366,15 +362,13 @@ export function CompoundInterestCalc() {
                                 step="50"
                             />
                         </CalculatorField>
-                    )}
-
-                    <CalculatorField controlId="rate" label={<>{interestRateType === 'cagr'
+                    )}<CalculatorField controlId="rate" label={<>{interestRateType === 'cagr'
                         ? 'Rentabilidad Anual Esperada (CAGR)'
-                        : 'Tipo de Interés Nominal Anual (TIN)'}</>} icon={<TrendingUp size={18} />} unit="%" afterControl={<><small className="compound__input-hint">
+                        : 'Tipo de Interés Nominal Anual (TIN)'}</>} icon={<TrendingUp size={18} />} unit="%" afterControl={<><CalculatorWorkspaceHint >
                             {interestRateType === 'cagr'
                                 ? 'La tasa se interpreta como rentabilidad efectiva de un año completo.'
                                 : 'La tasa efectiva resultante depende de la frecuencia de capitalización.'}
-                        </small></>}>
+                        </CalculatorWorkspaceHint></>}>
                         <input
                             id="rate"
                             type="number"
@@ -384,9 +378,7 @@ export function CompoundInterestCalc() {
                             max="30"
                             step="0.5"
                         />
-                    </CalculatorField>
-
-                    {calculationMode !== 'timeToGoal' && (
+                    </CalculatorField>{calculationMode !== 'timeToGoal' && (
                         <CalculatorField controlId="years" label="Horizonte Temporal" icon={<Calendar size={18} />} unit="años" afterControl={<><input
                             type="range"
                             value={Number(years) || 1}
@@ -406,9 +398,7 @@ export function CompoundInterestCalc() {
                                 step="1"
                             />
                         </CalculatorField>
-                    )}
-
-                    {(calculationMode === 'timeToGoal' || calculationMode === 'requiredContribution') && (
+                    )}{(calculationMode === 'timeToGoal' || calculationMode === 'requiredContribution') && (
                         <CalculatorField controlId="target" label="Objetivo de Capital" icon={<Target size={18} />} unit="€">
                             <input
                                 id="target"
@@ -419,14 +409,11 @@ export function CompoundInterestCalc() {
                                 step="10000"
                             />
                         </CalculatorField>
-                    )}
-
-                    {/* Advanced Options */}
-                    {calculationMode === 'normal' && (
+                    )}{/* Advanced Options */}{calculationMode === 'normal' && (
                         <CalculatorAdvancedOptions expanded={showAdvanced} onToggle={() => setShowAdvanced(!showAdvanced)} label={<>Opciones Avanzadas</>} icon={showAdvanced ? <ChevronUp size={18} /> : <ChevronDown size={18} />}>
                                     <div className="calc__input-group">
                                         <label>Tipo de rentabilidad</label>
-                                        <div className="compound__radio-group">
+                                        <CalculatorWorkspace appearance="compoundRadioGroup"  >
                                             <CalculatorOption>
                                                 <input
                                                     type="radio"
@@ -445,7 +432,7 @@ export function CompoundInterestCalc() {
                                                 />
                                                 <span>Tasa nominal anual (TIN)</span>
                                             </CalculatorOption>
-                                        </div>
+                                        </CalculatorWorkspace>
                                     </div>
 
                                     {interestRateType === 'tin' && (
@@ -479,7 +466,7 @@ export function CompoundInterestCalc() {
 
                                     <div className="calc__input-group">
                                         <label>Retiradas Anuales</label>
-                                        <div className="compound__radio-group">
+                                        <CalculatorWorkspace appearance="compoundRadioGroup"  >
                                             <CalculatorOption>
                                                 <input
                                                     type="radio"
@@ -507,14 +494,14 @@ export function CompoundInterestCalc() {
                                                 />
                                                 <span>Cantidad fija</span>
                                             </CalculatorOption>
-                                        </div>
+                                        </CalculatorWorkspace>
                                     </div>
 
                                     {withdrawalType !== 'none' && (
                                         <CalculatorField controlId="withdrawal" label={<>{withdrawalType === 'percentage' ? 'Porcentaje anual' : 'Cantidad anual'}</>} icon={<Banknote size={18} />} unit={<>{withdrawalType === 'percentage' ? '%' : '€'}</>} afterControl={<>{withdrawalType === 'percentage' && (
-                                            <small className="compound__input-hint">
+                                            <CalculatorWorkspaceHint >
                                                 Regla del 4%: retirada sostenible para jubilación
-                                            </small>
+                                            </CalculatorWorkspaceHint>
                                         )}</>}>
                                             <input
                                                 id="withdrawal"
@@ -527,15 +514,14 @@ export function CompoundInterestCalc() {
                                         </CalculatorField>
                                     )}
                                 </CalculatorAdvancedOptions>
-                    )}
-                </CalculatorCard>
+                    )}</CalculatorWorkspaceCard>
 
                 {/* Results Section */}
-                <div className="compound__results">
+                <CalculatorWorkspace appearance="compoundResults"  >
                     {calculationError ? <p role="alert">{calculationError}</p> : <>
                     {calculationMode === 'normal' && (
                         <>
-                            <div className="compound__result-cards">
+                            <CalculatorWorkspace appearance="compoundResultCards"  >
                                     <CalculatorResultCard layout="investment" className="compound__result-card compound__result-card--contributed" accent="blue"
                                         label="Capital Aportado" value={<>{formatCurrency(finalData.contributed)}</>}
                                         slotClasses={{ label: 'compound__result-label', value: 'compound__result-value', description: 'compound__result-subtext' }} />
@@ -552,7 +538,7 @@ export function CompoundInterestCalc() {
                                                 : `Retirada anual de ${formatCurrency(Number(withdrawalValue) || 0)}, limitada al saldo disponible`}</>}
                                             slotClasses={{ label: 'compound__result-label', value: 'compound__result-value', description: 'compound__result-subtext' }} />
                                 )}
-                            </div>
+                            </CalculatorWorkspace>
                         </>
                     )}
 
@@ -628,13 +614,11 @@ export function CompoundInterestCalc() {
                             </ResponsiveContainer>
                         </CalculatorChart>
 
-                    <CalculatorCard className="compound__breakdown">
-                        <div>
+                    <CalculatorWorkspaceCard appearance="compoundBreakdown"  ><div>
                             <h4>Cómo se calcula el saldo</h4>
                             <p>Aportaciones {formatCurrency(finalData.contributed)} + intereses generados {formatCurrency(finalData.grossInterest)} − retiradas {formatCurrency(finalData.withdrawal)} = saldo disponible {formatCurrency(finalData.total)}.</p>
                             <small>Las retiradas pueden incluir tu capital inicial; no se restan de los intereses generados.</small>
-                        </div>
-                    </CalculatorCard>
+                        </div></CalculatorWorkspaceCard>
                     <CalculatorYearlyResults title={<>Detalle año a año</>} description={<>Cada fila resume saldo total y rendimiento del año.</>}>
                             {yearlyDetailRows.map((row) => {
                                 const isOpen = expandedYear === row.year;
@@ -650,10 +634,10 @@ export function CompoundInterestCalc() {
                                                     {withdrawalType !== 'none' && (
                                                         <CalculatorDataItem layout="calculatorYear" label={<>Retirada este año</>} value={<>{formatCurrency(row.withdrawalAmount)}</>} />
                                                     )}
-                                                    <CalculatorDataItem layout="calculatorYear" label={<>Intereses recibidos hasta ahora</>} value={<>{formatCurrency(row.totalInterest)}</>} valueClassName="compound__detail-positive" />
+                                                    <CalculatorDataItem layout="calculatorYear" label={<>Intereses recibidos hasta ahora</>} value={<>{formatCurrency(row.totalInterest)}</>} valueClassName={calculatorWorkspaceStyle('compoundDetailPositive')} />
                                                     <CalculatorDataItem layout="calculatorYear" label={<>Intereses generados este año</>} value={<>
                                                             {formatCurrency(row.grossInterestEarned)}
-                                                        </>} valueClassName="compound__detail-positive" />
+                                                        </>} valueClassName={calculatorWorkspaceStyle('compoundDetailPositive')} />
                                                     <CalculatorDataItem layout="calculatorYear" label={<>Intereses menos retiradas del año</>} value={<>
                                                             {formatCurrency(row.interestEarned)}
                                                         </>} />
@@ -662,13 +646,13 @@ export function CompoundInterestCalc() {
                             })}
                         </CalculatorYearlyResults>
                     </>}
-                </div>
-            </div>
+                </CalculatorWorkspace>
+            </CalculatorWorkspace>
 
             <CalculatorNotice appearance="compound">
                 ⚠️ Esta calculadora es solo educativa. Los resultados asumen rentabilidad constante, lo cual es irreal.
                 Los mercados fluctúan. Consulta un asesor antes de tomar decisiones de inversión.
             </CalculatorNotice>
-        </div>
+        </CalculatorWorkspace>
     );
 }

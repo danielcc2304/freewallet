@@ -1,3 +1,4 @@
+import {AssetGuideFrame} from '../ui/AssetGuideFrame';
 import {AcademyAssetHero,AcademyAssetBackLink,AcademyAssetText,AcademyAssetInlineLink} from '../ui/AcademyAssetReading';
 import { AcademyFinalTip } from '../ui/AcademyAssetExplainers';
 
@@ -13,7 +14,6 @@ import {
     Lightbulb, Home, Building, Factory, Truck, Shield
 } from 'lucide-react';
 import { AssetGuideNav } from './AssetGuideNav';
-import './AssetPage.css';
 
 const REIT_TYPES = [
     {
@@ -48,7 +48,7 @@ const REIT_TYPES = [
 
 export function AssetREITs() {
     return (
-        <div className="asset-page asset-page--reits" style={{ '--asset-color': '#8b5cf6' } as React.CSSProperties}>
+        <AssetGuideFrame appearance="reits" style={{ '--asset-color': '#8b5cf6' } as React.CSSProperties}>
             <AcademyAssetBackLink to="/academy/portfolio">
                 <ArrowLeft size={18} /> Estrategia y cartera
             </AcademyAssetBackLink>
@@ -139,6 +139,6 @@ export function AssetREITs() {
                         parcial con las acciones tradicionales y un flujo de caja real. <strong>Un 5-10% de exposición
                             suele ser suficiente para la mayoría de perfiles.</strong>
                     </AcademyFinalTip>
-        </div>
+        </AssetGuideFrame>
     );
 }

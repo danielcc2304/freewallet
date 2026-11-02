@@ -1,3 +1,4 @@
+import {AssetGuideFrame} from '../ui/AssetGuideFrame';
 import {AcademyAssetHero,AcademyAssetBackLink,AcademyAssetText} from '../ui/AcademyAssetReading';
 import { AcademyFinalTip } from '../ui/AcademyAssetExplainers';
 
@@ -13,7 +14,6 @@ import {
     Lightbulb, Shield, Database, Lock
 } from 'lucide-react';
 import { AssetGuideNav } from './AssetGuideNav';
-import './AssetPage.css';
 
 const CRYPTO_CATEGORIES = [
     {
@@ -44,7 +44,7 @@ const CRYPTO_CATEGORIES = [
 
 export function AssetCrypto() {
     return (
-        <div className="asset-page asset-page--crypto" style={{ '--asset-color': '#f59e0b' } as React.CSSProperties}>
+        <AssetGuideFrame appearance="crypto" style={{ '--asset-color': '#f59e0b' } as React.CSSProperties}>
             <AcademyAssetBackLink to="/academy/portfolio">
                 <ArrowLeft size={18} /> Estrategia y cartera
             </AcademyAssetBackLink>
@@ -131,6 +131,6 @@ export function AssetCrypto() {
                         Céntrate en proyectos con valor real comprobado como Bitcoin o Ethereum.
                         <strong> Si no puedes dormir con una caída del 50%, este activo no es para ti.</strong>
                     </AcademyFinalTip>
-        </div>
+        </AssetGuideFrame>
     );
 }

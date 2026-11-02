@@ -1,3 +1,4 @@
+import {AssetGuideFrame,AssetGuideDescription,AssetGuideLayout,AssetGuideBondCategory} from '../ui/AssetGuideFrame';
 import {AcademySpreadExperiment,AcademyDurationExperiment} from '../ui/AcademyBondExperiments';
 import {AcademyAssetVisual,AcademyConvexityPanel,AcademyConvexityGraphic,AcademyYieldCurve,AcademyYieldBar,AcademyBondLadderStep,AcademyDurationInputs,AcademyBondMetric,AcademyDurationMix,AcademyBondRange,AcademyBondChoice} from '../ui/AcademyBondParts';
 import {AcademyAssetBar,AcademyRatingRow,AcademyRatingDivider,AcademyDurationMixRow} from '../ui/AcademyAssetBars';
@@ -17,7 +18,6 @@ import {
     Lightbulb, BarChart3, Clock, Shield, TrendingDown, TrendingUp, ArrowUpDown
 } from 'lucide-react';
 import { AssetGuideNav } from './AssetGuideNav';
-import './AssetPage.css';
 
 const BOND_TYPES = [
     {
@@ -221,7 +221,7 @@ export function AssetBonds() {
     const normalizedLong = portfolioWeightTotal > 0 ? (weightLong / portfolioWeightTotal) * 100 : 0;
 
     return (
-        <div className="asset-page asset-page--bonds" style={{ '--asset-color': '#10b981' } as React.CSSProperties}>
+        <AssetGuideFrame appearance="bonds" style={{ '--asset-color': '#10b981' } as React.CSSProperties}>
             <AcademyAssetBackLink to="/academy/portfolio">
                 <ArrowLeft size={18} /> Estrategia y cartera
             </AcademyAssetBackLink>
@@ -290,10 +290,10 @@ export function AssetBonds() {
                     </p>
                 </AcademyAssetText>
 
-                <div className="inverse-relationship">
+                <AssetGuideLayout appearance="inverse" >
                     <AcademyDirectionalCard direction="up" fromIcon={<TrendingUp size={32} />} from={<>Tipos Suben</>} connector={<>→</>} toIcon={<TrendingDown size={32} />} to={<>Precio Baja</>}>Los bonos nuevos pagan más, así que los viejos pierden atractivo.</AcademyDirectionalCard>
                     <AcademyDirectionalCard direction="down" fromIcon={<TrendingDown size={32} />} from={<>Tipos Bajan</>} connector={<>→</>} toIcon={<TrendingUp size={32} />} to={<>Precio Sube</>}>Los bonos existentes con cupones altos se vuelven más valiosos.</AcademyDirectionalCard>
-                </div>
+                </AssetGuideLayout>
 
                 <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>¿Por qué importa?</>}>
                     <p>Si compras un bono a 10 años y los tipos suben un 2%, podrías ver una caída del ~15% en el precio de mercado de tu bono. Si lo mantienes a vencimiento, no importa (cobras cupón + nominal). Pero si necesitas vender antes, puedes perder dinero.</p>
@@ -348,7 +348,7 @@ export function AssetBonds() {
                     </p>
                 </AcademyAssetText>
 
-                <div className="yield-curves">
+                <AssetGuideLayout appearance="curves" >
                     {YIELD_CURVE_SCENARIOS.map(scenario => (
                         <AcademyYieldCurve key={scenario.name} title={scenario.name} signal={scenario.signal} description={scenario.desc} color={scenario.color}>
                                     {scenario.visual.map((val, i) => (
@@ -356,7 +356,7 @@ export function AssetBonds() {
                                     ))}
                                 </AcademyYieldCurve>
                     ))}
-                </div>
+                </AssetGuideLayout>
 
                 <AcademyCallout tone="warning" icon={<AlertTriangle size={20} />} title={<>Curva invertida = señal de recesión</>}>
                     <p>Históricamente, cada vez que la curva de tipos se ha invertido (el bono a 2 años rinde más que el de 10 años), una recesión ha seguido en los 6-18 meses siguientes. Ocurrió antes de 2001, 2008, y 2020.</p>
@@ -366,28 +366,19 @@ export function AssetBonds() {
             {/* Bond types deep dive */}
             <AcademySection title={<><Shield size={22} /> Tipos de Bonos en Detalle</>} id="section-5" className="asset-page__section">
 
-                <p className="asset-page__section-desc">
+                <AssetGuideDescription >
                     No todos los bonos son iguales. La diferencia entre deuda gubernamental y high yield
                     es como la diferencia entre un depósito y una criptomoneda.
-                </p>
+                </AssetGuideDescription>
 
                 {BOND_TYPES.map((type) => (
-                    <div key={type.title} className="bond-type-block" style={{ '--bond-color': type.color } as React.CSSProperties}>
-                        <div className="bond-type-block__header">
-                            <span className="bond-type-block__emoji">{type.icon}</span>
-                            <div>
-                                <h3>{type.title}</h3>
-                                <p>{type.desc}</p>
-                            </div>
-                        </div>
-                        <AcademyGrid variant="bondSubtypes" className="bond-type-block__subtypes">
+                    <AssetGuideBondCategory key={type.title} style={{ '--bond-color': type.color } as React.CSSProperties} icon={<>{type.icon}</>} title={<>{type.title}</>} description={<>{type.desc}</>}><AcademyGrid variant="bondSubtypes" className="bond-type-block__subtypes">
                             {type.subtypes.map(sub => (
                                 <BondCategoryCard key={sub.name} title={sub.name} risk={sub.risk} description={<>{sub.desc}</>} duration={<>
                                         <Clock size={14} /> {sub.duration}
                                     </>} />
                             ))}
-                        </AcademyGrid>
-                    </div>
+                        </AcademyGrid></AssetGuideBondCategory>
                 ))}
             </AcademySection>
 
@@ -398,7 +389,7 @@ export function AssetBonds() {
                     <p>Las agencias de calificación (Moody's, S&P, Fitch) evalúan la probabilidad de que un emisor pague sus deudas. La calificación determina el interés que debe pagar el emisor.</p>
                 </AcademyAssetText>
 
-                <div className="rating-scale">
+                <AssetGuideLayout appearance="rating" >
                     {[
                         { rating: 'AAA', label: 'Máxima calidad', example: 'Alemania, Microsoft', color: '#10b981', width: '100%' },
                         { rating: 'AA', label: 'Muy alta calidad', example: 'Bélgica, Apple', color: '#22c55e', width: '92%' },
@@ -411,7 +402,7 @@ export function AssetBonds() {
                         <AcademyRatingRow key={r.rating} rating={r.rating} color={r.color} width={r.width} label={r.label} example={r.example} />
                     ))}
                     <AcademyRatingDivider above={<>↑ Investment Grade</>} below={<>↓ High Yield (Basura)</>} />
-                </div>
+                </AssetGuideLayout>
             </AcademySection>
 
             {/* Credit spread */}
@@ -429,11 +420,11 @@ export function AssetBonds() {
                     </p>
                 </AcademyAssetText>
 
-                <div className="credit-spreads-grid">
+                <AssetGuideLayout appearance="spreads" >
                     {CREDIT_SPREAD_REGIMES.map((regime) => (
                         <AcademyCreditCard key={regime.name} style={{ '--spread-color': regime.color } as React.CSSProperties} title={<>{regime.name}</>} range={<>{regime.range}</>} description={<>{regime.meaning}</>} implicationLabel={<>Lectura práctica:</>} implication={<>{regime.implication}</>} />
                     ))}
-                </div>
+                </AssetGuideLayout>
 
                 <AcademyCallout tone="warning" icon={<AlertTriangle size={20} />} title={<>Cuando el spread se abre rápido, manda el riesgo</>}>
                     <p>
@@ -498,11 +489,11 @@ export function AssetBonds() {
                         comprar demasiada duración, asumir más crédito del que creías, o pagar comisiones altas para retornos bajos.
                     </p>
                 </AcademyAssetText>
-                <div className="bond-checklist-grid">
+                <AssetGuideLayout appearance="checklist" >
                     {BOND_ETF_CHECKLIST.map((item) => (
                         <AcademyTextCard appearance="checklist" key={item.title} title={<>{item.title}</>}><p>{item.desc}</p></AcademyTextCard>
                     ))}
-                </div>
+                </AssetGuideLayout>
 
                 <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>En bonos globales, cubrir divisa suele tener más sentido</>} style={{ marginTop: '1.5rem' }}>
                     <p>
@@ -526,11 +517,11 @@ export function AssetBonds() {
                     </p>
                 </AcademyAssetText>
 
-                <div className="bond-ladder">
+                <AssetGuideLayout appearance="ladder" >
                     {LADDER_MODEL.map((step) => (
                         <AcademyBondLadderStep key={step.rung} rung={<>{step.rung}</>} title={<>{step.maturity}</>} description={<>{step.objective}</>} hint={<>{step.yieldHint}</>} />
                     ))}
-                </div>
+                </AssetGuideLayout>
 
                 <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>Ventaja clave del ladder</>}>
                     <p>
@@ -589,11 +580,11 @@ export function AssetBonds() {
             {/* Common mistakes */}
             <AcademySection title={<><AlertTriangle size={22} /> Errores Comunes en Renta Fija</>} id="section-11" className="asset-page__section">
 
-                <div className="bond-mistakes-grid">
+                <AssetGuideLayout appearance="mistakes" >
                     {COMMON_BOND_ERRORS.map((item) => (
                         <AcademyTextCard appearance="mistake" key={item.mistake} title={<>{item.mistake}</>}><p><strong>Qué pasa:</strong> {item.impact}</p><p><strong>Cómo evitarlo:</strong> {item.fix}</p></AcademyTextCard>
                     ))}
-                </div>
+                </AssetGuideLayout>
             </AcademySection>
 
             {/* Pros and Cons */}
@@ -637,6 +628,6 @@ export function AssetBonds() {
                         Si quieres RF a largo plazo, usa ETFs indexados y acepta la volatilidad temporal.
                         <strong> La renta fija NO es fija si vendes antes del vencimiento.</strong>
                     </AcademyFinalTip>
-        </div>
+        </AssetGuideFrame>
     );
 }

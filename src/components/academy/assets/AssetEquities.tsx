@@ -1,3 +1,4 @@
+import {AssetGuideFrame,AssetGuideDescription,AssetGuideComparison} from '../ui/AssetGuideFrame';
 import {AcademyGuideCta} from '../ui/AcademyBondParts';
 import {AcademyAssetHero,AcademyAssetBackLink,AcademyAssetText,AcademyAssetInlineLink} from '../ui/AcademyAssetReading';
 import { AcademyFactCard, AcademyFinalTip } from '../ui/AcademyAssetExplainers';
@@ -15,7 +16,6 @@ import {
     Lightbulb, BarChart3, PieChart, Clock, Target, Shield
 } from 'lucide-react';
 import { AssetGuideNav } from './AssetGuideNav';
-import './AssetPage.css';
 
 const SUB_TYPES = [
     {
@@ -78,7 +78,7 @@ const GEOGRAPHIC_ZONES = [
 
 export function AssetEquities() {
     return (
-        <div className="asset-page asset-page--equities" style={{ '--asset-color': '#3b82f6' } as React.CSSProperties}>
+        <AssetGuideFrame appearance="equities" style={{ '--asset-color': '#3b82f6' } as React.CSSProperties}>
             <AcademyAssetBackLink to="/academy/portfolio">
                 <ArrowLeft size={18} /> Estrategia y cartera
             </AcademyAssetBackLink>
@@ -130,7 +130,7 @@ export function AssetEquities() {
             {/* Sub-types */}
             <AcademySection title={<><BarChart3 size={22} /> Tipos de Acciones</>} id="section-2" className="asset-page__section">
 
-                <p className="asset-page__section-desc">No todas las acciones son iguales. Entender las diferencias es clave para elegir tu exposición.</p>
+                <AssetGuideDescription >No todas las acciones son iguales. Entender las diferencias es clave para elegir tu exposición.</AssetGuideDescription>
 
                 <AcademyGrid variant="subtypes" className="asset-page__subtype-grid">
                     {SUB_TYPES.map((type) => (
@@ -145,31 +145,27 @@ export function AssetEquities() {
             {/* Value vs Growth visual */}
             <AcademySection title={<><Target size={22} /> Value vs Growth: El Eterno Debate</>} id="section-3" className="asset-page__section">
 
-                <div className="asset-page__versus">
-                    <AcademyListCard kind="comparison" title={<>📊 Value (Valor)</>} className="versus-card--value" badge={<>Warren Buffett</>}>
+                <AssetGuideComparison left={<AcademyListCard kind="comparison" title={<>📊 Value (Valor)</>} className="versus-card--value" badge={<>Warren Buffett</>}>
                             <li>Empresas baratas según fundamentales (PER bajo)</li>
                             <li>Suelen pagar dividendos</li>
                             <li>Rendimiento superior a largo plazo históricamente</li>
                             <li>Sectores: banca, energía, utilities</li>
                             <li>Mentalidad: «comprar un euro por 50 céntimos»</li>
-                        </AcademyListCard>
-                    <div className="versus-divider">VS</div>
-                    <AcademyListCard kind="comparison" title={<>🚀 Growth (Crecimiento)</>} className="versus-card--growth" badge={<>Cathie Wood</>}>
+                        </AcademyListCard>} label={<>VS</>} right={<AcademyListCard kind="comparison" title={<>🚀 Growth (Crecimiento)</>} className="versus-card--growth" badge={<>Cathie Wood</>}>
                             <li>Empresas con alto crecimiento de ingresos</li>
                             <li>Raramente pagan dividendo (reinvierten todo)</li>
                             <li>Valoraciones elevadas (PER alto)</li>
                             <li>Sectores: tech, biotech, IA</li>
                             <li>Mentalidad: «la empresa del futuro»</li>
-                        </AcademyListCard>
-                </div>
+                        </AcademyListCard>} />
             </AcademySection>
 
             {/* Geographic zones */}
             <AcademySection title={<><PieChart size={22} /> Zonas Geográficas</>} id="section-4" className="asset-page__section">
 
-                <p className="asset-page__section-desc">
+                <AssetGuideDescription >
                     La diversificación geográfica reduce el riesgo de depender de un solo país o región.
-                </p>
+                </AssetGuideDescription>
                 <AcademyGrid variant="geography" className="asset-page__geo-grid">
                     {GEOGRAPHIC_ZONES.map(zone => (
                         <AcademyFactCard appearance="geography" key={zone.name} style={{ borderLeftColor: zone.color }} labelStyle={{ color: zone.color }} label={<>{zone.name}</>} value={<>{zone.region}</>} description={<>{zone.weight}</>} />
@@ -256,6 +252,6 @@ export function AssetEquities() {
                         la forma más eficiente de acceder a renta variable. Simplicidad, diversificación máxima y costes
                         mínimos. No intentes batir al mercado: únete a él.
                     </AcademyFinalTip>
-        </div>
+        </AssetGuideFrame>
     );
 }

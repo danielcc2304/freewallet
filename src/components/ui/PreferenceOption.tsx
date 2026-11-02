@@ -1,3 +1,4 @@
+import { SettingsStyle } from './workspace/Settings.styles';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { cn } from '../../utils/cn';
 import { preferenceClass as part } from './preferenceStyles';
@@ -23,7 +24,7 @@ export function PreferenceOption({ appearance, selected, icon, preview, title, d
 }
 
 export function PreferenceField({ title, description, children }: { title: ReactNode; description: ReactNode; children: ReactNode }) {
-    return <div className={part('settings__toggle-card')}><div className={part('settings__toggle-copy')}><div className={part('settings__toggle-title')}>{title}</div><p className="settings__hint">{description}</p></div>{children}</div>;
+    return <div className={part('settings__toggle-card')}><div className={part('settings__toggle-copy')}><div className={part('settings__toggle-title')}>{title}</div><p className={SettingsStyle('settings__hint')}>{description}</p></div>{children}</div>;
 }
 
 export function PreferenceSwitch({ checked, className, ...props }: Omit<ButtonHTMLAttributes<HTMLButtonElement>, 'children'> & { checked: boolean }) {

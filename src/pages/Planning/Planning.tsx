@@ -1,13 +1,14 @@
+import { WorkspaceText,WorkspaceButton,WorkspaceSelect,PlanningCheck,PlanningRecordHeader,PlanningProgress } from '../../components/ui/workspace/WorkspaceRecords';
+import { WorkspaceLayout,WorkspaceForm,WorkspaceCardContent } from '../../components/ui/workspace/WorkspaceLayout';
 import { DataItem } from '../../components/ui/DataItem';
 import { PageHeading } from '../../components/ui/PageHeading';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AlertTriangle, CheckCircle2, Eye, PlusCircle, Target, Trash2 } from 'lucide-react';
-import { Button, Card, CardContent, CardHeader, Input } from '../../components/ui';
+import {Button,Card,CardHeader,Input} from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { addGoal, addWatchlistItem, deleteGoal, deleteWatchlistItem, generateId, getGoals, getWatchlist } from '../../services/storageService';
 import type { AssetType, PortfolioGoal, PortfolioGoalCategory, WatchlistItem } from '../../types/types';
-import './Planning.css';
 import {portfolioStorage} from '../../services/portfolioCloudStorage';
 
 type GoalFormState = {
@@ -204,31 +205,25 @@ export function Planning() {
     };
 
     return (
-        <div className="planning-page">
+        <WorkspaceLayout appearance="planningPage"  >
             {saveError && <p role="alert">{saveError}</p>}
             <PageHeading className="planning-page__header" titleClassName="planning-page__title" descriptionClassName="planning-page__subtitle" title={'Planificacion'} description={'Objetivos, control de cartera y watchlist manual en una vista separada del dashboard.'} actions={<Link to="/add">
                     <Button icon={<PlusCircle size={16} />}>Añadir inversión</Button>
                 </Link>} />
 
-            <section className="planning-page__grid">
+            <WorkspaceLayout appearance="planningPageGrid" as="section" >
                 <Card>
                     <CardHeader
                         title="Checks de control"
                         subtitle="Reglas simples para vigilar concentracion y cobertura"
                     />
-                    <CardContent className="planning-page__checks">
+                    <WorkspaceCardContent appearance="planningPageChecks"  >
                         {portfolioChecks.map((check) => (
-                            <div key={check.title} className={`planning-check planning-check--${check.severity}`}>
-                                <div className="planning-check__icon">
+                            <PlanningCheck key={check.title} severity={check.severity} icon={<>
                                     {check.severity === 'good' ? <CheckCircle2 size={18} /> : <AlertTriangle size={18} />}
-                                </div>
-                                <div>
-                                    <strong>{check.title}</strong>
-                                    <p>{check.description}</p>
-                                </div>
-                            </div>
+                                </>} title={<>{check.title}</>} description={<>{check.description}</>} />
                         ))}
-                    </CardContent>
+                    </WorkspaceCardContent>
                 </Card>
 
                 <Card>
@@ -236,46 +231,42 @@ export function Planning() {
                         title="Resumen"
                         subtitle="Contexto rapido para decidir siguientes pasos"
                     />
-                    <CardContent className="planning-page__summary">
+                    <WorkspaceCardContent appearance="planningPageSummary"  >
                         <DataItem layout="planning" className="planning-stat" label={'Capital invertido'} value={formatCurrency(totalInvested)} />
                         <DataItem layout="planning" className="planning-stat" label={'Posiciones'} value={state.assets.length} />
                         <DataItem layout="planning" className="planning-stat" label={'Objetivos activos'} value={goals.length} />
                         <DataItem layout="planning" className="planning-stat" label={'Watchlist'} value={watchlist.length} />
-                    </CardContent>
+                    </WorkspaceCardContent>
                 </Card>
-            </section>
+            </WorkspaceLayout>
 
-            <section className="planning-page__split">
+            <WorkspaceLayout appearance="planningPageSplit" as="section" >
                 <Card>
                     <CardHeader
                         title="Objetivos"
                         subtitle="Guarda metas de capital sin depender de una calculadora"
                     />
-                    <CardContent className="planning-section">
-                        <form className="planning-form" onSubmit={handleGoalSubmit}>
+                    <WorkspaceCardContent appearance="planningSection"  >
+                        <WorkspaceForm appearance="planningForm"  onSubmit={handleGoalSubmit}>
                             <Input
                                 value={goalForm.title}
                                 onChange={(e) => setGoalForm((current) => ({ ...current, title: e.target.value }))}
                                 placeholder="Ej. Entrada vivienda, FIRE parcial..."
                             />
-                            <div className="planning-form__row">
-                                <select
-                                    className="planning-select"
-                                    value={goalForm.category}
-                                    onChange={(e) => setGoalForm((current) => ({ ...current, category: e.target.value as PortfolioGoalCategory }))}
-                                >
+                            <WorkspaceLayout appearance="planningFormRow"  >
+                                <WorkspaceSelect appearance="planningSelect"  value={goalForm.category} onChange={(e) => setGoalForm((current) => ({ ...current, category: e.target.value as PortfolioGoalCategory }))}>
                                     {Object.entries(GOAL_CATEGORY_LABELS).map(([value, label]) => (
                                         <option key={value} value={value}>{label}</option>
                                     ))}
-                                </select>
+                                </WorkspaceSelect>
                                 <Input
                                     type="number"
                                     value={goalForm.targetAmount}
                                     onChange={(e) => setGoalForm((current) => ({ ...current, targetAmount: e.target.value }))}
                                     placeholder="Capital objetivo"
                                 />
-                            </div>
-                            <div className="planning-form__row">
+                            </WorkspaceLayout>
+                            <WorkspaceLayout appearance="planningFormRow"  >
                                 <Input
                                     type="number"
                                     value={goalForm.currentAmount}
@@ -287,51 +278,40 @@ export function Planning() {
                                     value={goalForm.targetDate}
                                     onChange={(e) => setGoalForm((current) => ({ ...current, targetDate: e.target.value }))}
                                 />
-                            </div>
+                            </WorkspaceLayout>
                             <Input
                                 value={goalForm.notes}
                                 onChange={(e) => setGoalForm((current) => ({ ...current, notes: e.target.value }))}
                                 placeholder="Notas opcionales"
                             />
                             <Button type="submit" disabled={saving} icon={<Target size={16} />}>{saving?'Guardando…':'Guardar objetivo'}</Button>
-                        </form>
+                        </WorkspaceForm>
 
-                        <div className="planning-list">
+                        <WorkspaceLayout appearance="planningList"  >
                             {goals.length === 0 ? (
-                                <p className="planning-empty">Aun no has definido objetivos.</p>
+                                <WorkspaceText appearance="planningEmpty"  >Aun no has definido objetivos.</WorkspaceText>
                             ) : goals.map((goal) => {
                                 const progress = goal.targetAmount > 0 ? Math.min((goal.currentAmount / goal.targetAmount) * 100, 100) : 0;
                                 const remaining = Math.max(goal.targetAmount - goal.currentAmount, 0);
                                 const months = monthsUntil(goal.targetDate);
                                 const monthlyNeed = months && months > 0 ? remaining / months : null;
                                 return (
-                                    <article key={goal.id} className="planning-item">
-                                        <div className="planning-item__header">
-                                            <div>
-                                                <h3>{goal.title}</h3>
-                                                <span>{GOAL_CATEGORY_LABELS[goal.category]}</span>
-                                            </div>
-                                            <button type="button" disabled={saving} className="planning-item__icon-button" onClick={() => void persist(()=>deleteGoal(goal.id),()=>setGoals((current)=>current.filter((item)=>item.id!==goal.id)))}>
+                                    <WorkspaceLayout appearance="planningItem" as="article" key={goal.id}>
+                                        <PlanningRecordHeader title={<>{goal.title}</>} label={<>{GOAL_CATEGORY_LABELS[goal.category]}</>} action={<WorkspaceButton appearance="planningItemIconButton"  type="button" disabled={saving} onClick={() => void persist(()=>deleteGoal(goal.id),()=>setGoals((current)=>current.filter((item)=>item.id!==goal.id)))}>
                                                 <Trash2 size={16} />
-                                            </button>
-                                        </div>
-                                        <div className="planning-progress">
-                                            <div className="planning-progress__bar">
-                                                <span style={{ width: `${progress}%` }} />
-                                            </div>
-                                            <strong>{progress.toFixed(1)}%</strong>
-                                        </div>
-                                        <div className="planning-item__meta">
+                                            </WorkspaceButton>} />
+                                        <PlanningProgress width={`${progress}%`} label={<>{progress.toFixed(1)}%</>} />
+                                        <WorkspaceLayout appearance="planningItemMeta"  >
                                             <span>Actual: {formatCurrency(goal.currentAmount)}</span>
                                             <span>Meta: {formatCurrency(goal.targetAmount)}</span>
                                             {monthlyNeed !== null && <span>Ahorro orientativo: {formatCurrency(monthlyNeed)}/mes</span>}
-                                        </div>
-                                        {goal.notes && <p className="planning-item__notes">{goal.notes}</p>}
-                                    </article>
+                                        </WorkspaceLayout>
+                                        {goal.notes && <WorkspaceText appearance="planningItemNotes"  >{goal.notes}</WorkspaceText>}
+                                    </WorkspaceLayout>
                                 );
                             })}
-                        </div>
-                    </CardContent>
+                        </WorkspaceLayout>
+                    </WorkspaceCardContent>
                 </Card>
 
                 <Card>
@@ -339,9 +319,9 @@ export function Planning() {
                         title="Watchlist manual"
                         subtitle="Ideas a vigilar sin mezclarlas con posiciones reales"
                     />
-                    <CardContent className="planning-section">
-                        <form className="planning-form" onSubmit={handleWatchlistSubmit}>
-                            <div className="planning-form__row">
+                    <WorkspaceCardContent appearance="planningSection"  >
+                        <WorkspaceForm appearance="planningForm"  onSubmit={handleWatchlistSubmit}>
+                            <WorkspaceLayout appearance="planningFormRow"  >
                                 <Input
                                     value={watchlistForm.symbol}
                                     onChange={(e) => setWatchlistForm((current) => ({ ...current, symbol: e.target.value }))}
@@ -352,58 +332,48 @@ export function Planning() {
                                     onChange={(e) => setWatchlistForm((current) => ({ ...current, name: e.target.value }))}
                                     placeholder="Nombre"
                                 />
-                            </div>
-                            <div className="planning-form__row">
-                                <select
-                                    className="planning-select"
-                                    value={watchlistForm.assetType}
-                                    onChange={(e) => setWatchlistForm((current) => ({ ...current, assetType: e.target.value as AssetType }))}
-                                >
+                            </WorkspaceLayout>
+                            <WorkspaceLayout appearance="planningFormRow"  >
+                                <WorkspaceSelect appearance="planningSelect"  value={watchlistForm.assetType} onChange={(e) => setWatchlistForm((current) => ({ ...current, assetType: e.target.value as AssetType }))}>
                                     <option value="stock">Accion</option>
                                     <option value="etf">ETF</option>
                                     <option value="fund">Fondo</option>
                                     <option value="crypto">Crypto</option>
-                                </select>
+                                </WorkspaceSelect>
                                 <Input
                                     type="number"
                                     value={watchlistForm.targetPrice}
                                     onChange={(e) => setWatchlistForm((current) => ({ ...current, targetPrice: e.target.value }))}
                                     placeholder="Precio objetivo opcional"
                                 />
-                            </div>
+                            </WorkspaceLayout>
                             <Input
                                 value={watchlistForm.notes}
                                 onChange={(e) => setWatchlistForm((current) => ({ ...current, notes: e.target.value }))}
                                 placeholder="Tesis, nivel de interés, qué quieres vigilar..."
                             />
                             <Button type="submit" disabled={saving} variant="secondary" icon={<Eye size={16} />}>{saving?'Guardando…':'Guardar en watchlist'}</Button>
-                        </form>
+                        </WorkspaceForm>
 
-                        <div className="planning-list">
+                        <WorkspaceLayout appearance="planningList"  >
                             {watchlist.length === 0 ? (
-                                <p className="planning-empty">No hay activos vigilados todavia.</p>
+                                <WorkspaceText appearance="planningEmpty"  >No hay activos vigilados todavia.</WorkspaceText>
                             ) : watchlist.map((item) => (
-                                <article key={item.id} className="planning-item">
-                                    <div className="planning-item__header">
-                                        <div>
-                                            <h3>{item.symbol}</h3>
-                                            <span>{item.name}</span>
-                                        </div>
-                                        <button type="button" disabled={saving} className="planning-item__icon-button" onClick={() => void persist(()=>deleteWatchlistItem(item.id),()=>setWatchlist((current)=>current.filter((watch)=>watch.id!==item.id)))}>
+                                <WorkspaceLayout appearance="planningItem" as="article" key={item.id}>
+                                    <PlanningRecordHeader title={<>{item.symbol}</>} label={<>{item.name}</>} action={<WorkspaceButton appearance="planningItemIconButton"  type="button" disabled={saving} onClick={() => void persist(()=>deleteWatchlistItem(item.id),()=>setWatchlist((current)=>current.filter((watch)=>watch.id!==item.id)))}>
                                             <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                    <div className="planning-item__meta">
+                                        </WorkspaceButton>} />
+                                    <WorkspaceLayout appearance="planningItemMeta"  >
                                         <span>Tipo: {item.assetType.toUpperCase()}</span>
                                         {item.targetPrice !== undefined && <span>Objetivo: {formatCurrency(item.targetPrice)}</span>}
-                                    </div>
-                                    {item.notes && <p className="planning-item__notes">{item.notes}</p>}
-                                </article>
+                                    </WorkspaceLayout>
+                                    {item.notes && <WorkspaceText appearance="planningItemNotes"  >{item.notes}</WorkspaceText>}
+                                </WorkspaceLayout>
                             ))}
-                        </div>
-                    </CardContent>
+                        </WorkspaceLayout>
+                    </WorkspaceCardContent>
                 </Card>
-            </section>
-        </div>
+            </WorkspaceLayout>
+        </WorkspaceLayout>
     );
 }

@@ -1,8 +1,10 @@
+import {CalculatorBondDetails,CalculatorWorkspace,CalculatorWorkspaceHeader,CalculatorWorkspaceTitle,CalculatorWorkspaceButton} from './CalculatorWorkspace';
+
 import { CalculatorGrid } from './CalculatorGrid';
 import { CalculatorHeroMetric } from './CalculatorHeroMetric';
 import { CalculatorEducationCard } from './CalculatorEducationCard';
 import { CalculatorField } from './CalculatorField';
-import { CalculatorDisclosure } from './CalculatorDisclosure';
+
 import { CalculatorDataItem } from './CalculatorDataItem';
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
 import {
@@ -17,7 +19,6 @@ import {
     ChevronDown,
     ChevronUp,
 } from 'lucide-react';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import { validateCalculatorInputs } from './calculatorValidation';
 import {
     solveBasicBond,
@@ -272,22 +273,20 @@ export function BondCalculator() {
             : Math.sign(parDelta);
 
     return (
-        <div className="bond-calc">
-            <AcademyPageHeader
-                className="bond-calc__header"
-                section="Herramientas">
-                <h1 className="bond-calc__title">Calculadora de Bonos (TIR)</h1>
-                <p className="bond-calc__subtitle">
+        <CalculatorWorkspace appearance="bondCalc"  >
+            <CalculatorWorkspaceHeader appearance="bondCalcHeader" section="Herramientas">
+                <CalculatorWorkspaceTitle as="h1" appearance="bondCalcTitle" >Calculadora de Bonos (TIR)</CalculatorWorkspaceTitle>
+                <CalculatorWorkspaceTitle as="p" appearance="bondCalcSubtitle" >
                     Calcula la rentabilidad al vencimiento de un bono a partir
                     de su precio de mercado.
-                </p>
-            </AcademyPageHeader>
+                </CalculatorWorkspaceTitle>
+            </CalculatorWorkspaceHeader>
 
             <CalculatorGrid variant="bond-grid">
-                <div className="bond-calc__inputs">
-                    <div className="bond-calc__inputs-header">
+                <CalculatorWorkspace appearance="bondCalcInputs"  >
+                    <CalculatorWorkspace appearance="bondCalcInputsHeader"  >
                         <h3>Parámetros</h3>
-                    </div>
+                    </CalculatorWorkspace>
 
                     <CalculatorField
                         controlId="bond-price"
@@ -366,11 +365,8 @@ export function BondCalculator() {
                             placeholder="100"
                         />
                     </CalculatorField>
-                    <div className="bond-calc__advanced">
-                        <button
-                            type="button"
-                            className="bond-calc__advanced-toggle"
-                            onClick={() =>
+                    <CalculatorWorkspace appearance="bondCalcAdvanced"  >
+                        <CalculatorWorkspaceButton appearance="bondCalcAdvancedToggle" type="button" onClick={() =>
                                 setAdvancedEnabled((current) => !current)
                             }>
                             <span>Opciones avanzadas</span>
@@ -379,10 +375,10 @@ export function BondCalculator() {
                             ) : (
                                 <ChevronDown size={18} />
                             )}
-                        </button>
+                        </CalculatorWorkspaceButton>
 
                         {advancedEnabled && (
-                            <div className="bond-calc__advanced-content">
+                            <CalculatorWorkspace appearance="bondCalcAdvancedContent"  >
                                 <CalculatorGrid variant="bond-advanced-grid">
                                     <CalculatorField
                                         controlId="bond-settlement-date"
@@ -511,10 +507,7 @@ export function BondCalculator() {
                                         </select>
                                     </CalculatorField>
                                 </CalculatorGrid>
-                                <CalculatorDisclosure
-                                    appearance="plain"
-                                    className="bond-calc__calculation-details"
-                                    title={<>Cupones irregulares (opcional)</>}>
+                                <CalculatorBondDetails appearance="plain" title={<>Cupones irregulares (opcional)</>}>
 
                                     <p>
                                         Indica las fechas contractuales si el
@@ -557,13 +550,13 @@ export function BondCalculator() {
                                         </CalculatorField>
                                     </CalculatorGrid>
 
-                                </CalculatorDisclosure>
-                            </div>
+                                </CalculatorBondDetails>
+                            </CalculatorWorkspace>
                         )}
-                    </div>
-                </div>
+                    </CalculatorWorkspace>
+                </CalculatorWorkspace>
 
-                <div className="bond-calc__results">
+                <CalculatorWorkspace appearance="bondCalcResults"  >
                     {!Number.isFinite(calculation.ytm) ||
                     !Number.isFinite(calculation.effectiveYtm) ? (
                         <p role="alert">
@@ -676,10 +669,7 @@ export function BondCalculator() {
                                     )}
                                         %</>}
                                 />
-                                <CalculatorDisclosure
-                                    appearance="plain"
-                                    className="bond-calc__calculation-details"
-                                    title={<>Detalles del cálculo</>}>
+                                <CalculatorBondDetails appearance="plain" title={<>Detalles del cálculo</>}>
 
                                     <dl>
                                         <dt>Precio limpio</dt>
@@ -758,10 +748,10 @@ export function BondCalculator() {
                                         por inflación.
                                     </p>
 
-                                </CalculatorDisclosure>
+                                </CalculatorBondDetails>
                         </>
                     )}
-                </div>
+                </CalculatorWorkspace>
             </CalculatorGrid>
 
             <CalculatorGrid variant="bond-calc-edu">
@@ -791,6 +781,6 @@ export function BondCalculator() {
                     ante subidas de tipos si el plazo es largo).
                 </CalculatorEducationCard>
             </CalculatorGrid>
-        </div>
+        </CalculatorWorkspace>
     );
 }

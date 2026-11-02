@@ -1,3 +1,5 @@
+import { calculatorWorkspaceStyle } from './CalculatorWorkspace.styles';
+import {CalculatorWorkspace,CalculatorWorkspaceHeader,CalculatorWorkspaceCard,CalculatorWorkspaceTitle,CalculatorRetirementSummary} from './CalculatorWorkspace';
 import { CalculatorLegend } from './CalculatorLegend';
 import { CalculatorNotice } from './CalculatorNotice';
 import { CalculatorChart } from './CalculatorChart';
@@ -7,9 +9,8 @@ import { CalculatorResultCard } from './CalculatorResultCard';
 import { useEffect, useMemo, useState } from 'react';
 import { Calendar, Info, ShieldAlert, BadgeInfo, Wallet2, TrendingUp } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { CalculatorCard } from './CalculatorCard';
+
 import { validateCalculatorInputs } from './calculatorValidation';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './RetirementCalculator.css';
 import { ScenarioComparison } from './ScenarioComparison';
 
@@ -142,22 +143,19 @@ export function RetirementCalculator() {
     const finalReal = projectionData[projectionData.length - 1]?.real || 0;
 
     return (
-        <div className="retirement">
-            <AcademyPageHeader className="retirement__header" section="Herramientas">
+        <CalculatorWorkspace appearance="retirement"  >
+            <CalculatorWorkspaceHeader appearance="retirementHeader" section="Herramientas">
                 <CalculatorToolHeading appearance="retirement" icon={<div className="retirement__icon-container">
                         <Calendar className="retirement__title-icon" />
                     </div>} title={<>Planificador de Jubilación</>} description={<>¿Cuánto valdrán tus ahorros cuando te retires?</>} />
-                <div className="retirement__summary-badge">
-                    <span className="retirement__summary-label">Objetivo en {yearsToRetire} años</span>
-                    <span className="retirement__summary-value">{calculationError ? 'N/D' : formatRetirementCurrency(finalNominal)}</span>
-                </div>
-            </AcademyPageHeader>
+                <CalculatorRetirementSummary label={<>Objetivo en {yearsToRetire} años</>} value={<>{calculationError ? 'N/D' : formatRetirementCurrency(finalNominal)}</>}/>
+            </CalculatorWorkspaceHeader>
 
-            <div className="retirement__grid">
-                <aside className="retirement__inputs">
-                    <CalculatorCard className="retirement__input-section">
-                        <h3 className="retirement__section-header">Edades</h3>
-                        <div className="retirement__input-grid retirement__input-grid--stacked">
+            <CalculatorWorkspace appearance="retirementGrid"  >
+                <CalculatorWorkspace appearance="retirementInputs" as="aside" >
+                    <CalculatorWorkspaceCard appearance="retirementInputSection" >
+                        <CalculatorWorkspaceTitle as="h3" appearance="retirementSectionHeader" >Edades</CalculatorWorkspaceTitle>
+                        <CalculatorWorkspace appearance="retirementInputGrid"  className={calculatorWorkspaceStyle('retirementInputGridStacked')} >
                             <CalculatorField controlId="retirementcalculator-currentAge" label="Edad Actual" icon={<Calendar size={18} />} unit="años">
                                 <input
                                     id="retirementcalculator-currentAge"
@@ -174,11 +172,11 @@ export function RetirementCalculator() {
                                     onChange={(e) => setRetirementAge(e.target.value === '' ? '' : Number(e.target.value))}
                                 />
                             </CalculatorField>
-                        </div>
-                    </CalculatorCard>
+                        </CalculatorWorkspace>
+                    </CalculatorWorkspaceCard>
 
-                    <CalculatorCard className="retirement__input-section">
-                        <h3 className="retirement__section-header">Ahorro y Aportaciones</h3>
+                    <CalculatorWorkspaceCard appearance="retirementInputSection" >
+                        <CalculatorWorkspaceTitle as="h3" appearance="retirementSectionHeader" >Ahorro y Aportaciones</CalculatorWorkspaceTitle>
                         <CalculatorField controlId="retirementcalculator-currentSavings" label="Ahorro Actual" icon={<Wallet2 size={18} />} unit="€">
                             <input
                                 id="retirementcalculator-currentSavings"
@@ -195,11 +193,11 @@ export function RetirementCalculator() {
                                 onChange={(e) => setMonthlyContribution(e.target.value === '' ? '' : Number(e.target.value))}
                             />
                         </CalculatorField>
-                    </CalculatorCard>
+                    </CalculatorWorkspaceCard>
 
-                    <CalculatorCard className="retirement__input-section">
-                        <h3 className="retirement__section-header">Mercado e Inflación</h3>
-                        <div className="retirement__input-grid">
+                    <CalculatorWorkspaceCard appearance="retirementInputSection" >
+                        <CalculatorWorkspaceTitle as="h3" appearance="retirementSectionHeader" >Mercado e Inflación</CalculatorWorkspaceTitle>
+                        <CalculatorWorkspace appearance="retirementInputGrid"  >
                             <CalculatorField controlId="retirementcalculator-annualReturn" label="Rentabilidad Anual" icon={<TrendingUp size={18} />} unit="%">
                                 <input
                                     id="retirementcalculator-annualReturn"
@@ -218,22 +216,22 @@ export function RetirementCalculator() {
                                     onChange={(e) => setInflationRate(e.target.value === '' ? '' : Number(e.target.value))}
                                 />
                             </CalculatorField>
-                        </div>
-                    </CalculatorCard>
+                        </CalculatorWorkspace>
+                    </CalculatorWorkspaceCard>
 
                     <CalculatorNotice appearance="retirement" icon={<Info size={16} />}>La inflación reduce tu poder adquisitivo. 100.000€ en el futuro no comprarán lo mismo que hoy.</CalculatorNotice>
-                </aside>
+                </CalculatorWorkspace>
 
                 <main className="retirement__main">
                     {calculationError ? <p role="alert">{calculationError}</p> : <>
-                    <div className="retirement__metrics">
+                    <CalculatorWorkspace appearance="retirementMetrics"  >
                             <CalculatorResultCard layout="icon" className="retirement__metric-card"
                                 label="Capital Nominal" value={<>{formatRetirementCurrency(finalNominal)}</>} description={<>La cifra que verás en tu cuenta</>} icon={<Wallet2 />}
                                 slotClasses={{ label: 'retirement__metric-label', value: 'retirement__metric-value', description: 'retirement__metric-desc', content: 'retirement__metric-info', icon: 'retirement__metric-icon' }} />
                             <CalculatorResultCard layout="icon" className="retirement__metric-card retirement__metric-card--highlight" highlight
                                 label="Poder Adquisitivo Real" value={<>{formatRetirementCurrency(finalReal)}</>} description={<>Equivalente a dinero de HOY</>} icon={<ShieldAlert />}
                                 slotClasses={{ label: 'retirement__metric-label', value: 'retirement__metric-value', description: 'retirement__metric-desc', content: 'retirement__metric-info', icon: 'retirement__metric-icon' }} />
-                    </div>
+                    </CalculatorWorkspace>
 
                     <CalculatorChart appearance="retirement" title={<>Evolución del Patrimonio</>} legend={<CalculatorLegend appearance="retirement" items={[{ label: <> Valor Futuro</>, tone: 'blue' },{ label: <> Poder Adquisitivo</>, tone: 'green' }]} />}>
                             <ResponsiveContainer width="100%" height={350}>
@@ -314,7 +312,7 @@ export function RetirementCalculator() {
                         ],
                     }} />
                 </main>
-            </div>
-        </div>
+            </CalculatorWorkspace>
+        </CalculatorWorkspace>
     );
 }

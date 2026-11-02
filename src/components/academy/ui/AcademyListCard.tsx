@@ -1,3 +1,4 @@
+import {assetGuideFrameStyle} from './AssetGuideFrame.styles';
 import type { ReactNode } from 'react';
 import { AcademyPanel } from './AcademyPanel';
 import { cn } from '../../../utils/cn';
@@ -14,7 +15,7 @@ interface AcademyListCardProps {
 export function AcademyListCard({ kind, title, children, badge, className }: AcademyListCardProps) {
     const comparison = kind === 'comparison';
     return <AcademyPanel variant={comparison ? 'comparison' : 'prosCons'} className={cn(
-        comparison ? 'versus-card' : `pc-column pc-column--${kind}`,
+        comparison ? assetGuideFrameStyle('versus-card') : `${assetGuideFrameStyle('pc-column')} pc-column--${kind}`,
         kind === 'pros' && 'tw:bg-[rgba(16,185,129,.04)]',
         kind === 'cons' && 'tw:bg-[rgba(239,68,68,.04)]',
         className,

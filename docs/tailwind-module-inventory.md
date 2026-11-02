@@ -151,3 +151,10 @@ Se retiran 512 líneas de CSS y 108 declaraciones `@apply`, incluida `AssetsTabl
 La vigésima segunda fase compone Fundamentos mediante `AcademyLearningStructure` y cinco variantes de `AcademyGrid`; comparte sus cabeceras con Fiscalidad mediante `AcademyReadingHeader`. `AcademyRiskReading` posee las tarjetas y estructura de la matriz/horizontes/leyenda, y `AcademyToolLink` conserva su receta de lectura. `AcademyTaxReading` reúne tramos y ejemplo fiscal, reutilizando la comparación de fondos/ETF existente.
 
 Se retiran 358 líneas de CSS y 106 declaraciones `@apply`, incluida `Fundamentos.css` y reglas sin consumidores. Las tres hojas pasan de 396 a 38 líneas; quedan 7.063 líneas en 56 hojas, un 68,96 % menos que las 22.753 iniciales. Se verifican 32 estados con 21 propiedades calculadas, 72 combinaciones responsive y la persistencia, navegación y accesibilidad de las guías.
+
+
+### Tanda amplia: cartera, calculadoras y cinco guías de activos
+
+La vigésima tercera fase abarca 13 pantallas. `ui/workspace` compone marcos, formularios, registros, filtros, progreso y lectura legal; `DashboardWorkspace` comparte entrada, seguimiento y estados; `CalculatorWorkspace` reúne disposición y paneles de Interés compuesto/Jubilación/Bonos; `AssetGuideFrame` y las partes existentes completan las cinco guías. Se conservan controles y nodos nativos, datos, operaciones y cálculos.
+
+Se retiran 1.592 líneas y 344 declaraciones `@apply`: quedan 5.471 líneas en 49 hojas, una reducción acumulada del 75,95 % sobre las 22.753 iniciales. Se eliminan siete hojas completas, incluido el módulo sin consumidores AssetTypes, cuya URL mantiene la redirección existente. Se unifica la animación compartida de desplegables y se retiran barras obsoletas. Coinciden 128 estados con 21 propiedades y pasan 156 combinaciones responsive, las pruebas funcionales y los controles de compilación. Los materiales globales y contenido enriquecido siguen en CSS cuando lo requieren.

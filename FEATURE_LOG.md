@@ -12,6 +12,20 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-11-02 - Tailwind: tanda amplia de cartera, calculadoras y guías · 75,95 %
+- Funcionalidad:
+  - Comparte estructura, formularios, filtros y registros de Planificación, Operaciones y Ajustes, y la lectura nativa de Términos.
+  - Compone cabecera, bienvenida, aviso inicial, estados y secciones de Dashboard; reutiliza marcos, paneles y opciones de Interés compuesto, Jubilación y Bonos.
+  - Completa el marco de lectura de las cinco guías de activos y sus bloques de comparación, categorías y experimentos; consolida la animación compartida de desplegables.
+- Resumen:
+  - Retira 1.592 líneas de CSS fuente y 344 declaraciones `@apply`. Quedan 5.471 líneas en 49 hojas: reducción acumulada del 75,95 % respecto al inicio. No equivale a ahorro de descarga.
+  - Elimina siete hojas completas y el módulo de tipos de activos que ya no tenía consumidores; su URL sigue redirigiendo a Estrategia y cartera.
+  - Conserva cálculos, persistencia, controles nativos y comportamiento móvil. Coinciden 128 estados calculados y pasan 156 combinaciones responsive en 13 pantallas, pruebas de cartera/calculadoras/formularios, TypeScript, ESLint y build.
+- Archivos:
+  - `src/pages/{Dashboard,Planning,Transactions,Settings,TermsAndConditions}` y `src/components/ui/workspace/*`.
+  - `src/components/academy/calculators/{CompoundInterestCalc,RetirementCalculator,BondCalculator}*`, `CalculatorWorkspace*`.
+  - `src/components/academy/assets/*`, `src/components/academy/ui/AssetGuideFrame*`, partes compartidas de las guías, `PreferenceOption` y animaciones de `src/index.css`.
+
 ### 2026-11-02 - Tailwind: Fundamentos, Riesgo y Fiscalidad
 - Funcionalidad:
   - Compone niveles de aprendizaje, rejillas, bloques destacados y siguientes pasos de Fundamentos sobre las piezas de Academia existentes.

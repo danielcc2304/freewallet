@@ -1,3 +1,4 @@
+import {AssetGuideFrame,AssetGuideDescription} from '../ui/AssetGuideFrame';
 import {AcademyAssetVisual} from '../ui/AcademyBondParts';
 import {AcademyAssetBar} from '../ui/AcademyAssetBars';
 import {AcademyAssetHero,AcademyAssetBackLink,AcademyAssetText,AcademyAssetInlineLink} from '../ui/AcademyAssetReading';
@@ -15,7 +16,6 @@ import {
     Lightbulb, BarChart3, Clock, Shield, Activity
 } from 'lucide-react';
 import { AssetGuideNav } from './AssetGuideNav';
-import './AssetPage.css';
 
 const CASH_INSTRUMENTS = [
     {
@@ -58,7 +58,7 @@ const CASH_INSTRUMENTS = [
 
 export function AssetCash() {
     return (
-        <div className="asset-page asset-page--cash" style={{ '--asset-color': '#06b6d4' } as React.CSSProperties}>
+        <AssetGuideFrame appearance="cash" style={{ '--asset-color': '#06b6d4' } as React.CSSProperties}>
             <AcademyAssetBackLink to="/academy/portfolio">
                 <ArrowLeft size={18} /> Estrategia y cartera
             </AcademyAssetBackLink>
@@ -103,7 +103,7 @@ export function AssetCash() {
 
             <AcademySection title={<><BarChart3 size={22} /> Instrumentos de Liquidez</>} id="section-2" className="asset-page__section">
 
-                <p className="asset-page__section-desc">No todo el cash es igual. Hay formas de mantener liquidez que rinden significativamente más que el dinero en una cuenta corriente.</p>
+                <AssetGuideDescription >No todo el cash es igual. Hay formas de mantener liquidez que rinden significativamente más que el dinero en una cuenta corriente.</AssetGuideDescription>
 
                 <AcademyGrid variant="subtypes" className="asset-page__subtype-grid">
                     {CASH_INSTRUMENTS.map((inst) => (
@@ -195,6 +195,6 @@ export function AssetCash() {
                         (inflación), pero tener muy poco te obliga a malvender inversiones en el peor momento.
                         <strong> Encuentra tu equilibrio: 3-6 meses de gastos es la regla de oro.</strong>
                     </AcademyFinalTip>
-        </div>
+        </AssetGuideFrame>
     );
 }

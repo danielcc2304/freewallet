@@ -1,3 +1,4 @@
+import {assetGuideFrameStyle} from './AssetGuideFrame.styles';
 import { learningStructureStyle } from './AcademyLearningStructure.styles';
 import type { HTMLAttributes } from 'react';
 import { cn } from '../../../utils/cn';
@@ -43,5 +44,5 @@ interface AcademyGridProps extends HTMLAttributes<HTMLElement> {
 }
 /** Layout only: media/container queries and chart-specific rules remain local. */
 export function AcademyGrid({ as: Tag = 'div', variant, className, ...props }: AcademyGridProps) {
-    return <Tag {...props} className={cn(layouts[variant], className)} />;
+    return <Tag {...props} className={cn(layouts[variant],variant==='prosCons'?assetGuideFrameStyle('asset-page__pros-cons'):variant==='metrics'?assetGuideFrameStyle('asset-page__metrics-grid'):variant==='subtypes'?assetGuideFrameStyle('asset-page__subtype-grid'):undefined,className)} />;
 }

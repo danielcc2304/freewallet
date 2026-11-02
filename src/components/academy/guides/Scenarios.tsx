@@ -1,6 +1,7 @@
+import {GuideBlock,GuidePanel,GuideReadingHeader} from '../ui/GuideReading';
 import { AcademyIdentityHeading, AcademyScenarioSection, AcademyActionCard } from '../ui/AcademyGuideParts';
 import { AcademyGrid } from '../ui/AcademyGrid';
-import { AcademyPanel } from '../ui/AcademyPanel';
+
 import {
     Shield,
     TrendingUp,
@@ -26,8 +27,7 @@ import {
     type LucideIcon
 } from 'lucide-react';
 import { SCENARIOS } from '../../../data/academyData';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
-import './Scenarios.css';
+
 
 const IconMap: Record<string, LucideIcon> = {
     Shield,
@@ -55,18 +55,15 @@ const IconMap: Record<string, LucideIcon> = {
 
 export function Scenarios() {
     return (
-        <div className="scenarios">
-            <AcademyPageHeader className="scenarios__header" section="Escenarios">
-                <h1 className="scenarios__title">¿Qué hacer cuando...?</h1>
-                <p className="scenarios__subtitle">
+        <GuideBlock appearance="scenarios"  >
+            <GuideReadingHeader appearance="scenarios" section="Escenarios" title={<>¿Qué hacer cuando...?</>} description={<>
                     Guía rápida de actuación para los escenarios más comunes del inversor.
                     Mantén la cabeza fría cuando todos los demás la pierden.
-                </p>
-            </AcademyPageHeader>
+                </>} />
 
             <AcademyGrid variant="scenarios" className="scenarios__grid">
                 {SCENARIOS.map((scenario) => (
-                    <AcademyPanel variant="scenario" as="article" key={scenario.id} className="scenario-card">
+                    <GuidePanel appearance="scenarioCard"  variant="scenario" as="article" key={scenario.id}>
                         <AcademyIdentityHeading variant="scenario" emoji={<>{scenario.emoji}</>} title={<>{scenario.title}</>} />
 
                         <div className="scenario-card__content">
@@ -78,7 +75,7 @@ export function Scenarios() {
                                         {typeof section.content === 'string' ? (
                                             <p>{section.content}</p>
                                         ) : (
-                                            <div className="scenario-actions">
+                                            <GuideBlock appearance="scenarioActions"  >
                                                 {section.content.map((action, actionIdx) => {
                                                     const Icon = IconMap[action.icon] || Info;
                                                     return (
@@ -87,14 +84,14 @@ export function Scenarios() {
                                                             </>} title={<>{action.title}</>}>{action.description}</AcademyActionCard>
                                                     );
                                                 })}
-                                            </div>
+                                            </GuideBlock>
                                         )}
                                     </AcademyScenarioSection>
                             ))}
                         </div>
-                    </AcademyPanel>
+                    </GuidePanel>
                 ))}
             </AcademyGrid>
-        </div>
+        </GuideBlock>
     );
 }

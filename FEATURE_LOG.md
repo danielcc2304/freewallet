@@ -12,6 +12,20 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-11-02 - Tailwind: guías, simuladores, Portfolio y navegación · 80,22 %
+- Funcionalidad:
+  - Comparte marcos de lectura, cabeceras, secciones, rejillas y siguientes pasos en Valoración, Errores comunes, Tu viaje como inversor, Glosario, Escenarios y Estrategias.
+  - Compone los marcos, paneles, botones y campos de Estrategia y cartera y del simulador de asignación; completa la presentación compartida de Portfolio y la ficha de fondos.
+  - Extrae el marco, regiones, grupos desplegables y botones del sidebar, conservando el estado de sincronización en su componente.
+- Resumen:
+  - Retira 971 líneas de CSS fuente y 245 declaraciones `@apply`; elimina ocho hojas completas. Quedan 4.500 líneas en 41 hojas: reducción acumulada del 80,22 % sobre las 22.753 iniciales. No equivale a ahorro de descarga.
+  - Mantiene cálculos, persistencia, controles y temas. Coinciden 104 estados de páginas/navegación y 16 escenarios de la ficha con datos interceptados. Pasan 132 combinaciones responsive, pruebas de estrategia y búsqueda, TypeScript, ESLint y build.
+  - Conserva los materiales específicos de los simuladores y la animación de carga en CSS; no cambia backend, proveedores, dependencias ni versión.
+- Archivos:
+  - `src/components/academy/guides/*`, `src/components/academy/simulators/{PortfolioBuilder,AssetAllocationSim}*` y `src/components/academy/ui/{GuideReading,SimulationFrames}*`.
+  - `src/components/academy/calculators/{FundInformationCalculator,FundSheetFrame}*`, `src/pages/PortfolioCsv/*` y sus componentes de presentación.
+  - `src/components/layout/Sidebar/*`, `AccountSyncStatus`, componentes compartidos de métricas/campos y documentación de la migración.
+
 ### 2026-11-02 - Tailwind: tanda amplia de cartera, calculadoras y guías · 75,95 %
 - Funcionalidad:
   - Comparte estructura, formularios, filtros y registros de Planificación, Operaciones y Ajustes, y la lectura nativa de Términos.

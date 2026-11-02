@@ -1,11 +1,11 @@
-import { Link } from 'react-router-dom';
+import {GuideBlock,GuideLink,GuideReadingHeader,GuideReadingCallout} from '../ui/GuideReading';
+
 import {JourneyCrisis,JourneyCrisisColumn,JourneyNextSection,JourneyNextLink} from '../ui/JourneySupport';
 import { JourneyNotice, JourneyGuideLink } from '../ui/JourneyPhase';
 import { JourneyPhase, JourneyTextSection, JourneyChecklist, JourneyAllocation } from '../ui/JourneyPhase';
 import { useState } from 'react';
 import { TIMELINE_PHASES } from '../../../data/academyData';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
-import './InvestorTimeline.css';
+
 
 export function InvestorTimeline() {
     const [expandedPhase, setExpandedPhase] = useState<string | null>('phase-0');
@@ -18,13 +18,10 @@ export function InvestorTimeline() {
     const crisisPhase = TIMELINE_PHASES.find(p => p.phase === 99);
 
     return (
-        <div className="timeline">
-            <AcademyPageHeader className="timeline__header" section="Aprender">
-                <h1 className="timeline__title">Tu viaje como inversor</h1>
-                <p className="timeline__description">
+        <GuideBlock appearance="timeline"  >
+            <GuideReadingHeader appearance="timeline" section="Aprender" title={<>Tu viaje como inversor</>} description={<>
                     Una guía visual que te acompaña en cada etapa de tu camino como inversor.
-                </p>
-            </AcademyPageHeader>
+                </>} />
 
             <JourneyNotice>
                 <strong>⚠️ Importante:</strong> Esta línea temporal es una guía orientativa.
@@ -32,7 +29,7 @@ export function InvestorTimeline() {
                 Tu situación personal, objetivos y circunstancias determinan tu propio ritmo.
             </JourneyNotice>
 
-            <div className="timeline__container">
+            <GuideBlock appearance="timelineContainer"  >
                 {/* Regular phases */}
                 {regularPhases.map((phase, index) => (
                     <JourneyPhase key={phase.id} number={phase.phase} title={phase.title} duration={phase.duration} connected={index < regularPhases.length - 1} expanded={expandedPhase === phase.id} onToggle={() => togglePhase(phase.id)}>
@@ -53,15 +50,11 @@ export function InvestorTimeline() {
                         <JourneyChecklist appearance="errors" title="⚠️ Errores comunes:" items={phase.commonErrors} />
                     </JourneyPhase>
                 ))}
-            </div>
+            </GuideBlock>
 
-            <section className="timeline__errors-cta">
-                <h3>Errores comunes del inversor</h3>
-                <p>Hemos movido esta parte a una sección específica para que la tengas completa y mejor organizada.</p>
-                <Link to="/academy/errors" className="timeline__errors-link">
+            <GuideReadingCallout title={<>Errores comunes del inversor</>} description={<>Hemos movido esta parte a una sección específica para que la tengas completa y mejor organizada.</>}><GuideLink appearance="timelineErrorsLink"  to="/academy/errors">
                     Ir a Errores Comunes →
-                </Link>
-            </section>
+                </GuideLink></GuideReadingCallout>
 
             {/* Crisis phase - special styling */}
             {crisisPhase && (
@@ -89,6 +82,6 @@ export function InvestorTimeline() {
                     <JourneyGuideLink to="/academy/scenarios" title={<>Qué hacer si...</>} description={<>Para convertir teoria en decisiones practicas.</>} />
                     <JourneyGuideLink to="/academy/portfolio" title={<>Construir cartera</>} description={<>Para traducir tu fase inversora en una asignacion real.</>} />
                 </JourneyNextSection>
-        </div>
+        </GuideBlock>
     );
 }

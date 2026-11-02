@@ -1,3 +1,5 @@
+import{PortfolioReportFrame,PortfolioReportValue}from'./ui/PortfolioReportFrame';
+import{portfolioReportStyle}from'./ui/PortfolioReportFrame.styles';
 import {PortfolioChartFrame,PortfolioTransitionNotice,PortfolioTransitionNote,PortfolioDashboardLink} from './ui/PortfolioImportPresentation';
 import {PortfolioImportHeader,PortfolioUploadCard,PortfolioCompositionLegend,PortfolioCompositionLegendItem,PortfolioInsightList,PortfolioInsightItem,PortfolioAnalysisNote,PortfolioEmptyState,PortfolioAnalysisCheck,PortfolioTableHeading,PortfolioPlanRow,PortfolioChartTooltip,PortfolioTooltipItem,PortfolioAnalysisHeading} from './ui/PortfolioAnalysis';
 import { NativeControl } from '../../components/ui/NativeControl';
@@ -90,7 +92,7 @@ import {
     parsePeriodParts,
     resolveEvolutionPeriods,
 } from './portfolioCsvUtils';
-import './PortfolioCsv.css';
+
 import { buildWorkbookHistory } from '../../services/portfolioWorkbookHistory';
 import { performanceSeries, portfolioMonthlyRows } from '../../services/portfolioPerformance';
 
@@ -717,7 +719,7 @@ export function PortfolioCsv() {
     const warningControls = workbookControls.filter((control) => control.status === 'warn' && control !== generalControl);
 
     return (
-        <div className="portfolio-csv-page">
+        <PortfolioReportFrame appearance="portfolio-csv-page"   >
             <Modal isOpen={showTransitionNotice} onClose={() => setShowTransitionNotice(false)} size="md">
                 <PortfolioTransitionNotice icon={<><FileSpreadsheet size={44} aria-hidden="true" /></>} title={<>Portfolio da paso al Dashboard</>}><p>Esta sección se irá retirando progresivamente en favor del Dashboard, donde puedes seguir tu cartera.</p><p>Por ahora, puedes seguir usando Portfolio para <strong>subir la plantilla Excel e incorporar el histórico de tu cartera</strong>.</p><PortfolioTransitionNote>La importación mediante plantilla aún no está integrada en el Dashboard.</PortfolioTransitionNote><PortfolioDashboardLink to="/" onClick={() => setShowTransitionNotice(false)}>
                         <LayoutDashboard size={18} aria-hidden="true" /> Ir al Dashboard
@@ -727,7 +729,7 @@ export function PortfolioCsv() {
             </Modal>
             <PortfolioImportHeader badge={<>Portfolio</>} title={<>Análisis de cartera</>} description={<>Sube tu Excel y dale un vistazo honesto a tu cartera: cómo está repartida, cuánto ha crecido, qué riesgo estás asumiendo y cómo se comporta frente al mercado. Con el detalle diario, además, podemos hilar un poco más fino.</>} />
 
-            <section className="portfolio-csv-upload">
+            <PortfolioReportFrame appearance="portfolio-csv-upload" as="section"  >
                 <PortfolioUploadCard title={<><FileSpreadsheet size={18} /> Excel único</>} description={<>Sube el Excel completo con `Cartera`, `Evolución`, `Diario`, `Movimientos`, `Comparativa`, `Objetivos`, `Control` y `Datos diarios`, o descarga la plantilla actualizada.</>} actions={<>
                         <PortfolioButton type="button" onClick={() => workbookInputRef.current?.click()}>
                             <Upload size={16} /> Subir Excel
@@ -749,38 +751,38 @@ export function PortfolioCsv() {
                             event.target.value = '';
                         }}
                     />} notes={[<>{workbookFileLabel}</>,<>Última actualización: {updatedAt ? new Date(updatedAt).toLocaleString('es-ES') : 'sin registrar'}</>]} />
-            </section>
+            </PortfolioReportFrame>
 
             {error && (
-                <div className="portfolio-csv-error">
+                <PortfolioReportFrame appearance="portfolio-csv-error"   >
                     <AlertTriangle size={16} />
                     <span>{error}</span>
-                </div>
+                </PortfolioReportFrame>
             )}
 
-            <section className="portfolio-csv-kpis">
+            <PortfolioReportFrame appearance="portfolio-csv-kpis" as="section"  >
                 <DataItem as="article" layout="csv" className="portfolio-csv-kpi" label={'Patrimonio actual'} value={<>{formatCurrency(totalPortfolioValue)}</>} />
                 <DataItem as="article" layout="csv" className="portfolio-csv-kpi" label={'Top 3 concentración'} value={<>{formatPct(topConcentration)}</>} />
                 <DataItem as="article" layout="csv" className="portfolio-csv-kpi" label={'Diversificación efectiva'} value={<>{effectivePositions.toFixed(1)} posiciones</>} />
                 <DataItem as="article" layout="csv" className="portfolio-csv-kpi" label={'Meses positivos'} value={<>{formatPct(positiveMonthRatio)}</>} />
                 <DataItem as="article" layout="csv" className="portfolio-csv-kpi" label={'Retorno medio mensual'} value={<>{formatPct(avgMonthlyReturn)}</>} />
                 <DataItem as="article" layout="csv" className="portfolio-csv-kpi" label={'Volatilidad mensual'} value={<>{formatPct(monthlyVolatility)}</>} />
-            </section>
+            </PortfolioReportFrame>
 
             {(workbookControls.length > 0 || objectives.length > 0 || movements.length > 0) && (
-                <section className="portfolio-csv-grid portfolio-csv-grid--workbook">
+                <PortfolioReportFrame appearance="portfolio-csv-grid" as="section" workbook >
                     <PortfolioPanel title={<><ListChecks size={18} /> Estado del Excel</>} description={<>Controles importados de la hoja `Control`.</>} status={<StatusPill appearance="workbook" tone={generalControl?.status || 'neutral'}>
                                 {generalControl?.value || (warningControls.length ? 'REVISAR' : 'OK')}
                             </StatusPill>}>
                         {workbookControls.length > 0 ? (
-                            <div className="portfolio-csv-workbook-controls">
+                            <PortfolioReportFrame appearance="portfolio-csv-workbook-controls"   >
                                 {workbookControls.filter((control) => control !== generalControl).slice(0, 8).map((control) => (
-                                    <div key={control.label} className="portfolio-csv-workbook-control">
+                                    <PortfolioReportFrame appearance="portfolio-csv-workbook-control"   key={control.label}>
                                         <span>{control.label}</span>
-                                        <strong className={`portfolio-csv-workbook-control--${control.status}`}>{control.value}</strong>
-                                    </div>
+                                        <PortfolioReportValue status={control.status} >{control.value}</PortfolioReportValue>
+                                    </PortfolioReportFrame>
                                 ))}
-                            </div>
+                            </PortfolioReportFrame>
                         ) : <PortfolioEmptyState >Este archivo no incluye la hoja `Control`.</PortfolioEmptyState>}
                     </PortfolioPanel>
 
@@ -789,48 +791,48 @@ export function PortfolioCsv() {
                             </StatusPill>}>
 
                         {largestObjectiveGaps.length > 0 ? (
-                            <div className="portfolio-csv-objectives">
+                            <PortfolioReportFrame appearance="portfolio-csv-objectives"   >
                                 {largestObjectiveGaps.map((objective) => (
-                                    <div key={objective.asset} className="portfolio-csv-objective">
+                                    <PortfolioReportFrame appearance="portfolio-csv-objective"   key={objective.asset}>
                                         <div>
                                             <strong>{objective.asset}</strong>
                                             <small>{formatPct(objective.currentWeight)} → {formatPct(objective.targetWeight)}</small>
                                         </div>
                                         <span>{formatCurrency(objective.contributionAmount || objective.shortfallAmount)}</span>
-                                    </div>
+                                    </PortfolioReportFrame>
                                 ))}
                                 {objectiveContribution > 0 && (
-                                    <div className="portfolio-csv-objectives__total">
+                                    <PortfolioReportFrame appearance="portfolio-csv-objectives__total"   >
                                         <span>Aportación planificada</span><strong>{formatCurrency(objectiveContribution)}</strong>
-                                    </div>
+                                    </PortfolioReportFrame>
                                 )}
-                            </div>
+                            </PortfolioReportFrame>
                         ) : <PortfolioEmptyState >No hay déficits objetivo ni aportaciones pendientes.</PortfolioEmptyState>}
                     </PortfolioPanel>
-                </section>
+                </PortfolioReportFrame>
             )}
 
             {movements.length > 0 && (
                 <PortfolioPanel className="portfolio-csv-movements" as="section" full title={<><RefreshCw size={18} /> Movimientos de capital</>} description={<>Aportaciones y retiradas leídas directamente de la hoja `Movimientos`.</>} status={<StatusPill appearance="workbook" tone="neutral">{movements.length} registros</StatusPill>}>
-                    <div className="portfolio-csv-movements__summary">
+                    <PortfolioReportFrame appearance="portfolio-csv-movements__summary"   >
                         <DataItem layout="portfolioFlow" label={<>Aportaciones</>} value={<>{formatCurrency(totalContributions)}</>} />
                         <DataItem layout="portfolioFlow" label={<>Retiradas</>} value={<>{formatCurrency(totalWithdrawals)}</>} />
                         <DataItem layout="portfolioFlow" label={<>Flujo neto</>} value={<>{formatCurrency(netMovements)}</>} />
-                    </div>
-                    <div className="portfolio-csv-movements__list">
+                    </PortfolioReportFrame>
+                    <PortfolioReportFrame appearance="portfolio-csv-movements__list"   >
                         {recentMovements.map((movement, index) => (
                             <div key={`${movement.date}-${movement.concept}-${index}`}>
                                 <span>{movement.date}<small>{movement.concept || (movement.exactDate ? 'Fecha exacta' : 'Resumen mensual')}</small></span>
-                                <strong className={movement.amount < 0 ? 'portfolio-csv-value--negative' : 'portfolio-csv-value--positive'}>
+                                <PortfolioReportValue status={movement.amount<0?'negative':'positive'} >
                                     {movement.amount > 0 ? '+' : ''}{formatCurrency(movement.amount)}
-                                </strong>
+                                </PortfolioReportValue>
                             </div>
                         ))}
-                    </div>
+                    </PortfolioReportFrame>
                 </PortfolioPanel>
             )}
 
-            <section className="portfolio-csv-grid">
+            <PortfolioReportFrame appearance="portfolio-csv-grid" as="section"  >
                 <PortfolioPanel title={<><Layers3 size={18} /> Composición por activos</>} description={<>Distribución de pesos por posición.</>}>
                     <PortfolioChartFrame appearance="composition">
                         <ResponsiveContainer width="100%" height={isMobile ? 250 : 300}>
@@ -872,9 +874,9 @@ export function PortfolioCsv() {
                         </ResponsiveContainer>
                     </PortfolioChartFrame>
                 </PortfolioPanel>
-            </section>
+            </PortfolioReportFrame>
 
-            <section className="portfolio-csv-grid">
+            <PortfolioReportFrame appearance="portfolio-csv-grid" as="section"  >
                 <PortfolioPanel title={<><CalendarClock size={18} /> Valor total vs capital invertido</>} description={<>Separa el efecto mercado del efecto aportaciones.</>}>
                     <PortfolioChartFrame appearance="default">
                         <ResponsiveContainer width="100%" height={320}>
@@ -914,9 +916,9 @@ export function PortfolioCsv() {
                             Un diferencial positivo sostenido indica que la cartera está compensando su riesgo frente al índice de referencia.
                         </PortfolioAnalysisNote>
                 </PortfolioPanel>
-            </section>
+            </PortfolioReportFrame>
 
-            <section className="portfolio-csv-grid">
+            <PortfolioReportFrame appearance="portfolio-csv-grid" as="section"  >
                 <PortfolioPanel wide title={<><TrendingUp size={18} /> Comparativa vs MSCI World</>} description={<>Evolución acumulada de la cartera frente al benchmark y diferencia mensual relativa.</>}>
 
 
@@ -950,13 +952,13 @@ export function PortfolioCsv() {
                         </PortfolioEmptyState>
                     )}
                 </PortfolioPanel>
-            </section>
+            </PortfolioReportFrame>
 
-            <PortfolioPanel className="portfolio-csv-advanced" as="section" full>
+            <PortfolioPanel className={portfolioReportStyle('portfolio-csv-advanced')} as="section" full>
                 <PortfolioAnalysisHeading title={<><Activity size={18} /> Estadísticas avanzadas</>} description={<>Ratios recalculados con la serie mensual y el benchmark para evitar depender de fórmulas dinámicas del Excel.</>} source={<>
                         {advancedStats.analyzedMonths} meses analizados
                     </>} />
-                <div className="portfolio-csv-advanced__grid">
+                <PortfolioReportFrame appearance="portfolio-csv-advanced__grid"   >
                     <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Ratio Sharpe</>} value={<>{formatAdvancedRatio(advancedStats.sharpeRatio)}</>} detail={<>Con €STR como referencia de riesgo</>} detailAs="small" />
                     <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Ratio Sortino</>} value={<>{formatAdvancedRatio(advancedStats.sortinoRatio)}</>} detail={<>Penaliza solo la volatilidad negativa</>} detailAs="small" />
                     <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Alpha anual</>} value={<>{formatAdvancedPct(advancedStats.annualAlphaPct)}</>} detail={<>Exceso estimado frente al benchmark</>} detailAs="small" />
@@ -969,16 +971,16 @@ export function PortfolioCsv() {
                     <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Volatilidad anualizada</>} value={<>{formatAdvancedPct(advancedStats.annualizedVolatilityPct)}</>} detail={<>Volatilidad mensual anualizada</>} detailAs="small" />
                     <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Ratio Treynor</>} value={<>{formatAdvancedPct(advancedStats.treynorRatioPct)}</>} detail={<>Exceso de retorno por beta</>} detailAs="small" />
                     <DataItem layout="portfolioAdvanced" className="portfolio-csv-advanced__metric" label={<>Mejor mes</>} value={<>{advancedStats.bestMonth ? formatAdvancedPct(advancedStats.bestMonth.returnPct) : 'N/D'}</>} detail={<>{advancedStats.bestMonth?.period || 'Sin datos'}</>} detailAs="small" />
-                </div>
-                <div className="portfolio-csv-advanced__daily">
+                </PortfolioReportFrame>
+                <PortfolioReportFrame appearance="portfolio-csv-advanced__daily"   >
                     <DataItem layout="portfolioDaily" icon={<Gauge size={16} />} label={<>€STR / libre de riesgo</>} value={<>{formatAdvancedPct(advancedStats.riskFreeAnnualPct)}</>} />
                     <DataItem layout="portfolioDaily" icon={<ShieldCheck size={16} />} label={<>Observaciones diarias</>} value={<>{advancedStats.dailyObservations || 'N/D'}</>} />
                     <DataItem layout="portfolioDaily" icon={<TrendingUp size={16} />} label={<>Volatilidad diaria anualizada</>} value={<>{formatAdvancedPct(advancedStats.dailyVolatilityAnnualPct)}</>} />
                     <DataItem layout="portfolioDaily" icon={<CalendarClock size={16} />} label={<>Último dato diario</>} value={<>{advancedStats.latestDailyPoint ? `${formatCurrency(advancedStats.latestDailyPoint.totalValue)} · ${formatAdvancedDate(advancedStats.latestDailyPoint.date)}` : 'N/D'}</>} />
-                </div>
+                </PortfolioReportFrame>
             </PortfolioPanel>
 
-            <section className="portfolio-csv-grid">
+            <PortfolioReportFrame appearance="portfolio-csv-grid" as="section"  >
                 <PortfolioPanel title={<><AlertTriangle size={18} /> Mapa de riesgo</>} description={<>Retorno de meses cerrados y drawdown ajustado por aportaciones, con la misma base que Dashboard. El TWR YTD conserva el dato del Excel.</>}>
                     <PortfolioChartFrame appearance="risk-map">
                         <ResponsiveContainer width="100%" height={320}>
@@ -1046,15 +1048,15 @@ export function PortfolioCsv() {
                             Si sube la concentración y empeora el drawdown, revisa rebalanceo y riesgo antes de aumentar exposición.
                         </PortfolioAnalysisNote>
                 </PortfolioPanel>
-            </section>
+            </PortfolioReportFrame>
 
-            <section className="portfolio-csv-grid">
+            <PortfolioReportFrame appearance="portfolio-csv-grid" as="section"  >
                 <PortfolioPanel title={<><AlertTriangle size={18} /> Checks automáticos</>} description={<>Lectura rápida de concentración, liquidez y consistencia del CSV actual.</>}>
-                    <div className="portfolio-csv-checks">
+                    <PortfolioReportFrame appearance="portfolio-csv-checks"   >
                         {riskChecks.map((check) => (
                             <PortfolioAnalysisCheck key={check.title} tone={check.tone} title={<>{check.title}</>} value={<>{check.value}</>} description={<>{check.detail}</>} />
                         ))}
-                    </div>
+                    </PortfolioReportFrame>
                 </PortfolioPanel>
 
                 <PortfolioPanel title={<><Layers3 size={18} /> Buckets por objetivo</>} description={<>Agrupa las posiciones por horizonte: largo plazo, medio plazo y liquidez.</>}>
@@ -1075,10 +1077,10 @@ export function PortfolioCsv() {
                         ))}
                     </PortfolioInsightList>
                 </PortfolioPanel>
-            </section>
+            </PortfolioReportFrame>
 
             <PortfolioPanel as="section" full title={<><FileSpreadsheet size={18} /> Tabla de control de posiciones</>} description={<>Corrige categorías cuando la heurística falle.</>}>
-                <div className="portfolio-csv-controls-table">
+                <PortfolioReportFrame appearance="portfolio-csv-controls-table"   >
                     <PortfolioTableHeading appearance="controls" labels={[<>Activo</>,<>Peso</>,<>Categoría</>]} />
                     {holdings.map((holding) => (
                         <PortfolioHoldingControl key={holding.asset} name={<>{holding.asset}</>} detail={<>{formatCurrency(holding.amount)}</>} weight={<>{formatPct(holding.weight)}</>}><NativeControl appearance="portfolio" as="select" value={holding.category} onChange={(event) => setHoldingCategoryOverride(holding.asset, event.target.value as HoldingCategory)}>
@@ -1087,27 +1089,27 @@ export function PortfolioCsv() {
                                 ))}
                             </NativeControl></PortfolioHoldingControl>
                     ))}
-                </div>
+                </PortfolioReportFrame>
             </PortfolioPanel>
-            <section className="portfolio-csv-grid">
+            <PortfolioReportFrame appearance="portfolio-csv-grid" as="section"  >
                 <PortfolioPanel title={<><TrendingUp size={18} /> Asignación objetivo</>} description={<>Define el peso deseado para cada bloque.</>}>
-                    <div className="portfolio-csv-targets">
+                    <PortfolioReportFrame appearance="portfolio-csv-targets"   >
                         {(Object.keys(BUCKET_LABELS) as HoldingBucket[]).map((bucket) => (
                             <PortfolioTargetField key={bucket} type="number" min="0" max="100" step="0.5" value={bucketTargets[bucket] ?? 0} onChange={(event) => setBucketTarget(bucket, event.target.value)} label={<>{BUCKET_LABELS[bucket]}</>} />
                         ))}
-                    </div>
+                    </PortfolioReportFrame>
                     <PortfolioTargetTotal warning={Math.abs(totalTargetWeight - 100) > 0.01} label={<>Suma objetivo</>}>{formatPct(totalTargetWeight)}</PortfolioTargetTotal>
                 </PortfolioPanel>
 
                 <PortfolioPanel title={<><Layers3 size={18} /> Desviación vs Objetivo</>} description={<>Lectura practica para saber que bloque pesa de mas o de menos respecto al plan.</>}>
-                    <div className="portfolio-csv-plan-table">
+                    <PortfolioReportFrame appearance="portfolio-csv-plan-table"   >
                         <PortfolioTableHeading appearance="plan" labels={[<>Bucket</>,<>Actual</>,<>Objetivo</>,<>Desvío</>]} />
                         {bucketPlanData.map((row) => (
                             <PortfolioPlanRow key={row.bucket} label={<>{row.label}</>} values={[{label:'Actual',value:<>{formatPct(row.currentWeight)}</>},{label:'Objetivo',value:<>{formatPct(row.targetWeight)}</>},{label:'Desvío',value:<>
                                     {row.deviation > 0 ? '+' : ''}{formatPct(row.deviation)}
                                 </>,tone:row.deviation > 0.25 ? 'over' : row.deviation < -0.25 ? 'under' : undefined}]} />
                         ))}
-                    </div>
+                    </PortfolioReportFrame>
                     <PortfolioAnalysisNote>
                             Rebalanceo orientativo:
                             {' '}
@@ -1117,8 +1119,8 @@ export function PortfolioCsv() {
                                 .join(' | ') || 'la cartera ya está cerca del objetivo definido.'}
                         </PortfolioAnalysisNote>
                 </PortfolioPanel>
-            </section>
-        </div>
+            </PortfolioReportFrame>
+        </PortfolioReportFrame>
     );
 }
 

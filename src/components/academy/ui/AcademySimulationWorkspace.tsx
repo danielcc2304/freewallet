@@ -1,3 +1,5 @@
+import{PortfolioBuilderFrameStyle}from'./PortfolioBuilderFrame.styles';
+import{AssetAllocationSimFrameStyle}from'./AssetAllocationSimFrame.styles';
 import type { HTMLAttributes, LabelHTMLAttributes, FieldsetHTMLAttributes, ReactNode } from 'react';
 import { cn } from '../../../utils/cn';
 import { allocationWorkspaceStyle as a } from './AcademyAllocationWorkspace.styles';
@@ -29,7 +31,7 @@ export function AcademySimulationSectionHeader({
             )}
         >
             <div>
-                <h2 {...headingProps}>{title}</h2>
+                <h2 {...headingProps} className={cn(appearance==='allocation'&&AssetAllocationSimFrameStyle('box-title'),appearance==='strategy'&&headingProps?.className?.includes('portfolio-builder__section-title')&&PortfolioBuilderFrameStyle('portfolio-builder__section-title'),headingProps?.className)}>{title}</h2>
                 {description != null && <p>{description}</p>}
                 {meta != null && (
                     <span className={appearance === 'allocation' ? a('alloc-sim__total') : undefined}>{meta}</span>

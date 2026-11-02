@@ -1,3 +1,4 @@
+import {ValuationGuideReadingStyle} from './ValuationGuideReading.styles';
 import { guidePartStyle } from './AcademyGuideParts.styles';
 import type { HTMLAttributes, ReactNode } from 'react';
 import { cn } from '../../../utils/cn';
@@ -195,7 +196,7 @@ export function AcademyValuationFormula({
     benchmarks: readonly { label: ReactNode; value: ReactNode; type: 'good' | 'neutral' | 'bad' }[];
 }) {
     return (
-        <AcademyPanel variant="valuation" className="metric-card">
+        <AcademyPanel variant="valuation" className={ValuationGuideReadingStyle('metric-card')}>
             <div className={valuationParts('metric-card__header')}>
                 <h3 className={valuationParts('metric-card__title')}>{title}</h3>
             </div>

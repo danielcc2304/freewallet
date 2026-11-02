@@ -1,3 +1,4 @@
+import{SidebarFrame,SidebarRegion,SidebarSubNav,SidebarOverlay,SidebarToggle}from'./SidebarFrame';
 import {SidebarBrand,SidebarNavItem,SidebarGroupToggle,SidebarFooter} from './SidebarParts';
 import { useState } from 'react';
 import {
@@ -15,7 +16,7 @@ import { useLocation } from 'react-router-dom';
 import { academySidebarGroups, academySidebarSections, toolSidebarSections } from '../../../app/routes/academyRoutes';
 import { APP_VERSION } from '../../../constants/app';
 import { AccountSyncStatus } from '../../ui/AccountSyncStatus';
-import './Sidebar.css';
+
 
 interface SidebarProps {
     isOpen: boolean;
@@ -48,18 +49,18 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
     return (
         <>
             {isOpen && (
-                <div className="sidebar-overlay" onClick={onToggle} />
+                <SidebarOverlay onClick={onToggle}/>
             )}
 
-            <aside className={`sidebar ${isOpen ? 'sidebar--open' : ''}`}>
-                <div className="sidebar__header">
+            <SidebarFrame open={isOpen} >
+                <SidebarRegion region="header" >
                     <SidebarBrand />
-                    <button className="sidebar__toggle sidebar__toggle--mobile" onClick={onToggle}>
+                    <SidebarToggle placement="mobile" onClick={onToggle}>
                         <X size={20} />
-                    </button>
-                </div>
+                    </SidebarToggle>
+                </SidebarRegion>
 
-                <nav className="sidebar__nav">
+                <SidebarRegion region="nav" >
                     {navItems.map(({ to, icon: Icon, label }) => (
                         <SidebarNavItem key={to} to={to} onClick={closeMobileSidebar} icon={Icon} label={<>
                                 {label}
@@ -67,50 +68,46 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                             </>}  account={to === '/account'} />
                     ))}
 
-                    <div className={`sidebar__group ${isToolRoute ? 'sidebar__group--active' : ''}`}>
+                    <SidebarRegion region="group" className={isToolRoute?'sidebar__group--active':undefined} >
                         <SidebarGroupToggle onClick={() => setToolsExpanded(!toolsAreExpanded)} icon={PanelsTopLeft} label={<>Herramientas</>} active={isToolRoute} expanded={toolsAreExpanded} />
 
-                        <div className={`sidebar__sub-nav ${toolsAreExpanded ? 'sidebar__sub-nav--open' : ''}`}>
-                            <div className="sidebar__sub-nav-inner">
-                                <div className="sidebar__sub-group">
+                        <SidebarSubNav open={toolsAreExpanded} >
+                                <SidebarRegion region="sub-group" >
                                     {toolSidebarSections.map(({ to, label, icon: Icon, end }) => (
                                         <SidebarNavItem key={to} to={to} end={end} onClick={closeMobileSidebar} icon={Icon} label={<>{label}</>} sub  />
                                     ))}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                </SidebarRegion>
+                            </SidebarSubNav>
+                    </SidebarRegion>
 
-                    <div className={`sidebar__group ${isAcademyRoute ? 'sidebar__group--active' : ''}`}>
+                    <SidebarRegion region="group" className={isAcademyRoute?'sidebar__group--active':undefined} >
                         <SidebarGroupToggle onClick={handleAcademyToggle} icon={GraduationCap} label={<>Academia</>} active={isAcademyRoute} expanded={academyIsExpanded} />
 
-                        <div className={`sidebar__sub-nav ${academyIsExpanded ? 'sidebar__sub-nav--open' : ''}`}>
-                            <div className="sidebar__sub-nav-inner">
+                        <SidebarSubNav open={academyIsExpanded} >
                                 {academySidebarGroups.filter((group) => group !== 'Herramientas').map((group) => (
-                                    <div key={group} className="sidebar__sub-group">
-                                        <div className="sidebar__sub-group-title">{group}</div>
+                                    <SidebarRegion region="sub-group" key={group}>
+                                        <SidebarRegion region="sub-group-title" >{group}</SidebarRegion>
                                         {academySidebarSections
                                             .filter((item) => item.group === group)
                                             .map(({ path, icon: Icon, label, end }) => (
                                                 <SidebarNavItem key={path || 'academy-index'} to={path ? `/academy/${path}` : '/academy'} end={end} onClick={closeMobileSidebar} icon={Icon} label={<>{label}</>} sub  />
                                             ))}
-                                    </div>
+                                    </SidebarRegion>
                                 ))}
-                            </div>
-                        </div>
-                    </div>
+                            </SidebarSubNav>
+                    </SidebarRegion>
 
                     <SidebarNavItem to="/portfolio-csv" onClick={closeMobileSidebar} icon={FileSpreadsheet} label={<>Portfolio</>}   />
 
                     <SidebarNavItem to="/settings" onClick={closeMobileSidebar} icon={Settings} label={<>Configuración</>}   />
-                </nav>
+                </SidebarRegion>
 
                 <SidebarFooter version={APP_VERSION} onNavigate={closeMobileSidebar} />
-            </aside>
+            </SidebarFrame>
 
-            <button className="sidebar__toggle sidebar__toggle--fixed" onClick={onToggle}>
+            <SidebarToggle placement="fixed" onClick={onToggle}>
                 <Menu size={24} />
-            </button>
+            </SidebarToggle>
         </>
     );
 }

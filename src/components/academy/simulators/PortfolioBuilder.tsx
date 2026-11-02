@@ -1,9 +1,11 @@
+import{simulationFrameStyle}from'../ui/SimulationFrames.styles';
+import{SimulationFrame,SimulationFramePanel,SimulationFrameGrid,SimulationFrameTitle,StrategyButton,StrategyActionLink,StrategyReset,StrategyModelCard}from'../ui/SimulationFrames';
 import { AcademySimulationPageHeader } from '../ui/AcademySimulationPageHeader';
 import { AcademySimulationSectionHeader, AcademySimulationNote, AcademySimulationFilterGroup, AcademySimulationEmpty, AcademySimulationTable, AcademySimulationField, AcademySimulationTotal } from '../ui/AcademySimulationWorkspace';
 import { AcademyAssetGuideCard } from '../ui/AcademyAssetGuideCard';
 import {AcademyModelFilter,AcademyModelMetadata,AcademyModelMix,AcademyModelActions,AcademyAllocationBar} from '../ui/AcademySimulatorParts';
 import { AcademyControlField } from '../ui/AcademyControlField';
-import { AcademyPanel } from '../ui/AcademyPanel';
+
 import { AcademyGrid } from '../ui/AcademyGrid';
 import {useEffect,useState,type CSSProperties} from 'react';
 import {ArrowRight,Check,ChevronDown,Coins,Building2,Gem,Landmark,PieChart as PieChartIcon,RotateCcw,Scale,TrendingUp,Wallet} from 'lucide-react';
@@ -63,57 +65,57 @@ export function PortfolioBuilder(){
     const normalize=()=>{const next=normalizeAllocation(allocation);if(next)setPlan(Object.fromEntries(ASSET_KEYS.map(key=>[key,String(next[key])])));};
     const clearFilters=()=>{setHorizon('all');setStyle('all');setRisk('all');setShowAll(false);};
 
-    return <div className="portfolio-builder strategy-page">
+    return <SimulationFrame appearance="portfolioBuilder"  className={simulationFrameStyle('strategyPage')} >
         <AcademySimulationPageHeader appearance="strategy" section="Construir" title={<>Estrategia y cartera</>} description={<>Explora modelos, ajusta tu distribución y comprueba cómo responde a distintas hipótesis.</>} />
-        <nav className="strategy-nav" aria-label="Secciones de estrategia y cartera">
+        <SimulationFrame appearance="strategyNav" as="nav" aria-label="Secciones de estrategia y cartera">
             {[['strategy-models','Modelos'],['strategy-plan','Mi distribución'],['strategy-assets','Activos'],['strategy-profile','Perfil']].map(([id,label])=><a key={id} href={`#${id}`} onClick={event=>{event.preventDefault();scrollTo(id);}}>{label}</a>)}
-        </nav>
+        </SimulationFrame>
         <section id="strategy-models" className="portfolio-builder__models-section">
             <AcademySimulationSectionHeader appearance="strategy"  title={<>Modelos como punto de partida</>} headingProps={{'className': "portfolio-builder__section-title"}} description={<>Pesos ilustrativos, sin apalancamiento. El riesgo depende también de los instrumentos, la duración y la divisa.</>} actions={<span>{filtered.length} modelos</span>} />
-            <div className="portfolio-builder__filters">
+            <SimulationFrame appearance="portfolioBuilderFilters"  >
                 <AcademySimulationNote appearance="strategy" kind="filter" >El horizonte se refiere al conjunto de la cartera, no solo a su reserva líquida.</AcademySimulationNote>
                 {[
                     {label:'Horizonte',value:horizon,options:HORIZON_FILTERS,setter:setHorizon},
                     {label:'Estilo',value:style,options:STYLE_FILTERS,setter:setStyle},
                     {label:'Riesgo orientativo',value:risk,options:RISK_FILTERS,setter:setRisk},
                 ].map(group=><AcademySimulationFilterGroup key={group.label} legend={<>{group.label}</>}>{group.options.map(option=><AcademyModelFilter key={option.value} type="button" aria-pressed={group.value===option.value} onClick={()=>filterChanged(group.setter,option.value)} selected={group.value===option.value}>{option.label}</AcademyModelFilter>)}</AcademySimulationFilterGroup>)}
-                {(horizon!=='all'||style!=='all'||risk!=='all')&&<button type="button" className="portfolio-builder__filters-reset" onClick={clearFilters}>Limpiar filtros</button>}
-            </div>
+                {(horizon!=='all'||style!=='all'||risk!=='all')&&<StrategyReset type="button" onClick={clearFilters}>Limpiar filtros</StrategyReset>}
+            </SimulationFrame>
             {!filtered.length&&<AcademySimulationEmpty role="status" title={<>No hay modelos con esta combinación</>}>Amplía los filtros. Un horizonte corto limita las opciones con riesgo de pérdida de capital.</AcademySimulationEmpty>}
-            <AcademyGrid variant="models" className="strategy-model-grid">{visible.map(item=>{
+            <SimulationFrameGrid appearance="strategyModelGrid"  variant="models">{visible.map(item=>{
                 const weights=modelAllocation(item);const checked=compared.includes(item.id);
-                return <AcademyPanel variant="workspace" as="article" className={`strategy-model${selected===item.id?' strategy-model--selected':''}`} key={item.id}>
+                return <StrategyModelCard selected={selected===item.id} variant="workspace" as="article" key={item.id}>
                     <AcademyModelMetadata category={<>{CATEGORIES.find(category=>category.id===item.category)?.name}</>} risk={<>{RISK_FILTERS.find(filter=>filter.value===item.risk)?.label}</>} />
                     <h3>{item.title}</h3><p>{item.desc}</p><AcademyModelMix>Plazo del modelo: {item.horizons.map(value=>HORIZON_FILTERS.find(filter=>filter.value===value)?.label).join(' / ')}</AcademyModelMix><AllocationBar allocation={weights}/>
                     <AcademyModelMix>{ASSET_CLASSES.filter(asset=>weights[asset.key]>0).map(asset=>`${asset.name} ${percent(weights[asset.key])}`).join(' · ')}</AcademyModelMix>
-                    <AcademyModelActions><button type="button" className="strategy-button" onClick={()=>choose(item)}>{selected===item.id?<Check size={16}/>:<PieChartIcon size={16}/>}Personalizar</button><button type="button" className="strategy-button strategy-button--secondary" aria-pressed={checked} aria-label={`Comparar ${item.title}`} disabled={!checked&&compared.length>=3} onClick={()=>setCompared(current=>current.includes(item.id)?current.filter(id=>id!==item.id):current.length<3?[...current,item.id]:current)}>{checked?'Quitar de comparación':'Comparar'}</button></AcademyModelActions>
-                </AcademyPanel>;
-            })}</AcademyGrid>
-            {filtered.length>6&&<button type="button" className="strategy-button strategy-show-more" aria-expanded={showAll} onClick={()=>setShowAll(value=>!value)}><ChevronDown size={17}/>{showAll?'Mostrar menos':`Ver los ${filtered.length} modelos`}</button>}
+                    <AcademyModelActions><StrategyButton    type="button" onClick={()=>choose(item)}>{selected===item.id?<Check size={16}/>:<PieChartIcon size={16}/>}Personalizar</StrategyButton><StrategyButton  secondary  type="button" aria-pressed={checked} aria-label={`Comparar ${item.title}`} disabled={!checked&&compared.length>=3} onClick={()=>setCompared(current=>current.includes(item.id)?current.filter(id=>id!==item.id):current.length<3?[...current,item.id]:current)}>{checked?'Quitar de comparación':'Comparar'}</StrategyButton></AcademyModelActions>
+                </StrategyModelCard>;
+            })}</SimulationFrameGrid>
+            {filtered.length>6&&<StrategyButton   more type="button" aria-expanded={showAll} onClick={()=>setShowAll(value=>!value)}><ChevronDown size={17}/>{showAll?'Mostrar menos':`Ver los ${filtered.length} modelos`}</StrategyButton>}
             <AcademySimulationNote appearance="strategy" kind="help" >Puedes comparar hasta tres modelos. Los filtros y tu última distribución válida se conservan en este navegador y en el enlace.</AcademySimulationNote>
         </section>
-        {comparison.length>0&&<AcademyPanel variant="workspace" as="section" className="strategy-comparison" aria-labelledby="strategy-comparison-title"><AcademySimulationSectionHeader appearance="strategy"  title={<>Comparar modelos</>} headingProps={{'id': "strategy-comparison-title"}} description={<>Pesos originales de los modelos; tu distribución personalizada se muestra más abajo.</>} actions={<button className="strategy-button strategy-button--secondary" onClick={()=>setCompared([])}>Limpiar comparación</button>} />
+        {comparison.length>0&&<SimulationFramePanel appearance="strategyComparison"  variant="workspace" as="section" aria-labelledby="strategy-comparison-title"><AcademySimulationSectionHeader appearance="strategy"  title={<>Comparar modelos</>} headingProps={{'id': "strategy-comparison-title"}} description={<>Pesos originales de los modelos; tu distribución personalizada se muestra más abajo.</>} actions={<StrategyButton  secondary  onClick={()=>setCompared([])}>Limpiar comparación</StrategyButton>} />
             <AcademySimulationTable appearance="strategy" role="region" aria-label="Tabla de comparación, desplazable horizontalmente" tabIndex={0}><thead><tr><th scope="col">Bloque</th>{comparison.map(item=><th key={item.id} scope="col">{item.title}</th>)}</tr></thead><tbody>
                 <tr><th scope="row">Riesgo orientativo</th>{comparison.map(item=><td key={item.id}>{RISK_FILTERS.find(filter=>filter.value===item.risk)?.label}</td>)}</tr>
                 <tr><th scope="row">Horizonte</th>{comparison.map(item=><td key={item.id}>{item.horizons.map(h=>HORIZON_FILTERS.find(filter=>filter.value===h)?.label).join(' / ')}</td>)}</tr>
                 {ASSET_CLASSES.map(asset=><tr key={asset.key}><th scope="row">{asset.name}</th>{comparison.map(item=><td key={item.id}>{percent(modelAllocation(item)[asset.key])}</td>)}</tr>)}
             </tbody></AcademySimulationTable>
-        </AcademyPanel>}
-        <AcademyPanel variant="workspace" as="section" id="strategy-plan" className="strategy-plan" aria-labelledby="strategy-plan-title">
-            <AcademySimulationSectionHeader appearance="strategy"  title={<>Mi distribución</>} headingProps={{'id': "strategy-plan-title"}} description={<>{model.title}{customized?' · personalizada':''}</>} actions={<button className="strategy-button strategy-button--secondary" onClick={()=>{const weights=modelAllocation(model);setPlan(Object.fromEntries(ASSET_KEYS.map(key=>[key,String(weights[key])])));}}><RotateCcw size={16}/>Restaurar modelo</button>} />
+        </SimulationFramePanel>}
+        <SimulationFramePanel appearance="strategyPlan"  variant="workspace" as="section" id="strategy-plan" aria-labelledby="strategy-plan-title">
+            <AcademySimulationSectionHeader appearance="strategy"  title={<>Mi distribución</>} headingProps={{'id': "strategy-plan-title"}} description={<>{model.title}{customized?' · personalizada':''}</>} actions={<StrategyButton  secondary  onClick={()=>{const weights=modelAllocation(model);setPlan(Object.fromEntries(ASSET_KEYS.map(key=>[key,String(weights[key])])));}}><RotateCcw size={16}/>Restaurar modelo</StrategyButton>} />
             <AcademySimulationNote appearance="strategy" kind="model" ><strong>Sobre el modelo original: </strong>{model.note}{customized&&' Las etiquetas de plazo y riesgo del catálogo describen el modelo original; no evalúan tu nueva distribución.'}</AcademySimulationNote>
             {notice&&<AcademySimulationNote appearance="strategy" kind="error" role="alert">{notice}</AcademySimulationNote>}
             <AcademySimulationField appearance="strategy" htmlFor="strategy-capital" label={<>Importe para distribuir (€)</>}><input id="strategy-capital" type="number" min="0.01" max="1000000000000" step="any" value={capital} onChange={event=>{const raw=event.target.value;setCapital(raw);const value=Number(raw);if(raw.trim()&&Number.isFinite(value)&&value>0&&value<=1e12)setLastCapital(value);}} aria-invalid={!amountValid}/></AcademySimulationField>
             {!amountValid&&<AcademySimulationNote appearance="strategy" kind="error" role="alert">Introduce un importe mayor que cero y hasta un billón de euros.</AcademySimulationNote>}
-            <AcademyGrid variant="weights" className="strategy-weight-grid">{ASSET_CLASSES.map(asset=><AcademyControlField variant="strategy" controlId={`strategy-${asset.key}`} label={<>{asset.name}</>} unit={<>%</>} detail={<> {amountValid&&Number.isFinite(allocation[asset.key])&&allocation[asset.key]>=0&&allocation[asset.key]<=100?money.format(amount*allocation[asset.key]/100):'—'} </>} key={asset.key} style={{'--asset-color':asset.color} as CSSProperties}><input id={`strategy-${asset.key}`} type="number" min="0" max="100" step="any" value={plan[asset.key]} onChange={event=>setPlan(current=>({...current,[asset.key]:event.target.value}))} aria-invalid={!Number.isFinite(allocation[asset.key])||allocation[asset.key]<0||allocation[asset.key]>100}/></AcademyControlField>)}</AcademyGrid>
-            <AcademySimulationTotal ><strong>Total: {percent(total)}</strong><button className="strategy-button strategy-button--secondary" type="button" disabled={!normalizeAllocation(allocation)} onClick={normalize}>Ajustar proporcionalmente al 100%</button></AcademySimulationTotal>
+            <SimulationFrameGrid appearance="strategyWeightGrid"  variant="weights">{ASSET_CLASSES.map(asset=><AcademyControlField variant="strategy" controlId={`strategy-${asset.key}`} label={<>{asset.name}</>} unit={<>%</>} detail={<> {amountValid&&Number.isFinite(allocation[asset.key])&&allocation[asset.key]>=0&&allocation[asset.key]<=100?money.format(amount*allocation[asset.key]/100):'—'} </>} key={asset.key} style={{'--asset-color':asset.color} as CSSProperties}><input id={`strategy-${asset.key}`} type="number" min="0" max="100" step="any" value={plan[asset.key]} onChange={event=>setPlan(current=>({...current,[asset.key]:event.target.value}))} aria-invalid={!Number.isFinite(allocation[asset.key])||allocation[asset.key]<0||allocation[asset.key]>100}/></AcademyControlField>)}</SimulationFrameGrid>
+            <AcademySimulationTotal ><strong>Total: {percent(total)}</strong><StrategyButton  secondary  type="button" disabled={!normalizeAllocation(allocation)} onClick={normalize}>Ajustar proporcionalmente al 100%</StrategyButton></AcademySimulationTotal>
             {!valid&&<AcademySimulationNote appearance="strategy" kind="error" role="alert">Los pesos deben estar entre 0% y 100% y sumar exactamente 100%. Completa los campos para continuar.</AcademySimulationNote>}
             {valid&&<AllocationBar allocation={allocation}/>}
             <AcademySimulationNote appearance="strategy" kind="help" >Edición por bloques: los subtipos del modelo se agrupan. El simulador no distingue regiones, duración ni fondos concretos. Tus cambios no modifican tu cartera del Dashboard.</AcademySimulationNote>
-            {valid&&amountValid?<Link className="strategy-button strategy-button--primary" to={`/academy/asset-allocation?${allocationQuery(allocation,amount,selected)}`}>Simular esta distribución<ArrowRight size={18}/></Link>:<button className="strategy-button strategy-button--primary" disabled>Simular esta distribución</button>}
-        </AcademyPanel>
-        <section id="strategy-assets" className="strategy-assets" aria-labelledby="strategy-assets-title">
-            <h2 id="strategy-assets-title" className="portfolio-builder__section-title">Qué aporta cada bloque</h2>
+            {valid&&amountValid?<StrategyActionLink primary  to={`/academy/asset-allocation?${allocationQuery(allocation,amount,selected)}`}>Simular esta distribución<ArrowRight size={18}/></StrategyActionLink>:<StrategyButton primary   disabled>Simular esta distribución</StrategyButton>}
+        </SimulationFramePanel>
+        <SimulationFrame appearance="strategyAssets" as="section" id="strategy-assets" aria-labelledby="strategy-assets-title">
+            <SimulationFrameTitle appearance="portfolioBuilderSectionTitle"  id="strategy-assets-title">Qué aporta cada bloque</SimulationFrameTitle>
             <AcademyGrid variant="strategyAssets" className="strategy-asset-grid">
                 {ASSET_CLASSES.map(asset=>{
                     const Icon=icons[asset.key];
@@ -122,10 +124,10 @@ export function PortfolioBuilder(){
                     return <AcademyAssetGuideCard key={asset.key} to={asset.path} color={asset.color} titleId={titleId} descriptionId={descriptionId} icon={<Icon size={23}/>} title={asset.name} description={asset.desc} risk={asset.risk} guide={<>Ver guía <ArrowRight size={16} aria-hidden="true"/></>} />;
                 })}
             </AcademyGrid>
-        </section>
-        <AcademyPanel variant="workspace" as="section" id="strategy-profile" className="strategy-profile"><h2 className="portfolio-builder__section-title">Antes de elegir una distribución</h2><p>El plazo, la necesidad de retirar dinero y la capacidad de soportar pérdidas importan tanto como la tolerancia emocional. Un perfil no determina un porcentaje único de acciones y bonos.</p>
-            <AcademyGrid variant="profiles" className="strategy-profile__grid"><article><h3>Conservador</h3><p>Prioriza disponibilidad y pérdidas limitadas. Distingue entre dinero que necesitas pronto y capital que puedes mantener invertido.</p></article><article><h3>Moderado</h3><p>Acepta fluctuaciones y combina fuentes de riesgo. Los bonos no aseguran compensar las caídas de la bolsa.</p></article><article><h3>Agresivo</h3><p>Puede soportar caídas importantes y periodos prolongados de recuperación, sin depender de ese dinero a corto plazo.</p></article></AcademyGrid>
-            <div className="strategy-links"><Link to="/academy/investor-profile-test">Revisar mi perfil <ArrowRight size={16}/></Link><Link to="/academy/risk">Gestión del riesgo <ArrowRight size={16}/></Link><Link to="/academy/fund-radar">Explorar fondos <ArrowRight size={16}/></Link></div>
-        </AcademyPanel>
-    </div>;
+        </SimulationFrame>
+        <SimulationFramePanel appearance="strategyProfile"  variant="workspace" as="section" id="strategy-profile"><SimulationFrameTitle appearance="portfolioBuilderSectionTitle"  >Antes de elegir una distribución</SimulationFrameTitle><p>El plazo, la necesidad de retirar dinero y la capacidad de soportar pérdidas importan tanto como la tolerancia emocional. Un perfil no determina un porcentaje único de acciones y bonos.</p>
+            <SimulationFrameGrid appearance="strategyProfileGrid"  variant="profiles"><article><h3>Conservador</h3><p>Prioriza disponibilidad y pérdidas limitadas. Distingue entre dinero que necesitas pronto y capital que puedes mantener invertido.</p></article><article><h3>Moderado</h3><p>Acepta fluctuaciones y combina fuentes de riesgo. Los bonos no aseguran compensar las caídas de la bolsa.</p></article><article><h3>Agresivo</h3><p>Puede soportar caídas importantes y periodos prolongados de recuperación, sin depender de ese dinero a corto plazo.</p></article></SimulationFrameGrid>
+            <SimulationFrame appearance="strategyLinks"  ><Link to="/academy/investor-profile-test">Revisar mi perfil <ArrowRight size={16}/></Link><Link to="/academy/risk">Gestión del riesgo <ArrowRight size={16}/></Link><Link to="/academy/fund-radar">Explorar fondos <ArrowRight size={16}/></Link></SimulationFrame>
+        </SimulationFramePanel>
+    </SimulationFrame>;
 }

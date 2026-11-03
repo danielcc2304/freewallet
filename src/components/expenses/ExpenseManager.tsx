@@ -66,7 +66,7 @@ import {
 import {
     downloadExpenseFile,
     exportExpenseCsv,
-    readExpenseCsv,
+    readExpenseCsvDocument,
 } from '../../services/expenseImport';
 import type { ExpenseImportDocument } from '../../services/expenseImport';
 import { readExpenseWorkbook } from '../../services/expenseWorkbook';
@@ -292,12 +292,7 @@ export default function ExpenseManager() {
             } else if (name.endsWith('.csv')) {
                 const raw = await file.text();
                 if (task === fileTask.current)
-                    setImportDocument({
-                        format: 'csv',
-                        sheets: [
-                            { name: file.name, rows: readExpenseCsv(raw) },
-                        ],
-                    });
+                    setImportDocument(readExpenseCsvDocument(raw, file.name));
             } else
                 throw new Error(
                     'Selecciona un archivo CSV, Excel (.xlsx o .xls) o una copia JSON.',

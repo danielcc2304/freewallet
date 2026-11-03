@@ -12,7 +12,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-11-03 - Evolución mensual homogénea e importación CSV de BBVA
+### 2026-11-03 - v7.1.1 - Evolución mensual homogénea e importación CSV de BBVA
 - Funcionalidad:
   - Evolución muestra un punto por mes en 3M, YTD y Todo, conservando la base del periodo y el último dato provisional del mes en curso. Diario, 7D y 1M mantienen el detalle disponible.
   - El importador reconoce las filas de presentación y la cabecera del CSV bancario de BBVA, incluida la columna inicial vacía.

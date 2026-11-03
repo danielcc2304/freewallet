@@ -1,3 +1,5 @@
+import{ExpenseHint}from'./ui/ExpenseReading';
+import{expensePresentationStyleClasses}from'./ui/expensePresentationStyles';
 import {ExpenseImportSummary,ExpenseImportCategorySelect,ExpenseImportPagination,ExpenseFeedback} from './ui/ExpenseFeedback';
 import { ExpenseImportHelp } from './ui/ExpenseRecords';
 import { DataTable } from '../ui/DataTable';
@@ -180,9 +182,9 @@ export function ExpenseImportDialog({
         }
     };
     return (
-        <div className="expense-import">
+        <div className={expensePresentationStyleClasses("expense-import")}>
             {document.sheets.length > 1 && (
-                <ExpenseField label={<> Hoja del Excel </>} className="expense-field">
+                <ExpenseField label={<> Hoja del Excel </>} className={expensePresentationStyleClasses("expense-field")}>
 
                     <select
                         value={sheetIndex}
@@ -206,28 +208,28 @@ export function ExpenseImportDialog({
                     </select>
                 </ExpenseField>
             )}
-            <p className="expense-hint">
+            <ExpenseHint >
                 Asocia cada columna con su dato. Fecha, Concepto e Importe son
                 obligatorios.
-            </p>
+            </ExpenseHint>
             {sheet.bank === 'bbva' && (
                 <>
-                    <p className="expense-hint">
+                    <ExpenseHint >
                         Formato BBVA detectado. Se usa la fecha del movimiento;
                         los abonos de tarjeta se consideran reembolsos. Revisa
                         las transferencias entre tus propias cuentas.
-                    </p>
+                    </ExpenseHint>
                     {reviewBbvaCategories && (
-                        <p className="expense-hint">
+                        <ExpenseHint >
                             Se proponen categorías según palabras del movimiento
                             y del concepto. Revisa o cambia cada propuesta antes
                             de importar; las filas ambiguas o sin coincidencia
                             mantienen la categoría por defecto. McDonald’s,
                             Burger King, KFC y otras cadenas rápidas se asignan
                             a Ocio.
-                        </p>
+                        </ExpenseHint>
                     )}
-                    <ExpenseCheckbox className="expense-check">
+                    <ExpenseCheckbox className={"expense-check"}>
                         <input
                             type="checkbox"
                             checked={onlyCards}
@@ -237,14 +239,14 @@ export function ExpenseImportDialog({
                     </ExpenseCheckbox>
                 </>
             )}
-            <ExpenseGrid variant="form" className="expense-form-grid">
+            <ExpenseGrid variant="form" className={expensePresentationStyleClasses("expense-form-grid")}>
                 {CSV_FIELDS.map((field) => (
                     <ExpenseField label={<>
                             {labels[field]}
                             {['date', 'description', 'amount'].includes(field)
                                 ? ' *'
                                 : ''}
-                         </>} key={field} className="expense-field">
+                         </>} key={field} className={expensePresentationStyleClasses("expense-field")}>
 
                         <select
                             value={mapping[field]}
@@ -264,7 +266,7 @@ export function ExpenseImportDialog({
                         </select>
                     </ExpenseField>
                 ))}
-                <ExpenseField label={<> Cuenta si no consta en el archivo </>} className="expense-field">
+                <ExpenseField label={<> Cuenta si no consta en el archivo </>} className={expensePresentationStyleClasses("expense-field")}>
 
                     <select
                         value={account}
@@ -370,7 +372,7 @@ export function ExpenseImportDialog({
                         «Importar movimientos».
                     </p>
                 </ExpenseImportHelp>
-            <ExpenseCheckbox className="expense-check">
+            <ExpenseCheckbox className={"expense-check"}>
                 <input
                     type="checkbox"
                     checked={skipDuplicates}
@@ -378,11 +380,11 @@ export function ExpenseImportDialog({
                 />
                 Omitir duplicados ({duplicates.length})
             </ExpenseCheckbox>
-            <p className="expense-hint">
+            <ExpenseHint >
                 Se comparan fecha, tipo, importe, concepto y cuentas de origen y
                 destino. Desmarca esta opción para incluir movimientos distintos
                 con esos mismos datos.
-            </p>
+            </ExpenseHint>
             <ExpenseImportSummary value={<>{valid.length} para importar</>} detail={<>
                     {invalid.length} filas inválidas ·{' '}
                     {skipDuplicates ? duplicates.length : 0} coincidencias
@@ -424,7 +426,7 @@ export function ExpenseImportDialog({
                                     : '—'}
                             </td>
                             {reviewBbvaCategories && (
-                                <td className="expense-import__category-cell">
+                                <td className={expensePresentationStyleClasses("expense-import__category-cell")}>
                                     {row.entry?.categoryId ? (
                                         <>
                                             <ExpenseImportCategorySelect aria-label={`Categoría para la fila ${row.line}`} value={row.entry.categoryId} onChange={(event) =>
@@ -474,7 +476,7 @@ export function ExpenseImportDialog({
                         de {preview.length}
                     </>} previous={<ExpenseButton variant="secondary"
                         type="button"
-                        className="expense-btn expense-btn--secondary"
+                        className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                         disabled={activePreviewPage === 0}
                         onClick={() =>
                             setPreviewPage((page) => Math.max(0, page - 1))
@@ -483,7 +485,7 @@ export function ExpenseImportDialog({
                         Anterior
                     </ExpenseButton>} next={<ExpenseButton variant="secondary"
                         type="button"
-                        className="expense-btn expense-btn--secondary"
+                        className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                         disabled={activePreviewPage >= previewPageCount - 1}
                         onClick={() =>
                             setPreviewPage((page) =>
@@ -495,32 +497,32 @@ export function ExpenseImportDialog({
                     </ExpenseButton>} />
             )}
             {!reviewBbvaCategories && preview.length > previewPageSize && (
-                <p className="expense-hint">
+                <ExpenseHint >
                     Vista previa de las primeras 50 filas de {preview.length}.
-                </p>
+                </ExpenseHint>
             )}
             {invalid.length > 0 && (
-                <p className="expense-hint">
+                <ExpenseHint >
                     Las filas inválidas no se importan. Corrige el archivo si
                     quieres incluirlas.
-                </p>
+                </ExpenseHint>
             )}
             {error && (
                 <ExpenseFeedback role="alert" as="p" appearance="error">
                     {error}
                 </ExpenseFeedback>
             )}
-            <ExpenseActions variant="form" className="expense-form-actions">
+            <ExpenseActions variant="form" className={"expense-form-actions"}>
                 <ExpenseButton variant="secondary"
                     type="button"
-                    className="expense-btn expense-btn--secondary"
+                    className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                     onClick={onClose}
                     disabled={saving}
                 >
                     Cancelar
                 </ExpenseButton>
                 <ExpenseButton
-                    className="expense-btn"
+                    className={expensePresentationStyleClasses("expense-btn")}
                     type="button"
                     disabled={saving || !valid.length}
                     onClick={() => void save()}

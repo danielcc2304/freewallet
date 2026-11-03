@@ -12,6 +12,20 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-11-03 - Tailwind: gastos y representación SVG de Heatmap · 85,95 %
+- Funcionalidad:
+  - Comparte notas, avisos, filtros, calendario, desplegables e identidad de movimientos con `ExpenseReading`; los componentes existentes de gastos incorporan sus reglas responsive pendientes.
+  - Extrae grupos de sector, celdas de empresas y etiquetas SVG/HTML del mapa de mercados, conservando geometría, datos, selección y contenedor del gráfico.
+  - Retira doce selectores ópticos sin consumidores y tres referencias del detector de apariencia, correspondientes a componentes ya retirados.
+- Resumen:
+  - Retira 141 líneas de CSS fuente y 78 declaraciones `@apply`. Quedan 3.196 líneas en 24 hojas: reducción acumulada del 85,95 % respecto al inicio, sin equivalencia directa con ahorro de descarga.
+  - Conserva los materiales complejos de gastos y sus alternativas de transparencia/movimiento en CSS. Coinciden 88 estados calculados, incluidos movimientos de los cuatro tipos, editores y SVG del Heatmap.
+  - Pasan las pruebas de gastos e importación Excel y los recorridos de creación, edición, presupuestos, recurrentes, objetivos e importación en modo estándar y Liquid Glass. No cambia el modelo de datos ni los cálculos.
+- Archivos:
+  - `src/components/expenses/*`, `ui/ExpenseReading*`, `expensePresentationStyles` y componentes compartidos de gastos.
+  - `src/components/academy/tools/MarketHeatmap*`, `ui/MarketArtwork*`, `marketArtworkStyles`.
+  - `src/styles/liquidGlass.css`, `src/context/AppearanceContext.tsx`, ajuste del lanzamiento de Chromium en la prueba de pulido y documentación.
+
 ### 2026-11-02 - Tailwind: gráficos, detalle de cartera y contenedores · 85,33 %
 - Funcionalidad:
   - Comparte estructura de leyendas, tooltips y celdas del mapa de calor; retira el antiguo PortfolioChart, sin consumidores, junto con su exportación y CSS.

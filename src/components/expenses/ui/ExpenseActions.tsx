@@ -1,3 +1,4 @@
+import{expensePresentationStyleClasses}from'./expensePresentationStyles';
 import type { HTMLAttributes } from 'react';
 import { cn } from '../../../utils/cn';
 
@@ -8,5 +9,5 @@ const layouts = {
     "row": "tw:flex tw:gap-[.2rem] tw:shrink-[0]"
 };
 export function ExpenseActions({ variant = 'toolbar', className, ...props }: HTMLAttributes<HTMLDivElement> & { variant?: keyof typeof layouts }) {
-    return <div {...props} className={cn(layouts[variant], className)} />;
+    return <div {...props} className={expensePresentationStyleClasses(cn(layouts[variant], className))} />;
 }

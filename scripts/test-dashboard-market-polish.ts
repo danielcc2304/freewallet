@@ -13,7 +13,7 @@ const assets=process.env.FREEWALLET_REFERENCE_FILE
         .map(row=>({id:row[1],symbol:row[1],name:row[1],type:row[2],quantity:Number(row[3]),purchasePrice:Number(row[4]),currentPrice:Number(row[4]),purchaseDate:'2026-01-01',currency:'EUR'}))
     : [{id:'fixture',symbol:'TEST',name:'Synthetic asset',type:'stock',quantity:2,purchasePrice:100,currentPrice:100,purchaseDate:'2026-01-01',currency:'EUR'}];
 if(process.env.FREEWALLET_REFERENCE_FILE)assert.equal(assets.length,15);
-const browser=await puppeteer.launch({headless:true});
+const browser=await puppeteer.launch({headless:true,args:['--no-sandbox']});
 let holdingsFail=false;let quotesFail=false;
 const errors:string[]=[];
 try{

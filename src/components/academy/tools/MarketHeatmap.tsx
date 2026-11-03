@@ -1,3 +1,5 @@
+import{MarketHeatmapPage,MarketSectorBoundary,MarketCompanyTile,MarketTileLabel,MarketSectorLabels,MarketSectorLabel}from'../ui/MarketArtwork';
+import{marketArtworkStyle}from'../ui/marketArtworkStyles';
 
 
 import {HeatmapWorkspace,HeatmapToolbar,HeatmapToolbarField,HeatmapMetrics,HeatmapMetric,HeatmapCanvas,HeatmapState,HeatmapCompletion,HeatmapDetails,HeatmapExtreme,HeatmapSectorSummary,HeatmapFooter,HeatmapFloatingActions,HeatmapRefreshButton} from '../ui/HeatmapWorkspace';
@@ -93,20 +95,7 @@ function HeatmapTile(node: TreemapNode) {
     if (node.children?.length) {
         const sector = getNodeValue<string>(node, 'sector') || node.name;
         return (
-            <g className="market-heatmap__sector-group" data-sector={sector} pointerEvents="none">
-                <rect
-                    x={node.x + 1}
-                    y={node.y + 1}
-                    width={Math.max(node.width - 2, 0)}
-                    height={Math.max(node.height - 2, 0)}
-                    rx={7}
-                    fill="transparent"
-                    stroke="rgba(255, 255, 255, 0.28)"
-                    strokeWidth={2}
-                >
-                    <title>{`${sector} · Peso ${node.value.toLocaleString('es-ES', { maximumFractionDigits: 1 })}% · ${node.children.length} valores`}</title>
-                </rect>
-            </g>
+            <MarketSectorBoundary sector={sector} rectangle={{x:node.x + 1,y:node.y + 1,width:Math.max(node.width - 2, 0),height:Math.max(node.height - 2, 0),rx:7,fill:"transparent",stroke:"rgba(255, 255, 255, 0.28)",strokeWidth:2}} title={<>{`${sector} · Peso ${node.value.toLocaleString('es-ES', { maximumFractionDigits: 1 })}% · ${node.children.length} valores`}</>}></MarketSectorBoundary>
         );
     }
 
@@ -123,56 +112,19 @@ function HeatmapTile(node: TreemapNode) {
     const centerY = node.y + node.height / 2;
 
     return (
-        <g className="market-heatmap__tile">
-            <rect
-                x={node.x + 1}
-                y={node.y + 1}
-                width={Math.max(node.width - 2, 0)}
-                height={Math.max(node.height - 2, 0)}
-                rx={5}
-                fill={getHeatColor(changePercent)}
-                stroke="rgba(255, 255, 255, 0.12)"
-                strokeWidth={1}
-            >
-                <title>{`${companyName} (${symbol}) · ${formatPercent(changePercent)} · Peso ${weight.toLocaleString('es-ES', { maximumFractionDigits: 2 })}% · ${sector} · ${country}`}</title>
-            </rect>
-            {showSymbol && (
-                <text
-                    x={centerX}
-                    y={centerY - (showName ? 12 : showChange ? 7 : -4)}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    className="market-heatmap__tile-symbol"
-                    pointerEvents="none"
-                >
+        <MarketCompanyTile  rectangle={{x:node.x + 1,y:node.y + 1,width:Math.max(node.width - 2, 0),height:Math.max(node.height - 2, 0),rx:5,fill:getHeatColor(changePercent),stroke:"rgba(255, 255, 255, 0.12)",strokeWidth:1}} title={<>{`${companyName} (${symbol}) · ${formatPercent(changePercent)} · Peso ${weight.toLocaleString('es-ES', { maximumFractionDigits: 2 })}% · ${sector} · ${country}`}</>}>{showSymbol && (
+                <MarketTileLabel appearance="symbol" x={centerX} y={centerY - (showName ? 12 : showChange ? 7 : -4)} textAnchor="middle" dominantBaseline="central" pointerEvents="none">
                     {symbol}
-                </text>
-            )}
-            {showName && (
-                <text
-                    x={centerX}
-                    y={centerY + 3}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    className="market-heatmap__tile-name"
-                    pointerEvents="none"
-                >
+                </MarketTileLabel>
+            )}{showName && (
+                <MarketTileLabel appearance="name" x={centerX} y={centerY + 3} textAnchor="middle" dominantBaseline="central" pointerEvents="none">
                     {companyName.length > 20 ? `${companyName.slice(0, 18)}…` : companyName}
-                </text>
-            )}
-            {showChange && (
-                <text
-                    x={centerX}
-                    y={centerY + (showName ? 20 : 10)}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    className="market-heatmap__tile-change"
-                    pointerEvents="none"
-                >
+                </MarketTileLabel>
+            )}{showChange && (
+                <MarketTileLabel appearance="change" x={centerX} y={centerY + (showName ? 20 : 10)} textAnchor="middle" dominantBaseline="central" pointerEvents="none">
                     {formatPercent(changePercent)}
-                </text>
-            )}
-        </g>
+                </MarketTileLabel>
+            )}</MarketCompanyTile>
     );
 }
 
@@ -433,7 +385,7 @@ export function MarketHeatmap() {
     }, [heatmapData, syncSectorLabelPositions]);
 
     return (
-        <div className={"market-heatmap"}>
+        <MarketHeatmapPage >
             <AcademyPageHeader className="market-heatmap__header" section="Herramientas">
                 <h1>Heatmap de mercados</h1>
                 <p>Compara el movimiento diario de las principales compañías por su peso dentro de cada índice.</p>
@@ -470,7 +422,7 @@ export function MarketHeatmap() {
 
                 <HeatmapCanvas ref={canvasRef} aria-label={`Mapa de calor de ${indexDefinition.label}`}>
                     {isLoading && heatmapData.length === 0 && (
-                        <HeatmapState appearance="loading" icon={<RefreshCw size={24} className="market-heatmap__refresh-icon--spinning" />} message={<>Cargando composición y cotizaciones de {indexDefinition.label}…</>} />
+                        <HeatmapState appearance="loading" icon={<RefreshCw size={24} className={marketArtworkStyle('market-heatmap__refresh-icon--spinning')} />} message={<>Cargando composición y cotizaciones de {indexDefinition.label}…</>} />
                     )}
 
                     {hasError && !isLoading && (
@@ -492,27 +444,22 @@ export function MarketHeatmap() {
                         </ResponsiveContainer>
                     )}
 
-                    <div className="market-heatmap__sector-label-layer" aria-hidden="true">
+                    <MarketSectorLabels aria-hidden="true">
                         {sectorLabelPositions.map((label) => {
                             const isReadable = label.width >= 88 && label.height >= 34;
                             if (!isReadable) return null;
 
                             return (
-                                <span
-                                    key={label.sector}
-                                    className="market-heatmap__sector-label"
-                                    style={{
+                                <MarketSectorLabel key={label.sector} style={{
                                         left: `${Math.max(label.x + 8, 5)}px`,
                                         top: `${Math.max(label.y + 8, 5)}px`,
                                         maxWidth: `${Math.max(label.width - 16, 72)}px`,
-                                    }}
-                                    title={label.sector}
-                                >
+                                    }} title={label.sector}>
                                     {label.sector}
-                                </span>
+                                </MarketSectorLabel>
                             );
                         })}
-                    </div>
+                    </MarketSectorLabels>
                 </HeatmapCanvas>
 
                 <HeatmapLegend lower={<>-4% o menos</>} upper={<>+4% o más</>} />
@@ -556,8 +503,8 @@ export function MarketHeatmap() {
             </HeatmapWorkspace>
 
             <HeatmapFloatingActions aria-label="Acciones del heatmap">
-                <HeatmapRefreshButton variant="secondary" onClick={() => void loadIndex(selectedIndex, true)} icon={<RefreshCw size={18} className={isLoading || isCompleting ? 'market-heatmap__refresh-icon--spinning' : ''} />} size="sm" disabled={isLoading || isCompleting} aria-label={isLoading || isCompleting ? 'Actualizando heatmap' : 'Actualizar heatmap'} title={isLoading || isCompleting ? 'Actualizando heatmap' : 'Actualizar heatmap'} />
+                <HeatmapRefreshButton variant="secondary" onClick={() => void loadIndex(selectedIndex, true)} icon={<RefreshCw size={18} className={isLoading || isCompleting ? marketArtworkStyle('market-heatmap__refresh-icon--spinning') : ''} />} size="sm" disabled={isLoading || isCompleting} aria-label={isLoading || isCompleting ? 'Actualizando heatmap' : 'Actualizar heatmap'} title={isLoading || isCompleting ? 'Actualizando heatmap' : 'Actualizar heatmap'} />
             </HeatmapFloatingActions>
-        </div>
+        </MarketHeatmapPage>
     );
 }

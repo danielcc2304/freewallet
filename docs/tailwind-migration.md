@@ -521,3 +521,23 @@ Las declaraciones ajenas a JSX de **29 consumidores** conservan su lógica. Pasa
 La comparación con el build anterior cubre **264 estados**: 22 rutas, navegación, búsqueda, desglose y mapa de calor con posiciones, detalle de acción, traspaso a un fondo nuevo, subyacente sin resolución y cuatro pestañas internas de análisis (benchmark, asignación, riesgo y controles), en 390/1280 px y las cuatro combinaciones de tema/apariencia. Se comparan nodos, etiquetas, clases de integración y **21 propiedades calculadas**; no es una comparación píxel a píxel. Las pruebas de interacción verifican traspasos parciales/completos a destinos nuevos/existentes, validaciones y persistencia; fundamentales con fallback, datos ausentes y reintento; identificación de clases de subyacentes y sus gráficos; tres rondas de Market Timing, pausa y teclado; Bonos e IRPF. Los datos son sintéticos y las consultas externas se interceptan o bloquean.
 
 Pasan TypeScript, ESLint, compilación y presupuesto de arranque: **674,01 kB de JavaScript inicial**, con calculadoras y SDK editorial fuera del arranque. El recorrido responsive completo pasa **492 combinaciones en 41 rutas**, con 320/390/1280 px y los cuatro temas/apariencias, sin errores ni desbordamientos. El registro de cambios se revisa en este recorrido; su contenido crece con las nuevas entradas y se excluye de la comparación de nodos.
+
+
+## Vigésima sexta fase: gastos y celdas SVG del mapa de mercados
+
+Se completa otra parte de los estilos de gastos y la representación propia del Heatmap, conservando las estructuras de datos y los servicios existentes.
+
+- `ExpenseReading` comparte notas, avisos, filtros, calendario, desplegable nativo y la identidad del movimiento (icono, tipo y descripción). Los campos, paneles, métricas, rejillas, controles y filas existentes resuelven las recetas responsive restantes, incluidas las propiedades de clases recibidas por composición.
+- `MarketArtwork` comparte el marco de la página, límites de sector y celdas de empresas en SVG, y las etiquetas SVG/HTML. Geometría, colores calculados, límites de legibilidad, textos formateados y solicitudes permanecen en `MarketHeatmap`. Se conserva el contenedor con referencia de Recharts y el marcado SVG nativo.
+- Se retiran doce referencias CSS y tres del detector de apariencia a selectores sin consumidores: el antiguo selector de periodos de `PortfolioChart` y la tarjeta antigua del total del simulador. Se conservan los selectores activos del gráfico de detalle de activos.
+- Los materiales complejos de gastos, reglas para transparencia reducida y fallback sin filtros ópticos permanecen en CSS. Se conserva también la animación específica del refresco del Heatmap. Las recetas de componentes mantienen la prioridad de cuatro columnas en el calendario pequeño y de los estados visuales de los movimientos.
+
+Se retiran **141 líneas de CSS fuente y 78 declaraciones `@apply`**. Quedan **3.196 líneas en 24 hojas CSS**, una reducción acumulada del **85,95 %** sobre las 22.753 iniciales. Se cuentan líneas físicas, no ahorro de descarga. No cambian backend, dependencias, versión ni cálculos financieros.
+
+### Validación de esta fase
+
+Las declaraciones ajenas a JSX de los cuatro consumidores principales (gestor, editores e importador de gastos y mapa de mercados) conservan su lógica. Pasan las pruebas de gastos e importación Excel: céntimos, devoluciones, traspasos, fechas, límites, recurrencias, deduplicación, CSV/Excel y seguridad de fórmulas. El recorrido funcional de gastos pasa en estándar y Liquid Glass: creación/edición/cancelación/borrado, resúmenes por tipo, presupuestos, confirmación de recurrentes, objetivos, importación y persistencia, con ajuste a 320/390/768 px y capturas de escritorio y ambos temas.
+
+Coinciden **88 estados** de las cinco secciones de gastos, tres editores y Heatmap cargado/seleccionado/con error, en 390/1280 px y cuatro combinaciones de tema/apariencia. El registro de prueba contiene los cuatro tipos de movimientos y exceso de presupuesto. Se comparan nodos, etiquetas, clases de integración y **22 propiedades calculadas**, incluidos relleno SVG, filtros ópticos y foco; no es una comparación píxel a píxel. El indicador transitorio de animación de selección se excluye de las clases comparadas. Los datos son sintéticos y las consultas externas se bloquean o interceptan.
+
+El lanzamiento de Chromium de la prueba de pulido utiliza el mismo modo sin sandbox que el resto de las pruebas en contenedor. TypeScript, ESLint y compilación conservan sus comprobaciones, al igual que el presupuesto de carga inicial.

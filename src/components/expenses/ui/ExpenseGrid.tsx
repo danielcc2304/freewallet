@@ -1,3 +1,4 @@
+import{expensePresentationStyleClasses}from'./expensePresentationStyles';
 import type { HTMLAttributes } from 'react';
 import { cn } from '../../../utils/cn';
 
@@ -9,5 +10,5 @@ const layouts = {
     "accounts": "tw:grid tw:grid-cols-[repeat(3,minmax(0,1fr))] tw:gap-[1rem] tw:mt-[1rem]"
 };
 export function ExpenseGrid({ variant, className, ...props }: HTMLAttributes<HTMLDivElement> & { variant: keyof typeof layouts }) {
-    return <div {...props} className={cn(layouts[variant], className)} />;
+    return <div {...props} className={expensePresentationStyleClasses(cn(layouts[variant], className))} />;
 }

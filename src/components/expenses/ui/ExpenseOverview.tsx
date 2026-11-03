@@ -1,3 +1,5 @@
+import{ExpenseHint}from'./ExpenseReading';
+import{expensePresentationStyleClasses}from'./expensePresentationStyles';
 import type { ComponentProps, HTMLAttributes, ReactNode } from 'react';
 import { cn } from '../../../utils/cn';
 import { ExpenseCard } from './ExpensePanel';
@@ -15,14 +17,14 @@ export function ExpenseDistribution({
     children: ReactNode;
 }) {
     return (
-        <div className={s('expense-distribution')}>
-            <div className={s('expense-donut')} style={{ background: gradient }} role="img" aria-label={label}>
+        <div className={expensePresentationStyleClasses(s('expense-distribution'))}>
+            <div className={expensePresentationStyleClasses(s('expense-donut'))} style={{ background: gradient }} role="img" aria-label={label}>
                 <div>
                     <span>Por categorías</span>
                     <strong>{value}</strong>
                 </div>
             </div>
-            <ul className={s('expense-legend')}>{children}</ul>
+            <ul className={expensePresentationStyleClasses(s('expense-legend'))}>{children}</ul>
         </div>
     );
 }
@@ -61,7 +63,7 @@ export function ExpenseFactList({
         Label = semantic ? 'dt' : 'span',
         Value = semantic ? 'dd' : 'strong';
     return (
-        <Root className={s('expense-facts')}>
+        <Root className={expensePresentationStyleClasses(s('expense-facts'))}>
             {items.map((item, i) => (
                 <div key={i}>
                     <Label>{item.label}</Label>
@@ -73,7 +75,7 @@ export function ExpenseFactList({
 }
 export function ExpenseChartLegend({ items }: { items: readonly ReactNode[] }) {
     return (
-        <div className={s('expense-chart-legend')}>
+        <div className={expensePresentationStyleClasses(s('expense-chart-legend'))}>
             {items.map((label, i) => (
                 <span key={i}>
                     <i />
@@ -84,7 +86,7 @@ export function ExpenseChartLegend({ items }: { items: readonly ReactNode[] }) {
     );
 }
 export function ExpenseBarChart({ children }: { children: ReactNode }) {
-    return <div className={s('expense-bar-chart')}>{children}</div>;
+    return <div className={expensePresentationStyleClasses(s('expense-bar-chart'))}>{children}</div>;
 }
 export function ExpenseMonthBars({
     income,
@@ -96,8 +98,8 @@ export function ExpenseMonthBars({
     label: ReactNode;
 }) {
     return (
-        <div className={s('expense-bar-month')}>
-            <div className={s('expense-bar-pair')}>
+        <div className={expensePresentationStyleClasses(s('expense-bar-month'))}>
+            <div className={expensePresentationStyleClasses(s('expense-bar-pair'))}>
                 <span {...income} />
                 <span {...spend} />
             </div>
@@ -128,24 +130,24 @@ export function ExpenseSummaryCard({
     return (
         <ExpenseCard
             {...props}
-            className={cn(
+            className={expensePresentationStyleClasses(cn(
                 s(account ? 'expense-account' : appearance === 'goal' ? 'expense-goal' : 'expense-category-card'),
                 className,
-            )}
+            ))}
         >
             <ExpenseRecordRow>{header}</ExpenseRecordRow>
             {account && <h3>{title}</h3>}
-            <strong {...summaryProps}>{summary}</strong>
+            <strong {...summaryProps} className={expensePresentationStyleClasses(summaryProps?.className)}>{summary}</strong>
             {progress}
-            {account ? <small>{detail}</small> : <p className="expense-hint">{detail}</p>}
+            {account ? <small>{detail}</small> : <ExpenseHint >{detail}</ExpenseHint>}
         </ExpenseCard>
     );
 }
 export function ExpenseColorDot({ color }: { color: string }) {
-    return <i className={s('expense-color-dot')} style={{ background: color }} />;
+    return <i className={expensePresentationStyleClasses(s('expense-color-dot'))} style={{ background: color }} />;
 }
 export function ExpenseAccountIcon({ children }: { children: ReactNode }) {
-    return <span className={s('expense-account-icon')}>{children}</span>;
+    return <span className={expensePresentationStyleClasses(s('expense-account-icon'))}>{children}</span>;
 }
 export function ExpensePagination({
     previous,
@@ -157,7 +159,7 @@ export function ExpensePagination({
     next: ReactNode;
 }) {
     return (
-        <div className={s('expense-pagination')}>
+        <div className={expensePresentationStyleClasses(s('expense-pagination'))}>
             {previous}
             <span>{label}</span>
             {next}
@@ -174,7 +176,7 @@ export function ExpenseGettingStarted({
     actions: ReactNode;
 }) {
     return (
-        <div className={s('expense-start')}>
+        <div className={expensePresentationStyleClasses(s('expense-start'))}>
             <div>
                 <h2>{title}</h2>
                 <p>{description}</p>

@@ -43,6 +43,13 @@ try {
 
         assert.equal(await page.$('.dashboard__header details'),null,'Header status is not a disclosure');
         const info='button[aria-label="Actualización de precios"]';await page.waitForSelector(info,{visible:true});
+        const clickState=await page.$eval(info,button=>{
+            const rect=button.getBoundingClientRect(),x=rect.left+rect.width/2,y=rect.top+rect.height/2,hit=document.elementFromPoint(x,y);
+            const ancestors:Array<Record<string,unknown>>=[];let node:HTMLElement|null=button;
+            while(node){const style=getComputedStyle(node),r=node.getBoundingClientRect();ancestors.push({tag:node.tagName,className:node.className,rect:[r.left,r.top,r.right,r.bottom],overflow:style.overflow,display:style.display,visibility:style.visibility,pointerEvents:style.pointerEvents});node=node.parentElement;}
+            return {viewport:[innerWidth,innerHeight],rect:[rect.left,rect.top,rect.right,rect.bottom],enabled:!(button as HTMLButtonElement).disabled,hit:hit?{tag:hit.tagName,className:(hit as HTMLElement).className,insideButton:button.contains(hit)}:null,ancestors};
+        });
+        console.log('DASHBOARD_INFO_ACTIONABILITY',JSON.stringify(clickState));
         const headerHeight=await page.$eval('.dashboard__header',n=>n.getBoundingClientRect().height);
         await page.locator(info).click();await page.waitForSelector('[role=dialog]');
         assert.match(await page.$eval('[role=dialog]',n=>n.textContent??''),/Última|Acciones y criptos/);

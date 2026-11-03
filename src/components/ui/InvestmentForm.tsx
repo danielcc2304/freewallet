@@ -21,8 +21,21 @@ export function InvestmentForm({
         </Card>
     );
 }
-export function InvestmentFieldsRow({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
-    return <div {...props} className={cn(s('form-row'), className)} />;
+export function InvestmentFieldsRow({
+    columns = 3,
+    className,
+    ...props
+}: HTMLAttributes<HTMLDivElement> & { columns?: 2 | 3 }) {
+    return (
+        <div
+            {...props}
+            className={cn(
+                s('form-row'),
+                columns === 2 && 'tw:[@media(min-width:769px)]:grid-cols-[repeat(2,minmax(0,1fr))]',
+                className,
+            )}
+        />
+    );
 }
 export function InvestmentAvailability({ label, value }: { label: ReactNode; value: ReactNode }) {
     return (
@@ -35,12 +48,29 @@ export function InvestmentAvailability({ label, value }: { label: ReactNode; val
 export function InvestmentSearchArea({ className, ...props }: HTMLAttributes<HTMLDivElement>) {
     return <div {...props} className={cn(s('search-container'), className)} />;
 }
-export function InvestmentSearchResults({ className, ...props }: HTMLAttributes<HTMLUListElement>) {
-    return <ul {...props} className={cn(s('search-results'), className)} />;
-}
-export function InvestmentSearchLoading({ icon, children }: { icon: ReactNode; children: ReactNode }) {
+export function InvestmentSearchResults({
+    inline,
+    className,
+    ...props
+}: HTMLAttributes<HTMLUListElement> & { inline?: boolean }) {
     return (
-        <div className={s('search-loading')}>
+        <ul
+            {...props}
+            className={cn(s('search-results'), inline && 'tw:static tw:mt-2 tw:z-auto tw:shadow-none', className)}
+        />
+    );
+}
+export function InvestmentSearchLoading({
+    icon,
+    children,
+    inline,
+}: {
+    icon: ReactNode;
+    children: ReactNode;
+    inline?: boolean;
+}) {
+    return (
+        <div className={cn(s('search-loading'), inline && 'tw:static tw:mt-2')}>
             {icon}
             {children}
         </div>

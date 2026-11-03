@@ -1,7 +1,7 @@
 {
   "name": "freewallet",
   "private": true,
-  "version": "7.0.1",
+  "version": "7.1.0",
   "type": "module",
   "scripts": {
     "typecheck": "tsc -b",
@@ -133,7 +133,7 @@
     "eslint-plugin-react-refresh": "^0.4.24",
     "globals": "^16.5.0",
     "jsqr": "1.4.0",
-    "puppeteer": "25.12.0",
+    "puppeteer": "25.16.0",
     "serve-handler": "^6.1.6",
     "tailwindcss": "4.3.3",
     "tsx": "^4.21.0",

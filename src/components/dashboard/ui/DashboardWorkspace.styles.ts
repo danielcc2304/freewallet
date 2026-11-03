@@ -11,7 +11,7 @@ const styles = {
     `,
     dashboard__title: String.raw`
         tw:text-[length:var(--font-size-3xl)] tw:[font-weight:700] tw:m-[0]
-        tw:[background:linear-gradient(135deg,_var(--text-primary)_0%,_var(--text-secondary)_100%)]
+        tw:[background-image:linear-gradient(135deg,_var(--text-primary)_0%,_var(--text-secondary)_100%)]
         tw:[-webkit-background-clip:text] tw:[-webkit-text-fill-color:transparent] tw:[background-clip:text]
         tw:[@media(max-width:640px)]:text-[length:var(--font-size-2xl)]
     `,
@@ -32,7 +32,7 @@ const styles = {
     `,
     'dashboard__updating-banner': String.raw`
         tw:ui-row tw:gap-ui-sm tw:p-[var(--spacing-sm)_var(--spacing-md)]
-        tw:[background:linear-gradient(135deg,_rgba(59,_130,_246,_0.1),_rgba(139,_92,_246,_0.1))]
+        tw:[background-image:linear-gradient(135deg,_rgba(59,_130,_246,_0.1),_rgba(139,_92,_246,_0.1))]
         tw:[border:1px_solid_rgba(59,_130,_246,_0.3)] tw:rounded-control tw:mb-ui-md tw:text-accent
         tw:text-[length:var(--font-size-sm)] tw:[animation:fadeIn_0.3s_ease-out]
     `,
@@ -101,7 +101,7 @@ const styles = {
     `,
     'welcome-content__title': String.raw`
         tw:text-[length:var(--font-size-3xl)] tw:[font-weight:700] tw:m-[0]
-        tw:[background:linear-gradient(135deg,_var(--accent-primary),_var(--accent-secondary))]
+        tw:[background-image:linear-gradient(135deg,_var(--accent-primary),_var(--accent-secondary))]
         tw:[-webkit-background-clip:text] tw:[-webkit-text-fill-color:transparent] tw:[background-clip:text]
         tw:[@media(max-width:640px)]:text-[length:var(--font-size-2xl)]
     `,

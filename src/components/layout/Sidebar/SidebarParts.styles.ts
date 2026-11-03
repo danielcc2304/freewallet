@@ -23,7 +23,7 @@ const styles = {
     `,
     'sidebar__logo-text': String.raw`
         tw:text-[length:var(--font-size-xl)] tw:[font-weight:700]
-        tw:[background:linear-gradient(135deg,_var(--accent-primary),_var(--accent-secondary))]
+        tw:[background-image:linear-gradient(135deg,_var(--accent-primary),_var(--accent-secondary))]
         tw:[-webkit-background-clip:text] tw:[-webkit-text-fill-color:transparent] tw:[background-clip:text]
     `,
     'sidebar__link': String.raw`

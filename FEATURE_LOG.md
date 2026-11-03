@@ -12,6 +12,18 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-11-03 - v7.1.0 - Interfaz unificada y alta de efectivo
+- Funcionalidad:
+  - Interfaz más coherente en cartera, Academia, calculadoras, noticias y gastos, con mejoras para móvil y los temas claro, oscuro y Liquid Glass.
+  - Añadir inversión: elige entre buscar un activo o registrar efectivo directamente; el formulario de efectivo muestra nombre, saldo, fecha y TAE opcional.
+  - Alta manual accesible desde el inicio y resultados de búsqueda integrados en el formulario.
+  - Corrige los degradados de texto en el logo y los títulos compartidos.
+- Resumen:
+  - Conserva la incorporación de efectivo de v7.0.2 y simplifica su presentación, sin pedir un ticker ni un precio para una cuenta en euros.
+  - Reúne la migración de componentes compartidos y mantiene las mejoras previas de cartera, gastos, importación y herramientas.
+- Archivos:
+  - package.json, package-lock.json, src/constants/app.ts, src/pages/AddInvestment/*, src/components/ui/InvestmentEntryMode.tsx, src/components/ui/InvestmentForm.tsx, FEATURE_LOG.md
+
 ### 2026-11-03 - Tailwind: gastos y representación SVG de Heatmap · 85,95 %
 - Funcionalidad:
   - Comparte notas, avisos, filtros, calendario, desplegables e identidad de movimientos con `ExpenseReading`; los componentes existentes de gastos incorporan sus reglas responsive pendientes.
@@ -312,13 +324,21 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Primera fase de la migración: retira siete archivos CSS sustituidos y conserva los estilos de las pantallas pendientes. Incluye capturas de comparación, pruebas de teclado y comprobaciones de móvil/escritorio en las cuatro combinaciones de tema y apariencia. Actualiza Vite a 7.3.7 tras revisar la auditoría de dependencias. No requiere migraciones de Supabase ni cambios en los batches.
 - Archivos:
   - docs/tailwind-migration.md, README.md, package.json, package-lock.json, vite.config.ts, src/styles/tailwind.css, src/utils/cn.ts, src/index.css, src/App.tsx, src/components/ui, src/pages/Account, src/pages/AddInvestment/AddInvestment.tsx, src/components/dashboard/AssetDetail.css, scripts/fixtures/FoundationGallery.tsx, scripts/test-tailwind-foundation-ui.ts, scripts/run-tests.mjs
+### 2026-10-27 - v7.0.2 - Alta de inversiones más sencilla
+- Funcionalidad:
+  - Cartera: registra el saldo de efectivo en euros sin tener que buscar ni elegir un activo.
+  - Cartera: facilita encontrar inversiones por nombre, ticker o ISIN y permite añadirlas manualmente si no aparecen.
+- Resumen:
+  - Añadir efectivo a la cartera y registrar una inversión a mano resulta más sencillo.
+- Archivos:
+  - FEATURE_LOG.md, package.json, package-lock.json, src/constants/app.ts, src/pages/AddInvestment/AddInvestment.tsx, src/pages/AddInvestment/AddInvestment.css
 
 ### 2026-10-18 - v7.0.1 - Fondos: vuelve a mostrar históricos
 - Funcionalidad:
   - Fondos: vuelve a mostrar el histórico de Robeco y otros fondos cuando Financial Times redirige la ficha para indicar la divisa de la clase.
   - Fondos: comprueba el ISIN, la clase, la serie y su moneda antes de mostrar los precios.
 - Resumen:
-  - Corrige la redirección de Financial Times que dejaba el gráfico sin histórico y añade pruebas para distintas clases y monedas. La configuración de Vercel se aplica al desplegar; no cambia la base de datos ni los movimientos.
+  - Corrige un problema que impedía consultar los históricos de algunos fondos cuando su ficha redirigía a otra clase o divisa.
 - Archivos:
   - vercel.json, vite.config.ts, scripts/test-fund-history-proxy.ts, scripts/test-fund-chart-ui.ts, scripts/run-tests.mjs, docs/fund-history.md, FEATURE_LOG.md
 
@@ -329,13 +349,11 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Cartera: al cambiar de mercado, descarta respuestas del anterior y admite la última observación del elegido aunque tenga una hora anterior; mantiene la protección contra precios atrasados dentro de un mismo mercado.
   - Gastos: mantiene el aviso de cambios sin guardar al navegar, permite volver para reintentar o exportar y evita cerrar la sesión de cuenta o editorial mientras haya guardados pendientes.
   - Navegación: carga las pantallas cuando se necesitan, muestra un indicador de carga y permite recuperarse de errores sin perder la navegación; evita recargas automáticas si quedan cambios pendientes.
-  - Calidad: incorpora controles automatizados de lógica, base de datos, navegador, compilación, dependencias e integración de hotfixes antes de promover dev o release.
+
   - SEO: corrige el dominio de producción, permite configurarlo por entorno y excluye de la indexación las vistas previas y preproducción.
 - Resumen:
-  - Incluye mejoras de seguridad en Noticias, coherencia en las cotizaciones de Cartera y navegación más ágil. El backend de cotizaciones ya está aplicado en Supabase; los históricos conservan su mercado real y no se reconstruyen ni se reetiquetan.
-  - Reduce el archivo JavaScript principal de 1.807,92 a 618,32 kB (aproximadamente un 66 %). Actualiza DOMPurify y source-map-js; la auditoría completa de dependencias no detecta vulnerabilidades conocidas.
-  - En GitHub Actions pasaron lint, TypeScript, compilación, 63 comprobaciones de lógica/base de datos, el control del bundle, 10 suites de navegador y auditoría de dependencias. La protección de ramas todavía no exige este workflow.
-  - La protección nativa de contraseñas filtradas queda pendiente: requiere Supabase Pro y el proyecto usa Free. No se modifica el plan. Los históricos de cotizaciones anteriores conservan su mercado real y no se reconstruyen ni se reetiquetan.
+  - Protege mejor los artículos, hace más coherentes los precios de la cartera y agiliza la navegación.
+  - La aplicación carga menos código al inicio, así que las pantallas pueden abrirse con mayor rapidez.
 - Archivos:
   - FEATURE_LOG.md, docs/application-audit-fixes.md, .github/workflows/quality.yml, package-lock.json, scripts/run-tests.mjs, scripts/test-application-audit-ui.ts, scripts/test-unified-quote-markets.ts, scripts/test-quote-market-switch.ts, scripts/test-seo.mjs
   - src/utils/newsContent.ts, src/services/pendingChanges.ts, src/services/portfolioQuoteService.ts, src/services/portfolioCloudStorage.ts, src/services/dashboardIntegrity.ts, src/components/ui/PendingChangesGuard.tsx, src/components/ui/RouteView.tsx, src/App.tsx, src/app/routes/academyRoutes.tsx

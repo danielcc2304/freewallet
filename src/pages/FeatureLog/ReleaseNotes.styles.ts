@@ -15,7 +15,7 @@ const styles = {
     `,
     'feature-log__title': String.raw`
         tw:text-[length:var(--font-size-4xl)] tw:[font-weight:700] tw:m-[0]
-        tw:[background:linear-gradient(135deg,_var(--text-primary)_0%,_var(--text-secondary)_100%)]
+        tw:[background-image:linear-gradient(135deg,_var(--text-primary)_0%,_var(--text-secondary)_100%)]
         tw:[-webkit-background-clip:text] tw:[-webkit-text-fill-color:transparent] tw:[background-clip:text]
         tw:[@media(max-width:640px)]:[&&]:text-[length:var(--font-size-3xl)]
     `,

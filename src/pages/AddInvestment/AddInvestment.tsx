@@ -1,12 +1,39 @@
-import { InvestmentForm, InvestmentFieldsRow, InvestmentAvailability, InvestmentSearchArea, InvestmentSearchResults, InvestmentSearchLoading, InvestmentSuccess } from '../../components/ui/InvestmentForm';
+import { InvestmentEntryMode } from '../../components/ui/InvestmentEntryMode';
+import {
+    InvestmentForm,
+    InvestmentFieldsRow,
+    InvestmentAvailability,
+    InvestmentSearchArea,
+    InvestmentSearchResults,
+    InvestmentSearchLoading,
+    InvestmentSuccess,
+} from '../../components/ui/InvestmentForm';
 import { ActionGroup } from '../../components/ui/ActionGroup';
-import { InvestmentSearchOption, InvestmentSelection, InvestmentQuote, InvestmentNotice, InvestmentTotal } from '../../components/ui/InvestmentFeedback';
+import {
+    InvestmentSearchOption,
+    InvestmentSelection,
+    InvestmentQuote,
+    InvestmentNotice,
+    InvestmentTotal,
+} from '../../components/ui/InvestmentFeedback';
 import { FormField, FieldHint } from '../../components/ui/FormField';
 import { useState, useEffect, useLayoutEffect, useRef } from 'react';
 import { useNavigate, useLocation, useOutletContext } from 'react-router-dom';
 import type { DashboardNavigationContext } from '../../components/layout/MainLayout/dashboardNavigation';
 import axios from 'axios';
-import { Search, Coins, Hash, ArrowLeft, Check, AlertCircle, Edit3, TrendingUp, Wrench, Loader2 } from 'lucide-react';
+import {
+    Search,
+    Coins,
+    Hash,
+    ArrowLeft,
+    Check,
+    AlertCircle,
+    Edit3,
+    TrendingUp,
+    Wrench,
+    Loader2,
+    Euro,
+} from 'lucide-react';
 import { Input, Button, inputStyles } from '../../components/ui';
 import { searchSymbol, getQuote, getAssetChartData } from '../../services/apiService';
 import { OPERATION_CURRENCIES, historicalOperationRate, operationEuroPrice } from '../../services/operationCurrency';
@@ -55,9 +82,8 @@ const COMMON_ASSETS: SearchResult[] = [
 function getLocalPredictions(query: string): SearchResult[] {
     const normalized = query.trim().toLowerCase();
     if (!normalized) return [];
-    return COMMON_ASSETS.filter((asset) =>
-        asset.symbol.toLowerCase().startsWith(normalized)
-        || asset.name.toLowerCase().includes(normalized)
+    return COMMON_ASSETS.filter(
+        (asset) => asset.symbol.toLowerCase().startsWith(normalized) || asset.name.toLowerCase().includes(normalized),
     );
 }
 
@@ -73,7 +99,9 @@ export function AddInvestment() {
             navigate('/', { replace: true });
         }
     };
-    useLayoutEffect(() => { window.scrollTo({ top: 0, left: 0, behavior: 'instant' }); }, []);
+    useLayoutEffect(() => {
+        window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    }, []);
     const { addAsset, updateAsset, sellAsset } = usePortfolio();
 
     // Check modes
@@ -92,7 +120,14 @@ export function AddInvestment() {
         name: targetAsset?.name || '',
         type: targetAsset?.type || 'stock',
         // In DCA mode, start empty to ask for NEW purchase price. In Edit mode, show OLD price.
-        purchasePrice: targetAsset?.type === 'cash' ? '1' : isEditMode ? targetAsset?.purchasePrice.toString() || '' : (isSellMode ? String(targetAsset?.currentPrice || targetAsset?.purchasePrice || '') : ''),
+        purchasePrice:
+            targetAsset?.type === 'cash'
+                ? '1'
+                : isEditMode
+                  ? targetAsset?.purchasePrice.toString() || ''
+                  : isSellMode
+                    ? String(targetAsset?.currentPrice || targetAsset?.purchasePrice || '')
+                    : '',
         purchaseDate: isEditMode ? targetAsset!.purchaseDate.slice(0, 10) : accountingDay(Date.now()),
         // In DCA mode, start empty. In Edit mode, show OLD quantity.
         quantity: isEditMode ? targetAsset?.quantity.toString() || '' : '',
@@ -109,13 +144,17 @@ export function AddInvestment() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [manualMode, setManualMode] = useState(!!targetAsset);
+    const [cashEntryMode, setCashEntryMode] = useState(false);
     const [noResultsFound, setNoResultsFound] = useState(false);
     const [currentPrice, setCurrentPrice] = useState<number | null>(null);
     const [loadingPrice, setLoadingPrice] = useState(false);
     const [priceLookupFailed, setPriceLookupFailed] = useState(false);
     const [currency, setCurrency] = useState(targetAsset?.currency || 'EUR');
     const [manualEuroTotal, setManualEuroTotal] = useState('');
-    const [fx, setFx] = useState<{ key: string; rate?: number; date?: string; loading: boolean }>({ key: '', loading: false });
+    const [fx, setFx] = useState<{ key: string; rate?: number; date?: string; loading: boolean }>({
+        key: '',
+        loading: false,
+    });
     const currencyRef = useRef(currency);
     currencyRef.current = currency;
     const fxKey = `${currency}:${formData.purchaseDate}`;
@@ -127,26 +166,38 @@ export function AddInvestment() {
         if (currency === 'EUR') return;
         const date = formData.purchaseDate;
         const day = Date.parse(`${date}T00:00:00Z`);
-        if (!Number.isFinite(day) || new Date(day).toISOString().slice(0, 10) !== date || date > accountingDay(Date.now())) return;
+        if (
+            !Number.isFinite(day) ||
+            new Date(day).toISOString().slice(0, 10) !== date ||
+            date > accountingDay(Date.now())
+        )
+            return;
         const controller = new AbortController();
         const key = `${currency}:${date}`;
         const timer = window.setTimeout(() => controller.abort(), 12000);
         let disposed = false;
         setFx({ key, loading: true });
         void getAssetChartData(`${currency}EUR=X`, '1M', controller.signal, { startDate: day, endDate: day + 86400000 })
-            .then(points => {
+            .then((points) => {
                 const rate = historicalOperationRate(points, date);
                 if (!disposed) setFx({ key, loading: false, rate: rate?.close, date: rate?.date });
-            }).catch(() => { if (!disposed) setFx({ key, loading: false }); })
+            })
+            .catch(() => {
+                if (!disposed) setFx({ key, loading: false });
+            })
             .finally(() => window.clearTimeout(timer));
-        return () => { disposed = true; controller.abort(); window.clearTimeout(timer); };
+        return () => {
+            disposed = true;
+            controller.abort();
+            window.clearTimeout(timer);
+        };
     }, [currency, formData.purchaseDate]);
 
     const handleCurrencyChange = (value: string) => {
         setCurrency(value);
         currencyRef.current = value;
         setManualEuroTotal('');
-        setFormData(prev => ({ ...prev, purchasePrice: '' }));
+        setFormData((prev) => ({ ...prev, purchasePrice: '' }));
         setErrors({});
     };
     // Al seleccionar una sugerencia actualizamos también el texto del buscador.
@@ -192,17 +243,18 @@ export function AddInvestment() {
                 try {
                     const results = isISIN(searchQuery)
                         ? [await getFundRelevance(searchQuery, controller.signal)].map((fund) => ({
-                            symbol: fund.isin,
-                            name: fund.className || fund.name,
-                            type: 'fund' as const,
-                            region: fund.managerCountry || 'Europa',
-                            currency: fund.currencyCode || 'EUR',
-                        }))
+                              symbol: fund.isin,
+                              name: fund.className || fund.name,
+                              type: 'fund' as const,
+                              region: fund.managerCountry || 'Europa',
+                              currency: fund.currencyCode || 'EUR',
+                          }))
                         : await searchSymbol(searchQuery, controller.signal);
                     const localResults = getLocalPredictions(searchQuery);
-                    const mergedResults = [...localResults, ...results.filter((result) =>
-                        !localResults.some((local) => local.symbol === result.symbol)
-                    )].slice(0, 8);
+                    const mergedResults = [
+                        ...localResults,
+                        ...results.filter((result) => !localResults.some((local) => local.symbol === result.symbol)),
+                    ].slice(0, 8);
                     // El usuario puede haber seleccionado una sugerencia
                     // mientras esta petición estaba en vuelo. No dejes que
                     // una respuesta antigua reabra el menú.
@@ -243,14 +295,15 @@ export function AddInvestment() {
         selectedSearchSymbolRef.current = null;
         const localPredictions = getLocalPredictions(value);
         setSearchQuery(value);
-        setFormData(prev => ({
+        setFormData((prev) => ({
             ...prev,
             symbol: value,
             isin: isISIN(value) ? value.trim().toUpperCase() : '',
         }));
         if (!targetAsset) {
-            setFormData(prev => ({ ...prev, name: '' }));
+            setFormData((prev) => ({ ...prev, name: '' }));
             setManualMode(false);
+            setCashEntryMode(false);
         }
         setSearchResults(localPredictions);
         setHighlightedResult(0);
@@ -261,6 +314,7 @@ export function AddInvestment() {
     const handleSelectResult = async (result: SearchResult) => {
         quoteRequestRef.current?.abort();
         selectedSearchSymbolRef.current = result.symbol;
+        setCashEntryMode(false);
         setFormData({
             symbol: result.symbol,
             name: result.name,
@@ -269,7 +323,7 @@ export function AddInvestment() {
             purchaseDate: isEditMode ? targetAsset!.purchaseDate.slice(0, 10) : accountingDay(Date.now()),
             quantity: '',
             cashTae: '',
-            isin: isISIN(result.symbol) ? result.symbol : ''
+            isin: isISIN(result.symbol) ? result.symbol : '',
         });
         setSearchQuery(result.symbol);
 
@@ -280,7 +334,7 @@ export function AddInvestment() {
 
         setShowResults(false);
         setManualMode(false);
-        setErrors(prev => ({ ...prev, symbol: undefined }));
+        setErrors((prev) => ({ ...prev, symbol: undefined }));
 
         // Fetch current price
         setLoadingPrice(true);
@@ -294,31 +348,36 @@ export function AddInvestment() {
             const rawQuote = fund ? null : await getQuote(result.symbol, quoteController.signal);
             const fundQuote: StockQuote | null = fund?.lastQuote?.price
                 ? {
-                    symbol: result.symbol,
-                    name: result.name,
-                    price: fund.lastQuote.price,
-                    change: fund.lastQuote.change || 0,
-                    changePercent: fund.lastQuote.percentChange || 0,
-                    previousClose: fund.lastQuote.change ? fund.lastQuote.price - fund.lastQuote.change : fund.lastQuote.price,
-                    open: fund.lastQuote.price,
-                    high: fund.lastQuote.price,
-                    low: fund.lastQuote.price,
-                    volume: 0,
-                    currency: fund.currencyCode || 'EUR',
-                }
+                      symbol: result.symbol,
+                      name: result.name,
+                      price: fund.lastQuote.price,
+                      change: fund.lastQuote.change || 0,
+                      changePercent: fund.lastQuote.percentChange || 0,
+                      previousClose: fund.lastQuote.change
+                          ? fund.lastQuote.price - fund.lastQuote.change
+                          : fund.lastQuote.price,
+                      open: fund.lastQuote.price,
+                      high: fund.lastQuote.price,
+                      low: fund.lastQuote.price,
+                      volume: 0,
+                      currency: fund.currencyCode || 'EUR',
+                  }
                 : null;
             const quote = rawQuote
                 ? await normalizeQuoteToEuro(rawQuote, quoteController.signal, false, result.type)
                 : fundQuote
-                    ? await normalizeQuoteToEuro(fundQuote, quoteController.signal)
-                    : null;
+                  ? await normalizeQuoteToEuro(fundQuote, quoteController.signal)
+                  : null;
             const resolvedPrice = quote?.price;
             if (quoteRequestRef.current !== quoteController || quoteController.signal.aborted) return;
             if (resolvedPrice && quote.currency === 'EUR') {
                 setCurrentPrice(resolvedPrice);
-                setFormData(prev => ({
+                setFormData((prev) => ({
                     ...prev,
-                    purchasePrice: currencyRef.current === 'EUR' ? prev.purchasePrice || resolvedPrice.toFixed(6) : prev.purchasePrice
+                    purchasePrice:
+                        currencyRef.current === 'EUR'
+                            ? prev.purchasePrice || resolvedPrice.toFixed(6)
+                            : prev.purchasePrice,
                 }));
             } else {
                 setPriceLookupFailed(true);
@@ -336,6 +395,10 @@ export function AddInvestment() {
     };
 
     const handleSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
+        if (event.key === 'Escape') {
+            setShowResults(false);
+            return;
+        }
         if (!showResults || searchResults.length === 0) return;
         if (event.key === 'ArrowDown') {
             event.preventDefault();
@@ -346,22 +409,24 @@ export function AddInvestment() {
         } else if (event.key === 'Enter') {
             event.preventDefault();
             void handleSelectResult(searchResults[highlightedResult]);
-        } else if (event.key === 'Escape') {
-            setShowResults(false);
         }
     };
 
     const handleManualEntry = () => {
+        quoteRequestRef.current?.abort();
+        selectedSearchSymbolRef.current = null;
+        setLoadingPrice(false);
+        setCashEntryMode(false);
         const query = searchQuery.trim().toUpperCase();
         if (isISIN(query)) {
-            setFormData(prev => ({
+            setFormData((prev) => ({
                 ...prev,
                 symbol: query,
                 isin: query,
                 type: 'fund',
             }));
         } else {
-            setFormData(prev => ({
+            setFormData((prev) => ({
                 ...prev,
                 symbol: query,
                 type: 'stock',
@@ -372,12 +437,75 @@ export function AddInvestment() {
         setNoResultsFound(false);
     };
 
+    const handleAddCash = () => {
+        quoteRequestRef.current?.abort();
+        selectedSearchSymbolRef.current = null;
+        setSearchQuery('');
+        setSearchResults([]);
+        setShowResults(false);
+        setNoResultsFound(false);
+        setCashEntryMode(true);
+        setManualMode(true);
+        setCurrency('EUR');
+        currencyRef.current = 'EUR';
+        setManualEuroTotal('');
+        setCurrentPrice(null);
+        setLoadingPrice(false);
+        setPriceLookupFailed(false);
+        setErrors({});
+        setFormData({
+            symbol: 'CASH-EUR',
+            name: 'Efectivo EUR',
+            type: 'cash',
+            purchasePrice: '1',
+            purchaseDate: accountingDay(Date.now()),
+            quantity: '',
+            isin: '',
+            cashTae: '',
+        });
+    };
+
+    const handleSearchForAsset = () => {
+        quoteRequestRef.current?.abort();
+        selectedSearchSymbolRef.current = null;
+        setSearchQuery('');
+        setSearchResults([]);
+        setShowResults(false);
+        setNoResultsFound(false);
+        setCurrentPrice(null);
+        setLoadingPrice(false);
+        setPriceLookupFailed(false);
+        setErrors({});
+        setCurrency('EUR');
+        currencyRef.current = 'EUR';
+        setManualEuroTotal('');
+        setCashEntryMode(false);
+        setManualMode(false);
+        setFormData({
+            symbol: '',
+            name: '',
+            type: 'stock',
+            purchasePrice: '',
+            purchaseDate: accountingDay(Date.now()),
+            quantity: '',
+            isin: '',
+            cashTae: '',
+        });
+    };
+
     const handleInputChange = (field: keyof FormData, value: string) => {
-        if (field === 'type' && value === 'cash') { setCurrency('EUR'); currencyRef.current = 'EUR'; }
+        if (field === 'type' && value === 'cash') {
+            setCurrency('EUR');
+            currencyRef.current = 'EUR';
+        }
         if (field === 'quantity' || field === 'purchaseDate' || field === 'purchasePrice') setManualEuroTotal('');
-        setFormData(prev => ({ ...prev, [field]: value, ...(field === 'type' && value === 'cash' ? { purchasePrice: '1', isin: '' } : {}) }));
+        setFormData((prev) => ({
+            ...prev,
+            [field]: value,
+            ...(field === 'type' && value === 'cash' ? { purchasePrice: '1', isin: '' } : {}),
+        }));
         if (errors[field as keyof FormErrors]) {
-            setErrors(prev => ({ ...prev, [field]: undefined }));
+            setErrors((prev) => ({ ...prev, [field]: undefined }));
         }
     };
 
@@ -397,12 +525,20 @@ export function AddInvestment() {
             newErrors.purchasePrice = 'Introduce un precio válido mayor que 0';
         }
 
-        if (formData.type === 'cash' && formData.cashTae.trim() && (!Number.isFinite(Number(formData.cashTae)) || Number(formData.cashTae) < 0)) {
+        if (
+            formData.type === 'cash' &&
+            formData.cashTae.trim() &&
+            (!Number.isFinite(Number(formData.cashTae)) || Number(formData.cashTae) < 0)
+        ) {
             newErrors.cashTae = 'Introduce una TAE válida igual o mayor que 0';
         }
 
         const day = Date.parse(`${formData.purchaseDate}T00:00:00Z`);
-        if (!Number.isFinite(day) || new Date(day).toISOString().slice(0, 10) !== formData.purchaseDate || formData.purchaseDate > accountingDay(Date.now())) {
+        if (
+            !Number.isFinite(day) ||
+            new Date(day).toISOString().slice(0, 10) !== formData.purchaseDate ||
+            formData.purchaseDate > accountingDay(Date.now())
+        ) {
             newErrors.purchaseDate = 'Introduce una fecha válida que no sea futura';
         }
 
@@ -414,7 +550,10 @@ export function AddInvestment() {
         }
 
         if (!Number.isFinite(euroPrice) || !Number.isFinite(euroPrice * qty)) {
-            newErrors.save = currency === 'EUR' ? 'Introduce importes válidos.' : 'Indica el importe real en euros o espera a un cambio histórico válido.';
+            newErrors.save =
+                currency === 'EUR'
+                    ? 'Introduce importes válidos.'
+                    : 'Indica el importe real en euros o espera a un cambio histórico válido.';
         }
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
@@ -428,35 +567,49 @@ export function AddInvestment() {
         }
 
         setIsSubmitting(true);
-        const conversionNote = currency === 'EUR' ? '' : ` · Precio original: ${formData.purchasePrice} ${currency}; ${manualEuroTotal.trim() ? `importe indicado: ${manualEuroTotal} EUR` : `cambio ${activeFx?.date}: ${activeFx?.rate} EUR/${currency}`}`;
+        const conversionNote =
+            currency === 'EUR'
+                ? ''
+                : ` · Precio original: ${formData.purchasePrice} ${currency}; ${manualEuroTotal.trim() ? `importe indicado: ${manualEuroTotal} EUR` : `cambio ${activeFx?.date}: ${activeFx?.rate} EUR/${currency}`}`;
 
         try {
             if (isSellMode && assetToSell) {
-                await sellAsset(assetToSell.id, parseFloat(formData.quantity), euroPrice, formData.purchaseDate, conversionNote);
+                await sellAsset(
+                    assetToSell.id,
+                    parseFloat(formData.quantity),
+                    euroPrice,
+                    formData.purchaseDate,
+                    conversionNote,
+                );
             } else if (isEditMode && editAsset) {
                 // Update existing asset (Overwrite)
-                await updateAsset(editAsset.id, {
-                    symbol: formData.symbol.toUpperCase(),
-                    name: formData.name || formData.symbol,
-                    type: formData.type,
-                    purchasePrice: euroPrice,
-                    purchaseDate: formData.purchaseDate,
-                    quantity: parseFloat(formData.quantity),
-                    isin: formData.isin || undefined,
-                    cashTae: formData.type === 'cash' && formData.cashTae.trim() ? Number(formData.cashTae) : undefined,
-                    currency: 'EUR',
-                }, {
-                    assetId: editAsset.id,
-                    assetSymbol: formData.symbol.toUpperCase(),
-                    assetName: formData.name || formData.symbol,
-                    assetType: formData.type,
-                    type: 'edit',
-                    date: formData.purchaseDate,
-                    quantity: parseFloat(formData.quantity),
-                    price: euroPrice,
-                    total: euroPrice * parseFloat(formData.quantity),
-                    notes: 'Edición manual de la posición' + conversionNote,
-                });
+                await updateAsset(
+                    editAsset.id,
+                    {
+                        symbol: formData.symbol.toUpperCase(),
+                        name: formData.name || formData.symbol,
+                        type: formData.type,
+                        purchasePrice: euroPrice,
+                        purchaseDate: formData.purchaseDate,
+                        quantity: parseFloat(formData.quantity),
+                        isin: formData.isin || undefined,
+                        cashTae:
+                            formData.type === 'cash' && formData.cashTae.trim() ? Number(formData.cashTae) : undefined,
+                        currency: 'EUR',
+                    },
+                    {
+                        assetId: editAsset.id,
+                        assetSymbol: formData.symbol.toUpperCase(),
+                        assetName: formData.name || formData.symbol,
+                        assetType: formData.type,
+                        type: 'edit',
+                        date: formData.purchaseDate,
+                        quantity: parseFloat(formData.quantity),
+                        price: euroPrice,
+                        total: euroPrice * parseFloat(formData.quantity),
+                        notes: 'Edición manual de la posición' + conversionNote,
+                    },
+                );
             } else if (isDcaMode && dcaAsset) {
                 // DCA Logic: Calculate weighted average
                 const newQty = parseFloat(formData.quantity);
@@ -466,25 +619,29 @@ export function AddInvestment() {
 
                 const totalQty = oldQty + newQty;
                 // Calculate new average price: (OldVal + NewVal) / TotalQty
-                const totalCost = (oldQty * oldAvgPrice) + (newQty * newPrice);
+                const totalCost = oldQty * oldAvgPrice + newQty * newPrice;
                 const newAvgPrice = totalCost / totalQty;
 
-                await updateAsset(dcaAsset.id, {
-                    quantity: totalQty,
-                    purchasePrice: newAvgPrice,
-                    purchaseDate: dcaAsset.purchaseDate,
-                }, {
-                    assetId: dcaAsset.id,
-                    assetSymbol: dcaAsset.symbol,
-                    assetName: dcaAsset.name,
-                    assetType: dcaAsset.type,
-                    type: 'buy',
-                    date: formData.purchaseDate,
-                    quantity: newQty,
-                    price: newPrice,
-                    total: newQty * newPrice,
-                    notes: 'Compra adicional para promediar precio' + conversionNote,
-                });
+                await updateAsset(
+                    dcaAsset.id,
+                    {
+                        quantity: totalQty,
+                        purchasePrice: newAvgPrice,
+                        purchaseDate: dcaAsset.purchaseDate,
+                    },
+                    {
+                        assetId: dcaAsset.id,
+                        assetSymbol: dcaAsset.symbol,
+                        assetName: dcaAsset.name,
+                        assetType: dcaAsset.type,
+                        type: 'buy',
+                        date: formData.purchaseDate,
+                        quantity: newQty,
+                        price: newPrice,
+                        total: newQty * newPrice,
+                        notes: 'Compra adicional para promediar precio' + conversionNote,
+                    },
+                );
             } else {
                 // Add new asset
                 const newAsset: Asset = {
@@ -521,7 +678,10 @@ export function AddInvestment() {
                 returnToDashboard();
             }, 1500);
         } catch (error) {
-            setErrors(prev => ({ ...prev, save: error instanceof Error ? error.message : 'No se pudieron guardar los cambios.' }));
+            setErrors((prev) => ({
+                ...prev,
+                save: error instanceof Error ? error.message : 'No se pudieron guardar los cambios.',
+            }));
         } finally {
             setIsSubmitting(false);
         }
@@ -539,175 +699,330 @@ export function AddInvestment() {
 
     if (submitSuccess) {
         return (
-            <InvestmentSuccess icon={<>
-                                <Check size={48} />
-                            </>} title={<>
-                                {isEditMode ? '¡Activo Actualizado!' :
-                                    isDcaMode ? '¡Compra Añadida!' : isSellMode ? '¡Venta registrada!' : '¡Inversión Añadida!'}
-                            </>}>{formData.name || formData.symbol} se ha {isEditMode ? 'actualizado' :
-                                (isDcaMode ? 'promediado' : isSellMode ? 'actualizado tras la venta' : 'añadido')} correctamente</InvestmentSuccess>
+            <InvestmentSuccess
+                icon={
+                    <>
+                        <Check size={48} />
+                    </>
+                }
+                title={
+                    <>
+                        {cashEntryMode
+                            ? '¡Efectivo añadido!'
+                            : isEditMode
+                              ? '¡Activo Actualizado!'
+                              : isDcaMode
+                                ? '¡Compra Añadida!'
+                                : isSellMode
+                                  ? '¡Venta registrada!'
+                                  : '¡Inversión Añadida!'}
+                    </>
+                }
+            >
+                {cashEntryMode
+                    ? 'El saldo se ha registrado correctamente.'
+                    : `${formData.name || formData.symbol} se ha ${isEditMode ? 'actualizado' : isDcaMode ? 'promediado' : isSellMode ? 'actualizado tras la venta' : 'añadido'} correctamente`}
+            </InvestmentSuccess>
         );
     }
 
     const getPageTitle = () => {
-        if (isEditMode) return "Editar Inversión";
-        if (isDcaMode) return "Añadir Compra (DCA)";
-        if (isSellMode) return "Registrar Venta";
-        return "Añadir Inversión";
+        if (isEditMode) return 'Editar Inversión';
+        if (isDcaMode) return 'Añadir Compra (DCA)';
+        if (isSellMode) return 'Registrar Venta';
+        if (cashEntryMode) return 'Añadir efectivo';
+        return 'Añadir Inversión';
     };
 
     const getPageSubtitle = () => {
-        if (isEditMode) return "Modifica los datos de tu inversión";
-        if (isDcaMode) return "Promedia tu precio de compra añadiendo más cantidad";
-        if (isSellMode) return "Registra una venta parcial o cierra la posición";
-        return "Introduce los datos de tu nueva inversión";
+        if (isEditMode) return 'Modifica los datos de tu inversión';
+        if (isDcaMode) return 'Promedia tu precio de compra añadiendo más cantidad';
+        if (isSellMode) return 'Registra una venta parcial o cierra la posición';
+        if (cashEntryMode) return 'Añade el saldo de una cuenta corriente o remunerada.';
+        return 'Introduce los datos de tu nueva inversión';
     };
+
+    const showSearchDropdown =
+        !manualMode && !cashEntryMode && !targetAsset && searchQuery.trim().length > 0 && !formData.name;
 
     return (
         <div className="add-investment">
             <div className="add-investment__header">
-                <Button
-                    variant="ghost"
-                    onClick={returnToDashboard}
-                    icon={<ArrowLeft size={18} />}
-                >
+                <Button variant="ghost" onClick={returnToDashboard} icon={<ArrowLeft size={18} />}>
                     Volver
                 </Button>
             </div>
 
             <InvestmentForm title={getPageTitle()} subtitle={getPageSubtitle()} onSubmit={handleSubmit}>
-                        {!apiEnabled && (
-                            <InvestmentNotice appearance="manual" icon={<Wrench size={16} />}><span>
-                                    Las APIs estan desactivadas. Esta pantalla funciona en modo manual mientras el dashboard sigue en construccion.
-                                </span></InvestmentNotice>
-                        )}
+                {!apiEnabled && formData.type !== 'cash' && (
+                    <InvestmentNotice appearance="manual" icon={<Wrench size={16} />}>
+                        <span>Consulta de precios desactivada. Puedes registrar los datos manualmente.</span>
+                    </InvestmentNotice>
+                )}
 
-                        {/* DCA Current Position Info */}
-                        {isDcaMode && dcaAsset && (
-                            <div className="dca-info-box" style={{
-                                background: 'var(--bg-tertiary)',
-                                padding: '1rem',
-                                borderRadius: 'var(--radius-md)',
-                                marginBottom: '1.5rem',
-                                borderLeft: '4px solid var(--accent-primary)'
-                            }}>
-                                <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                                    <TrendingUp size={16} color="var(--accent-primary)" />
-                                    Posición Actual
-                                </h4>
-                                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                                    <div>
-                                        <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Cantidad Total</span>
-                                        <p style={{ fontWeight: '600', fontSize: '1.125rem' }}>{dcaAsset.quantity}</p>
-                                    </div>
-                                    <div>
-                                        <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Precio Medio</span>
-                                        <p style={{ fontWeight: '600', fontSize: '1.125rem' }}>{dcaAsset.purchasePrice.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2, maximumFractionDigits: 6 })}</p>
-                                    </div>
-                                </div>
+                {/* DCA Current Position Info */}
+                {isDcaMode && dcaAsset && (
+                    <div
+                        className="dca-info-box"
+                        style={{
+                            background: 'var(--bg-tertiary)',
+                            padding: '1rem',
+                            borderRadius: 'var(--radius-md)',
+                            marginBottom: '1.5rem',
+                            borderLeft: '4px solid var(--accent-primary)',
+                        }}
+                    >
+                        <h4 style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                            <TrendingUp size={16} color="var(--accent-primary)" />
+                            Posición Actual
+                        </h4>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                            <div>
+                                <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                    Cantidad Total
+                                </span>
+                                <p style={{ fontWeight: '600', fontSize: '1.125rem' }}>{dcaAsset.quantity}</p>
                             </div>
-                        )}
+                            <div>
+                                <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
+                                    Precio Medio
+                                </span>
+                                <p style={{ fontWeight: '600', fontSize: '1.125rem' }}>
+                                    {dcaAsset.purchasePrice.toLocaleString('es-ES', {
+                                        style: 'currency',
+                                        currency: 'EUR',
+                                        minimumFractionDigits: 2,
+                                        maximumFractionDigits: 6,
+                                    })}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                )}
 
-                        {/* Symbol / ISIN Search */}
-                        <FormField className="form-group form-group--search" label={<>Busca el activo</>} labelClassName="form-label">
+                {!targetAsset && (
+                    <InvestmentEntryMode
+                        value={cashEntryMode ? 'cash' : 'asset'}
+                        disabled={isSubmitting}
+                        onChange={(mode) => (mode === 'cash' ? handleAddCash() : handleSearchForAsset())}
+                    />
+                )}
 
-                            <FieldHint className="form-hint">Escribe el nombre, ticker o ISIN. Te mostraremos coincidencias mientras escribes.</FieldHint>
-                            <InvestmentSearchArea >
-                                <Input
-                                    placeholder="Apple, AAPL, Fidelity, IE00BYX5NX33…"
-                                    value={searchQuery}
-                                    onChange={(e) => handleSearchChange(e.target.value)}
-                                    onKeyDown={handleSearchKeyDown}
-                                    icon={<Search size={18} />}
-                                    error={errors.symbol}
-                                    disabled={isEditMode || isDcaMode || isSellMode}
-                                    autoComplete="off"
-                                    role="combobox"
-                                    aria-expanded={showResults}
-                                    aria-controls="investment-search-results"
-                                />
-                                {showResults && searchResults.length > 0 && (
-                                    <InvestmentSearchResults id="investment-search-results" role="listbox">
-                                        {searchResults.map((result, index) => (
-                                            <InvestmentSearchOption selected={index === highlightedResult} key={result.symbol} role="option" aria-selected={index === highlightedResult} onMouseEnter={() => setHighlightedResult(index)} onMouseDown={(event) => event.preventDefault()} onPointerDown={(event) => event.preventDefault()} onClick={() => void handleSelectResult(result)} symbol={<>{result.symbol}</>} name={<>{result.name}</>} kind={<>{assetTypes.find((type) => type.value === result.type)?.label || result.type}</>} />
-                                        ))}
-                                    </InvestmentSearchResults>
-                                )}
-                                {isSearching && (
-                                    <InvestmentSearchLoading icon={<Loader2 size={16} className="search-loading__spinner" />}> Buscando coincidencias…</InvestmentSearchLoading>
-                                )}
-                                {/* No results found - show manual entry option */}
-                                {!manualMode && !isSearching && searchQuery.trim().length >= 1 && !targetAsset && (
-                                    <InvestmentNotice appearance="noResults" icon={<AlertCircle size={18} />} title={<>{noResultsFound ? `No se encontró "${searchQuery}"` : '¿Quieres registrar un activo o una cuenta manualmente?'}</>} action={<Button
-                                            type="button"
-                                            variant="secondary"
-                                            size="sm"
-                                            onClick={handleManualEntry}
-                                            icon={<Edit3 size={14} />}
+                {!manualMode && !cashEntryMode && (
+                    <FormField
+                        className="form-group form-group--search"
+                        label={<>Busca el activo</>}
+                        labelClassName="form-label"
+                    >
+                        <InvestmentSearchArea>
+                            <Input
+                                placeholder="Nombre, ticker o ISIN"
+                                value={searchQuery}
+                                onChange={(event) => handleSearchChange(event.target.value)}
+                                onKeyDown={handleSearchKeyDown}
+                                icon={<Search size={18} />}
+                                error={errors.symbol}
+                                disabled={isSubmitting}
+                                autoComplete="off"
+                                role="combobox"
+                                aria-expanded={showResults && showSearchDropdown}
+                                aria-controls="investment-search-results"
+                                aria-autocomplete="list"
+                                aria-activedescendant={
+                                    showResults && showSearchDropdown && searchResults[highlightedResult]
+                                        ? 'investment-result-' + highlightedResult
+                                        : undefined
+                                }
+                                onFocus={() => setShowResults(true)}
+                                onBlur={() => window.setTimeout(() => setShowResults(false), 200)}
+                            />
+                            {showResults && showSearchDropdown && (
+                                <>
+                                    {isSearching && (
+                                        <InvestmentSearchLoading
+                                            inline
+                                            icon={<Loader2 size={16} className="search-loading__spinner" />}
                                         >
-                                            Añadir manualmente
-                                        </Button>}>
-                                                {isISIN(searchQuery)
-                                                    ? 'ISIN no encontrado en la base de datos, pero puedes añadirlo manualmente.'
-                                                    : 'Puedes añadir este activo manualmente.'}
-                                            </InvestmentNotice>
-                                )}
-                            </InvestmentSearchArea>
-                            {/* Selected asset indicator */}
-                            {formData.name && !manualMode && (
-                                <InvestmentSelection icon={<Check size={17} />} symbol={<>{formData.symbol}</>} name={<>{formData.name}</>} kind={<>
-                                        {assetTypes.find((type) => type.value === formData.type)?.label || formData.type}
-                                    </>} />
+                                            Buscando…
+                                        </InvestmentSearchLoading>
+                                    )}
+                                    {!isSearching && searchResults.length > 0 && (
+                                        <InvestmentSearchResults inline id="investment-search-results" role="listbox">
+                                            {searchResults.map((result, index) => (
+                                                <InvestmentSearchOption
+                                                    key={result.symbol}
+                                                    role="option"
+                                                    id={'investment-result-' + index}
+                                                    aria-selected={index === highlightedResult}
+                                                    selected={index === highlightedResult}
+                                                    onMouseDown={(event) => event.preventDefault()}
+                                                    onMouseEnter={() => setHighlightedResult(index)}
+                                                    onClick={() => void handleSelectResult(result)}
+                                                    symbol={result.symbol}
+                                                    name={result.name}
+                                                    kind={
+                                                        assetTypes.find((type) => type.value === result.type)?.label ||
+                                                        result.type
+                                                    }
+                                                />
+                                            ))}
+                                        </InvestmentSearchResults>
+                                    )}
+                                    {!isSearching && noResultsFound && (
+                                        <FieldHint className="form-hint" role="status">
+                                            No hay coincidencias. Puedes registrar el activo manualmente.
+                                        </FieldHint>
+                                    )}
+                                </>
                             )}
+                        </InvestmentSearchArea>
+                        <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            icon={<Edit3 size={15} />}
+                            className="tw:self-start"
+                            onClick={handleManualEntry}
+                        >
+                            Añadir manualmente
+                        </Button>
+                        {formData.name && (
+                            <InvestmentSelection
+                                icon={<Check size={17} />}
+                                symbol={formData.symbol}
+                                name={formData.name}
+                                kind={assetTypes.find((type) => type.value === formData.type)?.label || formData.type}
+                            />
+                        )}
+                    </FormField>
+                )}
+
+                {manualMode && !cashEntryMode && (
+                    <>
+                        {!targetAsset && (
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="tw:self-start"
+                                icon={<Search size={15} />}
+                                onClick={handleSearchForAsset}
+                            >
+                                Buscar otro activo
+                            </Button>
+                        )}
+                        <FormField className="form-group">
+                            <Input
+                                label="Ticker o ISIN"
+                                value={formData.symbol}
+                                placeholder="Ej. AAPL o IE00BYX5NX33"
+                                onChange={(event) => handleInputChange('symbol', event.target.value.toUpperCase())}
+                                error={errors.symbol}
+                                disabled={!!targetAsset}
+                            />
                         </FormField>
+                    </>
+                )}
 
-                        {/* Name field - only shown in manual mode */}
-                        {manualMode && (
-                            <FormField className="form-group">
-                                <Input
-                                    label="Nombre del activo"
-                                    placeholder="Ej: Fidelity MSCI World Index Fund"
-                                    value={formData.name}
-                                    onChange={(e) => handleInputChange('name', e.target.value)}
-                                    error={errors.name}
-                                    disabled={isDcaMode} // Disable name edit in DCA mode
-                                />
-                            </FormField>
-                        )}
+                {/* Name field - only shown in manual mode */}
+                {manualMode && (
+                    <FormField className="form-group">
+                        <Input
+                            label={cashEntryMode ? 'Nombre de la cuenta' : 'Nombre del activo'}
+                            placeholder={
+                                cashEntryMode ? 'Ej: Cuenta de efectivo' : 'Ej: Fidelity MSCI World Index Fund'
+                            }
+                            value={formData.name}
+                            onChange={(e) => handleInputChange('name', e.target.value)}
+                            error={errors.name}
+                            disabled={isDcaMode} // Disable name edit in DCA mode
+                        />
+                    </FormField>
+                )}
 
-                        {manualMode && <FormField className="form-group" label={<>Tipo de activo</>} controlId="asset-type" labelClassName="form-label">
+                {manualMode && !cashEntryMode && (
+                    <FormField
+                        className="form-group"
+                        label={<>Tipo de activo</>}
+                        controlId="asset-type"
+                        labelClassName="form-label"
+                    >
+                        <select
+                            id="asset-type"
+                            className={inputStyles()}
+                            value={formData.type}
+                            disabled={isDcaMode || isSellMode}
+                            onChange={(event) => handleInputChange('type', event.target.value)}
+                        >
+                            {assetTypes.map((item) => (
+                                <option key={item.value} value={item.value}>
+                                    {item.label}
+                                </option>
+                            ))}
+                        </select>
+                    </FormField>
+                )}
 
-                            <select id="asset-type" className={inputStyles()} value={formData.type} disabled={isDcaMode || isSellMode}
-                                onChange={event => handleInputChange('type', event.target.value)}>
-                                {assetTypes.map(item => <option key={item.value} value={item.value}>{item.label}</option>)}
+                {/* Current Price Display */}
+                {(currentPrice !== null || loadingPrice) && !manualMode && (
+                    <InvestmentQuote
+                        label={<>Cotización de referencia</>}
+                        value={
+                            <>
+                                {loadingPrice ? (
+                                    <>
+                                        <Loader2 size={16} className="search-loading__spinner" /> Consultando…
+                                    </>
+                                ) : (
+                                    `${currentPrice?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 6 })} EUR`
+                                )}
+                            </>
+                        }
+                    />
+                )}
+
+                {priceLookupFailed && !loadingPrice && (
+                    <InvestmentNotice appearance="warning" icon={<AlertCircle size={16} />}>
+                        {' '}
+                        No se pudo obtener la cotización ahora. Puedes introducir el precio manualmente.
+                    </InvestmentNotice>
+                )}
+
+                {/* Price, Quantity, Date in row */}
+                {formData.type !== 'cash' && (
+                    <>
+                        <FormField
+                            className="form-group"
+                            label={<>Divisa del precio de la operación</>}
+                            controlId="operation-currency"
+                            labelClassName="form-label"
+                        >
+                            <select
+                                className={inputStyles()}
+                                id="operation-currency"
+                                value={currency}
+                                disabled={isSubmitting}
+                                onChange={(e) => handleCurrencyChange(e.target.value)}
+                            >
+                                {OPERATION_CURRENCIES.map((code) => (
+                                    <option key={code} value={code}>
+                                        {code}
+                                    </option>
+                                ))}
                             </select>
-                        </FormField>}
+                            <FieldHint className="form-hint">
+                                La cartera se contabiliza en euros. La liquidez se registra en EUR.
+                            </FieldHint>
+                        </FormField>{' '}
+                    </>
+                )}
 
-                        {/* Current Price Display */}
-                        {(currentPrice !== null || loadingPrice) && !manualMode && (
-                            <InvestmentQuote label={<>Cotización de referencia</>} value={<>
-                                    {loadingPrice ? <><Loader2 size={16} className="search-loading__spinner" /> Consultando…</> : `${currentPrice?.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 6 })} EUR`}
-                                </>} />
-                        )}
-
-                        {priceLookupFailed && !loadingPrice && (
-                            <InvestmentNotice appearance="warning" icon={<AlertCircle size={16} />}> No se pudo obtener la cotización ahora. Puedes introducir el precio manualmente.
-                            </InvestmentNotice>
-                        )}
-
-                        {/* Price, Quantity, Date in row */}
-                        <FormField className="form-group" label={<>Divisa del precio de la operación</>} controlId="operation-currency" labelClassName="form-label">
-
-                            <select className={inputStyles()} id="operation-currency" value={currency} disabled={formData.type === 'cash' || isSubmitting}
-                                onChange={e => handleCurrencyChange(e.target.value)}>
-                                {OPERATION_CURRENCIES.map(code => <option key={code} value={code}>{code}</option>)}
-                            </select>
-                            <FieldHint className="form-hint">La cartera se contabiliza en euros. La liquidez se registra en EUR.</FieldHint>
-                        </FormField>
-                        {isSellMode && assetToSell && (
-                            <InvestmentAvailability label="Disponible para vender: " value={<>{assetToSell.quantity}</>} />
-                        )}
-                        <InvestmentFieldsRow >
+                {isSellMode && assetToSell && (
+                    <InvestmentAvailability label="Disponible para vender: " value={<>{assetToSell.quantity}</>} />
+                )}
+                <InvestmentFieldsRow columns={formData.type === 'cash' ? 2 : 3}>
+                    {formData.type !== 'cash' && (
+                        <>
                             <FormField className="form-group">
                                 <Input
                                     label={`${isSellMode ? 'Precio de venta' : 'Precio de compra'} (${currency})`}
@@ -716,81 +1031,135 @@ export function AddInvestment() {
                                     min="0"
                                     placeholder="0.000000"
                                     value={formData.purchasePrice}
-                                    disabled={formData.type === 'cash'}
+                                    disabled={isSubmitting}
                                     onChange={(e) => handleInputChange('purchasePrice', e.target.value)}
                                     icon={<Coins size={18} />}
                                     error={errors.purchasePrice}
                                 />
                             </FormField>
+                        </>
+                    )}
+                    <FormField className="form-group">
+                        <Input
+                            label={
+                                formData.type === 'cash'
+                                    ? 'Saldo en euros'
+                                    : isDcaMode
+                                      ? 'Nueva cantidad'
+                                      : isSellMode
+                                        ? 'Cantidad a vender'
+                                        : 'Cantidad'
+                            }
+                            type="number"
+                            step="0.0001"
+                            min="0"
+                            max={isSellMode ? assetToSell?.quantity : undefined}
+                            placeholder="0"
+                            value={formData.quantity}
+                            onChange={(e) => handleInputChange('quantity', e.target.value)}
+                            icon={formData.type === 'cash' ? <Euro size={18} /> : <Hash size={18} />}
+                            error={errors.quantity}
+                        />
+                    </FormField>
 
-                            <FormField className="form-group">
-                                <Input
-                                    label={formData.type === 'cash' ? 'Saldo en euros' : isDcaMode ? 'Nueva cantidad' : isSellMode ? 'Cantidad a vender' : 'Cantidad'}
-                                    type="number"
-                                    step="0.0001"
-                                    min="0"
-                                    max={isSellMode ? assetToSell?.quantity : undefined}
-                                    placeholder="0"
-                                    value={formData.quantity}
-                                    onChange={(e) => handleInputChange('quantity', e.target.value)}
-                                    icon={<Hash size={18} />}
-                                    error={errors.quantity}
-                                />
-                            </FormField>
+                    <FormField className="form-group">
+                        <Input
+                            label={
+                                formData.type === 'cash'
+                                    ? 'Fecha del saldo'
+                                    : isSellMode
+                                      ? 'Fecha de venta'
+                                      : 'Fecha de compra'
+                            }
+                            type="date"
+                            value={formData.purchaseDate}
+                            onChange={(e) => handleInputChange('purchaseDate', e.target.value)}
+                            error={errors.purchaseDate}
+                        />
+                    </FormField>
+                </InvestmentFieldsRow>
 
-                            <FormField className="form-group">
-                                <Input
-                                    label={isSellMode ? 'Fecha de venta' : 'Fecha de compra'}
-                                    type="date"
-                                    value={formData.purchaseDate}
-                                    onChange={(e) => handleInputChange('purchaseDate', e.target.value)}
-                                    error={errors.purchaseDate}
-                                />
-                            </FormField>
-                        </InvestmentFieldsRow>
+                {formData.type === 'cash' && !isSellMode && !isDcaMode && (
+                    <FormField className="form-group">
+                        <Input
+                            label="TAE de la cuenta (%)"
+                            type="number"
+                            min="0"
+                            step="any"
+                            placeholder="Ej. 2,5"
+                            value={formData.cashTae}
+                            onChange={(event) => handleInputChange('cashTae', event.target.value)}
+                            error={errors.cashTae}
+                        />
+                        <FieldHint className="form-hint">Opcional. Registra los intereses cuando se abonen.</FieldHint>
+                    </FormField>
+                )}
 
-                        {formData.type === 'cash' && !isSellMode && !isDcaMode && <FormField className="form-group">
-                            <Input label="TAE de la cuenta (%)" type="number" min="0" step="any" placeholder="Ej. 2,5" value={formData.cashTae}
-                                onChange={event => handleInputChange('cashTae', event.target.value)} error={errors.cashTae} />
-                            <FieldHint className="form-hint">Opcional. Indica 0 % si no está remunerada. El saldo cambia cuando registres los intereses abonados.</FieldHint>
-                        </FormField>}
-
-                        {currency !== 'EUR' && (
-                            <FormField className="form-group">
-                                <FieldHint className="form-hint" role="status">{activeFx?.loading ? 'Consultando el cambio histórico…' : activeFx?.rate
-                                    ? `Cambio de cierre del ${activeFx.date}: 1 ${currency} = ${activeFx.rate} EUR. Es una estimación, no el cambio aplicado por tu bróker.`
-                                    : 'No hay cambio histórico disponible. Introduce el importe real en euros para guardar.'}</FieldHint>
-                                <Input label={isSellMode ? 'Importe recibido en euros (sin comisiones)' : 'Importe pagado en euros (sin comisiones)'}
-                                    type="number" min="0" step="any" value={manualEuroTotal}
-                                    placeholder="Opcional si hay cambio histórico" onChange={e => setManualEuroTotal(e.target.value)} />
-                                <FieldHint className="form-hint">Este importe sustituye la estimación. Si editas un precio medio, indica el coste total de la posición en euros.</FieldHint>
-                                {Number.isFinite(euroPrice) && <FieldHint className="form-hint">Importe contabilizado: {(euroPrice * Number(formData.quantity)).toLocaleString('es-ES', { maximumFractionDigits: 2 })} EUR</FieldHint>}
-                            </FormField>
+                {currency !== 'EUR' && (
+                    <FormField className="form-group">
+                        <FieldHint className="form-hint" role="status">
+                            {activeFx?.loading
+                                ? 'Consultando el cambio histórico…'
+                                : activeFx?.rate
+                                  ? `Cambio de cierre del ${activeFx.date}: 1 ${currency} = ${activeFx.rate} EUR. Es una estimación, no el cambio aplicado por tu bróker.`
+                                  : 'No hay cambio histórico disponible. Introduce el importe real en euros para guardar.'}
+                        </FieldHint>
+                        <Input
+                            label={
+                                isSellMode
+                                    ? 'Importe recibido en euros (sin comisiones)'
+                                    : 'Importe pagado en euros (sin comisiones)'
+                            }
+                            type="number"
+                            min="0"
+                            step="any"
+                            value={manualEuroTotal}
+                            placeholder="Opcional si hay cambio histórico"
+                            onChange={(e) => setManualEuroTotal(e.target.value)}
+                        />
+                        <FieldHint className="form-hint">
+                            Este importe sustituye la estimación. Si editas un precio medio, indica el coste total de la
+                            posición en euros.
+                        </FieldHint>
+                        {Number.isFinite(euroPrice) && (
+                            <FieldHint className="form-hint">
+                                Importe contabilizado:{' '}
+                                {(euroPrice * Number(formData.quantity)).toLocaleString('es-ES', {
+                                    maximumFractionDigits: 2,
+                                })}{' '}
+                                EUR
+                            </FieldHint>
                         )}
-                        {operationTotal > 0 && (
-                            <InvestmentTotal label={<span>{isSellMode ? 'Importe estimado de la venta' : 'Importe de la operación'}</span>}>{operationTotal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} {currency}</InvestmentTotal>
-                        )}
+                    </FormField>
+                )}
+                {operationTotal > 0 && formData.type !== 'cash' && (
+                    <InvestmentTotal
+                        label={<span>{isSellMode ? 'Importe estimado de la venta' : 'Importe de la operación'}</span>}
+                    >
+                        {operationTotal.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}{' '}
+                        {currency}
+                    </InvestmentTotal>
+                )}
 
-                        {/* Submit */}
-                        {errors.save && <p role="alert">{errors.save}</p>}
-                        <ActionGroup appearance="investment">
-                            <Button
-                                type="button"
-                                variant="secondary"
-                                onClick={returnToDashboard}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                type="submit"
-                                loading={isSubmitting}
-                                disabled={isSubmitting}
-                            >
-                                {isEditMode ? 'Guardar Cambios' :
-                                    isDcaMode ? 'Añadir compra' : isSellMode ? 'Registrar venta' : 'Añadir inversión'}
-                            </Button>
-                        </ActionGroup>
-                    </InvestmentForm>
+                {/* Submit */}
+                {errors.save && <p role="alert">{errors.save}</p>}
+                <ActionGroup appearance="investment">
+                    <Button type="button" variant="secondary" onClick={returnToDashboard}>
+                        Cancelar
+                    </Button>
+                    <Button type="submit" loading={isSubmitting} disabled={isSubmitting}>
+                        {isEditMode
+                            ? 'Guardar Cambios'
+                            : isDcaMode
+                              ? 'Añadir compra'
+                              : isSellMode
+                                ? 'Registrar venta'
+                                : cashEntryMode
+                                  ? 'Guardar efectivo'
+                                  : 'Añadir inversión'}
+                    </Button>
+                </ActionGroup>
+            </InvestmentForm>
         </div>
     );
 }

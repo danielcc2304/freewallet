@@ -6,7 +6,7 @@ const styles = {
         tw:[&_.card\_\_title]:text-[length:clamp(1.25rem,_2vw,_1.5rem)] tw:[&_.card\_\_subtitle]:[line-height:1.5]
     `,
     'add-investment__form': String.raw`
-        tw:ui-stack tw:gap-[1.35rem]
+        tw:ui-stack tw:gap-[1.35rem] tw:[&_input:not([type=checkbox])]:min-h-[44px] tw:[&_select]:min-h-[44px] tw:[&_.btn]:min-h-[44px]
     `,
     'form-row': String.raw`
         tw:grid tw:grid-cols-[minmax(0,_1fr)_minmax(0,_0.9fr)_minmax(0,_1.12fr)] tw:gap-ui-md tw:[align-items:end]

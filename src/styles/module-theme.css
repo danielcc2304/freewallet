@@ -1,0 +1,61 @@
+@theme inline prefix(tw) {
+    --font-sans: var(--font-family);
+    --color-canvas: var(--bg-primary);
+    --color-surface: var(--bg-secondary);
+    --color-surface-muted: var(--bg-tertiary);
+    --color-panel: var(--bg-card);
+    --color-panel-hover: var(--bg-card-hover);
+    --color-main: var(--text-primary);
+    --color-secondary: var(--text-secondary);
+    --color-muted: var(--text-muted);
+    --color-accent: var(--accent-primary);
+    --color-accent-hover: var(--accent-primary-hover);
+    --color-positive: var(--color-positive);
+    --color-negative: var(--color-negative);
+    --color-line: var(--border-primary);
+    --color-line-strong: var(--border-secondary);
+    --color-line-accent: var(--border-accent);
+    --color-glass-content: var(--glass-content);
+    --color-glass-edge: var(--glass-edge-soft);
+    --spacing-ui-xs: var(--spacing-xs);
+    --spacing-ui-sm: var(--spacing-sm);
+    --spacing-ui-md: var(--spacing-md);
+    --spacing-ui-lg: var(--spacing-lg);
+    --spacing-ui-xl: var(--spacing-xl);
+    --radius-control: var(--radius-md);
+    --radius-panel: var(--radius-lg);
+    --radius-dialog: var(--radius-xl);
+    --shadow-ui-sm: var(--shadow-sm);
+    --shadow-ui-md: var(--shadow-md);
+    --shadow-ui-lg: var(--shadow-lg);
+    --shadow-glow: var(--shadow-glow);
+    --background-image-page-header: radial-gradient(circle at 10% 10%, rgba(16,185,129,.14), transparent 45%), radial-gradient(circle at 90% 20%, rgba(59,130,246,.14), transparent 42%);
+}
+
+/* Module presentation patterns. Native shorthands preserve the existing cascade:
+ * background-color and border-width alone would leave old images/styles active.
+ * @reference lets component CSS reuse these without emitting a second reset.
+ */
+@utility ui-row { display: flex; align-items: center; }
+@utility ui-stack { display: flex; flex-direction: column; }
+@utility ui-panel { background: var(--bg-card); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); }
+@utility ui-surface { background: var(--bg-secondary); border: 1px solid var(--border-primary); border-radius: var(--radius-lg); }
+@utility ui-control { width: 100%; background: var(--bg-secondary); border: 1px solid var(--border-secondary); border-radius: var(--radius-md); color: var(--text-primary); }
+@utility ui-border { border: 1px solid var(--border-primary); }
+@utility ui-border-strong { border: 1px solid var(--border-secondary); }
+@utility ui-border-default { border: 1px solid var(--border-color); }
+@utility ui-fill-canvas { background: var(--bg-primary); }
+@utility ui-fill-surface { background: var(--bg-secondary); }
+@utility ui-fill-muted { background: var(--bg-tertiary); }
+@utility ui-fill-panel { background: var(--bg-card); }
+@utility ui-fill-transparent { background: transparent; }
+
+@utility ui-route-spinner {
+    width: 22px;
+    height: 22px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    border: 2px solid var(--border-color);
+    border-top-color: var(--accent-primary);
+    animation: ui-spin .8s linear infinite;
+}

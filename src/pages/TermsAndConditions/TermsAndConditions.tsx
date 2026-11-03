@@ -1,124 +1,74 @@
-﻿import { ArrowLeft } from 'lucide-react';
+import {LegalDocument,LegalBack,LegalHeading,LegalSection,LegalNotice} from '../../components/ui/workspace/LegalDocument';
+import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import './TermsAndConditions.css';
 
 export function TermsAndConditions() {
     const navigate = useNavigate();
 
     return (
-        <div className="terms">
-            <button className="terms__back-fab" onClick={() => navigate(-1)} aria-label="Volver atrás">
+        <LegalDocument back={<LegalBack onClick={() => navigate(-1)} aria-label="Volver atrás">
                 <ArrowLeft size={20} />
-            </button>
-
-            <div className="terms__container">
-                <h1 className="terms__title">Términos y Condiciones de Uso</h1>
-                <p className="terms__updated">Última actualización: 2 de octubre de 2026</p>
-
-                <section className="terms__section">
-                    <h2>0. Titularidad y Contacto</h2>
-                    <p>
+            </LegalBack>}><LegalHeading title={<>Términos y Condiciones de Uso</>} updated={<>Última actualización: 2 de octubre de 2026</>} /><LegalSection  title={<>0. Titularidad y Contacto</>}><p>
                         FreeWallet es un proyecto de software de código abierto puesto a disposición de los usuarios por
                         <strong> Daniel</strong>. Puede contactar con el titular a través de
                         <strong> daniel230401@outlook.com</strong> y consultar la versión oficial del proyecto en
                         <strong> https://github.com/danielcc2304/freewallet</strong>.
-                    </p>
-                    <p>
+                    </p><p>
                         FreeWallet se ofrece como herramienta gratuita, técnica y educativa. Salvo indicación expresa en contrario,
                         el acceso y uso de la aplicación no implican la formalización de una relación contractual de prestación
                         de servicios financieros, de inversión, de asesoramiento financiero, de gestión de carteras ni de intermediación.
-                    </p>
-                </section>
-
-                <section className="terms__section">
-                    <h2>1. Aceptación de los Términos</h2>
-                    <p>
+                    </p></LegalSection><LegalSection  title={<>1. Aceptación de los Términos</>}><p>
                         Al acceder y utilizar FreeWallet (&quot;la Aplicación&quot;), usted acepta quedar vinculado por estos
                         Términos y Condiciones. El acceso a la Aplicación es voluntario y atribuye la condición de Usuario
                         a quien lo realiza.
-                    </p>
-                    <p>
+                    </p><p>
                         Si no está de acuerdo total o parcialmente con estos términos, debe abstenerse de utilizar la Aplicación.
                         El uso continuado de FreeWallet presupone la lectura y aceptación de las condiciones vigentes en cada momento.
-                    </p>
-                </section>
-
-                <section className="terms__section">
-                    <h2>2. Edad Mínima</h2>
-                    <p>
+                    </p></LegalSection><LegalSection  title={<>2. Edad Mínima</>}><p>
                         El uso de esta Aplicación está dirigido preferentemente a personas mayores de 18 años. Si usted es menor de edad,
                         debe contar con la autorización y supervisión de sus padres o tutores legales para utilizar herramientas
                         de simulación y seguimiento financiero.
-                    </p>
-                    <p>
+                    </p><p>
                         FreeWallet no asume responsabilidad por el uso de la herramienta por parte de menores sin la debida supervisión.
-                    </p>
-                </section>
-
-                <section className="terms__section">
-                    <h2>3. Naturaleza del Servicio</h2>
-                    <p>
+                    </p></LegalSection><LegalSection  title={<>3. Naturaleza del Servicio</>}><p>
                         FreeWallet es una herramienta técnica de seguimiento, visualización y educación financiera. La Aplicación puede proporcionar:
-                    </p>
-                    <ul>
+                    </p><ul>
                         <li>Visualización y seguimiento de carteras de inversión personales.</li>
                         <li>Contenido educativo y guías sobre conceptos financieros.</li>
                         <li>Calculadoras, simuladores y herramientas de apoyo técnico.</li>
                         <li>Agregación o representación de datos de mercado procedentes de fuentes externas.</li>
-                    </ul>
-                    <p>
+                    </ul><p>
                         La Aplicación no constituye un servicio de asesoramiento personalizado, recomendación de inversión,
                         gestión discrecional, ejecución de órdenes ni intermediación financiera. El uso de FreeWallet no crea
                         una relación profesional asesor-cliente ni una relación contractual de prestación de servicios financieros.
-                    </p>
-                </section>
-
-                <section className="terms__section">
-                    <h2>4. Descargo de Responsabilidad</h2>
-                    <div className="terms__disclaimer">
+                    </p></LegalSection><LegalSection  title={<>4. Descargo de Responsabilidad</>}><LegalNotice  >
                         <strong>AVISO IMPORTANTE:</strong> FreeWallet no es un asesor financiero, broker, gestor de patrimonios
                         ni proveedor de servicios de inversión. Todo el contenido, cálculos, gráficos, simulaciones y materiales
                         disponibles se ofrecen exclusivamente con fines informativos, técnicos y educativos.
-                    </div>
-                    <p>
+                    </LegalNotice><p>
                         Usted reconoce expresamente que toda decisión de ahorro, inversión, asignación de activos, compra, venta,
                         rebalanceo o gestión del riesgo conlleva riesgos, incluida la posible pérdida total o parcial del capital.
-                    </p>
-                    <p>
+                    </p><p>
                         FreeWallet no emite recomendaciones individualizadas ni garantiza que una determinada estrategia, activo,
                         simulación o criterio sea adecuado para su situación personal. Si necesita asesoramiento financiero,
                         fiscal, contable o legal, debe acudir a un profesional debidamente cualificado.
-                    </p>
-                    <p>
+                    </p><p>
                         Las rentabilidades pasadas, hipotéticas o simuladas no garantizan resultados futuros y no deben interpretarse
                         como promesa o expectativa razonable de rendimiento.
-                    </p>
-                </section>
-
-                <section className="terms__section">
-                    <h2>5. Propiedad Intelectual y Licencias</h2>
-                    <p>
+                    </p></LegalSection><LegalSection  title={<>5. Propiedad Intelectual y Licencias</>}><p>
                         FreeWallet se basa en un modelo híbrido de licencias:
-                    </p>
-                    <ul>
+                    </p><ul>
                         <li><strong>Código fuente:</strong> Se distribuye bajo licencia MIT, permitiendo su uso, copia, modificación y redistribución conforme a los términos de dicha licencia.</li>
                         <li><strong>Marca, nombre, logotipo y diseño visual:</strong> El nombre &quot;FreeWallet&quot;, el logotipo, la identidad visual, la interfaz y otros signos distintivos no quedan automáticamente cubiertos por la licencia MIT salvo indicación expresa en contrario.</li>
                         <li><strong>Contenido educativo:</strong> Los textos, guías, materiales de academia y demás contenidos originales están protegidos por la normativa de propiedad intelectual y no se consideran licenciados bajo MIT salvo indicación expresa en el repositorio oficial.</li>
-                    </ul>
-                    <p>
+                    </ul><p>
                         El usuario se compromete a respetar los derechos de propiedad intelectual e industrial del titular y, en su caso,
                         de terceros.
-                    </p>
-                </section>
-
-                <section className="terms__section">
-                    <h2>6. Privacidad y Gestión de Datos</h2>
-                    <p>
+                    </p></LegalSection><LegalSection  title={<>6. Privacidad y Gestión de Datos</>}><p>
                         FreeWallet permite utilizar una cartera local o una cartera vinculada a una cuenta.
                         La información no se almacena exclusivamente en el dispositivo: al utilizar una cuenta,
                         Supabase presta los servicios de autenticación y almacenamiento necesarios para el acceso y la sincronización.
-                    </p>
-                    <ul>
+                    </p><ul>
                         <li><strong>Modo local:</strong> Sin una cuenta conectada, los datos de cartera se guardan en el almacenamiento del navegador y no se sincronizan con otros dispositivos. Borrar los datos del navegador puede eliminar esa cartera; conviene conservar una copia exportada.</li>
                         <li><strong>Cuenta y sesión:</strong> Al registrarse o iniciar sesión, Supabase trata el correo electrónico, las credenciales de autenticación y los datos de sesión necesarios para verificar el acceso. El navegador conserva los datos de sesión para mantener la conexión hasta que se cierre o deje de ser válida. Crear una cuenta no importa automáticamente la cartera local.</li>
                         <li><strong>Cartera sincronizada:</strong> El usuario puede importar expresamente su cartera o crear una cartera vacía en su cuenta desde Mi cuenta. Se guardan en Supabase las posiciones, movimientos, histórico, apartados del Excel importado y preferencias compatibles, vinculados a esa cuenta. A partir de ese momento, los cambios compatibles se envían al servidor mientras la sesión esté conectada y permiten consultar la cartera desde otros dispositivos. La importación no elimina la copia local anterior, que permanece separada de la cartera de la cuenta.</li>
@@ -128,144 +78,83 @@ export function TermsAndConditions() {
                         <li><strong>Infraestructura técnica:</strong> Los proveedores de alojamiento, distribución de contenido o analítica técnica estrictamente necesaria pueden tratar datos técnicos mínimos, como dirección IP, solicitudes HTTP, identificadores de dispositivo o metadatos del navegador, conforme a sus propias políticas.</li>
                         <li><strong>Analítica técnica y rendimiento:</strong> FreeWallet puede utilizar servicios de analítica técnica y medición de rendimiento, como Vercel Analytics y Vercel Speed Insights, cuyos proveedores pueden tratar datos técnicos mínimos de navegación y funcionamiento, tales como dirección IP, metadatos del navegador, páginas visitadas, eventos de navegación, tiempos de carga, métricas web de rendimiento y métricas agregadas de uso, conforme a sus propias políticas.</li>
                         <li><strong>APIs y servicios externos:</strong> Cuando la aplicación consulta cotizaciones u otra información de terceros, dichos proveedores pueden recibir los datos técnicos imprescindibles para responder a la solicitud y se regirán por sus propias políticas de privacidad y tratamiento.</li>
-                    </ul>
-                    <p>
+                    </ul><p>
                         El usuario es responsable de la custodia de su dispositivo, de la configuración de su navegador y de cualquier copia,
                         exportación o conservación local de sus datos. En dispositivos compartidos, cierre la sesión al terminar
                         y no comparta sus credenciales, códigos de verificación ni copias privadas.
-                    </p>
-                </section>
-
-                <section className="terms__section">
-                    <h2>6.1. Seguridad de la Cuenta y de la Cartera</h2>
-                    <p>
+                    </p></LegalSection><LegalSection  title={<>6.1. Seguridad de la Cuenta y de la Cartera</>}><p>
                         FreeWallet utiliza controles de autenticación y acceso para proteger las carteras vinculadas a una cuenta.
                         Estas medidas reducen riesgos, pero no garantizan una seguridad absoluta ni sustituyen la protección
                         del dispositivo y de las credenciales del usuario.
-                    </p>
-                    <ul>
+                    </p><ul>
                         <li><strong>Acceso identificado:</strong> Supabase gestiona el inicio de sesión. Las operaciones de cartera comprueban la identidad, la sesión y los permisos en el servidor; no basta con conocer el identificador de otro usuario para acceder a su cartera.</li>
                         <li><strong>Separación de carteras:</strong> Las políticas de acceso y las comprobaciones del servidor limitan la consulta y modificación de cada cartera a su cuenta autorizada. No se ofrece acceso público a las carteras personales.</li>
                         <li><strong>Verificación en dos pasos:</strong> Mi cuenta permite configurar un autenticador compatible con códigos temporales. Cuando está activado, las operaciones de cartera requieren una sesión que haya completado el segundo factor. No comparta el QR, la clave de configuración ni los códigos temporales.</li>
                         <li><strong>Conexiones y claves:</strong> Las comunicaciones con Supabase se realizan mediante HTTPS. Las claves privilegiadas del servidor no se incluyen en el cliente web y las claves personales de cotizaciones no forman parte de la sincronización de cartera.</li>
                         <li><strong>Integridad del guardado:</strong> El servidor valida los datos y controla las revisiones de la cartera para detectar cambios simultáneos. Los reintentos de una misma operación se identifican para evitar guardados duplicados. Ante un error o conflicto, revise el estado en Mi cuenta antes de continuar.</li>
                         <li><strong>Dispositivos y copias privadas:</strong> La sesión se conserva en el navegador. Use dispositivos de confianza, manténgalos actualizados y cierre sesión al terminar en equipos compartidos. Las copias privadas exportadas no están cifradas por la aplicación; guárdelas en un lugar protegido.</li>
-                    </ul>
-                    <p>
+                    </ul><p>
                         La cartera sincronizada no utiliza cifrado de extremo a extremo: los administradores autorizados
                         pueden acceder a los datos para su gestión técnica. Si sospecha un acceso no autorizado o detecta
                         una vulnerabilidad, contacte con el titular mediante el correo indicado en el apartado de contacto,
                         sin enviar contraseñas, códigos de autenticación ni claves privadas.
-                    </p>
-                </section>
-
-                <section className="terms__section">
-                    <h2>7. Limitación de Responsabilidad</h2>
-                    <p>
+                    </p></LegalSection><LegalSection  title={<>7. Limitación de Responsabilidad</>}><p>
                         La Aplicación se proporciona &quot;tal cual&quot; (&quot;as-is&quot;), sin garantías expresas ni implícitas.
                         En particular, FreeWallet no garantiza la exactitud, integridad, disponibilidad, continuidad, actualidad,
                         utilidad, ausencia de errores o idoneidad para un propósito concreto de los datos, cálculos, simulaciones,
                         gráficos, contenidos o funcionalidades mostradas.
-                    </p>
-                    <p>
+                    </p><p>
                         En la medida máxima permitida por la ley, FreeWallet no será responsable de:
-                    </p>
-                    <ul>
+                    </p><ul>
                         <li>Errores en cálculos, simulaciones, proyecciones o visualizaciones.</li>
                         <li>Pérdidas económicas, lucro cesante, pérdida de oportunidad o daños indirectos derivados del uso o de la imposibilidad de uso de la Aplicación.</li>
                         <li>Inexactitudes, interrupciones, retrasos o errores en datos de mercado o servicios de terceros.</li>
                         <li>Pérdida de datos por limpieza del navegador, uso de extensiones, fallos del dispositivo, restauraciones del sistema o incidencias ajenas a FreeWallet.</li>
-                    </ul>
-                    <p>
+                    </ul><p>
                         El usuario es el único responsable de las decisiones que adopte con base en la información mostrada en FreeWallet.
-                    </p>
-                </section>
-
-                <section className="terms__section">
-                    <h2>8. Enlaces a Terceros</h2>
-                    <p>
+                    </p></LegalSection><LegalSection  title={<>8. Enlaces a Terceros</>}><p>
                         La Aplicación puede contener enlaces o referencias a sitios web, repositorios, APIs, servicios o recursos de terceros.
                         Dichos elementos están fuera del control de FreeWallet, que no responde de su contenido, funcionamiento,
                         disponibilidad, seguridad, exactitud o políticas de privacidad.
-                    </p>
-                </section>
-
-                <section className="terms__section">
-                    <h2>9. Software de Terceros</h2>
-                    <p>
+                    </p></LegalSection><LegalSection  title={<>9. Software de Terceros</>}><p>
                         Esta Aplicación utiliza bibliotecas y componentes de terceros, incluidos proyectos de código abierto,
                         bajo sus respectivas licencias. Los derechos sobre dichos componentes pertenecen a sus autores o titulares
                         correspondientes.
-                    </p>
-                </section>
-
-                <section className="terms__section">
-                    <h2>10. Exactitud de los Datos de Mercado</h2>
-                    <p>
+                    </p></LegalSection><LegalSection  title={<>10. Exactitud de los Datos de Mercado</>}><p>
                         Los datos de mercado, cotizaciones, precios, variaciones y métricas asociadas se obtienen de fuentes externas
                         con fines meramente informativos. Dichos datos pueden ser inexactos, incompletos, inconsistentes o llegar
                         con retraso, incluidos retrasos de varios minutos o más.
-                    </p>
-                    <p>
+                    </p><p>
                         FreeWallet no garantiza la exactitud ni la actualidad de dichos datos y no debe utilizarse para trading en tiempo real,
                         ejecución de órdenes, arbitraje, scalping ni para decisiones que exijan disponibilidad inmediata o precisión instantánea.
-                    </p>
-                </section>
-
-                <section className="terms__section">
-                    <h2>11. Uso Aceptable</h2>
-                    <p>
+                    </p></LegalSection><LegalSection  title={<>11. Uso Aceptable</>}><p>
                         El usuario se compromete a:
-                    </p>
-                    <ul>
+                    </p><ul>
                         <li>No utilizar la Aplicación para fines ilegales, fraudulentos o no autorizados.</li>
                         <li>No intentar eludir límites técnicos, restricciones de uso o rate limits de APIs o servicios conectados.</li>
                         <li>No realizar acciones que dañen, degraden o sobrecarguen la infraestructura propia o de terceros utilizada por la Aplicación.</li>
                         <li>No introducir datos falsos o manipulados con la finalidad de alterar, probar indebidamente o desnaturalizar el funcionamiento normal de la herramienta.</li>
-                    </ul>
-                </section>
-
-                <section className="terms__section">
-                    <h2>12. Disponibilidad y Terminación</h2>
-                    <p>
+                    </ul></LegalSection><LegalSection  title={<>12. Disponibilidad y Terminación</>}><p>
                         FreeWallet se presta &quot;as-is&quot; y puede ser modificada, actualizada, limitada, suspendida o retirada,
                         total o parcialmente, en cualquier momento, con o sin previo aviso, sin que ello genere derecho a indemnización.
-                    </p>
-                    <p>
+                    </p><p>
                         El titular podrá introducir cambios técnicos, funcionales, visuales o de contenido cuando lo considere oportuno.
-                    </p>
-                </section>
-
-                <section className="terms__section">
-                    <h2>13. Modificaciones de los Términos</h2>
-                    <p>
+                    </p></LegalSection><LegalSection  title={<>13. Modificaciones de los Términos</>}><p>
                         Estos términos pueden ser revisados y actualizados para adaptarlos a cambios legales, técnicos o funcionales.
                         La versión vigente será la publicada en la propia Aplicación o en su repositorio oficial.
-                    </p>
-                    <p>
+                    </p><p>
                         El uso continuado de FreeWallet tras la publicación de cambios supone la aceptación de la versión actualizada
                         de estos términos.
-                    </p>
-                </section>
-
-                <section className="terms__section">
-                    <h2>14. Legislación y Jurisdicción</h2>
-                    <p>
+                    </p></LegalSection><LegalSection  title={<>14. Legislación y Jurisdicción</>}><p>
                         Estos términos se regirán e interpretarán conforme al Derecho español.
-                    </p>
-                    <p>
+                    </p><p>
                         Cualquier controversia que pudiera derivarse del acceso, uso o interpretación de FreeWallet se someterá
                         a los Juzgados y Tribunales competentes conforme a la normativa aplicable. Cuando el usuario tenga la condición
                         legal de consumidor o usuario, se respetará en todo caso el fuero imperativo que resulte aplicable en España.
-                    </p>
-                </section>
-
-                <div className="terms__acknowledgment">
+                    </p></LegalSection><LegalNotice acknowledgment >
                     <p>
                         <strong>Al utilizar FreeWallet, usted reconoce haber leído, entendido y aceptado estos Términos y Condiciones.</strong>
                     </p>
-                </div>
-            </div>
-        </div>
+                </LegalNotice></LegalDocument>
     );
 }

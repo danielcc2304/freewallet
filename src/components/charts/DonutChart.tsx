@@ -1,6 +1,8 @@
-import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
-import type { CompositionItem } from '../../types/types';
-import './DonutChart.css';
+import {DonutReadout,DonutLegendEntry} from './ChartPresentation';
+import {ChartsPresentation} from './ChartPresentation';
+import {PieChart,Pie,Cell,ResponsiveContainer,Tooltip} from 'recharts';
+import type {CompositionItem} from '../../types/types';
+
 
 type DonutTooltipEntry = {
     payload?: CompositionItem;
@@ -29,11 +31,7 @@ function CustomTooltip({ active, payload }: DonutTooltipProps) {
     if (!item) return null;
 
     return (
-        <div className="donut-tooltip">
-            <p className="donut-tooltip__name">{item.name}</p>
-            <p className="donut-tooltip__value">{formatCurrency(item.value)}</p>
-            <p className="donut-tooltip__percent">{item.percentage.toFixed(1)}%</p>
-        </div>
+        <DonutReadout name={<>{item.name}</>} value={<>{formatCurrency(item.value)}</>} percentage={<>{item.percentage.toFixed(1)}%</>}/>
     );
 }
 
@@ -47,39 +45,29 @@ function DonutLegend({ data }: { data: CompositionItem[] }) {
     const sortedItems = getLegendItems(data);
 
     return (
-        <ul className="donut-legend" aria-label="Distribución de activos">
+        <ChartsPresentation appearance="donut-legend" as="ul" aria-label="Distribución de activos">
             {sortedItems.map((item, index) => {
                 const name = item.name || item.symbol;
                 if (!name) return null;
 
                 return (
-                    <li key={`legend-${index}`} className="donut-legend__item">
-                        <span
-                            className="donut-legend__dot"
-                            style={{ backgroundColor: item.color || 'currentColor' }}
-                        />
-                        <span className="donut-legend__name" title={name}>
-                            {name}
-                        </span>
-                        <span className="donut-legend__percent">
+                    <DonutLegendEntry key={`legend-${index}`} name={name} color={item.color||'currentColor'} percentage={<>
                             {item.percentage.toFixed(1)}%
-                        </span>
-                        <span className="donut-legend__value">
+                        </>} value={<>
                             {formatCurrency(item.value)}
-                        </span>
-                    </li>
+                        </>}/>
                 );
             })}
-        </ul>
+        </ChartsPresentation>
     );
 }
 
 export function DonutChart({ data, title }: DonutChartProps) {
 
     return (
-        <div className="donut-chart">
-            {title && <h4 className="donut-chart__title">{title}</h4>}
-            <div className="donut-chart__plot">
+        <ChartsPresentation appearance="donut-chart"  >
+            {title && <ChartsPresentation appearance="donut-chart__title" as="h4" >{title}</ChartsPresentation>}
+            <ChartsPresentation appearance="donut-chart__plot"  >
                 <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                         <Pie
@@ -103,8 +91,8 @@ export function DonutChart({ data, title }: DonutChartProps) {
                         />
                     </PieChart>
                 </ResponsiveContainer>
-            </div>
+            </ChartsPresentation>
             <DonutLegend data={data} />
-        </div>
+        </ChartsPresentation>
     );
 }

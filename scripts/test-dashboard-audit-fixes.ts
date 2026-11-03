@@ -45,7 +45,7 @@ assert.equal(monthly.monthlyReturn, calculatePeriodPerformance(series, series[0]
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 assert.match(read('src/pages/AddInvestment/AddInvestment.tsx'), /purchaseDate: isEditMode \? targetAsset!\.purchaseDate/);
 assert.match(read('src/components/dashboard/UnderlyingAssetDetail.tsx'), /<AssetDetail asset=\{resolvedAsset\} marketOnly/);
-assert.match(read('src/components/dashboard/AssetDetail.tsx'), /!marketOnly && <div className="asset-detail__position-grid"/);
+assert.match(read('src/components/dashboard/AssetDetail.tsx'), /!marketOnly &&\s*<PortfolioPresentation appearance="asset-detail__position-grid"/);
 assert.match(read('src/components/dashboard/LivePortfolioPlan.tsx'), /freewallet-plan-targets-change/);
 assert.doesNotMatch(read('src/components/dashboard/LivePortfolioPlan.tsx'), /notifyLocalDataChange/);
 assert.match(read('src/services/apiService.ts'), /!options.forceRefresh && cached/);

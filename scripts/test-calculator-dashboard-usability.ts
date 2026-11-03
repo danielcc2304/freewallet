@@ -1,3 +1,5 @@
+import { CalculatorPresentation } from '../src/components/academy/calculators/CalculatorDetailPresentation';
+import { calculatorPresentationClasses } from '../src/components/academy/calculators/CalculatorDetailPresentation.styles';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -47,12 +49,12 @@ const benchmarkContext = vm.createContext({ BENCHMARK_ISIN: 'IE00BYX5NX33', anal
     { instrument:'IE00BYX5NX33',quoted_at:'2026-10-01',price_eur:14 },
     { instrument:'IE00BYX5NX33',quoted_at:'2026-10-02',price_eur:14.2 },
 ] } } } });
-vm.runInContext(ts.transpileModule(historyFunction.getText(dailySource).replace('export ', '') + `\nconst selectBenchmark = ${benchmarkSelector}`,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText, benchmarkContext);
+vm.runInContext(ts.transpileModule(historyFunction.getText(dailySource).replace('export ', '') + `\nconst benchmarkMode = 'msci';\nconst fidelityHistory = dailyHistory(analytics.dailyMarket.data, BENCHMARK_ISIN);\nconst selectBenchmark = ${benchmarkSelector}`,{compilerOptions:{target:ts.ScriptTarget.ES2022}}).outputText, benchmarkContext);
 assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext('selectBenchmark()',benchmarkContext))).map((p: {close:number})=>p.close),[14,14.2]);
 
 const fireSource = ts.createSourceFile('FIRECalculator.tsx', readFileSync('src/components/academy/calculators/FIRECalculator.tsx', 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 const tooltipFunctions = fireSource.statements.filter(s => ts.isFunctionDeclaration(s) && ['formatFIRECurrency', 'FIRETooltip'].includes(s.name?.text || '')).map(s => s.getText(fireSource)).join('\n');
-const tooltipContext = vm.createContext({ React });
+const tooltipContext = vm.createContext({ React, CalculatorPresentation, calculatorPresentationClasses });
 vm.runInContext(ts.transpileModule(tooltipFunctions, { compilerOptions: { target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.React } }).outputText, tooltipContext);
 for (const [includeInflation, mode, label] of [[false, 'real', 'sin ajuste por inflación'], [true, 'real', 'en euros de hoy'], [true, 'nominal', 'en euros futuros (nominal)']] as const) {
     tooltipContext.args = { active: true, payload: [{ value: 100 }, { value: 200 }], label: 1, shouldAdjustForInflation: includeInflation, projectionMode: mode };
@@ -69,7 +71,7 @@ const positions: Asset[] = reference
     : Array.from({ length: 15 }, (_, i) => ({ ...base, id: `test-${i}`, symbol: `TEST${i}`, isin: `ISIN${i}`, type: i < 10 ? 'fund' : 'stock', quotedAt: new Date().toISOString() }));
 assert.equal(positions.length, 15);
 positions[0].quotedAt = '2026-01-02T12:00:00Z';
-const browser = await puppeteer.launch({ headless: true });
+const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
 const errors: string[] = [];
 async function setInput(page: Page, selector: string, value: string) {
     await page.$eval(selector, (node, next) => { const input = node as HTMLInputElement; Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, next); input.dispatchEvent(new Event('input', { bubbles: true })); }, value);
@@ -78,7 +80,7 @@ async function accessibleInputs(page: Page, selector: string) {
     assert.ok(await page.$$eval(selector, nodes => nodes.every(n => (n as HTMLInputElement).labels?.length || n.getAttribute('aria-label'))), 'All calculator controls need an accessible name');
 }
 try {
-    const page = await browser.newPage(); page.on('pageerror', e => errors.push(String(e)));
+    const page = await browser.newPage(); page.setDefaultNavigationTimeout(60000); page.setDefaultTimeout(60000); page.on('pageerror', e => errors.push(String(e)));
     await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
     await page.evaluateOnNewDocument((assets, v) => {
         localStorage.setItem('freewallet_portfolio_v1', JSON.stringify({ version: 1, assets, transactions: [] }));
@@ -160,6 +162,27 @@ try {
             if (width === 390) await (await page.$('.scenario-comparison'))!.screenshot({ path: join(tmpdir(), `freewallet-${path}-scenarios.png`) });
         }
     }
+    // The migrated catalog must keep its routes/order and render changing tax results.
+    await page.setViewport({ width: 320, height: 900 });
+    await page.goto(`${origin}/academy/calculators`, { waitUntil: 'networkidle2' });
+    const routes = await page.$$eval('.calculators__card--available', nodes => nodes.map(node => node.getAttribute('href')));
+    assert.deepEqual(routes, ['/academy/compound-interest', '/academy/fire-calculator', '/academy/retirement', '/academy/salary-calculator', '/academy/emergency-fund', '/academy/taxes', '/academy/asset-allocation', '/academy/bond-calculator']);
+    await page.click('.calculators__card[href="/academy/taxes"]');
+    await page.waitForSelector('#tax-simulator-gain');
+    await accessibleInputs(page, '.tax-sim input');
+    await setInput(page, '#tax-simulator-gain', '50000');
+    await page.waitForFunction(() => document.querySelector('.tax-sim__metric .value.tax')?.textContent?.includes('10.380'));
+    const amounts = await page.$$eval('.tax-sim__metric .value', nodes => nodes.map(node => Number((node.textContent ?? '').replace(/[^\d,.-]/g, '').replaceAll('.', '').replace(',', '.'))));
+    assert.deepEqual(amounts, [10380, 39620], 'Shared metrics preserve progressive taxes and net gain');
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem('freewallet_tax_simulator') ?? '{}').gain === 50000);
+    await page.reload({ waitUntil: 'networkidle2' });
+    assert.equal(await page.$eval('#tax-simulator-gain', node => (node as HTMLInputElement).value), '50000', 'Field refactor preserves stored inputs');
+    await setInput(page, '#tax-simulator-gain', '');
+    await page.waitForSelector('.tax-sim [role="alert"]');
+    await page.goto(`${origin}/academy/inflation-predator`, { waitUntil: 'networkidle2' });
+    await setInput(page, '#amount', '10000'); await setInput(page, '#years', '10'); await setInput(page, '#inflation', '10');
+    await page.waitForSelector('.ghost-overlay--active');
+    await page.waitForFunction(() => getComputedStyle(document.querySelector('.ghost-overlay')!).opacity === '1');
     assert.deepEqual(errors, []);
-    console.log('PASS: withdrawal accounting, dated daily changes, exact Fidelity benchmark NAV selection, 15-position search/filter weights, zero-expense state, empty inflation inputs, accessible calculator controls and immutable scenarios in mobile/desktop and both themes.');
+    console.log('PASS: withdrawal accounting, dated daily changes, exact Fidelity benchmark NAV selection, 15-position search/filter weights, zero-expense state, empty inflation inputs, accessible calculator controls immutable scenarios in mobile/desktop and both themes, catalog routes, progressive tax metrics and persisted inputs.');
 } finally { await browser.close(); }

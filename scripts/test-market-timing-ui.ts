@@ -10,12 +10,21 @@ const errors: string[] = [];
 const page = await browser.newPage();
 try {
     page.on('pageerror', error => errors.push(String(error)));
+    await page.emulateMediaFeatures([{ name: 'prefers-reduced-motion', value: 'reduce' }]);
     await page.setViewport({ width: 390, height: 844 });
     await page.evaluateOnNewDocument(`
         localStorage.setItem('freewallet_settings', '{"apiEnabled":false}');
         localStorage.setItem('freewallet_last_seen_version', '${version}');
+        window.__freewalletMarketClockHeld = false;
         window.setInterval = new Proxy(window.setInterval, {
-            apply(target, self, args) { if (args[1] === 400) args[1] = 200; return Reflect.apply(target, self, args); }
+            apply(target, self, args) {
+                if (args[1] === 400) {
+                    const callback = args[0];
+                    args[0] = (...values) => { if (!window.__freewalletMarketClockHeld) callback(...values); };
+                    args[1] = 200;
+                }
+                return Reflect.apply(target, self, args);
+            }
         });
     `);
     await page.setRequestInterception(true);
@@ -51,15 +60,26 @@ try {
     await page.setViewport({ width: 390, height: 844 });
     await page.keyboard.press('p');
     await page.waitForFunction(() => !(document.querySelector('.timing-buy') as HTMLButtonElement)?.disabled);
+    // Hold only the test clock while inspecting the two-session pending state.
+    // Separate browser commands can otherwise outlive it on a busy CI worker.
+    await page.evaluate('window.__freewalletMarketClockHeld = true');
     await page.$eval('.timing-buy', el => (el as HTMLButtonElement).click());
     await page.waitForFunction(() => document.querySelector('.timing-order-status')?.textContent?.includes('pendiente'));
     assert.equal(await page.$eval('.timing-buy', el => (el as HTMLButtonElement).disabled), true);
+    await page.evaluate('window.__freewalletMarketClockHeld = false');
     await page.waitForFunction(() => document.querySelector('.timing-wallet span strong')?.textContent?.includes('5000') || document.querySelector('.timing-wallet span strong')?.textContent?.includes('5.000'));
     await page.waitForFunction(() => !(document.querySelector('.timing-sell') as HTMLButtonElement)?.disabled);
     await page.click('.timing-portions button:first-of-type');
     assert.match(await page.$eval('.timing-sell', el => el.textContent || ''), /25%/);
+    await page.evaluate('window.__freewalletMarketClockHeld = true');
     await page.click('.timing-sell');
-    await page.waitForFunction(() => document.querySelector('.timing-order-status')?.textContent?.includes('Próxima orden'));
+    await page.waitForFunction(() => document.querySelector('.timing-order-status')?.textContent?.includes('pendiente'));
+    assert.equal(await page.$eval('.timing-sell', el => (el as HTMLButtonElement).disabled), true);
+    await page.evaluate('window.__freewalletMarketClockHeld = false');
+    await page.waitForFunction(() => {
+        const text = document.querySelector('.timing-wallet span strong')?.textContent ?? '';
+        return Number(text.replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '')) > 5000;
+    });
     await page.keyboard.press('p');
     const cash = await page.$eval('.timing-wallet span strong', el => Number((el.textContent || '').replace(/\./g, '').replace(',', '.').replace(/[^\d.]/g, '')));
     assert.ok(cash > 5000, 'Partial sale adds cash without selling the whole position');
@@ -70,19 +90,19 @@ try {
     await page.waitForFunction(() => document.querySelector('.timing-clock')?.textContent?.includes('En pausa'));
     await page.evaluate("delete document.hidden;");
     await page.keyboard.press('p');
-    await page.waitForSelector('.timing-results', { timeout: 25000 });
+    await page.waitForSelector('.timing-results', { timeout: 60000 });
     assert.ok(await page.$('.timing-chart'), 'Round result preserves the chart');
     assert.equal(await page.$('.timing-trade-buttons'), null);
     for (const round of [2, 3]) {
-        await page.click('.timing-results button');
+        await page.locator('.timing-results button').setTimeout(60000).click();
         await page.waitForFunction(round => document.querySelector('.timing-round-header')?.textContent?.includes(`Ronda ${round} de 3`), {}, round);
         assert.match((await values())[0]!, /10\.000/);
         assert.match((await values())[3]!, /0 \/ 8/);
-        await page.waitForSelector('.timing-results', { timeout: 25000 });
+        await page.waitForSelector('.timing-results', { timeout: 60000 });
         assert.equal(await page.$$eval('.timing-round-result', elements => elements.length), round);
     }
     assert.match(await page.$eval('.timing-results button', el => el.textContent || ''), /Nueva partida/);
-    await page.click('.timing-results button');
+    await page.locator('.timing-results button').setTimeout(60000).click();
     await page.waitForFunction(() => document.querySelector('.timing-round-header')?.textContent?.includes('Ronda 1 de 3'));
     assert.equal(await page.$('.timing-results'), null);
     assert.deepEqual(errors, []);

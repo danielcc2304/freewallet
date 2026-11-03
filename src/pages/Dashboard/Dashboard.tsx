@@ -1,3 +1,7 @@
+import {DashboardStatusPill,DashboardUpdateInfo,DashboardWorkspaceStack,DashboardDevelopmentNotice,DashboardWorkspace,DashboardSkeleton,DashboardWelcome,DashboardWorkspaceHeader,DashboardWorkspaceNote,DashboardWorkspaceSection} from '../../components/dashboard/ui/DashboardWorkspace';
+
+import {dashboardWorkspaceStyle} from '../../components/dashboard/ui/DashboardWorkspace.styles';
+import { DashboardActions } from '../../components/dashboard/ui/DashboardActions';
 import type { NewTransferFund } from '../../services/fundTransfer';
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate, useOutletContext } from 'react-router-dom';
@@ -15,7 +19,7 @@ import { PortfolioComposition } from '../../components/dashboard/PortfolioCompos
 import { FundTransferDialog } from '../../components/dashboard/FundTransferDialog';
 import { AssetDetail } from '../../components/dashboard/AssetDetail';
 import { UnderlyingAssetDetail } from '../../components/dashboard/UnderlyingAssetDetail';
-import { Button, Card, CardContent, Modal, PageHeader } from '../../components/ui';
+import {Button,Modal} from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import { isApiEnabled, getConfirmedRecordCorrections } from '../../services/storageService';
 import {correctDeletedRecord} from '../../services/deletedRecordCorrections';
@@ -61,22 +65,22 @@ function DashboardLiveStatus({
     lastConsultedAt?: string;
 }) {
     return (
-        <div className="dashboard__status-row">
-            <span className={`dashboard__live-status${apiEnabled || updatingPrices ? ' dashboard__live-status--active' : ''}`}>
+        <DashboardWorkspaceStack appearance="status" >
+            <DashboardStatusPill active={apiEnabled||updatingPrices} >
                 <Radio size={13} aria-hidden="true" />
                 {updatingPrices ? 'Consultando…' : apiEnabled ? 'Seguimiento activo' : 'Consultas desactivadas'}
-            </span>
+            </DashboardStatusPill>
             <DashboardInfo title="Actualización de precios">
-                <dl className="dashboard__update-info">
+                <DashboardUpdateInfo>
                     <dt>Acciones y criptos</dt><dd>{apiEnabled ? 'Cada minuto en esta pantalla · acciones en sesión' : 'Desactivadas'}</dd>
                     <dt>Fondos y otros activos</dt><dd>{apiEnabled ? 'Cada 5 min; según el último dato publicado' : 'Desactivadas'}</dd>
                     {lastRefreshAttempt && <><dt>Último intento de consulta</dt><dd>{quoteDateLabel(lastRefreshAttempt.toISOString())}</dd></>}
                     {lastReadAt && <><dt>Última lectura en la app</dt><dd>{quoteDateLabel(lastReadAt)}</dd></>}
                     {lastConsultedAt && <><dt>Última consulta al proveedor</dt><dd>{quoteDateLabel(lastConsultedAt)}</dd></>}
-                </dl>
+                </DashboardUpdateInfo>
                 <p>Las valoraciones usan el último precio publicado de cada activo; no equivalen a un cierre oficial de mercado.</p>
             </DashboardInfo>
-        </div>
+        </DashboardWorkspaceStack>
     );
 }
 
@@ -151,17 +155,13 @@ export function Dashboard() {
             onClose={handleCloseDashboardNotice}
             size="md"
         >
-            <div className="dashboard__notice dashboard__notice--hero">
-                <div className="dashboard__notice-icon">
+            <DashboardDevelopmentNotice icon={<>
                     <Wrench size={44} />
-                </div>
-                <h2 className="dashboard__notice-title">Dashboard en desarrollo</h2>
-                <p className="dashboard__notice-description">
+                </>} title={<>Dashboard en desarrollo</>} description={<>
                     Esta vista incorpora por ahora solo la funcionalidad básica. Los datos de los activos que introduzcas y las
                     gráficas pueden ser inexactos, incompletos o provisionales. Utiliza esta información como referencia y
                     comprueba los datos antes de tomar decisiones de inversión.
-                </p>
-                <div className="dashboard__notice-links">
+                </>} links={<>
                     <Link to="/academy" onClick={handleCloseDashboardNotice}>
                         <GraduationCap size={18} />
                         Academia
@@ -174,11 +174,9 @@ export function Dashboard() {
                         <FileSpreadsheet size={18} />
                         Portfolio
                     </Link>
-                </div>
-                <Button onClick={handleCloseDashboardNotice} size="lg" fullWidth>
+                </>}><Button onClick={handleCloseDashboardNotice} size="lg" fullWidth>
                     Entendido
-                </Button>
-            </div>
+                </Button></DashboardDevelopmentNotice>
         </Modal>
     );
 
@@ -302,11 +300,11 @@ export function Dashboard() {
     if (loading) {
         return (
             <>
-                <div className="dashboard dashboard--loading">
-                    <div className="skeleton skeleton--large" />
-                    <div className="skeleton skeleton--medium" />
-                    <div className="skeleton skeleton--medium" />
-                </div>
+                <DashboardWorkspace state="loading">
+                    <DashboardSkeleton large/>
+                    <DashboardSkeleton />
+                    <DashboardSkeleton />
+                </DashboardWorkspace>
                 {dashboardNoticeModal}
             </>
         );
@@ -315,21 +313,15 @@ export function Dashboard() {
     if (assets.length === 0 && historicalSeries.length === 0 && analytics.portfolioTransactions.length === 0) {
         return (
             <>
-                <div className="dashboard dashboard--empty">
-                    <Card className="dashboard__welcome">
-                        <CardContent>
-                            <div className="welcome-content">
-                                <div className="welcome-content__icons">
-                                    <Wallet className="welcome-content__icon" size={64} />
-                                    <Feather className="welcome-content__icon-feather" size={32} />
-                                </div>
-                                <h1 className="welcome-content__title">Bienvenido a FreeWallet</h1>
-                                <p className="welcome-content__description">
+                <DashboardWorkspace state="empty">
+                    <DashboardWelcome icons={<>
+                                    <Wallet size={64} className={dashboardWorkspaceStyle('welcome-content__icon')} />
+                                    <Feather size={32} className={dashboardWorkspaceStyle('welcome-content__icon-feather')} />
+                                </>} title={<>Bienvenido a FreeWallet</>} description={<>
                                     Empieza por la academia para entender conceptos, practicar con simuladores y tomar mejores decisiones
                                     antes de mover capital real. Después puedes añadir tu primera inversión o cargar datos demo para explorar
                                     el dashboard completo.
-                                </p>
-                                <div className="welcome-content__actions">
+                                </>}>
                                     <Link to="/add">
                                         <Button icon={<PlusCircle size={18} />} size="lg" fullWidth>
                                             Añadir primera inversión
@@ -338,49 +330,41 @@ export function Dashboard() {
                                     <Button variant="secondary" onClick={loadDemoData} disabled={!!account.user} icon={<RefreshCw size={18} />} size="lg" fullWidth>
                                         Cargar Datos Demo
                                     </Button>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                                </DashboardWelcome>
+                </DashboardWorkspace>
                 {dashboardNoticeModal}
             </>
         );
     }
 
     return (
-        <div className="dashboard">
-            <PageHeader className="dashboard__header" eyebrow="Cartera">
-                <div className="dashboard__header-content">
-                    <h1 className="dashboard__title">Dashboard</h1>
-                    <DashboardLiveStatus
+        <DashboardWorkspace >
+            <DashboardWorkspaceHeader title={<>Dashboard</>}><DashboardLiveStatus
                         apiEnabled={apiEnabled}
                         updatingPrices={updatingPrices}
                         lastRefreshAttempt={state.lastRefreshAttempt}
                         lastReadAt={lastReadAt}
                         lastConsultedAt={lastConsultedAt}
-                    />
-                </div>
-            </PageHeader>
+                    /></DashboardWorkspaceHeader>
 
             {updatingPrices && (
-                <div className="dashboard__updating-banner">
+                <DashboardWorkspaceNote updating >
                     <Loader2 size={16} className="spinning" />
                     <span>Consultando precios disponibles...</span>
-                </div>
+                </DashboardWorkspaceNote>
             )}
 
             <PortfolioSummary metrics={metrics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} estimatedCount={assets.filter(a => !hasValidPrice(a)).length} onCorrectDeletion={correctDeletedRecord} />
             <PortfolioDataQuality assets={assets} now={calculationNow} quoteFailures={quoteFailures} />
-            {account.user && (analytics.historyError || analytics.dailyMarket.error || analytics.dailyMarket.data?.health?.attentionRequired || (analytics.dailyMarket.data?.lastRun && !['success','running'].includes(analytics.dailyMarket.data.lastRun.status)) || !!analytics.dailyMarket.data?.lastRun?.failures.length || (analytics.dailyMarket.data?.snapshotStatus && !['captured','empty'].includes(analytics.dailyMarket.data.snapshotStatus))) && <p className="dashboard__automatic-status" role="status">
+            {account.user && (analytics.historyError || analytics.dailyMarket.error || analytics.dailyMarket.data?.health?.attentionRequired || (analytics.dailyMarket.data?.lastRun && !['success','running'].includes(analytics.dailyMarket.data.lastRun.status)) || !!analytics.dailyMarket.data?.lastRun?.failures.length || (analytics.dailyMarket.data?.snapshotStatus && !['captured','empty'].includes(analytics.dailyMarket.data.snapshotStatus))) && <DashboardWorkspaceNote  role="status">
                 {analytics.historyError || analytics.dailyMarket.error || (analytics.dailyMarket.data?.lastRun
                     ? `${analytics.dailyMarket.data.lastRun.status === 'success' ? 'Consulta automática' : analytics.dailyMarket.data.lastRun.status === 'running' ? 'Consulta automática en curso' : 'Consulta automática incompleta'} · ${new Date(analytics.dailyMarket.data.lastRun.finishedAt || analytics.dailyMarket.data.lastRun.startedAt).toLocaleString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}`
                     : 'El histórico diario comenzará con la primera actualización programada.')}
                 {!!analytics.dailyMarket.data?.lastRun?.failures.length && ` ${analytics.dailyMarket.data.lastRun.failures.length} consultas de cartera o benchmark pendientes.`}
                 {analytics.dailyMarket.data?.health?.attentionRequired && ' La actualización requiere revisión; se conservan los últimos precios válidos.'}
                 {analytics.dailyMarket.data?.snapshotStatus && !['captured','empty'].includes(analytics.dailyMarket.data.snapshotStatus) && ' La valoración diaria de esta cartera quedó pendiente.'}
-            </p>}
-            <section className="dashboard__section">
+            </DashboardWorkspaceNote>}
+            <DashboardWorkspaceSection  >
                 <AssetsTable
                     initialViewState={returnSnapshot?.table}
                     onViewStateChange={rememberTableView}
@@ -394,34 +378,34 @@ export function Dashboard() {
                     canTransfer={canTransferFrom}
                     onViewDetails={handleViewDetails}
                 />
-            </section>
-            <section className="dashboard__section">
+            </DashboardWorkspaceSection>
+            <DashboardWorkspaceSection  >
                 <PortfolioExcelInsights now={calculationNow} analytics={analytics} period={dashboardPeriod} onPeriodChange={setDashboardPeriod} />
-            </section>
+            </DashboardWorkspaceSection>
 
-            <section className="dashboard__section dashboard__performers">
+            <DashboardWorkspaceSection performers >
                 <Performers data={performersData} type="best" />
                 <Performers data={performersData} type="worst" />
-            </section>
+            </DashboardWorkspaceSection>
 
-            <section className="dashboard__section">
+            <DashboardWorkspaceSection  >
                 <PortfolioComposition
                     assets={assets}
                     onAssetClick={handleViewDetails}
                     onHoldingClick={handleViewHolding}
                     onExposuresChange={handleExposuresChange}
                 />
-            </section>
+            </DashboardWorkspaceSection>
 
-            <section className="dashboard__section">
+            <DashboardWorkspaceSection  >
                 <LivePortfolioPlan analytics={analytics} section="monthly" />
-            </section>
-            <section className="dashboard__section">
+            </DashboardWorkspaceSection>
+            <DashboardWorkspaceSection  >
                 <LivePortfolioPlan analytics={analytics} section="recent" />
-            </section>
-            <section className="dashboard__section">
+            </DashboardWorkspaceSection>
+            <DashboardWorkspaceSection  >
                 <LivePortfolioPlan analytics={analytics} section="plan" />
-            </section>
+            </DashboardWorkspaceSection>
 
             {fundTransferSource && <FundTransferDialog
                 source={fundTransferSource}
@@ -449,21 +433,7 @@ export function Dashboard() {
                 ) : null}
             </Modal>
             {dashboardNoticeModal}
-            <div className="dashboard__floating-actions" aria-label="Acciones de cartera">
-                <Button
-                    variant="secondary"
-                    onClick={refreshPrices}
-                    icon={updatingPrices ? <Loader2 size={18} className="spinning" /> : <RefreshCw size={18} />}
-                    size="sm"
-                    className="dashboard__floating-refresh"
-                    disabled={updatingPrices || !apiEnabled}
-                    aria-label={!apiEnabled ? 'Consultas desactivadas' : updatingPrices ? 'Consultando precios' : 'Consultar precios ahora'}
-                    title={!apiEnabled ? 'Consultas desactivadas' : updatingPrices ? 'Consultando precios' : 'Consultar precios ahora'}
-                />
-                <Link className="dashboard__floating-add" to="/add" aria-label="Añadir inversión" title="Añadir inversión">
-                    <PlusCircle size={25} strokeWidth={2.4} />
-                </Link>
-            </div>
-        </div>
+            <DashboardActions updating={updatingPrices} apiEnabled={apiEnabled} onRefresh={refreshPrices} />
+        </DashboardWorkspace>
     );
 }

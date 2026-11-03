@@ -1,45 +1,29 @@
-import { useState, useEffect, useRef } from 'react';
-import type { PointerEvent as ReactPointerEvent } from 'react';
-import {
-    TrendingUp,
-    TrendingDown,
-    BarChart3,
-    Info,
-    Clock,
-    Activity,
-    Coins,
-    Percent,
-    Layers,
-    Building2,
-    ArrowUpRight,
-    ArrowDownRight,
-    RefreshCw
-} from 'lucide-react';
-import {
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    Area,
-    AreaChart,
-    ReferenceArea
-} from 'recharts';
-import { getAssetChartData, getFundamentalData } from '../../services/apiService';
-import { getFundRelevance } from '../../services/finect/finectService';
-import type { FinectFundRelevance } from '../../services/finect/finectService';
-import type { Asset, StockQuote, HistoricalDataPoint, TimePeriod } from '../../types/types';
-import { assetPrice, assetValue, formatQuantity, hasValidPrice } from '../../services/assetValuation';
-import { portfolioQuoteStatus, quoteDateLabel } from '../../services/portfolioQuoteStatus';
-import { getSettings, isApiEnabled, updateSettings } from '../../services/storageService';
-import { stockQuoteMarkets, selectedStockQuoteMarket } from '../../services/market/stockQuoteMarkets';
-import { portfolioStorage } from '../../services/portfolioCloudStorage';
-import { usePortfolio } from '../../context/PortfolioContext';
-import { portfolioPositionGroups } from '../../services/portfolioPositionGroups';
-import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
-import { Button } from '../ui';
-import { formatFundamentalMoney, formatFundamentalPercent, formatFundamentalRatio, hasFundamentals } from '../../services/market/fundamentals';
-import { companyOverview } from '../../services/market/companyOverview';
+import {PortfolioPresentation} from './ui/PortfolioPresentation';
+import {portfolioPresentationClasses} from './ui/PortfolioPresentation.styles';
+import {DashboardAssetChart,DashboardAssetChartViewport,DashboardAssetChartLoading,DashboardAssetChartEmpty,DashboardAssetChartSelection,DashboardAssetChartSource,DashboardFundSections,DashboardFundText,DashboardFundHoldings,DashboardFundHoldingRow} from './ui/DashboardAssetChart';
+import {DashboardAssetHeader,DashboardPeriodPerformance,DashboardChartLegend,DashboardCompanySection,DashboardDetailFootnote} from './ui/DashboardAssetOverview';
+import {DashboardMetric} from './ui/DashboardMetric';
+import {DashboardSegments} from './ui/DashboardSegments';
+import {DashboardFundamentalCard} from './ui/DashboardFundamentalCard';
+import {useState,useEffect,useRef} from 'react';
+import type {PointerEvent as ReactPointerEvent} from 'react';
+import {TrendingUp,TrendingDown,BarChart3,Info,Clock,Activity,Coins,Percent,Layers,Building2,ArrowUpRight,ArrowDownRight,RefreshCw} from 'lucide-react';
+import {XAxis,YAxis,CartesianGrid,Tooltip,ResponsiveContainer,Area,AreaChart,ReferenceArea} from 'recharts';
+import {getAssetChartData,getFundamentalData} from '../../services/apiService';
+import {getFundRelevance} from '../../services/finect/finectService';
+import type {FinectFundRelevance} from '../../services/finect/finectService';
+import type {Asset,StockQuote,HistoricalDataPoint,TimePeriod} from '../../types/types';
+import {assetPrice,assetValue,formatQuantity,hasValidPrice} from '../../services/assetValuation';
+import {portfolioQuoteStatus,quoteDateLabel} from '../../services/portfolioQuoteStatus';
+import {getSettings,isApiEnabled,updateSettings} from '../../services/storageService';
+import {stockQuoteMarkets,selectedStockQuoteMarket} from '../../services/market/stockQuoteMarkets';
+import {portfolioStorage} from '../../services/portfolioCloudStorage';
+import {usePortfolio} from '../../context/PortfolioContext';
+import {portfolioPositionGroups} from '../../services/portfolioPositionGroups';
+import {useLocalDataVersion} from '../../hooks/useLocalDataVersion';
+import {Button} from '../ui';
+import {formatFundamentalMoney,formatFundamentalPercent,formatFundamentalRatio,hasFundamentals} from '../../services/market/fundamentals';
+import {companyOverview} from '../../services/market/companyOverview';
 import './AssetDetail.css';
 
 interface AssetDetailProps {
@@ -391,42 +375,33 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
     }).format(value);
 
     return (
-        <div className={`asset-detail ${isFund ? 'asset-detail--fund' : ''}`}>
+        <div className={portfolioPresentationClasses(`asset-detail ${isFund ? 'asset-detail--fund' : ''}`)}>
             {/* Header info - Always visible (from props) */}
-            <div className="asset-detail__header">
-                <div className="asset-detail__title-group">
-                    <h2 className="asset-detail__symbol">{asset.symbol}</h2>
-                    <p className="asset-detail__name">{asset.name}</p>
-                </div>
-                <div className="asset-detail__price-group">
-                    <div className="asset-detail__price">
+            <DashboardAssetHeader symbol={<>{asset.symbol}</>} name={<>{asset.name}</>} price={<>
                         {formatValue(group?.estimatedCount ? undefined : marketOnly ? asset.currentPrice : assetPrice(asset), 'price')}
-                    </div>
-                    <div className={`asset-detail__change ${hasPreviousClose ? priceChange >= 0 ? 'positive' : 'negative' : ''}`}>
+                    </>} tone={hasPreviousClose ? priceChange >= 0 ? 'positive' : 'negative' : ''}>
                         {hasPreviousClose ? <>{priceChange >= 0 ? <TrendingUp size={16} /> : <TrendingDown size={16} />}
                             {formatValue(priceChange, 'price')} ({formatValue(priceChangePercent, 'percent')})</> : 'Cambio diario no disponible'}
-                    </div>
-                </div>
-            </div>
+                    </DashboardAssetHeader>
 
             {group && <p className="asset-detail__group-note">Posición agrupada · {group.lots.length} registros{group.estimatedCount?' · incluye valoraciones estimadas':group.mixedPrices?' · precio medio de valoración':''}.</p>}
-            {!marketOnly && <div className="asset-detail__position-grid">
-                <div><span>Cantidad</span><strong>{formatQuantity(asset)}</strong></div>
-                {asset.type === 'cash' && asset.cashTae !== undefined && <div><span>TAE de la cuenta</span><strong>{asset.cashTae.toLocaleString('es-ES', { maximumFractionDigits: 4 })} %</strong></div>}
-                <div><span>Precio medio</span><strong>{formatValue(asset.purchasePrice, 'price')}</strong></div>
-                <div><span>Capital invertido</span><strong>{formatValue(investedValue, 'currency')}</strong></div>
-                <div><span>Valor actual</span><strong>{formatValue(currentValue, 'currency')}</strong></div>
-                <div><span>Resultado</span><strong className={positionGain >= 0 ? 'positive' : 'negative'}>{formatValue(positionGain, 'currency')}</strong></div>
-                <div><span>Rentabilidad</span><strong className={positionReturn >= 0 ? 'positive' : 'negative'}>{formatValue(positionReturn, 'percent')}</strong></div>
-                <div><span>Peso en cartera</span><strong>{portfolioWeight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</strong></div>
-                <div><span>Consulta al proveedor</span><strong>{quoteDateLabel(asset.lastCheckedAt)}</strong></div>
-                <div><span>Lectura en la app</span><strong>{quoteDateLabel(asset.lastReadAt)}</strong></div>
-                <div><span>Origen</span><strong>{asset.quoteSource || 'No disponible'}{asset.quoteSource==='Google Finance' && marketChoices.length>1 ? ' · Madrid/BME' : ''}{asset.quoteOrigin === 'batch' ? ' · batch' : ''}</strong></div>
-                <div><span>{group?.mixedDates?'Fechas de valoración':'Fecha del precio'}</span><strong>{group?.mixedDates?'Ver registros individuales':quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)}</strong></div>
-            </div>}
-            {!marketOnly && group && <section className="asset-detail__purchases" aria-label="Registros de compra">
+            {!marketOnly && <PortfolioPresentation appearance="asset-detail__position-grid"  >
+                <DashboardMetric variant="position" label="Cantidad" value={<>{formatQuantity(asset)}</>} />
+                {asset.type === 'cash' && asset.cashTae !== undefined && <DashboardMetric variant="position" label="TAE de la cuenta" value={<>{asset.cashTae.toLocaleString('es-ES', { maximumFractionDigits: 4 })} %</>} />}
+                <DashboardMetric variant="position" label="Precio medio" value={<>{formatValue(asset.purchasePrice, 'price')}</>} />
+                <DashboardMetric variant="position" label="Capital invertido" value={<>{formatValue(investedValue, 'currency')}</>} />
+                <DashboardMetric variant="position" label="Valor actual" value={<>{formatValue(currentValue, 'currency')}</>} />
+                <DashboardMetric variant="position" label="Resultado" value={<>{formatValue(positionGain, 'currency')}</>} valueClassName={positionGain >= 0 ? 'positive' : 'negative'} />
+                <DashboardMetric variant="position" label="Rentabilidad" value={<>{formatValue(positionReturn, 'percent')}</>} valueClassName={positionReturn >= 0 ? 'positive' : 'negative'} />
+                <DashboardMetric variant="position" label="Peso en cartera" value={<>{portfolioWeight.toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</>} />
+                <DashboardMetric variant="position" label="Consulta al proveedor" value={<>{quoteDateLabel(asset.lastCheckedAt)}</>} />
+                <DashboardMetric variant="position" label="Lectura en la app" value={<>{quoteDateLabel(asset.lastReadAt)}</>} />
+                <DashboardMetric variant="position" label="Origen" value={<>{asset.quoteSource || 'No disponible'}{asset.quoteSource === 'Google Finance' && marketChoices.length > 1 ? ' · Madrid/BME' : ''}{asset.quoteOrigin === 'batch' ? ' · batch' : ''}</>} />
+                <DashboardMetric variant="position" label={<>{group?.mixedDates ? 'Fechas de valoración' : 'Fecha del precio'}</>} value={<>{group?.mixedDates ? 'Ver registros individuales' : quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)}</>} />
+            </PortfolioPresentation>}
+            {!marketOnly && group && <PortfolioPresentation appearance="asset-detail__purchases" as="section" aria-label="Registros de compra">
                 <h3>Tus compras · {group.lots.length} registros</h3>
-                <div className="asset-detail__purchases-scroll">
+                <PortfolioPresentation appearance="asset-detail__purchases-scroll"  >
                     <table>
                         <thead><tr><th>Fecha</th><th>Cantidad</th><th>Precio medio</th><th>Coste</th>{asset.type === 'cash' && <th>TAE</th>}</tr></thead>
                         <tbody>{[...group.lots].sort((a,b)=>a.purchaseDate.localeCompare(b.purchaseDate)).map(lot=><tr key={lot.id}>
@@ -437,9 +412,9 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                             {asset.type === 'cash' && <td>{lot.cashTae === undefined ? 'Sin indicar' : `${lot.cashTae.toLocaleString('es-ES', { maximumFractionDigits: 4 })} %`}</td>}
                         </tr>)}</tbody>
                     </table>
-                </div>
-            </section>}
-            {!marketOnly && marketChoices.length>1 && <div className="asset-detail__quote-market">
+                </PortfolioPresentation>
+            </PortfolioPresentation>}
+            {!marketOnly && marketChoices.length>1 && <PortfolioPresentation appearance="asset-detail__quote-market"  >
                 <label htmlFor={`quote-market-${asset.id}`}>Mercado de cotización</label>
                 <select id={`quote-market-${asset.id}`} value={selectedMarket?.id ?? 'original'} disabled={changingMarket}
                     onChange={event=>void changeMarket(event.target.value)}>
@@ -449,7 +424,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                 {changingMarket && <p role="status">Consultando el mercado seleccionado…</p>}
                 {marketChoices.length > 1 && !!asset.currentPrice && asset.quoteInstrument !== (selectedMarket?.instrument ?? asset.symbol.trim().toUpperCase()) && !changingMarket && <p role="status">Consulta del mercado seleccionado pendiente. El precio visible conserva su origen anterior.</p>}
                 {marketError && <p role="alert">{marketError}</p>}
-            </div>}
+            </PortfolioPresentation>}
             {!marketOnly && asset.originalCurrency && asset.originalCurrency!=='EUR' && <details className="dashboard__update-details">
                 <summary>Conversión a euros</summary>
                 <p>Precio original: {asset.originalPrice?.toLocaleString('es-ES')} {asset.originalUnit || asset.originalCurrency}. Cambio: {asset.fxRate?.toLocaleString('es-ES')} EUR/{asset.originalCurrency} · {quoteDateLabel(asset.fxAt || undefined)}. Se usa el cambio del día del precio.</p>
@@ -460,54 +435,20 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
             {/* Chart Section */}
             {!marketOnly && !hasValidPrice(asset) && <p role="status">Valor estimado al coste: no hay una cotización válida.</p>}
             {!apiEnabled && <p role="status">{asset.type === 'cash' ? 'Saldo de liquidez registrado; no requiere consultas de mercado.' : 'Consultas externas desactivadas. Los datos de tu posición siguen disponibles.'}</p>}
-            <div className="asset-detail__chart-section">
-                <div className="asset-detail__chart-header">
-                    <div className="asset-detail__chart-title">
+            <DashboardAssetChart title={<>
                         <TrendingUp size={18} />
                         {isFund ? 'Precio de participación' : 'Histórico de precio'}
-                    </div>
-                    <div className="asset-detail__period-selector">
-                        {periods.map((p) => (
-                            <button
-                                key={p.value}
-                                type="button" aria-pressed={selectedPeriod === p.value}
-                                className={`period-btn ${selectedPeriod === p.value ? 'active' : ''}`}
-                                onClick={() => setSelectedPeriod(p.value)}
-                            >
-                                {p.label}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-                <div className="asset-detail__period-performance" aria-live="polite">
-                    <span>Variación del precio {selectedPeriod === 'ALL' ? 'histórica' : selectedPeriod}</span>
-                    <strong className={chartPeriodReturn !== null && chartPeriodReturn < 0 ? 'negative' : 'positive'}>
+                    </>} selector={<DashboardSegments appearance="chart" className="asset-detail__period-selector" options={periods} value={selectedPeriod} onChange={setSelectedPeriod} />}><DashboardPeriodPerformance label={<>Variación del precio {selectedPeriod === 'ALL' ? 'histórica' : selectedPeriod}</>} value={<>
                         {canDrawChart && chartPeriodReturn !== null ? `${chartPeriodReturn >= 0 ? '+' : ''}${chartPeriodReturn.toFixed(2)}%` : 'N/D'}
-                    </strong>
-                    {canDrawChart && chartPeriodStart && chartPeriodEnd && <small>{chartPeriodStart.date} → {chartPeriodEnd.date}</small>}
-                </div>
-
-                <div
-                    ref={chartContainerRef}
-                    className="asset-detail__chart-container"
-                    onPointerDown={handlePointerStart}
-                    onPointerMove={handlePointerMove}
-                    onPointerUp={handlePointerEnd}
-                    onPointerCancel={handlePointerEnd}
-                >
-                    {loadingChart && <div className="chart-overlay"><div className="spinner-sm" /><span>Preparando histórico…</span></div>}
+                    </>} valueClassName={chartPeriodReturn !== null && chartPeriodReturn < 0 ? 'negative' : 'positive'}>{canDrawChart && chartPeriodStart && chartPeriodEnd && <small>{chartPeriodStart.date} → {chartPeriodEnd.date}</small>}</DashboardPeriodPerformance><DashboardAssetChartViewport ref={chartContainerRef} onPointerDown={handlePointerStart} onPointerMove={handlePointerMove} onPointerUp={handlePointerEnd} onPointerCancel={handlePointerEnd}>
+                    {loadingChart && <DashboardAssetChartLoading spinner={<PortfolioPresentation appearance="spinner-sm"  ></PortfolioPresentation>} label={<>Preparando histórico…</>} />}
                     {!loadingChart && chartData.length < 2 && (
-                        <div className="chart-overlay error-state">
-                            <p>{!apiEnabled ? 'Consulta de histórico desactivada.' : chartData.length === 1 ? 'Recopilando datos del histórico…' : 'Datos históricos no disponibles.'}</p>
-                            <small>{!apiEnabled ? 'No se han realizado llamadas al proveedor.' : chartData.length === 1 ? 'Necesitamos al menos dos cotizaciones para dibujar la evolución.' : 'El proveedor no ha devuelto un histórico utilizable para este periodo.'}</small>
-                            {apiEnabled && <Button variant="secondary" icon={<RefreshCw size={16} />} type="button" onClick={() => setRetry(n => n + 1)}>Reintentar consulta</Button>}
-                        </div>
+                        <DashboardAssetChartEmpty title={<>{!apiEnabled ? 'Consulta de histórico desactivada.' : chartData.length === 1 ? 'Recopilando datos del histórico…' : 'Datos históricos no disponibles.'}</>} description={<>{!apiEnabled ? 'No se han realizado llamadas al proveedor.' : chartData.length === 1 ? 'Necesitamos al menos dos cotizaciones para dibujar la evolución.' : 'El proveedor no ha devuelto un histórico utilizable para este periodo.'}</>} action={apiEnabled && <Button variant="secondary" icon={<RefreshCw size={16} />} type="button" onClick={() => setRetry(n => n + 1)}>Reintentar consulta</Button>} />
                     )}
                     {canDrawChart && <ResponsiveContainer width="100%" height={240}>
                         <AreaChart
                             data={chartData}
-                    margin={{ top: 10, right: 8, left: 0, bottom: 4 }}
-                        >
+                    margin={{ top: 10, right: 8, left: 0, bottom: 4 }}>
                             <defs>
                                 <linearGradient id="assetColor" x1="0" y1="0" x2="0" y2="1">
                                     <stop offset="5%" stopColor="var(--accent-primary)" stopOpacity={0.3} />
@@ -571,9 +512,8 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                             />
                         </AreaChart>
                     </ResponsiveContainer>}
-                </div>
-                {canDrawChart && (
-                    <div className={`asset-detail__chart-selection ${selectedChange !== null ? (selectedChange >= 0 ? 'positive' : 'negative') : ''}`}>
+                </DashboardAssetChartViewport>{canDrawChart && (
+                    <DashboardAssetChartSelection tone={selectedChange !== null ? (selectedChange >= 0 ? 'positive' : 'negative') : ''}>
                         {selectedChange !== null && selectedStart && selectedEnd ? (
                             <>
                                 <strong>{selectedChange >= 0 ? 'Mejora' : 'Drawdown'} {selectedChange >= 0 ? '+' : ''}{selectedChange.toFixed(2)}%</strong>
@@ -583,79 +523,59 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                         ) : (
                             <span>Ordenador: arrastra. Móvil: coloca dos dedos sobre los puntos para medir la mejora o el drawdown.</span>
                         )}
-                    </div>
-                )}
-                <div className="asset-detail__chart-legend">
-                    <span><i className="asset-detail__legend-line" /> {isFund ? 'Precio participación' : 'Precio'}</span>
-                    <span className="asset-detail__chart-axis-hint">Eje vertical: {chartData[0]?.currency || asset.currency || 'EUR'} · Eje horizontal: fecha. {marketOnly ? 'Histórico en su divisa de origen.' : `Histórico en su divisa de origen; la posición se valora en ${asset.currency || 'EUR'}.`}</span>
-                </div>
-               {!isFund && chartData[0]?.sourceSymbol && chartData[0].sourceSymbol !== asset.symbol && <p className="asset-detail__chart-source">
+                    </DashboardAssetChartSelection>
+                )}<DashboardChartLegend label={<>{isFund ? 'Precio participación' : 'Precio'}</>} hint={<>Eje vertical: {chartData[0]?.currency || asset.currency || 'EUR'} · Eje horizontal: fecha. {marketOnly ? 'Histórico en su divisa de origen.' : `Histórico en su divisa de origen; la posición se valora en ${asset.currency || 'EUR'}.`}</>} />{!isFund && chartData[0]?.sourceSymbol && chartData[0].sourceSymbol !== asset.symbol && <DashboardAssetChartSource>
                    Histórico de {chartData[0].sourceSymbol}, cotización alternativa de la misma empresa. El precio de tu posición se consulta en {selectedMarket?.label ?? asset.symbol}.
-               </p>}
-               {isFund && (
-                   <p className="asset-detail__chart-source">
+               </DashboardAssetChartSource>}{isFund && (
+                   <DashboardAssetChartSource>
                        {chartData[0]?.sourceSymbol ? `Histórico ${chartData[0].source==='Financial Times'?'Financial Times':'Yahoo'} · ${chartData[0].sourceSymbol}. ` : ''}
                        Clase identificada por ISIN. Finect aporta la ficha y la última valoración.
-                   </p>
-               )}
-           </div>
+                   </DashboardAssetChartSource>
+               )}</DashboardAssetChart>
 
             {asset.type === 'stock' && (
-                <section className="asset-detail__company" aria-label="Sobre la empresa">
-                    <h3 className="section-title"><Building2 size={18} />Sobre la empresa</h3>
-                    <p>{company?.description || (loadingFundamentals ? 'Cargando descripción…' : 'Descripción no disponible.')}</p>
-                    {company && <a href={company.url} target="_blank" rel="noopener noreferrer">Fuente: {company.source}</a>}
-                </section>
+                <DashboardCompanySection aria-label="Sobre la empresa" title={<><Building2 size={18} />Sobre la empresa</>}><p>{company?.description || (loadingFundamentals ? 'Cargando descripción…' : 'Descripción no disponible.')}</p>{company && <a href={company.url} target="_blank" rel="noopener noreferrer">Fuente: {company.source}</a>}</DashboardCompanySection>
             )}
 
             {/* Metrics Grid */}
             <div className="asset-detail__metrics-section">
-                <h3 className="section-title">
+                <PortfolioPresentation appearance="section-title" as="h3" >
                     <BarChart3 size={18} />
                     Métricas Clave
-                </h3>
+                </PortfolioPresentation>
                 {loadingFundamentals ? (
-                    <div className="metrics-loading">
-                        <div className="spinner-sm" />
+                    <PortfolioPresentation appearance="metrics-loading"  >
+                        <PortfolioPresentation appearance="spinner-sm"  ></PortfolioPresentation>
                         <p>Cargando datos fundamentales...</p>
-                    </div>
+                    </PortfolioPresentation>
                 ) : (
-                    <div className="metrics-grid">
+                    <PortfolioPresentation appearance="metrics-grid"  >
                         {visibleMetricItems.length === 0 && (
-                            <div className="metrics-empty">{apiEnabled ? 'Datos ampliados no disponibles.' : 'Consulta de datos desactivada.'}</div>
+                            <PortfolioPresentation appearance="metrics-empty"  >{apiEnabled ? 'Datos ampliados no disponibles.' : 'Consulta de datos desactivada.'}</PortfolioPresentation>
                         )}
                         {visibleMetricItems.map((item, idx) => (
-                            <div key={idx} className="metric-card">
-                                <div className="metric-card__header">
-                                    <span className="metric-card__icon">{item.icon}</span>
-                                    <span className="metric-card__label">{item.label}</span>
-                                </div>
-                                <div className="metric-card__value">{item.value}</div>
-                                <div className="metric-card__category">{item.category}</div>
-                                {'asOf' in item && typeof item.asOf==='string' && <small className="asset-detail__metric-date">{'derived' in item && item.derived===true ? 'Calculado · ' : ''}{item.asOf}</small>}
-                            </div>
+                            <DashboardFundamentalCard key={idx} icon={item.icon} label={item.label} value={item.value} category={item.category}>
+                                {'asOf' in item && typeof item.asOf === 'string' && <PortfolioPresentation appearance="asset-detail__metric-date" as="small" >{'derived' in item && item.derived === true ? 'Calculado · ' : ''}{item.asOf}</PortfolioPresentation>}
+                            </DashboardFundamentalCard>
                         ))}
-                    </div>
+                    </PortfolioPresentation>
                 )}
-                {!isFund && !loadingFundamentals && <div className="asset-detail__metrics-note">
+                {!isFund && !loadingFundamentals && <PortfolioPresentation appearance="asset-detail__metrics-note"  >
                     <small>N/D: dato no disponible.{quote?.fundamentalsSymbol && quote.fundamentalsSymbol!==asset.symbol.toUpperCase() && ` Financieros de ${quote.fundamentalsSymbol}, misma acción.`}</small>
                     {apiEnabled && <Button variant="secondary" size="sm" type="button" onClick={() => setFundamentalRetry(n => n + 1)}>Reintentar datos</Button>}
-                </div>}
+                </PortfolioPresentation>}
             </div>
 
             {isFund && fundData && (
-                <div className="asset-detail__fund-sections">
-                    {(fundData.description || fundData.strategy) && <section><h3>Política de inversión</h3><p>{fundData.strategy || fundData.description}</p></section>}
-                    {!!fundData.benchmarks.length && <section><h3>Índices de referencia</h3><p>{fundData.benchmarks.join(' · ')}</p></section>}
-                    {!!fundData.holdings.length && <section><h3>Principales posiciones</h3><div className="asset-detail__holding-list">{fundData.holdings.slice(0, 10).map(item => <div key={item.name}><span>{item.name}</span><strong>{item.weight.toFixed(2)}%</strong></div>)}</div></section>}
-                    {fundData.breakdowns.map(group => <section key={group.type}><h3>{group.type}</h3><div className="asset-detail__holding-list">{group.items.slice(0, 10).map(item => <div key={item.label}><span>{item.label}</span><strong>{item.value.toFixed(2)}%</strong></div>)}</div></section>)}
-                </div>
+                <DashboardFundSections>
+                    {(fundData.description || fundData.strategy) && <DashboardFundText title={<>Política de inversión</>}>{fundData.strategy || fundData.description}</DashboardFundText>}
+                    {!!fundData.benchmarks.length && <DashboardFundText title={<>Índices de referencia</>}>{fundData.benchmarks.join(' · ')}</DashboardFundText>}
+                    {!!fundData.holdings.length && <DashboardFundHoldings  title={<>Principales posiciones</>}>{fundData.holdings.slice(0, 10).map(item => <DashboardFundHoldingRow key={item.name} label={<>{item.name}</>} value={<>{item.weight.toFixed(2)}%</>} />)}</DashboardFundHoldings>}
+                    {fundData.breakdowns.map(group => <DashboardFundHoldings key={group.type} title={<>{group.type}</>}>{group.items.slice(0, 10).map(item => <DashboardFundHoldingRow key={item.label} label={<>{item.label}</>} value={<>{item.value.toFixed(2)}%</>} />)}</DashboardFundHoldings>)}
+                </DashboardFundSections>
             )}
 
-            <div className="asset-detail__footer">
-                <Info size={14} />
-                <p>{isFund ? 'Ficha obtenida de Finect e histórico de mercado de la clase encontrada por ISIN.' : 'Datos de Yahoo Finance. Los financieros corresponden al último periodo publicado.'}</p>
-            </div>
+            <DashboardDetailFootnote icon={<Info size={14} />}>{isFund ? 'Ficha obtenida de Finect e histórico de mercado de la clase encontrada por ISIN.' : 'Datos de Yahoo Finance. Los financieros corresponden al último periodo publicado.'}</DashboardDetailFootnote>
         </div>
     );
 }

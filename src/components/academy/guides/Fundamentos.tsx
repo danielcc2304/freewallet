@@ -1,9 +1,13 @@
+import { AcademyReadingHeader } from '../ui/AcademyReadingHeader';
+import { AcademyGrid } from '../ui/AcademyGrid';
+import { AcademyLearningPage, AcademyLearningSection, AcademyLearningLevel, AcademyLearningFeature, AcademyLearningAction } from '../ui/AcademyLearningStructure';
+import {AcademyLearningHeading,AcademyLearningGoal,AcademyLearningToggle} from '../ui/AcademyLearningParts';
+import { AcademyProgressCard } from '../ui/AcademyProgressCard';
+import { AcademyLearningLink, AcademyRouteLink } from '../ui/AcademyLearningLink';
+import { DataItem } from '../../ui/DataItem';
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useAppearance } from "../../../context/AppearanceContext";
-import { AcademyPageHeader } from "../layout/AcademyPageHeader";
-import "./Fundamentos.css";
 
 type AcademyLevel = "Principiante" | "Intermedio" | "Avanzado";
 type ModuleStatus = "pending" | "done";
@@ -351,245 +355,131 @@ export function Fundamentos() {
   };
 
   return (
-    <div className={`fundamentos${isLiquidGlass ? " fundamentos--liquid-glass" : ""}`}>
-      <AcademyPageHeader className="fundamentos__header" section="Aprender">
-        <h1 className="fundamentos__title">Tu mapa para aprender a invertir</h1>
-        <p className="fundamentos__description">
+    <AcademyLearningPage liquidGlass={isLiquidGlass}>
+      <AcademyReadingHeader appearance="learning" section="Aprender" title={<>Tu mapa para aprender a invertir</>} description={<>
           Aprende desde 0 sobre el mundo de la inversión en una ruta guiada para
           perfiles de todo tipo.
-        </p>
-      </AcademyPageHeader>
+        </>} />
 
-      <section className="fundamentos__summary">
-        <article className="fundamentos__summary-card">
-          <span>Completados</span>
-          <strong>{completedCount}</strong>
-        </article>
-        <article className="fundamentos__summary-card">
-          <span>Simuladores</span>
-          <strong>{simulatorModules.length}</strong>
-        </article>
-        <article className="fundamentos__summary-card">
-          <span>Módulos visibles</span>
-          <strong>{MODULES.length}</strong>
-        </article>
-      </section>
+      <AcademyGrid variant="learningSummary" as="section" >
+        <DataItem as="article" layout="learningSummary" className="fundamentos__summary-card" label={<>Completados</>} value={<>{completedCount}</>} />
+        <DataItem as="article" layout="learningSummary" className="fundamentos__summary-card" label={<>Simuladores</>} value={<>{simulatorModules.length}</>} />
+        <DataItem as="article" layout="learningSummary" className="fundamentos__summary-card" label={<>Módulos visibles</>} value={<>{MODULES.length}</>} />
+      </AcademyGrid>
 
-      <section className="fundamentos__section-block">
-        <div className="fundamentos__section-head">
-          <div className="fundamentos__section-head-row">
-            <h2>Ruta guiada por nivel</h2>
-            <button
-              type="button"
-              className="fundamentos__collapse-toggle"
-              onClick={() => setLevelsExpanded((current) => !current)}
-              aria-expanded={levelsExpanded}
-              aria-label={
+      <AcademyLearningSection >
+        <AcademyLearningHeading title={<>Ruta guiada por nivel</>} description={<>
+            Empieza por la base, sube de nivel y usa el progreso para no
+            perder el hilo.
+          </>} action={<AcademyLearningToggle type="button" onClick={() => setLevelsExpanded((current) => !current)} aria-expanded={levelsExpanded} aria-label={
                 levelsExpanded
                   ? "Mostrar menos modulos por nivel"
                   : "Mostrar todos los modulos por nivel"
-              }
-              title={levelsExpanded ? "Mostrar menos" : "Mostrar todos"}
-            >
+              } title={levelsExpanded ? "Mostrar menos" : "Mostrar todos"}>
               {levelsExpanded ? (
                 <ChevronUp size={16} />
               ) : (
                 <ChevronDown size={16} />
               )}
-            </button>
-          </div>
-          <p>
-            Empieza por la base, sube de nivel y usa el progreso para no
-            perder el hilo.
-          </p>
-        </div>
-        <div className="fundamentos__level-grid">
+            </AcademyLearningToggle>} />
+        <AcademyGrid variant="learningLevels"  >
           {levelSections.map(({ level, modules }) => (
-            <article key={level} className="fundamentos__level-card">
-              <div className="fundamentos__level-head">
-                <h3>{level}</h3>
-                <span>{modules.length} módulos</span>
-              </div>
-              <div className="fundamentos__mini-list">
+            <AcademyLearningLevel key={level} title={<>{level}</>} count={<>{modules.length} módulos</>}>
                 {modules.slice(0, levelsExpanded ? modules.length : 2).map((module) => (
-                  <div
-                    key={module.id}
-                    className={`fundamentos__mini-card ${getStatus(module.id) === "done" ? "fundamentos__mini-card--done" : ""}`}
-                  >
-                    <Link
-                      to={module.to}
-                      className="fundamentos__mini-link"
-                      onClick={() => markAsDone(module.id)}
-                    >
-                      <span className="fundamentos__mini-icon">
-                        {module.icon}
-                      </span>
-                      <div>
-                        <strong>{module.title}</strong>
-                        <p>{module.description}</p>
-                      </div>
-                    </Link>
-                    <div className="fundamentos__mini-actions">
-                      <button
-                        type="button"
-                        className={`fundamentos__mini-action fundamentos__mini-action--status ${getStatus(module.id) === "done" ? "fundamentos__mini-action--done" : "fundamentos__mini-action--pending"}`}
-                        aria-pressed={getStatus(module.id) === "done"}
-                        onClick={() => toggleDone(module.id)}
-                      >
-                        {getStatus(module.id) === "done"
-                          ? "Visto"
-                          : "Pendiente"}
-                      </button>
-                    </div>
-                  </div>
+                  <AcademyProgressCard key={module.id} to={module.to} title={module.title} description={module.description} icon={module.icon} done={getStatus(module.id) === "done"} onOpen={() => markAsDone(module.id)} onToggle={() => toggleDone(module.id)} />
                 ))}
-              </div>
-            </article>
+              </AcademyLearningLevel>
           ))}
-        </div>
-      </section>
+        </AcademyGrid>
+      </AcademyLearningSection>
 
-      <section className="fundamentos__section-block">
-        <div className="fundamentos__section-head">
-          <h2>Academia por objetivo</h2>
-          <p>Atajos prácticos para entrar por intención.</p>
-        </div>
-        <div className="fundamentos__goal-grid">
+      <AcademyLearningSection >
+        <AcademyLearningHeading title={<>Academia por objetivo</>} description={<>Atajos prácticos para entrar por intención.</>}  />
+        <AcademyGrid variant="learningGoals"  >
           {GOALS.map((goal) => (
-            <article key={goal.title} className="fundamentos__goal-card">
-              <h3>{goal.title}</h3>
-              <p>{goal.description}</p>
-              <div className="fundamentos__goal-links">
+            <AcademyLearningGoal key={goal.title} title={<>{goal.title}</>} description={<>{goal.description}</>}>
                 {goal.modules.map((moduleId) => {
                   const module = modulesById[moduleId];
                   return (
-                    <Link
+                    <AcademyRouteLink
                       key={module.id}
                       to={module.to}
-                      className="fundamentos__goal-link"
+                      className="fundamentos__goal-link" compactOnMobile
                       onClick={() => markAsDone(module.id)}
                     >
                       <span>{module.icon}</span>
                       <span>{module.title}</span>
-                    </Link>
+                    </AcademyRouteLink>
                   );
                 })}
-              </div>
-            </article>
+              </AcademyLearningGoal>
           ))}
-        </div>
-      </section>
+        </AcademyGrid>
+      </AcademyLearningSection>
 
-      <section className="fundamentos__section-block">
-        <div className="fundamentos__section-head">
-          <h2>Checklists visuales</h2>
-          <p>
+      <AcademyLearningSection >
+        <AcademyLearningHeading title={<>Checklists visuales</>} description={<>
             Accesos directos a tres módulos clave para revisar lo esencial sin rodeos.
-          </p>
-        </div>
-        <div className="fundamentos__checklist-grid">
+          </>}  />
+        <AcademyGrid variant="learningChecklist"  >
           {CHECKLIST_LINKS.map((checklist) => (
-            <Link
-              key={checklist.title}
-              to={checklist.to}
-              className="fundamentos__checklist-card"
-              onClick={() => {
+            <AcademyLearningLink key={checklist.title} to={checklist.to} onClick={() => {
                 const module = MODULES.find((item) => item.to === checklist.to);
                 if (module) {
                   markAsDone(module.id);
                 }
-              }}
-            >
-              <h3>{checklist.title}</h3>
-              <p>{checklist.description}</p>
-              <span className="fundamentos__checklist-cta">
-                {checklist.cta}
-              </span>
-            </Link>
+              }} variant="checklist" title={checklist.title} description={checklist.description} cta={checklist.cta} />
           ))}
-        </div>
-      </section>
+        </AcademyGrid>
+      </AcademyLearningSection>
 
-      <section className="fundamentos__section-block">
-        <div className="fundamentos__section-head">
-          <h2>Centro de simuladores</h2>
-          <p>
+      <AcademyLearningSection >
+        <AcademyLearningHeading title={<>Centro de simuladores</>} description={<>
             Todo lo interactivo en un solo sitio para descubrirlo sin depender
             del sidebar.
-          </p>
-        </div>
-        <div className="fundamentos__sections">
+          </>}  />
+        <AcademyGrid variant="learningSections"  >
           {simulatorModules.map((module) => (
-            <Link
-              key={module.id}
-              to={module.to}
-              className="fundamentos__card"
-              onClick={() => markAsDone(module.id)}
-            >
-              <div className="fundamentos__card-icon">{module.icon}</div>
-              <h3 className="fundamentos__card-title">{module.title}</h3>
-              <p className="fundamentos__card-description">
-                {module.description}
-              </p>
-              <div className="fundamentos__card-meta">
-                <span className="fundamentos__card-badge">{module.level}</span>
-              </div>
-            </Link>
+            <AcademyLearningLink key={module.id} to={module.to} onClick={() => markAsDone(module.id)} variant="catalog" title={module.title} description={module.description} icon={module.icon} badge={module.level} />
           ))}
-        </div>
-      </section>
+        </AcademyGrid>
+      </AcademyLearningSection>
 
-      <section className="fundamentos__spotlight">
-        <div className="fundamentos__spotlight-copy">
-          <h2>Cómo leer tu cartera real con Portfolio</h2>
-          <p>
+      <AcademyLearningFeature appearance="spotlight" title={<>Cómo leer tu cartera real con Portfolio</>} description={<>
             Si ya tienes una cartera montada, el siguiente paso no siempre es
             otro artículo: muchas veces necesitas aprender a leer tus pesos,
             concentración, buckets y desvíos con datos reales.
-          </p>
-        </div>
-        <div className="fundamentos__spotlight-actions">
-          <Link
-            to="/portfolio-csv"
-            className="fundamentos__button fundamentos__button--primary"
-          >
+          </>}>
+          <AcademyLearningAction appearance="primary" to="/portfolio-csv">
             Abrir Portfolio
-          </Link>
-          <Link
-            to="/academy/portfolio"
-            className="fundamentos__button fundamentos__button--secondary"
-          >
+          </AcademyLearningAction>
+          <AcademyLearningAction appearance="secondary" to="/academy/portfolio">
             Ver estrategia y cartera
-          </Link>
-        </div>
-      </section>
+          </AcademyLearningAction>
+        </AcademyLearningFeature>
 
-      <div className="fundamentos__next">
-        <h3>Siguiente paso recomendado</h3>
-        <p>
+      <AcademyLearningFeature appearance="next" title={<>Siguiente paso recomendado</>} description={<>
           Si vienes totalmente desde cero: glosario, perfil, interés compuesto y
           estrategia. Si ya tienes cartera: Portfolio, gestión del riesgo y
           mercado y crisis.
-        </p>
-        <div className="fundamentos__next-links">
-          <Link to="/academy/glossary" className="fundamentos__next-link">
+        </>}>
+          <AcademyRouteLink to="/academy/glossary" className="fundamentos__next-link">
             📚 Empezar por glosario
-          </Link>
-          <Link
+          </AcademyRouteLink>
+          <AcademyRouteLink
             to="/academy/investor-profile-test"
             className="fundamentos__next-link"
           >
             🎯 Definir perfil inversor
-          </Link>
-          <Link to="/portfolio-csv" className="fundamentos__next-link">
+          </AcademyRouteLink>
+          <AcademyRouteLink to="/portfolio-csv" className="fundamentos__next-link">
             📊 Analizar mi cartera real
-          </Link>
-          <Link to="/academy/crisis" className="fundamentos__next-link">
+          </AcademyRouteLink>
+          <AcademyRouteLink to="/academy/crisis" className="fundamentos__next-link">
             📉 Prepararme para crisis
-          </Link>
-        </div>
-      </div>
-    </div>
+          </AcademyRouteLink>
+        </AcademyLearningFeature>
+    </AcademyLearningPage>
   );
 }
 

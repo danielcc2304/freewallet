@@ -1,0 +1,53 @@
+import { cn } from '../../../utils/cn';
+import { PlanningStyle } from './Planning.styles';
+import { TransactionsStyle } from './Transactions.styles';
+import { SettingsStyle } from './Settings.styles';
+export const workspaceLayouts = {
+    planningPage: PlanningStyle('planning-page'),
+    planningPageGrid: PlanningStyle('planning-page__grid'),
+    planningPageChecks: PlanningStyle('planning-page__checks'),
+    planningPageSummary: PlanningStyle('planning-page__summary'),
+    planningSection: PlanningStyle('planning-section'),
+    planningForm: PlanningStyle('planning-form'),
+    planningList: PlanningStyle('planning-list'),
+    planningPageSplit: PlanningStyle('planning-page__split'),
+    planningFormRow: PlanningStyle('planning-form__row'),
+    planningSelect: PlanningStyle('planning-select'),
+    planningEmpty: PlanningStyle('planning-empty'),
+    planningItem: PlanningStyle('planning-item'),
+    planningItemIconButton: PlanningStyle('planning-item__icon-button'),
+    planningItemMeta: PlanningStyle('planning-item__meta'),
+    planningItemNotes: PlanningStyle('planning-item__notes'),
+    transactionsPage: TransactionsStyle('transactions-page'),
+    transactionsPageSummary: TransactionsStyle('transactions-page__summary'),
+    transactionsPageFiltersContent: TransactionsStyle('transactions-page__filters-content'),
+    transactionsPageChips: TransactionsStyle('transactions-page__chips'),
+    transactionsPageEmpty: TransactionsStyle('transactions-page__empty'),
+    transactionsList: TransactionsStyle('transactions-list'),
+    transactionsItemNotes: TransactionsStyle('transactions-item__notes'),
+    settings: SettingsStyle('settings'),
+    settingsHeader: SettingsStyle('settings__header'),
+    settingsTitle: SettingsStyle('settings__title'),
+    settingsSubtitle: SettingsStyle('settings__subtitle'),
+    settingsSection: SettingsStyle('settings__section'),
+    settingsThemeOptions: SettingsStyle('settings__theme-options'),
+    settingsHint: SettingsStyle('settings__hint'),
+    settingsAppearance: SettingsStyle('settings__appearance'),
+    settingsAppearanceCopy: SettingsStyle('settings__appearance-copy'),
+    settingsAppearanceTitle: SettingsStyle('settings__appearance-title'),
+    settingsAppearanceOptions: SettingsStyle('settings__appearance-options'),
+    settingsDataInfo: SettingsStyle('settings__data-info'),
+    dataStat: SettingsStyle('data-stat'),
+    settingsActions: SettingsStyle('settings__actions'),
+    settingsAbout: SettingsStyle('settings__about'),
+    aboutItem: SettingsStyle('about-item'),
+    aboutDescription: SettingsStyle('about-description'),
+    aboutApi: SettingsStyle('about-api'),
+    aboutLinks: SettingsStyle('about-links'),
+    settingsTermsLink: SettingsStyle('settings__terms-link'),
+    settingsApiConfig: SettingsStyle('settings__api-config'),
+    settingsInputGroup: SettingsStyle('settings__input-group'),
+};
+export function workspaceLayout(part: keyof typeof workspaceLayouts, className?: string) {
+    return cn(workspaceLayouts[part], className);
+}

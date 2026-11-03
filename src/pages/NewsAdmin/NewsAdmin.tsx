@@ -1,3 +1,5 @@
+import { newsAdminStyles } from '../../components/news/newsAdminStyles';
+import { cn } from '../../utils/cn';
 import { lazy, Suspense, useCallback, useEffect, useRef, useState, type FormEvent } from 'react';
 import {
     Edit3,
@@ -49,7 +51,7 @@ import {
 import { getNewsTextExcerpt, getSafeNewsImageUrl, sanitizeNewsHtml, slugifyNewsTitle } from '../../utils/newsContent';
 import {AccountMfa} from '../Account/AccountMfa';
 import type {FeedbackTone} from '../../components/ui/FeedbackToast';
-import './NewsAdmin.css';
+import '../../components/news/newsContent.css';
 import {NewsCoverField} from '../../components/news/NewsCoverField';
 import {isGooglePhotoShare} from '../../services/newsImages';
 
@@ -444,14 +446,14 @@ export function NewsAdmin() {
 
     if (loading) {
         return (
-            <div className="news-admin news-admin--loading" role="status">
-                <Loader2 className="news-admin__spinner" size={26} />
+            <div className={cn(newsAdminStyles['news-admin'], newsAdminStyles['news-admin--loading'])} role="status">
+                <Loader2 className={newsAdminStyles['news-admin__spinner']} size={26} />
                 <span>Comprobando acceso editorial…</span>
             </div>
         );
     }
 
-    if(mfaPending) return <div className="news-admin news-admin--login">
+    if(mfaPending) return <div className={cn(newsAdminStyles['news-admin'], newsAdminStyles['news-admin--login'])}>
         {error && <NewsToast tone="error">{error}</NewsToast>}
         <AccountMfa notify={notifyMfa} onVerified={()=>{setMfaPending(false);setLoading(true);setAuthVersion(v=>v+1);}}/>
     </div>;
@@ -460,31 +462,31 @@ export function NewsAdmin() {
         return <NewsAdminInviteAcceptance onAccepted={() => void handleInvitationAccepted()} />;
     }
 
-    if(accessDenied)return <div className="news-admin news-admin--login"><Card className="news-admin__login-card"><CardContent>
-        <div className="news-admin__login-icon"><LockKeyhole size={28}/></div><h1>Acceso editorial restringido</h1>
-        <p className="news-admin__login-copy">Tu sesión sigue activa. Esta cuenta puede leer noticias y participar en los comentarios, pero no tiene permisos de edición.</p>
-        <Link className="news-admin__public-link" to="/news">Ir a noticias</Link>
+    if(accessDenied)return <div className={cn(newsAdminStyles['news-admin'], newsAdminStyles['news-admin--login'])}><Card className={newsAdminStyles['news-admin__login-card']}><CardContent>
+        <div className={newsAdminStyles['news-admin__login-icon']}><LockKeyhole size={28}/></div><h1>Acceso editorial restringido</h1>
+        <p className={newsAdminStyles['news-admin__login-copy']}>Tu sesión sigue activa. Esta cuenta puede leer noticias y participar en los comentarios, pero no tiene permisos de edición.</p>
+        <Link className={newsAdminStyles['news-admin__public-link']} to="/news">Ir a noticias</Link>
         <Button type="button" variant="secondary" onClick={()=>void handleLogout()}>Cambiar de cuenta</Button>
     </CardContent></Card></div>;
 
     if (!session) {
         return (
-            <div className="news-admin news-admin--login">
-                <Card className="news-admin__login-card" variant="highlight">
+            <div className={cn(newsAdminStyles['news-admin'], newsAdminStyles['news-admin--login'])}>
+                <Card className={newsAdminStyles['news-admin__login-card']} variant="highlight">
                     <CardContent>
-                        <div className="news-admin__login-icon">
+                        <div className={newsAdminStyles['news-admin__login-icon']}>
                             <LockKeyhole size={28} />
                         </div>
-                        <p className="news-admin__eyebrow">Área privada</p>
+                        <p className={newsAdminStyles['news-admin__eyebrow']}>Área privada</p>
                         <h1>Panel editorial</h1>
-                        <p className="news-admin__login-copy">
+                        <p className={newsAdminStyles['news-admin__login-copy']}>
                             Accede con una cuenta autorizada para crear y publicar noticias.
                         </p>
 
                         {error && <NewsToast tone="error">{error}</NewsToast>}
                         {notice && <NewsToast tone="success">{notice}</NewsToast>}
 
-                        <form className="news-admin__login-form" onSubmit={handleLogin}>
+                        <form className={newsAdminStyles['news-admin__login-form']} onSubmit={handleLogin}>
                             <Input
                                 label="Usuario o correo electrónico"
                                 type="text"
@@ -505,7 +507,7 @@ export function NewsAdmin() {
                                 Entrar
                             </Button>
                         </form>
-                        <Link className="news-admin__public-link" to="/news">
+                        <Link className={newsAdminStyles['news-admin__public-link']} to="/news">
                             Volver a noticias públicas
                         </Link>
                     </CardContent>
@@ -515,16 +517,16 @@ export function NewsAdmin() {
     }
 
     return (
-        <div className="news-admin">
-            <header className="news-admin__header">
+        <div className={newsAdminStyles['news-admin']}>
+            <header className={newsAdminStyles['news-admin__header']}>
                 <div>
-                    <p className="news-admin__eyebrow">Contenido propio</p>
+                    <p className={newsAdminStyles['news-admin__eyebrow']}>Contenido propio</p>
                     <h1>Panel editorial</h1>
-                    <p className="news-admin__subtitle">
+                    <p className={newsAdminStyles['news-admin__subtitle']}>
                         Crea borradores, edita análisis y publícalos cuando estén listos.
                     </p>
                 </div>
-                <div className="news-admin__header-actions">
+                <div className={newsAdminStyles['news-admin__header-actions']}>
                     <Link to="/news">
                         <Button variant="secondary" icon={<FileText size={16} />} size="sm">
                             Ver noticias
@@ -539,15 +541,15 @@ export function NewsAdmin() {
             {error && <NewsToast tone="error">{error}</NewsToast>}
             {notice && <NewsToast tone="success">{notice}</NewsToast>}
 
-            <div className="news-admin__workspace">
-                <Card className="news-admin__posts-card">
+            <div className={newsAdminStyles['news-admin__workspace']}>
+                <Card className={newsAdminStyles['news-admin__posts-card']}>
                     <CardContent>
-                        <div className="news-admin__section-heading">
+                        <div className={newsAdminStyles['news-admin__section-heading']}>
                             <div>
                                 <h2>Noticias editoriales</h2>
                                 <p>{posts.length} {posts.length === 1 ? 'entrada' : 'entradas'}</p>
                             </div>
-                            <div className="news-admin__list-actions">
+                            <div className={newsAdminStyles['news-admin__list-actions']}>
                                 <Button variant="ghost" size="sm" icon={<RefreshCw size={15} />} onClick={() => void handleRefresh()}>
                                     Actualizar
                                 </Button>
@@ -557,9 +559,9 @@ export function NewsAdmin() {
                             </div>
                         </div>
 
-                        <div className="news-admin__posts-list">
+                        <div className={newsAdminStyles['news-admin__posts-list']}>
                             {posts.length === 0 && (
-                                <div className="news-admin__empty-list">
+                                <div className={newsAdminStyles['news-admin__empty-list']}>
                                     <FileText size={26} />
                                     <p>Aún no hay noticias editoriales.</p>
                                     <Button variant="secondary" size="sm" disabled={preparingImage} onClick={startNewPost}>
@@ -569,17 +571,17 @@ export function NewsAdmin() {
                             )}
                             {posts.map((post) => (
                                 <div
-                                    className={`news-admin__post-row ${draft.id === post.id ? 'news-admin__post-row--selected' : ''}`}
+                                    className={cn(newsAdminStyles['news-admin__post-row'], draft.id === post.id && newsAdminStyles['news-admin__post-row--selected'])}
                                     key={post.id}
                                 >
-                                    <button type="button" disabled={preparingImage || (!isOwner && post.authorId!==session?.user.id)} className="news-admin__post-select" onClick={() => editPost(post)}>
-                                        <span className={`news-admin__status news-admin__status--${post.status}`}>
+                                    <button type="button" disabled={preparingImage || (!isOwner && post.authorId!==session?.user.id)} className={newsAdminStyles['news-admin__post-select']} onClick={() => editPost(post)}>
+                                        <span className={cn(newsAdminStyles['news-admin__status'], newsAdminStyles[`news-admin__status--${post.status}`])}>
                                             {post.status === 'published' ? 'Publicada' : 'Borrador'}
                                         </span>
                                         <strong>{post.title}</strong>
                                         <small>Actualizada {formatDate(post.updatedAt)}</small>
                                     </button>
-                                    <div className="news-admin__post-actions">
+                                    <div className={newsAdminStyles['news-admin__post-actions']}>
                                         <Button
                                             variant="ghost"
                                             size="sm"
@@ -592,13 +594,13 @@ export function NewsAdmin() {
                                         </Button>
                                         <button
                                             type="button"
-                                            className="news-admin__delete-button"
+                                            className={newsAdminStyles['news-admin__delete-button']}
                                             aria-label={`Eliminar ${post.title}`}
                                             title="Eliminar noticia"
                                             disabled={deletingId === post.id || (!isOwner && post.authorId!==session?.user.id)}
                                             onClick={() => void handleDelete(post)}
                                         >
-                                            {deletingId === post.id ? <Loader2 className="news-admin__spinner" size={16} /> : <Trash2 size={16} />}
+                                            {deletingId === post.id ? <Loader2 className={newsAdminStyles['news-admin__spinner']} size={16} /> : <Trash2 size={16} />}
                                         </button>
                                     </div>
                                 </div>
@@ -607,11 +609,11 @@ export function NewsAdmin() {
                     </CardContent>
                 </Card>
 
-                <Card className="news-admin__editor-card">
+                <Card className={newsAdminStyles['news-admin__editor-card']}>
                     <CardContent>
-                        <div className="news-admin__section-heading">
+                        <div className={newsAdminStyles['news-admin__section-heading']}>
                             <div>
-                                <p className="news-admin__eyebrow">{draft.id ? 'Editar entrada' : 'Nueva entrada'}</p>
+                                <p className={newsAdminStyles['news-admin__eyebrow']}>{draft.id ? 'Editar entrada' : 'Nueva entrada'}</p>
                                 <h2>{draft.id ? draft.title || 'Sin título' : 'Escribe tu análisis'}</h2>
                             </div>
                             {draft.id && (
@@ -621,10 +623,10 @@ export function NewsAdmin() {
                             )}
                         </div>
 
-                        <div className="news-admin__form-grid">
+                        <div className={newsAdminStyles['news-admin__form-grid']}>
                             <Input
                                 ref={titleInput}
-                                className="news-admin__field--wide"
+                                className={newsAdminStyles['news-admin__field--wide']}
                                 label="Título"
                                 value={draft.title}
                                 onChange={(event) => {
@@ -651,31 +653,31 @@ export function NewsAdmin() {
                                 placeholder="analisis-ciclo-macro"
                             />
                             <NewsCoverField key={draft.id??'new'} value={draft.coverImageUrl} onChange={url=>setDraft(current=>({...current,coverImageUrl:url}))} disabled={saving} onBusyChange={setPreparingImage}/>
-                            <div className="news-admin__field news-admin__field--wide">
-                                <label className="news-admin__label" htmlFor="news-excerpt">Extracto</label>
+                            <div className={cn(newsAdminStyles['news-admin__field'], newsAdminStyles['news-admin__field--wide'])}>
+                                <label className={newsAdminStyles['news-admin__label']} htmlFor="news-excerpt">Extracto</label>
                                 <textarea
                                     id="news-excerpt"
-                                    className="news-admin__textarea news-admin__textarea--excerpt"
+                                    className={cn(newsAdminStyles['news-admin__textarea'], 'news-admin__textarea--excerpt')}
                                     value={draft.excerpt}
                                     maxLength={500}
                                     onChange={(event) => setDraft((currentDraft) => ({ ...currentDraft, excerpt: event.target.value }))}
                                     placeholder="Una o dos frases para presentar el análisis."
                                 />
-                                <span className="news-admin__hint">{draft.excerpt.length}/500 caracteres</span>
+                                <span className={newsAdminStyles['news-admin__hint']}>{draft.excerpt.length}/500 caracteres</span>
                             </div>
                         </div>
 
-                        <div className="news-admin__editor-field">
-                            <label className="news-admin__label" htmlFor="news-editor">Contenido</label>
+                        <div className={newsAdminStyles['news-admin__editor-field']}>
+                            <label className={newsAdminStyles['news-admin__label']} htmlFor="news-editor">Contenido</label>
                             <Suspense fallback={<p role="status">Preparando editor…</p>}><RichTextEditor
                                 id="news-editor"
                                 value={draft.content}
                                 onChange={(content) => setDraft((currentDraft) => ({ ...currentDraft, content }))}
                             /></Suspense>
-                            <span className="news-admin__hint">Puedes usar tamaños de letra, títulos, énfasis, listas, citas, enlaces y bloques de código.</span>
+                            <span className={newsAdminStyles['news-admin__hint']}>Puedes usar tamaños de letra, títulos, énfasis, listas, citas, enlaces y bloques de código.</span>
                         </div>
 
-                        <div className="news-admin__editor-actions" aria-label="Acciones de publicación">
+                        <div className={newsAdminStyles['news-admin__editor-actions']} aria-label="Acciones de publicación">
                             <Button
                                 variant="ghost"
                                 icon={<Eye size={16} />}
@@ -707,19 +709,19 @@ export function NewsAdmin() {
             </div>
 
             {isOwner && (
-                <Card className="news-admin__team-card">
+                <Card className={newsAdminStyles['news-admin__team-card']}>
                     <CardContent>
-                        <div className="news-admin__section-heading">
+                        <div className={newsAdminStyles['news-admin__section-heading']}>
                             <div>
-                                <p className="news-admin__eyebrow"><ShieldCheck size={15} /> Propietario</p>
+                                <p className={newsAdminStyles['news-admin__eyebrow']}><ShieldCheck size={15} /> Propietario</p>
                                 <h2>Equipo editorial</h2>
                             </div>
-                            <Users className="news-admin__team-icon" size={24} />
+                            <Users className={newsAdminStyles['news-admin__team-icon']} size={24} />
                         </div>
 
-                        <form className="news-admin__invite-form" onSubmit={handleInviteEditor}>
+                        <form className={newsAdminStyles['news-admin__invite-form']} onSubmit={handleInviteEditor}>
                             <Input
-                                className="news-admin__invite-email"
+                                className={newsAdminStyles['news-admin__invite-email']}
                                 label="Correo del nuevo editor"
                                 type="email"
                                 autoComplete="off"
@@ -734,12 +736,12 @@ export function NewsAdmin() {
                             </Button>
                         </form>
 
-                        <div className="news-admin__members-list" aria-live="polite">
+                        <div className={newsAdminStyles['news-admin__members-list']} aria-live="polite">
                             {adminMembers.map((member) => (
-                                <div className="news-admin__member-row" key={member.userId}>
-                                    <div className="news-admin__member-details">
+                                <div className={newsAdminStyles['news-admin__member-row']} key={member.userId}>
+                                    <div className={newsAdminStyles['news-admin__member-details']}>
                                         <strong>{member.email}</strong>
-                                        <span className={`news-admin__member-status news-admin__member-status--${member.status}`}>
+                                        <span className={cn(newsAdminStyles['news-admin__member-status'], newsAdminStyles[`news-admin__member-status--${member.status}`])}>
                                             {getAdminStatusLabel(member)}
                                         </span>
                                         <small>{member.status === 'invited' ? 'Invitada' : 'Registrada'} {formatDate(member.invitedAt ?? member.createdAt)}</small>
@@ -781,20 +783,20 @@ function NewsDraftPreview({ draft }: { draft: NewsDraft }) {
     const content = sanitizeNewsHtml(draft.content);
 
     return (
-        <article className="news-admin__preview">
-            <div className="news-admin__preview-meta">
-                <span className={`news-admin__status news-admin__status--${draft.status}`}>
+        <article className={newsAdminStyles['news-admin__preview']}>
+            <div className={newsAdminStyles['news-admin__preview-meta']}>
+                <span className={cn(newsAdminStyles['news-admin__status'], newsAdminStyles[`news-admin__status--${draft.status}`])}>
                     {draft.status === 'published' ? 'Publicada' : 'Borrador'}
                 </span>
                 {draft.publishedAt && <time dateTime={draft.publishedAt}>{formatDate(draft.publishedAt)}</time>}
             </div>
             <h1>{title}</h1>
-            {excerpt && <p className="news-admin__preview-excerpt">{excerpt}</p>}
-            {coverImageUrl && <img className="news-admin__preview-cover" src={coverImageUrl} alt="" />}
+            {excerpt && <p className={newsAdminStyles['news-admin__preview-excerpt']}>{excerpt}</p>}
+            {coverImageUrl && <img className={newsAdminStyles['news-admin__preview-cover']} src={coverImageUrl} alt="" />}
             {content ? (
                 <div className="news-admin__preview-content" dangerouslySetInnerHTML={{ __html: content }} />
             ) : (
-                <p className="news-admin__preview-empty">Añade contenido para ver aquí la previsualización del análisis.</p>
+                <p className={newsAdminStyles['news-admin__preview-empty']}>Añade contenido para ver aquí la previsualización del análisis.</p>
             )}
         </article>
     );
@@ -857,21 +859,21 @@ function NewsAdminInviteAcceptance({ onAccepted }: { onAccepted: () => void }) {
     };
 
     return (
-        <div className="news-admin news-admin--login">
-            <Card className="news-admin__login-card" variant="highlight">
+        <div className={cn(newsAdminStyles['news-admin'], newsAdminStyles['news-admin--login'])}>
+            <Card className={newsAdminStyles['news-admin__login-card']} variant="highlight">
                 <CardContent>
-                    <div className="news-admin__login-icon">
+                    <div className={newsAdminStyles['news-admin__login-icon']}>
                         <LockKeyhole size={28} />
                     </div>
-                    <p className="news-admin__eyebrow">Invitación editorial</p>
+                    <p className={newsAdminStyles['news-admin__eyebrow']}>Invitación editorial</p>
                     <h1>Acepta el acceso</h1>
-                    <p className="news-admin__login-copy">
+                    <p className={newsAdminStyles['news-admin__login-copy']}>
                         Crea una contraseña segura para activar tu cuenta de editor. Después podrás entrar al panel con tu correo.
                     </p>
 
                     {acceptanceError && <NewsToast tone="error">{acceptanceError}</NewsToast>}
 
-                    <form className="news-admin__login-form" onSubmit={handleAccept}>
+                    <form className={newsAdminStyles['news-admin__login-form']} onSubmit={handleAccept}>
                         <Input
                             label="Nueva contraseña"
                             type="password"
@@ -901,20 +903,20 @@ function NewsAdminInviteAcceptance({ onAccepted }: { onAccepted: () => void }) {
 
 function NewsAdminSetup() {
     return (
-        <div className="news-admin news-admin--login">
-            <Card className="news-admin__login-card" variant="highlight">
+        <div className={cn(newsAdminStyles['news-admin'], newsAdminStyles['news-admin--login'])}>
+            <Card className={newsAdminStyles['news-admin__login-card']} variant="highlight">
                 <CardContent>
-                    <div className="news-admin__login-icon">
+                    <div className={newsAdminStyles['news-admin__login-icon']}>
                         <LockKeyhole size={28} />
                     </div>
-                    <p className="news-admin__eyebrow">Configuración necesaria</p>
+                    <p className={newsAdminStyles['news-admin__eyebrow']}>Configuración necesaria</p>
                     <h1>Conecta el panel editorial</h1>
-                    <p className="news-admin__login-copy">
+                    <p className={newsAdminStyles['news-admin__login-copy']}>
                         Añade <code>VITE_SUPABASE_URL</code> y <code>VITE_SUPABASE_PUBLISHABLE_KEY</code> (o la clave anon
                         heredada), ejecuta <code>supabase/news-schema.sql</code> y despliega la función de invitaciones para
                         añadir editores por correo.
                     </p>
-                    <Link className="news-admin__public-link" to="/news">
+                    <Link className={newsAdminStyles['news-admin__public-link']} to="/news">
                         Volver a noticias públicas
                     </Link>
                 </CardContent>

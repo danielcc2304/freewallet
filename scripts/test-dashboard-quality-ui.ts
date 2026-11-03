@@ -42,12 +42,14 @@ try {
         assert.equal(await page.$eval('.portfolio-excel-insights [role=tabpanel]',node=>node.getAttribute('aria-labelledby')),activeTab);
 
         assert.equal(await page.$('.dashboard__header details'),null,'Header status is not a disclosure');
-        const info=await page.$('button[aria-label="Actualización de precios"]');assert.ok(info);
+        await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+        const info='button[aria-label="Actualización de precios"]';await page.waitForSelector(info,{visible:true});
+        assert.ok(await page.$eval(info,node=>{const rect=node.getBoundingClientRect();return rect.top>=0&&rect.bottom<=innerHeight;}),'Header info control must be visible before interaction');
         const headerHeight=await page.$eval('.dashboard__header',n=>n.getBoundingClientRect().height);
-        await info.click();await page.waitForSelector('[role=dialog]');
+        await page.locator(info).click();await page.waitForSelector('[role=dialog]');
         assert.match(await page.$eval('[role=dialog]',n=>n.textContent??''),/Última|Acciones y criptos/);
         await page.keyboard.press('Escape');
-        assert.ok(await info.evaluate(n=>document.activeElement===n),'Closing information restores keyboard focus');
+        assert.ok(await page.$eval(info,n=>document.activeElement===n),'Closing information restores keyboard focus');
         assert.equal(await page.$eval('.dashboard__header',n=>n.getBoundingClientRect().height),headerHeight);
 
         assert.equal(await page.$$eval('.portfolio-data-quality',n=>n.length),1);

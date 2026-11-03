@@ -14,7 +14,7 @@ const selectedRoutes = process.env.FREEWALLET_VISUAL_ROUTES?.split(',').map(rout
 if (selectedRoutes) assert(selectedRoutes.length > 0 && selectedRoutes.every(route => allRoutes.includes(route)), 'Focused routes must exist in the normal audit');
 const routes = selectedRoutes ? [...new Set(selectedRoutes)] : allRoutes;
 const captures = new Set(['/', '/academy', '/academy/portfolio', '/academy/risk', '/academy/bond-calculator', '/academy/expenses', '/settings', '/academy/resources', '/not-found-test', ...(selectedRoutes ?? [])]);
-const browser = await puppeteer.launch({ headless: true, executablePath: process.env.PUPPETEER_EXECUTABLE_PATH ?? '/usr/bin/chromium', args: ['--no-sandbox'] });
+const browser = await puppeteer.launch({ headless: true, timeout: 60000, executablePath: process.env.PUPPETEER_EXECUTABLE_PATH ?? '/usr/bin/chromium', args: ['--no-sandbox'] });
 const baselinePath = '/tmp/freewallet-tailwind-modules-before/measurements.json';
 const baselineMeasurements = phase === 'after' && existsSync(baselinePath) ? JSON.parse(readFileSync(baselinePath, 'utf8')) : null;
 const measurements: Record<string, unknown> = {};

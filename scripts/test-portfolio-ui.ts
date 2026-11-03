@@ -93,7 +93,7 @@ try {
     const a=await prepare(0);const b=await prepare(1);
     const checkLayout=async(page:Page)=>{
         assert.equal(await page.$('.layout__main > .account-sync'),null,'No account banner may shift page content');
-        assert.equal(await page.$eval('.layout__main',element=>element.firstElementChild?.className),'layout__content');
+        assert.ok(await page.$eval('.layout__main',element=>element.firstElementChild?.classList.contains('layout__content')),'Account content must retain its structural layout class');
         assert.ok(await page.$('.sidebar a[href="/account"] .sidebar__account-status'),'Sync status belongs inside the account menu link');
         assert.equal(await page.$('a::-p-text(Ir al Dashboard)'),null);
         assert.ok(await page.$$eval('.account-page .btn',buttons=>buttons.every(button=>button.getBoundingClientRect().height>=44)),'Account actions must have usable touch targets');

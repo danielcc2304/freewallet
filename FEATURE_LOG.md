@@ -12,6 +12,19 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-11-03 - Evolución mensual homogénea e importación CSV de BBVA
+- Funcionalidad:
+  - Evolución muestra un punto por mes en 3M, YTD y Todo, conservando la base del periodo y el último dato provisional del mes en curso. Diario, 7D y 1M mantienen el detalle disponible.
+  - El importador reconoce las filas de presentación y la cabecera del CSV bancario de BBVA, incluida la columna inicial vacía.
+- Resumen:
+  - El muestreo afecta solo al gráfico; rentabilidad y detección de aportaciones o retiradas siguen usando todas las observaciones.
+  - CSV y Excel comparten la normalización de BBVA: fecha contable, importes, reembolsos y detección de duplicados. La previsualización conserva los números de línea del archivo.
+  - Validados los 90 movimientos del extracto recibido sin guardar información personal en el repositorio ni importar movimientos en la cuenta.
+- Archivos:
+  - src/components/dashboard/PortfolioExcelInsights.tsx, src/services/benchmarkComparison.ts.
+  - src/components/expenses/ExpenseManager.tsx, src/services/expenseImport.ts, src/services/expenseWorkbook.ts.
+  - scripts/test-evolution-cadence.ts, scripts/test-expense-bbva-csv.ts, scripts/test-expense-ui.ts.
+
 ### 2026-11-03 - v7.1.0 - Interfaz unificada y alta de efectivo
 - Funcionalidad:
   - Interfaz más coherente en cartera, Academia, calculadoras, noticias y gastos, con mejoras para móvil y los temas claro, oscuro y Liquid Glass.

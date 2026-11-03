@@ -74,3 +74,15 @@ export function extendBenchmarkObservations(line: Array<{date:string;benchmark:n
         .map(([day,p]) => ({date:day,benchmark:((1+last.benchmark/100)*p.close/anchor[1].close-1)*100}));
     return tail.length ? [...line,...tail] : line;
 }
+
+/** Display sampling only: calculations and cash-flow detection retain the full series.
+ * Keep the real period base and the last observation in every following month.
+ * The current month's observation remains provisional, at its actual date. */
+export function evolutionChartCadence<T extends { date: string }>(points: T[], period: TimePeriod): T[] {
+    if (['1D', '7D', '1M'].includes(period) || points.length < 2) return points;
+    const months = new Map<string, T>();
+    points.slice(1).forEach(point => months.set(accountingDay(point.date).slice(0, 7), point));
+    // A partial first month needs its endpoint as well as the exact period base.
+    const sampled = [...months.values()];
+    return [points[0], ...sampled];
+}

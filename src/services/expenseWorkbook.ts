@@ -1,6 +1,6 @@
 import type { CellObject, WorkBook } from 'xlsx';
-import { EXPENSE_LIMIT_BYTES, parseExpenseAmount } from './expensePlanner';
-import { guessCsvMapping } from './expenseImport';
+import { EXPENSE_LIMIT_BYTES } from './expensePlanner';
+import { guessCsvMapping, prepareBbvaExpenseSheet } from './expenseImport';
 import type {
     ExpenseImportDocument,
     ExpenseImportSheet,
@@ -82,9 +82,6 @@ export async function readExpenseWorkbook(
             'importe',
             'divisa',
         ].every((h) => headers.some((v) => clean(v) === h));
-        const movementColumn = isBbva
-            ? headers.findIndex((h) => clean(h) === 'movimiento')
-            : -1;
         const date1904 = !!workbook.Workbook?.WBProps?.date1904;
         const value = (
             cell: CellObject | undefined,
@@ -118,12 +115,6 @@ export async function readExpenseWorkbook(
         };
         const rows = [headers];
         const sourceLines = [range.s.r + headerIndex + 1];
-        // Derived BBVA columns share fingerprints with the CSV conversion.
-        const typeColumn = isBbva ? headers.length : -1;
-        if (isBbva) {
-            if (mapping.kind >= 0) headers[mapping.kind] += ' BBVA';
-            headers.push('Tipo');
-        }
         for (let i = headerIndex + 1; i < raw.length; i++) {
             if (!raw[i].some((v) => asText(v).trim())) continue;
             const row = Array.from({ length: headers.length }, (_, c) =>
@@ -137,38 +128,13 @@ export async function readExpenseWorkbook(
                     c,
                 ),
             );
-            if (isBbva) {
-                const movement = row[movementColumn].trim();
-                const card = clean(movement) === 'pago con tarjeta';
-                try {
-                    const amount = parseExpenseAmount(
-                        row[mapping.amount],
-                        true,
-                    );
-                    row[typeColumn] =
-                        amount < 0 ? 'gasto' : card ? 'reembolso' : 'ingreso';
-                } catch {
-                    // Invalid amounts remain visible as errors in the preview.
-                    row[typeColumn] = '';
-                }
-                const concept = row[mapping.description].trim();
-                row[mapping.description] =
-                    movement && !card ? `${concept} · ${movement}` : concept;
-            }
             rows.push(row);
             sourceLines.push(range.s.r + i + 1);
         }
         if (rows.length <= 1) continue;
         if (rows.length > 10001)
             throw new Error(`La hoja «${name}» supera los 10.000 movimientos.`);
-        sheets.push({
-            name,
-            rows,
-            sourceLines,
-            bank: isBbva ? 'bbva' : undefined,
-            movementColumn: isBbva ? movementColumn : undefined,
-            cardColumn: isBbva ? movementColumn : undefined,
-        });
+        sheets.push(isBbva ? prepareBbvaExpenseSheet(name, rows, sourceLines) : { name, rows, sourceLines });
     }
     if (!sheets.length)
         throw new Error(

@@ -446,7 +446,6 @@ html[data-appearance='liquid-glass'] :is(
     .portfolio-excel-insights__periods button.is-active,
     .market-heatmap__tab--active,
     .market-heatmap__display-option--active,
-    .period-selector__btn--active,
     .compound__mode-btn--active,
     .crisis__tab--active,
     .spread-sim__mode-btn.is-active,
@@ -476,7 +475,6 @@ html[data-appearance='liquid-glass'] :is(
     .portfolio-excel-insights__periods button.is-active,
     .market-heatmap__tab--active,
     .market-heatmap__display-option--active,
-    .period-selector__btn--active,
     .compound__mode-btn--active,
     .crisis__tab--active,
     .spread-sim__mode-btn.is-active,
@@ -509,7 +507,6 @@ html[data-appearance='liquid-glass'] :is(
     .portfolio-excel-insights__periods button.is-active,
     .market-heatmap__tab--active,
     .market-heatmap__display-option--active,
-    .period-selector__btn--active,
     .compound__mode-btn--active,
     .crisis__tab--active,
     .spread-sim__mode-btn.is-active,
@@ -546,7 +543,6 @@ html[data-appearance='liquid-glass'] :is(
     .portfolio-excel-insights__periods button.is-active,
     .market-heatmap__tab--active,
     .market-heatmap__display-option--active,
-    .period-selector__btn--active,
     .compound__mode-btn--active,
     .crisis__tab--active,
     .spread-sim__mode-btn.is-active,
@@ -886,7 +882,6 @@ html[data-appearance='liquid-glass'] :is(
     .quiz-card,
     .fund-card,
     .alloc-sim__stat-card,
-    .alloc-sim__total-card,
     .portfolio-builder__filters,
     .fund-radar__filters,
     .portfolio-composition__consolidated,
@@ -955,7 +950,6 @@ html[data-appearance='liquid-glass'] :is(
 
 /* Module-specific selectors and toolbars share one regular glass language. */
 html[data-appearance='liquid-glass'] :is(
-    .period-selector,
     .spread-sim__mode,
     .portfolio-builder__filter-options
 ) {
@@ -983,7 +977,6 @@ html[data-appearance='liquid-glass'] .glossary-controls {
 
 html[data-appearance='liquid-glass'] :is(
     .portfolio-csv-btn,
-    .period-selector__btn,
     .compound__mode-btn,
     .crisis__tab,
     .spread-sim__mode-btn,
@@ -1007,7 +1000,6 @@ html[data-appearance='liquid-glass'] :is(
 
 html[data-appearance='liquid-glass'] :is(
     .portfolio-csv-btn,
-    .period-selector__btn,
     .compound__mode-btn,
     .crisis__tab,
     .spread-sim__mode-btn,
@@ -1029,7 +1021,6 @@ html[data-appearance='liquid-glass'] :is(
 
 html[data-appearance='liquid-glass'] :is(
     .portfolio-csv-btn,
-    .period-selector__btn,
     .compound__mode-btn,
     .crisis__tab,
     .spread-sim__mode-btn,
@@ -1043,7 +1034,6 @@ html[data-appearance='liquid-glass'] :is(
 }
 
 html[data-appearance='liquid-glass'] :is(
-    .period-selector__btn--active,
     .compound__mode-btn--active,
     .crisis__tab--active,
     .spread-sim__mode-btn.is-active,
@@ -1736,7 +1726,6 @@ html[data-theme='light'] .fundamentos.fundamentos--liquid-glass .fundamentos__mi
         .portfolio-excel-insights__periods button.is-active,
         .market-heatmap__tab--active,
         .market-heatmap__display-option--active,
-        .period-selector__btn--active,
         .compound__mode-btn--active,
         .crisis__tab--active,
         .spread-sim__mode-btn.is-active,
@@ -1765,7 +1754,6 @@ html[data-theme='light'] .fundamentos.fundamentos--liquid-glass .fundamentos__mi
         .portfolio-excel-insights__periods button.is-active,
         .market-heatmap__tab--active,
         .market-heatmap__display-option--active,
-        .period-selector__btn--active,
         .compound__mode-btn--active,
         .crisis__tab--active,
         .spread-sim__mode-btn.is-active,

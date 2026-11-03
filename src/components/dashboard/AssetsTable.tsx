@@ -1,9 +1,13 @@
+import { DashboardAssetsCard, DashboardAssetsGrid, DashboardAssetRow, DashboardAssetCell, DashboardAssetSortIcon, DashboardAssetFilters, DashboardAssetTableMessage, DashboardAssetActions, DashboardAssetMobileToolbar, DashboardAssetActionButton, DashboardAssetEstimate } from './ui/DashboardAssetsGrid';
+
+
+import { DashboardAssetIdentity, DashboardAssetChange, DashboardAssetWeight, DashboardMobileFacts, DashboardMobileFact, DashboardTableButton } from './ui/DashboardAssetCells';
+import { DashboardFilterField } from './ui/DashboardFilterField';
 import { Fragment, memo, useId, useState, useMemo, useLayoutEffect } from 'react';
 import { ArrowLeftRight, ArrowUpDown, Trash2, ChevronUp, ChevronDown, Eye, EyeOff, Pencil, PencilOff, PlusCircle, MinusCircle } from 'lucide-react';
-import { Card, CardHeader, CardContent, Button, ConfirmDialog } from '../ui';
+import { CardHeader, CardContent, Button, ConfirmDialog } from '../ui';
 import type { Asset } from '../../types/types';
 import { assetPrice, assetValue, formatQuantity } from '../../services/assetValuation';
-import './AssetsTable.css';
 import { compareKnownReturns, filterDashboardAssets } from '../../services/dashboardIntegrity';
 import { portfolioPositionGroups } from '../../services/portfolioPositionGroups';
 
@@ -36,12 +40,12 @@ export interface AssetsTableViewState {
 
 function SortIcon({ column, sortKey, sortDirection }: { column: SortKey; sortKey: SortKey; sortDirection: SortDirection }) {
     if (sortKey !== column) {
-        return <ArrowUpDown size={14} className="sort-icon" />;
+        return <DashboardAssetSortIcon  icon={<ArrowUpDown size={14} />} />;
     }
     return sortDirection === 'asc' ? (
-        <ChevronUp size={14} className="sort-icon sort-icon--active" />
+        <DashboardAssetSortIcon active icon={<ChevronUp size={14} />} />
     ) : (
-        <ChevronDown size={14} className="sort-icon sort-icon--active" />
+        <DashboardAssetSortIcon active icon={<ChevronDown size={14} />} />
     );
 }
 
@@ -167,106 +171,54 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
 
     const renderAssetRow=(asset: (typeof processedAssets)[number],isLot=false)=>(
 
-        <tr
-            key={asset.id}
-            data-position-kind={asset.isGroup?'group':isLot?'lot':'asset'}
-            onClick={() => onViewDetails?.(asset)}
-            className={`clickable-row ${isLot ? 'assets-table__lot-row' : ''}`}
-        >
-            <td className="assets-table__column--asset">
-                <div className="assets-table__asset">
-                    <button type="button" className="assets-table__name assets-table__open" onClick={e => { e.stopPropagation(); onViewDetails?.(asset); }} aria-label={`Ver detalles de ${asset.name}`}>{asset.name}</button>
-                    {asset.mixedPrices && asset.isGroup && asset.estimatedCount===0 && <small>Precio medio de valoración</small>}
-                    {asset.estimatedCount>0 && <small>Valor con estimaciones al coste</small>}
-                    <small>{asset.mixedDates ? 'Varias fechas de valoración' : asset.quotedAt && Number.isFinite(Date.parse(asset.quotedAt))
+        <DashboardAssetRow lot={isLot} key={asset.id} data-position-kind={asset.isGroup?'group':isLot?'lot':'asset'} onClick={() => onViewDetails?.(asset)}>
+            <DashboardAssetCell  column="asset"   >
+                <DashboardAssetIdentity name={<>{asset.name}</>} symbol={asset.symbol} isin={asset.isin !== asset.symbol ? asset.isin : undefined} onOpen={e => { e.stopPropagation(); onViewDetails?.(asset); }} ariaLabel={`Ver detalles de ${asset.name}`}>{asset.mixedPrices && asset.isGroup && asset.estimatedCount===0 && <small>Precio medio de valoración</small>}{asset.estimatedCount>0 && <small>Valor con estimaciones al coste</small>}<small>{asset.mixedDates ? 'Varias fechas de valoración' : asset.quotedAt && Number.isFinite(Date.parse(asset.quotedAt))
                         ? 'Valoración: ' + new Date(asset.quotedAt).toLocaleDateString('es-ES')
-                        : 'Fecha de valoración no disponible'}</small>
-                    {asset.isGroup && <button type="button" className="assets-table__lots-toggle"
-                        aria-expanded={expandedGroups.has(asset.id)}
-                        onClick={event=>{event.stopPropagation();toggleGroup(asset.id);}}>
+                        : 'Fecha de valoración no disponible'}</small>{asset.isGroup && <DashboardTableButton appearance="lots" type="button" aria-expanded={expandedGroups.has(asset.id)} onClick={event=>{event.stopPropagation();toggleGroup(asset.id);}}>
                         {expandedGroups.has(asset.id)?<ChevronUp size={14}/>:<ChevronDown size={14}/>} {asset.lots.length} registros
-                    </button>}
-                    {isLot && <small>Compra: {new Date(`${asset.purchaseDate.slice(0,10)}T12:00:00`).toLocaleDateString('es-ES')}</small>}
-                    <div className="assets-table__identifiers">
-                        <span className="assets-table__symbol">{asset.symbol}</span>
-                        {asset.isin && asset.isin !== asset.symbol && (
-                            <span className="assets-table__isin">ISIN {asset.isin}</span>
-                        )}
-                    </div>
-                </div>
-            </td>
-            <td className="assets-table__optional">{formatQuantity(asset)}</td>
-            <td className="assets-table__optional">{formatPrice(asset.purchasePrice)}</td>
-            <td className="assets-table__column--price assets-table__optional">
+                    </DashboardTableButton>}{isLot && <small>Compra: {new Date(`${asset.purchaseDate.slice(0,10)}T12:00:00`).toLocaleDateString('es-ES')}</small>}</DashboardAssetIdentity>
+            </DashboardAssetCell>
+            <DashboardAssetCell  column="optional"   >{formatQuantity(asset)}</DashboardAssetCell>
+            <DashboardAssetCell  column="optional"   >{formatPrice(asset.purchasePrice)}</DashboardAssetCell>
+            <DashboardAssetCell  column="price" optional  >
                 <span className="assets-table__current-price">{asset.estimatedCount>0 && asset.isGroup ? 'N/D' : formatPrice(assetPrice(asset))}</span>
-                {asset.estimatedCount>0 && <small className="assets-table__estimated">Incluye estimaciones</small>}
-            </td>
-            <td className="assets-table__column--today">
-                <span className={`assets-table__today ${Number.isFinite(asset.latestChangePercent) && asset.latestChangePercent < 0
-                    ? 'assets-table__change--negative'
+                {asset.estimatedCount>0 && <DashboardAssetEstimate  >Incluye estimaciones</DashboardAssetEstimate>}
+            </DashboardAssetCell>
+            <DashboardAssetCell  column="today"   >
+                <DashboardAssetChange appearance="daily" tone={Number.isFinite(asset.latestChangePercent) && asset.latestChangePercent < 0
+                    ? 'negative'
                     : Number.isFinite(asset.latestChangePercent) && asset.latestChangePercent > 0
-                        ? 'assets-table__change--positive'
-                        : ''
-                    }`}>
-                    <strong>{formatPercent(asset.latestChangePercent)}</strong>
-                    <small>{formatCurrency(asset.latestChange)}</small>
-                    <small className="assets-table__variation-date">{asset.isToday ? 'Hoy' : asset.quoteDay ? new Date(`${asset.quoteDay}T12:00:00`).toLocaleDateString('es-ES') : 'Fecha no disponible'}</small>
-                </span>
-            </td>
-            <td className="assets-table__column--value assets-table__value">
+                        ? 'positive'
+                        : ''} percent={<>{formatPercent(asset.latestChangePercent)}</>} amount={<>{formatCurrency(asset.latestChange)}</>} date={<>{asset.isToday ? 'Hoy' : asset.quoteDay ? new Date(`${asset.quoteDay}T12:00:00`).toLocaleDateString('es-ES') : 'Fecha no disponible'}</>} />
+            </DashboardAssetCell>
+            <DashboardAssetCell  column="value"  valueEmphasis >
                 {formatCurrency(asset.currentValue)}
-                {asset.estimatedCount>0 && <small className="assets-table__estimated">Incluye estimaciones</small>}
-            </td>
-            <td className="assets-table__column--gain">
-                <div className="assets-table__gain">
-                    <span
-                        className={`assets-table__change ${asset.changePercent > 0
-                            ? 'assets-table__change--positive'
-                            : asset.changePercent < 0 ? 'assets-table__change--negative' : ''
-                            }`}
-                    >
+                {asset.estimatedCount>0 && <DashboardAssetEstimate  >Incluye estimaciones</DashboardAssetEstimate>}
+            </DashboardAssetCell>
+            <DashboardAssetCell  column="gain"   >
+                <DashboardAssetChange appearance="gain" tone={asset.changePercent > 0
+                            ? 'positive'
+                            : asset.changePercent < 0 ? 'negative' : ''} percent={<>
                         {formatPercent(asset.changePercent)}
-                    </span>
-                    <span className="assets-table__gain-value">
+                    </>} amount={<>
                         {formatCurrency(asset.gain)}
-                    </span>
-                </div>
-            </td>
-            <td className="assets-table__optional">
-                <div className="assets-table__weight">
-                    <div className="assets-table__weight-bar">
-                        <div
-                            className="assets-table__weight-fill"
-                            style={{ width: `${Math.min(asset.weight, 100)}%` }}
-                        />
-                    </div>
-                    <span>{asset.weight.toFixed(1)}%</span>
-                </div>
-            </td>
-            <td className="assets-table__mobile-details-cell">
-                <div className="assets-table__mobile-details">
-                    <div>
-                        <span>Cantidad</span>
-                        <strong>{formatQuantity(asset)}</strong>
-                    </div>
-                    <div>
-                        <span>Precio medio</span>
-                        <strong>{formatPrice(asset.purchasePrice)}</strong>
-                    </div>
-                    <div>
-                        <span>Precio actual</span>
-                        <strong>{asset.estimatedCount>0 && asset.isGroup ? 'N/D' : formatPrice(assetPrice(asset))}</strong>
-                        {asset.estimatedCount>0 && <span className="assets-table__estimated">Estimado al coste</span>}
-                    </div>
-                    <div>
-                        <span>Peso</span>
-                        <strong>{asset.weight.toFixed(1)}%</strong>
-                    </div>
-                </div>
-            </td>
+                    </>} />
+            </DashboardAssetCell>
+            <DashboardAssetCell  column="optional"   >
+                <DashboardAssetWeight width={`${Math.min(asset.weight, 100)}%`}>{asset.weight.toFixed(1)}%</DashboardAssetWeight>
+            </DashboardAssetCell>
+            <DashboardAssetCell  column="mobile"   >
+                <DashboardMobileFacts>
+                    <DashboardMobileFact label={<>Cantidad</>} value={<>{formatQuantity(asset)}</>}></DashboardMobileFact>
+                    <DashboardMobileFact label={<>Precio medio</>} value={<>{formatPrice(asset.purchasePrice)}</>}></DashboardMobileFact>
+                    <DashboardMobileFact label={<>Precio actual</>} value={<>{asset.estimatedCount>0 && asset.isGroup ? 'N/D' : formatPrice(assetPrice(asset))}</>}>{asset.estimatedCount>0 && <DashboardAssetEstimate as="span" >Estimado al coste</DashboardAssetEstimate>}</DashboardMobileFact>
+                    <DashboardMobileFact label={<>Peso</>} value={<>{asset.weight.toFixed(1)}%</>}></DashboardMobileFact>
+                </DashboardMobileFacts>
+            </DashboardAssetCell>
             {hasActionHandlers && (
-                <td className="assets-table__actions-cell">
-                    <div id={`asset-actions-${asset.id}`} className="assets-table__actions">
+                <DashboardAssetCell  column="actions"   >
+                    <DashboardAssetActions id={`asset-actions-${asset.id}`}>
                         {asset.isGroup ? <Button variant="ghost" size="sm" icon={<Pencil size={16}/>}
                             onClick={event=>{event.stopPropagation();toggleGroup(asset.id,true);}}
                             aria-label={`Gestionar registros de ${asset.symbol}`} title="Gestionar registros"/> : <>
@@ -311,52 +263,43 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
                             />
                         )}
                         {onDelete && (
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={(event) => { event.stopPropagation(); handleDeleteClick(asset.id); }}
-                                icon={<Trash2 size={16} />}
-                                className="assets-table__delete-btn"
-                                aria-label={`Eliminar ${asset.symbol}`}
-                                title="Eliminar activo"
-                            />
+                            <DashboardAssetActionButton destructive variant="ghost" size="sm" onClick={(event) => { event.stopPropagation(); handleDeleteClick(asset.id); }} icon={<Trash2 size={16} />} aria-label={`Eliminar ${asset.symbol}`} title="Eliminar activo"></DashboardAssetActionButton>
                         )}
                         </>}
-                    </div>
-                </td>
+                    </DashboardAssetActions>
+                </DashboardAssetCell>
             )}
-        </tr>
+        </DashboardAssetRow>
     );
 
     if (assets.length === 0) {
         return (
-            <Card className="assets-table">
+            <DashboardAssetsCard >
                 <CardHeader title="Mis Activos" subtitle="Desglose completo del portfolio" />
                 <CardContent>
-                    <p className="assets-table__empty">
+                    <DashboardAssetTableMessage empty >
                         No tienes activos en tu cartera. ¡Añade tu primera inversión!
-                    </p>
+                    </DashboardAssetTableMessage>
                 </CardContent>
-            </Card>
+            </DashboardAssetsCard>
         );
     }
 
     return (
         <>
-            <Card className="assets-table">
+            <DashboardAssetsCard >
                 <CardHeader
                     title="Mis Activos"
                     subtitle={`${groups.length} activos${assets.length>groups.length?` · ${assets.length} registros`:''} · Valor total: ${formatCurrency(totalValue)}`}
                     action={
-                        <div className="assets-table__mobile-toolbar" aria-label="Opciones de Mis Activos">
+                        <DashboardAssetMobileToolbar  aria-label="Opciones de Mis Activos">
                             <Button
                                 variant="ghost"
                                 size="sm"
                                 onClick={() => setShowMobileDetails((current) => !current)}
                                 icon={showMobileDetails ? <EyeOff size={16} /> : <Eye size={16} />}
                                 aria-pressed={showMobileDetails}
-                                title={showMobileDetails ? 'Ocultar información adicional' : 'Ver toda la información'}
-                            >
+                                title={showMobileDetails ? 'Ocultar información adicional' : 'Ver toda la información'}>
                                 {showMobileDetails ? 'Ocultar' : 'Ver todo'}
                             </Button>
                             {hasActionHandlers && (
@@ -366,22 +309,19 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
                                     onClick={() => setShowMobileActions((current) => !current)}
                                     icon={showMobileActions ? <PencilOff size={16} /> : <Pencil size={16} />}
                                     aria-pressed={showMobileActions}
-                                    title={showMobileActions ? 'Ocultar acciones' : 'Editar y gestionar activos'}
-                                >
+                                    title={showMobileActions ? 'Ocultar acciones' : 'Editar y gestionar activos'}>
                                     {showMobileActions ? 'Cerrar' : 'Editar'}
                                 </Button>
                             )}
-                        </div>
+                        </DashboardAssetMobileToolbar>
                     }
                 />
                 <CardContent>
-                    <div className="assets-table__filters">
-                        <div>
-                            <label htmlFor={`${filterId}-query`}>Buscar activo</label>
+                    <DashboardAssetFilters  >
+                        <DashboardFilterField controlId={`${filterId}-query`} label="Buscar activo">
                             <input id={`${filterId}-query`} type="search" placeholder="Nombre, símbolo o ISIN" value={query} onChange={e => setQuery(e.target.value)} />
-                        </div>
-                        <div>
-                            <label htmlFor={`${filterId}-type`}>Tipo de activo</label>
+                        </DashboardFilterField>
+                        <DashboardFilterField controlId={`${filterId}-type`} label="Tipo de activo">
                             <select id={`${filterId}-type`} value={assetType} onChange={e => setAssetType(e.target.value as Asset['type'] | 'all')}>
                                 <option value="all">Todos</option>
                                 <option value="fund">Fondos</option>
@@ -390,36 +330,35 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
                                 <option value="crypto">Criptomonedas</option>
                                 <option value="cash">Liquidez</option>
                             </select>
-                        </div>
+                        </DashboardFilterField>
                         {(query || assetType !== 'all') && <Button variant="ghost" size="sm" onClick={() => { setQuery(''); setAssetType('all'); }}>Limpiar filtros</Button>}
-                    </div>
-                    {(query || assetType !== 'all') && <p className="assets-table__filter-count" role="status">{sortedAssets.length} de {processedAssets.length} activos · Los pesos se calculan sobre toda tu cartera.</p>}
-                    {sortedAssets.length === 0 && <p className="assets-table__empty">No hay activos que coincidan con los filtros.</p>}
-                    <div className="assets-table__wrapper">
-                        <table className={`assets-table__table ${showMobileDetails ? 'assets-table__table--show-details' : ''} ${showMobileActions ? 'assets-table__table--show-actions' : ''}`}>
+                    </DashboardAssetFilters>
+                    {(query || assetType !== 'all') && <DashboardAssetTableMessage  role="status">{sortedAssets.length} de {processedAssets.length} activos · Los pesos se calculan sobre toda tu cartera.</DashboardAssetTableMessage>}
+                    {sortedAssets.length === 0 && <DashboardAssetTableMessage empty >No hay activos que coincidan con los filtros.</DashboardAssetTableMessage>}
+                    <DashboardAssetsGrid showDetails={showMobileDetails} showActions={showMobileActions}>
                             <thead>
                                 <tr>
-                                    <th className="assets-table__column--asset" aria-sort={sortKey === 'symbol' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
-                                        <button type="button" className="assets-table__sort" onClick={() => handleSort('symbol')}>Activo <SortIcon column="symbol" sortKey={sortKey} sortDirection={sortDirection} /></button>
-                                    </th>
-                                    <th className="assets-table__optional">Cantidad</th>
-                                    <th className="assets-table__optional">Precio medio</th>
-                                    <th className="assets-table__column--price assets-table__optional">
+                                    <DashboardAssetCell as="th" column="asset"   aria-sort={sortKey === 'symbol' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
+                                        <DashboardTableButton appearance="sort" type="button" onClick={() => handleSort('symbol')}>Activo <SortIcon column="symbol" sortKey={sortKey} sortDirection={sortDirection} /></DashboardTableButton>
+                                    </DashboardAssetCell>
+                                    <DashboardAssetCell as="th" column="optional"   >Cantidad</DashboardAssetCell>
+                                    <DashboardAssetCell as="th" column="optional"   >Precio medio</DashboardAssetCell>
+                                    <DashboardAssetCell as="th" column="price" optional  >
                                         <span className="assets-table__current-price-label">Precio Actual</span>
-                                    </th>
-                                    <th className="assets-table__column--today" aria-sort={sortKey === 'today' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
-                                        <button type="button" className="assets-table__sort" onClick={() => handleSort('today')} title="Ordenar por variación de la última cotización, cuya fecha se indica en cada fila">Variación <SortIcon column="today" sortKey={sortKey} sortDirection={sortDirection} /></button>
-                                    </th>
-                                    <th className="assets-table__column--value" aria-sort={sortKey === 'value' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
-                                        <button type="button" className="assets-table__sort" onClick={() => handleSort('value')}>Valor <SortIcon column="value" sortKey={sortKey} sortDirection={sortDirection} /></button>
-                                    </th>
-                                    <th className="assets-table__column--gain" aria-sort={sortKey === 'change' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
-                                        <button type="button" className="assets-table__sort" onClick={() => handleSort('change')}>Ganancia <SortIcon column="change" sortKey={sortKey} sortDirection={sortDirection} /></button>
-                                    </th>
-                                    <th className="assets-table__optional" aria-sort={sortKey === 'weight' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
-                                        <button type="button" className="assets-table__sort" onClick={() => handleSort('weight')}>Peso <SortIcon column="weight" sortKey={sortKey} sortDirection={sortDirection} /></button>
-                                    </th>
-                                    {hasActionHandlers && <th className="assets-table__actions-header">Acciones</th>}
+                                    </DashboardAssetCell>
+                                    <DashboardAssetCell as="th" column="today"   aria-sort={sortKey === 'today' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
+                                        <DashboardTableButton appearance="sort" type="button" onClick={() => handleSort('today')} title="Ordenar por variación de la última cotización, cuya fecha se indica en cada fila">Variación <SortIcon column="today" sortKey={sortKey} sortDirection={sortDirection} /></DashboardTableButton>
+                                    </DashboardAssetCell>
+                                    <DashboardAssetCell as="th" column="value"   aria-sort={sortKey === 'value' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
+                                        <DashboardTableButton appearance="sort" type="button" onClick={() => handleSort('value')}>Valor <SortIcon column="value" sortKey={sortKey} sortDirection={sortDirection} /></DashboardTableButton>
+                                    </DashboardAssetCell>
+                                    <DashboardAssetCell as="th" column="gain"   aria-sort={sortKey === 'change' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
+                                        <DashboardTableButton appearance="sort" type="button" onClick={() => handleSort('change')}>Ganancia <SortIcon column="change" sortKey={sortKey} sortDirection={sortDirection} /></DashboardTableButton>
+                                    </DashboardAssetCell>
+                                    <DashboardAssetCell as="th" column="optional"   aria-sort={sortKey === 'weight' ? sortDirection === 'asc' ? 'ascending' : 'descending' : 'none'}>
+                                        <DashboardTableButton appearance="sort" type="button" onClick={() => handleSort('weight')}>Peso <SortIcon column="weight" sortKey={sortKey} sortDirection={sortDirection} /></DashboardTableButton>
+                                    </DashboardAssetCell>
+                                    {hasActionHandlers && <DashboardAssetCell as="th" column="actions"   >Acciones</DashboardAssetCell>}
                                 </tr>
                             </thead>
                             <tbody>
@@ -431,10 +370,9 @@ export const AssetsTable = memo(function AssetsTable({ assets, now = Date.now(),
                                     })}
                                 </Fragment>)}
                             </tbody>
-                        </table>
-                    </div>
+                        </DashboardAssetsGrid>
                 </CardContent>
-            </Card>
+            </DashboardAssetsCard>
 
             {/* Delete Confirmation Dialog */}
             {deleteError && <p role="alert">{deleteError}</p>}

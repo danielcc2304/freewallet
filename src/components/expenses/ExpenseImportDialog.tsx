@@ -1,3 +1,13 @@
+import{ExpenseHint}from'./ui/ExpenseReading';
+import{expensePresentationStyleClasses}from'./ui/expensePresentationStyles';
+import {ExpenseImportSummary,ExpenseImportCategorySelect,ExpenseImportPagination,ExpenseFeedback} from './ui/ExpenseFeedback';
+import { ExpenseImportHelp } from './ui/ExpenseRecords';
+import { DataTable } from '../ui/DataTable';
+import { ExpenseField } from './ui/ExpenseField';
+import { ExpenseCheckbox } from './ui/ExpenseCheckbox';
+import { ExpenseGrid } from './ui/ExpenseGrid';
+import { ExpenseButton } from './ui/ExpenseButton';
+import { ExpenseActions } from './ui/ExpenseActions';
 import { useMemo, useState } from 'react';
 import type { ExpenseBook } from '../../types/expenses';
 import {
@@ -172,10 +182,10 @@ export function ExpenseImportDialog({
         }
     };
     return (
-        <div className="expense-import">
+        <div className={expensePresentationStyleClasses("expense-import")}>
             {document.sheets.length > 1 && (
-                <label className="expense-field">
-                    <span>Hoja del Excel</span>
+                <ExpenseField label={<> Hoja del Excel </>} className={expensePresentationStyleClasses("expense-field")}>
+
                     <select
                         value={sheetIndex}
                         onChange={(e) => {
@@ -196,48 +206,48 @@ export function ExpenseImportDialog({
                             </option>
                         ))}
                     </select>
-                </label>
+                </ExpenseField>
             )}
-            <p className="expense-hint">
+            <ExpenseHint >
                 Asocia cada columna con su dato. Fecha, Concepto e Importe son
                 obligatorios.
-            </p>
+            </ExpenseHint>
             {sheet.bank === 'bbva' && (
                 <>
-                    <p className="expense-hint">
+                    <ExpenseHint >
                         Formato BBVA detectado. Se usa la fecha del movimiento;
                         los abonos de tarjeta se consideran reembolsos. Revisa
                         las transferencias entre tus propias cuentas.
-                    </p>
+                    </ExpenseHint>
                     {reviewBbvaCategories && (
-                        <p className="expense-hint">
+                        <ExpenseHint >
                             Se proponen categorías según palabras del movimiento
                             y del concepto. Revisa o cambia cada propuesta antes
                             de importar; las filas ambiguas o sin coincidencia
                             mantienen la categoría por defecto. McDonald’s,
                             Burger King, KFC y otras cadenas rápidas se asignan
                             a Ocio.
-                        </p>
+                        </ExpenseHint>
                     )}
-                    <label className="expense-check">
+                    <ExpenseCheckbox className={"expense-check"}>
                         <input
                             type="checkbox"
                             checked={onlyCards}
                             onChange={(e) => { setOnlyCards(e.target.checked); setPreviewPage(0); }}
                         />
                         Solo pagos de tarjeta
-                    </label>
+                    </ExpenseCheckbox>
                 </>
             )}
-            <div className="expense-form-grid">
+            <ExpenseGrid variant="form" className={expensePresentationStyleClasses("expense-form-grid")}>
                 {CSV_FIELDS.map((field) => (
-                    <label key={field} className="expense-field">
-                        <span>
+                    <ExpenseField label={<>
                             {labels[field]}
                             {['date', 'description', 'amount'].includes(field)
                                 ? ' *'
                                 : ''}
-                        </span>
+                         </>} key={field} className={expensePresentationStyleClasses("expense-field")}>
+
                         <select
                             value={mapping[field]}
                             onChange={(e) =>
@@ -254,10 +264,10 @@ export function ExpenseImportDialog({
                                 </option>
                             ))}
                         </select>
-                    </label>
+                    </ExpenseField>
                 ))}
-                <label className="expense-field">
-                    <span>Cuenta si no consta en el archivo</span>
+                <ExpenseField label={<> Cuenta si no consta en el archivo </>} className={expensePresentationStyleClasses("expense-field")}>
+
                     <select
                         value={account}
                         onChange={(e) => setAccount(e.target.value)}
@@ -270,11 +280,9 @@ export function ExpenseImportDialog({
                                 </option>
                             ))}
                     </select>
-                </label>
-            </div>
-            <details className="expense-import-help">
-                <summary>¿Qué significa cada dato de esta pantalla?</summary>
-                <div className="expense-import-help__content">
+                </ExpenseField>
+            </ExpenseGrid>
+            <ExpenseImportHelp summary={<>¿Qué significa cada dato de esta pantalla?</>}>
                     {document.format === 'excel' && (
                         <p>
                             <strong>Hoja del Excel:</strong> elige la pestaña
@@ -363,138 +371,121 @@ export function ExpenseImportDialog({
                         pulsar
                         «Importar movimientos».
                     </p>
-                </div>
-            </details>
-            <label className="expense-check">
+                </ExpenseImportHelp>
+            <ExpenseCheckbox className={"expense-check"}>
                 <input
                     type="checkbox"
                     checked={skipDuplicates}
                     onChange={(e) => setSkipDuplicates(e.target.checked)}
                 />
                 Omitir duplicados ({duplicates.length})
-            </label>
-            <p className="expense-hint">
+            </ExpenseCheckbox>
+            <ExpenseHint >
                 Se comparan fecha, tipo, importe, concepto y cuentas de origen y
                 destino. Desmarca esta opción para incluir movimientos distintos
                 con esos mismos datos.
-            </p>
-            <div className="expense-import-summary">
-                <strong>{valid.length} para importar</strong>
-                <span>
+            </ExpenseHint>
+            <ExpenseImportSummary value={<>{valid.length} para importar</>} detail={<>
                     {invalid.length} filas inválidas ·{' '}
                     {skipDuplicates ? duplicates.length : 0} coincidencias
                     omitidas
-                </span>
-            </div>
-            <div className="expense-table-scroll">
-                <table className="expense-table">
-                    <thead>
-                        <tr>
-                            <th>Fila</th>
-                            <th>Concepto / error</th>
-                            <th>Tipo</th>
-                            <th>Importe</th>
-                            {reviewBbvaCategories && <th>Categoría</th>}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {visiblePreview.map((row) => (
-                            <tr key={row.line}>
-                                <td>{row.line}</td>
-                                <td>
-                                    {row.error ?? row.entry?.description}
-                                    {row.duplicate && (
-                                        <small>Coincidencia</small>
+                </>} />
+            <DataTable appearance="expenses">
+                <thead>
+                    <tr>
+                        <th>Fila</th>
+                        <th>Concepto / error</th>
+                        <th>Tipo</th>
+                        <th>Importe</th>
+                        {reviewBbvaCategories && <th>Categoría</th>}
+                    </tr>
+                </thead>
+                <tbody>
+                    {visiblePreview.map((row) => (
+                        <tr key={row.line}>
+                            <td>{row.line}</td>
+                            <td>
+                                {row.error ?? row.entry?.description}
+                                {row.duplicate && (
+                                    <small>Coincidencia</small>
+                                )}
+                            </td>
+                            <td>
+                                {row.entry
+                                    ? {
+                                          expense: 'Gasto',
+                                          income: 'Ingreso',
+                                          refund: 'Reembolso',
+                                          transfer: 'Transferencia',
+                                      }[row.entry.kind]
+                                    : '—'}
+                            </td>
+                            <td>
+                                {row.entry
+                                    ? money(row.entry.amountCents)
+                                    : '—'}
+                            </td>
+                            {reviewBbvaCategories && (
+                                <td className={expensePresentationStyleClasses("expense-import__category-cell")}>
+                                    {row.entry?.categoryId ? (
+                                        <>
+                                            <ExpenseImportCategorySelect aria-label={`Categoría para la fila ${row.line}`} value={row.entry.categoryId} onChange={(event) =>
+                                                    setCategoryOverrides(
+                                                        (current) => ({
+                                                            ...current,
+                                                            [row.line]:
+                                                                event.target
+                                                                    .value,
+                                                        }),
+                                                    )
+                                                }>
+                                                {book.categories.map(
+                                                    (category) => (
+                                                        <option
+                                                            key={category.id}
+                                                            value={category.id}
+                                                        >
+                                                            {category.name}
+                                                        </option>
+                                                    ),
+                                                )}
+                                            </ExpenseImportCategorySelect>
+                                            <small>
+                                                {categoryOverrides[row.line]
+                                                    ? 'Revisada'
+                                                    : categorySuggestions.has(
+                                                            row.line,
+                                                        )
+                                                      ? 'Sugerida'
+                                                      : 'Sin sugerencia'}
+                                            </small>
+                                        </>
+                                    ) : (
+                                        '—'
                                     )}
                                 </td>
-                                <td>
-                                    {row.entry
-                                        ? {
-                                              expense: 'Gasto',
-                                              income: 'Ingreso',
-                                              refund: 'Reembolso',
-                                              transfer: 'Transferencia',
-                                          }[row.entry.kind]
-                                        : '—'}
-                                </td>
-                                <td>
-                                    {row.entry
-                                        ? money(row.entry.amountCents)
-                                        : '—'}
-                                </td>
-                                {reviewBbvaCategories && (
-                                    <td className="expense-import__category-cell">
-                                        {row.entry?.categoryId ? (
-                                            <>
-                                                <select
-                                                    className="expense-import__category-select"
-                                                    aria-label={`Categoría para la fila ${row.line}`}
-                                                    value={row.entry.categoryId}
-                                                    onChange={(event) =>
-                                                        setCategoryOverrides(
-                                                            (current) => ({
-                                                                ...current,
-                                                                [row.line]:
-                                                                    event.target
-                                                                        .value,
-                                                            }),
-                                                        )
-                                                    }
-                                                >
-                                                    {book.categories.map(
-                                                        (category) => (
-                                                            <option
-                                                                key={category.id}
-                                                                value={category.id}
-                                                            >
-                                                                {category.name}
-                                                            </option>
-                                                        ),
-                                                    )}
-                                                </select>
-                                                <small>
-                                                    {categoryOverrides[row.line]
-                                                        ? 'Revisada'
-                                                        : categorySuggestions.has(
-                                                                row.line,
-                                                            )
-                                                          ? 'Sugerida'
-                                                          : 'Sin sugerencia'}
-                                                </small>
-                                            </>
-                                        ) : (
-                                            '—'
-                                        )}
-                                    </td>
-                                )}
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
+                            )}
+                        </tr>
+                    ))}
+                </tbody>
+            </DataTable>
             {reviewBbvaCategories && preview.length > previewPageSize && (
-                <div
-                    className="expense-import__pagination"
-                    aria-label="Páginas de la importación"
-                >
-                    <span>
+                <ExpenseImportPagination aria-label="Páginas de la importación" label={<>
                         {previewStart + 1}–
                         {Math.min(previewStart + previewPageSize, preview.length)}{' '}
                         de {preview.length}
-                    </span>
-                    <button
+                    </>} previous={<ExpenseButton variant="secondary"
                         type="button"
-                        className="expense-btn expense-btn--secondary"
+                        className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                         disabled={activePreviewPage === 0}
                         onClick={() =>
                             setPreviewPage((page) => Math.max(0, page - 1))
                         }
                     >
                         Anterior
-                    </button>
-                    <button
+                    </ExpenseButton>} next={<ExpenseButton variant="secondary"
                         type="button"
-                        className="expense-btn expense-btn--secondary"
+                        className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                         disabled={activePreviewPage >= previewPageCount - 1}
                         onClick={() =>
                             setPreviewPage((page) =>
@@ -503,36 +494,35 @@ export function ExpenseImportDialog({
                         }
                     >
                         Siguiente
-                    </button>
-                </div>
+                    </ExpenseButton>} />
             )}
             {!reviewBbvaCategories && preview.length > previewPageSize && (
-                <p className="expense-hint">
+                <ExpenseHint >
                     Vista previa de las primeras 50 filas de {preview.length}.
-                </p>
+                </ExpenseHint>
             )}
             {invalid.length > 0 && (
-                <p className="expense-hint">
+                <ExpenseHint >
                     Las filas inválidas no se importan. Corrige el archivo si
                     quieres incluirlas.
-                </p>
+                </ExpenseHint>
             )}
             {error && (
-                <p className="expense-error" role="alert">
+                <ExpenseFeedback role="alert" as="p" appearance="error">
                     {error}
-                </p>
+                </ExpenseFeedback>
             )}
-            <div className="expense-form-actions">
-                <button
+            <ExpenseActions variant="form" className={"expense-form-actions"}>
+                <ExpenseButton variant="secondary"
                     type="button"
-                    className="expense-btn expense-btn--secondary"
+                    className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                     onClick={onClose}
                     disabled={saving}
                 >
                     Cancelar
-                </button>
-                <button
-                    className="expense-btn"
+                </ExpenseButton>
+                <ExpenseButton
+                    className={expensePresentationStyleClasses("expense-btn")}
                     type="button"
                     disabled={saving || !valid.length}
                     onClick={() => void save()}
@@ -540,8 +530,8 @@ export function ExpenseImportDialog({
                     {saving
                         ? 'Importando…'
                         : `Importar ${valid.length} movimientos`}
-                </button>
-            </div>
+                </ExpenseButton>
+            </ExpenseActions>
         </div>
     );
 }

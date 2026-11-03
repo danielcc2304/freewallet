@@ -1,4 +1,5 @@
-import { ArrowLeft, ExternalLink, Play } from 'lucide-react';
+import { AcademyVideoCard } from '../ui/AcademyVideoCard';
+import { ArrowLeft, ExternalLink } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
@@ -86,35 +87,7 @@ export function InProcess() {
             </AcademyPageHeader>
 
             <div className="resources-page__grid">
-                {videos.map((video) => {
-                    const videoUrl = `https://www.youtube.com/watch?v=${video.videoId}`;
-                    return (
-                        <article key={video.videoId} className="resource-card">
-                            <a className="resource-card__link" href={videoUrl} target="_blank" rel="noopener noreferrer" aria-label={`Ver ${video.title} en YouTube (se abre en otra pestaña)`}>
-                                <div className="resource-card__preview">
-                                    {!failedThumbnails.has(video.videoId) && (
-                                        <img
-                                            src={`https://i.ytimg.com/vi/${video.videoId}/hqdefault.jpg`}
-                                            alt=""
-                                            width={480}
-                                            height={360}
-                                            loading="lazy"
-                                            decoding="async"
-                                            onError={() => setFailedThumbnails(previous => new Set(previous).add(video.videoId))}
-                                        />
-                                    )}
-                                    <span className="resource-card__play" aria-hidden="true"><Play size={24} fill="currentColor" /></span>
-                                    <span className="resource-card__video-label" aria-hidden="true">YouTube</span>
-                                </div>
-                                <div className="resource-card__content">
-                                    <h2>{video.title}</h2>
-                                    <p>{video.summary}</p>
-                                    <span className="resource-card__action">Ver en YouTube <ExternalLink size={15} aria-hidden="true" /></span>
-                                </div>
-                            </a>
-                        </article>
-                    );
-                })}
+                {videos.map(video => <AcademyVideoCard key={video.videoId} video={video} thumbnailFailed={failedThumbnails.has(video.videoId)} onThumbnailError={() => setFailedThumbnails(previous => new Set(previous).add(video.videoId))} />)}
             </div>
 
             <div className="resources-page__footer">

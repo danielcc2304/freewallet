@@ -1,3 +1,5 @@
+import { newsStyles } from '../../components/news/newsStyles';
+import { cn } from '../../utils/cn';
 import { useEffect, useState } from 'react';
 import { ArrowLeft, CalendarDays, CheckCircle2, ExternalLink, FileText, Loader2, Newspaper, Pencil, Settings2 } from 'lucide-react';
 import { Link, useLocation, useNavigate, useParams } from 'react-router-dom';
@@ -11,7 +13,7 @@ import {
 } from '../../services/newsService';
 import { getNewsTextExcerpt, getSafeNewsImageUrl, sanitizeNewsHtml } from '../../utils/newsContent';
 import { useNewsEditorId } from '../../hooks/useNewsEditorId';
-import './News.css';
+import '../../components/news/newsContent.css';
 import {NewsComments} from '../../components/news/NewsComments';
 
 const dateFormatter = new Intl.DateTimeFormat('es-ES', {
@@ -46,9 +48,9 @@ function getNewsToast(state: unknown): string | null {
 
 function NewsSetupNotice() {
     return (
-        <Card className="news-page__setup-notice" variant="highlight">
+        <Card className={newsStyles['news-page__setup-notice']} variant="highlight">
             <CardContent>
-                <div className="news-page__setup-icon">
+                <div className={newsStyles['news-page__setup-icon']}>
                     <Settings2 size={24} />
                 </div>
                 <h2>Noticias pendientes de conectar</h2>
@@ -63,14 +65,14 @@ function NewsSetupNotice() {
 
 function NewsHeader({ showAdminLink = true }: { showAdminLink?: boolean }) {
     return (
-        <header className="news-page__hero">
-            <p className="news-page__eyebrow">Perspectiva FreeWallet</p>
-            <h1 className="news-page__title">Noticias</h1>
-            <p className="news-page__subtitle">
+        <header className={newsStyles['news-page__hero']}>
+            <p className={newsStyles['news-page__eyebrow']}>Perspectiva FreeWallet</p>
+            <h1 className={newsStyles['news-page__title']}>Noticias</h1>
+            <p className={newsStyles['news-page__subtitle']}>
                 Análisis, contexto macroeconómico y aprendizajes para tomar mejores decisiones de inversión.
             </p>
             {showAdminLink && (
-                <Link className="news-page__admin-link" to="/admin/news">
+                <Link className={newsStyles['news-page__admin-link']} to="/admin/news">
                     <Settings2 size={16} />
                     Acceso editorial
                 </Link>
@@ -134,9 +136,9 @@ export function News() {
     }, []);
 
     return (
-        <div className="news-page">
+        <div className={newsStyles['news-page']}>
             {toast && (
-                <div className="news-page__toast" role="status">
+                <div className={newsStyles['news-page__toast']} role="status">
                     <CheckCircle2 size={17} />
                     <span>{toast}</span>
                 </div>
@@ -146,14 +148,14 @@ export function News() {
             {!isNewsBackendConfigured && <NewsSetupNotice />}
 
             {loading && (
-                <div className="news-page__state" role="status">
-                    <Loader2 className="news-page__spinner" size={24} />
+                <div className={newsStyles['news-page__state']} role="status">
+                    <Loader2 className={newsStyles['news-page__spinner']} size={24} />
                     <span>Cargando noticias…</span>
                 </div>
             )}
 
             {!loading && error && (
-                <Card className="news-page__state-card" variant="highlight">
+                <Card className={newsStyles['news-page__state-card']} variant="highlight">
                     <CardContent>
                         <FileText size={28} />
                         <h2>No se ha podido cargar el contenido</h2>
@@ -163,7 +165,7 @@ export function News() {
             )}
 
             {!loading && !error && posts.length === 0 && isNewsBackendConfigured && (
-                <Card className="news-page__state-card">
+                <Card className={newsStyles['news-page__state-card']}>
                     <CardContent>
                         <Newspaper size={32} />
                         <h2>Aún no hay noticias publicadas</h2>
@@ -173,7 +175,7 @@ export function News() {
             )}
 
             {!loading && !error && posts.length > 0 && (
-                <div className="news-page__grid">
+                <div className={newsStyles['news-page__grid']}>
                     {posts.map((post) => <NewsCard key={post.id} post={post} />)}
                 </div>
             )}
@@ -186,22 +188,22 @@ function NewsCard({ post }: { post: NewsPost }) {
     const coverImageUrl = getSafeNewsImageUrl(post.coverImageUrl);
 
     return (
-        <Link className="news-card" to={`/news/${post.slug}`}>
+        <Link className={newsStyles['news-card']} to={`/news/${post.slug}`}>
             {coverImageUrl ? (
-                <img className="news-card__cover" src={coverImageUrl} alt="" loading="lazy" />
+                <img className={newsStyles['news-card__cover']} src={coverImageUrl} alt="" loading="lazy" />
             ) : (
-                <div className="news-card__cover news-card__cover--placeholder" aria-hidden="true">
+                <div className={cn(newsStyles['news-card__cover'], newsStyles['news-card__cover--placeholder'])} aria-hidden="true">
                     <Newspaper size={34} />
                 </div>
             )}
-            <div className="news-card__body">
-                <div className="news-card__meta">
+            <div className={newsStyles['news-card__body']}>
+                <div className={newsStyles['news-card__meta']}>
                     <CalendarDays size={14} />
                     <time dateTime={post.publishedAt ?? undefined}>{formatNewsDate(post.publishedAt)}</time>
                 </div>
-                <h2 className="news-card__title">{post.title}</h2>
-                <p className="news-card__excerpt">{excerpt}</p>
-                <span className="news-card__read-more">
+                <h2 className={newsStyles['news-card__title']}>{post.title}</h2>
+                <p className={newsStyles['news-card__excerpt']}>{excerpt}</p>
+                <span className={newsStyles['news-card__read-more']}>
                     Leer análisis
                     <ExternalLink size={15} />
                 </span>
@@ -252,12 +254,12 @@ export function NewsArticle() {
 
     if (!slug) {
         return (
-            <div className="news-page">
-                <Link className="news-page__back-link" to="/news">
+            <div className={newsStyles['news-page']}>
+                <Link className={newsStyles['news-page__back-link']} to="/news">
                     <ArrowLeft size={16} />
                     Volver a noticias
                 </Link>
-                <Card className="news-page__state-card" variant="highlight">
+                <Card className={newsStyles['news-page__state-card']} variant="highlight">
                     <CardContent>
                         <FileText size={28} />
                         <h1>Noticia no encontrada</h1>
@@ -270,7 +272,7 @@ export function NewsArticle() {
 
     if (!isNewsBackendConfigured) {
         return (
-            <div className="news-page">
+            <div className={newsStyles['news-page']}>
                 <NewsSetupNotice />
             </div>
         );
@@ -278,8 +280,8 @@ export function NewsArticle() {
 
     if (loading||loadedSlug!==slug) {
         return (
-            <div className="news-page__state" role="status">
-                <Loader2 className="news-page__spinner" size={24} />
+            <div className={newsStyles['news-page__state']} role="status">
+                <Loader2 className={newsStyles['news-page__spinner']} size={24} />
                 <span>Cargando análisis…</span>
             </div>
         );
@@ -287,12 +289,12 @@ export function NewsArticle() {
 
     if (error || !post) {
         return (
-            <div className="news-page">
-                <Link className="news-page__back-link" to="/news">
+            <div className={newsStyles['news-page']}>
+                <Link className={newsStyles['news-page__back-link']} to="/news">
                     <ArrowLeft size={16} />
                     Volver a noticias
                 </Link>
-                <Card className="news-page__state-card" variant="highlight">
+                <Card className={newsStyles['news-page__state-card']} variant="highlight">
                     <CardContent>
                         <FileText size={28} />
                         <h1>Noticia no encontrada</h1>
@@ -306,19 +308,19 @@ export function NewsArticle() {
     const coverImageUrl = getSafeNewsImageUrl(post.coverImageUrl);
 
     return (
-        <div className="news-page news-page--article">
-            <article className="news-article">
-                <header className="news-article__header">
-                    <div className="news-article__meta">
+        <div className={cn(newsStyles['news-page'], newsStyles['news-page--article'])}>
+            <article className={newsStyles['news-article']}>
+                <header className={newsStyles['news-article__header']}>
+                    <div className={newsStyles['news-article__meta']}>
                         <CalendarDays size={15} />
                         <time dateTime={post.publishedAt ?? undefined}>{formatNewsDate(post.publishedAt)}</time>
                     </div>
                     <h1>{post.title}</h1>
-                    {post.excerpt && <p className="news-article__excerpt">{post.excerpt}</p>}
+                    {post.excerpt && <p className={newsStyles['news-article__excerpt']}>{post.excerpt}</p>}
                 </header>
 
                 {coverImageUrl && (
-                    <img className="news-article__cover" src={coverImageUrl} alt="" />
+                    <img className={newsStyles['news-article__cover']} src={coverImageUrl} alt="" />
                 )}
 
                 <div
@@ -326,13 +328,13 @@ export function NewsArticle() {
                     dangerouslySetInnerHTML={{ __html: sanitizeNewsHtml(post.content) }}
                 />
 
-                <footer className="news-article__footer">
+                <footer className={newsStyles['news-article__footer']}>
                     <span>Contenido informativo. No constituye asesoramiento financiero personalizado.</span>
                 </footer>
             </article>
             <NewsComments key={post.id} postId={post.id}/>
             {editorId && editorId === post.authorId && (
-                <Link className="news-article__edit" to={`/admin/news?edit=${encodeURIComponent(post.id)}`}
+                <Link className={newsStyles['news-article__edit']} to={`/admin/news?edit=${encodeURIComponent(post.id)}`}
                     aria-label="Editar noticia" title="Editar noticia">
                     <Pencil size={22} aria-hidden="true" />
                 </Link>

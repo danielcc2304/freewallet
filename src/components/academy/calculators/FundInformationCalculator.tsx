@@ -1,3 +1,12 @@
+import{FundSheetFrame,FundSheetHeader,FundIdentityItem}from'./FundSheetFrame';
+import { CalculatorFundIdentity, CalculatorFundSource, CalculatorFundTag, CalculatorFundFeatures, CalculatorFundHelp } from './CalculatorFundIdentity';
+import { CalculatorGrid } from './CalculatorGrid';
+import { CalculatorSearchPanel, CalculatorEmptyState, CalculatorFeedback, CalculatorHolding } from './CalculatorLookup';
+import { CalculatorTable } from './CalculatorTable';
+import { CalculatorAllocationCard } from './CalculatorAllocationCard';
+import { CalculatorDocumentLink } from './CalculatorDocumentLink';
+import { CalculatorSection as Section } from './CalculatorSection';
+import { CalculatorDataItem } from './CalculatorDataItem';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import {
     BarChart3,
@@ -24,7 +33,7 @@ import {
     type FinectMetricPoint,
     type FinectStatisticKey,
 } from '../../../services/finect/finectService';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
+
 import './FundInformationCalculator.css';
 
 const SAMPLE_ISIN = 'IE00BYX5NX33';
@@ -137,109 +146,45 @@ function isRequestCancelled(error: unknown): boolean {
 }
 
 function Metric({ label, value, detail }: { label: string; value: ReactNode; detail?: ReactNode }) {
-    return (
-        <div className="fund-info__metric">
-            <span className="fund-info__metric-label">{label}</span>
-            <strong className="fund-info__metric-value">{value}</strong>
-            {detail && <span className="fund-info__metric-detail">{detail}</span>}
-        </div>
-    );
+    return <CalculatorDataItem label={label} value={value} detail={detail} className="fund-info__metric" labelClassName="fund-info__metric-label" valueClassName="fund-info__metric-value" detailClassName="fund-info__metric-detail" />;
 }
 
 function InfoItem({ label, value }: { label: string; value?: ReactNode }) {
-    return (
-        <div className="fund-info__data-item">
-            <span>{label}</span>
-            <strong>{value ?? '—'}</strong>
-        </div>
-    );
+    return <FundIdentityItem  layout="identity" label={label} value={value ?? '—'}></FundIdentityItem>;
 }
 
-function Section({ icon, title, children, className = '' }: {
-    icon: ReactNode;
-    title: string;
-    children: ReactNode;
-    className?: string;
-}) {
-    return (
-        <section className={`fund-info__section ${className}`}>
-            <div className="fund-info__section-heading">
-                <span className="fund-info__section-icon">{icon}</span>
-                <h2>{title}</h2>
-            </div>
-            {children}
-        </section>
-    );
-}
+
 
 function RiskLevel({ level }: { level: number }) {
     const band = riskBands[level];
-    if (!band) return <span className="fund-info__badge">Riesgo {level}/7</span>;
+    if (!band) return <CalculatorFundTag>Riesgo {level}/7</CalculatorFundTag>;
 
     const tooltipId = `fund-info-risk-tooltip-${level}`;
     const tooltipText = `Riesgo ${level} de 7. Volatilidad anualizada: ${band.range}`;
 
     return (
-        <span className="fund-info__risk-help">
-            <button
-                type="button"
-                className="fund-info__risk-trigger"
-                aria-describedby={tooltipId}
-                title={tooltipText}
-            >
+        <CalculatorFundHelp id={tooltipId} title={tooltipText} label={<>
                 Riesgo {level}/7
-                <Info size={14} aria-hidden="true" />
-            </button>
-            <span id={tooltipId} className="fund-info__risk-tooltip" role="tooltip">
-                <strong>Riesgo {level}/7</strong>
-                <span>Volatilidad: {band.range}</span>
-                <small>{band.explanation} Es una referencia histórica y no predice pérdidas ni rentabilidades futuras.</small>
-            </span>
-        </span>
+                </>} icon={<Info size={14} aria-hidden="true" />} heading={<>Riesgo {level}/7</>} description={<>Volatilidad: {band.range}</>} detail={<>{band.explanation} Es una referencia histórica y no predice pérdidas ni rentabilidades futuras.</>} />
     );
 }
 
 function FeeItem({ label, value }: { label: string; value: number | undefined }) {
-    if (value === undefined) return null;
-
-    return (
-        <div className="fund-info__fee-item">
-            <span>{label}</span>
-            <strong>{formatPercentage(value)}</strong>
-        </div>
-    );
+ if (value === undefined) return null;
+    return <CalculatorDataItem layout="fee" label={label} value={formatPercentage(value)} className="fund-info__fee-item" />;
 }
 
 function BreakdownCard({ breakdown }: { breakdown: FinectBreakdown }) {
-    const title = breakdownTitles[breakdown.type] ?? breakdown.type;
-
-    return (
-        <article className="fund-info__breakdown-card">
-            <h3>{title}</h3>
-            <div className="fund-info__breakdown-list">
-                {breakdown.items.slice(0, 8).map((item) => (
-                    <div className="fund-info__breakdown-item" key={`${breakdown.type}-${item.label}`}>
-                        <div className="fund-info__breakdown-label">
-                            <span>{item.label}</span>
-                            <strong>{formatPercentage(item.value)}</strong>
-                        </div>
-                        <div className="fund-info__breakdown-track" aria-hidden="true">
-                            <span style={{ width: `${Math.min(Math.max(item.value, 0), 100)}%` }} />
-                        </div>
-                    </div>
-                ))}
-            </div>
-        </article>
-    );
+ return <CalculatorAllocationCard title={breakdownTitles[breakdown.type] ?? breakdown.type} items={breakdown.items} formatValue={formatPercentage} />;
 }
 
 function StrategyText({ text }: { text: string }) {
     return (
-        <div className="fund-info__long-text">
+        <FundSheetFrame appearance="fund-info__long-text"  >
             {text.split(/\n+/).filter(Boolean).map((paragraph, index) => (
                 <p key={`${index}-${paragraph.slice(0, 24)}`}>{paragraph}</p>
             ))}
-        </div>
+        </FundSheetFrame>
     );
 }
 
@@ -257,34 +202,21 @@ function FundResults({ fund }: { fund: FinectFundRelevance }) {
     const feeCount = Object.values(fund.fees).filter((value) => value !== undefined).length;
 
     return (
-        <div className="fund-info__results">
-            <section className="fund-info__fund-hero">
-                <div className="fund-info__fund-hero-copy">
-                    <div className="fund-info__badge-row">
-                        {fund.category && <span className="fund-info__badge">{fund.category}</span>}
+        <FundSheetFrame appearance="fund-info__results"  >
+            <CalculatorFundIdentity badges={<>
+                        {fund.category && <CalculatorFundTag>{fund.category}</CalculatorFundTag>}
                         {fund.indexed !== undefined && (
-                            <span className="fund-info__badge fund-info__badge--accent">
+                            <CalculatorFundTag accent>
                                 {fund.indexed ? 'Indexado' : 'Gestión activa'}
-                            </span>
+                            </CalculatorFundTag>
                         )}
                         {fund.srri !== undefined && <RiskLevel level={fund.srri} />}
-                    </div>
-                    <h2>{fund.name}</h2>
-                    <p className="fund-info__class-name">{fund.className}</p>
-                    <code>{fund.isin}</code>
-                </div>
-                <a
-                    className="fund-info__source-link"
-                    href={fund.sourceUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
+                    </>} name={<>{fund.name}</>} classLabel={<>{fund.className}</>} isin={<>{fund.isin}</>} source={<CalculatorFundSource href={fund.sourceUrl} target="_blank" rel="noopener noreferrer">
                     Ver ficha en Finect <ExternalLink size={16} />
-                </a>
-            </section>
+                </CalculatorFundSource>} />
 
             <Section icon={<Gauge size={20} />} title="Resumen de la clase">
-                <div className="fund-info__metric-grid fund-info__metric-grid--summary">
+                <CalculatorGrid variant="fund-metric-grid">
                     <Metric
                         label="Último valor liquidativo"
                         value={fund.lastQuote?.price !== undefined ? formatCurrency(fund.lastQuote.price, currencyCode) : '—'}
@@ -312,11 +244,11 @@ function FundResults({ fund }: { fund: FinectFundRelevance }) {
                         value={volatilityThreeYears !== undefined ? formatPercentage(volatilityThreeYears) : '—'}
                         detail="Desviación estándar histórica"
                     />
-                </div>
+                </CalculatorGrid>
             </Section>
 
             <Section icon={<FileText size={20} />} title="Ficha del producto">
-                <div className="fund-info__data-grid">
+                <CalculatorGrid variant="fund-data-grid">
                     <InfoItem label="ISIN" value={<code>{fund.isin}</code>} />
                     <InfoItem label="Gestora" value={fund.manager} />
                     <InfoItem label="Divisa" value={fund.currencyName ? `${fund.currencyName} (${currencyCode})` : currencyCode} />
@@ -327,26 +259,26 @@ function FundResults({ fund }: { fund: FinectFundRelevance }) {
                     <InfoItem label="Disponible desde" value={availableDate} />
                     <InfoItem label="Valoración Finect" value={fund.finectScore !== undefined ? `${formatNumber(fund.finectScore, 1)}/5` : undefined} />
                     <InfoItem label="Rating Morningstar" value={fund.morningstarRating !== undefined ? `${formatNumber(fund.morningstarRating, 0)}/5` : undefined} />
-                </div>
+                </CalculatorGrid>
 
                 {fund.features.length > 0 && (
-                    <div className="fund-info__features">
-                        <span className="fund-info__subheading">Lecturas de Finect</span>
-                        <div className="fund-info__feature-list">
+                    <FundSheetFrame appearance="fund-info__features"  >
+                        <FundSheetFrame appearance="fund-info__subheading" as="span" >Lecturas de Finect</FundSheetFrame>
+                        <CalculatorFundFeatures>
                             {fund.features.map((feature) => (
-                                <span className="fund-info__feature" key={feature.name}>
+                                <CalculatorFundTag  feature key={feature.name}>
                                     <CheckCircle2 size={15} />
                                     {feature.name}{feature.score !== undefined ? ` · ${feature.score}/5` : ''}
-                                </span>
+                                </CalculatorFundTag>
                             ))}
-                        </div>
-                    </div>
+                        </CalculatorFundFeatures>
+                    </FundSheetFrame>
                 )}
             </Section>
 
             {feeCount > 0 && (
                 <Section icon={<Layers3 size={20} />} title="Costes de la clase">
-                    <div className="fund-info__fee-grid">
+                    <CalculatorGrid variant="fund-fee-grid">
                         <FeeItem label="TER" value={fund.fees.totalExpenseRatio} />
                         <FeeItem label="Comisión de gestión" value={fund.fees.management} />
                         <FeeItem label="Coste corriente" value={fund.fees.ongoing} />
@@ -354,15 +286,13 @@ function FundResults({ fund }: { fund: FinectFundRelevance }) {
                         <FeeItem label="Reembolso" value={fund.fees.redemption} />
                         <FeeItem label="Custodia" value={fund.fees.custody} />
                         <FeeItem label="Éxito" value={fund.fees.success} />
-                    </div>
+                    </CalculatorGrid>
                 </Section>
             )}
 
             {statsWithData && (
                 <Section icon={<BarChart3 size={20} />} title="Riesgo y comportamiento histórico">
-                    <div className="fund-info__table-wrapper">
-                        <table className="fund-info__stats-table">
-                            <caption className="fund-info__sr-only">Estadísticas históricas por periodo</caption>
+                    <CalculatorTable appearance="statistics"><FundSheetFrame appearance="fund-info__sr-only" as="caption" >Estadísticas históricas por periodo</FundSheetFrame>
                             <thead>
                                 <tr>
                                     <th scope="col">Métrica</th>
@@ -390,73 +320,52 @@ function FundResults({ fund }: { fund: FinectFundRelevance }) {
                                         </tr>
                                     );
                                 })}
-                            </tbody>
-                        </table>
-                    </div>
-                    <p className="fund-info__table-note">
+                            </tbody></CalculatorTable>
+                    <FundSheetFrame appearance="fund-info__table-note" as="p" >
                         Las métricas proceden de Finect y corresponden al periodo disponible en su ficha; no son una previsión.
-                    </p>
+                    </FundSheetFrame>
                 </Section>
             )}
 
             {fund.breakdowns.length > 0 && (
                 <Section icon={<TrendingUp size={20} />} title="Composición de la cartera">
-                    <div className="fund-info__breakdown-grid">
+                    <CalculatorGrid variant="fund-breakdown-grid">
                         {fund.breakdowns.map((breakdown) => <BreakdownCard key={breakdown.type} breakdown={breakdown} />)}
-                    </div>
+                    </CalculatorGrid>
                 </Section>
             )}
 
             {fund.holdings.length > 0 && (
                 <Section icon={<ShieldCheck size={20} />} title="Principales posiciones">
-                    <div className="fund-info__holdings-list">
+                    <CalculatorGrid variant="fund-holdings-list">
                         {fund.holdings.map((holding) => (
-                            <div className="fund-info__holding" key={holding.name}>
-                                <span>{holding.name}</span>
-                                <strong>{formatPercentage(holding.weight)}</strong>
-                            </div>
+                            <CalculatorHolding key={holding.name} name={holding.name} weight={formatPercentage(holding.weight)} />
                         ))}
-                    </div>
+                    </CalculatorGrid>
                 </Section>
             )}
 
             {(fund.description || fund.strategy) && (
                 <Section icon={<BookOpenText size={20} />} title="Descripción y estrategia">
-                    {fund.description && <p className="fund-info__description">{fund.description}</p>}
+                    {fund.description && <FundSheetFrame appearance="fund-info__description" as="p" >{fund.description}</FundSheetFrame>}
                     {fund.strategy && <StrategyText text={fund.strategy} />}
                 </Section>
             )}
 
             {fund.documents.length > 0 && (
                 <Section icon={<FileText size={20} />} title="Documentación disponible">
-                    <div className="fund-info__documents">
+                    <CalculatorGrid variant="fund-documents">
                         {fund.documents.map((document) => (
-                            <a
-                                className="fund-info__document"
-                                href={document.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                key={`${document.type}-${document.url}`}
-                            >
-                                <FileText size={17} />
-                                <span>
-                                    <strong>{document.type}</strong>
-                                    <small>{document.language ?? 'Documento'}{document.updated ? ` · actualizado ${formatDate(document.updated) ?? document.updated}` : ''}</small>
-                                </span>
-                                <ExternalLink size={15} />
-                            </a>
+                            <CalculatorDocumentLink key={`${document.type}-${document.url}`} href={document.url} title={<>{document.type}</>} subtitle={<>{document.language ?? 'Documento'}{document.updated ? ` · actualizado ${formatDate(document.updated) ?? document.updated}` : ''}</>} />
                         ))}
-                    </div>
+                    </CalculatorGrid>
                 </Section>
             )}
 
-            <div className="fund-info__result-footnote">
-                <Info size={16} />
-                <span>
+            <CalculatorFeedback appearance="footnote" icon={<Info size={16} />}>
                     Información orientativa consultada en Finect. Comprueba siempre la documentación oficial antes de tomar una decisión.
-                </span>
-            </div>
-        </div>
+                </CalculatorFeedback>
+        </FundSheetFrame>
     );
 }
 
@@ -501,24 +410,18 @@ export function FundInformationCalculator() {
     };
 
     return (
-        <div className="fund-info">
-            <AcademyPageHeader className="fund-info__header" section="Herramientas">
+        <FundSheetFrame appearance="fund-info"  >
+            <FundSheetHeader  section="Herramientas">
                 <h1>Información de fondo por ISIN</h1>
                 <p>
                     Pega el ISIN de una clase de fondo para consultar su ficha pública de Finect y revisar sus datos más relevantes.
                 </p>
-            </AcademyPageHeader>
+            </FundSheetHeader>
 
-            <section className="fund-info__search-card">
-                <div className="fund-info__search-title">
-                    <Search size={20} />
-                    <div>
-                        <h2>Busca una clase concreta</h2>
-                        <p>La consulta comprueba el ISIN exacto para no confundir divisa o cobertura.</p>
-                    </div>
-                </div>
-
-                <form className="fund-info__form" onSubmit={handleSubmit}>
+            <CalculatorSearchPanel icon={<Search size={20} />} title={<>Busca una clase concreta</>} description={<>La consulta comprueba el ISIN exacto para no confundir divisa o cobertura.</>} onSubmit={handleSubmit} sample={<>
+                    <span>¿Quieres probarla?</span>
+                    <button type="button" onClick={() => setIsin(SAMPLE_ISIN)}>{SAMPLE_ISIN}</button>
+                </>}>
                     <Input
                         label="ISIN del fondo"
                         value={isin}
@@ -536,41 +439,24 @@ export function FundInformationCalculator() {
                         size="lg"
                         loading={loading}
                         disabled={!isin.trim()}
-                        icon={<Sparkles size={18} />}
-                    >
+                        icon={<Sparkles size={18} />}>
                         Consultar Finect
                     </Button>
-                </form>
-
-                <div className="fund-info__sample">
-                    <span>¿Quieres probarla?</span>
-                    <button type="button" onClick={() => setIsin(SAMPLE_ISIN)}>{SAMPLE_ISIN}</button>
-                </div>
-            </section>
+                </CalculatorSearchPanel>
 
             {error && !error.includes('ISIN válido') && (
-                <div className="fund-info__alert" role="alert">
-                    <CircleAlert size={19} />
-                    <span>{error}</span>
-                </div>
+                <CalculatorFeedback appearance="error" icon={<CircleAlert size={19} />}>{error}</CalculatorFeedback>
             )}
 
             {loading && (
-                <div className="fund-info__loading" role="status" aria-live="polite">
-                    <span className="fund-info__loading-spinner" />
-                    <span>Consultando la ficha pública de Finect…</span>
-                </div>
+                <CalculatorFeedback appearance="loading">Consultando la ficha pública de Finect…</CalculatorFeedback>
             )}
 
             {fund ? (
                 <FundResults fund={fund} />
             ) : !loading && !error ? (
-                <section className="fund-info__empty-state">
-                    <div className="fund-info__empty-icon"><Search size={28} /></div>
-                    <h2>Introduce un ISIN para empezar</h2>
-                    <p>Verás identidad de la clase, costes, riesgo, rentabilidades, composición y documentación cuando estén disponibles.</p>
-                </section>
+                <CalculatorEmptyState icon={<><Search size={28} /></>} title={<>Introduce un ISIN para empezar</>}>Verás identidad de la clase, costes, riesgo, rentabilidades, composición y documentación cuando estén disponibles.</CalculatorEmptyState>
             ) : null}
-        </div>
+        </FundSheetFrame>
     );
 }

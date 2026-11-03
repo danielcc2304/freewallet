@@ -29,13 +29,27 @@ try {
     for(const width of [320,390,600,1280]){
         await page.setViewport({width,height:900});await page.goto(origin,{waitUntil:'networkidle2'});
         await page.waitForSelector('.portfolio-data-quality');
+        // Shared tabs preserve roving keyboard focus and their associated panel.
+        const firstTab = await page.$('.portfolio-excel-insights__tabs [role=tab]');assert.ok(firstTab);
+        await firstTab.focus();await page.keyboard.press('ArrowRight');
+        await page.waitForFunction(()=>document.querySelector('.portfolio-excel-insights__tabs [aria-selected=true]')?.textContent?.includes('Benchmark'));
+        assert.ok(await page.$eval('.portfolio-excel-insights__tabs [aria-selected=true]',node=>document.activeElement===node));
+        await page.keyboard.press('End');
+        await page.waitForFunction(()=>document.querySelector('.portfolio-excel-insights__tabs [aria-selected=true]')?.textContent?.includes('Controles'));
+        await page.keyboard.press('Home');
+        await page.waitForFunction(()=>document.querySelector('.portfolio-excel-insights__tabs [aria-selected=true]')?.textContent?.includes('Evolución'));
+        const activeTab=await page.$eval('.portfolio-excel-insights__tabs [aria-selected=true]',node=>node.id);
+        assert.equal(await page.$eval('.portfolio-excel-insights [role=tabpanel]',node=>node.getAttribute('aria-labelledby')),activeTab);
+
         assert.equal(await page.$('.dashboard__header details'),null,'Header status is not a disclosure');
-        const info=await page.$('button[aria-label="Actualización de precios"]');assert.ok(info);
+        await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
+        const info='button[aria-label="Actualización de precios"]';await page.waitForSelector(info,{visible:true});
+        assert.ok(await page.$eval(info,node=>{const rect=node.getBoundingClientRect();return rect.top>=0&&rect.bottom<=innerHeight;}),'Header info control must be visible before interaction');
         const headerHeight=await page.$eval('.dashboard__header',n=>n.getBoundingClientRect().height);
-        await info.click();await page.waitForSelector('[role=dialog]');
+        await page.locator(info).click();await page.waitForSelector('[role=dialog]');
         assert.match(await page.$eval('[role=dialog]',n=>n.textContent??''),/Última|Acciones y criptos/);
         await page.keyboard.press('Escape');
-        assert.ok(await info.evaluate(n=>document.activeElement===n),'Closing information restores keyboard focus');
+        assert.ok(await page.$eval(info,n=>document.activeElement===n),'Closing information restores keyboard focus');
         assert.equal(await page.$eval('.dashboard__header',n=>n.getBoundingClientRect().height),headerHeight);
 
         assert.equal(await page.$$eval('.portfolio-data-quality',n=>n.length),1);
@@ -63,6 +77,7 @@ try {
         }
         if(width===1280){
             await page.evaluate(()=>{document.documentElement.dataset.theme='light';document.documentElement.dataset.appearance='liquid-glass';});
+            await page.addStyleTag({content:'*,*::before,*::after{transition:none!important;animation:none!important}'});
             await page.evaluate(()=>window.scrollTo({top:0,behavior:'instant'}));
             await page.screenshot({path:join(tmpdir(),'freewallet-dashboard-header-clean.png')});
         }

@@ -1,29 +1,18 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
-import {
-    Info,
-    AlertTriangle,
-    TrendingDown,
-    Scale,
-    Landmark,
-    HelpCircle,
-    Wallet,
-    CalendarDays,
-    ChevronDown,
-    ChevronUp,
-} from 'lucide-react';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
-import { validateCalculatorInputs } from './calculatorValidation';
-import {
-    solveBasicBond,
-    solveAdvancedBond,
-    parseIsoDate,
-    toIsoDate,
-    addMonthsUtc,
-    type CouponFrequency,
-    type PriceInputType,
-    type DayCountConvention,
-} from '../../../services/bondCalculator';
-import './BondCalculator.css';
+import {CalculatorPresentation} from './CalculatorDetailPresentation';
+import {calculatorPresentationClasses} from './CalculatorDetailPresentation.styles';
+import {CalculatorBondDetails,CalculatorWorkspace,CalculatorWorkspaceHeader,CalculatorWorkspaceTitle,CalculatorWorkspaceButton} from './CalculatorWorkspace';
+
+import {CalculatorGrid} from './CalculatorGrid';
+import {CalculatorHeroMetric} from './CalculatorHeroMetric';
+import {CalculatorEducationCard} from './CalculatorEducationCard';
+import {CalculatorField} from './CalculatorField';
+
+import {CalculatorDataItem} from './CalculatorDataItem';
+import {useEffect,useMemo,useState,type ChangeEvent} from 'react';
+import {Info,AlertTriangle,TrendingDown,Scale,Landmark,HelpCircle,Wallet,CalendarDays,ChevronDown,ChevronUp} from 'lucide-react';
+import {validateCalculatorInputs} from './calculatorValidation';
+import {solveBasicBond,solveAdvancedBond,parseIsoDate,toIsoDate,addMonthsUtc,type CouponFrequency,type PriceInputType,type DayCountConvention} from '../../../services/bondCalculator';
+
 
 interface BondCalculatorStorage {
     price: number | string;
@@ -266,60 +255,55 @@ export function BondCalculator() {
             : Math.sign(parDelta);
 
     return (
-        <div className="bond-calc">
-            <AcademyPageHeader
-                className="bond-calc__header"
-                section="Herramientas"
-            >
-                <h1 className="bond-calc__title">Calculadora de Bonos (TIR)</h1>
-                <p className="bond-calc__subtitle">
+        <CalculatorWorkspace appearance="bondCalc"  >
+            <CalculatorWorkspaceHeader appearance="bondCalcHeader" section="Herramientas">
+                <CalculatorWorkspaceTitle as="h1" appearance="bondCalcTitle" >Calculadora de Bonos (TIR)</CalculatorWorkspaceTitle>
+                <CalculatorWorkspaceTitle as="p" appearance="bondCalcSubtitle" >
                     Calcula la rentabilidad al vencimiento de un bono a partir
                     de su precio de mercado.
-                </p>
-            </AcademyPageHeader>
+                </CalculatorWorkspaceTitle>
+            </CalculatorWorkspaceHeader>
 
-            <div className="bond-calc__grid">
-                <div className="bond-calc__inputs">
-                    <div className="bond-calc__inputs-header">
+            <CalculatorGrid variant="bond-grid">
+                <CalculatorWorkspace appearance="bondCalcInputs"  >
+                    <CalculatorWorkspace appearance="bondCalcInputsHeader"  >
                         <h3>Parámetros</h3>
-                    </div>
+                    </CalculatorWorkspace>
 
-                    <div className="calc__input-group">
-                        <label htmlFor="bond-price">Precio Actual</label>
-                        <div className="calc__input-wrapper">
-                            <Scale size={18} />
-                            <input
-                                id="bond-price"
-                                type="number"
-                                value={price}
-                                onChange={handleInput(setPrice)}
-                                step="any"
-                                placeholder="83.7"
-                            />
-                            <span className="unit">% s/ par</span>
-                        </div>
-                    </div>
+                    <CalculatorField
+                        controlId="bond-price"
+                        label="Precio Actual"
+                        icon={<Scale size={18} />}
+                        unit="% s/ par">
+                        <input
+                            id="bond-price"
+                            type="number"
+                            value={price}
+                            onChange={handleInput(setPrice)}
+                            step="any"
+                            placeholder="83.7"
+                        />
+                    </CalculatorField>
 
-                    <div className="calc__input-group">
-                        <label htmlFor="bond-coupon">Cupón Anual</label>
-                        <div className="calc__input-wrapper">
-                            <TrendingDown size={18} />
-                            <input
-                                id="bond-coupon"
-                                type="number"
-                                value={coupon}
-                                onChange={handleInput(setCoupon)}
-                                step="any"
-                                placeholder="8.875"
-                            />
-                            <span className="unit">%</span>
-                        </div>
-                    </div>
+                    <CalculatorField
+                        controlId="bond-coupon"
+                        label="Cupón Anual"
+                        icon={<TrendingDown size={18} />}
+                        unit="%">
+                        <input
+                            id="bond-coupon"
+                            type="number"
+                            value={coupon}
+                            onChange={handleInput(setCoupon)}
+                            step="any"
+                            placeholder="8.875"
+                        />
+                    </CalculatorField>
 
                     {!advancedEnabled && (
                         <div className="calc__input-group">
                             <label>Vencimiento</label>
-                            <div className="bond-calc__maturity-grid">
+                            <CalculatorGrid variant="bond-maturity-grid">
                                 <div className="calc__input-wrapper">
                                     <Landmark size={18} />
                                     <input
@@ -345,196 +329,168 @@ export function BondCalculator() {
                                     />
                                     <span className="unit">meses</span>
                                 </div>
-                            </div>
+                            </CalculatorGrid>
                         </div>
                     )}
 
-                    <div className="calc__input-group">
-                        <label htmlFor="bond-face">Valor Nominal (Par)</label>
-                        <div className="calc__input-wrapper">
-                            <Info size={18} />
-                            <input
-                                id="bond-face"
-                                type="number"
-                                step="any"
-                                value={face}
-                                onChange={handleInput(setFace)}
-                                placeholder="100"
-                            />
-                            <span className="unit">u.m.</span>
-                        </div>
-                    </div>
-                    <div className="bond-calc__advanced">
-                        <button
-                            type="button"
-                            className="bond-calc__advanced-toggle"
-                            onClick={() =>
+                    <CalculatorField
+                        controlId="bond-face"
+                        label="Valor Nominal (Par)"
+                        icon={<Info size={18} />}
+                        unit="u.m.">
+                        <input
+                            id="bond-face"
+                            type="number"
+                            step="any"
+                            value={face}
+                            onChange={handleInput(setFace)}
+                            placeholder="100"
+                        />
+                    </CalculatorField>
+                    <CalculatorWorkspace appearance="bondCalcAdvanced"  >
+                        <CalculatorWorkspaceButton appearance="bondCalcAdvancedToggle" type="button" onClick={() =>
                                 setAdvancedEnabled((current) => !current)
-                            }
-                        >
+                            }>
                             <span>Opciones avanzadas</span>
                             {advancedEnabled ? (
                                 <ChevronUp size={18} />
                             ) : (
                                 <ChevronDown size={18} />
                             )}
-                        </button>
+                        </CalculatorWorkspaceButton>
 
                         {advancedEnabled && (
-                            <div className="bond-calc__advanced-content">
-                                <div className="bond-calc__advanced-grid">
-                                    <div className="calc__input-group">
-                                        <label htmlFor="bond-settlement-date">
-                                            Fecha de liquidacion
-                                        </label>
-                                        <div className="calc__input-wrapper">
-                                            <CalendarDays size={18} />
-                                            <input
-                                                id="bond-settlement-date"
-                                                type="date"
-                                                value={settlementDate}
-                                                onChange={(event) =>
-                                                    setSettlementDate(
-                                                        event.target.value,
-                                                    )
-                                                }
-                                            />
-                                        </div>
-                                    </div>
+                            <CalculatorWorkspace appearance="bondCalcAdvancedContent"  >
+                                <CalculatorGrid variant="bond-advanced-grid">
+                                    <CalculatorField
+                                        controlId="bond-settlement-date"
+                                        label="Fecha de liquidacion"
+                                        icon={<CalendarDays size={18} />}>
+                                        <input
+                                            id="bond-settlement-date"
+                                            type="date"
+                                            value={settlementDate}
+                                            onChange={(event) =>
+                                                setSettlementDate(
+                                                    event.target.value,
+                                                )
+                                            }
+                                        />
+                                    </CalculatorField>
 
-                                    <div className="calc__input-group">
-                                        <label htmlFor="bond-issue-date">
-                                            Inicio de devengo / emisión
-                                            (opcional)
-                                        </label>
-                                        <div className="calc__input-wrapper">
-                                            <CalendarDays size={18} />
-                                            <input
-                                                id="bond-issue-date"
-                                                type="date"
-                                                value={issueDate}
-                                                onChange={(event) =>
-                                                    setIssueDate(
-                                                        event.target.value,
-                                                    )
-                                                }
-                                            />
-                                        </div>
-                                    </div>
+                                    <CalculatorField
+                                        controlId="bond-issue-date"
+                                        label={<>Inicio de devengo / emisión
+                                            (opcional)</>}
+                                        icon={<CalendarDays size={18} />}>
+                                        <input
+                                            id="bond-issue-date"
+                                            type="date"
+                                            value={issueDate}
+                                            onChange={(event) =>
+                                                setIssueDate(
+                                                    event.target.value,
+                                                )
+                                            }
+                                        />
+                                    </CalculatorField>
 
-                                    <div className="calc__input-group">
-                                        <label htmlFor="bond-maturity-date">
-                                            Fecha de vencimiento
-                                        </label>
-                                        <div className="calc__input-wrapper">
-                                            <CalendarDays size={18} />
-                                            <input
-                                                id="bond-maturity-date"
-                                                type="date"
-                                                value={maturityDate}
-                                                onChange={(event) =>
-                                                    setMaturityDate(
-                                                        event.target.value,
-                                                    )
-                                                }
-                                            />
-                                        </div>
-                                    </div>
+                                    <CalculatorField
+                                        controlId="bond-maturity-date"
+                                        label="Fecha de vencimiento"
+                                        icon={<CalendarDays size={18} />}>
+                                        <input
+                                            id="bond-maturity-date"
+                                            type="date"
+                                            value={maturityDate}
+                                            onChange={(event) =>
+                                                setMaturityDate(
+                                                    event.target.value,
+                                                )
+                                            }
+                                        />
+                                    </CalculatorField>
 
-                                    <div className="calc__input-group">
-                                        <label htmlFor="bond-frequency">
-                                            Frecuencia de cupón
-                                        </label>
-                                        <div className="calc__input-wrapper">
-                                            <TrendingDown size={18} />
-                                            <select
-                                                id="bond-frequency"
-                                                value={couponFrequency}
-                                                onChange={(event) =>
-                                                    setCouponFrequency(
-                                                        event.target
-                                                            .value as CouponFrequency,
-                                                    )
-                                                }
-                                            >
-                                                <option value="annual">
-                                                    Anual
-                                                </option>
-                                                <option value="semiannual">
-                                                    Semestral
-                                                </option>
-                                                <option value="quarterly">
-                                                    Trimestral
-                                                </option>
-                                                <option value="monthly">
-                                                    Mensual
-                                                </option>
-                                            </select>
-                                        </div>
-                                    </div>
+                                    <CalculatorField
+                                        controlId="bond-frequency"
+                                        label="Frecuencia de cupón"
+                                        icon={<TrendingDown size={18} />}>
+                                        <select
+                                            id="bond-frequency"
+                                            value={couponFrequency}
+                                            onChange={(event) =>
+                                                setCouponFrequency(
+                                                    event.target
+                                                        .value as CouponFrequency,
+                                                )
+                                            }>
+                                            <option value="annual">
+                                                Anual
+                                            </option>
+                                            <option value="semiannual">
+                                                Semestral
+                                            </option>
+                                            <option value="quarterly">
+                                                Trimestral
+                                            </option>
+                                            <option value="monthly">
+                                                Mensual
+                                            </option>
+                                        </select>
+                                    </CalculatorField>
 
-                                    <div className="calc__input-group">
-                                        <label htmlFor="bond-price-type">
-                                            Tipo de precio
-                                        </label>
-                                        <div className="calc__input-wrapper">
-                                            <Wallet size={18} />
-                                            <select
-                                                id="bond-price-type"
-                                                value={priceInputType}
-                                                onChange={(event) =>
-                                                    setPriceInputType(
-                                                        event.target
-                                                            .value as PriceInputType,
-                                                    )
-                                                }
-                                            >
-                                                <option value="clean">
-                                                    Limpio (sin cupón corrido)
-                                                </option>
-                                                <option value="dirty">
-                                                    Sucio (con cupón corrido)
-                                                </option>
-                                            </select>
-                                        </div>
-                                    </div>
+                                    <CalculatorField
+                                        controlId="bond-price-type"
+                                        label="Tipo de precio"
+                                        icon={<Wallet size={18} />}>
+                                        <select
+                                            id="bond-price-type"
+                                            value={priceInputType}
+                                            onChange={(event) =>
+                                                setPriceInputType(
+                                                    event.target
+                                                        .value as PriceInputType,
+                                                )
+                                            }>
+                                            <option value="clean">
+                                                Limpio (sin cupón corrido)
+                                            </option>
+                                            <option value="dirty">
+                                                Sucio (con cupón corrido)
+                                            </option>
+                                        </select>
+                                    </CalculatorField>
 
-                                    <div className="calc__input-group">
-                                        <label htmlFor="bond-day-count">
-                                            Convención day count
-                                        </label>
-                                        <div className="calc__input-wrapper">
-                                            <Landmark size={18} />
-                                            <select
-                                                id="bond-day-count"
-                                                value={dayCountConvention}
-                                                onChange={(event) =>
-                                                    setDayCountConvention(
-                                                        event.target
-                                                            .value as DayCountConvention,
-                                                    )
-                                                }
-                                            >
-                                                <option value="actual365">
-                                                    Actual / 365
-                                                </option>
-                                                <option value="actual360">
-                                                    Actual / 360
-                                                </option>
-                                                <option value="30e360">
-                                                    30E / 360
-                                                </option>
-                                                <option value="30us360">
-                                                    30 / 360 US (NASD)
-                                                </option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <details className="bond-calc__calculation-details">
-                                    <summary>
-                                        Cupones irregulares (opcional)
-                                    </summary>
+                                    <CalculatorField
+                                        controlId="bond-day-count"
+                                        label="Convención day count"
+                                        icon={<Landmark size={18} />}>
+                                        <select
+                                            id="bond-day-count"
+                                            value={dayCountConvention}
+                                            onChange={(event) =>
+                                                setDayCountConvention(
+                                                    event.target
+                                                        .value as DayCountConvention,
+                                                )
+                                            }>
+                                            <option value="actual365">
+                                                Actual / 365
+                                            </option>
+                                            <option value="actual360">
+                                                Actual / 360
+                                            </option>
+                                            <option value="30e360">
+                                                30E / 360
+                                            </option>
+                                            <option value="30us360">
+                                                30 / 360 US (NASD)
+                                            </option>
+                                        </select>
+                                    </CalculatorField>
+                                </CalculatorGrid>
+                                <CalculatorBondDetails appearance="plain" title={<>Cupones irregulares (opcional)</>}>
+
                                     <p>
                                         Indica las fechas contractuales si el
                                         primer o último cupón no corresponde a
@@ -542,52 +498,47 @@ export function BondCalculator() {
                                         devengo permite calcular el primer cupón
                                         proporcional.
                                     </p>
-                                    <div className="bond-calc__advanced-grid">
-                                        <div className="calc__input-group">
-                                            <label htmlFor="bond-first-coupon">
-                                                Primer cupón contractual
-                                            </label>
-                                            <div className="calc__input-wrapper">
-                                                <CalendarDays size={18} />
-                                                <input
-                                                    id="bond-first-coupon"
-                                                    type="date"
-                                                    value={firstCouponDate}
-                                                    onChange={(event) =>
-                                                        setFirstCouponDate(
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="calc__input-group">
-                                            <label htmlFor="bond-last-coupon">
-                                                Último cupón anterior al
-                                                vencimiento
-                                            </label>
-                                            <div className="calc__input-wrapper">
-                                                <CalendarDays size={18} />
-                                                <input
-                                                    id="bond-last-coupon"
-                                                    type="date"
-                                                    value={lastCouponDate}
-                                                    onChange={(event) =>
-                                                        setLastCouponDate(
-                                                            event.target.value,
-                                                        )
-                                                    }
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </details>
-                            </div>
-                        )}
-                    </div>
-                </div>
+                                    <CalculatorGrid variant="bond-advanced-grid">
+                                        <CalculatorField
+                                            controlId="bond-first-coupon"
+                                            label="Primer cupón contractual"
+                                            icon={<CalendarDays size={18} />}>
+                                            <input
+                                                id="bond-first-coupon"
+                                                type="date"
+                                                value={firstCouponDate}
+                                                onChange={(event) =>
+                                                    setFirstCouponDate(
+                                                        event.target.value,
+                                                    )
+                                                }
+                                            />
+                                        </CalculatorField>
+                                        <CalculatorField
+                                            controlId="bond-last-coupon"
+                                            label={<>Último cupón anterior al
+                                                vencimiento</>}
+                                            icon={<CalendarDays size={18} />}>
+                                            <input
+                                                id="bond-last-coupon"
+                                                type="date"
+                                                value={lastCouponDate}
+                                                onChange={(event) =>
+                                                    setLastCouponDate(
+                                                        event.target.value,
+                                                    )
+                                                }
+                                            />
+                                        </CalculatorField>
+                                    </CalculatorGrid>
 
-                <div className="bond-calc__results">
+                                </CalculatorBondDetails>
+                            </CalculatorWorkspace>
+                        )}
+                    </CalculatorWorkspace>
+                </CalculatorWorkspace>
+
+                <CalculatorWorkspace appearance="bondCalcResults"  >
                     {!Number.isFinite(calculation.ytm) ||
                     !Number.isFinite(calculation.effectiveYtm) ? (
                         <p role="alert">
@@ -599,223 +550,216 @@ export function BondCalculator() {
                         </p>
                     ) : (
                         <>
-                            <div className="result-main-card">
-                                <span className="label">YTM nominal anual</span>
-                                <h2 className="result-value">
-                                    {(calculation.ytm * 100).toFixed(2)}%
-                                </h2>
-                                <p className="result-main-card__subtext">
-                                    {calculation.isAdvanced
+                                <CalculatorHeroMetric
+                                    appearance="yield"
+                                    label="YTM nominal anual"
+                                    value={<>{(calculation.ytm * 100).toFixed(2)}%</>}
+                                    description={<>{calculation.isAdvanced
                                         ? `Capitalización ${calculation.compoundingLabel.toLowerCase()} · ${calculation.periodsPerYear} periodo(s) al año.`
-                                        : 'Estimación con precio limpio y cupones anuales regulares. Usa fechas para precisar el cálculo.'}
-                                </p>
-                            </div>
+                                        : 'Estimación con precio limpio y cupones anuales regulares. Usa fechas para precisar el cálculo.'}</>}
+                                />
 
-                            <div className="result-details">
-                                <div className="detail-box">
-                                    <span className="label">Situacion</span>
-                                    <span
-                                        className={`status-badge ${parStatus < 0 ? 'status-badge--discount' : parStatus > 0 ? 'status-badge--premium' : 'status-badge--par'}`}
-                                    >
-                                        {parStatus < 0
+                            <CalculatorGrid variant="result-details">
+                                    <CalculatorDataItem
+                                        layout="detail"
+                                        className="detail-box"
+                                        labelClassName="label"
+                                        label="Situacion"
+                                        valueAs="span"
+                                        valueClassName={calculatorPresentationClasses(`status-badge ${parStatus < 0 ? 'status-badge--discount' : parStatus > 0 ? 'status-badge--premium' : 'status-badge--par'}`)}
+                                        value={<>{parStatus < 0
                                             ? 'Bajo Par (Descuento)'
                                             : parStatus > 0
-                                              ? 'Sobre Par (Prima)'
-                                              : 'Al Par'}
-                                    </span>
-                                </div>
-                                <div className="detail-box">
-                                    <span className="label">
-                                        Cupón anual en dinero
-                                    </span>
-                                    <div className="coupon-value">
-                                        <Wallet
-                                            size={16}
-                                            className="coupon-value__icon"
-                                        />
-                                        <span className="value">
-                                            {(
-                                                Number(face) *
-                                                (Number(coupon) / 100)
-                                            ).toFixed(2)}{' '}
-                                            u.m.
-                                        </span>
-                                    </div>
-                                </div>
+                                                ? 'Sobre Par (Prima)'
+                                                : 'Al Par'}</>}
+                                    />
+                                    <CalculatorDataItem
+                                        layout="detail"
+                                        className="detail-box"
+                                        labelClassName="label"
+                                        label="Cupón anual en dinero"
+                                        valueAs="div"
+                                        valueClassName={calculatorPresentationClasses("coupon-value")}
+                                        value={<><Wallet size={16} className={calculatorPresentationClasses("coupon-value__icon")}/>
+                                            <CalculatorPresentation appearance="value" as="span" >
+                                                {(
+                                                    Number(face) *
+                                                    (Number(coupon) / 100)
+                                                ).toFixed(2)}{' '}
+                                                u.m.
+                                            </CalculatorPresentation></>}
+                                    />
                                 {showAdvancedPriceBreakdown && (
-                                    <div className="detail-box">
-                                        <span className="label">
-                                            Precio Limpio
-                                        </span>
-                                        <span className="detail-box__value">
-                                            {calculation.cleanPrice.toFixed(4)}
-                                        </span>
-                                    </div>
+                                        <CalculatorDataItem
+                                            layout="detail"
+                                            className="detail-box"
+                                            labelClassName="label"
+                                            label="Precio Limpio"
+                                            valueAs="span"
+                                            valueClassName={calculatorPresentationClasses("detail-box__value")}
+                                            value={<>{calculation.cleanPrice.toFixed(4)}</>}
+                                        />
                                 )}
                                 {showAdvancedPriceBreakdown && (
-                                    <div className="detail-box">
-                                        <span className="label">
-                                            Precio Sucio
-                                        </span>
-                                        <span className="detail-box__value">
-                                            {calculation.dirtyPrice.toFixed(4)}
-                                        </span>
-                                    </div>
+                                        <CalculatorDataItem
+                                            layout="detail"
+                                            className="detail-box"
+                                            labelClassName="label"
+                                            label="Precio Sucio"
+                                            valueAs="span"
+                                            valueClassName={calculatorPresentationClasses("detail-box__value")}
+                                            value={<>{calculation.dirtyPrice.toFixed(4)}</>}
+                                        />
                                 )}
                                 {showAccruedInterest && (
-                                    <div className="detail-box">
-                                        <span className="label">
-                                            Cupón Corrido
-                                        </span>
-                                        <span className="detail-box__value">
-                                            {calculation.accruedInterest.toFixed(
+                                        <CalculatorDataItem
+                                            layout="detail"
+                                            className="detail-box"
+                                            labelClassName="label"
+                                            label="Cupón Corrido"
+                                            valueAs="span"
+                                            valueClassName={calculatorPresentationClasses("detail-box__value")}
+                                            value={<>{calculation.accruedInterest.toFixed(
                                                 6,
-                                            )}
-                                        </span>
-                                    </div>
+                                            )}</>}
+                                        />
                                 )}
                                 {calculation.isAdvanced && (
-                                    <div className="detail-box">
-                                        <span className="label">
-                                            Próximo Cupón
-                                        </span>
-                                        <span className="detail-box__value">
-                                            {calculation.nextCouponDate ?? '--'}
-                                        </span>
-                                    </div>
+                                        <CalculatorDataItem
+                                            layout="detail"
+                                            className="detail-box"
+                                            labelClassName="label"
+                                            label="Próximo Cupón"
+                                            valueAs="span"
+                                            valueClassName={calculatorPresentationClasses("detail-box__value")}
+                                            value={<>{calculation.nextCouponDate ?? '--'}</>}
+                                        />
                                 )}
-                            </div>
-                            <div className="detail-box">
-                                <span className="label">
-                                    YTM efectiva anual
-                                </span>
-                                <span className="detail-box__value">
-                                    {(calculation.effectiveYtm * 100).toFixed(
+                            </CalculatorGrid>
+                                <CalculatorDataItem
+                                    layout="detail"
+                                    className="detail-box"
+                                    labelClassName="label"
+                                    label="YTM efectiva anual"
+                                    valueAs="span"
+                                    valueClassName={calculatorPresentationClasses("detail-box__value")}
+                                    value={<>{(calculation.effectiveYtm * 100).toFixed(
                                         2,
                                     )}
-                                    %
-                                </span>
-                            </div>
-                            <details className="bond-calc__calculation-details">
-                                <summary>Detalles del cálculo</summary>
-                                <dl>
-                                    <dt>Precio limpio</dt>
-                                    <dd>
-                                        {calculation.cleanPrice.toFixed(6)} u.m.
-                                    </dd>
-                                    <dt>Cupón corrido</dt>
-                                    <dd>
-                                        {calculation.accruedInterest.toFixed(6)}{' '}
-                                        u.m.
-                                    </dd>
-                                    <dt>Precio sucio</dt>
-                                    <dd>
-                                        {calculation.dirtyPrice.toFixed(6)} u.m.
-                                    </dd>
-                                    <dt>Último cupón</dt>
-                                    <dd>
-                                        {calculation.previousCouponDate ??
-                                            'Sin cupón anterior / modo básico'}
-                                    </dd>
-                                    <dt>Inicio del devengo</dt>
-                                    <dd>
-                                        {calculation.accrualStartDate ??
-                                            'Estimado en modo básico'}
-                                    </dd>
-                                    <dt>Próximo cupón</dt>
-                                    <dd>
-                                        {calculation.nextCouponDate ??
-                                            'Estimado en modo básico'}
-                                    </dd>
-                                    <dt>Flujos restantes</dt>
-                                    <dd>{calculation.cashFlows.length}</dd>
-                                    <dt>Cupón regular por pago</dt>
-                                    <dd>
-                                        {(
-                                            (Number(face) * Number(coupon)) /
-                                            100 /
-                                            calculation.periodsPerYear
-                                        ).toFixed(6)}{' '}
-                                        u.m.
-                                    </dd>
-                                    <dt>Último flujo (nominal y cupón)</dt>
-                                    <dd>
-                                        {calculation.cashFlows[
-                                            calculation.cashFlows.length - 1
-                                        ].amount.toFixed(6)}{' '}
-                                        u.m.
-                                    </dd>
-                                    <dt>Day-count</dt>
-                                    <dd>{calculation.dayCountLabel}</dd>
-                                    <dt>Periodos hasta el próximo cupón</dt>
-                                    <dd>
-                                        {calculation.firstPeriodFraction.toFixed(
-                                            9,
-                                        )}
-                                    </dd>
-                                    <dt>YTM nominal anual</dt>
-                                    <dd>
-                                        {(calculation.ytm * 100).toFixed(6)}%
-                                    </dd>
-                                    <dt>YTM efectiva anual</dt>
-                                    <dd>
-                                        {(
-                                            calculation.effectiveYtm * 100
-                                        ).toFixed(6)}
-                                        %
-                                    </dd>
-                                </dl>
-                                <p>
-                                    {calculation.hasIrregularCoupons
-                                        ? 'Cupones irregulares calculados proporcionalmente sobre el calendario ordinario. '
-                                        : ''}
-                                    Sin impuestos, comisiones, ajuste por días
-                                    hábiles ni periodos ex cupón. Es YTM al
-                                    vencimiento, no YTW ni rentabilidad ajustada
-                                    por inflación.
-                                </p>
-                            </details>
+                                        %</>}
+                                />
+                                <CalculatorBondDetails appearance="plain" title={<>Detalles del cálculo</>}>
+
+                                    <dl>
+                                        <dt>Precio limpio</dt>
+                                        <dd>
+                                            {calculation.cleanPrice.toFixed(6)} u.m.
+                                        </dd>
+                                        <dt>Cupón corrido</dt>
+                                        <dd>
+                                            {calculation.accruedInterest.toFixed(6)}{' '}
+                                            u.m.
+                                        </dd>
+                                        <dt>Precio sucio</dt>
+                                        <dd>
+                                            {calculation.dirtyPrice.toFixed(6)} u.m.
+                                        </dd>
+                                        <dt>Último cupón</dt>
+                                        <dd>
+                                            {calculation.previousCouponDate ??
+                                                'Sin cupón anterior / modo básico'}
+                                        </dd>
+                                        <dt>Inicio del devengo</dt>
+                                        <dd>
+                                            {calculation.accrualStartDate ??
+                                                'Estimado en modo básico'}
+                                        </dd>
+                                        <dt>Próximo cupón</dt>
+                                        <dd>
+                                            {calculation.nextCouponDate ??
+                                                'Estimado en modo básico'}
+                                        </dd>
+                                        <dt>Flujos restantes</dt>
+                                        <dd>{calculation.cashFlows.length}</dd>
+                                        <dt>Cupón regular por pago</dt>
+                                        <dd>
+                                            {(
+                                                (Number(face) * Number(coupon)) /
+                                                100 /
+                                                calculation.periodsPerYear
+                                            ).toFixed(6)}{' '}
+                                            u.m.
+                                        </dd>
+                                        <dt>Último flujo (nominal y cupón)</dt>
+                                        <dd>
+                                            {calculation.cashFlows[
+                                                calculation.cashFlows.length - 1
+                                            ].amount.toFixed(6)}{' '}
+                                            u.m.
+                                        </dd>
+                                        <dt>Day-count</dt>
+                                        <dd>{calculation.dayCountLabel}</dd>
+                                        <dt>Periodos hasta el próximo cupón</dt>
+                                        <dd>
+                                            {calculation.firstPeriodFraction.toFixed(
+                                                9,
+                                            )}
+                                        </dd>
+                                        <dt>YTM nominal anual</dt>
+                                        <dd>
+                                            {(calculation.ytm * 100).toFixed(6)}%
+                                        </dd>
+                                        <dt>YTM efectiva anual</dt>
+                                        <dd>
+                                            {(
+                                                calculation.effectiveYtm * 100
+                                            ).toFixed(6)}
+                                            %
+                                        </dd>
+                                    </dl>
+                                    <p>
+                                        {calculation.hasIrregularCoupons
+                                            ? 'Cupones irregulares calculados proporcionalmente sobre el calendario ordinario. '
+                                            : ''}
+                                        Sin impuestos, comisiones, ajuste por días
+                                        hábiles ni periodos ex cupón. Es YTM al
+                                        vencimiento, no YTW ni rentabilidad ajustada
+                                        por inflación.
+                                    </p>
+
+                                </CalculatorBondDetails>
                         </>
                     )}
-                </div>
-            </div>
+                </CalculatorWorkspace>
+            </CalculatorGrid>
 
-            <div className="bond-calc-edu">
-                <div className="edu-card">
-                    <h3>
-                        <HelpCircle size={20} /> ¿Qué es la TIR / YTM?
-                    </h3>
-                    <p>
-                        La YTM es la tasa que iguala el precio sucio con el
-                        valor actual de los pagos restantes. La rentabilidad
-                        efectiva supone mantener el bono hasta vencimiento,
-                        cobrar todos los pagos y reinvertir los cupones a la
-                        tasa periódica calculada.
-                    </p>
-                </div>
-                <div className="edu-card">
-                    <h3>
-                        <TrendingDown size={20} /> Relación Inversa
-                    </h3>
-                    <p>
-                        Cuando los tipos de interés del mercado suben, el precio
-                        de los bonos antiguos baja para ofrecer una TIR
-                        competitiva. Es la regla de oro de la renta fija: Tipos
-                        ⬆️ = Precios ⬇️.
-                    </p>
-                </div>
-                <div className="edu-card">
-                    <h3>
-                        <AlertTriangle size={20} /> Riesgos Clave
-                    </h3>
-                    <p>
-                        Incluso los bonos tienen riesgo. El principal es el de{' '}
-                        <strong>crédito</strong> (que el emisor no pague) y el
-                        de <strong>duración</strong> (que el precio caiga mucho
-                        ante subidas de tipos si el plazo es largo).
-                    </p>
-                </div>
-            </div>
-        </div>
+            <CalculatorGrid variant="bond-calc-edu">
+                <CalculatorEducationCard
+                    icon={<HelpCircle size={20} />}
+                    title={<>¿Qué es la TIR / YTM?</>}>
+                    La YTM es la tasa que iguala el precio sucio con el
+                    valor actual de los pagos restantes. La rentabilidad
+                    efectiva supone mantener el bono hasta vencimiento,
+                    cobrar todos los pagos y reinvertir los cupones a la
+                    tasa periódica calculada.
+                </CalculatorEducationCard>
+                <CalculatorEducationCard
+                    icon={<TrendingDown size={20} />}
+                    title={<>Relación Inversa</>}>
+                    Cuando los tipos de interés del mercado suben, el precio
+                    de los bonos antiguos baja para ofrecer una TIR
+                    competitiva. Es la regla de oro de la renta fija: Tipos
+                    ⬆️ = Precios ⬇️.
+                </CalculatorEducationCard>
+                <CalculatorEducationCard
+                    icon={<AlertTriangle size={20} />}
+                    title={<>Riesgos Clave</>}>
+                    Incluso los bonos tienen riesgo. El principal es el de{' '}
+                    <strong>crédito</strong> (que el emisor no pague) y el
+                    de <strong>duración</strong> (que el precio caiga mucho
+                    ante subidas de tipos si el plazo es largo).
+                </CalculatorEducationCard>
+            </CalculatorGrid>
+        </CalculatorWorkspace>
     );
 }

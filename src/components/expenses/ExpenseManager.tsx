@@ -1,3 +1,22 @@
+import{ExpenseHint,ExpenseInsight,ExpenseFilters,ExpenseCalendar,ExpenseEntryIdentity,ExpenseDisclosure}from'./ui/ExpenseReading';
+import{expensePresentationStyleClasses}from'./ui/expensePresentationStyles';
+import {ExpenseFeedback,ExpenseSaveStatus} from './ui/ExpenseFeedback';
+import {ExpenseDistribution,ExpenseLegendItem,ExpenseFactList,ExpenseChartLegend,ExpenseBarChart,ExpenseMonthBars,ExpenseSummaryCard,ExpenseColorDot,ExpenseAccountIcon,ExpensePagination,ExpenseGettingStarted} from './ui/ExpenseOverview';
+import { ExpenseCalendarDay } from './ui/ExpenseRecords';
+
+import { ExpenseMonthPicker, ExpenseExportMenu, ExpenseRecordRow, ExpenseBudgetNumber, ExpenseSearch } from './ui/ExpenseRecords';
+
+import { DataTable } from '../ui/DataTable';
+import { ExpenseProgress as Progress } from './ui/ExpenseProgress';
+import { ExpenseEmptyState as Empty } from './ui/ExpenseEmptyState';
+import { ExpensePanelHeading, ExpensePanelTitle, ExpensePanel } from './ui/ExpensePanel';
+import { ExpenseSegments } from './ui/ExpenseSegments';
+import { ExpenseMetric } from './ui/ExpenseMetric';
+import { ExpenseField } from './ui/ExpenseField';
+import { ExpenseActions } from './ui/ExpenseActions';
+import { ExpenseButton, ExpenseIconButton } from './ui/ExpenseButton';
+import { ExpenseGrid } from './ui/ExpenseGrid';
+import { ExpenseCheckbox } from './ui/ExpenseCheckbox';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
     ArrowDownLeft,
@@ -88,59 +107,8 @@ const editorTitles = {
     goal: 'Objetivo de ahorro',
     category: 'Categoría',
 };
-function Progress({
-    value,
-    limit,
-    color,
-}: {
-    value: number;
-    limit: number;
-    color?: string;
-}) {
-    return (
-        <div
-            className={`expense-progress${value > limit && limit > 0 ? ' expense-progress--over' : ''}`}
-            role="progressbar"
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-valuenow={
-                limit > 0
-                    ? Math.round(
-                          Math.max(0, Math.min(100, (value / limit) * 100)),
-                      )
-                    : 0
-            }
-            aria-label={
-                limit > 0 ? `${money(value)} de ${money(limit)}` : 'Sin límite'
-            }
-        >
-            <span
-                style={{
-                    width: `${limit > 0 ? Math.max(0, Math.min(100, (value / limit) * 100)) : 0}%`,
-                    backgroundColor: color,
-                }}
-            />
-        </div>
-    );
-}
-function Empty({
-    title,
-    children,
-    action,
-}: {
-    title: string;
-    children: React.ReactNode;
-    action?: React.ReactNode;
-}) {
-    return (
-        <div className="expense-empty">
-            <WalletCards size={36} />
-            <h3>{title}</h3>
-            <p>{children}</p>
-            {action}
-        </div>
-    );
-}
+
+
 export default function ExpenseManager() {
     const {
         book,
@@ -389,19 +357,22 @@ export default function ExpenseManager() {
         await save(next);
     };
     const toolbar = (
-        <div className="expense-toolbar">
-            <div className="expense-month">
-                <button
+        <div className={expensePresentationStyleClasses("expense-toolbar")}>
+            <ExpenseMonthPicker previous={<button
                     type="button"
                     aria-label="Mes anterior"
                     disabled={month <= '2000-01'}
                     onClick={() => changeMonth(shiftMonth(month, -1))}
                 >
                     <ChevronLeft size={18} />
-                </button>
-                <label>
-                    <span className="expense-sr">Mes seleccionado</span>
-                    <input
+                </button>} next={<button
+                    type="button"
+                    aria-label="Mes siguiente"
+                    disabled={month >= '2199-12'}
+                    onClick={() => changeMonth(shiftMonth(month, 1))}
+                >
+                    <ChevronRight size={18} />
+                </button>} label={<>Mes seleccionado</>} control={<input
                         type="month"
                         min="2000-01"
                         max="2199-12"
@@ -409,21 +380,11 @@ export default function ExpenseManager() {
                         onChange={(e) => {
                             if (e.target.value) changeMonth(e.target.value);
                         }}
-                    />
-                </label>
-                <button
+                    />} />
+            <ExpenseActions variant="toolbar" className={expensePresentationStyleClasses("expense-toolbar-actions")}>
+                <ExpenseButton variant="secondary"
                     type="button"
-                    aria-label="Mes siguiente"
-                    disabled={month >= '2199-12'}
-                    onClick={() => changeMonth(shiftMonth(month, 1))}
-                >
-                    <ChevronRight size={18} />
-                </button>
-            </div>
-            <div className="expense-toolbar-actions">
-                <button
-                    type="button"
-                    className="expense-btn expense-btn--secondary"
+                    className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                     disabled={
                         readingFile || (!editable && (cloud || status !== 'error'))
                     }
@@ -435,19 +396,14 @@ export default function ExpenseManager() {
                 >
                     <FileUp size={16} />
                     Importar
-                </button>
-                <details
-                    className="expense-export-menu"
-                    onClick={(event) => {
+                </ExpenseButton>
+                <ExpenseExportMenu onClick={(event) => {
                         if ((event.target as Element).closest('button'))
                             event.currentTarget.open = false;
-                    }}
-                >
-                    <summary>
+                    }} summary={<>
                         <Download size={16} />
                         Exportar
-                    </summary>
-                    <div>
+                    </>}>
                         <button onClick={exportBackup}>
                             Exportar copia completa (JSON)
                         </button>
@@ -475,26 +431,25 @@ export default function ExpenseManager() {
                         >
                             Descargar plantilla CSV
                         </button>
-                    </div>
-                </details>
-                <button
-                    className="expense-btn"
+                    </ExpenseExportMenu>
+                <ExpenseButton
+                    className={expensePresentationStyleClasses("expense-btn")}
                     disabled={!editable}
                     onClick={() => newMovement()}
                 >
                     <Plus size={18} />
                     Añadir movimiento
-                </button>
-            </div>
+                </ExpenseButton>
+            </ExpenseActions>
         </div>
     );
     if (!book || status === 'loading')
         return (
-            <div className="expense-manager">
-                <div className="expense-loading" role="status">
-                    <LoaderCircle className="expense-spinner" size={28} />
+            <div className={expensePresentationStyleClasses("expense-manager")}>
+                <ExpenseFeedback role="status" as="div" appearance="loading">
+                    <LoaderCircle className={expensePresentationStyleClasses("expense-spinner")} size={28} />
                     Cargando tus gastos…
-                </div>
+                </ExpenseFeedback>
             </div>
         );
     const stats = summary!;
@@ -541,31 +496,31 @@ export default function ExpenseManager() {
     const categoryName = (id?: string) =>
         book.categories.find((c) => c.id === id)?.name ?? '—';
     const goalPanel = (
-        <section className="expense-panel">
-            <div className="expense-panel-title">
-                <h2>
+        <ExpensePanel className={expensePresentationStyleClasses("expense-panel")}>
+            <ExpensePanelHeading title={<>
                     <Target size={20} />
                     Objetivos de ahorro
-                </h2>
-                <button
-                    className="expense-btn expense-btn--quiet"
+                 </>} className={expensePresentationStyleClasses("expense-panel-title")}>
+
+                <ExpenseButton variant="quiet"
+                    className={expensePresentationStyleClasses("expense-btn expense-btn--quiet")}
                     disabled={!editable}
                     onClick={() => setEditor({ type: 'goal' })}
                 >
                     <Plus size={16} />
                     Objetivo
-                </button>
-            </div>
-            <p className="expense-hint">
+                </ExpenseButton>
+            </ExpensePanelHeading>
+            <ExpenseHint >
                 Reservas de planificación; no se descuentan del saldo de tus
                 cuentas.
-            </p>
+            </ExpenseHint>
             {!book.goals.length ? (
                 <Empty title="Ponle nombre a tu ahorro">
                     Un colchón, unas vacaciones o tu próxima inversión.
                 </Empty>
             ) : (
-                <div className="expense-goals">
+                <ExpenseGrid variant="accounts" className={expensePresentationStyleClasses("expense-goals")}>
                     {book.goals.map((g) => {
                         const remaining = Math.max(
                             0,
@@ -584,11 +539,10 @@ export default function ExpenseManager() {
                                   )
                                 : 0;
                         return (
-                            <div className="expense-goal" key={g.id}>
-                                <div className="expense-row">
+                            <ExpenseSummaryCard key={g.id} appearance="goal" header={<>
                                     <h3>{g.name}</h3>
-                                    <div className="expense-row-actions">
-                                        <button
+                                    <ExpenseActions variant="row" className={expensePresentationStyleClasses("expense-row-actions")}>
+                                        <ExpenseIconButton
                                             aria-label={`Editar objetivo ${g.name}`}
                                             disabled={!editable}
                                             onClick={() =>
@@ -599,8 +553,8 @@ export default function ExpenseManager() {
                                             }
                                         >
                                             <Pencil size={15} />
-                                        </button>
-                                        <button
+                                        </ExpenseIconButton>
+                                        <ExpenseIconButton
                                             aria-label={`Eliminar objetivo ${g.name}`}
                                             disabled={!editable}
                                             onClick={() =>
@@ -619,18 +573,15 @@ export default function ExpenseManager() {
                                             }
                                         >
                                             <Trash2 size={15} />
-                                        </button>
-                                    </div>
-                                </div>
-                                <strong>
+                                        </ExpenseIconButton>
+                                    </ExpenseActions>
+                                </>}  summary={<>
                                     {money(g.savedCents)}{' '}
                                     <small>de {money(g.targetCents)}</small>
-                                </strong>
-                                <Progress
+                                </>}  progress={<Progress
                                     value={g.savedCents}
                                     limit={g.targetCents}
-                                />
-                                <p className="expense-hint">
+                                />} detail={<>
                                     {remaining === 0
                                         ? 'Objetivo alcanzado'
                                         : `${money(remaining)} por reservar`}
@@ -640,32 +591,24 @@ export default function ExpenseManager() {
                                     {months && remaining
                                         ? ` · ${money(Math.ceil(remaining / months))}/mes orientativos`
                                         : ''}
-                                </p>
-                            </div>
+                                </>} />
                         );
                     })}
-                </div>
+                </ExpenseGrid>
             )}
-        </section>
+        </ExpensePanel>
     );
     return (
-        <div className="expense-manager">
+        <div className={expensePresentationStyleClasses("expense-manager")}>
             <AcademyPageHeader
                 section="Herramientas"
-                className="expense-header"
+                className={expensePresentationStyleClasses("expense-header")}
             >
                 <div>
                     <h1>Gastos y presupuesto</h1>
                     <p>Decide dónde va tu dinero.</p>
                 </div>
-                <span className="expense-status">
-                    <span
-                        className={
-                            saving
-                                ? 'expense-status-dot expense-status-dot--busy'
-                                : 'expense-status-dot'
-                        }
-                    />
+                <ExpenseSaveStatus busy={saving}>
                     {saving
                         ? 'Guardando…'
                         : status === 'ready'
@@ -673,14 +616,14 @@ export default function ExpenseManager() {
                               ? 'Sincronizado con tu cuenta'
                               : 'Guardado en este dispositivo'
                           : 'Guardado pendiente'}
-                </span>
+                </ExpenseSaveStatus>
             </AcademyPageHeader>
             {toolbar}
             {readingFile && (
-                <p className="expense-notice" role="status">
-                    <LoaderCircle className="expense-spinner" size={16} />
+                <ExpenseFeedback role="status" as="p" appearance="notice">
+                    <LoaderCircle className={expensePresentationStyleClasses("expense-spinner")} size={16} />
                     Leyendo archivo…
-                </p>
+                </ExpenseFeedback>
             )}
             <input
                 ref={fileRef}
@@ -693,19 +636,19 @@ export default function ExpenseManager() {
                 }}
             />
             {status !== 'ready' && !saving && (
-                <div className="expense-sync-error" role="alert">
+                <ExpenseFeedback role="alert" as="div" appearance="sync">
                     <strong>{syncError}</strong>
-                    <div className="expense-actions">
-                        <button
-                            className="expense-btn expense-btn--secondary"
+                    <ExpenseActions variant="toolbar" className={"expense-actions"}>
+                        <ExpenseButton variant="secondary"
+                            className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                             onClick={exportBackup}
                         >
                             <Download size={16} />
                             Exportar copia
-                        </button>
+                        </ExpenseButton>
                         {status !== 'conflict' && (
-                            <button
-                                className="expense-btn expense-btn--secondary"
+                            <ExpenseButton variant="secondary"
+                                className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                                 onClick={() =>
                                     void store
                                         .retry()
@@ -714,10 +657,10 @@ export default function ExpenseManager() {
                                 }
                             >
                                 Reintentar
-                            </button>
+                            </ExpenseButton>
                         )}
-                        <button
-                            className="expense-btn expense-btn--secondary"
+                        <ExpenseButton variant="secondary"
+                            className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                             onClick={() =>
                                 setConfirmation({
                                     title: 'Cargar versión guardada',
@@ -728,13 +671,13 @@ export default function ExpenseManager() {
                             }
                         >
                             Cargar versión guardada
-                        </button>
+                        </ExpenseButton>
                         {cloud && <Link to="/account">Mi cuenta</Link>}
-                    </div>
-                </div>
+                    </ExpenseActions>
+                </ExpenseFeedback>
             )}
             {notice && (
-                <div className="expense-notice" role="status">
+                <ExpenseFeedback role="status" as="div" appearance="notice">
                     <Check size={17} />
                     {notice}
                     <button
@@ -743,178 +686,115 @@ export default function ExpenseManager() {
                     >
                         <X size={15} />
                     </button>
-                </div>
+                </ExpenseFeedback>
             )}
             {error && (
-                <p className="expense-error" role="alert">
+                <ExpenseFeedback role="alert" as="p" appearance="error">
                     {error}
-                </p>
+                </ExpenseFeedback>
             )}
-            <nav className="expense-tabs" aria-label="Secciones de gastos">
-                {tabs.map((t) => (
-                    <button
-                        key={t.id}
-                        aria-pressed={tab === t.id}
-                        onClick={() => setTab(t.id)}
-                    >
-                        <t.icon size={17} />
-                        {t.label}
-                    </button>
-                ))}
-            </nav>
+            <ExpenseSegments aria-label="Secciones de gastos" value={tab} options={tabs.map(t => ({ value: t.id, label: t.label, icon: <t.icon size={17} /> }))} onChange={setTab} />
             {tab === 'overview' && (
                 <>
-                    <div className="expense-metrics">
-                        <article className="expense-stat">
-                            <span>
+                    <ExpenseGrid variant="metrics" className={expensePresentationStyleClasses("expense-metrics")}>
+                        <ExpenseMetric className={expensePresentationStyleClasses("expense-stat")} label={<>
                                 <ArrowDownLeft size={17} />
                                 Ingresos
-                            </span>
-                            <strong data-testid="expense-income">
+                            </>} value={<>
                                 {money(stats.income)}
-                            </strong>
-                            <small>{monthLabel(month)}</small>
-                        </article>
-                        <article className="expense-stat">
-                            <span>
+                            </>} detail={<>{monthLabel(month)}</>} valueProps={{"data-testid":"expense-income"}} />
+                        <ExpenseMetric className={expensePresentationStyleClasses("expense-stat")} label={<>
                                 <ArrowUpRight size={17} />
                                 Gastos netos
-                            </span>
-                            <strong data-testid="expense-spent">
+                            </>} value={<>
                                 {money(stats.expenses)}
-                            </strong>
-                            <small>
+                            </>} detail={<>
                                 {stats.refunds
                                     ? `${money(stats.refunds)} en reembolsos descontados`
                                     : 'Gastos registrados, sin transferencias'}
-                            </small>
-                        </article>
-                        <article className="expense-stat expense-stat--hero">
-                            <span>
+                            </>} valueProps={{"data-testid":"expense-spent"}} />
+                        <ExpenseMetric className={expensePresentationStyleClasses("expense-stat expense-stat--hero")} label={<>
                                 <WalletCards size={17} />
                                 Balance del mes
-                            </span>
-                            <strong data-testid="expense-net">
+                            </>} value={<>
                                 {money(stats.net)}
-                            </strong>
-                            <small>
+                            </>} detail={<>
                                 {stats.savingRate !== null
                                     ? `${stats.savingRate.toLocaleString('es-ES', { maximumFractionDigits: 1 })} % de tus ingresos conservados`
                                     : 'Registra ingresos para calcular tu tasa de ahorro'}
-                            </small>
-                        </article>
-                        <article className="expense-stat">
-                            <span>
+                            </>} valueProps={{"data-testid":"expense-net"}} />
+                        <ExpenseMetric className={expensePresentationStyleClasses("expense-stat")} label={<>
                                 <Target size={17} />
                                 Presupuesto disponible
-                            </span>
-                            <strong>
+                            </>} value={<>
                                 {stats.remaining === null
                                     ? 'Sin definir'
                                     : money(stats.remaining)}
-                            </strong>
-                            <small>
+                            </>} detail={<>
                                 {stats.dailyAllowance !== null
                                     ? `${money(Math.floor(stats.dailyAllowance))}/día hasta fin de mes`
                                     : stats.budget
                                       ? 'Periodo cerrado'
                                       : 'Define tu límite de gasto mensual'}
-                            </small>
-                        </article>
-                    </div>
+                            </>} />
+                    </ExpenseGrid>
                     {!book.entries.length && (
-                        <div className="expense-start">
-                            <div>
-                                <h2>Tu mes empieza con un movimiento</h2>
-                                <p>
+                        <ExpenseGettingStarted title={<>Tu mes empieza con un movimiento</>} description={<>
                                     Registra un gasto, añade tus ingresos o
                                     importa el extracto de tu banco.
-                                </p>
-                            </div>
-                            <div className="expense-actions">
-                                <button
-                                    className="expense-btn"
+                                </>} actions={<ExpenseActions variant="toolbar" className={"expense-actions"}>
+                                <ExpenseButton
+                                    className={expensePresentationStyleClasses("expense-btn")}
                                     disabled={!editable}
                                     onClick={() => newMovement()}
                                 >
                                     <Plus size={17} />
                                     Registrar primer gasto
-                                </button>
-                                <button
-                                    className="expense-btn expense-btn--secondary"
+                                </ExpenseButton>
+                                <ExpenseButton variant="secondary"
+                                    className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                                     disabled={!editable}
                                     onClick={() => fileRef.current?.click()}
                                 >
                                     <FileUp size={17} />
                                     Importar extracto
-                                </button>
-                            </div>
-                        </div>
+                                </ExpenseButton>
+                            </ExpenseActions>} />
                     )}
-                    <div className="expense-two-col">
-                        <section className="expense-panel">
-                            <div className="expense-panel-title">
-                                <h2>¿Dónde se va tu dinero?</h2>
-                                <button
-                                    className="expense-btn expense-btn--quiet"
+                    <ExpenseGrid variant="columns" className={expensePresentationStyleClasses("expense-two-col")}>
+                        <ExpensePanel className={expensePresentationStyleClasses("expense-panel")}>
+                            <ExpensePanelHeading title={<> ¿Dónde se va tu dinero? </>} className={expensePresentationStyleClasses("expense-panel-title")}>
+
+                                <ExpenseButton variant="quiet"
+                                    className={expensePresentationStyleClasses("expense-btn expense-btn--quiet")}
                                     onClick={() => setTab('entries')}
                                 >
                                     Ver movimientos
-                                </button>
-                            </div>
+                                </ExpenseButton>
+                            </ExpensePanelHeading>
                             {positiveTotal ? (
-                                <div className="expense-distribution">
-                                    <div
-                                        className="expense-donut"
-                                        style={{
-                                            background: `conic-gradient(${gradient})`,
-                                        }}
-                                        role="img"
-                                        aria-label={activeCategories
+                                <ExpenseDistribution gradient={`conic-gradient(${gradient})`} label={activeCategories
                                             .map(
                                                 (c) =>
                                                     `${c.name}: ${money(c.cents)}`,
                                             )
-                                            .join(', ')}
-                                    >
-                                        <div>
-                                            <span>Por categorías</span>
-                                            <strong>
+                                            .join(', ')} value={<>
                                                 {money(positiveTotal)}
-                                            </strong>
-                                        </div>
-                                    </div>
-                                    <ul className="expense-legend">
+                                            </>}>
                                         {activeCategories
                                             .slice(0, 6)
                                             .map((c) => (
-                                                <li key={c.id}>
-                                                    <span>
-                                                        <i
-                                                            style={{
-                                                                background:
-                                                                    c.color,
-                                                            }}
-                                                        />
-                                                        {c.name}
-                                                    </span>
-                                                    <strong>
-                                                        {money(c.cents)}
-                                                        <small>
+                                                <ExpenseLegendItem key={c.id} color={c.color} label={c.name} value={money(c.cents)} detail={<>
                                                             {(
                                                                 (c.cents /
                                                                     positiveTotal) *
                                                                 100
                                                             ).toFixed(0)}{' '}
                                                             %
-                                                        </small>
-                                                    </strong>
-                                                </li>
+                                                        </>} />
                                             ))}
                                         {activeCategories.length > 6 && (
-                                            <li>
-                                                <span>Resto de categorías</span>
-                                                <strong>
+                                            <ExpenseLegendItem label={<>Resto de categorías</>} value={<>
                                                     {money(
                                                         activeCategories
                                                             .slice(6)
@@ -924,11 +804,9 @@ export default function ExpenseManager() {
                                                                 0,
                                                             ),
                                                     )}
-                                                </strong>
-                                            </li>
+                                                </>} />
                                         )}
-                                    </ul>
-                                </div>
+                                    </ExpenseDistribution>
                             ) : (
                                 <Empty title="Aún no hay gasto neto positivo">
                                     Las categorías aparecerán cuando registres
@@ -936,18 +814,18 @@ export default function ExpenseManager() {
                                 </Empty>
                             )}
                             {stats.categories.some((c) => c.cents < 0) && (
-                                <p className="expense-hint">
+                                <ExpenseHint >
                                     El gráfico muestra categorías con saldo de
                                     gasto positivo. Hay categorías con más
                                     reembolsos que gastos este mes.
-                                </p>
+                                </ExpenseHint>
                             )}
-                        </section>
-                        <section className="expense-panel">
-                            <div className="expense-panel-title">
-                                <h2>Un plan para lo que queda</h2>
-                                <button
-                                    className="expense-btn expense-btn--quiet"
+                        </ExpensePanel>
+                        <ExpensePanel className={expensePresentationStyleClasses("expense-panel")}>
+                            <ExpensePanelHeading title={<> Un plan para lo que queda </>} className={expensePresentationStyleClasses("expense-panel-title")}>
+
+                                <ExpenseButton variant="quiet"
+                                    className={expensePresentationStyleClasses("expense-btn expense-btn--quiet")}
                                     disabled={!editable}
                                     onClick={() =>
                                         setEditor({ type: 'budget' })
@@ -957,23 +835,20 @@ export default function ExpenseManager() {
                                     {stats.budget
                                         ? 'Ajustar'
                                         : 'Definir presupuesto'}
-                                </button>
-                            </div>
+                                </ExpenseButton>
+                            </ExpensePanelHeading>
                             {stats.budget ? (
                                 <>
-                                    <div className="expense-budget-number">
-                                        <strong>{money(stats.expenses)}</strong>
-                                        <span>
+                                    <ExpenseBudgetNumber value={<>{money(stats.expenses)}</>}>
                                             de {money(stats.budget.limitCents)}{' '}
                                             previstos
-                                        </span>
-                                    </div>
+                                        </ExpenseBudgetNumber>
                                     <Progress
                                         value={stats.expenses}
                                         limit={stats.budget.limitCents}
                                     />
                                     <p
-                                        className={`expense-hint${stats.remaining! < 0 ? ' expense-negative' : ''}`}
+                                        className={expensePresentationStyleClasses(`expense-hint${stats.remaining! < 0 ? ' expense-negative' : ''}`)}
                                     >
                                         {stats.remaining! < 0
                                             ? `Has superado el presupuesto en ${money(-stats.remaining!)}.`
@@ -981,167 +856,107 @@ export default function ExpenseManager() {
                                     </p>
                                 </>
                             ) : (
-                                <p className="expense-hint">
+                                <ExpenseHint >
                                     Elige cuánto quieres gastar este mes y
                                     reparte límites por categoría.
-                                </p>
+                                </ExpenseHint>
                             )}
-                            <dl className="expense-facts">
-                                <div>
-                                    <dt>Recurrentes pendientes del mes</dt>
-                                    <dd>{money(commitments)}</dd>
-                                </div>
-                                <div>
-                                    <dt>Ingresos recurrentes pendientes</dt>
-                                    <dd>{money(expectedIncome)}</dd>
-                                </div>
-                                <div>
-                                    <dt>Balance si se cumplen los previstos</dt>
-                                    <dd>
+                            <ExpenseFactList semantic={true} items={[{label:<>Recurrentes pendientes del mes</>,value:<>{money(commitments)}</>},{label:<>Ingresos recurrentes pendientes</>,value:<>{money(expectedIncome)}</>},{label:<>Balance si se cumplen los previstos</>,value:<>
                                         {money(
                                             stats.net -
                                                 commitments +
                                                 expectedIncome +
                                                 plannedNet,
                                         )}
-                                    </dd>
-                                </div>
-                                <div>
-                                    <dt>Saldo total de cuentas hoy</dt>
-                                    <dd>{money(allBalance)}</dd>
-                                </div>
-                            </dl>
-                            <p className="expense-hint">
+                                    </>},{label:<>Saldo total de cuentas hoy</>,value:<>{money(allBalance)}</>}]} />
+                            <ExpenseHint >
                                 Los previstos incluyen vencimientos sin
                                 confirmar y movimientos futuros registrados. No
                                 son pagos realizados.
-                            </p>
+                            </ExpenseHint>
                             {stats.budget && stats.remaining! < commitments && (
-                                <p className="expense-insight">
+                                <ExpenseInsight >
                                     Los recurrentes pendientes ya superan el
                                     presupuesto que queda. Revisa los límites
                                     antes de añadir más gasto.
-                                </p>
+                                </ExpenseInsight>
                             )}
-                        </section>
-                    </div>
-                    <div className="expense-two-col">
-                        <section className="expense-panel">
-                            <div className="expense-panel-title">
-                                <h2>Tu evolución</h2>
-                                <span className="expense-hint">
+                        </ExpensePanel>
+                    </ExpenseGrid>
+                    <ExpenseGrid variant="columns" className={expensePresentationStyleClasses("expense-two-col")}>
+                        <ExpensePanel className={expensePresentationStyleClasses("expense-panel")}>
+                            <ExpensePanelHeading title={<> Tu evolución </>} className={expensePresentationStyleClasses("expense-panel-title")}>
+
+                                <span className={expensePresentationStyleClasses("expense-hint")}>
                                     6 meses · solo registrados
                                 </span>
-                            </div>
-                            <div className="expense-chart-legend">
-                                <span>
-                                    <i />
+                            </ExpensePanelHeading>
+                            <ExpenseChartLegend items={[<>
                                     Ingresos
-                                </span>
-                                <span>
-                                    <i />
+                                </>,<>
                                     Gastos netos
-                                </span>
-                            </div>
-                            <div
-                                className="expense-bar-chart"
-                                role="img"
-                                aria-label={chart
-                                    .map(
-                                        (c) =>
-                                            `${monthLabel(c.month)}: ingresos ${money(c.income)}, gastos netos ${money(c.expenses)}`,
-                                    )
-                                    .join('; ')}
-                            >
+                                </>]} />
+                            <ExpenseBarChart>
                                 {chart.map((c) => (
-                                    <div
-                                        className="expense-bar-month"
-                                        key={c.month}
-                                    >
-                                        <div className="expense-bar-pair">
-                                            <span
-                                                title={`Ingresos: ${money(c.income)}`}
-                                                style={{
+                                    <ExpenseMonthBars key={c.month} income={{title:`Ingresos: ${money(c.income)}`,style:{
                                                     height: `${(c.income / maxBar) * 100}%`,
-                                                }}
-                                            />
-                                            <span
-                                                title={`Gastos netos: ${money(c.expenses)}`}
-                                                style={{
+                                                }}} spend={{title:`Gastos netos: ${money(c.expenses)}`,style:{
                                                     height: `${(Math.abs(c.expenses) / maxBar) * 100}%`,
-                                                }}
-                                                className={
-                                                    c.expenses < 0
+                                                },className:c.expenses < 0
                                                         ? 'expense-bar-refund'
-                                                        : ''
-                                                }
-                                            />
-                                        </div>
-                                        <small>
+                                                        : ''}} label={<>
                                             {new Intl.DateTimeFormat('es-ES', {
                                                 month: 'short',
                                                 timeZone: 'UTC',
                                             }).format(
                                                 new Date(`${c.month}-01`),
                                             )}
-                                        </small>
-                                    </div>
+                                        </>} />
                                 ))}
-                            </div>
+                            </ExpenseBarChart>
                             {stats.expenses && previous.expenses > 0 ? (
-                                <p className="expense-hint">
+                                <ExpenseHint >
                                     {money(stats.expenses - previous.expenses)}{' '}
                                     respecto al mes anterior completo.
-                                </p>
+                                </ExpenseHint>
                             ) : (
-                                <p className="expense-hint">
+                                <ExpenseHint >
                                     La comparación gana contexto conforme
                                     completas meses.
-                                </p>
+                                </ExpenseHint>
                             )}
-                        </section>
-                        <section className="expense-panel">
-                            <div className="expense-panel-title">
-                                <h2>
+                        </ExpensePanel>
+                        <ExpensePanel className={expensePresentationStyleClasses("expense-panel")}>
+                            <ExpensePanelHeading title={<>
                                     <CalendarDays size={19} />
                                     Vencimientos del mes
-                                </h2>
-                                <button
-                                    className="expense-btn expense-btn--quiet"
+                                 </>} className={expensePresentationStyleClasses("expense-panel-title")}>
+
+                                <ExpenseButton variant="quiet"
+                                    className={expensePresentationStyleClasses("expense-btn expense-btn--quiet")}
                                     onClick={() => setTab('recurring')}
                                 >
                                     Ver todos
-                                </button>
-                            </div>
+                                </ExpenseButton>
+                            </ExpensePanelHeading>
                             {pending.length ? (
-                                <div className="expense-upcoming">
+                                <div className={expensePresentationStyleClasses("expense-upcoming")}>
                                     {pending.slice(0, 5).map((p) => (
-                                        <div
-                                            className="expense-row"
-                                            key={`${p.rule.id}:${p.date}`}
-                                        >
-                                            <div>
-                                                <strong>{p.rule.title}</strong>
-                                                <small>
+                                        <ExpenseRecordRow key={`${p.rule.id}:${p.date}`} title={<>{p.rule.title}</>} detail={<>
                                                     {dayLabel(p.date)} ·{' '}
                                                     {p.date < today
                                                         ? 'Pendiente de confirmar'
                                                         : 'Previsto'}
-                                                </small>
-                                            </div>
-                                            <strong
-                                                className={
-                                                    p.rule.kind === 'income'
+                                                </>}><strong
+                                                className={expensePresentationStyleClasses(p.rule.kind === 'income'
                                                         ? 'expense-positive'
-                                                        : ''
-                                                }
+                                                        : '')}
                                             >
                                                 {p.rule.kind === 'income'
                                                     ? '+'
                                                     : '−'}
                                                 {money(p.rule.amountCents)}
-                                            </strong>
-                                        </div>
+                                            </strong></ExpenseRecordRow>
                                     ))}
                                 </div>
                             ) : (
@@ -1150,14 +965,12 @@ export default function ExpenseManager() {
                                     habituales.
                                 </Empty>
                             )}
-                        </section>
-                    </div>
-                    <details className="expense-panel expense-fold">
-                        <summary>
+                        </ExpensePanel>
+                    </ExpenseGrid>
+                    <ExpenseDisclosure className={expensePresentationStyleClasses("expense-panel expense-fold")} title={<>
                             <CalendarDays size={18} />
                             Gasto por día · {monthLabel(month)}
-                        </summary>
-                        <div className="expense-calendar">
+                        </>}><ExpenseCalendar >
                             {Array.from({ length: bounds.days }, (_, i) => {
                                 const date = `${month}-${String(i + 1).padStart(2, '0')}`;
                                 const cents =
@@ -1176,34 +989,23 @@ export default function ExpenseManager() {
                                               )
                                         : 0;
                                 return (
-                                    <div
-                                        key={date}
-                                        className={
-                                            cents > 0
-                                                ? 'expense-calendar-day expense-calendar-day--spent'
-                                                : 'expense-calendar-day'
-                                        }
-                                    >
-                                        <span>{i + 1}</span>
-                                        <strong>
+                                    <ExpenseCalendarDay key={date} spent={cents > 0} label={<>{i + 1}</>} value={<>
                                             {cents ? money(cents) : '—'}
-                                        </strong>
-                                    </div>
+                                        </>} />
                                 );
                             })}
-                        </div>
-                    </details>
+                        </ExpenseCalendar></ExpenseDisclosure>
                 </>
             )}
             {tab === 'entries' && (
-                <section className="expense-panel">
-                    <div className="expense-panel-title">
-                        <h2>Movimientos</h2>
-                        <div className="expense-panel-title-actions">
+                <ExpensePanel className={expensePresentationStyleClasses("expense-panel")}>
+                    <ExpensePanelHeading title={<> Movimientos </>} className={expensePresentationStyleClasses("expense-panel-title")}>
+
+                        <ExpenseActions variant="heading" className={expensePresentationStyleClasses("expense-panel-title-actions")}>
                             <span>{filtered.length} registros</span>
-                            <button
+                            <ExpenseButton variant="danger"
                                 type="button"
-                                className="expense-btn expense-btn--danger"
+                                className={expensePresentationStyleClasses("expense-btn expense-btn--danger")}
                                 disabled={!editable || !book.entries.length}
                                 onClick={() =>
                                     setConfirmation({
@@ -1217,29 +1019,15 @@ export default function ExpenseManager() {
                             >
                                 <Trash2 size={16} />
                                 Borrar todos
-                            </button>
-                        </div>
-                    </div>
-                    <div className="expense-filters">
-                        <label className="expense-search">
-                            <Search size={17} />
-                            <span className="expense-sr">
-                                Buscar concepto o nota
-                            </span>
-                            <input
-                                type="search"
-                                value={query}
-                                onChange={(e) => {
-                                    setQuery(e.target.value);
-                                    setPage(0);
-                                }}
-                                placeholder="Buscar concepto o nota"
-                            />
-                        </label>
-                        <label className="expense-field">
-                            <span className="expense-sr">
+                            </ExpenseButton>
+                        </ExpenseActions>
+                    </ExpensePanelHeading>
+                    <ExpenseFilters >
+                        <ExpenseSearch icon={<Search size={17} />} label="Buscar concepto o nota" type="search" value={query} onChange={(e) => { setQuery(e.target.value); setPage(0); }} placeholder="Buscar concepto o nota" />
+                        <ExpenseField labelProps={{ className: 'expense-sr' }} label={<>
                                 Tipo de movimiento
-                            </span>
+                             </>} className={expensePresentationStyleClasses("expense-field")}>
+
                             <select
                                 value={kindFilter}
                                 onChange={(e) => {
@@ -1256,11 +1044,11 @@ export default function ExpenseManager() {
                                     ),
                                 )}
                             </select>
-                        </label>
-                        <label className="expense-field">
-                            <span className="expense-sr">
+                        </ExpenseField>
+                        <ExpenseField labelProps={{ className: 'expense-sr' }} label={<>
                                 Filtrar categoría
-                            </span>
+                             </>} className={expensePresentationStyleClasses("expense-field")}>
+
                             <select
                                 value={categoryFilter}
                                 onChange={(e) => {
@@ -1277,9 +1065,9 @@ export default function ExpenseManager() {
                                     </option>
                                 ))}
                             </select>
-                        </label>
-                        <label className="expense-field">
-                            <span className="expense-sr">Filtrar cuenta</span>
+                        </ExpenseField>
+                        <ExpenseField labelProps={{ className: 'expense-sr' }} label={<> Filtrar cuenta </>} className={expensePresentationStyleClasses("expense-field")}>
+
                             <select
                                 value={accountFilter}
                                 onChange={(e) => {
@@ -1294,9 +1082,9 @@ export default function ExpenseManager() {
                                     </option>
                                 ))}
                             </select>
-                        </label>
-                        <label className="expense-field">
-                            <span className="expense-sr">Filtrar etiqueta</span>
+                        </ExpenseField>
+                        <ExpenseField labelProps={{ className: 'expense-sr' }} label={<> Filtrar etiqueta </>} className={expensePresentationStyleClasses("expense-field")}>
+
                             <input
                                 value={tagFilter}
                                 onChange={(e) => {
@@ -1305,9 +1093,9 @@ export default function ExpenseManager() {
                                 }}
                                 placeholder="Etiqueta"
                             />
-                        </label>
-                    </div>
-                    <label className="expense-check">
+                        </ExpenseField>
+                    </ExpenseFilters>
+                    <ExpenseCheckbox className={"expense-check"}>
                         <input
                             type="checkbox"
                             checked={allDates}
@@ -1317,37 +1105,30 @@ export default function ExpenseManager() {
                             }}
                         />
                         Ver todas las fechas
-                    </label>
+                    </ExpenseCheckbox>
                     {filtered.length ? (
                         <>
-                            <div className="expense-mobile-entries">
+                            <div className={expensePresentationStyleClasses("expense-mobile-entries")}>
                                 {filtered
                                     .slice(safePage * 30, (safePage + 1) * 30)
                                     .map((e) => (
                                         <article
-                                            className="expense-mobile-entry"
+                                            className={expensePresentationStyleClasses("expense-mobile-entry")}
                                             key={e.id}
                                         >
-                                            <div className="expense-row">
-                                                <div>
-                                                    <strong>
+                                            <ExpenseRecordRow  title={<>
                                                         {e.description}
-                                                    </strong>
-                                                    <small>
+                                                    </>} detail={<>
                                                         {dayLabel(e.date)} ·{' '}
                                                         {kindLabels[e.kind]}
                                                         {e.date > today
                                                             ? ' · Previsto'
                                                             : ''}
-                                                    </small>
-                                                </div>
-                                                <strong
-                                                    className={
-                                                        e.kind === 'income' ||
+                                                    </>}><strong
+                                                    className={expensePresentationStyleClasses(e.kind === 'income' ||
                                                         e.kind === 'refund'
                                                             ? 'expense-positive'
-                                                            : ''
-                                                    }
+                                                            : '')}
                                                 >
                                                     {e.kind === 'expense'
                                                         ? '−'
@@ -1355,19 +1136,18 @@ export default function ExpenseManager() {
                                                           ? ''
                                                           : '+'}
                                                     {money(e.amountCents)}
-                                                </strong>
-                                            </div>
-                                            <div className="expense-row">
-                                                <p className="expense-hint">
+                                                </strong></ExpenseRecordRow>
+                                            <ExpenseRecordRow >
+                                                <ExpenseHint >
                                                     {accountName(e.accountId)}
                                                     {e.toAccountId
                                                         ? ` → ${accountName(e.toAccountId)}`
                                                         : e.categoryId
                                                           ? ` · ${categoryName(e.categoryId)}`
                                                           : ''}
-                                                </p>
-                                                <div className="expense-row-actions">
-                                                    <button
+                                                </ExpenseHint>
+                                                <ExpenseActions variant="row" className={expensePresentationStyleClasses("expense-row-actions")}>
+                                                    <ExpenseIconButton
                                                         disabled={!editable}
                                                         aria-label={`Editar ${e.description}`}
                                                         onClick={() =>
@@ -1378,8 +1158,8 @@ export default function ExpenseManager() {
                                                         }
                                                     >
                                                         <Pencil size={16} />
-                                                    </button>
-                                                    <button
+                                                    </ExpenseIconButton>
+                                                    <ExpenseIconButton
                                                         disabled={!editable}
                                                         aria-label={`Eliminar ${e.description}`}
                                                         onClick={() =>
@@ -1401,16 +1181,16 @@ export default function ExpenseManager() {
                                                         }
                                                     >
                                                         <Trash2 size={16} />
-                                                    </button>
-                                                </div>
-                                            </div>
+                                                    </ExpenseIconButton>
+                                                </ExpenseActions>
+                                            </ExpenseRecordRow>
                                             {e.tags.length > 0 && (
                                                 <small>
                                                     {e.tags.join(' · ')}
                                                 </small>
                                             )}
                                             {e.note && (
-                                                <details className="expense-hint">
+                                                <details className={expensePresentationStyleClasses("expense-hint")}>
                                                     <summary>Ver nota</summary>
                                                     <p>{e.note}</p>
                                                 </details>
@@ -1418,233 +1198,220 @@ export default function ExpenseManager() {
                                         </article>
                                     ))}
                             </div>
-                            <div className="expense-table-scroll expense-entry-table">
-                                <table className="expense-table">
-                                    <thead>
-                                        <tr>
-                                            <th>Concepto</th>
-                                            <th>Fecha</th>
-                                            <th>Categoría</th>
-                                            <th>Cuenta</th>
-                                            <th>Importe</th>
-                                            <th>
-                                                <span className="expense-sr">
-                                                    Acciones
-                                                </span>
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {filtered
-                                            .slice(
-                                                safePage * 30,
-                                                (safePage + 1) * 30,
-                                            )
-                                            .map((e) => (
-                                                <tr key={e.id}>
-                                                    <td>
-                                                        <div className="expense-entry-name">
-                                                            <span
-                                                                className={`expense-kind expense-kind--${e.kind}`}
-                                                            >
-                                                                {e.kind ===
-                                                                'transfer' ? (
-                                                                    <ArrowRightLeft
-                                                                        size={
-                                                                            15
-                                                                        }
-                                                                    />
-                                                                ) : e.kind ===
-                                                                  'expense' ? (
-                                                                    <ArrowUpRight
-                                                                        size={
-                                                                            15
-                                                                        }
-                                                                    />
-                                                                ) : (
-                                                                    <ArrowDownLeft
-                                                                        size={
-                                                                            15
-                                                                        }
-                                                                    />
-                                                                )}
-                                                            </span>
-                                                            <div>
-                                                                <strong>
-                                                                    {
-                                                                        e.description
+                            <DataTable appearance="expenses" className={expensePresentationStyleClasses("expense-entry-table")}>
+                                <thead>
+                                    <tr>
+                                        <th>Concepto</th>
+                                        <th>Fecha</th>
+                                        <th>Categoría</th>
+                                        <th>Cuenta</th>
+                                        <th>Importe</th>
+                                        <th>
+                                            <span className={expensePresentationStyleClasses("expense-sr")}>
+                                                Acciones
+                                            </span>
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filtered
+                                        .slice(
+                                            safePage * 30,
+                                            (safePage + 1) * 30,
+                                        )
+                                        .map((e) => (
+                                            <tr key={e.id}>
+                                                <td>
+                                                    <ExpenseEntryIdentity kind={e.kind} icon={<>
+                                                            {e.kind ===
+                                                            'transfer' ? (
+                                                                <ArrowRightLeft
+                                                                    size={
+                                                                        15
                                                                     }
-                                                                </strong>
-                                                                <small>
-                                                                    {
-                                                                        kindLabels[
-                                                                            e
-                                                                                .kind
-                                                                        ]
+                                                                />
+                                                            ) : e.kind ===
+                                                              'expense' ? (
+                                                                <ArrowUpRight
+                                                                    size={
+                                                                        15
                                                                     }
-                                                                    {e.recurrenceId
-                                                                        ? ' · Recurrente'
-                                                                        : ''}
-                                                                    {e.date >
-                                                                    today
-                                                                        ? ' · Previsto'
-                                                                        : ''}
-                                                                    {e.tags
-                                                                        .length
-                                                                        ? ` · ${e.tags.join(', ')}`
-                                                                        : ''}
-                                                                </small>
-                                                                {e.note && (
-                                                                    <small
-                                                                        title={
-                                                                            e.note
-                                                                        }
-                                                                    >
-                                                                        {e.note.slice(
-                                                                            0,
-                                                                            80,
-                                                                        )}
-                                                                    </small>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    </td>
-                                                    <td>{dayLabel(e.date)}</td>
-                                                    <td>
-                                                        {categoryName(
-                                                            e.categoryId,
-                                                        )}
-                                                    </td>
-                                                    <td>
-                                                        {accountName(
-                                                            e.accountId,
-                                                        )}
-                                                        {e.toAccountId && (
+                                                                />
+                                                            ) : (
+                                                                <ArrowDownLeft
+                                                                    size={
+                                                                        15
+                                                                    }
+                                                                />
+                                                            )}
+                                                        </>}>
+                                                            <strong>
+                                                                {
+                                                                    e.description
+                                                                }
+                                                            </strong>
                                                             <small>
-                                                                →{' '}
-                                                                {accountName(
-                                                                    e.toAccountId,
-                                                                )}
+                                                                {
+                                                                    kindLabels[
+                                                                        e
+                                                                            .kind
+                                                                    ]
+                                                                }
+                                                                {e.recurrenceId
+                                                                    ? ' · Recurrente'
+                                                                    : ''}
+                                                                {e.date >
+                                                                today
+                                                                    ? ' · Previsto'
+                                                                    : ''}
+                                                                {e.tags
+                                                                    .length
+                                                                    ? ` · ${e.tags.join(', ')}`
+                                                                    : ''}
                                                             </small>
-                                                        )}
-                                                    </td>
-                                                    <td
-                                                        className={
-                                                            e.kind ===
-                                                                'income' ||
-                                                            e.kind === 'refund'
-                                                                ? 'expense-positive'
-                                                                : ''
-                                                        }
-                                                    >
-                                                        {e.kind === 'transfer'
-                                                            ? ''
-                                                            : e.kind ===
-                                                                'expense'
-                                                              ? '−'
-                                                              : '+'}
-                                                        {money(e.amountCents)}
-                                                    </td>
-                                                    <td>
-                                                        <div className="expense-row-actions">
-                                                            <button
-                                                                disabled={
-                                                                    !editable
-                                                                }
-                                                                aria-label={`Editar ${e.description}`}
-                                                                onClick={() =>
-                                                                    setEditor({
-                                                                        type: 'entry',
-                                                                        value: e,
-                                                                    })
-                                                                }
-                                                            >
-                                                                <Pencil
-                                                                    size={16}
-                                                                />
-                                                            </button>
-                                                            <button
-                                                                disabled={
-                                                                    !editable
-                                                                }
-                                                                aria-label={`Eliminar ${e.description}`}
-                                                                onClick={() =>
-                                                                    setConfirmation(
-                                                                        {
-                                                                            title: 'Eliminar movimiento',
-                                                                            message: `Se eliminará «${e.description}» (${money(e.amountCents)}). Los saldos y presupuestos se recalcularán.${e.recurrenceId ? ' Su vencimiento volverá a quedar pendiente.' : ''}`,
-                                                                            next: {
-                                                                                ...book,
-                                                                                entries:
-                                                                                    book.entries.filter(
-                                                                                        (
-                                                                                            old,
-                                                                                        ) =>
-                                                                                            old.id !==
-                                                                                            e.id,
-                                                                                    ),
-                                                                            },
+                                                            {e.note && (
+                                                                <small
+                                                                    title={
+                                                                        e.note
+                                                                    }
+                                                                >
+                                                                    {e.note.slice(
+                                                                        0,
+                                                                        80,
+                                                                    )}
+                                                                </small>
+                                                            )}
+                                                        </ExpenseEntryIdentity>
+                                                </td>
+                                                <td>{dayLabel(e.date)}</td>
+                                                <td>
+                                                    {categoryName(
+                                                        e.categoryId,
+                                                    )}
+                                                </td>
+                                                <td>
+                                                    {accountName(
+                                                        e.accountId,
+                                                    )}
+                                                    {e.toAccountId && (
+                                                        <small>
+                                                            →{' '}
+                                                            {accountName(
+                                                                e.toAccountId,
+                                                            )}
+                                                        </small>
+                                                    )}
+                                                </td>
+                                                <td
+                                                    className={expensePresentationStyleClasses(e.kind ===
+                                                            'income' ||
+                                                        e.kind === 'refund'
+                                                            ? 'expense-positive'
+                                                            : '')}
+                                                >
+                                                    {e.kind === 'transfer'
+                                                        ? ''
+                                                        : e.kind ===
+                                                            'expense'
+                                                          ? '−'
+                                                          : '+'}
+                                                    {money(e.amountCents)}
+                                                </td>
+                                                <td>
+                                                    <ExpenseActions variant="row" className={expensePresentationStyleClasses("expense-row-actions")}>
+                                                        <ExpenseIconButton
+                                                            disabled={
+                                                                !editable
+                                                            }
+                                                            aria-label={`Editar ${e.description}`}
+                                                            onClick={() =>
+                                                                setEditor({
+                                                                    type: 'entry',
+                                                                    value: e,
+                                                                })
+                                                            }
+                                                        >
+                                                            <Pencil
+                                                                size={16}
+                                                            />
+                                                        </ExpenseIconButton>
+                                                        <ExpenseIconButton
+                                                            disabled={
+                                                                !editable
+                                                            }
+                                                            aria-label={`Eliminar ${e.description}`}
+                                                            onClick={() =>
+                                                                setConfirmation(
+                                                                    {
+                                                                        title: 'Eliminar movimiento',
+                                                                        message: `Se eliminará «${e.description}» (${money(e.amountCents)}). Los saldos y presupuestos se recalcularán.${e.recurrenceId ? ' Su vencimiento volverá a quedar pendiente.' : ''}`,
+                                                                        next: {
+                                                                            ...book,
+                                                                            entries:
+                                                                                book.entries.filter(
+                                                                                    (
+                                                                                        old,
+                                                                                    ) =>
+                                                                                        old.id !==
+                                                                                        e.id,
+                                                                                ),
                                                                         },
-                                                                    )
-                                                                }
-                                                            >
-                                                                <Trash2
-                                                                    size={16}
-                                                                />
-                                                            </button>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            ))}
-                                    </tbody>
-                                </table>
-                            </div>
-                            <div className="expense-pagination">
-                                <button
-                                    className="expense-btn expense-btn--secondary"
+                                                                    },
+                                                                )
+                                                            }
+                                                        >
+                                                            <Trash2
+                                                                size={16}
+                                                            />
+                                                        </ExpenseIconButton>
+                                                    </ExpenseActions>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                </tbody>
+                            </DataTable>
+                            <ExpensePagination previous={<ExpenseButton variant="secondary"
+                                    className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                                     disabled={safePage === 0}
                                     onClick={() => setPage(safePage - 1)}
                                 >
                                     Anterior
-                                </button>
-                                <span>
+                                </ExpenseButton>} label={<>
                                     {safePage + 1} / {pageCount}
-                                </span>
-                                <button
-                                    className="expense-btn expense-btn--secondary"
+                                </>} next={<ExpenseButton variant="secondary"
+                                    className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                                     disabled={safePage + 1 >= pageCount}
                                     onClick={() => setPage(safePage + 1)}
                                 >
                                     Siguiente
-                                </button>
-                            </div>
+                                </ExpenseButton>} />
                         </>
                     ) : (
                         <Empty
                             title="No hay movimientos con estos filtros"
                             action={
-                                <button
-                                    className="expense-btn"
+                                <ExpenseButton
+                                    className={expensePresentationStyleClasses("expense-btn")}
                                     disabled={!editable}
                                     onClick={() => newMovement()}
                                 >
                                     Añadir movimiento
-                                </button>
+                                </ExpenseButton>
                             }
                         >
                             Prueba otra fecha o registra tu primer movimiento.
                         </Empty>
                     )}
-                </section>
+                </ExpensePanel>
             )}
             {tab === 'budgets' && (
                 <>
-                    <div className="expense-two-col">
-                        <section className="expense-panel">
-                            <div className="expense-panel-title">
-                                <h2>Presupuesto de {monthLabel(month)}</h2>
-                                <button
-                                    className="expense-btn expense-btn--quiet"
+                    <ExpenseGrid variant="columns" className={expensePresentationStyleClasses("expense-two-col")}>
+                        <ExpensePanel className={expensePresentationStyleClasses("expense-panel")}>
+                            <ExpensePanelHeading title={<> Presupuesto de {monthLabel(month)} </>} className={expensePresentationStyleClasses("expense-panel-title")}>
+
+                                <ExpenseButton variant="quiet"
+                                    className={expensePresentationStyleClasses("expense-btn expense-btn--quiet")}
                                     disabled={!editable}
                                     onClick={() =>
                                         setEditor({ type: 'budget' })
@@ -1652,41 +1419,29 @@ export default function ExpenseManager() {
                                 >
                                     <Pencil size={16} />
                                     Editar
-                                </button>
-                            </div>
+                                </ExpenseButton>
+                            </ExpensePanelHeading>
                             {stats.budget ? (
                                 <>
-                                    <div className="expense-budget-number">
-                                        <strong>
+                                    <ExpenseBudgetNumber value={<>
                                             {money(stats.budget.limitCents)}
-                                        </strong>
-                                        <span>
+                                        </>}>
                                             {stats.budget.month === 'default'
                                                 ? 'Presupuesto base'
                                                 : 'Presupuesto de este mes'}
-                                        </span>
-                                    </div>
+                                        </ExpenseBudgetNumber>
                                     <Progress
                                         value={stats.expenses}
                                         limit={stats.budget.limitCents}
                                     />
-                                    <div className="expense-facts">
-                                        <div>
-                                            <span>Gasto neto</span>
-                                            <strong>
+                                    <ExpenseFactList semantic={false} items={[{label:<>Gasto neto</>,value:<>
                                                 {money(stats.expenses)}
-                                            </strong>
-                                        </div>
-                                        <div>
-                                            <span>Disponible</span>
-                                            <strong>
+                                            </>},{label:<>Disponible</>,value:<>
                                                 {money(stats.remaining!)}
-                                            </strong>
-                                        </div>
-                                    </div>
-                                    <div className="expense-actions">
-                                        <button
-                                            className="expense-btn expense-btn--secondary"
+                                            </>}]} />
+                                    <ExpenseActions variant="toolbar" className={"expense-actions"}>
+                                        <ExpenseButton variant="secondary"
+                                            className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                                             disabled={
                                                 !editable ||
                                                 !budgetForMonth(
@@ -1718,9 +1473,9 @@ export default function ExpenseManager() {
                                             }}
                                         >
                                             Copiar mes anterior
-                                        </button>
-                                        <button
-                                            className="expense-btn expense-btn--quiet"
+                                        </ExpenseButton>
+                                        <ExpenseButton variant="quiet"
+                                            className={expensePresentationStyleClasses("expense-btn expense-btn--quiet")}
                                             disabled={!editable}
                                             onClick={() =>
                                                 setConfirmation({
@@ -1745,35 +1500,35 @@ export default function ExpenseManager() {
                                             }
                                         >
                                             Quitar
-                                        </button>
-                                    </div>
+                                        </ExpenseButton>
+                                    </ExpenseActions>
                                 </>
                             ) : (
                                 <Empty
                                     title="Un límite te ayuda a decidir"
                                     action={
-                                        <button
-                                            className="expense-btn"
+                                        <ExpenseButton
+                                            className={expensePresentationStyleClasses("expense-btn")}
                                             disabled={!editable}
                                             onClick={() =>
                                                 setEditor({ type: 'budget' })
                                             }
                                         >
                                             Definir presupuesto
-                                        </button>
+                                        </ExpenseButton>
                                     }
                                 >
                                     Empieza con un total y ajusta las categorías
                                     que quieras controlar.
                                 </Empty>
                             )}
-                        </section>
-                        <section className="expense-panel">
-                            <h2>Regla 50 / 30 / 20</h2>
-                            <p className="expense-hint">
+                        </ExpensePanel>
+                        <ExpensePanel className={expensePresentationStyleClasses("expense-panel")}>
+                            <ExpensePanelTitle>Regla 50 / 30 / 20</ExpensePanelTitle>
+                            <ExpenseHint >
                                 Una referencia, no una obligación. Los grupos de
                                 tus categorías son editables.
-                            </p>
+                            </ExpenseHint>
                             {(['needs', 'wants'] as const).map((group, i) => {
                                 const cents = stats.categories
                                     .filter((c) => c.group === group)
@@ -1782,10 +1537,10 @@ export default function ExpenseManager() {
                                     stats.income * (i === 0 ? 0.5 : 0.3);
                                 return (
                                     <div
-                                        className="expense-allocation"
+                                        className={expensePresentationStyleClasses("expense-allocation")}
                                         key={group}
                                     >
-                                        <div className="expense-row">
+                                        <ExpenseRecordRow >
                                             <span>{groupLabels[group]}</span>
                                             <strong>
                                                 {money(cents)}{' '}
@@ -1796,7 +1551,7 @@ export default function ExpenseManager() {
                                                         : 'sin ingresos'}
                                                 </small>
                                             </strong>
-                                        </div>
+                                        </ExpenseRecordRow>
                                         <Progress
                                             value={cents}
                                             limit={target}
@@ -1805,8 +1560,8 @@ export default function ExpenseManager() {
                                     </div>
                                 );
                             })}
-                            <div className="expense-allocation">
-                                <div className="expense-row">
+                            <div className={expensePresentationStyleClasses("expense-allocation")}>
+                                <ExpenseRecordRow >
                                     <span>
                                         Ahorro disponible + inversión registrada
                                     </span>
@@ -1825,53 +1580,44 @@ export default function ExpenseManager() {
                                                     ),
                                         )}
                                     </strong>
-                                </div>
-                                <p className="expense-hint">
+                                </ExpenseRecordRow>
+                                <ExpenseHint >
                                     Referencia:{' '}
                                     {stats.income
                                         ? `${money(stats.income * 0.2)} (20 % de tus ingresos)`
                                         : 'registra ingresos para comparar'}
                                     . Las transferencias entre tus cuentas
                                     quedan fuera.
-                                </p>
+                                </ExpenseHint>
                             </div>
-                        </section>
-                    </div>
-                    <section className="expense-panel">
-                        <div className="expense-panel-title">
-                            <h2>Categorías y límites</h2>
-                            <button
-                                className="expense-btn expense-btn--quiet"
+                        </ExpensePanel>
+                    </ExpenseGrid>
+                    <ExpensePanel className={expensePresentationStyleClasses("expense-panel")}>
+                        <ExpensePanelHeading title={<> Categorías y límites </>} className={expensePresentationStyleClasses("expense-panel-title")}>
+
+                            <ExpenseButton variant="quiet"
+                                className={expensePresentationStyleClasses("expense-btn expense-btn--quiet")}
                                 disabled={!editable}
                                 onClick={() => setEditor({ type: 'category' })}
                             >
                                 <Plus size={16} />
                                 Categoría
-                            </button>
-                        </div>
-                        <div className="expense-category-grid">
+                            </ExpenseButton>
+                        </ExpensePanelHeading>
+                        <ExpenseGrid variant="categories" className={expensePresentationStyleClasses("expense-category-grid")}>
                             {stats.categories.map((c) => {
                                 const limit =
                                     stats.budget?.categoryLimits.find(
                                         (l) => l.categoryId === c.id,
                                     )?.limitCents ?? 0;
                                 return (
-                                    <div
-                                        className="expense-category-card"
-                                        key={c.id}
-                                    >
-                                        <div className="expense-row">
+                                    <ExpenseSummaryCard key={c.id} appearance="category" header={<>
                                             <span>
-                                                <i
-                                                    className="expense-color-dot"
-                                                    style={{
-                                                        background: c.color,
-                                                    }}
-                                                />
+                                                <ExpenseColorDot color={c.color} />
                                                 {c.name}
                                             </span>
-                                            <button
-                                                className="expense-icon-btn"
+                                            <ExpenseIconButton
+                                                className={expensePresentationStyleClasses("expense-icon-btn")}
                                                 disabled={!editable}
                                                 aria-label={`Editar categoría ${c.name}`}
                                                 onClick={() =>
@@ -1882,115 +1628,88 @@ export default function ExpenseManager() {
                                                 }
                                             >
                                                 <Pencil size={15} />
-                                            </button>
-                                        </div>
-                                        <strong>
+                                            </ExpenseIconButton>
+                                        </>}  summary={<>
                                             {money(c.cents)}
                                             <small>
                                                 {limit
                                                     ? ` / ${money(limit)}`
                                                     : ' · sin límite'}
                                             </small>
-                                        </strong>
-                                        <Progress
+                                        </>}  progress={<Progress
                                             value={c.cents}
                                             limit={limit}
                                             color={c.color}
-                                        />
-                                        <p className="expense-hint">
+                                        />} detail={<>
                                             {groupLabels[c.group]}
                                             {limit && c.cents > limit
                                                 ? ` · Exceso: ${money(c.cents - limit)}`
                                                 : ''}
-                                        </p>
-                                    </div>
+                                        </>} />
                                 );
                             })}
-                        </div>
-                    </section>
+                        </ExpenseGrid>
+                    </ExpensePanel>
                 </>
             )}
             {tab === 'recurring' && (
                 <>
-                    <div className="expense-metrics expense-metrics--three">
-                        <article className="expense-stat">
-                            <span>Gasto recurrente equivalente</span>
-                            <strong>
+                    <ExpenseGrid variant="metrics" className={expensePresentationStyleClasses("expense-metrics expense-metrics--three")}>
+                        <ExpenseMetric className={expensePresentationStyleClasses("expense-stat")} label={<>Gasto recurrente equivalente</>} value={<>
                                 {money(Math.round(monthlyRecurrenceCost(book)))}
-                            </strong>
-                            <small>
+                            </>} detail={<>
                                 Reglas activas hoy · semanales × 52 / 12;
                                 anuales ÷ 12
-                            </small>
-                        </article>
-                        <article className="expense-stat">
-                            <span>Pendiente de confirmar este mes</span>
-                            <strong>{money(commitments)}</strong>
-                            <small>
+                            </>} />
+                        <ExpenseMetric className={expensePresentationStyleClasses("expense-stat")} label={<>Pendiente de confirmar este mes</>} value={<>{money(commitments)}</>} detail={<>
                                 {
                                     pending.filter(
                                         (p) => p.rule.kind === 'expense',
                                     ).length
                                 }{' '}
                                 vencimientos de gasto
-                            </small>
-                        </article>
-                        <article className="expense-stat">
-                            <span>Reglas activas</span>
-                            <strong>
+                            </>} />
+                        <ExpenseMetric className={expensePresentationStyleClasses("expense-stat")} label={<>Reglas activas</>} value={<>
                                 {
                                     book.recurring.filter((r) =>
                                         activeRecurrence(r, today),
                                     ).length
                                 }
-                            </strong>
-                            <small>Gastos e ingresos habituales</small>
-                        </article>
-                    </div>
-                    <section className="expense-panel">
-                        <div className="expense-panel-title">
-                            <h2>Vencimientos de {monthLabel(month)}</h2>
-                            <button
-                                className="expense-btn"
+                            </>} detail={<>Gastos e ingresos habituales</>} />
+                    </ExpenseGrid>
+                    <ExpensePanel className={expensePresentationStyleClasses("expense-panel")}>
+                        <ExpensePanelHeading title={<> Vencimientos de {monthLabel(month)} </>} className={expensePresentationStyleClasses("expense-panel-title")}>
+
+                            <ExpenseButton
+                                className={expensePresentationStyleClasses("expense-btn")}
                                 disabled={!editable}
                                 onClick={() => setEditor({ type: 'recurring' })}
                             >
                                 <Plus size={16} />
                                 Añadir recurrente
-                            </button>
-                        </div>
+                            </ExpenseButton>
+                        </ExpensePanelHeading>
                         {pending.length ? (
-                            <div className="expense-upcoming">
+                            <div className={expensePresentationStyleClasses("expense-upcoming")}>
                                 {pending.map((p) => (
-                                    <div
-                                        className="expense-row expense-due-row"
-                                        key={`${p.rule.id}:${p.date}`}
-                                    >
-                                        <div>
-                                            <strong>{p.rule.title}</strong>
-                                            <small>
+                                    <ExpenseRecordRow key={`${p.rule.id}:${p.date}`} className={expensePresentationStyleClasses("expense-due-row")} title={<>{p.rule.title}</>} detail={<>
                                                 {dayLabel(p.date)} ·{' '}
                                                 {accountName(p.rule.accountId)}
                                                 {p.date < today
                                                     ? ' · Pendiente'
                                                     : ''}
-                                            </small>
-                                        </div>
-                                        <strong
-                                            className={
-                                                p.rule.kind === 'income'
+                                            </>}><strong
+                                            className={expensePresentationStyleClasses(p.rule.kind === 'income'
                                                     ? 'expense-positive'
-                                                    : ''
-                                            }
+                                                    : '')}
                                         >
                                             {p.rule.kind === 'income'
                                                 ? '+'
                                                 : '−'}
                                             {money(p.rule.amountCents)}
-                                        </strong>
-                                        <div className="expense-actions">
-                                            <button
-                                                className="expense-btn expense-btn--secondary"
+                                        </strong><ExpenseActions variant="toolbar" className={"expense-actions"}>
+                                            <ExpenseButton variant="secondary"
+                                                className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                                                 disabled={!editable}
                                                 onClick={() =>
                                                     registerPending(
@@ -2001,9 +1720,9 @@ export default function ExpenseManager() {
                                             >
                                                 <Check size={15} />
                                                 Registrar
-                                            </button>
-                                            <button
-                                                className="expense-btn expense-btn--quiet"
+                                            </ExpenseButton>
+                                            <ExpenseButton variant="quiet"
+                                                className={expensePresentationStyleClasses("expense-btn expense-btn--quiet")}
                                                 disabled={!editable}
                                                 onClick={() =>
                                                     setConfirmation({
@@ -2033,9 +1752,8 @@ export default function ExpenseManager() {
                                                 }
                                             >
                                                 Omitir
-                                            </button>
-                                        </div>
-                                    </div>
+                                            </ExpenseButton>
+                                        </ExpenseActions></ExpenseRecordRow>
                                 ))}
                             </div>
                         ) : (
@@ -2044,18 +1762,12 @@ export default function ExpenseManager() {
                                 Cambia de mes para ver los próximos.
                             </Empty>
                         )}
-                    </section>
-                    <section className="expense-panel">
-                        <h2>Tus reglas recurrentes</h2>
+                    </ExpensePanel>
+                    <ExpensePanel className={expensePresentationStyleClasses("expense-panel")}>
+                        <ExpensePanelTitle>Tus reglas recurrentes</ExpensePanelTitle>
                         {book.recurring.length ? (
                             book.recurring.map((r) => (
-                                <div
-                                    className="expense-row expense-rule-row"
-                                    key={r.id}
-                                >
-                                    <div>
-                                        <strong>{r.title}</strong>
-                                        <small>
+                                <ExpenseRecordRow key={r.id} className={expensePresentationStyleClasses("expense-rule-row")} title={<>{r.title}</>} detail={<>
                                             {money(r.amountCents)} ·{' '}
                                             {
                                                 {
@@ -2075,10 +1787,8 @@ export default function ExpenseManager() {
                                             {r.endDate
                                                 ? ` · Hasta ${dayLabel(r.endDate)}`
                                                 : ''}
-                                        </small>
-                                    </div>
-                                    <div className="expense-row-actions">
-                                        <button
+                                        </>}><ExpenseActions variant="row" className={expensePresentationStyleClasses("expense-row-actions")}>
+                                        <ExpenseIconButton
                                             disabled={
                                                 !editable ||
                                                 book.accounts.find(
@@ -2102,8 +1812,8 @@ export default function ExpenseManager() {
                                             }
                                         >
                                             {r.paused ? 'Activar' : 'Pausar'}
-                                        </button>
-                                        <button
+                                        </ExpenseIconButton>
+                                        <ExpenseIconButton
                                             disabled={!editable}
                                             aria-label={`Editar recurrente ${r.title}`}
                                             onClick={() =>
@@ -2114,8 +1824,8 @@ export default function ExpenseManager() {
                                             }
                                         >
                                             <Pencil size={16} />
-                                        </button>
-                                        <button
+                                        </ExpenseIconButton>
+                                        <ExpenseIconButton
                                             disabled={!editable}
                                             aria-label={`Eliminar recurrente ${r.title}`}
                                             onClick={() =>
@@ -2136,9 +1846,8 @@ export default function ExpenseManager() {
                                             }
                                         >
                                             <Trash2 size={16} />
-                                        </button>
-                                    </div>
-                                </div>
+                                        </ExpenseIconButton>
+                                    </ExpenseActions></ExpenseRecordRow>
                             ))
                         ) : (
                             <Empty title="Automatiza los recordatorios">
@@ -2146,37 +1855,36 @@ export default function ExpenseManager() {
                                 confirmas los movimientos.
                             </Empty>
                         )}
-                    </section>
+                    </ExpensePanel>
                 </>
             )}
             {tab === 'accounts' && (
                 <>
-                    <section className="expense-panel">
-                        <div className="expense-panel-title">
-                            <h2>Tus cuentas</h2>
-                            <button
-                                className="expense-btn"
+                    <ExpensePanel className={expensePresentationStyleClasses("expense-panel")}>
+                        <ExpensePanelHeading title={<> Tus cuentas </>} className={expensePresentationStyleClasses("expense-panel-title")}>
+
+                            <ExpenseButton
+                                className={expensePresentationStyleClasses("expense-btn")}
                                 disabled={!editable}
                                 onClick={() => setEditor({ type: 'account' })}
                             >
                                 <Plus size={16} />
                                 Añadir cuenta
-                            </button>
-                        </div>
-                        <p className="expense-hint">
+                            </ExpenseButton>
+                        </ExpensePanelHeading>
+                        <ExpenseHint >
                             Saldos calculados a día de hoy con el saldo inicial
                             y los movimientos registrados. No hay conexión
                             bancaria.
-                        </p>
-                        <div className="expense-accounts">
+                        </ExpenseHint>
+                        <ExpenseGrid variant="accounts" className={expensePresentationStyleClasses("expense-accounts")}>
                             {book.accounts.map((a) => (
-                                <article className="expense-account" key={a.id}>
-                                    <div className="expense-row">
-                                        <span className="expense-account-icon">
+                                <ExpenseSummaryCard as="article" key={a.id} appearance="account" header={<>
+                                        <ExpenseAccountIcon>
                                             <WalletCards size={23} />
-                                        </span>
-                                        <div className="expense-row-actions">
-                                            <button
+                                        </ExpenseAccountIcon>
+                                        <ExpenseActions variant="row" className={expensePresentationStyleClasses("expense-row-actions")}>
+                                            <ExpenseIconButton
                                                 aria-label={`Editar cuenta ${a.name}`}
                                                 disabled={!editable}
                                                 onClick={() =>
@@ -2187,8 +1895,8 @@ export default function ExpenseManager() {
                                                 }
                                             >
                                                 <Pencil size={16} />
-                                            </button>
-                                            <button
+                                            </ExpenseIconButton>
+                                            <ExpenseIconButton
                                                 disabled={
                                                     !editable ||
                                                     (!a.archived &&
@@ -2250,23 +1958,16 @@ export default function ExpenseManager() {
                                                 {a.archived
                                                     ? 'Restaurar'
                                                     : 'Archivar'}
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <h3>{a.name}</h3>
-                                    <strong
-                                        className={
-                                            accountBalance(book, a.id, today) <
-                                            0
-                                                ? 'expense-negative'
-                                                : ''
-                                        }
-                                    >
+                                            </ExpenseIconButton>
+                                        </ExpenseActions>
+                                    </>} title={<>{a.name}</>} summary={<>
                                         {money(
                                             accountBalance(book, a.id, today),
                                         )}
-                                    </strong>
-                                    <small>
+                                    </>} summaryProps={{className:accountBalance(book, a.id, today) <
+                                            0
+                                                ? 'expense-negative'
+                                                : ''}}  detail={<>
                                         {
                                             {
                                                 bank: 'Cuenta bancaria',
@@ -2275,15 +1976,14 @@ export default function ExpenseManager() {
                                             }[a.type]
                                         }
                                         {a.archived ? ' · Archivada' : ''}
-                                    </small>
-                                </article>
+                                    </>} />
                             ))}
-                        </div>
-                    </section>
+                        </ExpenseGrid>
+                    </ExpensePanel>
                     {goalPanel}
                 </>
             )}
-            <footer className="expense-footer">
+            <footer className={expensePresentationStyleClasses("expense-footer")}>
                 {cloud
                     ? 'Gastos privados guardados en tu cuenta.'
                     : 'Tus gastos permanecen en este navegador. Exporta una copia para conservarlos.'}{' '}

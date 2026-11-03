@@ -1,8 +1,10 @@
+import {GuideBlock,GuideGrid,GuideReadingHeader} from '../ui/GuideReading';
+import {AcademyGlossarySearch,AcademyGlossaryFilter,AcademyGlossaryCard} from '../ui/AcademyGlossary';
+
 import { useState, useMemo } from 'react';
 import { Search, Info } from 'lucide-react';
 import { GLOSSARY } from '../../../data/academyData';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
-import './Glossary.css';
+
 
 export function Glossary() {
     const [search, setSearch] = useState('');
@@ -23,65 +25,35 @@ export function Glossary() {
     }, [search, activeCategory]);
 
     return (
-        <div className="glossary-page">
-            <AcademyPageHeader className="glossary-page__header" section="Aprender">
-                <h1 className="glossary-page__title">Diccionario Financiero</h1>
-                <p className="glossary-page__subtitle">
+        <GuideBlock appearance="glossaryPage"  >
+            <GuideReadingHeader appearance="glossary" section="Aprender" title={<>Diccionario Financiero</>} description={<>
                     Los conceptos que necesitas dominar para hablar el lenguaje del dinero.
-                </p>
-            </AcademyPageHeader>
+                </>} />
 
-            <div className="glossary-controls">
-                <div className="glossary-search">
-                    <Search className="icon" size={20} />
-                    <input
-                        type="text"
-                        placeholder="Buscar término (ej. Dividendos, PER...)"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                    />
-                </div>
+            <GuideBlock appearance="glossaryControls"  >
+                <AcademyGlossarySearch icon={<Search className="icon" size={20} />} type="text" placeholder="Buscar término (ej. Dividendos, PER...)" value={search} onChange={(e) => setSearch(e.target.value)} />
 
-                <div className="glossary-filters">
+                <GuideBlock appearance="glossaryFilters"  >
                     {categories.map(cat => (
-                        <button
-                            key={cat}
-                            className={`filter-chip ${activeCategory === cat ? 'active' : ''}`}
-                            onClick={() => setActiveCategory(cat)}
-                        >
+                        <AcademyGlossaryFilter key={cat} onClick={() => setActiveCategory(cat)} selected={activeCategory === cat}>
                             {cat}
-                        </button>
+                        </AcademyGlossaryFilter>
                     ))}
-                </div>
-            </div>
+                </GuideBlock>
+            </GuideBlock>
 
-            <div className="glossary-grid">
+            <GuideGrid appearance="glossaryGrid"  variant="glossary">
                 {filteredTerms.length > 0 ? (
                     filteredTerms.map((item) => (
-                        <article key={item.id} className="glossary-card">
-                            <span className="glossary-card__category">{item.category}</span>
-                            <h2 className="glossary-card__term">{item.term}</h2>
-                            <p className="glossary-card__def">{item.definition}</p>
-
-                            {item.relatedTerms && item.relatedTerms.length > 0 && (
-                                <div className="glossary-card__related">
-                                    <h5>Relacionado</h5>
-                                    <div className="related-tags">
-                                        {item.relatedTerms.map(tag => (
-                                            <span key={tag} className="tag">{tag}</span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </article>
+                        <AcademyGlossaryCard key={item.id} category={item.category} term={item.term} definition={item.definition} related={item.relatedTerms} />
                     ))
                 ) : (
-                    <div className="glossary-empty">
+                    <GuideBlock appearance="glossaryEmpty"  >
                         <Info size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
                         <p>No se encontraron términos que coincidan con tu búsqueda.</p>
-                    </div>
+                    </GuideBlock>
                 )}
-            </div>
-        </div>
+            </GuideGrid>
+        </GuideBlock>
     );
 }

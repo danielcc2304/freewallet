@@ -13,7 +13,7 @@ const assets=process.env.FREEWALLET_REFERENCE_FILE
         .map(row=>({id:row[1],symbol:row[1],name:row[1],type:row[2],quantity:Number(row[3]),purchasePrice:Number(row[4]),currentPrice:Number(row[4]),purchaseDate:'2026-01-01',currency:'EUR'}))
     : [{id:'fixture',symbol:'TEST',name:'Synthetic asset',type:'stock',quantity:2,purchasePrice:100,currentPrice:100,purchaseDate:'2026-01-01',currency:'EUR'}];
 if(process.env.FREEWALLET_REFERENCE_FILE)assert.equal(assets.length,15);
-const browser=await puppeteer.launch({headless:true});
+const browser=await puppeteer.launch({headless:true,args:['--no-sandbox']});
 let holdingsFail=false;let quotesFail=false;
 const errors:string[]=[];
 try{
@@ -61,6 +61,8 @@ try{
         if(width===390)await (await page.$('.assets-table'))!.screenshot({path:join(tmpdir(),'freewallet-dashboard-controls-test.png')});
     }
     await page.goto(`${origin}/academy/bond-calculator`,{waitUntil:'networkidle2'});
+    // Compare settled palettes rather than an intermediate colour transition.
+    await page.addStyleTag({content:'*,*::before,*::after{transition:none!important;animation:none!important}'});
     for(const theme of ['light','dark'])for(const appearance of ['standard','liquid-glass']){
         await page.evaluate((t,a)=>{document.documentElement.dataset.theme=t;document.documentElement.dataset.appearance=a;},theme,appearance);
         await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));

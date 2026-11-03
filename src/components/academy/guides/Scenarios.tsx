@@ -1,3 +1,7 @@
+import {GuideBlock,GuidePanel,GuideReadingHeader} from '../ui/GuideReading';
+import { AcademyIdentityHeading, AcademyScenarioSection, AcademyActionCard } from '../ui/AcademyGuideParts';
+import { AcademyGrid } from '../ui/AcademyGrid';
+
 import {
     Shield,
     TrendingUp,
@@ -23,8 +27,7 @@ import {
     type LucideIcon
 } from 'lucide-react';
 import { SCENARIOS } from '../../../data/academyData';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
-import './Scenarios.css';
+
 
 const IconMap: Record<string, LucideIcon> = {
     Shield,
@@ -52,58 +55,43 @@ const IconMap: Record<string, LucideIcon> = {
 
 export function Scenarios() {
     return (
-        <div className="scenarios">
-            <AcademyPageHeader className="scenarios__header" section="Escenarios">
-                <h1 className="scenarios__title">¿Qué hacer cuando...?</h1>
-                <p className="scenarios__subtitle">
+        <GuideBlock appearance="scenarios"  >
+            <GuideReadingHeader appearance="scenarios" section="Escenarios" title={<>¿Qué hacer cuando...?</>} description={<>
                     Guía rápida de actuación para los escenarios más comunes del inversor.
                     Mantén la cabeza fría cuando todos los demás la pierden.
-                </p>
-            </AcademyPageHeader>
+                </>} />
 
-            <div className="scenarios__grid">
+            <AcademyGrid variant="scenarios" className="scenarios__grid">
                 {SCENARIOS.map((scenario) => (
-                    <article key={scenario.id} className="scenario-card">
-                        <header className="scenario-card__header">
-                            <div className="scenario-card__emoji">{scenario.emoji}</div>
-                            <h2 className="scenario-card__title">{scenario.title}</h2>
-                        </header>
+                    <GuidePanel appearance="scenarioCard"  variant="scenario" as="article" key={scenario.id}>
+                        <AcademyIdentityHeading variant="scenario" emoji={<>{scenario.emoji}</>} title={<>{scenario.title}</>} />
 
                         <div className="scenario-card__content">
                             {scenario.sections.map((section, idx) => (
-                                <section key={idx} className="scenario-section">
-                                    <h3>
+                                <AcademyScenarioSection title={<>
                                         {idx === 0 ? <Info size={18} /> : <Target size={18} />}
                                         {section.title}
-                                    </h3>
-                                    <div className="scenario-section__content">
+                                    </>}>
                                         {typeof section.content === 'string' ? (
                                             <p>{section.content}</p>
                                         ) : (
-                                            <div className="scenario-actions">
+                                            <GuideBlock appearance="scenarioActions"  >
                                                 {section.content.map((action, actionIdx) => {
                                                     const Icon = IconMap[action.icon] || Info;
                                                     return (
-                                                        <div key={actionIdx} className={`action-card ${action.type}`}>
-                                                            <div className="action-card__icon">
+                                                        <AcademyActionCard key={actionIdx} tone={action.type as 'do' | 'dont'} icon={<>
                                                                 <Icon size={20} />
-                                                            </div>
-                                                            <div className="action-card__text">
-                                                                <h4>{action.title}</h4>
-                                                                <p>{action.description}</p>
-                                                            </div>
-                                                        </div>
+                                                            </>} title={<>{action.title}</>}>{action.description}</AcademyActionCard>
                                                     );
                                                 })}
-                                            </div>
+                                            </GuideBlock>
                                         )}
-                                    </div>
-                                </section>
+                                    </AcademyScenarioSection>
                             ))}
                         </div>
-                    </article>
+                    </GuidePanel>
                 ))}
-            </div>
-        </div>
+            </AcademyGrid>
+        </GuideBlock>
     );
 }

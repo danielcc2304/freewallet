@@ -1,0 +1,25 @@
+// String.raw preserves escaped underscores in BEM selectors for both JS and Tailwind.
+// Static presentation recipes; full utility names are visible to Tailwind.
+export const commentStyles = {
+    'news-comments': 'news-comments tw:max-w-[820px] tw:min-w-0 tw:mt-10 tw:mx-auto tw:pt-6 tw:border-t tw:border-line tw:[&_.btn]:min-h-[44px] tw:[&_.btn]:whitespace-normal',
+    'news-comments__heading': 'news-comments__heading tw:flex tw:items-center tw:gap-[.6rem] tw:justify-between tw:flex-wrap tw:mb-5 tw:[&>div]:flex tw:[&>div]:items-center tw:[&>div]:gap-[.6rem] tw:[&_h2]:m-0 tw:[&_h2]:text-[length:var(--font-size-xl)] tw:[&_h2]:text-main tw:[&_svg]:text-accent',
+    'news-comments__form': 'news-comments__form tw:grid tw:gap-[.65rem] tw:min-w-0 tw:[&_label]:text-[.9rem] tw:[&_label]:font-semibold tw:[&_label]:text-main',
+    'news-comments__form-footer': 'news-comments__form-footer tw:flex tw:items-center tw:justify-between tw:flex-wrap tw:gap-3 tw:[&_small]:flex-[1_1_220px] tw:[&_small]:text-muted tw:[&_small]:text-[.8rem] tw:max-[480px]:[&>.btn]:w-full',
+    'news-comments__hint': 'news-comments__hint tw:text-muted tw:text-[.8rem]',
+    'news-comments__login': 'news-comments__login tw:p-4 tw:border tw:border-line tw:rounded-control tw:bg-surface tw:glass:bg-glass-content tw:glass:border-glass-edge tw:glass:shadow-[inset_0_1px_0_var(--glass-edge-bright)] tw:[&_p]:mt-0 tw:[&_p]:mb-2 tw:[&_p]:text-secondary tw:[&_a]:inline-flex tw:[&_a]:items-center tw:[&_a]:min-h-[44px] tw:[&_a]:text-accent tw:[&_a]:font-semibold tw:[&_a:focus-visible]:outline-solid tw:[&_a:focus-visible]:outline-2 tw:[&_a:focus-visible]:outline-accent tw:[&_a:focus-visible]:outline-offset-[3px]',
+    'news-comments__list': 'news-comments__list tw:grid tw:gap-4 tw:mt-6 tw:mb-4 tw:mx-0',
+    'news-comments__item': String.raw`news-comments__item tw:min-w-0 tw:p-[1.15rem] tw:border tw:border-line tw:rounded-panel tw:bg-panel tw:glass:bg-glass-content tw:glass:border-glass-edge tw:glass:shadow-[inset_0_1px_0_var(--glass-edge-bright)] tw:max-[480px]:p-[.9rem] tw:[&>header]:flex tw:[&>header]:items-start tw:[&>header]:flex-wrap tw:[&>header]:gap-[.65rem] tw:[&>header>div:not(.news-comments\_\_actions)]:flex-1 tw:[&>header>div:not(.news-comments\_\_actions)]:min-w-0 tw:[&_strong]:block tw:[&_strong]:text-main tw:[&_strong]:text-[.9rem] tw:[&_strong]:wrap-anywhere tw:[&_time]:block tw:[&_time]:mt-[.2rem] tw:[&_time]:text-muted tw:[&_time]:text-[length:var(--font-size-xs)] tw:[&_.news-comments\_\_form]:mt-4`,
+    'news-comments__item--reply': 'news-comments__item--reply tw:p-[.9rem] tw:max-[480px]:p-3',
+    'news-comments__avatar': 'news-comments__avatar tw:grid tw:place-items-center tw:size-[36px] tw:flex-[0_0_36px] tw:rounded-[12px] tw:bg-[rgba(var(--accent-rgb),.1)] tw:text-accent tw:text-[length:var(--font-size-xs)] tw:font-bold',
+    'news-comments__actions': 'news-comments__actions tw:flex tw:flex-wrap tw:gap-1 tw:ml-auto tw:max-[480px]:basis-full tw:max-[480px]:ml-0',
+    'news-comments__edit-actions': 'news-comments__edit-actions tw:flex tw:flex-wrap tw:gap-1 tw:max-[480px]:[&>.btn]:flex-1',
+    'news-comments__body': 'news-comments__body tw:mt-[.9rem] tw:mx-0 tw:mb-0 tw:text-secondary tw:leading-[1.7] tw:whitespace-pre-wrap tw:wrap-anywhere',
+    'news-comments__empty': 'news-comments__empty tw:py-4 tw:px-0 tw:text-muted tw:text-[.9rem]',
+    'news-comments__error': 'news-comments__error tw:text-negative tw:wrap-anywhere',
+    'news-comments__notice': 'news-comments__notice tw:text-positive tw:text-[.85rem]',
+    'news-comments__thread': 'news-comments__thread tw:min-w-0',
+    'news-comments__replies': 'news-comments__replies tw:grid tw:gap-3 tw:mt-2 tw:mr-0 tw:mb-0 tw:ml-4 tw:pl-4 tw:border-l-2 tw:border-line tw:min-w-0 tw:max-[480px]:ml-1 tw:max-[480px]:pl-2',
+    'news-comments__reply-target': 'news-comments__reply-target tw:block tw:mt-3 tw:text-muted tw:text-[.78rem] tw:wrap-anywhere',
+    'news-comments__reply-label': 'news-comments__reply-label tw:flex tw:items-center tw:justify-between tw:gap-2 tw:max-[480px]:flex-wrap',
+    'news-comments__reply-form': 'news-comments__reply-form tw:border-t tw:border-line tw:pt-3',
+} as const;

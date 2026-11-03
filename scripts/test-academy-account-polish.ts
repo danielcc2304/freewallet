@@ -34,11 +34,11 @@ const user={id:'11111111-1111-4111-8111-111111111111',aud:'authenticated',role:'
     factors:[] as {id:string;status:string;factor_type:string;friendly_name:string;created_at:string;updated_at:string}[]};
 const session=(aal:string)=>({access_token:`${btoa(JSON.stringify({alg:'HS256',typ:'JWT'}))}.${btoa(JSON.stringify({sub:user.id,aal,exp:Math.floor(Date.now()/1000)+3600,role:'authenticated'}))}.synthetic`,
     refresh_token:'synthetic',expires_at:Math.floor(Date.now()/1000)+3600,expires_in:3600,token_type:'bearer',user});
-const browser=await puppeteer.launch({headless:true});
+const browser=await puppeteer.launch({headless:true,args:['--no-sandbox']});
 const errors:string[]=[];
 let enrollments=0;let verifications=0;
 try{
-    const page=await browser.newPage();await page.setViewport({width:390,height:844});
+    const page=await browser.newPage();page.setDefaultTimeout(60000);page.setDefaultNavigationTimeout(60000);await page.setViewport({width:390,height:844});
     page.on('pageerror',error=>errors.push(String(error)));
     await page.evaluateOnNewDocument((auth,v)=>{
         localStorage.setItem('freewallet-news-auth',JSON.stringify(auth));
@@ -132,14 +132,16 @@ try{
     assert.equal(enrollments,1);assert.equal(verifications,2);assert.deepEqual(errors,[]);
 
     await page.goto(`${origin}/feature-log`,{waitUntil:'networkidle2'});
+    await page.waitForSelector('.feature-log-entry__title');
     assert.equal(await page.$$eval('.feature-log-entry__title',nodes=>nodes.filter(node=>node.textContent?.startsWith('v6.0.1 -')).length),1);
     const entry=await page.$$eval('.feature-log-entry__title',nodes=>nodes.find(node=>node.textContent?.startsWith('v6.0.1 -'))?.closest('article')?.textContent??'');
     for(const content of ['Ruta guiada de Fundamentos','QR del autenticador','Aviso claro','Mensajes de error','Microsoft Graph'])assert.ok(entry.includes(content),`Combined v6.0.1 card must preserve ${content}: ${entry}`);
     await page.goto(`${origin}/terms`,{waitUntil:'networkidle2'});
+    await page.waitForSelector('.terms');
     const terms=await page.$eval('.terms',node=>node.textContent??'');
     for(const content of ['Cuenta y sesión','Cartera sincronizada','no elimina la cuenta','no constituyen cifrado de extremo a extremo','no desactiva los servicios de cuenta','6.1. Seguridad','copias privadas exportadas no están cifradas'])assert.ok(terms.includes(content),`Missing disclosure: ${content}`);
 
-    const localContext=await browser.createBrowserContext();const localPage=await localContext.newPage();
+    const localContext=await browser.createBrowserContext();const localPage=await localContext.newPage();localPage.setDefaultTimeout(60000);localPage.setDefaultNavigationTimeout(60000);
     await localPage.evaluateOnNewDocument(v=>{
         if(!localStorage.getItem('freewallet_settings'))localStorage.setItem('freewallet_settings','{"apiEnabled":false}');
         localStorage.setItem('freewallet_last_seen_version',v);

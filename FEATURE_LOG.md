@@ -12,12 +12,333 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-11-03 - v7.1.0 - Interfaz unificada y alta de efectivo
+- Funcionalidad:
+  - Interfaz más coherente en cartera, Academia, calculadoras, noticias y gastos, con mejoras para móvil y los temas claro, oscuro y Liquid Glass.
+  - Añadir inversión: elige entre buscar un activo o registrar efectivo directamente; el formulario de efectivo muestra nombre, saldo, fecha y TAE opcional.
+  - Alta manual accesible desde el inicio y resultados de búsqueda integrados en el formulario.
+  - Corrige los degradados de texto en el logo y los títulos compartidos.
+- Resumen:
+  - Conserva la incorporación de efectivo de v7.0.2 y simplifica su presentación, sin pedir un ticker ni un precio para una cuenta en euros.
+  - Reúne la migración de componentes compartidos y mantiene las mejoras previas de cartera, gastos, importación y herramientas.
+- Archivos:
+  - package.json, package-lock.json, src/constants/app.ts, src/pages/AddInvestment/*, src/components/ui/InvestmentEntryMode.tsx, src/components/ui/InvestmentForm.tsx, FEATURE_LOG.md
+
+### 2026-11-03 - Tailwind: gastos y representación SVG de Heatmap · 85,95 %
+- Funcionalidad:
+  - Comparte notas, avisos, filtros, calendario, desplegables e identidad de movimientos con `ExpenseReading`; los componentes existentes de gastos incorporan sus reglas responsive pendientes.
+  - Extrae grupos de sector, celdas de empresas y etiquetas SVG/HTML del mapa de mercados, conservando geometría, datos, selección y contenedor del gráfico.
+  - Retira doce selectores ópticos sin consumidores y tres referencias del detector de apariencia, correspondientes a componentes ya retirados.
+- Resumen:
+  - Retira 141 líneas de CSS fuente y 78 declaraciones `@apply`. Quedan 3.196 líneas en 24 hojas: reducción acumulada del 85,95 % respecto al inicio, sin equivalencia directa con ahorro de descarga.
+  - Conserva los materiales complejos de gastos y sus alternativas de transparencia/movimiento en CSS. Coinciden 88 estados calculados, incluidos movimientos de los cuatro tipos, editores y SVG del Heatmap.
+  - Pasan las pruebas de gastos e importación Excel y los recorridos de creación, edición, presupuestos, recurrentes, objetivos e importación en modo estándar y Liquid Glass. No cambia el modelo de datos ni los cálculos.
+- Archivos:
+  - `src/components/expenses/*`, `ui/ExpenseReading*`, `expensePresentationStyles` y componentes compartidos de gastos.
+  - `src/components/academy/tools/MarketHeatmap*`, `ui/MarketArtwork*`, `marketArtworkStyles`.
+  - `src/styles/liquidGlass.css`, `src/context/AppearanceContext.tsx`, ajuste del lanzamiento de Chromium en la prueba de pulido y documentación.
+
+### 2026-11-02 - Tailwind: gráficos, detalle de cartera y contenedores · 85,33 %
+- Funcionalidad:
+  - Comparte estructura de leyendas, tooltips y celdas del mapa de calor; retira el antiguo PortfolioChart, sin consumidores, junto con su exportación y CSS.
+  - Completa los marcos, formularios y resúmenes de detalle de activos, subyacentes, traspasos, composición, análisis, controles y salud de cartera.
+  - Migra la presentación restante de Bonos, IRPF, FIRE, Jubilación, Crisis y Market Timing, y los contenedores/cabeceras compartidos de la aplicación y Academia.
+- Resumen:
+  - Retira 1.163 líneas de CSS fuente y 423 declaraciones `@apply`; elimina 17 hojas completas. Quedan 3.337 líneas en 24 hojas: reducción acumulada del 85,33 %, otros 5,11 puntos sobre la base original. No equivale a ahorro de descarga.
+  - Conserva cálculos, datos, controles, persistencia y los modos claro/oscuro y Liquid Glass. Mantiene en CSS las animaciones y materiales que todavía lo requieren.
+  - Se verifica la lógica de 29 consumidores, cálculos financieros y recorridos de traspasos, fundamentales, subyacentes y calculadoras. Coinciden 264 estados de rutas y modales y pasan 492 combinaciones responsive en 41 rutas, TypeScript, ESLint y compilación.
+- Archivos:
+  - `src/components/charts/*`, `src/components/dashboard/*` y `src/components/dashboard/ui/PortfolioPresentation*`.
+  - `src/components/academy/calculators/*`, `src/components/academy/ui/SimulationDetailPresentation*` y piezas compartidas de simuladores.
+  - `src/components/layout/*`, `src/components/academy/layout/*`, adaptación del contexto de presentación en la prueba de usabilidad y documentación.
+
+### 2026-11-02 - Tailwind: guías, simuladores, Portfolio y navegación · 80,22 %
+- Funcionalidad:
+  - Comparte marcos de lectura, cabeceras, secciones, rejillas y siguientes pasos en Valoración, Errores comunes, Tu viaje como inversor, Glosario, Escenarios y Estrategias.
+  - Compone los marcos, paneles, botones y campos de Estrategia y cartera y del simulador de asignación; completa la presentación compartida de Portfolio y la ficha de fondos.
+  - Extrae el marco, regiones, grupos desplegables y botones del sidebar, conservando el estado de sincronización en su componente.
+- Resumen:
+  - Retira 971 líneas de CSS fuente y 245 declaraciones `@apply`; elimina ocho hojas completas. Quedan 4.500 líneas en 41 hojas: reducción acumulada del 80,22 % sobre las 22.753 iniciales. No equivale a ahorro de descarga.
+  - Mantiene cálculos, persistencia, controles y temas. Coinciden 104 estados de páginas/navegación y 16 escenarios de la ficha con datos interceptados. Pasan 132 combinaciones responsive, pruebas de estrategia y búsqueda, TypeScript, ESLint y build.
+  - Conserva los materiales específicos de los simuladores y la animación de carga en CSS; no cambia backend, proveedores, dependencias ni versión.
+- Archivos:
+  - `src/components/academy/guides/*`, `src/components/academy/simulators/{PortfolioBuilder,AssetAllocationSim}*` y `src/components/academy/ui/{GuideReading,SimulationFrames}*`.
+  - `src/components/academy/calculators/{FundInformationCalculator,FundSheetFrame}*`, `src/pages/PortfolioCsv/*` y sus componentes de presentación.
+  - `src/components/layout/Sidebar/*`, `AccountSyncStatus`, componentes compartidos de métricas/campos y documentación de la migración.
+
+### 2026-11-02 - Tailwind: tanda amplia de cartera, calculadoras y guías · 75,95 %
+- Funcionalidad:
+  - Comparte estructura, formularios, filtros y registros de Planificación, Operaciones y Ajustes, y la lectura nativa de Términos.
+  - Compone cabecera, bienvenida, aviso inicial, estados y secciones de Dashboard; reutiliza marcos, paneles y opciones de Interés compuesto, Jubilación y Bonos.
+  - Completa el marco de lectura de las cinco guías de activos y sus bloques de comparación, categorías y experimentos; consolida la animación compartida de desplegables.
+- Resumen:
+  - Retira 1.592 líneas de CSS fuente y 344 declaraciones `@apply`. Quedan 5.471 líneas en 49 hojas: reducción acumulada del 75,95 % respecto al inicio. No equivale a ahorro de descarga.
+  - Elimina siete hojas completas y el módulo de tipos de activos que ya no tenía consumidores; su URL sigue redirigiendo a Estrategia y cartera.
+  - Conserva cálculos, persistencia, controles nativos y comportamiento móvil. Coinciden 128 estados calculados y pasan 156 combinaciones responsive en 13 pantallas, pruebas de cartera/calculadoras/formularios, TypeScript, ESLint y build.
+- Archivos:
+  - `src/pages/{Dashboard,Planning,Transactions,Settings,TermsAndConditions}` y `src/components/ui/workspace/*`.
+  - `src/components/academy/calculators/{CompoundInterestCalc,RetirementCalculator,BondCalculator}*`, `CalculatorWorkspace*`.
+  - `src/components/academy/assets/*`, `src/components/academy/ui/AssetGuideFrame*`, partes compartidas de las guías, `PreferenceOption` y animaciones de `src/index.css`.
+
+### 2026-11-02 - Tailwind: Fundamentos, Riesgo y Fiscalidad
+- Funcionalidad:
+  - Compone niveles de aprendizaje, rejillas, bloques destacados y siguientes pasos de Fundamentos sobre las piezas de Academia existentes.
+  - Comparte cabeceras de lectura, tarjetas de riesgo, horizontes, leyenda y matriz accesible de correlaciones; conserva también el aspecto de los accesos a herramientas.
+  - Extrae tarjetas de tramos, títulos y ejemplo de compensación fiscal, reutilizando la comparación de fondos y ETF existente.
+- Resumen:
+  - Retira 358 líneas de CSS fuente y 106 declaraciones `@apply`, incluida `Fundamentos.css` completa y reglas sin consumidores de antiguos bloques.
+  - Las tres hojas pasan de 396 a 38 líneas; quedan 7.063 líneas en 56 hojas: reducción acumulada del 68,96 %. Esta cifra no representa ahorro de descarga.
+  - Mantiene contenidos, valores ilustrativos, progreso y navegación. Verifica 32 estados de estilos calculados y 72 combinaciones responsive, persistencia y controles, TypeScript, ESLint y build.
+- Archivos:
+  - `src/components/academy/guides/{Fundamentos,RiskManagement,Taxation}.tsx`, sus hojas restantes y eliminación de `Fundamentos.css`.
+  - `src/components/academy/ui/AcademyLearningStructure*`, `AcademyReadingHeader`, `AcademyRiskReading*`, `AcademyTaxReading*`, `AcademyGrid`, `AcademyToolLink`.
+
+### 2026-10-24 - Tailwind: tabla de activos, formulario y proyección FIRE
+- Funcionalidad:
+  - Comparte la tabla responsive de Mis activos: tarjeta, filas, celdas, filtros, ordenación, detalles y acciones móviles, estimaciones y botones sobre las piezas existentes.
+  - Compone formulario de inversión, búsqueda, disponibilidad, filas de campos y éxito con `Card`, `CardHeader` y `CardContent`.
+  - Amplía `CalculatorGrid` y extrae encabezado, horizonte, paneles, opciones de inflación y ayudas de FIRE.
+- Resumen:
+  - Retira 512 líneas de CSS fuente y 108 declaraciones `@apply`, incluida la hoja `AssetsTable.css` completa y estilos sin consumidores del antiguo aviso de desarrollo de Añadir activo.
+  - Las tres hojas pasan de 569 a 57 líneas; quedan 7.421 líneas en 57 hojas, una reducción acumulada del 67,38 %. La cifra no equivale a ahorro de descarga.
+  - Conserva cálculos, operaciones, persistencia, eventos y controles nativos. Coinciden 72 estados de estilos y pasan 72 combinaciones responsive, pruebas de agrupación, efectivo/TAE y calculadoras, TypeScript, ESLint y build.
+- Archivos:
+  - `src/components/dashboard/AssetsTable.tsx`, `src/components/dashboard/ui/DashboardAssetsGrid*`; elimina `AssetsTable.css`.
+  - `src/pages/AddInvestment/AddInvestment.*`, `src/components/ui/InvestmentForm*`.
+  - `src/components/academy/calculators/{FIRECalculator,CalculatorGrid,CalculatorProjection}*`, `CalculatorFIRELayout.styles.ts`.
+
+### 2026-10-24 - Tailwind: simuladores y Heatmap de mercados
+- Funcionalidad:
+  - Comparte cabeceras de Estrategia y cartera y Simulador de cartera sobre `AcademyPageHeader`.
+  - Extrae encabezados de sección, campos, grupos de filtros, tablas, leyendas, avisos, desplegables nativos y estados vacíos de ambos simuladores.
+  - Compone el espacio de trabajo del Heatmap: controles, métricas, contenedor del gráfico, estados de carga/error, selección, extremos, sectores, pie y acciones flotantes; reutiliza `DataItem` y `Button`.
+- Resumen:
+  - Retira 341 líneas de CSS fuente y 98 declaraciones `@apply`. Las tres hojas pasan de 647 a 306 líneas; quedan 7.933 líneas en 58 hojas, una reducción acumulada del 65,13 %. No representa ahorro equivalente de descarga.
+  - Conserva cálculos, fuentes, consultas, persistencia y calendario de refresco. La referencia de React permanece en el mismo contenedor del gráfico.
+  - Verifica 64 estados de estilos calculados y 36 combinaciones responsive, filtros y asignación, selección, redimensionado, cambio de índice y refresco del Heatmap, TypeScript, ESLint y build.
+- Archivos:
+  - `src/components/academy/simulators/{PortfolioBuilder,AssetAllocationSim}.*`, `src/components/academy/tools/MarketHeatmap.*`.
+  - `src/components/academy/ui/AcademySimulationPageHeader*`, `AcademySimulationWorkspace*`, `Academy{Allocation,Strategy}{Header,Workspace}.styles.ts`, `HeatmapWorkspace*`.
+
+### 2026-10-24 - Tailwind: calculadoras y tarjetas de estrategia
+- Funcionalidad:
+  - Comparte rejillas de campos y resultados entre IRPF, bonos y ficha de fondos mediante `CalculatorGrid`.
+  - Extrae desgloses semánticos, grupos familiares, resumen de nómina, liquidación fiscal y tarjetas de comparación de pagas y escenarios.
+  - Compone la identidad del fondo, etiquetas, características, enlace a la fuente y ayuda accesible de riesgo; comparte tarjetas completas de bloques de inversión mediante `AcademyAssetGuideCard`.
+- Resumen:
+  - Retira 293 líneas de CSS fuente y 119 declaraciones `@apply`. Las cuatro hojas pasan de 716 a 423 líneas; quedan 8.274 líneas en 58 hojas, un 63,64 % menos respecto al inicio. Esta medida no representa ahorro de descarga.
+  - Conserva calendarios, cálculos, consultas, persistencia, controles nativos, navegación y materiales de Liquid Glass.
+  - Verifica cálculos de IRPF, bonos y asignación, la regresión independiente de CoreWeave, recorridos funcionales, 64 estados de estilos calculados y 48 combinaciones responsive, TypeScript, ESLint y build.
+- Archivos:
+  - `src/components/academy/calculators/{SalaryCalculator,BondCalculator,FundInformationCalculator}.*`, `CalculatorGrid`, `CalculatorBreakdown`, `CalculatorComparison`, `CalculatorFundIdentity` y sus recetas Tailwind.
+  - `src/components/academy/simulators/PortfolioBuilder.*`, `src/components/academy/ui/AcademyAssetGuideCard*`.
+
+### 2026-10-24 - Tailwind: gastos, importación y análisis histórico
+- Funcionalidad:
+  - Extrae componentes con estructura y estilos Tailwind para distribuciones, leyendas, barras mensuales, cuentas, categorías, objetivos, paginación, estado de guardado y avisos de gastos.
+  - Comparte los controles de revisión de importaciones CSV/Excel y las cabeceras, leyendas, comprobaciones, filas de planificación, tooltips, gráficos y aviso de transición de Portfolio.
+  - Compone los encabezados, resúmenes, controles y bloques de asignación del análisis histórico del Dashboard; el detalle de activos comparte marcos de gráficos, estados de histórico, fuentes y secciones de fondos.
+- Resumen:
+  - Retira 582 líneas de CSS fuente y 228 declaraciones `@apply`. Quedan 8.567 líneas en 58 hojas: reducción acumulada del 62,35 % respecto al inicio. Esta cifra no equivale a ahorro de descarga.
+  - Conserva cálculos, importación, sincronización, persistencia y eventos de puntero en sus módulos originales; mantiene etiquetas nativas y clases de integración con Liquid Glass.
+  - Coinciden 136 estados visuales distintos y pasan 72 combinaciones responsive, las pruebas funcionales de gastos, acciones y once fondos, TypeScript, ESLint y build.
+  - Estabiliza la prueba de once fondos: distingue consultas canceladas, espera las activas y exige una nueva redirección canónica al reintentar.
+- Archivos:
+  - `src/components/expenses/ExpenseManager.*`, `src/components/expenses/ExpenseImportDialog.tsx`, `src/components/expenses/ui/ExpenseOverview*`, `src/components/expenses/ui/ExpenseFeedback*` y sus mapas de estilos.
+  - `src/pages/PortfolioCsv/PortfolioCsv.*`, `src/pages/PortfolioCsv/ui/PortfolioAnalysis*`, `src/pages/PortfolioCsv/ui/PortfolioImportPresentation*` y sus mapas de estilos.
+  - `src/components/dashboard/AssetDetail.*`, `src/components/dashboard/PortfolioExcelInsights.*`, `src/components/dashboard/ui/DashboardAssetChart*`, `src/components/dashboard/ui/HistoricalAnalysis*` y sus mapas de estilos.
+  - `scripts/test-fund-chart-ui.ts`, `README.md`, `docs/tailwind-migration.md`, `docs/tailwind-module-inventory.md`.
+
+### 2026-10-24 - Tailwind: guías de activos, objetivos y recorrido
+- Funcionalidad:
+  - Amplía la composición en las cinco guías de activos, Interés compuesto, Tu viaje como inversor y Novedades.
+  - Comparte cabeceras, navegación interna, lectura, métricas, barras de duración/inflación, ratings, curvas, controles y experimentos de renta fija, escalones de vencimiento y accesos a otras guías.
+  - Extrae opciones avanzadas, objetivos y detalle anual de Interés compuesto, los bloques de apoyo del viaje inversor y las entradas, secciones y archivos del historial de versiones.
+- Resumen:
+  - Retira 1.180 líneas de CSS fuente y 296 declaraciones `@apply`. Quedan 9.149 líneas en 58 hojas: reducción acumulada del 59,79 % frente al inicio; no mide el ahorro de descarga.
+  - Conserva los cálculos, datos, persistencia, controles nativos, callbacks y clases de Liquid Glass. Las declaraciones ajenas a JSX de las ocho pantallas conservan su lógica.
+  - Pasan TypeScript, ESLint, build sin prerender, presupuesto de carga diferida, pruebas de interés compuesto e integridad de calculadoras y el recorrido funcional de calculadoras/Dashboard. Coinciden 160 estados comparados y pasan 144 combinaciones responsive en 12 rutas.
+- Archivos:
+  - `src/components/academy/assets/*`, `src/components/academy/ui/AcademyAsset*`, `src/components/academy/ui/AcademyBond*`, `src/components/academy/ui/AcademyMetric.tsx`.
+  - `src/components/academy/calculators/CalculatorGoal*`, `src/components/academy/calculators/CompoundInterestCalc.*`, `src/components/academy/ui/JourneySupport*`, `src/components/academy/guides/InvestorTimeline.*`.
+  - `src/pages/FeatureLog/*`, `README.md`, `docs/tailwind-migration.md`, `docs/tailwind-module-inventory.md`.
+
+### 2026-10-24 - Tailwind: guías, simuladores, sidebar y composición
+- Funcionalidad:
+  - Amplía la migración a 17 módulos: Fundamentos, Glosario, Errores, Escenarios, Riesgo, Estrategias, Fiscalidad, Valoración, Recursos, test de perfil, construcción de cartera, Crisis, asignación, Market Timing, sidebar, composición del Dashboard y editor de noticias.
+  - Comparte encabezados, navegación interna, avisos, fichas, ejemplos, tarjetas de herramientas, preguntas/resultados, filtros, decisiones, exposición y desplegables nativos mediante componentes React con estructura y utilidades Tailwind.
+  - Completa los estilos del componente de vídeo existente y separa los controles reutilizables de Tiptap de los estilos de su contenido enriquecido.
+- Resumen:
+  - Retira 1.285 líneas de CSS fuente y 422 declaraciones `@apply`. Quedan 10.329 líneas en 58 hojas: reducción acumulada del 54,60 % respecto al inicio; esta cifra no mide el tamaño descargado.
+  - Mantiene cálculos, datos, consultas, persistencia, controles nativos y callbacks en los módulos originales; conserva las clases usadas por Liquid Glass y las pruebas.
+  - Validación: TypeScript, ESLint, build sin prerender, presupuesto de carga diferida, pruebas de cálculos y recorridos de estrategia/asignación, desglose de fondos y juego. Coinciden 248 estados por propiedades calculadas; pasan 216 combinaciones responsive en 18 rutas, incluidos temas claro/oscuro, estándar/Liquid Glass.
+- Archivos:
+  - `src/components/academy/guides/*`, `src/components/academy/simulators/*`, `src/components/academy/ui/*`.
+  - `src/components/dashboard/CompositionParts*`, `src/components/dashboard/PortfolioComposition.*`, `src/components/layout/Sidebar/*`, `src/components/news/RichTextEditor/*`.
+  - `README.md`, `docs/tailwind-migration.md`, `docs/tailwind-module-inventory.md`.
+
+### 2026-10-23 - Tailwind: posiciones, controles y estructuras compartidas
+- Funcionalidad:
+  - Comparte celdas de activos, variaciones, pesos, datos móviles, cabeceras y secciones del detalle en Dashboard.
+  - Reutiliza controles nativos entre Ajustes y Portfolio, `FormField` en Ajustes y `ActionGroup` en Añadir activo; extrae preferencias, resultados de búsqueda, selección, cotización y avisos.
+  - Comparte fichas y tarjetas de las cinco guías de activos, controles del mapa de calor, filas de posiciones y objetivos de Portfolio, y filas, calendario, buscador, selector mensual, exportación y ayuda de importación de gastos.
+- Resumen:
+  - Retira 938 líneas de CSS fuente y 272 declaraciones `@apply`. Quedan 11.614 líneas en 58 hojas: reducción acumulada del 48,96 % respecto al inicio.
+  - Mantiene datos, cálculos, consultas, controles nativos, referencias, callbacks y almacenamiento en los módulos originales.
+  - Estabiliza la prueba de regreso al Dashboard esperando que las acciones y los lotes estén visibles antes de continuar.
+- Archivos:
+  - src/components/dashboard/{AssetsTable,AssetDetail,ui}; src/components/ui/{PreferenceOption,InvestmentFeedback,NativeControl,ActionGroup}; src/components/academy/{assets,tools/MarketHeatmap,ui}; src/pages/{AddInvestment,Settings,PortfolioCsv}; src/components/expenses/{ExpenseManager,ExpenseImportDialog,ui}; scripts/{test-dashboard-edit-return-ui,test-dashboard-market-polish}.ts; README.md; documentación de Tailwind.
+
+### 2026-10-23 - Tailwind: calculadoras, viaje inversor y categorías de activos
+- Funcionalidad:
+  - Comparte cabeceras, opciones, gráficos, leyendas, avisos y detalle anual con estructura y estilos Tailwind en interés compuesto, FIRE y jubilación.
+  - Comparte búsqueda, estados de carga/error/vacío y posiciones de la ficha de fondos; compone las etapas, listas y asignaciones del viaje del inversor.
+  - Reutiliza tarjetas completas de categorías en las cinco guías de activos, incluidas las variantes de riesgo y duración de bonos.
+- Resumen:
+  - Retira 1.069 líneas de CSS fuente y 240 declaraciones `@apply` en diez módulos. Quedan 12.552 líneas en 58 hojas: 44,83 % menos frente al inicio de la migración.
+  - Conserva cálculos, consultas, controles nativos, persistencia y contenido. Mantiene CSS contextual para materiales Liquid Glass, contenedores y gráficos específicos.
+- Archivos:
+  - src/components/academy/calculators/{CalculatorToolHeading,CalculatorChoice,CalculatorOption,CalculatorChart,CalculatorLegend,CalculatorNotice,CalculatorYearDetail,CalculatorLookup,CalculatorEducationCard}; sus consumidores y estilos; src/components/academy/ui/{JourneyPhase,AssetCategoryCard,BondCategoryCard}; InvestorTimeline; cinco guías de activos; src/components/ui/DataItem.tsx; README.md; documentación de Tailwind.
+
+### 2026-10-23 - Tailwind: tarjetas de Portfolio y estados de operaciones
+- Funcionalidad:
+  - Comparte tarjetas completas de análisis con títulos, descripciones y estados mediante `PortfolioPanel`, y sus acciones mediante `PortfolioButton`.
+  - Reutiliza `StatusPill` en Portfolio y Operaciones; extiende `DataItem` para estadísticas, movimientos y datos diarios con iconos y detalles semánticos.
+- Resumen:
+  - Retira 141 líneas de CSS y 25 declaraciones `@apply`. Quedan 13.621 líneas de CSS fuente, un 40,14 % menos frente al inicio.
+  - Mantiene los cálculos y formatos, controles nativos, filtros, estados vacíos y almacenamiento en sus módulos originales.
+- Archivos:
+  - src/pages/PortfolioCsv/ui; PortfolioCsv.tsx; PortfolioCsv.css; src/components/ui/{StatusPill,DataItem}.tsx; Transactions.tsx; Transactions.css; README.md; documentación de Tailwind.
+
+### 2026-10-23 - Tailwind: tarjetas educativas y limpieza de estilos antiguos
+- Funcionalidad:
+  - Reutiliza tarjetas completas de progreso, enlaces de aprendizaje y accesos a módulos en Fundamentos; comparte sus indicadores con `DataItem`.
+  - Comparte listas de ventajas/riesgos/comparativas y explicaciones con rangos de referencia en las cinco guías de activos.
+- Resumen:
+  - Retira 371 líneas de estilos migrados y 424 de la antigua interfaz de Estrategia y cartera: 795 líneas de CSS y 164 declaraciones `@apply` menos. Quedan 13.762 líneas de CSS fuente, un 39,52 % menos que al inicio.
+  - Conserva progreso y persistencia, navegación nativa, modelos y cálculos. La limpieza del simulador retira 84 selectores sin referencias en los módulos actuales.
+- Archivos:
+  - src/components/academy/ui/{AcademyProgressCard,AcademyLearningLink,AcademyListCard,AcademyExplainerCard}.tsx; src/components/ui/DataItem.tsx; Fundamentos; guías de activos; PortfolioBuilder.css; README.md; documentación de Tailwind.
+
+### 2026-10-22 - Tailwind: piezas compartidas entre módulos
+- Funcionalidad:
+  - Reutiliza `DataItem`, `DataTable`, `FormField`, `FieldHint` y `PageHeading` entre calculadoras, Planificación, Operaciones, Portfolio, Añadir activo, mapa de calor y gastos.
+  - Añade `AcademyStepCard` y `AcademyCallout` con estructura completa para las cinco guías de activos; elimina sus reglas `@apply` migradas.
+- Resumen:
+  - Conserva los controles nativos, los formatos financieros, las etiquetas y los cálculos de cada pantalla. Los nombres anteriores de las piezas de calculadora delegan en los componentes comunes.
+  - Retira 54 declaraciones `@apply` y 190 líneas de CSS fuente: quedan 14.557 frente a las 22.753 iniciales (36,02 % menos). Las reglas de materiales, gráficos y ajustes contextuales permanecen en CSS.
+- Archivos:
+  - src/components/ui/{DataItem,DataTable,FormField,PageHeading}.tsx; src/components/academy/ui/{AcademyStepCard,AcademyCallout}.tsx; calculadoras; guías de activos; MarketHeatmap; ExpenseManager; ExpenseImportDialog; Planning; Transactions; PortfolioCsv; AddInvestment; documentación de Tailwind.
+
+### 2026-10-22 - Tailwind: componentes de Gestión de gastos
+- Funcionalidad:
+  - Comparte catorce componentes React para botones, campos, casillas, selectores, paneles, cabeceras, títulos, tarjetas, métricas, rejillas, acciones, progreso y estados vacíos.
+  - Aplica la composición a las cinco pestañas, los seis editores y la importación CSV/Excel, manteniendo las etiquetas accesibles y los controles nativos.
+- Resumen:
+  - El CSS local pasa de 298 a 254 líneas; conserva gráficos, tablas, distribución específica y materiales Liquid Glass. La reducción acumulada de CSS fuente es del 35,19 %.
+  - Mantiene el almacenamiento, cálculos en céntimos, presupuestos, recurrentes, deduplicación y categorización de BBVA.
+- Archivos:
+  - src/components/expenses/ui; ExpenseManager.tsx; ExpenseEditors.tsx; ExpenseImportDialog.tsx; ExpenseManager.css; scripts/test-expense-ui.ts; README.md; docs/tailwind-migration.md; docs/tailwind-module-inventory.md
+
+### 2026-10-22 - Tailwind: Academia y simuladores
+- Funcionalidad:
+  - Comparte superficies, enlaces de tarjetas, rejillas, secciones, indicadores, campos y previsualizaciones de vídeos mediante siete componentes React con estructura y estilos Tailwind.
+  - Aplica la composición a las cinco guías de activos, fundamentos, glosario, recorrido, errores, riesgo, fiscalidad, estrategias, valoración, escenarios, recursos y los cinco simuladores.
+- Resumen:
+  - Retira 183 líneas de CSS fuente; conserva los materiales Liquid Glass, las adaptaciones por contenedor, gráficos y animaciones específicos.
+  - Mantiene los controles nativos, cálculos, almacenamiento, enlaces y gestión de errores de miniaturas en los módulos originales.
+- Archivos:
+  - src/components/academy/ui; src/components/academy/assets; src/components/academy/guides; src/components/academy/simulators; scripts/test-market-timing-ui.ts; README.md; docs/tailwind-migration.md; docs/tailwind-module-inventory.md
+
+### 2026-10-22 - Tailwind: componentes reutilizables del Dashboard
+- Funcionalidad:
+  - Comparte indicadores, paneles, selectores, interruptores, filtros, campos de traspaso, métricas ampliadas, filas de corrección y acciones flotantes mediante nueve componentes React con estructura y estilos Tailwind.
+  - Aplica la composición al resumen, evolución, Benchmark, asignación, riesgo, controles, tabla de activos y detalles de posiciones/subyacentes.
+- Resumen:
+  - Reduce el CSS del Dashboard de 1.804 a 1.457 líneas y retira las hojas del resumen y calidad de datos. Conserva los cálculos, consultas, correcciones, operaciones y materiales Liquid Glass.
+  - Mantiene las pestañas con su navegación por teclado y añade comprobación de flechas, Inicio/Fin, foco y relación con el panel. Habilita las suites específicas existentes para ejecución aislada.
+- Archivos:
+  - src/components/dashboard/ui; src/components/dashboard/{AssetDetail,AssetsTable,FundTransferDialog,PortfolioAnalytics,PortfolioBenchmark,PortfolioComposition,PortfolioDataQuality,PortfolioExcelInsights,PortfolioHealth,UnderlyingAssetDetail}.tsx y sus CSS; PortfolioSummary/PortfolioSummary.tsx; src/pages/Dashboard; scripts/run-tests.mjs; scripts/test-dashboard-quality-ui.ts; scripts/test-stock-fundamentals-ui.ts; README.md; docs/tailwind-migration.md; docs/tailwind-module-inventory.md
+
+### 2026-10-22 - Tailwind: bonos, IRPF y ficha de fondos
+- Funcionalidad:
+  - Compone campos, casillas, paneles, desplegables, resultados destacados, bloques de datos, tarjetas educativas, tablas, distribuciones y documentos mediante componentes React con estructura y estilos Tailwind.
+  - Reutiliza once campos y siete bloques de datos en bonos; IRPF comparte los controles y el resultado principal; la ficha de fondos comparte sus secciones, métricas y contenido tabular.
+- Resumen:
+  - Retira 291 líneas de las tres hojas CSS locales. Conserva los cálculos de bonos y nóminas, las consultas y cancelación de Finect, los formatos, la privacidad y los materiales Liquid Glass. Mantiene CSS local para distribución y elementos específicos.
+  - Añade una prueba de ficha de fondos con transporte Finect simulado: clase exacta, datos cero/ausentes, comisiones, histórico, composición, documentos, errores y accesibilidad.
+- Archivos:
+  - src/components/academy/calculators/{BondCalculator,SalaryCalculator,FundInformationCalculator}.tsx y .css; CalculatorField.tsx; CalculatorPanel.tsx; CalculatorCheckbox.tsx; CalculatorDisclosure.tsx; CalculatorSection.tsx; CalculatorDataItem.tsx; CalculatorEducationCard.tsx; CalculatorHeroMetric.tsx; CalculatorTable.tsx; CalculatorAllocationCard.tsx; CalculatorDocumentLink.tsx; scripts/test-fund-information-ui.ts; scripts/run-tests.mjs; package.json; README.md; docs/tailwind-migration.md; docs/tailwind-module-inventory.md
+
+### 2026-10-22 - Tailwind: composición reutilizable de calculadoras
+- Funcionalidad:
+  - Reutiliza `CalculatorField` en 19 campos de interés compuesto, FIRE y jubilación.
+  - Añade `CalculatorResultCard` con estructura y estilos Tailwind compartidos para nueve tarjetas de resultados, con variantes de inversión, centrada y con icono.
+- Resumen:
+  - Retira 26 reglas locales de presentación de resultados. Mantiene fórmulas, controles nativos, escenarios guardados, rutas y superficies Liquid Glass; los estilos de disposición y gráficos permanecen en cada herramienta.
+- Archivos:
+  - src/components/academy/calculators/CalculatorResultCard.tsx; CompoundInterestCalc.tsx y .css; FIRECalculator.tsx y .css; RetirementCalculator.tsx y .css; README.md; docs/tailwind-migration.md; docs/tailwind-module-inventory.md
+
+### 2026-10-21 - Tailwind: catálogo y primeras calculadoras
+- Funcionalidad:
+  - Migra catálogo, fondo de emergencia, impacto fiscal e inflación a componentes y recetas Tailwind.
+  - Reutiliza `CalculatorTile` en las ocho herramientas, `CalculatorPanel` en las superficies, `CalculatorMetric` en los resultados y `CalculatorField` en doce campos con sus controles nativos.
+- Resumen:
+  - Retira tres hojas CSS y reduce la de inflación a su animación. Conserva cálculos, controles, datos locales, orden y rutas. Asocia las etiquetas fiscales a los campos y nombra su deslizador. Añade verificación de métricas fiscales, navegación y persistencia a la suite existente, y permite enfocar la auditoría de producción por rutas.
+- Archivos:
+  - src/components/academy/calculators/Calculators.tsx, EmergencyFundCalculator.tsx, TaxSimulator.tsx, InflationPredator.tsx, InflationPredator.css, CalculatorPanel.tsx, CalculatorTile.tsx, CalculatorField.tsx, calculatorCatalogStyles.ts, emergencyStyles.ts, taxSimulatorStyles.ts, inflationStyles.ts; scripts/test-calculator-dashboard-usability.ts; scripts/test-tailwind-modules-ui.ts; docs/tailwind-migration.md; docs/tailwind-module-inventory.md; README.md
+
+### 2026-10-21 - Tailwind: componentes de detalle y avisos compartidos
+- Funcionalidad:
+  - Añade `DefinitionList` para compartir las filas de datos entre escenarios de calculadoras y detalles del plan de cartera.
+  - Migra a utilidades React los rankings, la ayuda del Dashboard y los avisos de conexión, cartera local, gastos pendientes y nueva versión.
+- Resumen:
+  - Retira siete CSS de componentes y cuatro reglas repetidas del plan. Reutiliza `ActionGroup` en el aviso de versión y conserva los selectores de comportamiento, semántica, formatos, ordenación y operaciones existentes.
+- Archivos:
+  - src/components/ui/DefinitionList.tsx, src/components/ui, src/components/dashboard/Performers.tsx, src/components/dashboard/performerStyles.ts, src/components/dashboard/DashboardInfo.tsx, src/components/dashboard/LivePortfolioPlan.tsx, src/components/dashboard/LivePortfolioPlan.css, src/components/academy/calculators/ScenarioComparison.tsx, scripts/run-tests.mjs, scripts/test-calculator-dashboard-usability.ts, docs/tailwind-migration.md, docs/tailwind-module-inventory.md, README.md
+
+### 2026-10-21 - Tailwind: Academia, herramientas, Dashboard y módulos restantes
+- Funcionalidad:
+  - Incorpora guías, activos, calculadoras, simuladores, gastos, Dashboard, gráficos, navegación, formularios y páginas auxiliares a los tokens y patrones compartidos de Tailwind.
+  - Las hojas de módulos densos usan `@apply` y `@reference`, conservando sus selectores y su cascada. Reutiliza las superficies de calculadora y migra a utilidades React los avisos, estados de ruta y pantalla 404.
+- Resumen:
+  - Comparte 9.964 declaraciones en 64 hojas y retira otros cuatro CSS. Mantiene unidades, temas, Liquid Glass, cálculos y datos. Añade un recorrido de 41 rutas sobre la compilación de producción y separa las comprobaciones de CI, conservando `verify` como resultado conjunto. Incluye inventario y guía de mantenimiento.
+- Archivos:
+  - src/styles, src/components/academy, src/components/dashboard, src/components/charts, src/components/expenses, src/components/layout, src/components/ui, src/components/news/RichTextEditor, src/pages, scripts/helpers/compileModuleStyles.ts, scripts/test-tailwind-modules-ui.ts, scripts/run-tests.mjs, scripts/test-assets-table.ts, scripts/test-fund-breakdown-layout.ts, vite.config.ts, .github/workflows/quality.yml, docs/tailwind-migration.md, docs/tailwind-module-inventory.md, README.md
+
+### 2026-10-21 - Tailwind: Noticias y radar de fondos
+- Funcionalidad:
+  - Migra la portada de Noticias, los artículos, comentarios y respuestas, y el panel editorial a las utilidades de Tailwind y los componentes compartidos.
+  - Migra las tarjetas, filtros y formulario de edición del radar de fondos, conservando los temas y Liquid Glass.
+- Resumen:
+  - Retira tres CSS sustituidos y reduce el del radar al medidor nativo. Mantiene CSS específico para el contenido enriquecido y el editor Tiptap. Comprueba también el espaciado de acceso editorial, las alturas táctiles, las portadas 16:9 y la jerarquía de las métricas. Conserva permisos, comentarios, cálculos y datos; no requiere cambios de base de datos ni de batches.
+- Archivos:
+  - src/pages/News/News.tsx, src/pages/NewsAdmin/NewsAdmin.tsx, src/components/news, src/components/academy/simulators/FundRadar.tsx, src/components/academy/simulators/FundRadarEditor.tsx, src/components/academy/simulators/radarStyles.ts, src/components/academy/simulators/FundRadar.css, scripts/test-news-layout-comments-ui.ts, scripts/test-fund-radar-ui.ts, scripts/run-tests.mjs, docs/tailwind-migration.md, README.md
+
+### 2026-10-21 - Tailwind: base compartida y Mi cuenta
+- Funcionalidad:
+  - Integra Tailwind CSS 4 con los colores y temas actuales, incluido Liquid Glass, para migrar la interfaz por módulos.
+  - Migra botones, tarjetas, campos, métricas, cabeceras y modales a una base reutilizable; añade un grupo de acciones con disposición móvil.
+  - Mi cuenta reutiliza esa base en acceso, registro, recuperación, perfil, sincronización y autenticador. Mejora la asociación accesible de ayudas y errores y la visibilidad del indicador de carga.
+- Resumen:
+  - Primera fase de la migración: retira siete archivos CSS sustituidos y conserva los estilos de las pantallas pendientes. Incluye capturas de comparación, pruebas de teclado y comprobaciones de móvil/escritorio en las cuatro combinaciones de tema y apariencia. Actualiza Vite a 7.3.7 tras revisar la auditoría de dependencias. No requiere migraciones de Supabase ni cambios en los batches.
+- Archivos:
+  - docs/tailwind-migration.md, README.md, package.json, package-lock.json, vite.config.ts, src/styles/tailwind.css, src/utils/cn.ts, src/index.css, src/App.tsx, src/components/ui, src/pages/Account, src/pages/AddInvestment/AddInvestment.tsx, src/components/dashboard/AssetDetail.css, scripts/fixtures/FoundationGallery.tsx, scripts/test-tailwind-foundation-ui.ts, scripts/run-tests.mjs
+### 2026-10-27 - v7.0.2 - Alta de inversiones más sencilla
+- Funcionalidad:
+  - Cartera: registra el saldo de efectivo en euros sin tener que buscar ni elegir un activo.
+  - Cartera: facilita encontrar inversiones por nombre, ticker o ISIN y permite añadirlas manualmente si no aparecen.
+- Resumen:
+  - Añadir efectivo a la cartera y registrar una inversión a mano resulta más sencillo.
+- Archivos:
+  - FEATURE_LOG.md, package.json, package-lock.json, src/constants/app.ts, src/pages/AddInvestment/AddInvestment.tsx, src/pages/AddInvestment/AddInvestment.css
+
 ### 2026-10-18 - v7.0.1 - Fondos: vuelve a mostrar históricos
 - Funcionalidad:
   - Fondos: vuelve a mostrar el histórico de Robeco y otros fondos cuando Financial Times redirige la ficha para indicar la divisa de la clase.
   - Fondos: comprueba el ISIN, la clase, la serie y su moneda antes de mostrar los precios.
 - Resumen:
-  - Corrige la redirección de Financial Times que dejaba el gráfico sin histórico y añade pruebas para distintas clases y monedas. La configuración de Vercel se aplica al desplegar; no cambia la base de datos ni los movimientos.
+  - Corrige un problema que impedía consultar los históricos de algunos fondos cuando su ficha redirigía a otra clase o divisa.
 - Archivos:
   - vercel.json, vite.config.ts, scripts/test-fund-history-proxy.ts, scripts/test-fund-chart-ui.ts, scripts/run-tests.mjs, docs/fund-history.md, FEATURE_LOG.md
 
@@ -28,13 +349,11 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Cartera: al cambiar de mercado, descarta respuestas del anterior y admite la última observación del elegido aunque tenga una hora anterior; mantiene la protección contra precios atrasados dentro de un mismo mercado.
   - Gastos: mantiene el aviso de cambios sin guardar al navegar, permite volver para reintentar o exportar y evita cerrar la sesión de cuenta o editorial mientras haya guardados pendientes.
   - Navegación: carga las pantallas cuando se necesitan, muestra un indicador de carga y permite recuperarse de errores sin perder la navegación; evita recargas automáticas si quedan cambios pendientes.
-  - Calidad: incorpora controles automatizados de lógica, base de datos, navegador, compilación, dependencias e integración de hotfixes antes de promover dev o release.
+
   - SEO: corrige el dominio de producción, permite configurarlo por entorno y excluye de la indexación las vistas previas y preproducción.
 - Resumen:
-  - Incluye mejoras de seguridad en Noticias, coherencia en las cotizaciones de Cartera y navegación más ágil. El backend de cotizaciones ya está aplicado en Supabase; los históricos conservan su mercado real y no se reconstruyen ni se reetiquetan.
-  - Reduce el archivo JavaScript principal de 1.807,92 a 618,32 kB (aproximadamente un 66 %). Actualiza DOMPurify y source-map-js; la auditoría completa de dependencias no detecta vulnerabilidades conocidas.
-  - En GitHub Actions pasaron lint, TypeScript, compilación, 63 comprobaciones de lógica/base de datos, el control del bundle, 10 suites de navegador y auditoría de dependencias. La protección de ramas todavía no exige este workflow.
-  - La protección nativa de contraseñas filtradas queda pendiente: requiere Supabase Pro y el proyecto usa Free. No se modifica el plan. Los históricos de cotizaciones anteriores conservan su mercado real y no se reconstruyen ni se reetiquetan.
+  - Protege mejor los artículos, hace más coherentes los precios de la cartera y agiliza la navegación.
+  - La aplicación carga menos código al inicio, así que las pantallas pueden abrirse con mayor rapidez.
 - Archivos:
   - FEATURE_LOG.md, docs/application-audit-fixes.md, .github/workflows/quality.yml, package-lock.json, scripts/run-tests.mjs, scripts/test-application-audit-ui.ts, scripts/test-unified-quote-markets.ts, scripts/test-quote-market-switch.ts, scripts/test-seo.mjs
   - src/utils/newsContent.ts, src/services/pendingChanges.ts, src/services/portfolioQuoteService.ts, src/services/portfolioCloudStorage.ts, src/services/dashboardIntegrity.ts, src/components/ui/PendingChangesGuard.tsx, src/components/ui/RouteView.tsx, src/App.tsx, src/app/routes/academyRoutes.tsx

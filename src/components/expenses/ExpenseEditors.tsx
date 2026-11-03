@@ -1,5 +1,13 @@
+import{ExpenseHint}from'./ui/ExpenseReading';
+import{expensePresentationStyleClasses}from'./ui/expensePresentationStyles';
+import { ExpenseField as Field } from './ui/ExpenseField';
+import { ExpenseSegments } from './ui/ExpenseSegments';
+import { ExpenseGrid } from './ui/ExpenseGrid';
+import { ExpenseCheckbox } from './ui/ExpenseCheckbox';
+import { ExpenseActions } from './ui/ExpenseActions';
+import { ExpenseButton } from './ui/ExpenseButton';
 import { useState } from 'react';
-import type { FormEvent, ReactNode } from 'react';
+import type { FormEvent } from 'react';
 import type {
     ExpenseAccount,
     ExpenseBook,
@@ -33,14 +41,6 @@ const kinds = {
 };
 const euros = (cents: number | undefined) =>
     cents === undefined ? '' : String(cents / 100);
-function Field({ label, children }: { label: string; children: ReactNode }) {
-    return (
-        <label className="expense-field">
-            <span>{label}</span>
-            {children}
-        </label>
-    );
-}
 export function ExpenseEditors({
     editor,
     book,
@@ -252,21 +252,10 @@ export function ExpenseEditors({
     );
     const budget = budgetForMonth(book, month);
     return (
-        <form className="expense-form" onSubmit={(event) => void submit(event)}>
+        <form className={expensePresentationStyleClasses("expense-form")} onSubmit={(event) => void submit(event)}>
             {editor.type === 'entry' && (
                 <>
-                    <div className="expense-segmented">
-                        {(Object.keys(kinds) as ExpenseKind[]).map((k) => (
-                            <button
-                                key={k}
-                                type="button"
-                                aria-pressed={kind === k}
-                                onClick={() => setKind(k)}
-                            >
-                                {kinds[k]}
-                            </button>
-                        ))}
-                    </div>
+                    <ExpenseSegments variant="form" value={kind} options={(Object.keys(kinds) as ExpenseKind[]).map(k => ({ value: k, label: kinds[k] }))} onChange={setKind} />
                     <Field label="Concepto">
                         <input
                             name="description"
@@ -283,7 +272,7 @@ export function ExpenseEditors({
                             autoComplete="off"
                         />
                     </Field>
-                    <div className="expense-form-grid">
+                    <ExpenseGrid variant="form" className={expensePresentationStyleClasses("expense-form-grid")}>
                         {amountField(editor.value?.amountCents)}
                         <Field label="Fecha">
                             <input
@@ -307,8 +296,8 @@ export function ExpenseEditors({
                             : kind !== 'income'
                               ? category(editor.value?.categoryId)
                               : null}
-                    </div>
-                    <details className="expense-fold">
+                    </ExpenseGrid>
+                    <details className={expensePresentationStyleClasses("expense-fold")}>
                         <summary>Etiquetas y notas</summary>
                         <Field label="Etiquetas (separadas por comas)">
                             <input
@@ -328,22 +317,22 @@ export function ExpenseEditors({
                         </Field>
                     </details>
                     {kind === 'transfer' && (
-                        <p className="expense-hint">
+                        <ExpenseHint >
                             Mueve saldo entre tus cuentas. No cuenta como gasto
                             ni ingreso.
-                        </p>
+                        </ExpenseHint>
                     )}
                     {kind === 'refund' && (
-                        <p className="expense-hint">
+                        <ExpenseHint >
                             Reduce el gasto de la categoría y aumenta el saldo
                             de esta cuenta.
-                        </p>
+                        </ExpenseHint>
                     )}
                     {editor.value?.recurrenceId && (
-                        <p className="expense-hint">
+                        <ExpenseHint >
                             Vencimiento recurrente ya registrado. Puedes
                             corregir su importe y fecha reales.
-                        </p>
+                        </ExpenseHint>
                     )}
                 </>
             )}
@@ -358,7 +347,7 @@ export function ExpenseEditors({
                             required
                         />
                     </Field>
-                    <div className="expense-form-grid">
+                    <ExpenseGrid variant="form" className={expensePresentationStyleClasses("expense-form-grid")}>
                         <Field label="Tipo">
                             <select
                                 name="accountType"
@@ -394,19 +383,19 @@ export function ExpenseEditors({
                                 required
                             />
                         </Field>
-                    </div>
-                    <p className="expense-hint">
+                    </ExpenseGrid>
+                    <ExpenseHint >
                         Saldo antes de los movimientos de esa fecha. Para una
                         tarjeta, introduce la deuda como saldo negativo.
-                    </p>
+                    </ExpenseHint>
                 </>
             )}
             {editor.type === 'budget' && (
                 <>
-                    <p className="expense-hint">
+                    <ExpenseHint >
                         {monthLabel(month)} · Los presupuestos miden gastos
                         menos reembolsos.
-                    </p>
+                    </ExpenseHint>
                     <Field label="Presupuesto total del mes (€)">
                         <input
                             name="limit"
@@ -418,19 +407,19 @@ export function ExpenseEditors({
                             required
                         />
                     </Field>
-                    <label className="expense-check">
+                    <ExpenseCheckbox className={"expense-check"}>
                         <input
                             type="checkbox"
                             checked={defaultBudget}
                             onChange={(e) => setDefaultBudget(e.target.checked)}
                         />
                         Usar como base para los meses sin presupuesto propio
-                    </label>
+                    </ExpenseCheckbox>
                     <h3>Límites por categoría</h3>
-                    <p className="expense-hint">
+                    <ExpenseHint >
                         Opcionales. Su suma no debe superar el total.
-                    </p>
-                    <div className="expense-form-grid">
+                    </ExpenseHint>
+                    <ExpenseGrid variant="form" className={expensePresentationStyleClasses("expense-form-grid")}>
                         {book.categories.map((c) => (
                             <Field key={c.id} label={`${c.name} (€)`}>
                                 <input
@@ -447,7 +436,7 @@ export function ExpenseEditors({
                                 />
                             </Field>
                         ))}
-                    </div>
+                    </ExpenseGrid>
                 </>
             )}
             {editor.type === 'recurring' && (
@@ -461,19 +450,8 @@ export function ExpenseEditors({
                             required
                         />
                     </Field>
-                    <div className="expense-segmented">
-                        {(['expense', 'income'] as const).map((k) => (
-                            <button
-                                type="button"
-                                key={k}
-                                aria-pressed={kind === k}
-                                onClick={() => setKind(k)}
-                            >
-                                {kinds[k]}
-                            </button>
-                        ))}
-                    </div>
-                    <div className="expense-form-grid">
+                    <ExpenseSegments variant="form" value={kind} options={(['expense', 'income'] as const).map(k => ({ value: k, label: kinds[k] }))} onChange={setKind} />
+                    <ExpenseGrid variant="form" className={expensePresentationStyleClasses("expense-form-grid")}>
                         {amountField(editor.value?.amountCents)}
                         <Field label="Frecuencia">
                             <select
@@ -511,11 +489,11 @@ export function ExpenseEditors({
                                 defaultValue={editor.value?.endDate}
                             />
                         </Field>
-                    </div>
-                    <p className="expense-hint">
+                    </ExpenseGrid>
+                    <ExpenseHint >
                         Genera recordatorios. Confirma cada pago o cobro cuando
                         ocurra; no se añadirá a tus gastos automáticamente.
-                    </p>
+                    </ExpenseHint>
                 </>
             )}
             {editor.type === 'goal' && (
@@ -529,7 +507,7 @@ export function ExpenseEditors({
                             required
                         />
                     </Field>
-                    <div className="expense-form-grid">
+                    <ExpenseGrid variant="form" className={expensePresentationStyleClasses("expense-form-grid")}>
                         <Field label="Objetivo (€)">
                             <input
                                 name="target"
@@ -561,11 +539,11 @@ export function ExpenseEditors({
                                 defaultValue={editor.value?.deadline}
                             />
                         </Field>
-                    </div>
-                    <p className="expense-hint">
+                    </ExpenseGrid>
+                    <ExpenseHint >
                         Es una reserva de planificación. No modifica tus saldos
                         ni registra un movimiento.
-                    </p>
+                    </ExpenseHint>
                 </>
             )}
             {editor.type === 'category' && (
@@ -578,7 +556,7 @@ export function ExpenseEditors({
                             required
                         />
                     </Field>
-                    <div className="expense-form-grid">
+                    <ExpenseGrid variant="form" className={expensePresentationStyleClasses("expense-form-grid")}>
                         <Field label="Grupo">
                             <select
                                 name="group"
@@ -598,31 +576,31 @@ export function ExpenseEditors({
                                 defaultValue={editor.value?.color ?? '#34d399'}
                             />
                         </Field>
-                    </div>
-                    <p className="expense-hint">
+                    </ExpenseGrid>
+                    <ExpenseHint >
                         El grupo sirve para contrastar tus gastos con la regla
                         orientativa 50/30/20.
-                    </p>
+                    </ExpenseHint>
                 </>
             )}
             {error && (
-                <p className="expense-error" role="alert">
+                <p className={"expense-error"} role="alert">
                     {error}
                 </p>
             )}
-            <div className="expense-form-actions">
-                <button
-                    className="expense-btn expense-btn--secondary"
+            <ExpenseActions variant="form" className={"expense-form-actions"}>
+                <ExpenseButton variant="secondary"
+                    className={expensePresentationStyleClasses("expense-btn expense-btn--secondary")}
                     type="button"
                     onClick={onClose}
                     disabled={saving}
                 >
                     Cancelar
-                </button>
-                <button className="expense-btn" type="submit" disabled={saving}>
+                </ExpenseButton>
+                <ExpenseButton className={expensePresentationStyleClasses("expense-btn")} type="submit" disabled={saving}>
                     {saving ? 'Guardando…' : 'Guardar'}
-                </button>
-            </div>
+                </ExpenseButton>
+            </ExpenseActions>
         </form>
     );
 }

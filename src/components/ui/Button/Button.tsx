@@ -1,9 +1,10 @@
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import './Button.css';
+import { LoaderCircle } from 'lucide-react';
+import { buttonStyles, type ButtonStyleOptions } from './buttonStyles';
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-    variant?: 'primary' | 'secondary' | 'ghost' | 'danger';
-    size?: 'sm' | 'md' | 'lg';
+    variant?: ButtonStyleOptions['variant'];
+    size?: ButtonStyleOptions['size'];
     icon?: ReactNode;
     loading?: boolean;
     fullWidth?: boolean;
@@ -20,21 +21,20 @@ export function Button({
     className = '',
     ...props
 }: ButtonProps) {
+    const content = <>
+        {icon && <span className="btn__icon tw:flex tw:items-center tw:justify-center">{icon}</span>}
+        {children}
+    </>;
     return (
         <button
-            className={`btn btn--${variant} btn--${size} ${fullWidth ? 'btn--full' : ''} ${loading ? 'btn--loading' : ''
-                } ${className}`}
-            disabled={disabled || loading}
             {...props}
+            data-ui="button"
+            className={buttonStyles({ variant, size, fullWidth, loading, className })}
+            disabled={disabled || loading}
+            aria-busy={loading || props['aria-busy']}
         >
-            {loading ? (
-                <span className="btn__spinner" />
-            ) : (
-                <>
-                    {icon && <span className="btn__icon">{icon}</span>}
-                    {children}
-                </>
-            )}
+            {loading ? <span className="tw:inline-flex tw:items-center tw:justify-center tw:gap-ui-sm tw:opacity-0">{content}</span> : content}
+            {loading && <LoaderCircle aria-hidden="true" className="btn__spinner tw:absolute tw:size-[18px] tw:animate-ui-spinner tw:motion-reduce:animate-none" />}
         </button>
     );
 }

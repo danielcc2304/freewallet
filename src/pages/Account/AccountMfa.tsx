@@ -5,7 +5,8 @@ import {useAccount} from '../../context/AccountContext';
 import type {FeedbackTone} from '../../components/ui/FeedbackToast';
 import {createMfaQrImage} from '../../services/mfaQr';
 import {disableAuthenticator} from '../../services/mfaManagement';
-import './Account.css';
+import {Input} from '../../components/ui/Input';
+import {AccountPanel,AccountHelp} from './AccountLayout';
 
 export function AccountMfa({notify,onVerified}:{notify:(text:string,tone?:FeedbackTone)=>void;onVerified?:()=>void}){
     const account=useAccount();
@@ -91,7 +92,7 @@ export function AccountMfa({notify,onVerified}:{notify:(text:string,tone?:Feedba
             if(isCurrent())notify(error instanceof Error?error.message:'No se pudo desactivar el autenticador. Comprueba el código e inténtalo de nuevo.','error');
         }finally{if(isCurrent())setBusy(false);}
     };
-    return <div className="card account-page__form"><h2>Verificación en dos pasos</h2>
+    return <AccountPanel className="account-page__form tw:grid tw:gap-4"><h2 className="tw:text-xl tw:leading-[1.35]">Verificación en dos pasos</h2>
         <p>{enabled?'Tu cuenta tiene un autenticador configurado.':'Puedes proteger el acceso a tu cartera con una aplicación de autenticación.'}</p>
         {enabled&&!removing && <Button type="button" variant="secondary" disabled={busy||account.sync.status==='saving'||account.sync.status==='conflict'} onClick={()=>{setCode('');setRemoving(true);}}>Desactivar autenticador</Button>}
         {removing && <p>Dejarás de usar este autenticador para acceder. Confirma con su código actual de 6 cifras.</p>}
@@ -100,20 +101,20 @@ export function AccountMfa({notify,onVerified}:{notify:(text:string,tone?:Feedba
                 if(!window.confirm('¿Eliminar la configuración de autenticador que quedó sin confirmar? No se eliminará un factor ya verificado.'))return;
                 setBusy(true);void getAppSupabaseClient().then(async(client)=>{const result=await client.auth.mfa.unenroll({factorId:pendingFactor});if(result.error)throw result.error;setPendingFactor('');notify('Configuración pendiente eliminada.');}).catch(()=>notify('No se pudo eliminar la configuración pendiente.','error')).finally(()=>setBusy(false));
             }}>Eliminar configuración pendiente</Button>:<Button variant="secondary" disabled={busy||account.sync.status==='saving'||account.sync.status==='conflict'} onClick={()=>void enroll()}>Configurar autenticador</Button>}</>}
-        {secret && <div className="account-page__mfa-setup">
+        {secret && <div className="account-page__mfa-setup tw:grid tw:gap-4 tw:min-w-0">
             <p>En Google Authenticator u otra aplicación, pulsa «Añadir cuenta» y elige «Escanear un código QR».</p>
-            {qr && <img className="account-page__mfa-qr" width="248" height="248" src={qr} alt="Código QR privado para configurar el autenticador" onError={()=>{setQr('');setShowSecret(true);notify('No se pudo cargar el QR. Usa la clave de configuración manual.','info');}}/>}
+            {qr && <img className="account-page__mfa-qr tw:block tw:w-[248px] tw:h-[248px] tw:max-w-full tw:object-contain tw:p-[24px] tw:bg-white tw:rounded-xl tw:justify-self-center tw:[image-rendering:pixelated]" width="248" height="248" src={qr} alt="Código QR privado para configurar el autenticador" onError={()=>{setQr('');setShowSecret(true);notify('No se pudo cargar el QR. Usa la clave de configuración manual.','info');}}/>}
             <Button type="button" variant="secondary" aria-expanded={showSecret} aria-controls="account-mfa-manual" onClick={()=>setShowSecret(current=>!current)}>{showSecret?'Ocultar clave manual':'No puedo escanear: usar clave manual'}</Button>
-            {showSecret && <div id="account-mfa-manual" className="account-page__mfa-manual">
+            {showSecret && <div id="account-mfa-manual" className="account-page__mfa-manual tw:grid tw:gap-4 tw:min-w-0">
                 <p>Si estás usando el mismo móvil, elige «Introducir una clave de configuración» en tu autenticador. Nombre: FreeWallet. Tipo: basado en tiempo.</p>
-                <label>Clave de configuración<input readOnly value={secret} autoComplete="off" spellCheck={false} onFocus={event=>event.currentTarget.select()}/></label>
+                <Input density="comfortable" label="Clave de configuración" readOnly value={secret} autoComplete="off" spellCheck={false} onFocus={event=>event.currentTarget.select()}/>
             </div>}
-            <p className="account-page__help">No compartas el QR ni la clave. Después introduce aquí el código de 6 cifras que muestra el autenticador. Si no se acepta, comprueba que la fecha y hora del móvil sean automáticas.</p>
+            <AccountHelp>No compartas el QR ni la clave. Después introduce aquí el código de 6 cifras que muestra el autenticador. Si no se acepta, comprueba que la fecha y hora del móvil sean automáticas.</AccountHelp>
         </div>}
-        {(required||removing)&&factor && <form className="account-page__form" onSubmit={event=>void (removing?remove(event):verify(event))}>
-            <label>Código del autenticador<input value={code} onChange={event=>setCode(event.target.value.replace(/\D/g,''))} inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required/></label>
+        {(required||removing)&&factor && <form className="account-page__form tw:grid tw:gap-4" onSubmit={event=>void (removing?remove(event):verify(event))}>
+            <Input density="comfortable" label="Código del autenticador" value={code} onChange={event=>setCode(event.target.value.replace(/\D/g,''))} inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required/>
             <Button disabled={busy||code.length!==6}>{busy?'Verificando…':removing?'Confirmar desactivación':'Verificar código'}</Button>
             {removing && <Button type="button" variant="secondary" disabled={busy} onClick={()=>{setRemoving(false);setCode('');}}>Cancelar</Button>}
         </form>}
-    </div>;
+    </AccountPanel>;
 }

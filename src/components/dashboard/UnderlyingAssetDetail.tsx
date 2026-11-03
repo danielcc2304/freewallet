@@ -1,15 +1,17 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Activity, Loader2 } from 'lucide-react';
-import { AssetDetail } from './AssetDetail';
-import { getQuote, searchUnderlyingInstrument } from '../../services/apiService';
-import { isApiEnabled } from '../../services/storageService';
-import type { Asset, AssetHolding } from '../../types/types';
-import { chooseUnderlyingResult } from '../../services/dashboardIntegrity';
-import { assetValue } from '../../services/assetValuation';
-import type { ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
-import './UnderlyingAssetDetail.css';
-import { underlyingQueries } from '../../services/underlyingInstruments';
-import { Button } from '../ui';
+import {PortfolioPresentation} from './ui/PortfolioPresentation';
+import {DashboardMetric} from './ui/DashboardMetric';
+import {useEffect,useMemo,useState} from 'react';
+import {Activity,Loader2} from 'lucide-react';
+import {AssetDetail} from './AssetDetail';
+import {getQuote,searchUnderlyingInstrument} from '../../services/apiService';
+import {isApiEnabled} from '../../services/storageService';
+import type {Asset,AssetHolding} from '../../types/types';
+import {chooseUnderlyingResult} from '../../services/dashboardIntegrity';
+import {assetValue} from '../../services/assetValuation';
+import type {ConsolidatedPortfolioExposure} from '../../services/portfolioComposition';
+
+import {underlyingQueries} from '../../services/underlyingInstruments';
+import {Button} from '../ui';
 
 interface UnderlyingAssetDetailProps {
     holding: AssetHolding;
@@ -113,42 +115,39 @@ export function UnderlyingAssetDetail({ holding, parentAsset, exposure }: Underl
     ], [exposure, exposureValue, exposureWeight]);
 
     return (
-        <div className="underlying-detail">
-            <div className="underlying-detail__context">
-                <div className="underlying-detail__context-heading">
+        <PortfolioPresentation appearance="underlying-detail"  >
+            <PortfolioPresentation appearance="underlying-detail__context"  >
+                <PortfolioPresentation appearance="underlying-detail__context-heading"  >
                     <Activity size={18} />
                     <div>
                         <strong>Posición subyacente</strong>
                         <p>{holding.name}</p>
                     </div>
-                </div>
-                <div className="underlying-detail__context-grid">
+                </PortfolioPresentation>
+                <PortfolioPresentation appearance="underlying-detail__context-grid"  >
                     {contextItems.map((item) => (
-                        <div key={item.label}>
-                            <span>{item.label}</span>
-                            <strong>{item.value}</strong>
-                        </div>
+                        <DashboardMetric variant="context" key={item.label} label={item.label} value={item.value} />
                     ))}
-                </div>
-                <p className="underlying-detail__context-note">
+                </PortfolioPresentation>
+                <PortfolioPresentation appearance="underlying-detail__context-note" as="p" >
                     Esta exposición suma la parte del activo que aparece directamente y dentro de los fondos cargados.
-                </p>
-            </div>
+                </PortfolioPresentation>
+            </PortfolioPresentation>
 
             {status === 'loading' && (
-                <div className="underlying-detail__loading" role="status">
+                <PortfolioPresentation appearance="underlying-detail__loading"  role="status">
                     <Loader2 size={20} className="spinning" />
                     <span>Buscando la ficha de {holding.name}…</span>
-                </div>
+                </PortfolioPresentation>
             )}
             {status === 'ready' && resolvedAsset && <AssetDetail asset={resolvedAsset} marketOnly />}
             {status === 'unavailable' && (
-                <div className="underlying-detail__unavailable">
+                <PortfolioPresentation appearance="underlying-detail__unavailable"  >
                     <strong>{holding.name}</strong>
                     <p>{errorMessage}</p>
                     {apiEnabled && <Button type="button" variant="secondary" onClick={()=>setRetry(n=>n+1)}>Reintentar</Button>}
-                </div>
+                </PortfolioPresentation>
             )}
-        </div>
+        </PortfolioPresentation>
     );
 }

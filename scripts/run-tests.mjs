@@ -5,16 +5,22 @@ import { createServer } from 'node:net';
 
 const smoke = process.argv.includes('--smoke');
 const only = process.argv.find(arg => arg.startsWith('--only='))?.slice(7);
+// The all-route audit checks the deployed CSS. Interactive suites retain Vite
+// dev because their fixtures also import source services explicitly.
+const preview = smoke && only === 'test-tailwind-modules-ui.ts' && process.env.FREEWALLET_VISUAL_PHASE !== 'before';
 const output = resolve('test-results', (smoke ? 'smoke' : 'unit') + (only ? '-focused' : ''));
 mkdirSync(output, { recursive: true });
 const smokeTests = [
+    'test-tailwind-foundation-ui.ts',
+    'test-mfa-disable-ui.ts', 'test-academy-account-polish.ts',
+    'test-account-feedback.ts',
     'test-application-audit-ui.ts', 'test-account-usernames-ui.ts',
     'test-dashboard-quality-ui.ts', 'test-live-market-quotes-ui.ts', 'test-bond-calculator-ui.ts',
     'test-expense-ui.ts', 'test-salary-calculator-ui.ts', 'test-fund-radar-ui.ts',
-    'test-fund-chart-ui.ts',
-    'test-news-layout-comments-ui.ts', 'test-portfolio-ui.ts',
+    'test-fund-chart-ui.ts', 'test-fund-information-ui.ts',
+    'test-news-layout-comments-ui.ts', 'test-news-article-editor-ui.ts', 'test-portfolio-ui.ts',
 ];
-const available = smoke ? smokeTests : readdirSync('scripts').filter(name =>
+const available = smoke ? (only ? [...smokeTests, 'test-tailwind-modules-ui.ts', 'test-calculator-dashboard-usability.ts', 'test-stock-fundamentals-ui.ts', 'test-fund-breakdown-ui.ts', 'test-dashboard-results-ui.ts', 'test-fund-transfer-ui.ts'] : smokeTests) : readdirSync('scripts').filter(name =>
     /^test-.*\.(ts|mjs)$/.test(name) && name !== 'test-dashboard-bundle.ts' && !name.endsWith('-ui.ts') && !readFileSync(join('scripts', name), 'utf8').includes("from 'puppeteer'"),
 ).sort();
 const files = only ? available.filter(name => name === only) : available;
@@ -37,7 +43,7 @@ async function run(name, command, args) {
         let log = '', timedOut = false;
         child.stdout.on('data', data => { log += data; });
         child.stderr.on('data', data => { log += data; });
-        const timeout = setTimeout(() => { timedOut = true; stop(child); }, smoke ? 420000 : 180000);
+        const timeout = setTimeout(() => { timedOut = true; stop(child); }, smoke ? (name === 'test-tailwind-modules-ui.ts' ? 1200000 : 420000) : 180000);
         child.on('error', error => { log += String(error); });
         child.on('close', code => {
             clearTimeout(timeout);
@@ -65,7 +71,7 @@ try {
         env.VITE_SUPABASE_PUBLISHABLE_KEY = 'sb_publishable_synthetic_fixture';
         env.VITE_SUPABASE_ANON_KEY = '';
         env.VITE_PORTFOLIO_CLOUD_ENABLED = 'true';
-        server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', '--host', '127.0.0.1', '--port', String(port), '--strictPort'], { env, stdio: ['ignore', 'pipe', 'pipe'], detached: separateGroups });
+        server = spawn(process.execPath, ['node_modules/vite/bin/vite.js', ...(preview ? ['preview'] : []), '--host', '127.0.0.1', '--port', String(port), '--strictPort'], { env, stdio: ['ignore', 'pipe', 'pipe'], detached: separateGroups });
         children.add(server);
         server.stdout.on('data', data => { serverLog += data; });
         server.stderr.on('data', data => { serverLog += data; });
@@ -73,6 +79,15 @@ try {
             try { if ((await fetch(env.FREEWALLET_TEST_URL)).ok) break; } catch { /* Starting. */ }
             if (attempt >= 100 || server.exitCode !== null) throw new Error('Test server failed to start: ' + serverLog);
             await new Promise(resolve => setTimeout(resolve, 200));
+        }
+        if (!preview) {
+            // Do not charge cold dependency/CSS compilation to a browser's
+            // navigation deadline. No app code executes during these requests.
+            await Promise.all(['/src/main.tsx', '/src/styles/tailwind.css'].map(async resource => {
+                const response = await fetch(env.FREEWALLET_TEST_URL + resource, { signal: AbortSignal.timeout(120000) });
+                if (!response.ok) throw new Error('Test compiler failed for ' + resource + ': ' + await response.text());
+                await response.arrayBuffer();
+            }));
         }
     } else {
         await run('verify-coreweave-independent', 'python3', ['scripts/verify-coreweave-bond.py', '--check']);

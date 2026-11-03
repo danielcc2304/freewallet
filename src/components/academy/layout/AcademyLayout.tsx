@@ -1,14 +1,15 @@
-import { Outlet } from 'react-router-dom';
-import { useAppearance } from '../../../context/AppearanceContext';
-import './AcademyLayout.css';
-import './AcademyPageHeader.css';
+import {layoutPresentationClasses} from '../../layout/LayoutPresentation.styles';
+import {Outlet} from 'react-router-dom';
+import {useAppearance} from '../../../context/AppearanceContext';
+
+
 
 export function AcademyLayout() {
     const { isLiquidGlass } = useAppearance();
 
     return (
-        <div className={`academy${isLiquidGlass ? ' academy--liquid-glass' : ''}`}>
-            <main className="academy__content">
+        <div className={layoutPresentationClasses(`academy${isLiquidGlass ? ' academy--liquid-glass' : ''}`)}>
+            <main className={layoutPresentationClasses("academy__content")}>
                 <Outlet />
             </main>
         </div>

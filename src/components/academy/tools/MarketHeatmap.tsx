@@ -1,22 +1,19 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-    AlertTriangle,
-    ExternalLink,
-    RefreshCw,
-    TrendingDown,
-    TrendingUp,
-} from 'lucide-react';
-import { ResponsiveContainer, Treemap, type TreemapNode } from 'recharts';
-import { Button } from '../../ui/Button';
-import { MARKET_HEATMAP_INDEX_BY_ID, MARKET_HEATMAP_INDICES } from '../../../data/marketHeatmapIndices';
-import type {
-    MarketHeatmapConstituent,
-    MarketHeatmapIndexId,
-} from '../../../data/marketHeatmapIndices';
-import { getQuote, getQuotesYahooSpark } from '../../../services/apiService';
-import { loadMarketIndexHoldings } from '../../../services/marketHeatmapService';
-import type { StockQuote } from '../../../types/types';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
+import{MarketHeatmapPage,MarketSectorBoundary,MarketCompanyTile,MarketTileLabel,MarketSectorLabels,MarketSectorLabel}from'../ui/MarketArtwork';
+import{marketArtworkStyle}from'../ui/marketArtworkStyles';
+
+
+import {HeatmapWorkspace,HeatmapToolbar,HeatmapToolbarField,HeatmapMetrics,HeatmapMetric,HeatmapCanvas,HeatmapState,HeatmapCompletion,HeatmapDetails,HeatmapExtreme,HeatmapSectorSummary,HeatmapFooter,HeatmapFloatingActions,HeatmapRefreshButton} from '../ui/HeatmapWorkspace';
+
+import {HeatmapOptions,HeatmapOption,HeatmapIndexIntro,HeatmapLegend,HeatmapSelection,HeatmapSectorRow} from '../ui/HeatmapControls';
+import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
+import {AlertTriangle,ExternalLink,RefreshCw,TrendingDown,TrendingUp} from 'lucide-react';
+import {ResponsiveContainer,Treemap,type TreemapNode} from 'recharts';
+import {MARKET_HEATMAP_INDEX_BY_ID,MARKET_HEATMAP_INDICES} from '../../../data/marketHeatmapIndices';
+import type {MarketHeatmapConstituent,MarketHeatmapIndexId} from '../../../data/marketHeatmapIndices';
+import {getQuote,getQuotesYahooSpark} from '../../../services/apiService';
+import {loadMarketIndexHoldings} from '../../../services/marketHeatmapService';
+import type {StockQuote} from '../../../types/types';
+import {AcademyPageHeader} from '../layout/AcademyPageHeader';
 import './MarketHeatmap.css';
 
 interface LoadedIndexQuotes {
@@ -98,20 +95,7 @@ function HeatmapTile(node: TreemapNode) {
     if (node.children?.length) {
         const sector = getNodeValue<string>(node, 'sector') || node.name;
         return (
-            <g className="market-heatmap__sector-group" data-sector={sector} pointerEvents="none">
-                <rect
-                    x={node.x + 1}
-                    y={node.y + 1}
-                    width={Math.max(node.width - 2, 0)}
-                    height={Math.max(node.height - 2, 0)}
-                    rx={7}
-                    fill="transparent"
-                    stroke="rgba(255, 255, 255, 0.28)"
-                    strokeWidth={2}
-                >
-                    <title>{`${sector} · Peso ${node.value.toLocaleString('es-ES', { maximumFractionDigits: 1 })}% · ${node.children.length} valores`}</title>
-                </rect>
-            </g>
+            <MarketSectorBoundary sector={sector} rectangle={{x:node.x + 1,y:node.y + 1,width:Math.max(node.width - 2, 0),height:Math.max(node.height - 2, 0),rx:7,fill:"transparent",stroke:"rgba(255, 255, 255, 0.28)",strokeWidth:2}} title={<>{`${sector} · Peso ${node.value.toLocaleString('es-ES', { maximumFractionDigits: 1 })}% · ${node.children.length} valores`}</>}></MarketSectorBoundary>
         );
     }
 
@@ -128,56 +112,19 @@ function HeatmapTile(node: TreemapNode) {
     const centerY = node.y + node.height / 2;
 
     return (
-        <g className="market-heatmap__tile">
-            <rect
-                x={node.x + 1}
-                y={node.y + 1}
-                width={Math.max(node.width - 2, 0)}
-                height={Math.max(node.height - 2, 0)}
-                rx={5}
-                fill={getHeatColor(changePercent)}
-                stroke="rgba(255, 255, 255, 0.12)"
-                strokeWidth={1}
-            >
-                <title>{`${companyName} (${symbol}) · ${formatPercent(changePercent)} · Peso ${weight.toLocaleString('es-ES', { maximumFractionDigits: 2 })}% · ${sector} · ${country}`}</title>
-            </rect>
-            {showSymbol && (
-                <text
-                    x={centerX}
-                    y={centerY - (showName ? 12 : showChange ? 7 : -4)}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    className="market-heatmap__tile-symbol"
-                    pointerEvents="none"
-                >
+        <MarketCompanyTile  rectangle={{x:node.x + 1,y:node.y + 1,width:Math.max(node.width - 2, 0),height:Math.max(node.height - 2, 0),rx:5,fill:getHeatColor(changePercent),stroke:"rgba(255, 255, 255, 0.12)",strokeWidth:1}} title={<>{`${companyName} (${symbol}) · ${formatPercent(changePercent)} · Peso ${weight.toLocaleString('es-ES', { maximumFractionDigits: 2 })}% · ${sector} · ${country}`}</>}>{showSymbol && (
+                <MarketTileLabel appearance="symbol" x={centerX} y={centerY - (showName ? 12 : showChange ? 7 : -4)} textAnchor="middle" dominantBaseline="central" pointerEvents="none">
                     {symbol}
-                </text>
-            )}
-            {showName && (
-                <text
-                    x={centerX}
-                    y={centerY + 3}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    className="market-heatmap__tile-name"
-                    pointerEvents="none"
-                >
+                </MarketTileLabel>
+            )}{showName && (
+                <MarketTileLabel appearance="name" x={centerX} y={centerY + 3} textAnchor="middle" dominantBaseline="central" pointerEvents="none">
                     {companyName.length > 20 ? `${companyName.slice(0, 18)}…` : companyName}
-                </text>
-            )}
-            {showChange && (
-                <text
-                    x={centerX}
-                    y={centerY + (showName ? 20 : 10)}
-                    textAnchor="middle"
-                    dominantBaseline="central"
-                    className="market-heatmap__tile-change"
-                    pointerEvents="none"
-                >
+                </MarketTileLabel>
+            )}{showChange && (
+                <MarketTileLabel appearance="change" x={centerX} y={centerY + (showName ? 20 : 10)} textAnchor="middle" dominantBaseline="central" pointerEvents="none">
                     {formatPercent(changePercent)}
-                </text>
-            )}
-        </g>
+                </MarketTileLabel>
+            )}</MarketCompanyTile>
     );
 }
 
@@ -438,100 +385,48 @@ export function MarketHeatmap() {
     }, [heatmapData, syncSectorLabelPositions]);
 
     return (
-        <div className="market-heatmap">
+        <MarketHeatmapPage >
             <AcademyPageHeader className="market-heatmap__header" section="Herramientas">
                 <h1>Heatmap de mercados</h1>
                 <p>Compara el movimiento diario de las principales compañías por su peso dentro de cada índice.</p>
             </AcademyPageHeader>
 
-            <section className="market-heatmap__workspace" aria-labelledby="market-heatmap-index-title">
-                <div className="market-heatmap__toolbar">
-                    <div>
-                        <span className="market-heatmap__toolbar-label" id="market-heatmap-index-title">Índice</span>
-                        <div className="market-heatmap__tabs" role="tablist" aria-label="Seleccionar índice">
+            <HeatmapWorkspace aria-labelledby="market-heatmap-index-title">
+                <HeatmapToolbar ><HeatmapToolbarField label={<>Índice</>} labelId="market-heatmap-index-title"><HeatmapOptions appearance="index" role="tablist" aria-label="Seleccionar índice">
                             {MARKET_HEATMAP_INDICES.map((index) => (
-                                <button
-                                    key={index.id}
-                                    type="button"
-                                    role="tab"
-                                    aria-selected={selectedIndex === index.id}
-                                    className={`market-heatmap__tab ${selectedIndex === index.id ? 'market-heatmap__tab--active' : ''}`}
-                                    onClick={() => handleIndexChange(index.id)}
-                                >
+                                <HeatmapOption appearance="index" selected={selectedIndex === index.id} key={index.id} type="button" role="tab" aria-selected={selectedIndex === index.id} onClick={() => handleIndexChange(index.id)}>
                                     {index.shortLabel}
-                                </button>
+                                </HeatmapOption>
                             ))}
-                        </div>
-                    </div>
-                    <div>
-                        <span className="market-heatmap__toolbar-label">Detalle</span>
-                        <div className="market-heatmap__display-options" role="group" aria-label="Número de componentes visibles">
+                        </HeatmapOptions></HeatmapToolbarField><HeatmapToolbarField label={<>Detalle</>} ><HeatmapOptions appearance="display" role="group" aria-label="Número de componentes visibles">
                             {DISPLAY_OPTIONS.map((option) => (
-                                <button
-                                    key={option.value}
-                                    type="button"
-                                    aria-pressed={displayCount === option.value}
-                                    className={`market-heatmap__display-option ${displayCount === option.value ? 'market-heatmap__display-option--active' : ''}`}
-                                    onClick={() => {
+                                <HeatmapOption appearance="display" selected={displayCount === option.value} key={option.value} type="button" aria-pressed={displayCount === option.value} onClick={() => {
                                         setDisplayCount(option.value);
                                         setSelectedCompany(null);
-                                    }}
-                                >
+                                    }}>
                                     {option.label}
-                                </button>
+                                </HeatmapOption>
                             ))}
-                        </div>
-                    </div>
-                </div>
+                        </HeatmapOptions></HeatmapToolbarField></HeatmapToolbar>
 
-                <div className="market-heatmap__index-intro">
-                    <div>
-                        <h2>{indexDefinition.label}</h2>
-                        <p>{indexDefinition.description}</p>
-                    </div>
-                    <span>{(currentQuotes?.constituents.length || indexDefinition.totalHoldings).toLocaleString('es-ES')} componentes</span>
-                </div>
+                <HeatmapIndexIntro title={<>{indexDefinition.label}</>} description={<>{indexDefinition.description}</>} badge={<>{(currentQuotes?.constituents.length || indexDefinition.totalHoldings).toLocaleString('es-ES')} componentes</>} />
 
-                <div className="market-heatmap__metrics" aria-live="polite">
-                    <div className="market-heatmap__metric">
-                        <span>ETF de referencia · {indexDefinition.proxySymbol}</span>
-                        <strong className={proxyQuote && proxyQuote.changePercent < 0 ? 'is-negative' : proxyQuote && proxyQuote.changePercent > 0 ? 'is-positive' : ''}>
+                <HeatmapMetrics aria-live="polite">
+                    <HeatmapMetric label={<>ETF de referencia · {indexDefinition.proxySymbol}</>} value={<>
                             {proxyQuote ? formatPercent(proxyQuote.changePercent) : isLoading ? 'Cargando…' : 'N/D'}
-                        </strong>
-                    </div>
-                    <div className="market-heatmap__metric">
-                        <span>Avanzan</span>
-                        <strong className="is-positive"><TrendingUp size={16} /> {advancers}</strong>
-                    </div>
-                    <div className="market-heatmap__metric">
-                        <span>Caen</span>
-                        <strong className="is-negative"><TrendingDown size={16} /> {decliners}</strong>
-                    </div>
-                    <div className="market-heatmap__metric">
-                        <span>Peso representado</span>
-                        <strong>{coverageWeight.toLocaleString('es-ES', { maximumFractionDigits: 1 })}%</strong>
-                    </div>
-                </div>
+                        </>} valueClassName={proxyQuote && proxyQuote.changePercent < 0 ? 'is-negative' : proxyQuote && proxyQuote.changePercent > 0 ? 'is-positive' : ''} />
+                    <HeatmapMetric label={<>Avanzan</>} value={<><TrendingUp size={16} /> {advancers}</>} valueClassName="is-positive" />
+                    <HeatmapMetric label={<>Caen</>} value={<><TrendingDown size={16} /> {decliners}</>} valueClassName="is-negative" />
+                    <HeatmapMetric label={<>Peso representado</>} value={<>{coverageWeight.toLocaleString('es-ES', { maximumFractionDigits: 1 })}%</>} />
+                </HeatmapMetrics>
 
-                <div
-                    ref={canvasRef}
-                    className="market-heatmap__canvas"
-                    aria-label={`Mapa de calor de ${indexDefinition.label}`}
-                >
+                <HeatmapCanvas ref={canvasRef} aria-label={`Mapa de calor de ${indexDefinition.label}`}>
                     {isLoading && heatmapData.length === 0 && (
-                        <div className="market-heatmap__loading">
-                            <RefreshCw size={24} className="market-heatmap__refresh-icon--spinning" />
-                            <span>Cargando composición y cotizaciones de {indexDefinition.label}…</span>
-                        </div>
+                        <HeatmapState appearance="loading" icon={<RefreshCw size={24} className={marketArtworkStyle('market-heatmap__refresh-icon--spinning')} />} message={<>Cargando composición y cotizaciones de {indexDefinition.label}…</>} />
                     )}
 
                     {hasError && !isLoading && (
-                        <div className="market-heatmap__error">
-                            <AlertTriangle size={24} />
-                            <strong>No se pudieron cargar las cotizaciones.</strong>
-                            <span>Comprueba la conexión o que los datos de mercado estén activados en Configuración.</span>
-                            <button type="button" onClick={() => void loadIndex(selectedIndex)}>Reintentar</button>
-                        </div>
+                        <HeatmapState appearance="error" icon={<AlertTriangle size={24} />} title={<>No se pudieron cargar las cotizaciones.</>} message={<>Comprueba la conexión o que los datos de mercado estén activados en Configuración.</>} action={<button type="button" onClick={() => void loadIndex(selectedIndex)}>Reintentar</button>} />
                     )}
 
                     {heatmapData.length > 0 && (
@@ -549,111 +444,67 @@ export function MarketHeatmap() {
                         </ResponsiveContainer>
                     )}
 
-                    <div className="market-heatmap__sector-label-layer" aria-hidden="true">
+                    <MarketSectorLabels aria-hidden="true">
                         {sectorLabelPositions.map((label) => {
                             const isReadable = label.width >= 88 && label.height >= 34;
                             if (!isReadable) return null;
 
                             return (
-                                <span
-                                    key={label.sector}
-                                    className="market-heatmap__sector-label"
-                                    style={{
+                                <MarketSectorLabel key={label.sector} style={{
                                         left: `${Math.max(label.x + 8, 5)}px`,
                                         top: `${Math.max(label.y + 8, 5)}px`,
                                         maxWidth: `${Math.max(label.width - 16, 72)}px`,
-                                    }}
-                                    title={label.sector}
-                                >
+                                    }} title={label.sector}>
                                     {label.sector}
-                                </span>
+                                </MarketSectorLabel>
                             );
                         })}
-                    </div>
-                </div>
+                    </MarketSectorLabels>
+                </HeatmapCanvas>
 
-                <div className="market-heatmap__legend" aria-label="Escala de rendimiento diario">
-                    <span>-4% o menos</span>
-                    <div className="market-heatmap__legend-scale" />
-                    <span>+4% o más</span>
-                </div>
+                <HeatmapLegend lower={<>-4% o menos</>} upper={<>+4% o más</>} />
 
                 {isCompleting && currentQuotes?.missingCount ? (
-                    <p className="market-heatmap__completion-status" aria-live="polite">
+                    <HeatmapCompletion aria-live="polite">
                         Completando {currentQuotes.missingCount.toLocaleString('es-ES')} cotizaciones con la fuente alternativa…
-                    </p>
+                    </HeatmapCompletion>
                 ) : null}
 
                 {(selectedCompany || strongest || weakest) && (
-                    <div className="market-heatmap__details" aria-live="polite">
-                        {selectedCompany ? (
-                            <div className="market-heatmap__selected-company">
-                                <span>Selección</span>
-                                <strong>{selectedCompany.name} · {selectedCompany.displaySymbol || selectedCompany.symbol}</strong>
-                                <small>{selectedCompany.sector} · {selectedCompany.country} · peso {selectedCompany.weight.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%</small>
-                                <b className={selectedCompany.changePercent < 0 ? 'is-negative' : 'is-positive'}>{formatPercent(selectedCompany.changePercent)}</b>
-                            </div>
-                        ) : (
-                            <p className="market-heatmap__selection-hint">Selecciona una compañía para ver su detalle.</p>
-                        )}
-                        <div className="market-heatmap__extremes">
-                            {strongest && <span><TrendingUp size={14} /> Mayor subida: <strong>{strongest.displaySymbol || strongest.symbol} {formatPercent(strongest.changePercent)}</strong></span>}
-                            {weakest && <span><TrendingDown size={14} /> Mayor caída: <strong>{weakest.displaySymbol || weakest.symbol} {formatPercent(weakest.changePercent)}</strong></span>}
-                        </div>
-                    </div>
+                    <HeatmapDetails aria-live="polite" selection={selectedCompany ? (
+                            <HeatmapSelection label={<>Selección</>} title={<>{selectedCompany.name} · {selectedCompany.displaySymbol || selectedCompany.symbol}</>} detail={<>{selectedCompany.sector} · {selectedCompany.country} · peso {selectedCompany.weight.toLocaleString('es-ES', { maximumFractionDigits: 2 })}%</>} value={<>{formatPercent(selectedCompany.changePercent)}</>} valueClassName={selectedCompany.changePercent < 0 ? 'is-negative' : 'is-positive'} />
+                        ):null} emptyHint="Selecciona una compañía para ver su detalle.">
+                            {strongest && <HeatmapExtreme icon={<TrendingUp size={14} />} label={<> Mayor subida: </>} value={<>{strongest.displaySymbol || strongest.symbol} {formatPercent(strongest.changePercent)}</>} />}
+                            {weakest && <HeatmapExtreme icon={<TrendingDown size={14} />} label={<> Mayor caída: </>} value={<>{weakest.displaySymbol || weakest.symbol} {formatPercent(weakest.changePercent)}</>} />}
+                        </HeatmapDetails>
                 )}
 
                 {sectorSummary.length > 0 && (
-                    <section className="market-heatmap__sector-summary" aria-label="Resumen por sectores">
-                        <div className="market-heatmap__sector-summary-header">
-                            <div>
-                                <span className="market-heatmap__toolbar-label">Sectores</span>
-                                <p>El mapa agrupa las compañías por sector y las ordena por peso.</p>
-                            </div>
-                            <span>{sectorSummary.length} grupos</span>
-                        </div>
-                        <div className="market-heatmap__sector-list">
+                    <HeatmapSectorSummary aria-label="Resumen por sectores" label={<>Sectores</>} description={<>El mapa agrupa las compañías por sector y las ordena por peso.</>} count={<>{sectorSummary.length} grupos</>}>
                             {sectorSummary.map((sector) => (
-                                <div className="market-heatmap__sector-item" key={sector.sector}>
-                                    <strong>{sector.sector}</strong>
-                                    <span>{sector.weight.toLocaleString('es-ES', { maximumFractionDigits: 1 })}%</span>
-                                    <small>{sector.count.toLocaleString('es-ES')} valores · <b className={sector.changePercent < 0 ? 'is-negative' : 'is-positive'}>{formatPercent(sector.changePercent)}</b></small>
-                                </div>
+                                <HeatmapSectorRow key={sector.sector} title={<>{sector.sector}</>} weight={<>{sector.weight.toLocaleString('es-ES', { maximumFractionDigits: 1 })}%</>}>{sector.count.toLocaleString('es-ES')} valores · <b className={sector.changePercent < 0 ? 'is-negative' : 'is-positive'}>{formatPercent(sector.changePercent)}</b></HeatmapSectorRow>
                             ))}
-                        </div>
-                    </section>
+                        </HeatmapSectorSummary>
                 )}
 
-                <footer className="market-heatmap__footer">
-                    <p>
+                <HeatmapFooter  description={<>
                         El tamaño representa el peso en el índice y el color, la variación de la última sesión disponible.
                         {currentQuotes
                             ? ` Se muestran ${visibleConstituents.length.toLocaleString('es-ES')} de ${currentQuotes.constituents.length.toLocaleString('es-ES')} componentes obtenidos de la composición oficial.`
                             : ''}
                         {currentQuotes?.missingCount && !isCompleting ? ` ${currentQuotes.missingCount.toLocaleString('es-ES')} cotizaciones no estaban disponibles tras la segunda consulta.` : ''}
-                    </p>
-                    <div>
+                    </>}>
                         {currentQuotes && <span>Actualizado {new Date(currentQuotes.loadedAt).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })}</span>}
                         <span>Pesos a {indexDefinition.holdingsAsOf}</span>
                         <a href={indexDefinition.sourceUrl} target="_blank" rel="noreferrer">
                             {indexDefinition.sourceLabel} <ExternalLink size={13} />
                         </a>
-                    </div>
-                </footer>
-            </section>
+                    </HeatmapFooter>
+            </HeatmapWorkspace>
 
-            <div className="market-heatmap__floating-actions" aria-label="Acciones del heatmap">
-                <Button
-                    variant="secondary"
-                    onClick={() => void loadIndex(selectedIndex, true)}
-                    icon={<RefreshCw size={18} className={isLoading || isCompleting ? 'market-heatmap__refresh-icon--spinning' : ''} />}
-                    size="sm"
-                    className="market-heatmap__floating-refresh"
-                    disabled={isLoading || isCompleting}
-                    aria-label={isLoading || isCompleting ? 'Actualizando heatmap' : 'Actualizar heatmap'}
-                    title={isLoading || isCompleting ? 'Actualizando heatmap' : 'Actualizar heatmap'}
-                />
-            </div>
-        </div>
+            <HeatmapFloatingActions aria-label="Acciones del heatmap">
+                <HeatmapRefreshButton variant="secondary" onClick={() => void loadIndex(selectedIndex, true)} icon={<RefreshCw size={18} className={isLoading || isCompleting ? marketArtworkStyle('market-heatmap__refresh-icon--spinning') : ''} />} size="sm" disabled={isLoading || isCompleting} aria-label={isLoading || isCompleting ? 'Actualizando heatmap' : 'Actualizar heatmap'} title={isLoading || isCompleting ? 'Actualizando heatmap' : 'Actualizar heatmap'} />
+            </HeatmapFloatingActions>
+        </MarketHeatmapPage>
     );
 }

@@ -9,7 +9,7 @@ const phase = before ? 'before' : 'after';
 const directory = `/tmp/freewallet-tailwind-${phase}`;
 mkdirSync(directory, { recursive: true });
 const version = JSON.parse(readFileSync('package.json', 'utf8')).version;
-const browser = await puppeteer.launch({ headless: true, executablePath: process.env.PUPPETEER_EXECUTABLE_PATH ?? '/usr/bin/chromium', args: ['--no-sandbox'] });
+const browser = await puppeteer.launch({ headless: true, timeout: 60000, executablePath: process.env.PUPPETEER_EXECUTABLE_PATH ?? '/usr/bin/chromium', args: ['--no-sandbox'] });
 try {
     const page = await browser.newPage();
     page.setDefaultTimeout(60000);

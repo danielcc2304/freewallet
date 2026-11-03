@@ -137,7 +137,7 @@ try {
     await click(a,'Revisar datos de este navegador');
     await a.waitForSelector('.account-page__confirmation');
     assert.ok(await a.$('.account-page__welcome'),'Empty cloud account must explain the existing device portfolio');
-    assert.equal(await a.$eval('button::-p-text(Guardar cartera en mi cuenta)',element=>(element as HTMLButtonElement).disabled),true);
+    await a.waitForSelector('.account-page__confirmation + button',{visible:true});assert.equal(await a.$eval('.account-page__confirmation + button',element=>(element as HTMLButtonElement).disabled),true);
     assert.ok(await a.$eval('.account-page__confirmation input',element=>element.getBoundingClientRect().width<=24),'Confirmation checkbox must not stretch across the card');
     await a.click('input[type="checkbox"]');await click(a,'Guardar cartera en mi cuenta');
     await a.waitForFunction(()=>document.body.innerText.includes('Guardado en tu cuenta'));
@@ -147,7 +147,7 @@ try {
     const chooserReady=b.waitForFileChooser();await click(b,'Seleccionar archivo');const fileChooser=await chooserReady;await fileChooser.accept([backupPath]);
     await b.waitForFunction(()=>document.querySelector('#account-private-backup-name')?.textContent?.endsWith('.json'));
     await b.waitForFunction(count=>document.body.innerText.includes(`${count} posiciones`),{},localPortfolio.assets.length);
-    assert.equal(await b.$eval('button::-p-text(Guardar cartera en mi cuenta)',element=>(element as HTMLButtonElement).disabled),true,'Selecting a backup must not import automatically');
+    await b.waitForSelector('.account-page__confirmation + button',{visible:true});assert.equal(await b.$eval('.account-page__confirmation + button',element=>(element as HTMLButtonElement).disabled),true,'Selecting a backup must not import automatically');
     assert.equal((await db.query<{count:number}>('select count(*)::int as count from public.user_portfolios')).rows[0].count,1,'Only the explicitly confirmed account may have a portfolio');
     await a.goto(`${origin}/`,{waitUntil:'domcontentloaded'});
     await a.waitForFunction(()=>document.body.innerText.includes('Mis Activos'));
@@ -158,7 +158,7 @@ try {
     await flush(a);
     await a.goto(`${origin}/account`,{waitUntil:'domcontentloaded'});
     await a.waitForFunction(()=>document.body.innerText.includes('Guardado en tu cuenta'));
-    assert.equal(await a.$('button::-p-text(Guardar cartera en mi cuenta)'),null,'Existing cloud portfolio cannot be overwritten via import');
+    assert.equal(await a.$('.account-page__confirmation + button'),null,'Existing cloud portfolio cannot be overwritten via import');
     const data=await db.query<{data:Record<string,string>}>('select data from portfolio_private.documents where user_id=$1',[users[0]]);
     const roundTrip=JSON.parse(data.rows[0].data.freewallet_portfolio_v1);
     for(const asset of localPortfolio.assets){const stored=roundTrip.assets.find((item:{id:string})=>item.id===asset.id);assert.equal(stored.quantity,asset.quantity);assert.equal(stored.purchasePrice,asset.purchasePrice);}

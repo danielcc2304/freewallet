@@ -1,12 +1,23 @@
+import {AssetGuideFrame,AssetGuideDescription,AssetGuideLayout,AssetGuideBondCategory} from '../ui/AssetGuideFrame';
+import {AcademySpreadExperiment,AcademyDurationExperiment} from '../ui/AcademyBondExperiments';
+import {AcademyAssetVisual,AcademyConvexityPanel,AcademyConvexityGraphic,AcademyYieldCurve,AcademyYieldBar,AcademyBondLadderStep,AcademyDurationInputs,AcademyBondMetric,AcademyDurationMix,AcademyBondRange,AcademyBondChoice} from '../ui/AcademyBondParts';
+import {AcademyAssetBar,AcademyRatingRow,AcademyRatingDivider,AcademyDurationMixRow} from '../ui/AcademyAssetBars';
+import {AcademyAssetHero,AcademyAssetBackLink,AcademyAssetText,AcademyAssetInlineLink} from '../ui/AcademyAssetReading';
+import { AcademyFactCard, AcademyDirectionalCard, AcademyCreditCard, AcademyTextCard, AcademyFinalTip } from '../ui/AcademyAssetExplainers';
+
+import { BondCategoryCard } from '../ui/BondCategoryCard';
+import { AcademyListCard } from '../ui/AcademyListCard';
+import { AcademyCallout } from '../ui/AcademyCallout';
+import { AcademyStepCard } from '../ui/AcademyStepCard';
+import { AcademyMetric } from '../ui/AcademyMetric';
+import { AcademySection } from '../ui/AcademySection';
+import { AcademyGrid } from '../ui/AcademyGrid';
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
 import {
     Landmark, ArrowLeft, Globe, Zap, CheckCircle2, AlertTriangle,
     Lightbulb, BarChart3, Clock, Shield, TrendingDown, TrendingUp, ArrowUpDown
 } from 'lucide-react';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import { AssetGuideNav } from './AssetGuideNav';
-import './AssetPage.css';
 
 const BOND_TYPES = [
     {
@@ -210,35 +221,21 @@ export function AssetBonds() {
     const normalizedLong = portfolioWeightTotal > 0 ? (weightLong / portfolioWeightTotal) * 100 : 0;
 
     return (
-        <div className="asset-page asset-page--bonds" style={{ '--asset-color': '#10b981' } as React.CSSProperties}>
-            <Link to="/academy/portfolio" className="asset-page__back">
+        <AssetGuideFrame appearance="bonds" style={{ '--asset-color': '#10b981' } as React.CSSProperties}>
+            <AcademyAssetBackLink to="/academy/portfolio">
                 <ArrowLeft size={18} /> Estrategia y cartera
-            </Link>
+            </AcademyAssetBackLink>
 
-            <AcademyPageHeader className="asset-page__hero" section="Aprender" style={{ '--hero-color': '#10b981' } as React.CSSProperties}>
-                <div className="asset-page__hero-icon">
+            <AcademyAssetHero style={{ '--hero-color': '#10b981' } as React.CSSProperties} icon={<>
                     <Landmark size={48} />
-                </div>
-                <h1>Renta Fija (Bonos)</h1>
-                <p className="asset-page__hero-sub">
+                </>} title={<>Renta Fija (Bonos)</>} description={<>
                     El ancla de estabilidad de tu cartera. Comprende los tipos de bonos, cómo funcionan los tipos de interés,
                     y por qué la curva de tipos puede predecir recesiones.
-                </p>
-                <div className="asset-page__hero-stats">
-                    <div className="hero-stat">
-                        <span className="hero-stat__value">2-10%</span>
-                        <span className="hero-stat__label">Retorno típico</span>
-                    </div>
-                    <div className="hero-stat">
-                        <span className="hero-stat__value">3-8%</span>
-                        <span className="hero-stat__label">Volatilidad</span>
-                    </div>
-                    <div className="hero-stat">
-                        <span className="hero-stat__value">1-5 años</span>
-                        <span className="hero-stat__label">Horizonte recomendado</span>
-                    </div>
-                </div>
-            </AcademyPageHeader>
+                </>}>
+                    <AcademyMetric variant="hero" label={<>Retorno típico</>} value={<>2-10%</>} valueProps={{"className":"hero-stat__value"}} />
+                    <AcademyMetric variant="hero" label={<>Volatilidad</>} value={<>3-8%</>} valueProps={{"className":"hero-stat__value"}} />
+                    <AcademyMetric variant="hero" label={<>Horizonte recomendado</>} value={<>1-5 años</>} valueProps={{"className":"hero-stat__value"}} />
+                </AcademyAssetHero>
 
             <AssetGuideNav sections={[
                 { id: 'section-1', label: 'Conceptos' },
@@ -257,9 +254,9 @@ export function AssetBonds() {
             ]} />
 
             {/* What is it */}
-            <section id="section-1" className="asset-page__section">
-                <h2><Globe size={22} /> ¿Qué es un Bono?</h2>
-                <div className="asset-page__text-block">
+            <AcademySection title={<><Globe size={22} /> ¿Qué es un Bono?</>} id="section-1" className="asset-page__section">
+
+                <AcademyAssetText >
                     <p>
                         Un bono es un <strong>préstamo que tú haces a un gobierno o empresa</strong>. A cambio, te pagan
                         un interés periódico (el <strong>cupón</strong>) y al vencimiento te devuelven el dinero prestado
@@ -270,97 +267,50 @@ export function AssetBonds() {
                         secundario donde puedes comprar y vender bonos antes de su vencimiento. Aquí es donde entran
                         los conceptos de precio, yield y duración.
                     </p>
-                </div>
+                </AcademyAssetText>
 
                 {/* Bond anatomy visual */}
-                <div className="bond-anatomy">
-                    <h3>Anatomía de un Bono</h3>
-                    <div className="bond-anatomy__grid">
-                        <div className="bond-anatomy__item">
-                            <span className="bond-anatomy__label">Nominal (Face Value)</span>
-                            <span className="bond-anatomy__value">1.000€</span>
-                            <span className="bond-anatomy__desc">Lo que te devuelven al vencimiento</span>
-                        </div>
-                        <div className="bond-anatomy__item">
-                            <span className="bond-anatomy__label">Cupón</span>
-                            <span className="bond-anatomy__value">3.5%</span>
-                            <span className="bond-anatomy__desc">Interés anual que recibes</span>
-                        </div>
-                        <div className="bond-anatomy__item">
-                            <span className="bond-anatomy__label">Vencimiento</span>
-                            <span className="bond-anatomy__value">10 años</span>
-                            <span className="bond-anatomy__desc">Plazo hasta recuperar el nominal</span>
-                        </div>
-                        <div className="bond-anatomy__item">
-                            <span className="bond-anatomy__label">Precio</span>
-                            <span className="bond-anatomy__value">98.50</span>
-                            <span className="bond-anatomy__desc">Lo que pagas hoy (puede ser {'≠'} 100)</span>
-                        </div>
-                        <div className="bond-anatomy__item">
-                            <span className="bond-anatomy__label">Yield (TIR)</span>
-                            <span className="bond-anatomy__value">3.67%</span>
-                            <span className="bond-anatomy__desc">Rentabilidad real si mantienes a vencimiento</span>
-                        </div>
-                        <div className="bond-anatomy__item">
-                            <span className="bond-anatomy__label">Rating</span>
-                            <span className="bond-anatomy__value">AA+</span>
-                            <span className="bond-anatomy__desc">Calidad crediticia del emisor</span>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                <AcademyAssetVisual variant="anatomy" title={<>Anatomía de un Bono</>}><AcademyGrid variant="bondAnatomy" className="bond-anatomy__grid">
+                        <AcademyFactCard appearance="bond" label={<>Nominal (Face Value)</>} value={<>1.000€</>} description={<>Lo que te devuelven al vencimiento</>} />
+                        <AcademyFactCard appearance="bond" label={<>Cupón</>} value={<>3.5%</>} description={<>Interés anual que recibes</>} />
+                        <AcademyFactCard appearance="bond" label={<>Vencimiento</>} value={<>10 años</>} description={<>Plazo hasta recuperar el nominal</>} />
+                        <AcademyFactCard appearance="bond" label={<>Precio</>} value={<>98.50</>} description={<>Lo que pagas hoy (puede ser {'≠'} 100)</>} />
+                        <AcademyFactCard appearance="bond" label={<>Yield (TIR)</>} value={<>3.67%</>} description={<>Rentabilidad real si mantienes a vencimiento</>} />
+                        <AcademyFactCard appearance="bond" label={<>Rating</>} value={<>AA+</>} description={<>Calidad crediticia del emisor</>} />
+                    </AcademyGrid></AcademyAssetVisual>
+            </AcademySection>
 
             {/* Inverse relationship */}
-            <section id="section-2" className="asset-page__section">
-                <h2><ArrowUpDown size={22} /> La Regla de Oro: Precio vs Yield</h2>
-                <div className="asset-page__text-block">
+            <AcademySection title={<><ArrowUpDown size={22} /> La Regla de Oro: Precio vs Yield</>} id="section-2" className="asset-page__section">
+
+                <AcademyAssetText >
                     <p>
                         Esta es <strong>la relación más importante</strong> que debes entender sobre bonos:
                         cuando los tipos de interés <strong>suben</strong>, el precio de los bonos existentes <strong>baja</strong>, y viceversa.
                     </p>
-                </div>
+                </AcademyAssetText>
 
-                <div className="inverse-relationship">
-                    <div className="inverse-card inverse-card--up">
-                        <TrendingUp size={32} />
-                        <h4>Tipos Suben</h4>
-                        <div className="inverse-card__arrow">→</div>
-                        <TrendingDown size={32} />
-                        <h4>Precio Baja</h4>
-                        <p>Los bonos nuevos pagan más, así que los viejos pierden atractivo.</p>
-                    </div>
-                    <div className="inverse-card inverse-card--down">
-                        <TrendingDown size={32} />
-                        <h4>Tipos Bajan</h4>
-                        <div className="inverse-card__arrow">→</div>
-                        <TrendingUp size={32} />
-                        <h4>Precio Sube</h4>
-                        <p>Los bonos existentes con cupones altos se vuelven más valiosos.</p>
-                    </div>
-                </div>
+                <AssetGuideLayout appearance="inverse" >
+                    <AcademyDirectionalCard direction="up" fromIcon={<TrendingUp size={32} />} from={<>Tipos Suben</>} connector={<>→</>} toIcon={<TrendingDown size={32} />} to={<>Precio Baja</>}>Los bonos nuevos pagan más, así que los viejos pierden atractivo.</AcademyDirectionalCard>
+                    <AcademyDirectionalCard direction="down" fromIcon={<TrendingDown size={32} />} from={<>Tipos Bajan</>} connector={<>→</>} toIcon={<TrendingUp size={32} />} to={<>Precio Sube</>}>Los bonos existentes con cupones altos se vuelven más valiosos.</AcademyDirectionalCard>
+                </AssetGuideLayout>
 
-                <div className="asset-page__callout asset-page__callout--info">
-                    <Lightbulb size={20} />
-                    <div>
-                        <strong>¿Por qué importa?</strong>
-                        <p>Si compras un bono a 10 años y los tipos suben un 2%, podrías ver una caída del ~15% en el precio de mercado de tu bono. Si lo mantienes a vencimiento, no importa (cobras cupón + nominal). Pero si necesitas vender antes, puedes perder dinero.</p>
-                    </div>
-                </div>
-            </section>
+                <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>¿Por qué importa?</>}>
+                    <p>Si compras un bono a 10 años y los tipos suben un 2%, podrías ver una caída del ~15% en el precio de mercado de tu bono. Si lo mantienes a vencimiento, no importa (cobras cupón + nominal). Pero si necesitas vender antes, puedes perder dinero.</p>
+                </AcademyCallout>
+            </AcademySection>
 
             {/* Duration & Convexity */}
-            <section id="section-3" className="asset-page__section">
-                <h2><BarChart3 size={22} /> Duración y Convexidad</h2>
-                <div className="asset-page__text-block">
+            <AcademySection title={<><BarChart3 size={22} /> Duración y Convexidad</>} id="section-3" className="asset-page__section">
+
+                <AcademyAssetText >
                     <p>
                         La <strong>duración</strong> mide cuánto cambia el precio de un bono cuando los tipos se mueven.
                         A mayor duración, mayor sensibilidad.
                     </p>
-                </div>
+                </AcademyAssetText>
 
-                <div className="duration-visual">
-                    <h3>Impacto de una subida de tipos del 1%</h3>
-                    <div className="duration-bars">
+                <AcademyAssetVisual variant="duration" title={<>Impacto de una subida de tipos del 1%</>}>
                         {[
                             { label: 'Letras 6m', duration: 0.5, loss: -0.5, color: '#10b981' },
                             { label: 'Bono 2a', duration: 1.9, loss: -1.9, color: '#3b82f6' },
@@ -368,24 +318,11 @@ export function AssetBonds() {
                             { label: 'Bono 10a', duration: 8.2, loss: -8.2, color: '#f59e0b' },
                             { label: 'Bono 30a', duration: 19.5, loss: -19.5, color: '#ef4444' },
                         ].map(item => (
-                            <div key={item.label} className="duration-bar">
-                                <span className="duration-bar__label">{item.label}</span>
-                                <div className="duration-bar__track">
-                                    <div
-                                        className="duration-bar__fill"
-                                        style={{ width: `${Math.min(Math.abs(item.loss) * 5, 100)}%`, backgroundColor: item.color }}
-                                    />
-                                </div>
-                                <span className="duration-bar__value" style={{ color: item.color }}>{item.loss}%</span>
-                            </div>
+                            <AcademyAssetBar key={item.label} variant="duration" label={<>{item.label}</>} value={<>{item.loss}%</>} fillStyle={{ width: `${Math.min(Math.abs(item.loss) * 5, 100)}%`, backgroundColor: item.color }} valueStyle={{ color: item.color }} />
                         ))}
-                    </div>
-                </div>
+                    </AcademyAssetVisual>
 
-                <div className="convexity-explainer">
-                    <h3>¿Qué es la Convexidad?</h3>
-                    <div className="convexity-content">
-                        <div className="convexity-text">
+                <AcademyConvexityPanel title={<>¿Qué es la Convexidad?</>} copy={<>
                             <p>
                                 La convexidad mide la <strong>curvatura</strong> de la relación precio-yield.
                                 Una convexidad positiva alta es deseable porque significa que:
@@ -398,118 +335,61 @@ export function AssetBonds() {
                                 En resumen: <strong>la convexidad es tu amiga</strong>. Los bonos de mayor vencimiento
                                 tienen más convexidad, lo que actúa como un «colchón asimétrico» a tu favor.
                             </p>
-                        </div>
-                        <div className="convexity-chart">
-                            <div className="convexity-chart__visual">
-                                <div className="convexity-chart__label convexity-chart__label--top">Beneficio por convexidad ↑</div>
-                                <svg viewBox="0 0 200 120" className="convexity-svg">
-                                    {/* Linear (duration only) */}
-                                    <line x1="20" y1="100" x2="180" y2="20" stroke="#64748b" strokeDasharray="5,5" strokeWidth="2" />
-                                    {/* Curved (with convexity) */}
-                                    <path d="M20,100 Q60,85 100,60 Q140,35 180,15" stroke="#10b981" strokeWidth="3" fill="none" />
-                                    <text x="90" y="115" fill="#64748b" fontSize="9" textAnchor="middle">Duración (lineal)</text>
-                                    <text x="140" y="25" fill="#10b981" fontSize="9" textAnchor="middle">Con convexidad</text>
-                                </svg>
-                                <div className="convexity-chart__label convexity-chart__label--bottom">Yield →</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                        </>} chart={<AcademyConvexityGraphic />} />
+            </AcademySection>
 
             {/* Yield Curve */}
-            <section id="section-4" className="asset-page__section">
-                <h2><TrendingUp size={22} /> La Curva de Tipos</h2>
-                <div className="asset-page__text-block">
+            <AcademySection title={<><TrendingUp size={22} /> La Curva de Tipos</>} id="section-4" className="asset-page__section">
+
+                <AcademyAssetText >
                     <p>
                         La <strong>curva de rendimientos</strong> (yield curve) muestra qué rentabilidad ofrecen
                         los bonos según su plazo. Su forma nos dice mucho sobre las expectativas económicas del mercado.
                     </p>
-                </div>
+                </AcademyAssetText>
 
-                <div className="yield-curves">
+                <AssetGuideLayout appearance="curves" >
                     {YIELD_CURVE_SCENARIOS.map(scenario => (
-                        <div key={scenario.name} className="yield-curve-card" style={{ '--curve-color': scenario.color } as React.CSSProperties}>
-                            <div className="yield-curve-card__header">
-                                <h4>{scenario.name}</h4>
-                                <span className="yield-curve-card__signal">{scenario.signal}</span>
-                            </div>
-                            <p className="yield-curve-card__desc">{scenario.desc}</p>
-                            <div className="yield-curve-card__chart">
-                                <div className="mini-curve">
+                        <AcademyYieldCurve key={scenario.name} title={scenario.name} signal={scenario.signal} description={scenario.desc} color={scenario.color}>
                                     {scenario.visual.map((val, i) => (
-                                        <div key={i} className="mini-curve__bar-group">
-                                            <div
-                                                className="mini-curve__bar"
-                                                style={{
-                                                    height: `${val * 18}px`,
-                                                    backgroundColor: scenario.color,
-                                                }}
-                                            />
-                                            <span className="mini-curve__label">{DURATION_LABELS[i]}</span>
-                                            <span className="mini-curve__val" style={{ color: scenario.color }}>{val}%</span>
-                                        </div>
+                                        <AcademyYieldBar key={i} label={<>{DURATION_LABELS[i]}</>} value={<>{val}%</>} height={`${val * 18}px`} color={scenario.color} />
                                     ))}
-                                </div>
-                            </div>
-                        </div>
+                                </AcademyYieldCurve>
                     ))}
-                </div>
+                </AssetGuideLayout>
 
-                <div className="asset-page__callout asset-page__callout--warning">
-                    <AlertTriangle size={20} />
-                    <div>
-                        <strong>Curva invertida = señal de recesión</strong>
-                        <p>Históricamente, cada vez que la curva de tipos se ha invertido (el bono a 2 años rinde más que el de 10 años), una recesión ha seguido en los 6-18 meses siguientes. Ocurrió antes de 2001, 2008, y 2020.</p>
-                    </div>
-                </div>
-            </section>
+                <AcademyCallout tone="warning" icon={<AlertTriangle size={20} />} title={<>Curva invertida = señal de recesión</>}>
+                    <p>Históricamente, cada vez que la curva de tipos se ha invertido (el bono a 2 años rinde más que el de 10 años), una recesión ha seguido en los 6-18 meses siguientes. Ocurrió antes de 2001, 2008, y 2020.</p>
+                </AcademyCallout>
+            </AcademySection>
 
             {/* Bond types deep dive */}
-            <section id="section-5" className="asset-page__section">
-                <h2><Shield size={22} /> Tipos de Bonos en Detalle</h2>
-                <p className="asset-page__section-desc">
+            <AcademySection title={<><Shield size={22} /> Tipos de Bonos en Detalle</>} id="section-5" className="asset-page__section">
+
+                <AssetGuideDescription >
                     No todos los bonos son iguales. La diferencia entre deuda gubernamental y high yield
                     es como la diferencia entre un depósito y una criptomoneda.
-                </p>
+                </AssetGuideDescription>
 
                 {BOND_TYPES.map((type) => (
-                    <div key={type.title} className="bond-type-block" style={{ '--bond-color': type.color } as React.CSSProperties}>
-                        <div className="bond-type-block__header">
-                            <span className="bond-type-block__emoji">{type.icon}</span>
-                            <div>
-                                <h3>{type.title}</h3>
-                                <p>{type.desc}</p>
-                            </div>
-                        </div>
-                        <div className="bond-type-block__subtypes">
+                    <AssetGuideBondCategory key={type.title} style={{ '--bond-color': type.color } as React.CSSProperties} icon={<>{type.icon}</>} title={<>{type.title}</>} description={<>{type.desc}</>}><AcademyGrid variant="bondSubtypes" className="bond-type-block__subtypes">
                             {type.subtypes.map(sub => (
-                                <div key={sub.name} className="bond-subtype">
-                                    <div className="bond-subtype__header">
-                                        <h4>{sub.name}</h4>
-                                        <span className={`bond-subtype__risk bond-subtype__risk--${sub.risk.toLowerCase().replace(/[^a-z]/g, '')}`}>
-                                            {sub.risk}
-                                        </span>
-                                    </div>
-                                    <p>{sub.desc}</p>
-                                    <span className="bond-subtype__duration">
+                                <BondCategoryCard key={sub.name} title={sub.name} risk={sub.risk} description={<>{sub.desc}</>} duration={<>
                                         <Clock size={14} /> {sub.duration}
-                                    </span>
-                                </div>
+                                    </>} />
                             ))}
-                        </div>
-                    </div>
+                        </AcademyGrid></AssetGuideBondCategory>
                 ))}
-            </section>
+            </AcademySection>
 
             {/* Credit Rating */}
-            <section id="section-6" className="asset-page__section">
-                <h2><BarChart3 size={22} /> Ratings Crediticios</h2>
-                <div className="asset-page__text-block">
-                    <p>Las agencias de calificación (Moody's, S&P, Fitch) evalúan la probabilidad de que un emisor pague sus deudas. La calificación determina el interés que debe pagar el emisor.</p>
-                </div>
+            <AcademySection title={<><BarChart3 size={22} /> Ratings Crediticios</>} id="section-6" className="asset-page__section">
 
-                <div className="rating-scale">
+                <AcademyAssetText >
+                    <p>Las agencias de calificación (Moody's, S&P, Fitch) evalúan la probabilidad de que un emisor pague sus deudas. La calificación determina el interés que debe pagar el emisor.</p>
+                </AcademyAssetText>
+
+                <AssetGuideLayout appearance="rating" >
                     {[
                         { rating: 'AAA', label: 'Máxima calidad', example: 'Alemania, Microsoft', color: '#10b981', width: '100%' },
                         { rating: 'AA', label: 'Muy alta calidad', example: 'Bélgica, Apple', color: '#22c55e', width: '92%' },
@@ -519,28 +399,16 @@ export function AssetBonds() {
                         { rating: 'B', label: 'Alto riesgo', example: 'Turquía, Empresas en dificultad', color: '#ef4444', width: '40%' },
                         { rating: 'CCC-D', label: 'Riesgo de impago', example: 'Default inminente', color: '#991b1b', width: '20%' },
                     ].map(r => (
-                        <div key={r.rating} className="rating-row">
-                            <span className="rating-row__badge" style={{ backgroundColor: r.color }}>{r.rating}</span>
-                            <div className="rating-row__bar-container">
-                                <div className="rating-row__bar" style={{ width: r.width, backgroundColor: r.color }} />
-                            </div>
-                            <div className="rating-row__info">
-                                <span className="rating-row__label">{r.label}</span>
-                                <span className="rating-row__example">{r.example}</span>
-                            </div>
-                        </div>
+                        <AcademyRatingRow key={r.rating} rating={r.rating} color={r.color} width={r.width} label={r.label} example={r.example} />
                     ))}
-                    <div className="rating-scale__divider">
-                        <span>↑ Investment Grade</span>
-                        <span>↓ High Yield (Basura)</span>
-                    </div>
-                </div>
-            </section>
+                    <AcademyRatingDivider above={<>↑ Investment Grade</>} below={<>↓ High Yield (Basura)</>} />
+                </AssetGuideLayout>
+            </AcademySection>
 
             {/* Credit spread */}
-            <section id="section-7" className="asset-page__section">
-                <h2><TrendingDown size={22} /> Spread de Crédito: El Termómetro del Riesgo</h2>
-                <div className="asset-page__text-block">
+            <AcademySection title={<><TrendingDown size={22} /> Spread de Crédito: El Termómetro del Riesgo</>} id="section-7" className="asset-page__section">
+
+                <AcademyAssetText >
                     <p>
                         El <strong>spread de crédito</strong> es la prima extra que exige el mercado por prestar a una empresa
                         en lugar de a un Estado "libre de riesgo" (como Alemania o EE.UU.).
@@ -550,399 +418,216 @@ export function AssetBonds() {
                         Si un bono público a 5 años rinde 2.4% y un corporativo similar rinde 4.0%,
                         el spread es 1.6% (160 puntos básicos).
                     </p>
-                </div>
+                </AcademyAssetText>
 
-                <div className="credit-spreads-grid">
+                <AssetGuideLayout appearance="spreads" >
                     {CREDIT_SPREAD_REGIMES.map((regime) => (
-                        <div
-                            key={regime.name}
-                            className="credit-spread-card"
-                            style={{ '--spread-color': regime.color } as React.CSSProperties}
-                        >
-                            <h3>{regime.name}</h3>
-                            <span className="credit-spread-card__range">{regime.range}</span>
-                            <p>{regime.meaning}</p>
-                            <div className="credit-spread-card__implication">
-                                <strong>Lectura práctica:</strong> {regime.implication}
-                            </div>
-                        </div>
+                        <AcademyCreditCard key={regime.name} style={{ '--spread-color': regime.color } as React.CSSProperties} title={<>{regime.name}</>} range={<>{regime.range}</>} description={<>{regime.meaning}</>} implicationLabel={<>Lectura práctica:</>} implication={<>{regime.implication}</>} />
                     ))}
-                </div>
+                </AssetGuideLayout>
 
-                <div className="asset-page__callout asset-page__callout--warning">
-                    <AlertTriangle size={20} />
-                    <div>
-                        <strong>Cuando el spread se abre rápido, manda el riesgo</strong>
-                        <p>
-                            Si los spreads se amplían de golpe, el crédito suele caer aunque los tipos oficiales no cambien.
-                            En ese entorno, la calidad del emisor y la liquidez importan más que rascar unas décimas extra de yield.
-                        </p>
-                    </div>
-                </div>
+                <AcademyCallout tone="warning" icon={<AlertTriangle size={20} />} title={<>Cuando el spread se abre rápido, manda el riesgo</>}>
+                    <p>
+                        Si los spreads se amplían de golpe, el crédito suele caer aunque los tipos oficiales no cambien.
+                        En ese entorno, la calidad del emisor y la liquidez importan más que rascar unas décimas extra de yield.
+                    </p>
+                </AcademyCallout>
 
-                <div className="spread-sim">
-                    <h3>Mini simulador: impacto de spread</h3>
-                    <p className="spread-sim__intro">
+                <AcademySpreadExperiment title={<>Mini simulador: impacto de spread</>} intro={<>
                         Estimación rápida usando <strong>duración de spread</strong>:
                         impacto (%) ≈ - duración x cambio de spread (en %).
-                    </p>
-
-                    <div className="spread-sim__mode">
-                        <button
-                            type="button"
-                            aria-pressed={!isStressMode}
-                            className={`spread-sim__mode-btn ${!isStressMode ? 'is-active' : ''}`}
-                            onClick={() => setIsStressMode(false)}
-                        >
+                    </>} mode={<>
+                        <AcademyBondChoice type="button" aria-pressed={!isStressMode} onClick={() => setIsStressMode(false)} appearance="mode" active={!isStressMode}>
                             Normal
-                        </button>
-                        <button
-                            type="button"
-                            aria-pressed={isStressMode}
-                            className={`spread-sim__mode-btn ${isStressMode ? 'is-active' : ''}`}
-                            onClick={() => {
+                        </AcademyBondChoice>
+                        <AcademyBondChoice type="button" aria-pressed={isStressMode} onClick={() => {
                                 setIsStressMode(true);
                                 if (spreadShockBps < 0) setSpreadShockBps(100);
-                            }}
-                        >
+                            }} appearance="mode" active={isStressMode}>
                             Modo estrés
-                        </button>
-                    </div>
-
-                    <div className="spread-sim__preset-buttons">
-                        <button
-                            type="button"
-                            aria-pressed={spreadClass === 'ig'}
-                            className={`spread-sim__preset ${spreadClass === 'ig' ? 'is-active' : ''}`}
-                            onClick={() => {
+                        </AcademyBondChoice>
+                    </>} presets={<>
+                        <AcademyBondChoice type="button" aria-pressed={spreadClass === 'ig'} onClick={() => {
                                 setSpreadClass('ig');
                                 setSpreadDuration(spreadPresets.ig.duration);
-                            }}
-                        >
+                            }} appearance="preset" active={spreadClass === 'ig'}>
                             {spreadPresets.ig.label}
-                        </button>
-                        <button
-                            type="button"
-                            aria-pressed={spreadClass === 'hy'}
-                            className={`spread-sim__preset ${spreadClass === 'hy' ? 'is-active' : ''}`}
-                            onClick={() => {
+                        </AcademyBondChoice>
+                        <AcademyBondChoice type="button" aria-pressed={spreadClass === 'hy'} onClick={() => {
                                 setSpreadClass('hy');
                                 setSpreadDuration(spreadPresets.hy.duration);
-                            }}
-                        >
+                            }} appearance="preset" active={spreadClass === 'hy'}>
                             {spreadPresets.hy.label}
-                        </button>
-                    </div>
-
-                    {isStressMode && (
-                        <div className="spread-sim__stress-presets">
+                        </AcademyBondChoice>
+                    </>} stressEnabled={isStressMode} stressChoices={<>
                             {STRESS_PRESETS.map((preset) => (
-                                <button
-                                    key={preset.label}
-                                    type="button"
-                                    className={`spread-sim__stress-btn ${spreadShockBps === preset.shock ? 'is-active' : ''}`}
-                                    onClick={() => setSpreadShockBps(preset.shock)}
-                                >
+                                <AcademyBondChoice key={preset.label} type="button" onClick={() => setSpreadShockBps(preset.shock)} appearance="stress" active={spreadShockBps === preset.shock}>
                                     {preset.label} (+{preset.shock} pb)
-                                </button>
+                                </AcademyBondChoice>
                             ))}
-                        </div>
-                    )}
+                        </>} controls={<>
+                        <AcademyBondRange label={<>Duración de spread: {spreadDuration.toFixed(1)}</>} type="range" min={1} max={8} step={0.1} value={spreadDuration} onChange={(e) => setSpreadDuration(Number(e.target.value))} />
 
-                    <div className="spread-sim__controls">
-                        <label className="spread-sim__control">
-                            <span>Duración de spread: {spreadDuration.toFixed(1)}</span>
-                            <input
-                                type="range"
-                                min={1}
-                                max={8}
-                                step={0.1}
-                                value={spreadDuration}
-                                onChange={(e) => setSpreadDuration(Number(e.target.value))}
-                            />
-                        </label>
-
-                        <label className="spread-sim__control">
-                            <span>Shock de spread: {spreadShockBps > 0 ? `+${spreadShockBps}` : spreadShockBps} pb</span>
-                            <input
-                                type="range"
-                                min={shockMin}
-                                max={shockMax}
-                                step={10}
-                                value={spreadShockBps}
-                                onChange={(e) => setSpreadShockBps(Number(e.target.value))}
-                            />
-                        </label>
-                    </div>
-
-                    <div className="spread-sim__result">
-                        <div className="spread-sim__metric">
-                            <span className="spread-sim__metric-label">Spread inicial</span>
-                            <strong>{spreadPresets[spreadClass].spread} pb</strong>
-                        </div>
-                        <div className="spread-sim__metric">
-                            <span className="spread-sim__metric-label">Spread estimado final</span>
-                            <strong>{newSpread} pb</strong>
-                        </div>
-                        <div className="spread-sim__metric">
-                            <span className="spread-sim__metric-label">Impacto estimado en precio</span>
-                            <strong className={estimatedPriceImpact <= 0 ? 'is-negative' : 'is-positive'}>
+                        <AcademyBondRange label={<>Shock de spread: {spreadShockBps > 0 ? `+${spreadShockBps}` : spreadShockBps} pb</>} type="range" min={shockMin} max={shockMax} step={10} value={spreadShockBps} onChange={(e) => setSpreadShockBps(Number(e.target.value))} />
+                    </>} results={<>
+                        <AcademyBondMetric appearance="spread" label={<>Spread inicial</>} value={<>{spreadPresets[spreadClass].spread} pb</>}  />
+                        <AcademyBondMetric appearance="spread" label={<>Spread estimado final</>} value={<>{newSpread} pb</>}  />
+                        <AcademyBondMetric appearance="spread" label={<>Impacto estimado en precio</>} value={<>
                                 {estimatedPriceImpact > 0 ? '+' : ''}{estimatedPriceImpact.toFixed(2)}%
-                            </strong>
-                        </div>
-                    </div>
-
-                    <p className="spread-sim__note">
+                            </>} valueClassName={estimatedPriceImpact <= 0 ? 'is-negative' : 'is-positive'} />
+                    </>} note={<>
                         Aproximación de primer orden. No incluye cambios de tipos soberanos, convexidad, defaults ni efecto de cupones.
-                    </p>
-                </div>
-            </section>
+                    </>} />
+            </AcademySection>
 
             {/* Checklist */}
-            <section id="section-8" className="asset-page__section">
-                <h2><CheckCircle2 size={22} /> Checklist Antes de Comprar Bonos o ETFs</h2>
-                <div className="asset-page__text-block">
+            <AcademySection title={<><CheckCircle2 size={22} /> Checklist Antes de Comprar Bonos o ETFs</>} id="section-8" className="asset-page__section">
+
+                <AcademyAssetText >
                     <p>
                         Esta revisión de 60 segundos evita la mayoría de errores típicos en renta fija:
                         comprar demasiada duración, asumir más crédito del que creías, o pagar comisiones altas para retornos bajos.
                     </p>
-                </div>
-                <div className="bond-checklist-grid">
+                </AcademyAssetText>
+                <AssetGuideLayout appearance="checklist" >
                     {BOND_ETF_CHECKLIST.map((item) => (
-                        <div key={item.title} className="bond-checklist-item">
-                            <h4>{item.title}</h4>
-                            <p>{item.desc}</p>
-                        </div>
+                        <AcademyTextCard appearance="checklist" key={item.title} title={<>{item.title}</>}><p>{item.desc}</p></AcademyTextCard>
                     ))}
-                </div>
+                </AssetGuideLayout>
 
-                <div className="asset-page__callout asset-page__callout--info" style={{ marginTop: '1.5rem' }}>
-                    <Lightbulb size={20} />
-                    <div>
-                        <strong>En bonos globales, cubrir divisa suele tener más sentido</strong>
-                        <p>
-                            Si tu objetivo de renta fija es estabilizar cartera en EUR, la cobertura de divisa
-                            suele reducir ruido y hacer más predecible el comportamiento.
-                        </p>
-                        <Link to="/academy/risk" className="asset-page__cta-link">
-                            Ver guía completa de cobertura de divisa →
-                        </Link>
-                    </div>
-                </div>
-            </section>
+                <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>En bonos globales, cubrir divisa suele tener más sentido</>} style={{ marginTop: '1.5rem' }}>
+                    <p>
+                        Si tu objetivo de renta fija es estabilizar cartera en EUR, la cobertura de divisa
+                        suele reducir ruido y hacer más predecible el comportamiento.
+                    </p>
+                    <AcademyAssetInlineLink to="/academy/risk">
+                        Ver guía completa de cobertura de divisa →
+                    </AcademyAssetInlineLink>
+                </AcademyCallout>
+            </AcademySection>
 
             {/* Ladder strategy */}
-            <section id="section-9" className="asset-page__section">
-                <h2><Clock size={22} /> Estrategia Ladder (Escalera de Vencimientos)</h2>
-                <div className="asset-page__text-block">
+            <AcademySection title={<><Clock size={22} /> Estrategia Ladder (Escalera de Vencimientos)</>} id="section-9" className="asset-page__section">
+
+                <AcademyAssetText >
                     <p>
                         La estrategia <strong>ladder</strong> consiste en repartir tu renta fija por vencimientos
                         escalonados. Así reduces el riesgo de entrar todo en un único momento de tipos y mantienes
                         liquidez recurrente para reinvertir.
                     </p>
-                </div>
+                </AcademyAssetText>
 
-                <div className="bond-ladder">
+                <AssetGuideLayout appearance="ladder" >
                     {LADDER_MODEL.map((step) => (
-                        <div key={step.rung} className="bond-ladder__step">
-                            <span className="bond-ladder__rung">{step.rung}</span>
-                            <h4>{step.maturity}</h4>
-                            <p>{step.objective}</p>
-                            <span className="bond-ladder__hint">{step.yieldHint}</span>
-                        </div>
+                        <AcademyBondLadderStep key={step.rung} rung={<>{step.rung}</>} title={<>{step.maturity}</>} description={<>{step.objective}</>} hint={<>{step.yieldHint}</>} />
                     ))}
-                </div>
+                </AssetGuideLayout>
 
-                <div className="asset-page__callout asset-page__callout--info">
-                    <Lightbulb size={20} />
-                    <div>
-                        <strong>Ventaja clave del ladder</strong>
-                        <p>
-                            Cada año vence una parte de la cartera. Puedes usar ese flujo para gasto,
-                            o reinvertir al nuevo nivel de tipos sin tener que deshacer toda la posición.
-                        </p>
-                    </div>
-                </div>
-            </section>
+                <AcademyCallout tone="info" icon={<Lightbulb size={20} />} title={<>Ventaja clave del ladder</>}>
+                    <p>
+                        Cada año vence una parte de la cartera. Puedes usar ese flujo para gasto,
+                        o reinvertir al nuevo nivel de tipos sin tener que deshacer toda la posición.
+                    </p>
+                </AcademyCallout>
+            </AcademySection>
 
             {/* Portfolio duration calculator */}
-            <section id="section-10" className="asset-page__section">
-                <h2><BarChart3 size={22} /> Duración Total de tu Cartera de Bonos</h2>
-                <div className="asset-page__text-block">
+            <AcademySection title={<><BarChart3 size={22} /> Duración Total de tu Cartera de Bonos</>} id="section-10" className="asset-page__section">
+
+                <AcademyAssetText >
                     <p>
                         Esta mini calculadora estima la sensibilidad conjunta de tu cartera de renta fija
                         ante movimientos paralelos de tipos.
                     </p>
-                </div>
+                </AcademyAssetText>
 
-                <div className="bond-duration-calc">
-                    <div className="bond-duration-calc__inputs">
-                        <div className="duration-input-card">
-                            <h4>RF Corto Plazo</h4>
-                            <label>
+                <AcademyDurationExperiment inputs={<>
+                        <AcademyDurationInputs title={<>RF Corto Plazo</>}><label>
                                 <span>Peso: {weightShort}%</span>
                                 <input type="range" min={0} max={100} step={1} value={weightShort} onChange={(e) => setWeightShort(Number(e.target.value))} />
-                            </label>
-                            <label>
+                            </label><label>
                                 <span>Duración: {durShort.toFixed(1)}</span>
                                 <input type="range" min={0.5} max={4} step={0.1} value={durShort} onChange={(e) => setDurShort(Number(e.target.value))} />
-                            </label>
-                        </div>
+                            </label></AcademyDurationInputs>
 
-                        <div className="duration-input-card">
-                            <h4>RF Media</h4>
-                            <label>
+                        <AcademyDurationInputs title={<>RF Media</>}><label>
                                 <span>Peso: {weightMid}%</span>
                                 <input type="range" min={0} max={100} step={1} value={weightMid} onChange={(e) => setWeightMid(Number(e.target.value))} />
-                            </label>
-                            <label>
+                            </label><label>
                                 <span>Duración: {durMid.toFixed(1)}</span>
                                 <input type="range" min={2} max={8} step={0.1} value={durMid} onChange={(e) => setDurMid(Number(e.target.value))} />
-                            </label>
-                        </div>
+                            </label></AcademyDurationInputs>
 
-                        <div className="duration-input-card">
-                            <h4>RF Larga</h4>
-                            <label>
+                        <AcademyDurationInputs title={<>RF Larga</>}><label>
                                 <span>Peso: {weightLong}%</span>
                                 <input type="range" min={0} max={100} step={1} value={weightLong} onChange={(e) => setWeightLong(Number(e.target.value))} />
-                            </label>
-                            <label>
+                            </label><label>
                                 <span>Duración: {durLong.toFixed(1)}</span>
                                 <input type="range" min={5} max={15} step={0.1} value={durLong} onChange={(e) => setDurLong(Number(e.target.value))} />
-                            </label>
-                        </div>
-                    </div>
-
-                    <div className="bond-duration-calc__summary">
-                        <div className="duration-summary-card">
-                            <span>Total pesos introducidos</span>
-                            <strong>{portfolioWeightTotal}%</strong>
-                        </div>
-                        <div className="duration-summary-card">
-                            <span>Duración agregada estimada</span>
-                            <strong>{portfolioDuration.toFixed(2)}</strong>
-                        </div>
-                        <div className="duration-summary-card">
-                            <span>Impacto estimado con +1% tipos</span>
-                            <strong className="is-negative">{up100bpImpact.toFixed(2)}%</strong>
-                        </div>
-                        <div className="duration-summary-card">
-                            <span>Impacto estimado con -1% tipos</span>
-                            <strong className="is-positive">+{down100bpImpact.toFixed(2)}%</strong>
-                        </div>
-                    </div>
-
-                    <div className="duration-mix">
-                        <h4>Mix normalizado de cartera</h4>
-                        <div className="duration-mix__bars">
-                            <div className="duration-mix__row">
-                                <span>Corto</span>
-                                <div className="duration-mix__track"><div className="duration-mix__fill duration-mix__fill--short" style={{ width: `${normalizedShort}%` }} /></div>
-                                <strong>{normalizedShort.toFixed(1)}%</strong>
-                            </div>
-                            <div className="duration-mix__row">
-                                <span>Medio</span>
-                                <div className="duration-mix__track"><div className="duration-mix__fill duration-mix__fill--mid" style={{ width: `${normalizedMid}%` }} /></div>
-                                <strong>{normalizedMid.toFixed(1)}%</strong>
-                            </div>
-                            <div className="duration-mix__row">
-                                <span>Largo</span>
-                                <div className="duration-mix__track"><div className="duration-mix__fill duration-mix__fill--long" style={{ width: `${normalizedLong}%` }} /></div>
-                                <strong>{normalizedLong.toFixed(1)}%</strong>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
+                            </label></AcademyDurationInputs>
+                    </>} summary={<>
+                        <AcademyBondMetric appearance="duration" label={<>Total pesos introducidos</>} value={<>{portfolioWeightTotal}%</>}  />
+                        <AcademyBondMetric appearance="duration" label={<>Duración agregada estimada</>} value={<>{portfolioDuration.toFixed(2)}</>}  />
+                        <AcademyBondMetric appearance="duration" label={<>Impacto estimado con +1% tipos</>} value={<>{up100bpImpact.toFixed(2)}%</>} valueClassName="is-negative" />
+                        <AcademyBondMetric appearance="duration" label={<>Impacto estimado con -1% tipos</>} value={<>+{down100bpImpact.toFixed(2)}%</>} valueClassName="is-positive" />
+                    </>}><AcademyDurationMix title={<>Mix normalizado de cartera</>}>
+                            <AcademyDurationMixRow label={<>Corto</>} value={<>{normalizedShort.toFixed(1)}%</>} width={`${normalizedShort}%`} term="short" />
+                            <AcademyDurationMixRow label={<>Medio</>} value={<>{normalizedMid.toFixed(1)}%</>} width={`${normalizedMid}%`} term="mid" />
+                            <AcademyDurationMixRow label={<>Largo</>} value={<>{normalizedLong.toFixed(1)}%</>} width={`${normalizedLong}%`} term="long" />
+                        </AcademyDurationMix></AcademyDurationExperiment>
+            </AcademySection>
 
             {/* Common mistakes */}
-            <section id="section-11" className="asset-page__section">
-                <h2><AlertTriangle size={22} /> Errores Comunes en Renta Fija</h2>
-                <div className="bond-mistakes-grid">
+            <AcademySection title={<><AlertTriangle size={22} /> Errores Comunes en Renta Fija</>} id="section-11" className="asset-page__section">
+
+                <AssetGuideLayout appearance="mistakes" >
                     {COMMON_BOND_ERRORS.map((item) => (
-                        <article key={item.mistake} className="bond-mistake-card">
-                            <h4>{item.mistake}</h4>
-                            <p><strong>Qué pasa:</strong> {item.impact}</p>
-                            <p><strong>Cómo evitarlo:</strong> {item.fix}</p>
-                        </article>
+                        <AcademyTextCard appearance="mistake" key={item.mistake} title={<>{item.mistake}</>}><p><strong>Qué pasa:</strong> {item.impact}</p><p><strong>Cómo evitarlo:</strong> {item.fix}</p></AcademyTextCard>
                     ))}
-                </div>
-            </section>
+                </AssetGuideLayout>
+            </AcademySection>
 
             {/* Pros and Cons */}
-            <section id="section-12" className="asset-page__section">
-                <h2><Shield size={22} /> Ventajas y Riesgos</h2>
-                <div className="asset-page__pros-cons">
-                    <div className="pc-column pc-column--pros">
-                        <h3><CheckCircle2 size={18} /> Ventajas</h3>
-                        <ul>
+            <AcademySection title={<><Shield size={22} /> Ventajas y Riesgos</>} id="section-12" className="asset-page__section">
+
+                <AcademyGrid variant="prosCons" className="asset-page__pros-cons">
+                    <AcademyListCard kind="pros" title={<><CheckCircle2 size={18} /> Ventajas</>}>
                             <li>Estabilidad y previsibilidad de rentas</li>
                             <li>Menor volatilidad que acciones</li>
                             <li>Diversificación: baja correlación con RV en periodos normales</li>
                             <li>Protección parcial en caídas bursátiles (flight to quality)</li>
                             <li>Letras del Tesoro: alternativa superior a depósitos bancarios</li>
                             <li>Si mantienes a vencimiento, conoces exactamente tu retorno</li>
-                        </ul>
-                    </div>
-                    <div className="pc-column pc-column--cons">
-                        <h3><AlertTriangle size={18} /> Riesgos</h3>
-                        <ul>
+                        </AcademyListCard>
+                    <AcademyListCard kind="cons" title={<><AlertTriangle size={18} /> Riesgos</>}>
                             <li>Rentabilidad real puede no superar inflación</li>
                             <li>Extrema sensibilidad a tipos en bonos largos</li>
                             <li>2022: los bonos largos cayeron ~25% (algo «imposible» según muchos)</li>
                             <li>Riesgo de crédito en emisores privados</li>
                             <li>Liquidez variable según el mercado</li>
                             <li>Fiscalidad: cupones tributan como rendimiento del capital</li>
-                        </ul>
-                    </div>
-                </div>
-            </section>
+                        </AcademyListCard>
+                </AcademyGrid>
+            </AcademySection>
 
             {/* How to invest */}
-            <section id="section-13" className="asset-page__section">
-                <h2><Zap size={22} /> ¿Cómo Invertir en Renta Fija?</h2>
-                <div className="asset-page__steps">
-                    <div className="step-card">
-                        <div className="step-card__number">1</div>
-                        <h4>ETFs de Bonos</h4>
-                        <p>Forma más accesible. Un ETF como iShares Core Euro Govt Bond te da diversificación en decenas de emisiones gubernamentales europeas.</p>
-                        <span className="step-card__badge step-card__badge--recommended">Recomendado</span>
-                    </div>
-                    <div className="step-card">
-                        <div className="step-card__number">2</div>
-                        <h4>Letras del Tesoro Directas</h4>
-                        <p>Se compran directamente en el Tesoro Público español. Sin comisiones, máxima seguridad. Ideal para plazos cortos (3-12 meses).</p>
-                        <span className="step-card__badge step-card__badge--fiscal">Sin comisiones</span>
-                    </div>
-                    <div className="step-card">
-                        <div className="step-card__number">3</div>
-                        <h4>Fondos de Renta Fija</h4>
-                        <p>Gestionados activamente o indexados. Ventaja fiscal en España por traspasos. Cuidado con las comisiones de gestión activa.</p>
-                        <span className="step-card__badge step-card__badge--fiscal">Ventaja Fiscal 🇪🇸</span>
-                    </div>
-                    <div className="step-card">
-                        <div className="step-card__number">4</div>
-                        <h4>Bonos Individuales</h4>
-                        <p>Comprar bonos concretos en el mercado secundario. Requiere más capital y conocimiento. Solo para inversores experimentados.</p>
-                        <span className="step-card__badge step-card__badge--advanced">Avanzado</span>
-                    </div>
-                </div>
-            </section>
+            <AcademySection title={<><Zap size={22} /> ¿Cómo Invertir en Renta Fija?</>} id="section-13" className="asset-page__section">
+
+                <AcademyGrid variant="steps" className="asset-page__steps">
+                    <AcademyStepCard number={'1'} title={'ETFs de Bonos'} badgeTone="recommended" badge={'Recomendado'}>Forma más accesible. Un ETF como iShares Core Euro Govt Bond te da diversificación en decenas de emisiones gubernamentales europeas.</AcademyStepCard>
+                    <AcademyStepCard number={'2'} title={'Letras del Tesoro Directas'} badgeTone="fiscal" badge={'Sin comisiones'}>Se compran directamente en el Tesoro Público español. Sin comisiones, máxima seguridad. Ideal para plazos cortos (3-12 meses).</AcademyStepCard>
+                    <AcademyStepCard number={'3'} title={'Fondos de Renta Fija'} badgeTone="fiscal" badge={'Ventaja Fiscal 🇪🇸'}>Gestionados activamente o indexados. Ventaja fiscal en España por traspasos. Cuidado con las comisiones de gestión activa.</AcademyStepCard>
+                    <AcademyStepCard number={'4'} title={'Bonos Individuales'} badgeTone="advanced" badge={'Avanzado'}>Comprar bonos concretos en el mercado secundario. Requiere más capital y conocimiento. Solo para inversores experimentados.</AcademyStepCard>
+                </AcademyGrid>
+            </AcademySection>
 
             {/* Final tip */}
-            <section className="asset-page__final-tip">
-                <Lightbulb size={28} />
-                <div>
-                    <h3>Consejo Final</h3>
-                    <p>
+            <AcademyFinalTip as="section" icon={<Lightbulb size={28} />} title={<>Consejo Final</>}>
                         En un entorno de tipos altos, las <strong>Letras del Tesoro y los bonos de corto plazo</strong> son
                         tu mejor refugio en renta fija. Ofrecen rentabilidad decente sin el riesgo de duración.
                         Si quieres RF a largo plazo, usa ETFs indexados y acepta la volatilidad temporal.
                         <strong> La renta fija NO es fija si vendes antes del vencimiento.</strong>
-                    </p>
-                </div>
-            </section>
-        </div>
+                    </AcademyFinalTip>
+        </AssetGuideFrame>
     );
 }

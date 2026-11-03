@@ -1,11 +1,13 @@
-﻿import { Link } from 'react-router-dom';
+import {GuideBlock,GuideGrid,GuideLink,GuideReadingHeader,GuideReadingSection,GuideNextStep} from '../ui/GuideReading';
+import { AcademyValuationFormula, AcademyWorkedExample, AcademyCheckItem, AcademyExampleMetric } from '../ui/AcademyGuideParts';
+
+
 import {
     ArrowLeft, BarChart3, ShieldCheck, TrendingUp,
     Calculator, AlertCircle, CheckCircle2, DollarSign, Activity,
     Zap, Search
 } from 'lucide-react';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
-import './ValuationGuide.css';
+
 
 interface MetricProps {
     title: string;
@@ -15,44 +17,24 @@ interface MetricProps {
 }
 
 const Metric = ({ title, formula, description, benchmarks }: MetricProps) => (
-    <div className="metric-card">
-        <div className="metric-card__header">
-            <h3 className="metric-card__title">{title}</h3>
-        </div>
-        <div className="metric-card__formula">{formula}</div>
-        <p className="metric-card__desc">{description}</p>
-        <div className="metric-card__benchmarks">
-            {benchmarks.map((b, i) => (
-                <div key={i} className={`benchmark benchmark--${b.type}`}>
-                    <span>{b.label}</span>
-                    <strong>{b.value}</strong>
-                </div>
-            ))}
-        </div>
-    </div>
+    <AcademyValuationFormula title={title} formula={formula} description={description} benchmarks={benchmarks} />
 );
 
 export function ValuationGuide() {
     return (
-        <div className="valuation-guide">
-            <Link to="/academy/assets/equities" className="valuation-guide__back">
+        <GuideBlock appearance="valuationGuide"  >
+            <GuideLink appearance="valuationGuideBack"  to="/academy/assets/equities">
                 <ArrowLeft size={18} /> Volver a Acciones
-            </Link>
+            </GuideLink>
 
-            <AcademyPageHeader className="valuation-guide__hero" section="Herramientas">
-                <div className="valuation-guide__hero-icon">
-                    <BarChart3 size={48} />
-                </div>
-                <h1>Guía Maestra: Cómo Valorar una Empresa</h1>
-                <p>
+            <GuideReadingHeader appearance="valuation" section="Herramientas" title={<>Guía Maestra: Cómo Valorar una Empresa</>} description={<>
                     Aprende a diferenciar un gran negocio de una trampa de valor mediante el análisis de sus fundamentales, rentabilidad y salud financiera.
-                </p>
-            </AcademyPageHeader>
+                </>} icon={<>
+                    <BarChart3 size={48} />
+                </>}/>
 
             {/* 1. Rentabilidad del negocio */}
-            <section className="valuation-guide__section">
-                <h2><Activity size={24} /> 1. Rentabilidad del Negocio</h2>
-                <div className="valuation-guide__grid">
+            <GuideReadingSection   title={<><Activity size={24} /> 1. Rentabilidad del Negocio</>}><GuideGrid appearance="valuationGuideGrid"  variant="valuation">
                     <Metric
                         title="Margen Bruto"
                         formula="(Revenue - Coste de Ventas) / Revenue"
@@ -81,13 +63,10 @@ export function ValuationGuide() {
                             { label: "Core Business", value: "Cash Focus", type: "neutral" }
                         ]}
                     />
-                </div>
-            </section>
+                </GuideGrid></GuideReadingSection>
 
             {/* 2. Rentabilidad del capital */}
-            <section className="valuation-guide__section">
-                <h2><TrendingUp size={24} /> 2. Rentabilidad del Capital</h2>
-                <div className="valuation-guide__grid">
+            <GuideReadingSection   title={<><TrendingUp size={24} /> 2. Rentabilidad del Capital</>}><GuideGrid appearance="valuationGuideGrid"  variant="valuation">
                     <Metric
                         title="ROE (Return on Equity)"
                         formula="Net Income / Equity"
@@ -115,13 +94,10 @@ export function ValuationGuide() {
                             { label: "Bajo", value: "< 4%", type: "bad" }
                         ]}
                     />
-                </div>
-            </section>
+                </GuideGrid></GuideReadingSection>
 
             {/* 3. Deuda y Solvencia */}
-            <section className="valuation-guide__section">
-                <h2><ShieldCheck size={24} /> 3. Deuda y Solvencia</h2>
-                <div className="valuation-guide__grid">
+            <GuideReadingSection   title={<><ShieldCheck size={24} /> 3. Deuda y Solvencia</>}><GuideGrid appearance="valuationGuideGrid"  variant="valuation">
                     <Metric
                         title="Deuda Neta / EBITDA"
                         formula="(Deuda - Caja) / EBITDA"
@@ -150,13 +126,10 @@ export function ValuationGuide() {
                             { label: "Agresivo", value: "> 1.0", type: "bad" }
                         ]}
                     />
-                </div>
-            </section>
+                </GuideGrid></GuideReadingSection>
 
             {/* 4. Flujo de Caja */}
-            <section className="valuation-guide__section">
-                <h2><DollarSign size={24} /> 4. Flujo de Caja (Cash Flow)</h2>
-                <div className="valuation-guide__grid">
+            <GuideReadingSection   title={<><DollarSign size={24} /> 4. Flujo de Caja (Cash Flow)</>}><GuideGrid appearance="valuationGuideGrid"  variant="valuation">
                     <Metric
                         title="Operating Cash Flow (OCF)"
                         formula="CFO = Net Income + Depreciation & Amortization +/- Working Capital"
@@ -185,13 +158,10 @@ export function ValuationGuide() {
                             { label: "Exigente", value: "< 4%", type: "bad" }
                         ]}
                     />
-                </div>
-            </section>
+                </GuideGrid></GuideReadingSection>
 
             {/* 5. Valoración */}
-            <section className="valuation-guide__section">
-                <h2><Calculator size={24} /> 5. Valoración (Múltiplos)</h2>
-                <div className="valuation-guide__grid">
+            <GuideReadingSection   title={<><Calculator size={24} /> 5. Valoración (Múltiplos)</>}><GuideGrid appearance="valuationGuideGrid"  variant="valuation">
                     <Metric
                         title="PER (PE Ratio)"
                         formula="Precio / Beneficio por Acción"
@@ -220,100 +190,40 @@ export function ValuationGuide() {
                             { label: "Hype", value: "> 10", type: "bad" }
                         ]}
                     />
-                </div>
-            </section>
+                </GuideGrid></GuideReadingSection>
 
             {/* Ejemplos */}
-            <section className="valuation-guide__section">
-                <h2><Zap size={24} /> Ejemplos: El Bueno vs El Malo</h2>
-
-                <div className="example-box example-box--good">
-                    <div className="example-box__header">
-                        <CheckCircle2 size={24} color="#10b981" />
-                        <h3 className="example-box__title">Empresa A: "La Máquina de Generar Valor" (Ej: Tipo Microsoft/Apple)</h3>
-                    </div>
-                    <div className="example-box__grid">
-                        <div className="example-metric">
-                            <span className="example-metric__label">Margen Bruto</span>
-                            <span className="example-metric__value">75%</span>
-                        </div>
-                        <div className="example-metric">
-                            <span className="example-metric__label">ROIC</span>
-                            <span className="example-metric__value">35%</span>
-                        </div>
-                        <div className="example-metric">
-                            <span className="example-metric__label">D. Neta / EBITDA</span>
-                            <span className="example-metric__value">-0.5x (Tiene caja)</span>
-                        </div>
-                        <div className="example-metric">
-                            <span className="example-metric__label">FCF</span>
-                            <span className="example-metric__value">Creciente</span>
-                        </div>
-                    </div>
-                    <div className="example-box__conclusion">
+            <GuideReadingSection   title={<><Zap size={24} /> Ejemplos: El Bueno vs El Malo</>}><AcademyWorkedExample tone="good" icon={<CheckCircle2 size={24} color="#10b981" />} title={<>Empresa A: "La Máquina de Generar Valor" (Ej: Tipo Microsoft/Apple)</>} conclusion={<>
                         Negocio ligero en activos, con fosos defensivos y que no necesita deuda para crecer. Genera tanta caja que recompra acciones o paga dividendos sin esfuerzo.
-                    </div>
-                </div>
-
-                <div className="example-box example-box--bad">
-                    <div className="example-box__header">
-                        <AlertCircle size={24} color="#ef4444" />
-                        <h3 className="example-box__title">Empresa B: "Múltiplos Baratos, Calidad Floja" (Ej: Telefónica)</h3>
-                    </div>
-                    <div className="example-box__grid">
-                        <div className="example-metric">
-                            <span className="example-metric__label">Margen Operativo</span>
-                            <span className="example-metric__value">13%</span>
-                        </div>
-                        <div className="example-metric">
-                            <span className="example-metric__label">ROE</span>
-                            <span className="example-metric__value">-2.3%</span>
-                        </div>
-                        <div className="example-metric">
-                            <span className="example-metric__label">Deuda / Patrimonio</span>
-                            <span className="example-metric__value">201%</span>
-                        </div>
-                        <div className="example-metric">
-                            <span className="example-metric__label">Current Ratio</span>
-                            <span className="example-metric__value">0.84</span>
-                        </div>
-                    </div>
-                    <div className="example-box__conclusion">
+                    </>}>
+                        <AcademyExampleMetric label={<>Margen Bruto</>} value={<>75%</>} />
+                        <AcademyExampleMetric label={<>ROIC</>} value={<>35%</>} />
+                        <AcademyExampleMetric label={<>D. Neta / EBITDA</>} value={<>-0.5x (Tiene caja)</>} />
+                        <AcademyExampleMetric label={<>FCF</>} value={<>Creciente</>} />
+                    </AcademyWorkedExample><AcademyWorkedExample tone="bad" icon={<AlertCircle size={24} color="#ef4444" />} title={<>Empresa B: "Múltiplos Baratos, Calidad Floja" (Ej: Telefónica)</>} conclusion={<>
                         Múltiplos bajos no bastan. Aunque sigue generando caja, el beneficio neto es negativo, el ROE está en rojo, la deuda pesa mucho sobre el balance y la liquidez de corto plazo es justa. Caso clásico de empresa que puede parecer barata pero no ofrece una calidad acorde.
-                    </div>
-                </div>
-            </section>
+                    </>}>
+                        <AcademyExampleMetric label={<>Margen Operativo</>} value={<>13%</>} />
+                        <AcademyExampleMetric label={<>ROE</>} value={<>-2.3%</>} />
+                        <AcademyExampleMetric label={<>Deuda / Patrimonio</>} value={<>201%</>} />
+                        <AcademyExampleMetric label={<>Current Ratio</>} value={<>0.84</>} />
+                    </AcademyWorkedExample></GuideReadingSection>
 
             {/* Checklist */}
-            <section className="valuation-guide__section">
-                <h2><Search size={24} /> Checklist Rápido de Calidad</h2>
-                <div className="checklist-grid">
-                    <div className="checklist-item"><CheckCircle2 size={18} /> ROIC {">"} WACC</div>
-                    <div className="checklist-item"><CheckCircle2 size={18} /> FCF Positivo y creciente</div>
-                    <div className="checklist-item"><CheckCircle2 size={18} /> BPA Diluido creciendo (+10% anual)</div>
-                    <div className="checklist-item"><CheckCircle2 size={18} /> Deuda Neta {"<"} 2x EBITDA</div>
-                    <div className="checklist-item"><CheckCircle2 size={18} /> Margen Operativo constante o al alza</div>
-                    <div className="checklist-item"><CheckCircle2 size={18} /> Dividendos cubiertos por FCF (no por deuda)</div>
-                </div>
-            </section>
-            <section className="valuation-guide__section valuation-guide__next">
-                <h2><TrendingUp size={24} /> Dónde continuar después de valorar</h2>
-                <div className="valuation-guide__next-grid">
-                    <Link to="/academy/risk" className="valuation-guide__next-card">
-                        <strong>Gestión del riesgo</strong>
-                        <p>Una empresa buena puede seguir siendo una mala posición si el peso o el timing son malos.</p>
-                    </Link>
-                    <Link to="/academy/scenarios" className="valuation-guide__next-card">
-                        <strong>Qué hacer si...</strong>
-                        <p>Lleva la valoración a escenarios prácticos de compra, espera y caídas de mercado.</p>
-                    </Link>
-                    <Link to="/portfolio-csv" className="valuation-guide__next-card">
-                        <strong>Portfolio</strong>
-                        <p>Contrasta tu tesis con el peso real que esa posición ocupa dentro de toda la cartera.</p>
-                    </Link>
-                </div>
-            </section>
-        </div>
+            <GuideReadingSection   title={<><Search size={24} /> Checklist Rápido de Calidad</>}><GuideBlock appearance="checklistGrid"  >
+                    <AcademyCheckItem icon={<CheckCircle2 size={18} />}> ROIC {">"} WACC</AcademyCheckItem>
+                    <AcademyCheckItem icon={<CheckCircle2 size={18} />}> FCF Positivo y creciente</AcademyCheckItem>
+                    <AcademyCheckItem icon={<CheckCircle2 size={18} />}> BPA Diluido creciendo (+10% anual)</AcademyCheckItem>
+                    <AcademyCheckItem icon={<CheckCircle2 size={18} />}> Deuda Neta {"<"} 2x EBITDA</AcademyCheckItem>
+                    <AcademyCheckItem icon={<CheckCircle2 size={18} />}> Margen Operativo constante o al alza</AcademyCheckItem>
+                    <AcademyCheckItem icon={<CheckCircle2 size={18} />}> Dividendos cubiertos por FCF (no por deuda)</AcademyCheckItem>
+                </GuideBlock></GuideReadingSection>
+            <GuideReadingSection  className="valuation-guide__next" title={<><TrendingUp size={24} /> Dónde continuar después de valorar</>}><GuideBlock appearance="valuationGuideNextGrid"  >
+                    <GuideNextStep to="/academy/risk" title={<>Gestión del riesgo</>} description={<>Una empresa buena puede seguir siendo una mala posición si el peso o el timing son malos.</>}/>
+                    <GuideNextStep to="/academy/scenarios" title={<>Qué hacer si...</>} description={<>Lleva la valoración a escenarios prácticos de compra, espera y caídas de mercado.</>}/>
+                    <GuideNextStep to="/portfolio-csv" title={<>Portfolio</>} description={<>Contrasta tu tesis con el peso real que esa posición ocupa dentro de toda la cartera.</>}/>
+                </GuideBlock></GuideReadingSection>
+        </GuideBlock>
     );
 }
 

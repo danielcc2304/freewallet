@@ -1,0 +1,2 @@
+export const routeState = 'route-state tw:m-[1rem_auto] tw:p-[clamp(1.25rem,3vw,2rem)] tw:ui-border-default tw:rounded-[18px] tw:ui-fill-surface tw:text-main tw:max-w-[700px]';
+export const routeAction = 'tw:inline-flex tw:items-center tw:justify-center tw:min-h-[44px] tw:p-[.6rem_1rem] tw:ui-border-default tw:rounded-[10px] tw:ui-fill-muted tw:text-main tw:hover:text-main tw:[font:inherit] tw:no-underline tw:m-[.5rem_.5rem_0_0] tw:cursor-pointer tw:focus-visible:outline-solid tw:focus-visible:outline-2 tw:focus-visible:outline-accent tw:focus-visible:outline-offset-[3px]';

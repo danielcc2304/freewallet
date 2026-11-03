@@ -1,10 +1,14 @@
+import { WorkspaceText,TransactionRecord,TransactionTitle,TransactionFilter } from '../../components/ui/workspace/WorkspaceRecords';
+import { WorkspaceLayout,WorkspaceCardContent } from '../../components/ui/workspace/WorkspaceLayout';
+import { StatusPill } from '../../components/ui/StatusPill';
+import { DataItem } from '../../components/ui/DataItem';
+import { PageHeading } from '../../components/ui/PageHeading';
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { ArrowRightLeft, MinusCircle, Pencil, Search, ShoppingCart, Trash2 } from 'lucide-react';
 import { Card, CardContent, CardHeader, Input, Button } from '../../components/ui';
 import { usePortfolio } from '../../context/PortfolioContext';
 import type { PortfolioTransaction, PortfolioTransactionType } from '../../types/types';
-import './Transactions.css';
 
 const TYPE_META: Record<PortfolioTransactionType, { label: string; icon: typeof ShoppingCart; className: string }> = {
     buy: { label: 'Compra', icon: ShoppingCart, className: 'transactions__badge--buy' },
@@ -80,71 +84,45 @@ export function Transactions() {
     }, [state.transactions]);
 
     return (
-        <div className="transactions-page">
-            <div className="transactions-page__header">
-                <div>
-                    <h1 className="transactions-page__title">Historial de operaciones</h1>
-                    <p className="transactions-page__subtitle">
-                        Registro separado de compras, ventas, traspasos, ediciones y eliminaciones de tu cartera.
-                    </p>
-                </div>
-                <Link to="/add">
+        <WorkspaceLayout appearance="transactionsPage"  >
+            <PageHeading className="transactions-page__header" titleClassName="transactions-page__title" descriptionClassName="transactions-page__subtitle" title={'Historial de operaciones'} description={'Registro separado de compras, ventas, traspasos, ediciones y eliminaciones de tu cartera.'} actions={<Link to="/add">
                     <Button icon={<ArrowRightLeft size={16} />}>Registrar inversión</Button>
-                </Link>
-            </div>
+                </Link>} />
 
-            <section className="transactions-page__summary">
+            <WorkspaceLayout appearance="transactionsPageSummary" as="section" >
                 <Card>
-                    <CardContent className="transactions-page__summary-card">
-                        <span className="transactions-page__summary-label">Total</span>
-                        <strong>{state.transactions.length}</strong>
-                    </CardContent>
+                    <DataItem as="content" layout="transactions" className="transactions-page__summary-card" labelClassName="transactions-page__summary-label" label={'Total'} value={state.transactions.length} />
                 </Card>
                 <Card>
-                    <CardContent className="transactions-page__summary-card">
-                        <span className="transactions-page__summary-label">Compras</span>
-                        <strong>{summary.purchases}</strong>
-                    </CardContent>
+                    <DataItem as="content" layout="transactions" className="transactions-page__summary-card" labelClassName="transactions-page__summary-label" label={'Compras'} value={summary.purchases} />
                 </Card>
                 <Card>
-                    <CardContent className="transactions-page__summary-card">
-                        <span className="transactions-page__summary-label">Ventas</span>
-                        <strong>{summary.sales}</strong>
-                    </CardContent>
+                    <DataItem as="content" layout="transactions" className="transactions-page__summary-card" labelClassName="transactions-page__summary-label" label={'Ventas'} value={summary.sales} />
                 </Card>
                 <Card>
-                    <CardContent className="transactions-page__summary-card">
-                        <span className="transactions-page__summary-label">Traspasos</span>
-                        <strong>{summary.transfers}</strong>
-                    </CardContent>
+                    <DataItem as="content" layout="transactions" className="transactions-page__summary-card" labelClassName="transactions-page__summary-label" label={'Traspasos'} value={summary.transfers} />
                 </Card>
                 <Card>
-                    <CardContent className="transactions-page__summary-card">
-                        <span className="transactions-page__summary-label">Ediciones</span>
-                        <strong>{summary.edits}</strong>
-                    </CardContent>
+                    <DataItem as="content" layout="transactions" className="transactions-page__summary-card" labelClassName="transactions-page__summary-label" label={'Ediciones'} value={summary.edits} />
                 </Card>
                 <Card>
-                    <CardContent className="transactions-page__summary-card">
-                        <span className="transactions-page__summary-label">Eliminaciones</span>
-                        <strong>{summary.deletions}</strong>
-                    </CardContent>
+                    <DataItem as="content" layout="transactions" className="transactions-page__summary-card" labelClassName="transactions-page__summary-label" label={'Eliminaciones'} value={summary.deletions} />
                 </Card>
-            </section>
+            </WorkspaceLayout>
 
             <Card className="transactions-page__filters">
                 <CardHeader
                     title="Filtros"
                     subtitle="Busca por activo o filtra por tipo de operación"
                 />
-                <CardContent className="transactions-page__filters-content">
+                <WorkspaceCardContent appearance="transactionsPageFiltersContent"  >
                     <Input
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
                         placeholder="Buscar por ticker, nombre o nota"
                         icon={<Search size={16} />}
                     />
-                    <div className="transactions-page__chips">
+                    <WorkspaceLayout appearance="transactionsPageChips"  >
                         {[
                             { value: 'all', label: 'Todas' },
                             { value: 'buy', label: 'Compras' },
@@ -153,17 +131,12 @@ export function Transactions() {
                             { value: 'edit', label: 'Ediciones' },
                             { value: 'delete', label: 'Eliminaciones' },
                         ].map((option) => (
-                            <button
-                                key={option.value}
-                                type="button"
-                                className={`transactions-page__chip ${activeType === option.value ? 'transactions-page__chip--active' : ''}`}
-                                onClick={() => setActiveType(option.value as 'all' | PortfolioTransactionType)}
-                            >
+                            <TransactionFilter active={activeType===option.value} key={option.value} type="button" onClick={() => setActiveType(option.value as 'all' | PortfolioTransactionType)}>
                                 {option.label}
-                            </button>
+                            </TransactionFilter>
                         ))}
-                    </div>
-                </CardContent>
+                    </WorkspaceLayout>
+                </WorkspaceCardContent>
             </Card>
 
             <Card className="transactions-page__list-card">
@@ -173,34 +146,25 @@ export function Transactions() {
                 />
                 <CardContent>
                     {filteredTransactions.length === 0 ? (
-                        <div className="transactions-page__empty">
+                        <WorkspaceLayout appearance="transactionsPageEmpty"  >
                             <p>No hay operaciones registradas todavia.</p>
                             <Link to="/add">Añadir una inversión</Link>
-                        </div>
+                        </WorkspaceLayout>
                     ) : (
-                        <div className="transactions-list">
+                        <WorkspaceLayout appearance="transactionsList"  >
                             {filteredTransactions.map((transaction) => {
                                 const meta = TYPE_META[transaction.type];
                                 const Icon = meta.icon;
                                 return (
-                                    <article key={transaction.id} className="transactions-item">
-                                        <div className="transactions-item__main">
-                                            <div className={`transactions__badge ${meta.className}`}>
-                                                <Icon size={14} />
-                                                <span>{meta.label}</span>
-                                            </div>
+                                    <TransactionRecord key={transaction.id} main={<>
+                                            <StatusPill as="div" appearance="transaction" tone={transaction.type} className={meta.className} icon={<Icon size={14} />}>{meta.label}</StatusPill>
                                             <div>
-                                                <h3 className="transactions-item__title">
-                                                    {transaction.assetSymbol}
-                                                    <span>{transaction.assetName}</span>
-                                                    {transaction.type === 'transfer' && <span>→ {transaction.transferToAssetSymbol || transaction.transferToAssetName || 'Fondo destino'}</span>}
-                                                </h3>
-                                                <p className="transactions-item__notes">
+                                                <TransactionTitle symbol={transaction.assetSymbol} name={transaction.assetName} extra={<>{transaction.type === 'transfer' && <span>→ {transaction.transferToAssetSymbol || transaction.transferToAssetName || 'Fondo destino'}</span>}</>} />
+                                                <WorkspaceText appearance="transactionsItemNotes"  >
                                                     {transaction.notes || 'Sin notas'}
-                                                </p>
+                                                </WorkspaceText>
                                             </div>
-                                        </div>
-                                        <div className="transactions-item__meta">
+                                        </>} details={<>
                                             <div>
                                                 <span>Fecha</span>
                                                 <strong>{formatDate(transaction.date)}</strong>
@@ -229,14 +193,13 @@ export function Transactions() {
                                                 <span>{transaction.estimated ? 'Compra estimada' : 'Importe de compra'}</span>
                                                 <strong>{formatCurrency(transaction.transferQuantity * transaction.transferToPrice)}</strong>
                                             </div>}
-                                        </div>
-                                    </article>
+                                        </>} />
                                 );
                             })}
-                        </div>
+                        </WorkspaceLayout>
                     )}
                 </CardContent>
             </Card>
-        </div>
+        </WorkspaceLayout>
     );
 }

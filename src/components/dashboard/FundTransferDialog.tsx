@@ -1,10 +1,13 @@
-import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Button, Modal } from '../ui';
-import type { Asset } from '../../types/types';
-import { getFundRelevance, normalizeIsin } from '../../services/finect/finectService';
-import { generateId, isApiEnabled } from '../../services/storageService';
-import type { NewTransferFund } from '../../services/fundTransfer';
-import './FundTransferDialog.css';
+import {PortfolioDefinition} from './ui/PortfolioPresentation';
+import {PortfolioPresentation,PortfolioPresentationForm,PortfolioPresentationFieldset} from './ui/PortfolioPresentation';
+import {DashboardFormField} from './ui/DashboardFormField';
+import {useEffect,useRef,useState,type FormEvent} from 'react';
+import {Button,Modal} from '../ui';
+import type {Asset} from '../../types/types';
+import {getFundRelevance,normalizeIsin} from '../../services/finect/finectService';
+import {generateId,isApiEnabled} from '../../services/storageService';
+import type {NewTransferFund} from '../../services/fundTransfer';
+
 
 interface FundTransferDialogProps {
     source: Asset;
@@ -121,82 +124,76 @@ export function FundTransferDialog({ source, destinations, onClose, onSubmit }: 
     };
 
     return <Modal isOpen onClose={() => { if (!saving) onClose(); }} title={`Traspasar ${source.name}`} size="md">
-        <form className="fund-transfer" onSubmit={submit}>
-            <fieldset className="fund-transfer__fieldset" disabled={saving}>
-            <p className="fund-transfer__notice">FreeWallet no envía órdenes a tu entidad. Cuando tengas los datos de ejecución, introdúcelos abajo. Si dejas los precios en blanco, se usarán las últimas valoraciones y el traspaso quedará marcado como estimado.</p>
+        <PortfolioPresentationForm appearance="fund-transfer"  onSubmit={submit}>
+            <PortfolioPresentationFieldset appearance="fund-transfer__fieldset"  disabled={saving}>
+            <PortfolioPresentation appearance="fund-transfer__notice" as="p" >FreeWallet no envía órdenes a tu entidad. Cuando tengas los datos de ejecución, introdúcelos abajo. Si dejas los precios en blanco, se usarán las últimas valoraciones y el traspaso quedará marcado como estimado.</PortfolioPresentation>
             <>
-                <div className="fund-transfer__source">Origen: <strong>{source.name} · {source.symbol}</strong></div>
-                <div className="fund-transfer__destination-mode" role="group" aria-label="Tipo de destino">
+                <PortfolioPresentation appearance="fund-transfer__source"  >Origen: <strong>{source.name} · {source.symbol}</strong></PortfolioPresentation>
+                <PortfolioPresentation appearance="fund-transfer__destination-mode"  role="group" aria-label="Tipo de destino">
                     <Button type="button" variant={!newFund ? 'primary' : 'secondary'} aria-pressed={!newFund} disabled={saving || !destinations.length} onClick={() => { setNewFund(false); setDestinationExecutionPriceInput(''); }}>Fondo existente</Button>
                     <Button type="button" variant={newFund ? 'primary' : 'secondary'} aria-pressed={newFund} disabled={saving} onClick={() => { setNewFund(true); setDestinationExecutionPriceInput(''); }}>Nuevo fondo</Button>
-                </div>
-                {newFund ? <div className="fund-transfer__new-fund">
-                    <label className="fund-transfer__field">
-                        <span>ISIN del nuevo fondo</span>
-                        <input value={isin} maxLength={12} autoCapitalize="characters" placeholder="IE00…" required disabled={saving}
-                            onChange={event => {
-                                lookup.current?.abort(); lookup.current = null; setLookingUp(false);
-                                setIsin(event.target.value.replace(/\s/g, '').toUpperCase());
-                                setName(''); setLookupPrice(undefined); setLookupDate(undefined); setLookupNotice('');
-                                setDestinationExecutionPriceInput('');
-                            }} />
-                    </label>
+                </PortfolioPresentation>
+                {newFund ? <PortfolioPresentation appearance="fund-transfer__new-fund"  >
+                        <DashboardFormField label="ISIN del nuevo fondo">
+                            <input value={isin} maxLength={12} autoCapitalize="characters" placeholder="IE00…" required disabled={saving}
+                                onChange={event => {
+                                    lookup.current?.abort(); lookup.current = null; setLookingUp(false);
+                                    setIsin(event.target.value.replace(/\s/g, '').toUpperCase());
+                                    setName(''); setLookupPrice(undefined); setLookupDate(undefined); setLookupNotice('');
+                                    setDestinationExecutionPriceInput('');
+                                }} />
+                        </DashboardFormField>
                     <Button type="button" variant="secondary" loading={lookingUp} disabled={saving || lookingUp || !isApiEnabled() || !validIsin || sameSource || !!matching} onClick={findFund}>Buscar fondo por ISIN</Button>
-                    {isin.length === 12 && !validIsin && <p className="fund-transfer__error" role="alert">Revisa el ISIN: el formato o el dígito de control no es válido.</p>}
-                    {sameSource && <p className="fund-transfer__error" role="alert">El destino debe ser distinto al fondo de origen.</p>}
+                    {isin.length === 12 && !validIsin && <PortfolioPresentation appearance="fund-transfer__error" as="p" role="alert">Revisa el ISIN: el formato o el dígito de control no es válido.</PortfolioPresentation>}
+                    {sameSource && <PortfolioPresentation appearance="fund-transfer__error" as="p" role="alert">El destino debe ser distinto al fondo de origen.</PortfolioPresentation>}
                     {matching && <p role="status">Este fondo ya está en tu cartera. <Button type="button" variant="ghost" onClick={() => { setDestinationId(matching.id); setNewFund(false); setDestinationExecutionPriceInput(''); }}>Usar fondo existente</Button></p>}
                     {lookupNotice && <p role="status">{lookupNotice}</p>}
-                    <label className="fund-transfer__field">
-                        <span>Nombre del fondo</span>
-                        <input value={name} maxLength={200} placeholder="Nombre y clase del fondo" required disabled={saving} onChange={event => setName(event.target.value)} />
-                    </label>
+                        <DashboardFormField label="Nombre del fondo">
+                            <input value={name} maxLength={200} placeholder="Nombre y clase del fondo" required disabled={saving} onChange={event => setName(event.target.value)} />
+                        </DashboardFormField>
                     <small>Se añadirá a tu cartera al registrar el traspaso. Puedes completar los datos manualmente.</small>
-                </div> : <label className="fund-transfer__field">
-                    <span>Fondo de destino</span>
-                    <select value={destinationId} onChange={event => { setDestinationId(event.target.value); setDestinationExecutionPriceInput(''); }} required>
-                        {destinations.map(asset => <option key={asset.id} value={asset.id}>{asset.name} · {asset.symbol}</option>)}
-                    </select>
-                </label>}
-                <label className="fund-transfer__field">
-                    <span>Importe estimado (€)</span>
-                    <input type="text" inputMode="decimal" placeholder="0,00" value={amountInput} disabled={transferAll}
-                        onChange={event => setAmountInput(event.target.value)} aria-describedby="fund-transfer-availability" />
-                    <small id="fund-transfer-availability">El importe elige cuántas participaciones de origen trasladar según la última valoración: {currency(availableValue)} · origen {quoteDate(source)}{destination ? ` · destino ${quoteDate(destination)}` : ''}.</small>
-                </label>
-                <div className="fund-transfer__execution-grid">
-                    <label className="fund-transfer__field">
-                        <span>Precio real de venta del origen (€/participación)</span>
-                        <input type="text" inputMode="decimal" placeholder={Number.isFinite(sourcePrice) ? unitPrice(sourcePrice) : 'Última valoración'} value={sourceExecutionPriceInput}
-                            onChange={event => setSourceExecutionPriceInput(event.target.value)} />
-                        <small>En blanco: última valoración {Number.isFinite(sourcePrice) ? unitPrice(sourcePrice) : 'no disponible'}.</small>
-                    </label>
-                    <label className="fund-transfer__field">
-                        <span>Precio real de compra del destino (€/participación)</span>
-                        <input type="text" inputMode="decimal" placeholder={Number.isFinite(destinationPrice) ? unitPrice(destinationPrice) : 'Última valoración'} value={destinationExecutionPriceInput}
-                            onChange={event => setDestinationExecutionPriceInput(event.target.value)} />
-                        <small>En blanco: última valoración {Number.isFinite(destinationPrice) ? unitPrice(destinationPrice) : 'no disponible'}.</small>
-                    </label>
-                </div>
-                <label className="fund-transfer__full">
+                    </PortfolioPresentation> : <DashboardFormField label="Fondo de destino">
+                        <select value={destinationId} onChange={event => { setDestinationId(event.target.value); setDestinationExecutionPriceInput(''); }} required>
+                            {destinations.map(asset => <option key={asset.id} value={asset.id}>{asset.name} · {asset.symbol}</option>)}
+                        </select>
+                    </DashboardFormField>}
+                    <DashboardFormField label="Importe estimado (€)">
+                        <input type="text" inputMode="decimal" placeholder="0,00" value={amountInput} disabled={transferAll}
+                            onChange={event => setAmountInput(event.target.value)} aria-describedby="fund-transfer-availability" />
+                        <small id="fund-transfer-availability">El importe elige cuántas participaciones de origen trasladar según la última valoración: {currency(availableValue)} · origen {quoteDate(source)}{destination ? ` · destino ${quoteDate(destination)}` : ''}.</small>
+                    </DashboardFormField>
+                <PortfolioPresentation appearance="fund-transfer__execution-grid"  >
+                        <DashboardFormField label="Precio real de venta del origen (€/participación)">
+                            <input type="text" inputMode="decimal" placeholder={Number.isFinite(sourcePrice) ? unitPrice(sourcePrice) : 'Última valoración'} value={sourceExecutionPriceInput}
+                                onChange={event => setSourceExecutionPriceInput(event.target.value)} />
+                            <small>En blanco: última valoración {Number.isFinite(sourcePrice) ? unitPrice(sourcePrice) : 'no disponible'}.</small>
+                        </DashboardFormField>
+                        <DashboardFormField label="Precio real de compra del destino (€/participación)">
+                            <input type="text" inputMode="decimal" placeholder={Number.isFinite(destinationPrice) ? unitPrice(destinationPrice) : 'Última valoración'} value={destinationExecutionPriceInput}
+                                onChange={event => setDestinationExecutionPriceInput(event.target.value)} />
+                            <small>En blanco: última valoración {Number.isFinite(destinationPrice) ? unitPrice(destinationPrice) : 'no disponible'}.</small>
+                        </DashboardFormField>
+                </PortfolioPresentation>
+                <PortfolioPresentation appearance="fund-transfer__full" as="label" >
                     <input type="checkbox" checked={transferAll} onChange={event => { setTransferAll(event.target.checked); setAmountInput(''); }} />
                     <span>Traspasar la posición completa ({units(source.quantity)} participaciones)</span>
-                </label>
-                <dl className="fund-transfer__preview">
-                    <div><dt>{hasSourceExecutionPrice ? 'Importe de venta' : 'Importe de venta estimado'}</dt><dd>{Number.isFinite(amount) && amount > 0 ? currency(amount) : '—'}</dd></div>
-                    <div><dt>Participaciones de origen</dt><dd>{units(sourceUnits)}</dd></div>
-                    <div><dt>{hasDestinationExecutionPrice ? 'Precio real de compra' : 'Precio de compra estimado'}</dt><dd>{Number.isFinite(destinationExecutionPrice) ? unitPrice(destinationExecutionPrice) : '—'}</dd></div>
-                    <div><dt>{hasDestinationExecutionPrice ? 'Importe de compra' : 'Importe de compra estimado'}</dt><dd>{Number.isFinite(destinationAmount) && destinationAmount > 0 ? currency(destinationAmount) : '—'}</dd></div>
-                    <div><dt>Participaciones de destino</dt><dd>{units(destinationUnits)}</dd></div>
-                    <div><dt>Coste de compra que se conserva</dt><dd>{Number.isFinite(basis) && basis >= 0 ? currency(basis) : '—'}</dd></div>
-                </dl>
-                <p className="fund-transfer__disclaimer">Las participaciones se calculan con el precio de venta dividido por el precio de compra. El coste fiscal de origen se conserva aunque cambie el valor de mercado; revisa los datos ejecutados en tu entidad antes de registrarlo.</p>
+                </PortfolioPresentation>
+                <PortfolioPresentation appearance="fund-transfer__preview" as="dl" >
+                    <PortfolioDefinition label={<>{hasSourceExecutionPrice ? 'Importe de venta' : 'Importe de venta estimado'}</>} value={<>{Number.isFinite(amount) && amount > 0 ? currency(amount) : '—'}</>}/>
+                    <PortfolioDefinition label={<>Participaciones de origen</>} value={<>{units(sourceUnits)}</>}/>
+                    <PortfolioDefinition label={<>{hasDestinationExecutionPrice ? 'Precio real de compra' : 'Precio de compra estimado'}</>} value={<>{Number.isFinite(destinationExecutionPrice) ? unitPrice(destinationExecutionPrice) : '—'}</>}/>
+                    <PortfolioDefinition label={<>{hasDestinationExecutionPrice ? 'Importe de compra' : 'Importe de compra estimado'}</>} value={<>{Number.isFinite(destinationAmount) && destinationAmount > 0 ? currency(destinationAmount) : '—'}</>}/>
+                    <PortfolioDefinition label={<>Participaciones de destino</>} value={<>{units(destinationUnits)}</>}/>
+                    <PortfolioDefinition label={<>Coste de compra que se conserva</>} value={<>{Number.isFinite(basis) && basis >= 0 ? currency(basis) : '—'}</>}/>
+                </PortfolioPresentation>
+                <PortfolioPresentation appearance="fund-transfer__disclaimer" as="p" >Las participaciones se calculan con el precio de venta dividido por el precio de compra. El coste fiscal de origen se conserva aunque cambie el valor de mercado; revisa los datos ejecutados en tu entidad antes de registrarlo.</PortfolioPresentation>
             </>
-            {error && <p className="fund-transfer__error" role="alert">{error}</p>}
-            <div className="fund-transfer__actions">
+            {error && <PortfolioPresentation appearance="fund-transfer__error" as="p" role="alert">{error}</PortfolioPresentation>}
+            <PortfolioPresentation appearance="fund-transfer__actions"  >
                 <Button type="button" variant="ghost" onClick={onClose} disabled={saving}>Cancelar</Button>
                 <Button type="submit" disabled={!canSubmit || saving} loading={saving}>Registrar traspaso</Button>
-            </div>
-            </fieldset>
-        </form>
+            </PortfolioPresentation>
+            </PortfolioPresentationFieldset>
+        </PortfolioPresentationForm>
     </Modal>;
 }

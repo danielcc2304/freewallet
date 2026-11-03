@@ -70,11 +70,14 @@ try{
     assert.equal(username,'fixture');await fill('#account-username','Changed_Name');await click('Guardar nombre');
     await page.waitForFunction(()=>document.querySelector('.account-page__identity h2')?.textContent==='@changed_name');assert.equal(renames,2);
     await page.reload({waitUntil:'networkidle2'});await page.waitForFunction(()=>document.querySelector('.account-page__identity h2')?.textContent==='@changed_name');
+    // Measure settled layouts instead of the sidebar's desktop/mobile transition.
+    await page.addStyleTag({content:'*, *::before, *::after { transition: none !important; animation: none !important; }'});
     for(const width of [320,390,1280]){
         await page.setViewport({width,height:900});
         for(const theme of ['light','dark'])for(const appearance of ['standard','liquid-glass']){
             await page.evaluate((t,a)=>{document.documentElement.dataset.theme=t;document.documentElement.dataset.appearance=a;},theme,appearance);
             assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${width}/${theme}/${appearance}: no overflow`);
+            if(width<1024)assert.ok(await page.$eval('.account-page',node=>node.getBoundingClientRect().width>=innerWidth-80),`${width}/${theme}/${appearance}: account uses the mobile canvas`);
         }
     }
     await page.evaluate(()=>{document.documentElement.dataset.theme='light';document.documentElement.dataset.appearance='liquid-glass';window.scrollTo({top:0,behavior:'instant'});});

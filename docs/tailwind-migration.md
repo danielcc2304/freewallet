@@ -1,0 +1,543 @@
+# Migración progresiva a Tailwind
+
+La primera fase integra Tailwind CSS 4 con Vite y migra `Button`, `Card`, `Input`, `MetricCard`, `Modal`, `PageHeader` y Mi cuenta. La segunda amplía la migración a Noticias y el radar de fondos. La tercera incorpora Academia, herramientas, Dashboard, gastos, navegación y demás pantallas mediante componentes compartidos y CSS de módulos compilado con Tailwind. No cambia el modelo de datos, las operaciones financieras ni las llamadas de autenticación.
+
+## Convivencia y temas
+
+- `src/styles/tailwind.css` importa tema y utilidades, **sin Preflight**: el reset existente sigue en `src/index.css`.
+- Las utilidades llevan el prefijo `tw:`. No colisionan con clases existentes como `text-muted` o `font-medium`.
+- Las utilidades quedan sin capa mientras el CSS antiguo siga sin capa. Esto evita que la prioridad de las capas inutilice las utilidades durante la transición; los selectores propios de los módulos pueden seguir refinando sus componentes. No se activa `important` global.
+- Los alias de `@theme inline` de `module-theme.css` leen las variables existentes en cada elemento. Colores, bordes, sombras, radios y espaciados responden al tema claro/oscuro, al modo estándar/Liquid Glass y al tamaño de pantalla.
+- `dark:` usa `data-theme`, y `glass:` usa `data-appearance`. Ambas preferencias siguen siendo independientes.
+- Las animaciones específicas permanecen en CSS, respetando movimiento reducido. El antiguo `spin` se conserva en el reset para las pantallas todavía no migradas.
+
+## Componentes y composición
+
+```tsx
+import { Button, Card, Input, ActionGroup } from '../components/ui';
+
+<Card className="tw:p-4">
+    <Input label="Nombre" hint="Una explicación breve" />
+    <ActionGroup stackOnMobile>
+        <Button variant="secondary" type="button">Cancelar</Button>
+        <Button>Guardar</Button>
+    </ActionGroup>
+</Card>
+```
+
+`cn()` combina clases con `clsx` y `tailwind-merge`, configurado con el prefijo y los tokens propios. El `className` del consumidor se pasa al final para sobrescribir valores base, incluyendo los espaciados `ui-*`. Los nombres completos de las utilidades deben aparecer en el código: no construir `tw:bg-${color}` dinámicamente. Las variantes usan mapas estáticos.
+
+`Button` mantiene variantes, tamaños, iconos, estado desactivado y carga. Durante la carga conserva su tamaño y nombre accesible, muestra un indicador visible y expone `aria-busy`. Los enlaces reales usan `buttonStyles()`; no se anidan enlaces y botones.
+
+`Input` enlaza etiqueta, ayuda y error mediante identificadores estables y atributos ARIA. `density="comfortable"` conserva la presentación de Mi cuenta; el valor normal conserva la de los formularios existentes. `inputClassName` ajusta el campo y `className` su contenedor. Los selectores nativos que necesiten esa presentación pueden usar `inputStyles()`.
+
+`Card` admite `div`, `section`, `article` o `form` mediante `as`. `ActionGroup` centraliza el espaciado y la disposición móvil de las acciones. `Modal` conserva portales, bloqueo de scroll, foco inicial, Tab/Escape, restauración del foco y altura estable para gráficos.
+
+Mi cuenta compone estos elementos con `AccountPanel`, `AccountActions`, `AccountHelp`, `AccountHeading`, `AccountInset` y `AccountDetail`. Registro, acceso, recuperación, perfil, importación, exportación y autenticador mantienen sus flujos existentes.
+
+## Compatibilidad durante la migración
+
+Se mantienen los nombres de clases usados por Liquid Glass, las interacciones y las pruebas (`btn`, `card`, `modal`, etc.) como puntos de conexión. No son una segunda copia de los estilos retirados. No eliminarlos sin revisar también `AppearanceContext`, `liquidGlass.css` y los consumidores pendientes.
+
+Los dos selectores de Añadir activo y el enlace del aviso de versión usan las recetas compartidas. Las tarjetas de fundamentales de `AssetDetail` mantienen sus estilos particulares, acotados a ese modal para que no modifiquen `MetricCard` en otras pantallas.
+
+Se retiran siete archivos: los CSS de los seis componentes base y `Account.css`. Los módulos aún no migrados conservan sus estilos; no se ha completado una conversión de toda la aplicación.
+
+## Segunda fase: Noticias y radar de fondos
+
+Noticias migra su portada, tarjetas, artículo, comentarios, respuestas y panel editorial, incluida la gestión de portadas y colaboradores. Los mapas estáticos `newsStyles`, `newsAdminStyles` y `commentStyles` contienen las utilidades completas, conservando los nombres de clase que usan Liquid Glass y las pruebas. Se retiran `News.css`, `NewsAdmin.css` y `NewsComments.css`.
+
+Los estilos de HTML enriquecido quedan en `newsContent.css`: el contenido editorial no se construye mediante componentes React. El editor Tiptap conserva su CSS específico. La animación del aviso también permanece en ese archivo. Se conservan el ancho completo y la proporción 16:9 de las portadas de la lista, con `object-fit: contain` para evitar recortar otros formatos.
+
+El catálogo y el formulario de edición del radar comparten `radarStyles`, con filtros y campos basados en `inputStyles()`. Las consultas de contenedor mantienen el cambio de columnas según el espacio real disponible, incluido el modal de edición. `FundRadar.css` conserva únicamente el medidor nativo y sus pseudoelementos específicos de cada navegador. Las notas, fórmulas, fechas, permisos y consultas al proveedor mantienen su implementación.
+
+Los tamaños de texto usan los tokens `--font-size-*` existentes: no se sustituyen por escalas de Tailwind de nombres parecidos que puedan tener otras medidas o interlineados.
+
+En variantes arbitrarias que apuntan a clases BEM, los guiones bajos literales se escapan (`.card\_\_content`). Las recetas utilizan `String.raw` para que JavaScript y el escáner de Tailwind lean el mismo selector. Un guion bajo sin escapar representa un espacio en estas variantes. Las pruebas comprueban también el espaciado del acceso editorial y la jerarquía de las métricas del radar para detectar estas pérdidas de estilos.
+
+Las nuevas dependencias tienen versiones fijadas y lockfile. Vite se actualiza de 7.3.6 a 7.3.7 para corregir los avisos de seguridad detectados por la auditoría durante esta entrega. `tailwind-merge` añade código al cliente: el bundle inicial medido pasa de unos 618 a 651 kB, dentro del límite de 700 kB comprobado por el proyecto. Esta fase busca reducir duplicación y facilitar el mantenimiento; no afirma una mejora de rendimiento por instalar Tailwind.
+
+## Tercera fase: módulos restantes
+
+Las 64 hojas de módulos conservadas usan `@reference` a `module-theme.css` y comparten 9.964 declaraciones mediante utilidades `@apply`. El [inventario por módulo](tailwind-module-inventory.md) detalla su cobertura y el CSS específico conservado. Las tarjetas de calculadora, los avisos flotantes, los estados de carga/error y la pantalla 404 pasan a utilidades en React y retiran otros cuatro CSS.
+
+```css
+@reference "../../../styles/module-theme.css";
+
+.module__summary {
+    @apply tw:ui-row tw:gap-ui-md tw:p-[1rem] tw:ui-border-default;
+    line-height: 1.4;
+}
+```
+
+La ruta de referencia se resuelve desde cada hoja. Este patrón permite migrar las tablas, gráficos, modales y selectores de editor conservando su especificidad y sus consultas de medios. Los componentes React nuevos reutilizan la base compartida y utilidades directas; `@apply` mantiene las integraciones cuyo comportamiento depende de la cascada existente.
+
+`module-theme.css` contiene los tokens y patrones compartidos, sin las animaciones predeterminadas de Tailwind. Los módulos pueden aplicar sus utilidades sin que una animación histórica llamada `bounce` o `spin` incorpore keyframes de otro tema. El tema completo y las animaciones `ui-*` siguen disponibles en `tailwind.css` para React.
+
+Los shorthands se conservan como tales: `ui-fill-*` usa `background`, y `ui-border*` usa `border`. Sustituirlos solo por `background-color` o `border-width` dejaría imágenes o estilos anteriores activos. Las alturas y medidas originalmente expresadas en píxeles mantienen esa unidad. La tipografía contextual, las sombras, los efectos ópticos y las reglas específicas de editor/gráficos conservan CSS cuando hace falta para mantener sus efectos y su herencia.
+
+Los tests estructurales de tablas y desglose inspeccionan el CSS compilado con `compileModuleStyles()`, de modo que siguen comprobando sus reglas sin depender de cómo se escriba un `@apply`.
+
+## Comprobaciones
+
+```bash
+npm run lint
+npm run typecheck
+SKIP_PRERENDER=1 npm run build
+npm run test:unit
+npm run test:build
+PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium npm run test:smoke
+```
+
+`test-tailwind-foundation-ui.ts` captura Mi cuenta y una galería de componentes a 320, 390 y 1280 px con las cuatro combinaciones de tema y apariencia. Comprueba desbordamientos, sobrescritura del relleno, ayuda/error accesibles, foco de teclado, carga, estados desactivados, enlaces con apariencia de botón y navegación de teclado del modal. Cuando Chromium sin interfaz declara que no tiene dispositivo de hover, la prueba habilita esa condición de medios en su página aislada para comprobar los selectores y declaraciones reales. La galería está en `scripts/fixtures`, se importa expresamente desde la prueba y no añade una ruta ni un import al producto.
+
+Los recorridos existentes comprueban además usuario/correo, registro, errores y recuperación, cambio de nombre, altas/bajas del autenticador y lectura del QR en cada tema. Las pruebas de otros módulos verifican consumidores de los componentes compartidos. Utilizan sesiones y respuestas sintéticas; no operan con cuentas reales.
+
+Validación de la primera fase: 64 comprobaciones de lógica e integración y 15 suites de navegador verificadas, además de lint, TypeScript, build y presupuesto del bundle. La pasada general de navegador detectó tres fallos; tras corregirlos se repitieron esas suites y las afectadas por los últimos ajustes. Todos sus resultados finales pasan. La instalación limpia con el lockfile también pasa y la auditoría de dependencias informa de cero vulnerabilidades conocidas en la fecha de entrega.
+
+Validación de la segunda fase: pasan las cuatro suites de navegador de Noticias/comentarios, edición de artículos, radar y base compartida. Incluyen vistas de 320 a 1920 px, claro/oscuro y estándar/Liquid Glass, permisos, respuestas, imágenes, edición y conflictos. También pasan las pruebas de lógica de imágenes, comentarios y notas por categoría, lint, TypeScript y build. El control de carga mantiene el JavaScript inicial en 651,40 kB y confirma que el editor y las calculadoras siguen fuera del arranque.
+
+Para repetir solo la galería con un servidor aislado:
+
+```bash
+npm run test:smoke -- --only=test-tailwind-foundation-ui.ts
+```
+
+## Validación de módulos y mantenimiento
+
+`npm run test:tailwind-modules-ui` comprueba la compilación de producción y requiere ejecutar antes `SKIP_PRERENDER=1 npm run build`. Recorre 41 rutas con anchos de 320, 390 y 1280 px, y las cuatro combinaciones de tema/apariencia: 492 combinaciones. Captura nueve pantallas representativas y guarda sus medidas en `/tmp/freewallet-tailwind-modules-after`. La referencia local anterior registra móvil y escritorio por ruta. El recorrido bloquea peticiones a proveedores, incluidos los proxies locales.
+
+Los recorridos funcionales de `test:smoke` conservan Vite dev porque algunos fixtures importan servicios de `/src`. Cada servidor de prueba tiene su propia caché de prebundles, lo que permite aislar las referencias de otros worktrees. La CI ejecuta lógica/build, recorridos funcionales y la auditoría de rutas en grupos separados; el job final `verify` comprueba que todos terminen correctamente.
+
+El CSS específico conservado se enumera en el inventario. Las futuras mejoras pueden pasar más composición a React cuando aporten claridad, reutilizando los mismos tokens. Cada modificación debe comprobar móvil/escritorio, las cuatro apariencias y los flujos afectados.
+
+Validación de la tercera fase: pasan las 64 comprobaciones únicas de lógica e integración y las 16 suites funcionales de navegador. La prueba de histórico estructurado superó el límite de tiempo al compartir recursos con el navegador; su repetición aislada pasó. También pasan lint, TypeScript incluido en el build, compilación de producción y presupuesto del bundle (652,83 kB de JavaScript inicial). El recorrido adicional pasa las 41 rutas y 492 combinaciones de tamaño/apariencia. La comparación con la referencia anterior de 82 combinaciones no encuentra diferencias en las propiedades medidas de 4.497 elementos coincidentes.
+
+## Cuarta fase: composición de detalles y avisos
+
+`DefinitionList` comparte la estructura semántica `dl > div > dt + dd` entre los resultados/parámetros guardados en `ScenarioComparison` y los detalles móviles de `LivePortfolioPlan`. Las variantes `stacked` e `inline` conservan sus respectivas distribuciones; los valores se siguen calculando y formateando en los consumidores. El componente acepta atributos nativos de `dl` y contenido React en cada valor.
+
+`Performers` utiliza recetas de presentación comunes a mejores y peores activos. La ayuda del Dashboard y los avisos de conexión, cartera local, cambios pendientes y versión pasan a utilidades en React; el aviso de versión reutiliza `ActionGroup`. Se eliminan siete CSS de componentes y las cuatro reglas de listas repetidas en el plan, manteniendo los hooks que usan las pruebas y los estilos de apariencia. No se cambian cálculos, sincronización ni permisos.
+
+La suite existente de usabilidad de calculadoras puede repetirse con servidor aislado mediante `npm run test:smoke -- --only=test-calculator-dashboard-usability.ts`. Su fixture del selector de benchmark explicita el modo MSCI y alimenta el histórico Fidelity con la función real `dailyHistory`; la expectativa sobre los NAV utilizados se mantiene. La ejecución de Chromium utiliza las mismas opciones de contenedor que las demás suites.
+
+Validación de la cuarta fase: pasan lint, TypeScript, build de producción y presupuesto de carga (654,47 kB de JavaScript inicial). Pasan las cinco suites de navegador seleccionadas: usabilidad de calculadoras, feedback de cuenta, auditoría de aplicación, calidad del Dashboard y Portfolio/importación. Cubren escenarios inmutables, listas móviles del plan, ayudas, conexión, gastos pendientes e importación de cartera local. Se revisaron además las capturas de escenarios y detalles del plan.
+
+## Quinta fase: primeras calculadoras
+
+El catálogo, el fondo de emergencia, el simulador de impacto fiscal y el de inflación usan composición React y recetas estáticas Tailwind. `CalculatorTile` comparte la estructura de las ocho tarjetas del catálogo; `CalculatorPanel` conserva las superficies y sus variantes; `CalculatorMetric` comparte las etiquetas y resultados. `CalculatorField` agrupa doce controles con etiqueta, icono, unidad y contenido adicional, manteniendo en el consumidor el control nativo, su valor, límites y callback. Las etiquetas fiscales quedan asociadas mediante `htmlFor`/`id`, y el deslizador recibe nombre accesible.
+
+Las recetas usan `String.raw` para preservar los guiones bajos literales en selectores BEM. Conservan media queries inclusivas, estados y selectores contextuales. La animación óptica de inflación sigue en un CSS pequeño. Los estilos globales `calc__*` se mantienen por compatibilidad con las calculadoras que todavía no usan el nuevo campo.
+
+`CalculatorPanel` conserva los hooks de sus consumidores. Se mantiene separado del anterior `CalculatorCard` porque este último tiene ajustes ópticos Liquid Glass propios: sustituir uno por otro indiscriminadamente cambiaría la apariencia.
+
+Para comprobar solo estas pantallas sobre un build de producción:
+
+```bash
+SKIP_PRERENDER=1 npm run build
+FREEWALLET_VISUAL_ROUTES='/academy/calculators,/academy/emergency-fund,/academy/taxes,/academy/inflation-predator' npm run test:tailwind-modules-ui
+```
+
+El filtro solo admite rutas existentes y rechaza listas vacías. Sin filtro, la auditoría de CI mantiene sus 41 rutas. Las comprobaciones funcionales de la suite de usabilidad incluyen navegación del catálogo, métricas fiscales al cambiar ganancias, persistencia, entradas vacías y activación de la visualización de inflación.
+
+La centralización de utilidades cambia la distribución del CSS: el archivo inicial pasa de 138,64 kB (22,40 kB gzip) a 158,20 kB (26,12 kB gzip) en esta fase. La reducción de hojas y líneas de CSS fuente mide organización y reutilización; no implica una reducción del CSS inicial descargado. El JavaScript inicial queda en 654,39 kB y conserva la carga diferida de calculadoras.
+
+Validación de la quinta fase: pasan lint, TypeScript, build, presupuesto de carga y la prueba de integridad de calculadoras. La auditoría de producción pasa 48 combinaciones (cuatro rutas, tres anchos y cuatro apariencias). La comparación anterior/posterior de 32 combinaciones no encuentra diferencias en las propiedades medidas de 2.896 elementos; se revisaron las capturas. Las 67 sentencias de lógica y almacenamiento comparadas antes del render permanecen iguales. La suite de usabilidad ampliada pasa: cubre navegación, impuestos progresivos, persistencia, campos vacíos y la visualización activa de inflación. Su primer arranque en Vite agotó la navegación de 30 segundos; con los 60 segundos usados por otras suites pasa en 224 segundos.
+
+
+## Sexta fase: campos y tarjetas como componentes completos
+
+Interés compuesto, FIRE y jubilación componen 19 campos con `CalculatorField`: cada uso aporta el control nativo, mientras el componente es responsable de la etiqueta, el icono, la unidad, el marco y los estilos Tailwind. El contenido posterior mantiene deslizadores y explicaciones condicionales en su posición original. Los grupos de opciones conservan su estructura específica.
+
+`CalculatorResultCard` comparte el marcado y la presentación de nueve resultados. Sus variantes `investment`, `centered` e `icon` conservan las distribuciones existentes; recibe valores ya calculados y formateados. Los colores de énfasis usan clases Tailwind estáticas. Las clases de los slots mantienen la compatibilidad con selectores existentes, y la variante con icono reutiliza `CalculatorCard` para conservar su comportamiento Liquid Glass. Ninguna fórmula ni almacenamiento pertenece al componente de presentación.
+
+Se retiran 26 reglas de resultados de las tres hojas locales, incluidas las variantes y la tipografía móvil. Esas hojas conservan la disposición, los gráficos y los elementos propios de cada calculadora. Esta fase elimina duplicación de estructura además de estilos; no pretende convertir indiscriminadamente cada bloque CSS en una cadena de utilidades.
+
+
+La comparación del código anterior confirma que permanecen iguales las sentencias de cálculo y almacenamiento de las tres herramientas, así como las propiedades de sus 28 controles nativos (incluidos los grupos de opciones). Pasan la prueba de integridad financiera y la suite de usabilidad: resultados de interés compuesto con retiradas, escenarios inmutables, entradas vacías, persistencia y controles en móvil/escritorio. La suite se ejecuta con `PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium` en este entorno, que dispone de Chromium del sistema.
+
+
+Validación final: pasan ESLint de los cuatro componentes afectados, TypeScript, build de producción y presupuesto de carga (654,46 kB de JavaScript inicial). La auditoría de producción pasa 36 combinaciones: tres rutas, tres anchos y las cuatro combinaciones de tema/apariencia. No hay errores de ejecución ni desbordamiento horizontal; se comprueban además los bordes de énfasis en los tres anchos. Se revisó la captura móvil de jubilación en Liquid Glass. La suite de usabilidad pasa en 163,5 segundos.
+
+
+## Séptima fase: bonos, sueldo neto y ficha de fondos
+
+Las tres herramientas pasan a componer partes completas de interfaz. `CalculatorField` mantiene su apariencia anterior y añade una variante de nómina: `NumericField` y `SelectField` conservan localmente los identificadores, los controles nativos, la validación y sus callbacks. `CalculatorCheckbox` comparte las casillas. `CalculatorPanel` añade superficies y bordes para las secciones de IRPF y los paneles de la ficha, conservando sus respectivos materiales.
+
+`CalculatorDisclosure` utiliza `details`/`summary` nativos, con variantes de formulario y detalle sencillo, sin sustituir la interacción de teclado por un manejador propio. `CalculatorHeroMetric` comparte el resultado principal de YTM y sueldo neto y conserva sus dos apariencias. `CalculatorDataItem` compone los siete resultados secundarios de bonos y los datos, métricas y comisiones de fondos. `CalculatorSection` organiza las secciones de la ficha y `CalculatorEducationCard` las tres explicaciones de bonos.
+
+`CalculatorTable` comparte la estructura y el estilo de las tablas: las estadísticas de fondos caben en móvil; las tablas de nómina conservan el desplazamiento nativo. `CalculatorAllocationCard` muestra las distribuciones de fondos con barras limitadas a 0–100 %; el dato numérico y su formato siguen viniendo de la ficha. `CalculatorDocumentLink` comparte el marcado y los estilos de los documentos externos.
+
+Las hojas de bonos, IRPF y fondos pasan conjuntamente de 962 a 671 líneas (291 menos). Conservan distribución, selectores específicos, ajustes contextuales, animación de carga y ayuda de riesgo. No se eliminan hojas completas ni se presenta esta reducción de fuente como una mejora del tamaño descargado.
+
+La nueva prueba `npm run test:fund-information-ui` usa respuestas sintéticas de Finect a través del flujo real de búsqueda y normalización. Comprueba la clase por ISIN, NAV, rentabilidades y comisiones de valor cero, ausencia de datos, estadísticas, composición, documentos y errores de consulta; recorre cuatro anchos y cuatro combinaciones de tema/apariencia. Se añade al conjunto de pruebas de navegador habitual.
+
+
+Validación de esta fase: pasan ESLint de los módulos y pruebas modificados, TypeScript, compilación de producción y presupuesto de carga (654,61 kB de JavaScript inicial). Pasan las pruebas financieras de bonos, nómina y Finect, incluida la verificación independiente Decimal del calendario, cupón corrido y YTM de CoreWeave, y la integridad de las demás calculadoras. Las pruebas de navegador de bonos, IRPF y ficha de fondos pasan; la auditoría de producción cubre 36 combinaciones de las tres rutas sin errores de ejecución ni desbordamientos.
+
+La referencia de la ficha anterior se obtuvo en un checkout separado del commit previo, con las mismas respuestas Finect simuladas. Al comparar las propiedades medidas de 2.688 elementos en 16 combinaciones de ancho/tema/apariencia no se detectan diferencias. Esto complementa las capturas y las pruebas de comportamiento; no se presenta como una comparación píxel a píxel. Se revisaron también las capturas móviles de sueldo neto y ficha de fondos.
+
+
+## Octava fase: composición del Dashboard
+
+Los componentes en `src/components/dashboard/ui` encapsulan marcado y estilos Tailwind. `DashboardMetric` recibe datos ya formateados y conserva las distribuciones de indicadores, valores de posiciones y estadísticas. `DashboardPanel` comparte las superficies interiores sin introducir el material de `Card`. `DashboardSegments` compone los botones del resumen, periodos, método de Benchmark, pestañas y gráfico de activo; los consumidores mantienen los cambios de estado, transiciones y manejadores de teclado.
+
+`DashboardSwitch` conserva el botón con `aria-pressed` de composición y el checkbox nativo con rol `switch` de asignación/Benchmark. `DashboardFilterField` comparte los controles etiquetados de la tabla y `DashboardFormField` los seis campos del traspaso. `DashboardFundamentalCard` presenta las métricas ampliadas con sus categorías y fechas. `DashboardReviewRow` conserva las filas de corrección y `DashboardActions` las acciones flotantes con sus nombres accesibles y estados desactivados.
+
+El resumen sigue utilizando el `MetricCard` existente. Se retiran `PortfolioSummary.css` y `PortfolioDataQuality.css`; los componentes afectados conservan sus hooks para pruebas y materiales de apariencia. El CSS del Dashboard, incluida su página principal, pasa de 1.804 a 1.457 líneas (347 menos). Las tablas, gráficos, distribución de página, animaciones y elementos específicos conservan CSS donde corresponde. La reducción de fuente no implica por sí sola una reducción del CSS descargado.
+
+La referencia anterior se captura en un checkout separado del commit previo, con posiciones sintéticas y consultas externas bloqueadas. La comparación de 48 estados (cinco paneles y detalle de activo, dos anchos y cuatro combinaciones de tema/apariencia) coincide en las propiedades medidas de 31.520 elementos. Se ignora únicamente la clase transitoria del pulso de selección Liquid Glass; no se ocultan diferencias de propiedades. Esta comparación no sustituye una comparación píxel a píxel de todos los estados de la aplicación.
+
+Se amplía la suite existente de calidad con navegación de pestañas por teclado y asociación del panel activo. El runner permite seleccionar también las suites existentes de métricas, desglose, resultados y traspasos sin añadirlas al conjunto predeterminado. La fixture de datos JSON completos de acciones incorpora una descripción empresarial: la aplicación ya consultaba HTML cuando faltaba esa descripción. La cotización simulada incluye su fecha de mercado para representar un dato reciente, y el contador distingue consultas de cotización e histórico. Se mantiene la comprobación de que una respuesta realmente completa no necesita ese fallback, se comprueba que su descripción aparece y que reintentar métricas no recarga el gráfico. La prueba corregida pasa también sobre el checkout anterior a la migración.
+
+
+Validación final: pasan TypeScript, ESLint, compilación de producción y presupuesto de carga (654,61 kB de JavaScript inicial; calculadoras y SDK editorial mantienen su carga diferida). Pasan las suites de navegador de calidad del Dashboard, métricas de acciones, desgloses, resultados y traspasos. Pasan también las pruebas de resultados financieros, periodos y consolidación de exposición. La comparación del build de producción vuelve a coincidir en los 31.520 elementos de los 48 estados de referencia. Se revisaron capturas del resumen en escritorio y de las métricas ampliadas; las capturas nuevas de producción utilizan posiciones sintéticas.
+
+
+## Novena fase: Academia y simuladores
+
+`src/components/academy/ui` comparte siete componentes con su estructura y utilidades Tailwind. `AcademyPanel` conserva el elemento semántico de cada superficie; `AcademyLinkCard` mantiene el enlace nativo de React Router y sus atributos. `AcademyGrid` organiza las colecciones conservando los ajustes móviles y por contenedor del módulo. Las clases existentes siguen siendo hooks para estados, materiales y pruebas.
+
+`AcademySection` compone 34 secciones de las cinco guías de activos, con títulos opcionales para la sección final. `AcademyMetric` presenta 25 indicadores de guías, asignación, crisis y market timing, sin calcular valores. `AcademyControlField` comparte etiqueta, marco, unidad y ayuda de los pesos de estrategia y las entradas de crisis, conservando los controles, identificadores y callbacks originales. `AcademyVideoCard` encapsula la previsualización y el enlace accesible; el catálogo y el estado de error de miniaturas permanecen en Recursos y guías.
+
+Se aplican estas piezas a 20 módulos existentes. El CSS fuente de `src` pasa de 14.974 a 14.791 líneas: 183 menos en esta fase y un 34,99 % menos respecto a las 22.753 iniciales. No se retiran hojas completas. Las reglas específicas de gráficos, pseudoelementos, animaciones, sombras, contenedores y materiales permanecen donde tienen sentido. Estas cifras describen el código fuente y no el tamaño descargado.
+
+
+La comparación anterior/posterior cubre 160 combinaciones de 20 rutas, dos anchos y cuatro combinaciones de tema/apariencia. Coinciden las propiedades medidas de 32.604 elementos. En Recursos se compara el estado alternativo de miniaturas: las peticiones externas están bloqueadas y se excluyen únicamente los nodos `IMG` transitorios que el navegador carga de forma diferida. No se afirma una comparación píxel a píxel. Se revisó la captura móvil de Mercado y crisis en Liquid Glass.
+
+La prueba de market timing controla su reloj simulado durante la inspección de órdenes pendientes, evitando que dos comandos de navegador separados pierdan ese estado de dos sesiones. Mantiene las comprobaciones de compra/venta parcial y bloqueo de nuevas órdenes; espera el aumento efectivo del saldo para confirmar la venta. El límite por ronda se amplía a 60 segundos para tolerar trabajadores de CI cargados sin cambiar la duración del juego en producción.
+
+
+Validación final: pasan TypeScript, ESLint de los módulos y la prueba modificados, build de producción y presupuesto de carga (654,89 kB de JavaScript inicial). Pasan las pruebas financieras de estrategia/asignación, crisis y market timing, y las pruebas de navegador de estrategia/asignación y las tres rondas completas del juego. El recorrido del build de producción pasa 20 rutas y 240 combinaciones de tres anchos y cuatro temas/apariencias sin errores de ejecución ni desbordamientos horizontales. La prueba del juego espera posiciones estables al pulsar las acciones de resultados y usa movimiento reducido para evitar carreras con el desplazamiento automático.
+
+
+## Décima fase: Gestión de gastos
+
+Los diez archivos de `src/components/expenses/ui` exponen catorce componentes con marcado y estilos Tailwind: botones y acciones, campos y casillas, selectores, paneles y tarjetas, cabeceras y títulos, rejillas, indicadores, progreso y estados vacíos. Se reutilizan en Gestión de gastos, sus seis editores y la importación CSV/Excel.
+
+`ExpenseField` conserva la etiqueta implícita del control y permite mantener las etiquetas visualmente ocultas de los filtros. `ExpensePanel` conserva el elemento semántico de cada panel, incluido el `details` nativo del calendario; `ExpensePanelTitle` también presenta títulos que no tienen una cabecera de acciones. Los selectores utilizan botones nativos con `aria-pressed`, preservando el tipo de botón de los formularios. Los valores se calculan y formatean en sus módulos originales; la barra mantiene exactamente el cálculo y los atributos accesibles del helper anterior.
+
+Se retiran 44 líneas del CSS local, de 298 a 254. Al estar escrito principalmente con reglas de una línea, también se registra su tamaño fuente: pasa de 28.980 a 23.525 bytes. El CSS total de `src` pasa de 14.791 a 14.747 líneas, un 35,19 % menos respecto a las 22.753 anteriores al inicio de las migraciones. No se retiran hojas completas ni se equipara esta reducción al tamaño descargado. Los materiales Liquid Glass, gráficos, tablas y ajustes contextuales conservan CSS donde corresponde.
+
+
+La comparación anterior/posterior pasa 96 combinaciones: cinco pestañas, seis editores y vista previa de importación, dos anchos y cuatro temas/apariencias. Coinciden las propiedades medidas de 15.704 elementos; no se presenta como una comparación píxel a píxel de todos los estados posibles. La comprobación del código conserva las propiedades de los controles nativos y las declaraciones de lógica sin JSX de los tres módulos. Las pruebas existentes de presupuestos en céntimos e importación Excel/CSV pasan. La suite de navegador usa ahora los 60 segundos de navegación que emplean otras suites del repositorio, para tolerar la compilación de Vite en trabajadores ocupados, y registra por separado el progreso de los flujos y de los tamaños de pantalla.
+
+
+Validación final: pasan ESLint, TypeScript, compilación de producción y presupuesto de carga (654,89 kB de JavaScript inicial). La suite funcional completa pasa sobre el build de producción: altas, edición, cancelación, borrado, ingresos, reembolsos, transferencias, presupuestos, recurrentes sin duplicados, objetivos, importación CSV/Excel y persistencia. Comprueba también las cinco pestañas y el editor en 320/390/768 px, además de capturas claras/oscuras. La comparación del build de producción vuelve a coincidir en los 15.704 elementos de las 96 combinaciones de referencia, incluidas ambas apariencias. Se revisó la captura móvil del resumen en Liquid Glass.
+
+
+## Undécima fase: reutilización entre pantallas
+
+`DataItem` comparte el marcado de etiqueta, valor y detalle entre las calculadoras, Planificación, Operaciones, Portfolio CSV y mapa de calor. Sus variantes conservan las diferencias de presentación y los elementos semánticos originales, incluido `CardContent` en Operaciones. Los cálculos y formatos permanecen en los consumidores. `CalculatorDataItem` conserva su nombre como reexportación del componente común.
+
+`DataTable` aporta una única estructura de contenedor y tabla nativa a ficha de fondos, IRPF y las tablas de movimientos/importación de gastos. Las variantes conservan los estilos de columnas y el comportamiento móvil de cada herramienta. `CalculatorTable` delega en esta pieza sin mantener otra implementación.
+
+`FormField` y `FieldHint` comparten el contenedor, la etiqueta explícita y las ayudas entre Añadir activo y los campos estándar de las calculadoras. Conservan el orden de las ayudas, `htmlFor`, identificadores, controles nativos y eventos. Los campos que ya incluyen una etiqueta mediante `Input` no reciben una segunda etiqueta. Los campos de nómina y los campos con etiqueta implícita de gastos conservan sus variantes existentes.
+
+`PageHeading` reúne título, descripción y acciones de Planificación y Operaciones, con la misma disposición móvil. `AcademyStepCard` comparte número, título, contenido y distintivo opcional en quince tarjetas de las cinco guías de activos. `AcademyCallout` comparte icono, título, contenido y tonos de doce avisos, manteniendo estilos inline y enlaces de las lecciones. Sus estilos ordinarios pasan de `@apply` a Tailwind en los componentes; las reglas contextuales de materiales y contenedores permanecen en CSS.
+
+El CSS fuente de `src` pasa de 14.747 a 14.557 líneas en 58 archivos: 190 menos en esta fase y un 36,02 % menos frente a las 22.753 líneas iniciales. Esta medición incluye la limpieza de espacios vacíos de las reglas retiradas; no representa ahorro equivalente en el paquete descargado.
+
+
+La comparación anterior/posterior sobre el build de producción cubre trece rutas, dos anchos y cuatro combinaciones de tema/apariencia: 104 estados y 21.240 elementos. Coinciden todas las propiedades medidas, incluidas tipografía, dimensiones y sombras; no se presenta como una comparación píxel a píxel. La referencia de Portfolio se toma después de estabilizar el cambio de tamaño de sus gráficos. Se conservan también las declaraciones de lógica fuera del JSX y las propiedades de controles interactivos de doce módulos consumidores. Pasan TypeScript, ESLint, build sin prerender y presupuesto de carga (654,99 kB de JavaScript inicial), además de las pruebas financieras existentes de bonos, IRPF, gastos e importación Excel. La prueba funcional de ficha de fondos pasa con datos simulados, valores cero y ausentes, composición, documentos y dieciséis combinaciones de tamaño/tema.
+
+
+La comparación de gastos pasa otros 96 estados (cinco pestañas, seis editores y vista previa de importación): coinciden las propiedades medidas de 15.704 elementos entre la referencia y el build de producción. Pasan también los flujos funcionales de altas, edición, cancelación y borrado, ingresos, reembolsos, transferencias, presupuestos, recurrentes sin duplicados, objetivos, CSV/Excel, persistencia y tamaños 320/390/768 px. El recorrido responsive de Planificación, Operaciones, Añadir activo, Portfolio y mapa de calor pasa 60 combinaciones de tres anchos y cuatro temas/apariencias, sin errores de ejecución ni desbordamientos horizontales. Se revisó la captura móvil de Planificación en Liquid Glass.
+
+
+La suite de usabilidad de calculadoras y Dashboard pasa sobre producción, incluida la asociación accesible de los campos, entradas inválidas, aportaciones y retiradas, persistencia y resultados en tres anchos de pantalla.
+
+
+## Duodécima fase: tarjetas educativas con estructura compartida
+
+`AcademyProgressCard` reúne el enlace a la lección, icono, título, descripción y botón de progreso de Fundamentos. El estado y su persistencia continúan en Fundamentos: el componente recibe `done`, `onOpen` y `onToggle`, mantiene `aria-pressed` y conserva el botón separado del enlace. `AcademyLearningLink` comparte las fichas del catálogo y las checklists, con icono, título, descripción y distintivo o llamada a la acción; `AcademyRouteLink` comparte los accesos breves, incluida la variante de espaciado móvil. Todos siguen siendo enlaces nativos de React Router. Los tres indicadores superiores reutilizan una variante de `DataItem`.
+
+`AcademyListCard` comparte título, lista y distintivo opcional para las diez tarjetas de ventajas/riesgos y las dos comparativas de las cinco guías de activos. Mantiene los elementos `ul`/`li`, los iconos y los contenidos originales. `AcademyExplainerCard` reúne concepto, explicación y rango en las cuatro tarjetas de métricas de renta variable. Las superficies siguen utilizando `AcademyPanel`; los ajustes por contenedor y los materiales específicos permanecen en sus hojas de estilos.
+
+Se retiran 371 líneas de CSS sustituidas por estas estructuras y 424 líneas de la interfaz antigua de Estrategia y cartera. La limpieza de `PortfolioBuilder.css` elimina 84 selectores sin referencias en los módulos actuales, contrastando sus clases con los archivos TS/TSX/JS/JSX de `src`; conserva las clases que aún aparecen en otros módulos y las reglas de la interfaz actual. No se crean componentes para estilos sin consumidores.
+
+El CSS fuente total pasa de 14.557 a 13.762 líneas en 58 archivos: 795 líneas y 164 declaraciones `@apply` menos. La reducción acumulada frente a las 22.753 líneas iniciales es del 39,52 %. Son cifras de fuente, con limpieza de espacios vacíos; no representan una reducción equivalente del tamaño descargado.
+
+
+La comparación sobre el build de producción cubre siete rutas y tres estados de Fundamentos (ruta completa, plegada y con progreso), en dos anchos y cuatro combinaciones de tema/apariencia: 72 estados y 19.124 elementos. Coinciden todas las propiedades medidas; no se presenta como una comparación píxel a píxel. El recorrido responsive pasa otras 84 combinaciones de siete rutas, tres anchos y cuatro temas/apariencias sin errores de ejecución ni desbordamientos. Se revisó la captura móvil de Fundamentos en Liquid Glass.
+
+Pasan TypeScript, ESLint de los módulos modificados, build sin prerender y presupuesto de carga (655,00 kB de JavaScript inicial). Las declaraciones fuera de JSX de los seis módulos consumidores permanecen iguales. La prueba de progreso verifica marcar/desmarcar, contadores, persistencia al recargar, plegado/desplegado, navegación que marca la lección, enlaces nativos del catálogo/checklists y tamaños 320/390/768/1280 en Liquid Glass. Las pruebas financieras de modelos y asignación de cartera pasan.
+
+
+La suite funcional de Estrategia y cartera y su simulador pasa sobre producción: filtros de plazo/riesgo, objetivos táctiles, límites de comparación, persistencia de pesos e importe, normalización explícita, traspaso de los siete bloques al simulador, hipótesis editables, validación, restauración 60/40 y navegación de regreso. Comprueba ambos módulos en cinco anchos y los temas/apariencias existentes.
+
+
+## Decimotercera fase: análisis de Portfolio y estados de Operaciones
+
+`PortfolioPanel` reúne la superficie, título, descripción y fila opcional de estado de las tarjetas de análisis. Conserva los elementos `article`/`section`, las variantes de ancho completo/doble columna y las clases contextuales que utilizan los gráficos y los materiales Liquid Glass. Los párrafos y títulos del contenido conservan sus estilos, incluidos los que pertenecen a cabeceras específicas. `PortfolioButton` comparte la estructura y estilos de las acciones de subir Excel, descargar plantilla y restaurar demo, manteniendo controles y callbacks nativos.
+
+`StatusPill` comparte los estados de control del Excel y los cinco tipos de operaciones. Mantiene sus variantes de presentación, colores, iconos, etiquetas y elementos originales (`span` en Portfolio, `div` con etiqueta interna en Operaciones). Las etiquetas y la lógica que determina el estado permanecen en los consumidores.
+
+`DataItem` añade iconos opcionales y un elemento configurable para el detalle. Sus nuevas variantes conservan el marcado y estilos de las doce estadísticas avanzadas, tres resúmenes de movimientos y cuatro datos diarios de Portfolio. Los detalles de estadísticas siguen siendo `small`; los consumidores conservan cálculos, valores ausentes y formatos. Las variantes anteriores mantienen sus valores por defecto.
+
+Se retiran 141 líneas de CSS y 25 declaraciones `@apply`: el total pasa de 13.762 a 13.621 líneas en 58 hojas. La reducción acumulada frente a las 22.753 líneas iniciales es del 40,14 %. Estas cifras describen el código fuente, no una reducción equivalente de descarga. Los gráficos, tablas y ajustes específicos de la pantalla conservan CSS donde corresponde.
+
+
+La comparación sobre el build final de producción pasa 72 estados y 21.888 elementos: Portfolio de demostración, cambio válido de categoría, edición de pesos objetivo, los cinco tipos de operaciones, filtros y ausencia de resultados, más controles Excel OK/aviso/neutro y movimientos importados. Se comparan dos anchos y cuatro combinaciones de tema/apariencia. Los casos de controles y movimientos utilizan una copia aislada de la versión anterior como referencia. Coinciden todas las propiedades medidas; no se presenta como una comparación píxel a píxel.
+
+La revisión de los casos adicionales conserva la precedencia de los bordes de estado frente al borde base y el margen efectivo de la sección de movimientos. El estado se expresa mediante `data-tone` para que el estilo de color tenga la especificidad necesaria, sin alterar sus etiquetas. Se retira una regla de margen de movimientos que la variante de ancho completo ya sobrescribía en la versión anterior.
+
+Pasan TypeScript, ESLint de los módulos modificados, build sin prerender y presupuesto de carga (655,04 kB de JavaScript inicial). Las declaraciones de lógica fuera del JSX de Portfolio y Operaciones se conservan. Pasan las pruebas existentes de rentabilidad, flujos, calendario, procedencia, paridad con el Excel y continuidad del histórico. El recorrido responsive pasa 24 combinaciones de ambas pantallas, tres anchos y cuatro temas/apariencias, sin errores de ejecución ni desbordamientos horizontales.
+
+
+La prueba funcional pasa edición y persistencia de categorías/pesos al recargar, advertencia de suma objetivo, apertura/cancelación del selector de archivo, petición real de la plantilla y restauración de la demo. Comprueba tamaños 320/390/768/1280 en Liquid Glass, esperando la estabilización del layout tras cambiar de ancho. Se revisó la captura móvil de Portfolio.
+
+
+## Decimocuarta fase: estructuras compartidas en diez módulos
+
+Interés compuesto, FIRE y jubilación comparten `CalculatorToolHeading`, `CalculatorChoice`, `CalculatorOption`, `CalculatorChart`, `CalculatorLegend`, `CalculatorNotice` y `CalculatorYearDetail`. Las piezas reúnen su marcado y estilos Tailwind, no solo clases sueltas. Los consumidores conservan las series de gráficos, formatos, expresiones financieras, selección y callbacks. Las tarjetas de teoría de FIRE reutilizan una variante de `CalculatorEducationCard`; los indicadores del detalle anual reutilizan `DataItem`.
+
+La ficha de fondos compone su formulario, ejemplo, estado vacío, carga, errores, nota de procedencia y filas de posiciones mediante las cuatro piezas de `CalculatorLookup`. Conserva inputs, validación, estados accesibles, cancelación de peticiones y consultas Finect. El spinner utiliza su animación original, que permanece en CSS.
+
+`JourneyPhase`, `JourneyTextSection`, `JourneyChecklist`, `JourneyAllocation`, `JourneyNotice` y `JourneyGuideLink` componen las etapas del viaje inversor y sus detalles a partir de los mismos datos. Conservan la apertura de etapas, conectores, iconos, listas y enlaces nativos. `AssetCategoryCard` comparte encabezado, descripción, ejemplos y pie opcional de renta variable, liquidez, inmobiliario cotizado y criptoactivos. `BondCategoryCard` comparte encabezado, riesgo, descripción y duración de los subtipos de renta fija.
+
+Los estilos ordinarios de estas estructuras pasan a los componentes y sus mapas de variantes; se mantienen las reglas contextuales de material, contenedor, gráficos y animaciones. Las variantes conservan la precedencia de estados seleccionados, bordes de categorías y medidas móviles. Los selectores arbitrarios con hooks BEM usan `String.raw` para conservar los escapes de los guiones bajos durante la extracción y en el navegador.
+
+Se retiran 1.069 líneas de CSS fuente y 240 declaraciones `@apply`. El total pasa de 13.621 a 12.552 líneas en 58 hojas: reducción acumulada del 44,83 % frente a las 22.753 líneas iniciales. Estas cifras describen el código fuente, no un ahorro equivalente en el paquete descargado. Las declaraciones de lógica fuera de JSX de los diez módulos consumidores permanecen iguales.
+
+
+La comparación sobre producción cubre quince rutas y estados adicionales de interés compuesto, FIRE, viaje inversor y ficha de fondos: 200 estados en dos anchos y cuatro combinaciones de tema/apariencia. Coinciden las propiedades medidas de 38.704 elementos y el desbordamiento horizontal; no se presenta como una comparación píxel a píxel. La revisión responsive de los diez módulos modificados pasa otras 120 combinaciones de tres anchos y cuatro temas/apariencias, sin errores de ejecución ni desbordamientos. Se revisaron capturas de móvil y escritorio en Liquid Glass.
+
+Pasan TypeScript, ESLint de los archivos modificados y añadidos, build sin prerender y presupuesto de carga. Las pruebas existentes de interés compuesto, asignación de cartera, bonos —incluida la verificación independiente de CoreWeave con Decimal— e IRPF pasan. La suite de usabilidad de calculadoras y Dashboard verifica controles accesibles, entradas inválidas, retiradas, persistencia y escenarios. La ficha de fondos pasa sus pruebas con consultas simuladas, clase exacta, valores cero/ausentes, comisiones, histórico, composición, documentos, tooltip accesible y dieciséis combinaciones responsive/tema. Las consultas a proveedores y el comportamiento financiero permanecen en sus módulos originales.
+
+
+## Decimoquinta fase: posiciones, controles y estructuras compartidas
+
+Se amplía la composición en trece módulos consumidores. `DashboardAssetCells` reúne identidad, variaciones, peso, datos móviles y botones nativos de ordenación/lotes. `DashboardAssetOverview` reúne cabecera, rendimiento del periodo, leyenda, descripción de empresa y procedencia del detalle. Los servicios siguen calculando las posiciones agrupadas, sus costes, precios y retornos; los componentes reciben valores ya formateados. Se conserva el contrato responsive de la tabla en su CSS contextual.
+
+`PreferenceOption`, `PreferenceField` y `PreferenceSwitch` comparten las opciones de tema, material y consulta de datos de Ajustes. `NativeControl` comparte inputs/selects de Ajustes y Portfolio, conservando las propiedades y referencias nativas. Ajustes reutiliza `FormField` y Añadir activo reutiliza una variante de `ActionGroup`. `InvestmentFeedback` comparte resultados de búsqueda, activo seleccionado, cotización, avisos e importe de la operación. Las teclas, selección, validación y operaciones permanecen en sus consumidores.
+
+Las cinco guías componen fichas de geografía y anatomía de bonos, relaciones inversas, spreads de crédito, checklists, errores y consejos mediante `AcademyAssetExplainers`, reutilizando `AcademyPanel` donde corresponde. `HeatmapControls` comparte los grupos de opciones y botones, presentación del índice, leyenda, selección y filas sectoriales. El treemap, sus cálculos, pesos, cargas y fuentes permanecen en sus módulos actuales.
+
+`PortfolioControls` comparte filas de posiciones, campos de pesos y total objetivo. Los selectores y campos mantienen sus eventos y restricciones nativas. `ExpenseRecords` comparte filas y resúmenes, mes, búsqueda con etiqueta accesible, días del calendario, exportación y ayuda de importación. Conserva las referencias de los menús, etiquetas, tipos de controles y semántica de `details`/`summary`; no modifica el libro de gastos ni sus reglas financieras.
+
+Los mapas de variantes usan `String.raw` para los selectores que requieren escapes. Los estilos seleccionados y bordes específicos conservan su precedencia frente a utilidades base. Permanecen en CSS las reglas de materiales, contenedores, tablas y gráficos que todavía dependen de su contexto. No se introduce Preflight, un `important` global, dependencias nuevas ni cambios de backend.
+
+Se retiran 938 líneas de CSS fuente y 272 declaraciones `@apply`: el total pasa de 12.552 a 11.614 líneas en 58 hojas. La reducción acumulada frente a las 22.753 líneas iniciales es del 48,96 %. La cifra describe el código fuente, no una reducción equivalente en la descarga. Las declaraciones fuera de JSX de los trece consumidores mantienen su lógica anterior.
+
+La comparación sobre producción cubre 208 estados con posiciones/lotes, detalle de activo, alta manual, preferencias, guías, Portfolio, cinco pestañas de gastos, calendario y exportación, más 56 estados con proveedores simulados para búsqueda/selección y mapa de calor con datos. Coinciden las propiedades medidas y el desbordamiento de 57.036 elementos en dos anchos y cuatro combinaciones de tema/apariencia; no se presenta como una comparación píxel a píxel. La limpieza final de los mapas conserva todos los tokens y el CSS generado byte por byte.
+
+Pasan las pruebas existentes de posiciones agrupadas, cuentas remuneradas, fundamentales bursátiles y gastos en los modos estándar y Liquid Glass, incluidos editores, presupuestos, recurrentes, objetivos, persistencia e importación CSV/Excel. La prueba de regreso al Dashboard espera la visibilidad de las acciones y la aparición de los lotes antes de pulsarlos, evitando adelantar el siguiente paso al render de React; verifica después la restauración de scroll, historial, periodo, filtros, orden y lotes. Pasan también las pruebas unitarias de agrupación, gastos, Excel BBVA, fundamentales y rentabilidad/procedencia/calendario del portfolio, TypeScript, ESLint y build sin prerender.
+
+
+El recorrido responsive pasa 132 combinaciones de once rutas, tres anchos (320/390/1280) y cuatro temas/apariencias, sin errores de ejecución ni desbordamientos. La prueba de pulido de Dashboard y mapa de calor pasa sobre el servidor de desarrollo porque importa también los servicios TypeScript: comprueba controles móviles, contraste de YTM con transiciones desactivadas durante la medición, Nasdaq, sus 101 posiciones, actualización/fallback y estado de error. Se contrastó el color estable de la tarjeta de bonos con el build anterior y el nuevo. Las animaciones de la aplicación se conservan. Se revisaron capturas móviles de Dashboard y gastos en Liquid Glass claro y oscuro.
+
+
+## Decimosexta fase: guías, simuladores, navegación y edición
+
+Se amplía la migración a 17 módulos, conservando el diseño y los flujos existentes:
+
+- **Guías:** Fundamentos, Glosario, Errores, Escenarios, Riesgo, Estrategias, Fiscalidad, Valoración y Recursos. `AcademyGuideParts`, `AcademyToolLink`, `AcademyLearningParts` y `AcademyGlossary` reúnen marcado y estilos de encabezados, navegación interna, avisos, fichas, comparativas, ejemplos y búsqueda. Encabezados numerados, navegación y avisos equivalentes usan una receta común. `AcademyVideoCard` incorpora sus efectos y movimiento reducido.
+- **Simuladores:** perfil inversor, construcción de cartera, Crisis, asignación y Market Timing. `AcademyQuiz`, `AcademySimulatorParts` y `AcademyTiming` separan preguntas, resultados, decisiones, impacto, filtros, controles y resúmenes de la lógica original. El reloj, las órdenes, las hipótesis y las fórmulas permanecen en los módulos originales.
+- **Navegación y Dashboard:** `SidebarParts` conserva enlaces nativos de React Router, etiquetas de cuenta, grupos y navegación móvil. `CompositionParts` mantiene las filas de exposición y los `details` independientes y cerrados inicialmente para mapa de calor y fondos; los identificadores, importes, procedencia y agrupación siguen calculándose en `PortfolioComposition`.
+- **Noticias:** `EditorControls` comparte barra, grupos, formato, botones, campos y panel de enlaces. Conserva referencias, selección y eventos de Tiptap, foco, cierre, deshacer/rehacer y edición desactivada. El contenido HTML generado por Tiptap conserva su CSS específico.
+
+Los mapas estáticos `.styles.ts` se colocan junto a los componentes propietarios; no generan nombres de utilidades dinámicos ni cambian las clases de integración con Liquid Glass. La precedencia de estados, bordes y consultas responsive se verifica frente al build anterior. No se añade una dependencia al proyecto ni se cambian datos o backend.
+
+Se retiran **1.285 líneas de CSS fuente y 422 declaraciones `@apply`**: se pasa de 11.614 a 10.329 líneas en 58 hojas. La reducción acumulada frente al inicio es del **54,60 %**. Estas cifras describen mantenimiento de código fuente, no ahorro de descarga: las utilidades globales y las hojas por ruta se redistribuyen durante la convivencia.
+
+### Validación de esta fase
+
+Las declaraciones ajenas a JSX de los 16 consumidores modificados conservan su lógica. La extracción de la barra editorial se contrasta además con pruebas de edición, enlaces, foco y deshacer/rehacer. Pasan los cálculos existentes de estrategia/asignación, impacto de crisis, Market Timing y exposición consolidada; las pruebas de navegador ejercitan filtros, comparación, persistencia, normalización, escenarios, reintentos de proveedores y las tres rondas del juego. Se ejecutan también TypeScript, ESLint de los archivos modificados, build sin prerender y presupuesto de carga diferida.
+
+
+El contraste con el build anterior coincide en **248 estados**: 160 de pantallas y estados principales, 48 de navegación/filtros/decisiones y 40 del editor. Compara nodos, etiquetas, clases de integración y 19 propiedades calculadas en 390/1280 px y las cuatro combinaciones de tema/apariencia; no es una comparación píxel a píxel. Para la referencia del juego se fija semilla y reloj únicamente en la prueba visual; la prueba funcional existente usa el reloj real y completa las tres rondas. El recorrido responsive pasa **18 rutas y 216 combinaciones** en 320/390/1280 px, sin desbordamientos ni errores de ejecución. Se revisa también una captura móvil de Riesgo en Liquid Glass.
+
+
+## Decimoséptima fase: guías de activos, objetivos y recorrido
+
+Esta fase amplía la composición en ocho pantallas, conservando los controles y el diseño:
+
+- **Las cinco guías de activos:** `AcademyAssetReading` comparte el encabezado, los enlaces internos y de regreso, la lectura y los accesos. `AssetGuideNav` mantiene su nombre de compatibilidad; `AcademyMetric` reutiliza sus indicadores y añade la receta de cabecera sin duplicar su marcado.
+- **Experimentos de renta fija y liquidez:** `AcademyAssetBars` comparte barras de duración e inflación y distribución por plazos; `AcademyBondParts` reúne ratings, curvas, escalones, métricas y controles; `AcademyBondExperiments` compone los grupos de simulación y duración. El diagrama de convexidad permanece como SVG nativo. Los cálculos de spread, duración agregada, normalización y valores de los controles siguen en `AssetBonds`.
+- **Interés compuesto:** `CalculatorGoal` compone opciones avanzadas, objetivo alcanzado, tiempo pendiente, aportación necesaria y lista de resultados anuales. Se conservan los estados de objetivo imposible, tipos de rentabilidad y retiradas; el motor y la persistencia permanecen en la calculadora original.
+- **Recorrido e historial:** `JourneySupport` reúne el apoyo durante crisis, columnas de acciones y siguientes pasos; `ReleaseNotes` compone cabeceras, resúmenes, entradas, listas y archivos desplegables. El análisis del Markdown, el formato del texto y los datos del historial siguen en `FeatureLog`.
+
+Las piezas incluyen estructura y mapas estáticos de utilidades, con clases de integración para Liquid Glass y las pruebas. Los controles siguen siendo enlaces, botones, rangos y desplegables nativos. No se cambian datos, backend, versiones ni dependencias del proyecto.
+
+Se retiran **1.180 líneas de CSS fuente y 296 declaraciones `@apply`**: las cuatro hojas afectadas pasan de 1.736 a 556 líneas y el total de la aplicación pasa de 10.329 a **9.149 líneas en 58 hojas**. La reducción acumulada frente a las 22.753 líneas iniciales es del **59,79 %**; no representa el mismo ahorro en bytes descargados.
+
+### Validación de esta fase
+
+El contraste de las declaraciones ajenas a JSX confirma que las ocho pantallas conservan su lógica. Pasan los tests de interés compuesto e integridad de calculadoras, incluido objetivo imposible, cálculo inverso y límite de retiradas. El recorrido funcional existente de calculadoras/Dashboard verifica contabilidad de retiradas, controles accesibles, entradas vacías, escenarios inmutables y persistencia. Pasan también TypeScript, ESLint de los archivos modificados, build sin prerender y el presupuesto de carga diferida.
+
+
+Coinciden **160 estados** frente al build anterior: 64 de las ocho pantallas y 96 de controles y desplegables. Incluyen modos de estrés/High Yield, cambios de spread, pesos de duración a cero, opciones avanzadas, objetivo pendiente/alcanzado/imposible, aportación necesaria, etapas expandidas/cerradas y archivos del historial. Se comparan nodos, etiquetas, clases de integración y 19 propiedades calculadas en 390/1280 px con tema claro/oscuro y apariencia estándar/Liquid Glass, manteniendo las mismas entradas del historial para el contraste. No es una comparación píxel a píxel. El recorrido responsive pasa **12 rutas y 144 combinaciones** en 320/390/1280 px, incluyendo Dashboard y los tres simuladores que comparten `AcademyMetric`, sin errores de ejecución ni desbordamientos. Se revisa una captura móvil de la guía de bonos en Liquid Glass.
+
+
+## Decimoctava fase: gastos, importación y análisis histórico
+
+Se amplía la composición en cinco consumidores:
+
+- **Gestión de gastos:** `ExpenseOverview` comparte distribución y leyenda, hechos resumidos, gráfico mensual, tarjetas de cuentas/objetivos/categorías, paginación y acceso inicial. Reutiliza `ExpenseCard` y `ExpenseRecordRow`, manteniendo las mismas etiquetas y la información formateada por el consumidor. `ExpenseFeedback` comparte estado de guardado y avisos, revisión de categorías y paginación de importaciones.
+- **Portfolio:** `PortfolioAnalysis` compone cabecera, subida de Excel, leyendas, listas, comprobaciones, cabeceras y filas de planificación, tooltip y encabezado de estadísticas. `PortfolioImportPresentation` comparte marcos de gráficos y el contenido del aviso de transición al Dashboard, con el mismo `input` nativo y su referencia para importar archivos.
+- **Análisis histórico del Dashboard:** `HistoricalAnalysis` reúne encabezados, acciones, resumen del periodo, comparación, filas de control/operaciones/posiciones, progreso nativo, estados y vinculación del histórico. Los cálculos de rendimiento, asignación y riesgo permanecen en `PortfolioExcelInsights`.
+- **Detalle de activos:** `DashboardAssetChart` compone marco, viewport, carga, histórico no disponible, selección y fuentes; mantiene secciones y filas de fondos. Las referencias y los eventos se pasan al mismo `div` nativo. Se conservan selección con ratón/dos dedos, limpieza del tramo y desplazamiento vertical mediante `pan-y`.
+
+Se conservan datos, consultas, normalización, cálculos, persistencia y sincronización; no se modifican backend, base de datos, versión ni dependencias. Se mantienen clases de integración con Liquid Glass, semántica de controles y animaciones existentes.
+
+Se retiran **582 líneas de CSS fuente y 228 declaraciones `@apply`**. Las cuatro hojas afectadas pasan de 1.035 a 453 líneas; el total pasa de 9.149 a **8.567 líneas en 58 hojas**. La reducción acumulada respecto a las 22.753 líneas iniciales es del **62,35 %**, una medida del código fuente, no del ahorro de descarga.
+
+### Validación de esta fase
+
+Las declaraciones ajenas a JSX de los cinco consumidores conservan su lógica. Pasan los tests de gastos, Excel BBVA, continuidad del libro y periodos de cartera. El recorrido de gastos pasa en estándar y Liquid Glass: edición/cancelación/eliminación, transferencias, devoluciones, ingresos, presupuestos, recurrentes, objetivos, importación CSV/Excel, duplicados, persistencia y tamaños móviles. Pasan fundamentales bursátiles y base de precios históricos; una comprobación adicional verifica arrastre con ratón, limpiar selección, `pan-y` y selección con dos dedos.
+
+La prueba de once fondos contaba también una consulta cancelada, reproduciéndose el fallo en el build anterior. El test registra las cancelaciones, desactiva la caché de las respuestas interceptadas y espera la red: exige que cada consulta no cancelada siga la redirección y que el reintento produzca una nueva. No se modifica el proveedor.
+
+
+Coinciden **136 estados distintos** con el build anterior: las cinco pestañas de gastos; Portfolio y su aviso; Dashboard y sus detalles de acción/fondo, desglose y pestañas de evolución/benchmark/asignación/riesgo/controles; tooltip y objetivos modificados de Portfolio. Se comparan nodos, etiquetas, clases de integración y 19 propiedades calculadas en 390/1280 px y las cuatro combinaciones de tema/apariencia, con datos sintéticos y fecha fija. No es una comparación píxel a píxel. El recorrido responsive pasa **seis rutas y 72 combinaciones** en 320/390/1280 px, sin errores de ejecución ni desbordamientos. Las pruebas de gastos cubren también editores a 768 px.
+
+
+## Decimonovena fase: calculadoras y bloques de estrategia
+
+Se continúa en cuatro consumidores: IRPF y sueldo neto, Bonos, Ficha de fondos y Estrategia y cartera.
+
+- `CalculatorGrid` comparte rejillas nativas de campos, resultados, documentos, composición y escenarios, con las mismas consultas responsive y clases de integración.
+- `CalculatorBreakdown` y sus filas conservan `dl`, `dt` y `dd`; las piezas de nómina comparten grupos familiares con `fieldset`/`legend`, resumen, valor fiscal y liquidación. `CalculatorPaymentCard` y `CalculatorScenarioCard` poseen estructura y estilos de las comparaciones, manteniendo sus botones y valores en el consumidor.
+- `CalculatorFundIdentity` compone identidad, etiquetas, enlace a la fuente y ayuda de riesgo. Conserva foco de teclado, `aria-describedby`, tooltip, enlaces y contenido formateado.
+- `AcademyAssetGuideCard` reutiliza las superficies `AcademyPanel`/`AcademyLinkCard` y compone icono, título, descripción, riesgo y acceso a la guía. Se mantienen enlaces nativos, identificadores y colores por bloque.
+
+Se retiran **293 líneas de CSS fuente y 119 declaraciones `@apply`**. Las cuatro hojas pasan de 716 a 423 líneas; el total pasa de 8.567 a **8.274 líneas en 58 hojas**. La reducción acumulada respecto a las 22.753 líneas iniciales es del **63,64 %**, sin inferir una reducción equivalente de la descarga. Se mantienen las reglas generales, animaciones y materiales contextuales que aún requieren CSS; no cambian las dependencias, la versión, los proveedores ni la base de datos.
+
+### Validación de esta fase
+
+Pasan los cálculos unitarios de IRPF, bonos y asignación de cartera, incluida la validación independiente de CoreWeave mediante Decimal de 50 dígitos. Las declaraciones ajenas a JSX de las tres calculadoras conservan su lógica. Los recorridos de navegador verifican 12/14 pagas, familiares, escenarios, descarga CSV, fechas y modos limpio/sucio de bonos, consultas de fondos interceptadas, ceros válidos, datos ausentes, ISIN erróneos, ayudas accesibles, filtros y persistencia de la estrategia.
+
+Se comparan **64 estados** con el build anterior: cuatro pantallas, formularios familiares/escenarios y bonos avanzados (48 combinaciones en 390/1280 px y cuatro temas/apariencias), más 16 estados de la ficha de fondo cargada en 320/390/768/1440 px. Se comparan nodos, etiquetas y propiedades calculadas; no es una comparación píxel a píxel. La prioridad de las utilidades conserva el color del total de nómina y los márgenes de escenarios y campos avanzados. El recorrido responsive adicional verifica **48 combinaciones** en 320/390/1280 px sin errores ni desbordamientos. Pasan TypeScript, ESLint, compilación y el presupuesto de carga inicial; calculadoras y SDK editorial permanecen fuera del arranque.
+
+
+## Vigésima fase: simuladores y Heatmap de mercados
+
+Se continúa con Estrategia y cartera, el Simulador de cartera y el Heatmap de mercados:
+
+- `AcademySimulationPageHeader` compone las cabeceras sobre el componente de Academia existente, manteniendo títulos, icono y disposición propios de cada pantalla.
+- `AcademySimulationWorkspace` comparte encabezados de sección, filtros con `fieldset`/`legend`, campos con `label` nativo, tablas semánticas, leyendas, avisos, estados vacíos, totales y desplegables `details`. Los formularios conservan validaciones, controles, eventos e identificadores en los consumidores.
+- `HeatmapWorkspace` reutiliza `DataItem` y `Button` para componer métricas y refresco; comparte controles, contenedor del gráfico, carga/error, selección, extremos, sectores y pie. El `ref` de React 19 y los atributos/eventos permanecen en el mismo `div` nativo: no se añade un contenedor al gráfico. La clasificación, agrupación y geometría del Treemap permanecen en `MarketHeatmap`.
+
+Se retiran **341 líneas de CSS fuente y 98 declaraciones `@apply`**. Las tres hojas pasan de 647 a 306 líneas y el total de 8.274 a **7.933 líneas en 58 hojas**: reducción acumulada del **65,13 %** respecto a las 22.753 iniciales. No equivale a una reducción de descarga. Se mantienen reglas generales, materiales contextuales de Liquid Glass, animaciones y estilos específicos del SVG; no cambian backend, proveedores, dependencias ni versión.
+
+### Validación de esta fase
+
+Las declaraciones ajenas a JSX de los tres consumidores conservan su lógica. Pasan las pruebas de asignación y el recorrido de estrategia/simulador: filtros, comparaciones, pesos e importe persistentes, normalización explícita, enlace entre pantallas, hipótesis editables, errores y restablecimiento 60/40. Un recorrido con cotizaciones interceptadas verifica selección, referencia del contenedor, tamaño y etiquetas de sectores a 320/768/1280 px, cambio de índice y refresco efectivo, sin llamar a servicios externos.
+
+Se comparan **64 estados** con el build anterior: pantallas base, comparación de modelos y simulador inválido/desplegado (40); Heatmap cargado y con selección (16), y carga pendiente (8). Coinciden nodos, etiquetas, clases de integración y 19 propiedades calculadas en 390/1280 px y las cuatro combinaciones de tema/apariencia; no es una comparación píxel a píxel. Se preserva la prioridad de los breakpoints de 400 y 520 px para mantener una columna en los controles y sectores pequeños. El recorrido responsive adicional pasa **36 combinaciones** en 320/390/1280 px sin desbordamientos ni errores. Pasan TypeScript, ESLint, compilación y presupuesto de carga inicial; calculadoras y SDK editorial siguen fuera del arranque.
+
+
+## Vigesimoprimera fase: tabla de activos, formulario y proyección FIRE
+
+Se continúa en Mis activos del Dashboard, Añadir activo y Calculadora FIRE:
+
+- `DashboardAssetsGrid` comparte tarjeta, contenedor y tabla nativa, filas, celdas, iconos de ordenación, filtros, mensajes, acciones móviles y estimaciones. Reutiliza `Card` y `Button`; conserva los mismos elementos `table`/`tr`/`th`/`td`, atributos ARIA, identificadores, eventos y clases de integración. Los detalles y acciones móviles conservan los mismos estados y la expansión de compras individuales.
+- `InvestmentForm` reutiliza tarjeta, cabecera y contenido para poseer la estructura del formulario, búsqueda con lista nativa, disponibilidad, rejilla de campos y confirmación. Los controles, importes, validaciones y envío permanecen en `AddInvestment`. Se eliminan selectores y animación sin consumidores del antiguo aviso de desarrollo.
+- `CalculatorProjection` comparte cabecera, horizonte, secciones, resultados y preguntas opcionales con sus controles originales. `CalculatorGrid` recibe cinco variantes de FIRE. Se conservan los cálculos y el tooltip financiero del gráfico.
+
+Se retiran **512 líneas de CSS fuente y 108 declaraciones `@apply`**. Las tres hojas pasan de 569 a 57 líneas: se elimina `AssetsTable.css` completa; Añadir activo conserva 30 líneas y FIRE, 27. El total pasa de 7.933 a **7.421 líneas en 57 hojas**, una reducción acumulada del **67,38 %** sobre las 22.753 iniciales. No representa una reducción equivalente de descarga. Se mantienen materiales, animaciones y estilos específicos de gráficos que aún necesitan CSS; no cambian las dependencias, backend ni versión.
+
+### Validación de esta fase
+
+Las declaraciones ajenas a JSX de los tres consumidores conservan su lógica. Pasan integridad de calculadoras y agrupación de posiciones. Los recorridos funcionales verifican filas agrupadas y compras individuales, base media, detalle, clasificación, identificadores originales para editar/comprar/vender/eliminar, efectivo, TAE opcional, valores inválidos, guardado y edición. También pasan controles y persistencia de calculadoras, modos de inflación, escenarios inmutables y métricas de cartera.
+
+Coinciden **72 estados** con el build anterior: pantallas base, tabla móvil con detalles/acciones/compras expandidas, filtros sin coincidencias, alta manual de efectivo y acciones y FIRE con inflación (64); éxito al guardar (8). Se comparan nodos, etiquetas, clases de integración y 19 propiedades calculadas en 390/1280 px y las cuatro combinaciones de tema/apariencia; no es una comparación píxel a píxel. El temporizador de regreso tras guardar se inmoviliza solo en esta captura; el recorrido funcional utiliza el comportamiento real. El recorrido responsive adicional cubre **72 combinaciones** en 320/390/1280 px de Dashboard, Añadir activo, FIRE e IRPF/Bonos/Ficha de fondos, que comparten rejillas. No hay desbordamientos ni errores de ejecución. Pasan TypeScript, ESLint, compilación y presupuesto inicial; calculadoras y SDK editorial siguen fuera del arranque.
+
+
+## Vigésima segunda fase: Fundamentos, Riesgo y Fiscalidad
+
+Se continúa con las tres guías y sus componentes compartidos:
+
+- `AcademyLearningStructure` compone la página, secciones, niveles, bloques destacados, enlaces y siguientes pasos sobre `AcademyPanel`. `AcademyGrid` recibe cinco variantes de aprendizaje; se reutilizan las tarjetas de progreso existentes. Se eliminan reglas sin consumidores del antiguo bloque interactivo, aviso, insignia y grupo de enlaces.
+- `AcademyReadingHeader` comparte el marcado de cabecera de Fundamentos y Fiscalidad sobre `AcademyPageHeader`, con las mismas etiquetas y tipografía.
+- `AcademyRiskReading` reúne tarjetas, encabezados, horizontes, leyenda y matriz. Conserva `table`, `caption`, cabeceras y celdas, así como la región enfocada para desplazamiento horizontal. `AcademyToolLink` incorpora la misma receta de tarjeta para preservar la lectura y los materiales de sus accesos de Riesgo.
+- `AcademyTaxReading` compone tramos, títulos y el ejemplo de compensación. Reutiliza `AcademyTaxComparison` para las fichas existentes de fondos/ETF; sus clases y contenido permanecen intactos.
+
+Se retiran **358 líneas de CSS fuente y 106 declaraciones `@apply`**. Las tres hojas pasan de 396 a 38 líneas y se elimina `Fundamentos.css`. Quedan **7.063 líneas en 56 hojas**, una reducción acumulada del **68,96 %** respecto a las 22.753 iniciales. No equivale a ahorro de descarga. Se conservan el CSS de contenedores, foco y materiales que todavía lo requieren. No cambian backend, dependencias, versión ni contenidos financieros.
+
+### Validación de esta fase
+
+Las declaraciones ajenas a JSX de las tres guías conservan su lógica. El recorrido funcional verifica expansión/contracción por niveles, progreso guardado y restaurado tras recargar, enlaces nativos, 36 celdas de correlación con sus bandas, caption accesible, foco y desplazamiento por teclado, tramos y acceso a las calculadoras fiscales. Las pruebas usan almacenamiento local y bloquean las consultas externas.
+
+Coinciden **32 estados** con el build anterior: Fundamentos abierto y contraído, Riesgo y Fiscalidad, en 390/1280 px y las cuatro combinaciones de tema/apariencia. Se comparan nodos, etiquetas, clases de integración y **21 propiedades calculadas**, incluidos fondos y transformaciones; no es una comparación píxel a píxel. Se preservan prioridades de bordes, tipografía, márgenes y espaciado de contenedor, incluido el borde de pérdida permanente en Liquid Glass. El recorrido responsive cubre **72 combinaciones** en 320/390/1280 px de las tres guías y Estrategia, Bonos y Recursos, que comparten componentes. Pasan TypeScript, ESLint, compilación y presupuesto inicial; calculadoras y SDK editorial permanecen fuera del arranque.
+
+
+## Vigésima tercera fase: tanda amplia por encima del 75 %
+
+Se abarcan **13 pantallas**: Dashboard, Planificación, Operaciones, Ajustes, Términos, Interés compuesto, Jubilación, Bonos y las cinco guías de activos.
+
+- `ui/workspace/WorkspaceLayout` comparte marcos nativos de página, rejillas, tarjetas y formularios. `WorkspaceRecords` compone comprobaciones, cabeceras de objetivos, progreso, registros de operaciones, filtros, campos, textos y enlaces. Conserva los manejadores, controles y datos en los consumidores.
+- `LegalDocument` posee estructura, cabecera, secciones, avisos y regreso nativo de Términos. El contenido legal no cambia.
+- `DashboardWorkspace` compone bienvenida, aviso inicial, cabecera y seguimiento, estados de carga, mensajes y secciones, manteniendo los mismos nodos y opciones del Dashboard.
+- `CalculatorWorkspace` comparte disposición, paneles, campos, cabeceras y resumen de Jubilación entre Interés compuesto, Jubilación y Bonos. Se mantienen tooltips y presentación financiera específica donde todavía necesita CSS.
+- `AssetGuideFrame` completa el marco de lectura de las cinco guías. Comparaciones, rejillas visuales y categorías de bonos poseen su estructura; `AcademySection`, `AcademyGrid` y `AcademyListCard` conservan sus variantes y reciben las reglas de presentación restantes. `PreferenceField` incorpora su tipografía de ayuda.
+- Se retira el componente y CSS sin consumidores de `AssetTypes`: la ruta `/academy/asset-types` ya redirigía a `/academy/portfolio` y conserva esa compatibilidad. Se eliminan barras antiguas sin consumidores de Interés compuesto y se unifican tres definiciones idénticas de `slideDown` en la hoja global, sin cambiar la animación.
+
+Se retiran **1.592 líneas de CSS fuente y 344 declaraciones `@apply`**. El total pasa de 7.063 a **5.471 líneas en 49 hojas**, una reducción acumulada del **75,95 %** sobre las 22.753 iniciales. Se eliminan siete hojas completas: Planificación, Operaciones, Ajustes, Términos, Interés compuesto, AssetPage y el antiguo AssetTypes. No es una medida de ahorro de descarga; los materiales de Liquid Glass, contenido generado/enriquecido y reglas específicas de gráficos permanecen en CSS cuando corresponde. No cambian backend, proveedores, versión ni dependencias.
+
+### Validación de esta fase
+
+Las declaraciones ajenas a JSX de los **13 consumidores** conservan su lógica. Pasan los tests de interés compuesto, integridad de calculadoras, agrupación, asignación y bonos, incluida la regresión independiente de CoreWeave con Decimal de 50 dígitos. Los recorridos funcionales verifican inputs persistentes, modos de inflación, escenarios inmutables, precios limpio/sucio y fechas de bonos, agrupaciones y registros originales. Un recorrido adicional crea y elimina objetivos y watchlist, comprueba progreso y persistencia tras recargar, cambia tema/apariencia, recarga preferencias, vuelve desde Términos y verifica la redirección de la URL antigua. Los datos son sintéticos; las consultas externas se bloquean o interceptan.
+
+Coinciden **128 estados** con el build anterior: las 13 pantallas y Bonos avanzado (112), más Dashboard vacío y su aviso inicial (16), en 390/1280 px y las cuatro combinaciones de tema/apariencia. Se comparan nodos, etiquetas, clases de integración y **21 propiedades calculadas**, incluidos fondos y transformaciones; no es una comparación píxel a píxel. Se preservan las prioridades del encabezado móvil, las ayudas de Ajustes y los bordes por categoría de bonos. El recorrido responsive pasa **156 combinaciones** en 320/390/1280 px sin errores de ejecución ni desbordamientos. Pasan TypeScript, ESLint, compilación y presupuesto de carga inicial; las calculadoras y el SDK editorial siguen fuera del arranque.
+
+
+## Vigésima cuarta fase: superar el 80 %
+
+Se completan seis guías (Valoración, Errores comunes, Tu viaje como inversor, Glosario, Escenarios y Estrategias), Estrategia y cartera, su simulador de asignación, Portfolio, la ficha de fondos y la navegación compartida.
+
+- `GuideReading` compone cabeceras sobre `AcademyPageHeader`, secciones de lectura, paneles, rejillas, enlaces y siguientes pasos. `AcademyValuationFormula` incorpora sus estilos propios para evitar que su efecto de tarjeta afecte a métricas de otras pantallas.
+- `SimulationFrames` comparte marcos, paneles, rejillas, títulos, botones y enlaces nativos, tarjetas de modelo seleccionado y regreso/restauración. Los campos de pesos, métricas y cabeceras ya existentes reciben su presentación restante. Se eliminan selectores antiguos sin consumidores; filtros, supuestos, cálculos y persistencia permanecen en los módulos originales.
+- `PortfolioReportFrame` comparte la estructura de página, rejillas y listas del informe, junto con valores positivos/negativos y estados de control. `PortfolioPanel` posee también sus variantes responsive. Las reglas de presentación de Recharts quedan acotadas al marco de Portfolio.
+- `FundSheetFrame` reúne página, resultados, textos, caption accesible, cabecera e identidad. La selección de clase por ISIN, las solicitudes, el formato y las comprobaciones de datos no cambian.
+- `SidebarFrame` posee marco, regiones, navegación desplegable y su contenedor interior, overlay y botones. Conserva el marcado y las transiciones, la zona de scroll, el pie y la altura del acceso a Mi cuenta. `AccountSyncStatus` incorpora su receta de presentación sin cambiar la lógica de sincronización.
+
+Se retiran **971 líneas de CSS fuente y 245 declaraciones `@apply`**. Se eliminan ocho hojas: las seis guías, Sidebar y PortfolioCsv. Quedan **4.500 líneas en 41 hojas**, reducción acumulada del **80,22 %** sobre las 22.753 iniciales. La métrica cuenta líneas físicas de `src/**/*.css`; no mide el tamaño de descarga ni significa que se haya eliminado ese porcentaje de reglas visuales. Permanecen los materiales de los simuladores, la animación de carga y los estilos globales o de contenido generado que aún requieren CSS. No cambian backend, proveedores, dependencias ni versión.
+
+### Validación de esta fase
+
+Las declaraciones ajenas a JSX de los **once consumidores** conservan su lógica. Pasan las pruebas de modelos y asignación, filtros, límites de comparación, pesos/capital persistentes, normalización explícita, transferencia completa de los siete bloques al simulador, supuestos editables, validación y restauración 60/40. Un recorrido adicional verifica búsqueda vacía/filtrada/restaurada del glosario, expansión/contracción del recorrido y sidebar abierto con ambos grupos, scroll interior, pie y acceso a Mi cuenta sin compresión en 320/390/1280 px, cierre por botón y overlay.
+
+Coinciden **104 estados** con el build anterior: las once rutas de revisión, navegación y búsqueda, en 390/1280 px y cuatro combinaciones de tema/apariencia. Se comparan nodos, etiquetas, clases de integración y **21 propiedades calculadas**, incluidos fondos y transformaciones; no es una comparación píxel a píxel. La ficha con datos interceptados coincide además en **16 escenarios** y verifica clase exacta, NAV, ceros/datos ausentes, comisiones, históricos, composición, documentos, tooltip accesible e ISIN inválido/no encontrado. El recorrido responsive cubre **132 combinaciones** de once rutas en 320/390/1280 px sin desbordamientos ni errores de ejecución. Pasan TypeScript, ESLint, compilación y presupuesto inicial de carga; calculadoras y SDK editorial siguen fuera del arranque.
+
+
+## Vigésima quinta fase: otros cinco puntos de CSS fuente
+
+Se completa la presentación pendiente en gráficos, detalle y composición de cartera, traspasos, análisis/controles, calculadoras y simuladores. Los contenedores generales y de Academia usan también recetas estáticas sobre sus componentes existentes.
+
+- `ChartPresentation` comparte marcos nativos, `HeatmapTile`, `HeatmapScale`, `DonutReadout` y `DonutLegendEntry`. Las celdas conservan colores/tamaños calculados, hover, foco y manejo de teclado; la ordenación y formato permanecen en sus consumidores. Se retira `PortfolioChart.tsx`, su CSS y la exportación del barrel al verificar que no tenía consumidores; las vistas activas de evolución conservan sus gráficos.
+- `PortfolioPresentation` reúne marcos, tarjetas, formularios y fieldsets de detalles, traspasos, exposición consolidada, análisis, plan y salud de cartera. `PortfolioDefinition` comparte filas nativas `dt`/`dd` del resumen de ejecución. Se conserva el marcado, los manejadores y los cálculos en sus módulos originales.
+- `CalculatorDetailPresentation` completa Bonos, IRPF, FIRE y Jubilación, incluidos valores, indicadores y tooltips. Las propiedades de clases de valores de Bonos reciben sus recetas en el consumidor. Las variantes del desglose salarial se resuelven mediante un mapa estático; no se construyen utilidades Tailwind dinámicas.
+- `SimulationDetailPresentation` completa el marco de Crisis y Market Timing y la presentación restante de sus componentes de controles, tablas, métricas y resultados. Mantiene los contenedores, progreso nativo, referencias y eventos de teclado.
+- `LayoutPresentation` incorpora la disposición de MainLayout, Academia y las cabeceras compartidas. Se preservan los límites de anchura, separación móvil, contextos de apilamiento y variables de material. Se ajusta la prioridad de la cabecera de Estrategia y del título específico de selección de crisis para conservar su presentación anterior.
+
+Se retiran **1.163 líneas de CSS fuente y 423 declaraciones `@apply`**. Se eliminan **17 hojas completas** y quedan **3.337 líneas en 24 hojas**, una reducción acumulada del **85,33 %** sobre las 22.753 iniciales (**5,11 puntos adicionales**). La métrica cuenta líneas físicas de `src/**/*.css`; no mide ahorro de descarga. Las animaciones específicas y materiales de los módulos que aún lo necesitan permanecen en CSS. No cambian backend, proveedores, dependencias ni versión.
+
+### Validación de esta fase
+
+Las declaraciones ajenas a JSX de **29 consumidores** conservan su lógica. Pasan integridad de calculadoras, bonos y regresión independiente de CoreWeave con Decimal de 50 dígitos, IRPF, simulación de crisis, motor de market timing, asignación por bloques y traspasos. La prueba aislada del tooltip de FIRE incorpora sus componentes de presentación reales al contexto de ejecución, manteniendo las mismas comprobaciones financieras.
+
+La comparación con el build anterior cubre **264 estados**: 22 rutas, navegación, búsqueda, desglose y mapa de calor con posiciones, detalle de acción, traspaso a un fondo nuevo, subyacente sin resolución y cuatro pestañas internas de análisis (benchmark, asignación, riesgo y controles), en 390/1280 px y las cuatro combinaciones de tema/apariencia. Se comparan nodos, etiquetas, clases de integración y **21 propiedades calculadas**; no es una comparación píxel a píxel. Las pruebas de interacción verifican traspasos parciales/completos a destinos nuevos/existentes, validaciones y persistencia; fundamentales con fallback, datos ausentes y reintento; identificación de clases de subyacentes y sus gráficos; tres rondas de Market Timing, pausa y teclado; Bonos e IRPF. Los datos son sintéticos y las consultas externas se interceptan o bloquean.
+
+Pasan TypeScript, ESLint, compilación y presupuesto de arranque: **674,01 kB de JavaScript inicial**, con calculadoras y SDK editorial fuera del arranque. El recorrido responsive completo pasa **492 combinaciones en 41 rutas**, con 320/390/1280 px y los cuatro temas/apariencias, sin errores ni desbordamientos. El registro de cambios se revisa en este recorrido; su contenido crece con las nuevas entradas y se excluye de la comparación de nodos.
+
+
+## Vigésima sexta fase: gastos y celdas SVG del mapa de mercados
+
+Se completa otra parte de los estilos de gastos y la representación propia del Heatmap, conservando las estructuras de datos y los servicios existentes.
+
+- `ExpenseReading` comparte notas, avisos, filtros, calendario, desplegable nativo y la identidad del movimiento (icono, tipo y descripción). Los campos, paneles, métricas, rejillas, controles y filas existentes resuelven las recetas responsive restantes, incluidas las propiedades de clases recibidas por composición.
+- `MarketArtwork` comparte el marco de la página, límites de sector y celdas de empresas en SVG, y las etiquetas SVG/HTML. Geometría, colores calculados, límites de legibilidad, textos formateados y solicitudes permanecen en `MarketHeatmap`. Se conserva el contenedor con referencia de Recharts y el marcado SVG nativo.
+- Se retiran doce referencias CSS y tres del detector de apariencia a selectores sin consumidores: el antiguo selector de periodos de `PortfolioChart` y la tarjeta antigua del total del simulador. Se conservan los selectores activos del gráfico de detalle de activos.
+- Los materiales complejos de gastos, reglas para transparencia reducida y fallback sin filtros ópticos permanecen en CSS. Se conserva también la animación específica del refresco del Heatmap. Las recetas de componentes mantienen la prioridad de cuatro columnas en el calendario pequeño y de los estados visuales de los movimientos.
+
+Se retiran **141 líneas de CSS fuente y 78 declaraciones `@apply`**. Quedan **3.196 líneas en 24 hojas CSS**, una reducción acumulada del **85,95 %** sobre las 22.753 iniciales. Se cuentan líneas físicas, no ahorro de descarga. No cambian backend, dependencias, versión ni cálculos financieros.
+
+### Validación de esta fase
+
+Las declaraciones ajenas a JSX de los cuatro consumidores principales (gestor, editores e importador de gastos y mapa de mercados) conservan su lógica. Pasan las pruebas de gastos e importación Excel: céntimos, devoluciones, traspasos, fechas, límites, recurrencias, deduplicación, CSV/Excel y seguridad de fórmulas. El recorrido funcional de gastos pasa en estándar y Liquid Glass: creación/edición/cancelación/borrado, resúmenes por tipo, presupuestos, confirmación de recurrentes, objetivos, importación y persistencia, con ajuste a 320/390/768 px y capturas de escritorio y ambos temas.
+
+Coinciden **88 estados** de las cinco secciones de gastos, tres editores y Heatmap cargado/seleccionado/con error, en 390/1280 px y cuatro combinaciones de tema/apariencia. El registro de prueba contiene los cuatro tipos de movimientos y exceso de presupuesto. Se comparan nodos, etiquetas, clases de integración y **22 propiedades calculadas**, incluidos relleno SVG, filtros ópticos y foco; no es una comparación píxel a píxel. El indicador transitorio de animación de selección se excluye de las clases comparadas. Los datos son sintéticos y las consultas externas se bloquean o interceptan.
+
+El lanzamiento de Chromium de la prueba de pulido utiliza el mismo modo sin sandbox que el resto de las pruebas en contenedor. TypeScript, ESLint y compilación conservan sus comprobaciones, al igual que el presupuesto de carga inicial.

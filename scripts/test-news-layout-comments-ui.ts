@@ -7,7 +7,7 @@ assert.match(origin,/^http:\/\/(localhost|127\.0\.0\.1):\d+$/);
 const version=JSON.parse(readFileSync('package.json','utf8')).version;
 const reader='11111111-1111-4111-8111-111111111111';const editor='22222222-2222-4222-8222-222222222222';
 const postId='33333333-3333-4333-8333-333333333333';const stamp='2026-10-15T12:00:00.000Z';
-const article={id:postId,slug:'analisis-de-prueba',title:'Perspectivas de mercado y decisiones de inversión a largo plazo',excerpt:'Un análisis de ejemplo para comprobar la lectura y la distribución de las noticias.',content:`<p>Contenido de prueba con enlaces y párrafos.</p><p>${'Largo'.repeat(75)}</p><pre><code>${'codigo'.repeat(100)}</code></pre>`,cover_image_url:null,status:'published',author_id:editor,published_at:stamp,created_at:stamp,updated_at:stamp};
+const article={id:postId,slug:'analisis-de-prueba',title:'Perspectivas de mercado y decisiones de inversión a largo plazo',excerpt:'Un análisis de ejemplo para comprobar la lectura y la distribución de las noticias.',content:`<p>Contenido de prueba con enlaces y párrafos.</p><p>${'Largo'.repeat(75)}</p><pre><code>${'codigo'.repeat(100)}</code></pre>`,cover_image_url:`${origin}/__news-cover.svg`,status:'published',author_id:editor,published_at:stamp,created_at:stamp,updated_at:stamp};
 const user=(id:string)=>({id,email:'fixture@example.invalid',email_confirmed_at:stamp,aud:'authenticated',role:'authenticated',is_anonymous:false,app_metadata:{},user_metadata:{username:'lector'},created_at:stamp,factors:[]});
 const session=(id:string)=>({access_token:`${Buffer.from('{"alg":"HS256","typ":"JWT"}').toString('base64url')}.${Buffer.from(JSON.stringify({sub:id,aal:'aal1',role:'authenticated',exp:Math.floor(Date.now()/1000)+3600})).toString('base64url')}.c3ludGhldGlj`,refresh_token:'synthetic',expires_at:Math.floor(Date.now()/1000)+3600,expires_in:3600,token_type:'bearer',user:user(id)});
 const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a2c8AAAAASUVORK5CYII=','base64');
@@ -26,6 +26,9 @@ try{
         await page.setRequestInterception(true);
         page.on('request',request=>{void(async()=>{
             const url=new URL(request.url());
+            if(url.origin===origin&&url.pathname==='/__news-cover.svg'){
+                await request.respond({status:200,contentType:'image/svg+xml',body:'<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900"><rect width="1600" height="900" fill="#2563eb"/><rect x="4" y="4" width="1592" height="892" rx="20" fill="none" stroke="#10b981" stroke-width="8"/></svg>'});return;
+            }
             if(url.hostname.endsWith('.supabase.co')){
                 const headers={'access-control-allow-origin':'*','access-control-allow-methods':'GET,POST,PATCH,DELETE,OPTIONS','access-control-allow-headers':request.headers()['access-control-request-headers']??'*'};
                 if(request.method()==='OPTIONS'){await request.respond({status:204,headers});return;}
@@ -61,10 +64,19 @@ try{
         const fit=async()=>assert.ok(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),`${scenario}/${await page.evaluate(()=>innerWidth)}: page overflow`);
         for(const width of [320,390,768,1280,1920]){
             console.log('Checking',scenario,width);await page.setViewport({width,height:1000});await page.goto(`${origin}/news`,{waitUntil:'domcontentloaded'});await page.waitForSelector('.news-card');
+            await page.waitForFunction(()=>[...document.querySelectorAll<HTMLImageElement>('.news-card__cover')].every(image=>image.complete&&image.naturalWidth>0));
+            const cover=await page.$eval('.news-card__cover',image=>{const bounds=image.getBoundingClientRect();const card=image.parentElement!.getBoundingClientRect();const style=getComputedStyle(image);return {ratio:bounds.width/bounds.height,gap:card.width-bounds.width,fit:style.objectFit};});
+            assert.ok(Math.abs(cover.ratio-16/9)<.01,'A 16:9 cover keeps its full aspect ratio');
+            assert.ok(cover.gap<=3,'The cover fills the card width, allowing its border');
+            assert.equal(cover.fit,'contain','Portrait and square images remain uncropped');
             await fit();
             await page.goto(`${origin}/admin/news`,{waitUntil:'domcontentloaded'});
             if(scenario==='visitor'){
                 await page.waitForSelector('.news-admin__login-card');
+                assert.equal(await page.$eval('.news-admin__login-card .card__content',element=>getComputedStyle(element).display),'flex','Editorial composition applies to BEM class names with literal underscores');
+                assert.ok(await page.$eval('.news-admin__login-card .card__content',element=>parseFloat(getComputedStyle(element).rowGap)>0),'Editorial login keeps its field and section spacing');
+                assert.ok(await page.$eval('.news-admin__login-form .input',element=>element.getBoundingClientRect().height>=48),'Inputs retain their 48px height when the mobile root font changes');
+                assert.ok(await page.$eval('.news-admin__login-form button',element=>element.getBoundingClientRect().height>=44),'Buttons retain a 44px touch target');
                 const bounds=await page.$eval('.news-admin__login-card',element=>{const r=element.getBoundingClientRect();const p=element.parentElement!.getBoundingClientRect();return {left:r.left,right:r.right,width:r.width,parentLeft:p.left,parentWidth:p.width};});
                 assert.ok(Math.abs(bounds.left+bounds.width/2-(bounds.parentLeft+bounds.parentWidth/2))<2,'Editorial login is centered in the content area');
                 assert.ok(bounds.width<=500&&bounds.width>200);

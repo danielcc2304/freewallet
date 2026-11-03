@@ -169,7 +169,7 @@ Las noticias se almacenan como HTML sanitizado, con editor Tiptap. La portada ut
 
 ### Stack
 
-React 19, TypeScript, Vite, React Router, Recharts, Lucide, Supabase, Tiptap, DOMPurify y SheetJS. Las versiones y dependencias exactas están en [`package.json`](package.json) y `package-lock.json`.
+React 19, TypeScript, Vite, Tailwind CSS 4, React Router, Recharts, Lucide, Supabase, Tiptap, DOMPurify y SheetJS. Las versiones y dependencias exactas están en [`package.json`](package.json) y `package-lock.json`.
 
 ```text
 src/
@@ -207,6 +207,32 @@ La navegación principal está en [`src/App.tsx`](src/App.tsx); Academia y herra
 | `/academy/fund-information` | Ficha de fondos por ISIN |
 | `/feature-log`, `/terms` | Novedades y condiciones |
 
+### Estilos y componentes
+
+La interfaz usa Tailwind CSS 4 con los temas existentes. La base compartida, Mi cuenta, Noticias, el radar, los rankings, los comparadores de escenarios, los avisos, el catálogo y las calculadoras de emergencia, impacto fiscal e inflación usan utilidades `tw:` en React; Academia, calculadoras, simuladores, gastos, Dashboard, gráficos y demás pantallas comparten tokens y patrones mediante `@apply` y `@reference`. Interés compuesto, FIRE, jubilación, bonos, IRPF y ficha de fondos comparten componentes React con estructura y estilos Tailwind para campos, paneles, desplegables, resultados y tablas.
+
+El Dashboard comparte indicadores, paneles, selectores, controles y detalles mediante los componentes de `src/components/dashboard/ui`.
+
+Las guías de Academia y los simuladores comparten superficies, rejillas, secciones, indicadores, campos y tarjetas de vídeos mediante `src/components/academy/ui`.
+
+Gestión de gastos, sus editores y la importación comparten campos, controles, paneles e indicadores mediante `src/components/expenses/ui`.
+
+Los indicadores, tablas, campos y cabeceras compactas de distintas pantallas reutilizan `DataItem`, `DataTable`, `FormField` y `PageHeading` en `src/components/ui`; las guías de activos comparten tarjetas numeradas, avisos, listas de ventajas/riesgos y explicaciones completas. Fundamentos comparte tarjetas de progreso, accesos y fichas de aprendizaje con enlaces nativos y estado de progreso en su módulo original.
+
+Portfolio compone sus tarjetas de análisis y acciones mediante `PortfolioPanel` y `PortfolioButton`, comparte indicadores con `DataItem` y distintivos de estado con Operaciones mediante `StatusPill`. Interés compuesto, FIRE y jubilación comparten también cabeceras, opciones, gráficos, leyendas, avisos y detalle anual; la ficha de fondos comparte búsqueda y estados de consulta. El viaje inversor compone etapas y listas, y las cinco guías de activos reutilizan tarjetas completas de categorías y subtipos.
+
+Las celdas y fichas de activos de Dashboard, las preferencias de Ajustes, los controles nativos de Ajustes/Portfolio, los resultados de Añadir activo, las filas y menús de gastos y los controles del mapa de calor comparten también marcado y estilos Tailwind. Las guías reutilizan fichas de geografía y bonos, relaciones inversas, crédito, checklists y consejos.
+
+Las guías de Riesgo, Estrategias, Fiscalidad, Escenarios, Errores y Valoración comparten encabezados, avisos, ejemplos y accesos completos. Fundamentos, Glosario y Recursos reutilizan también tarjetas y controles; las rutas por nivel, la matriz de correlaciones y los ejemplos fiscales comparten estructura y estilos, y Fundamentos ya no necesita una hoja CSS propia; perfil inversor, construcción de cartera, Crisis, asignación y Market Timing separan sus piezas visuales de los cálculos. El sidebar, los desplegables y filas de exposición del Dashboard y la barra del editor de noticias utilizan componentes con estructura y estilos Tailwind. IRPF, bonos y la ficha de fondos comparten rejillas, desgloses semánticos, comparaciones, etiquetas y ayudas accesibles; los bloques de estrategia reutilizan una tarjeta completa de guía. Heatmap y simuladores comparten también cabeceras, estados, filtros, tablas y controles nativos. La tabla de activos, el formulario de inversión y la proyección FIRE comparten estructura, controles y estados; la tabla ya no requiere una hoja CSS propia. La migración acumulada retira el 85,95 % de las líneas de CSS fuente; no equivale a una reducción del mismo porcentaje en la descarga.
+
+Planificación, Operaciones, Ajustes y Términos comparten formularios, registros y marcos nativos mediante las piezas de `src/components/ui/workspace`. Dashboard comparte bienvenida, aviso inicial, cabecera y estados; las calculadoras y las cinco guías de activos reutilizan sus marcos y secciones. Quedan **3.196 líneas en 24 hojas CSS**. Las guías de Academia, Estrategia y el simulador, Portfolio, la ficha de fondos y el sidebar también comparten marcos, cabeceras y controles. Los contenedores generales, cabeceras de Academia, detalle/composición de cartera, traspasos, leyendas, tooltips y simuladores también comparten estructura y recetas. Gastos comparte también su lectura, filtros, calendario e identidad de movimientos; las celdas SVG y etiquetas de Heatmap comparten su marcado. Los materiales globales, contenido enriquecido y estilos específicos de gráficos se conservan donde corresponde.
+
+Las cinco guías de activos comparten también lectura, cabeceras y navegación; renta fija reutiliza barras, ratings, curvas y experimentos de sensibilidad. Interés compuesto comparte objetivos y opciones avanzadas; Tu viaje como inversor y Novedades componen sus bloques de apoyo y entradas con componentes propios.
+
+Gastos comparte también distribuciones, tarjetas de cuentas/objetivos/categorías y revisión de importaciones. Portfolio compone gráficos, leyendas, comprobaciones, planificación y tooltips; el Dashboard reutiliza encabezados y filas de análisis histórico, y el detalle de activos conserva las interacciones nativas de sus gráficos mediante componentes compartidos.
+
+Los selectores de los módulos densos conservan su cascada. El reset, los materiales Liquid Glass y el contenido enriquecido mantienen CSS específico. No se activa Preflight ni un `important` global. [Arquitectura y pruebas](docs/tailwind-migration.md) · [Inventario por módulo](docs/tailwind-module-inventory.md).
+
 ## Scripts
 
 | Comando | Función |
@@ -217,6 +243,8 @@ La navegación principal está en [`src/App.tsx`](src/App.tsx); Academia y herra
 | `npm run lint` | ESLint. |
 | `npm run check` | Lint, TypeScript y todas las pruebas locales de lógica/base de datos; incluye la referencia independiente de bonos en Python. |
 | `npm run test:smoke` | Arranca Vite con configuración sintética y ejecuta los recorridos de navegador principales. Requiere Chromium/Puppeteer. |
+| `npm run test:tailwind-modules-ui` | Tras compilar, recorre 41 rutas de `dist` en móvil/escritorio y las cuatro combinaciones de tema y apariencia. |
+| `npm run test:fund-information-ui` | Comprueba la ficha de fondos con respuestas Finect simuladas, incluidos datos cero/ausentes y vistas móvil/escritorio. |
 | `npm run test:build` | Tras compilar, comprueba el tamaño del JS inicial y que calculadoras y SDK editorial se carguen bajo demanda. |
 | `npm run verify-funds` | Verificación de identidad/enlaces de fondos del catálogo. |
 
@@ -233,7 +261,7 @@ Las regresiones están agrupadas en scripts `test:*` de `package.json`, entre el
 
 Puedes repetir una sola suite con `npm run test:smoke -- --only=test-portfolio-ui.ts`; sus logs quedan separados de la ejecución completa.
 
-El workflow [Application quality](.github/workflows/quality.yml) ejecuta estos controles, build y auditoría de dependencias en las PR y en `dev`, `release` y `master`. También exige incorporar los hotfixes de `master` antes de promover `dev`/`release`. La protección obligatoria de ramas debe configurarse en GitHub para exigir su resultado.
+El workflow [Application quality](.github/workflows/quality.yml) ejecuta estos controles, build y auditoría de dependencias en las PR y en `dev`, `release` y `master`. Separa lógica/build, navegador y estilos por rutas para que cada grupo tenga su propio tiempo. El estado final `verify` exige que pasen los tres grupos. También exige incorporar los hotfixes de `master` antes de promover `dev`/`release`. La protección obligatoria de ramas debe configurarse en GitHub para exigir su resultado.
 
 ## Despliegue
 
@@ -276,6 +304,7 @@ El script también omite automáticamente el prerender al detectar `VERCEL`. `PU
 
 ## Documentación técnica
 
+- [Migración de estilos a Tailwind](docs/tailwind-migration.md): componentes compartidos, temas, módulos y comprobaciones visuales.
 - [Cartera con Supabase](docs/portfolio-supabase.md): importación, sincronización, permisos y MFA.
 - [Histórico independiente del Excel](docs/portfolio-history.md): migración, almacenamiento y API para agentes.
 - [Actualización diaria](docs/daily-market-data.md): batch, benchmark, histórico y diagnóstico.

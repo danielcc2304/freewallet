@@ -2,7 +2,8 @@ import { useEffect, useEffectEvent, useId, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { X } from 'lucide-react';
 import { Button } from '../Button';
-import './Modal.css';
+import { cn } from '../../../utils/cn';
+import { ActionGroup } from '../ActionGroup';
 
 let openModals = 0;
 let previousBodyOverflow = '';
@@ -68,23 +69,32 @@ export function Modal({ isOpen, onClose, title, children, size = 'md' }: ModalPr
     if (!isOpen) return null;
 
     return createPortal(
-        <div className="modal-backdrop" onClick={handleBackdropClick}>
+        <div className="modal-backdrop tw:fixed tw:inset-0 tw:bg-black/70 tw:backdrop-blur-[4px] tw:flex tw:items-center tw:justify-center tw:z-[1000] tw:p-ui-md tw:animate-ui-backdrop tw:motion-reduce:animate-none tw:max-[640px]:p-3" onClick={handleBackdropClick}>
             <div
                 ref={modalRef}
-                className={`modal modal--${size}`}
+                className={cn(
+                    'modal tw:bg-surface tw:border tw:border-line-strong tw:rounded-panel tw:shadow-ui-lg tw:max-h-[90vh] tw:min-w-0 tw:overflow-hidden tw:flex tw:flex-col tw:animate-ui-dialog tw:motion-reduce:animate-none tw:w-full',
+                    `modal--${size}`,
+                    size === 'sm' && 'tw:max-w-[400px]',
+                    size === 'md' && 'tw:max-w-[560px]',
+                    size === 'lg' && 'tw:w-[min(960px,calc(100vw-2*var(--spacing-md)))] tw:max-w-[960px]',
+                    'tw:max-[640px]:w-full tw:max-[640px]:max-w-full tw:max-[640px]:max-h-[calc(100dvh-1.5rem)]',
+                    'tw:[&_:is(button,a):focus-visible]:outline-2 tw:[&_:is(button,a):focus-visible]:outline-accent tw:[&_:is(button,a):focus-visible]:outline-offset-2',
+                )}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={title ? titleId : undefined}
                 aria-label={title ? undefined : 'Información de FreeWallet'}
                 tabIndex={-1}
             >
-                <div className="modal__header">
-                    {title && <h2 id={titleId} className="modal__title">{title}</h2>}
-                    <button className="modal__close" onClick={onClose} aria-label="Cerrar">
+                <div className="modal__header tw:flex tw:items-center tw:justify-between tw:min-w-0 tw:box-border tw:py-ui-md tw:px-ui-lg tw:border-b tw:border-line">
+                    {title && <h2 id={titleId} className="modal__title tw:m-0 tw:min-w-0 tw:wrap-anywhere tw:text-lg tw:font-semibold tw:leading-[1.3] tw:text-main">{title}</h2>}
+                    <button className="modal__close tw:bg-transparent tw:border-0 tw:text-muted tw:cursor-pointer tw:p-ui-xs tw:rounded-[var(--radius-sm)] tw:transition-colors tw:duration-150 tw:flex tw:items-center tw:justify-center tw:min-w-[44px] tw:min-h-[44px] tw:hover:bg-surface-muted tw:hover:text-main" onClick={onClose} aria-label="Cerrar">
                         <X size={20} />
                     </button>
                 </div>
-                <div className="modal__content">
+                <div className={cn('modal__content tw:p-ui-lg tw:overflow-y-auto tw:overflow-x-hidden tw:min-h-0 tw:min-w-0 tw:w-full tw:flex-auto tw:box-border',
+                    size === 'lg' && 'tw:h-[min(780px,calc(90vh-76px))] tw:max-[640px]:h-[calc(100dvh-6rem)] tw:max-[640px]:max-h-[calc(100dvh-6rem)]')}>
                     {children}
                 </div>
             </div>
@@ -119,8 +129,8 @@ export function ConfirmDialog({
     return (
         <Modal isOpen={isOpen} onClose={onClose} title={title} size="sm">
             <div className="confirm-dialog">
-                <p className="confirm-dialog__message">{message}</p>
-                <div className="confirm-dialog__actions">
+                <p className="confirm-dialog__message tw:text-secondary tw:mt-0 tw:mb-ui-lg tw:leading-[1.6]">{message}</p>
+                <ActionGroup align="end" className="confirm-dialog__actions tw:m-0 tw:gap-ui-md tw:max-[640px]:flex-col-reverse tw:max-[640px]:[&>button]:w-full">
                     <Button variant="secondary" onClick={onClose} disabled={loading}>
                         {cancelText}
                     </Button>
@@ -131,7 +141,7 @@ export function ConfirmDialog({
                     >
                         {confirmText}
                     </Button>
-                </div>
+                </ActionGroup>
             </div>
         </Modal>
     );

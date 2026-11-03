@@ -1,5 +1,8 @@
+import { AcademyRiskCard, AcademyRiskHeading, AcademyCorrelationMatrix, AcademyCorrelationCell, AcademyCorrelationLegend, AcademyRiskTag, AcademyRiskHorizons, AcademyRiskHorizon } from '../ui/AcademyRiskReading';
+import {AcademyToolLink} from '../ui/AcademyToolLink';
+import { AcademyNumberedHeading, AcademyRoadmap, AcademyInsight, AcademyCopyDetail } from '../ui/AcademyGuideParts';
+import { AcademyGrid } from '../ui/AcademyGrid';
 import { Shield, AlertTriangle, Layers, Clock, Globe, BarChart, Zap, Scale, ArrowRight } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { AcademyPageHeader } from '../layout/AcademyPageHeader';
 import './RiskManagement.css';
 
@@ -25,7 +28,7 @@ const DIVERSIFICATION = [
     { icon: BarChart, title: 'Por sectores', description: 'Tecnología, salud, energía o consumo responden de forma diferente al ciclo económico.' },
 ];
 function SectionHeading({ number, id, title, description }: { number: string; id: string; title: string; description: string }) {
-    return <div className="risk-mgmt__section-heading"><span className="risk-mgmt__number" aria-hidden="true">{number}</span><div><h2 id={id}>{title}</h2><p>{description}</p></div></div>;
+    return <AcademyNumberedHeading variant="risk" number={number} headingId={id} title={title} description={description} decorative />;
 }
 function correlationBand(value: number) {
     return value >= .6 ? 'high' : value >= .3 ? 'medium' : value > -.1 ? 'neutral' : 'low';
@@ -37,93 +40,55 @@ export function RiskManagement() {
             <AcademyPageHeader section="Construir">
                 <h1>Gestión del riesgo</h1>
                 <p>Entiende qué puede afectar a tu patrimonio y construye una cartera que puedas mantener, también cuando el mercado cae.</p>
-                <nav className="risk-mgmt__roadmap" aria-label="Secciones de gestión del riesgo">
-                    <a href="#risk-types"><Shield size={18} aria-hidden="true" /> Identifica los riesgos</a>
-                    <a href="#risk-diversification"><Layers size={18} aria-hidden="true" /> Diversifica</a>
-                    <a href="#risk-currency"><Globe size={18} aria-hidden="true" /> Revisa la divisa</a>
-                </nav>
+                <AcademyRoadmap variant="risk" aria-label="Secciones de gestión del riesgo" items={[{href:"#risk-types",content:<><Shield size={18} aria-hidden="true" /> Identifica los riesgos</>},{href:"#risk-diversification",content:<><Layers size={18} aria-hidden="true" /> Diversifica</>},{href:"#risk-currency",content:<><Globe size={18} aria-hidden="true" /> Revisa la divisa</>}]} />
             </AcademyPageHeader>
 
             <section className="risk-mgmt__section" aria-labelledby="risk-volatility-title">
                 <SectionHeading number="01" id="risk-volatility-title" title="Una caída no cuenta toda la historia" description="Distingue el movimiento del precio de la pérdida permanente de capital." />
-                <div className="risk-mgmt__grid">
-                    <article className="risk-mgmt__card risk-mgmt__comparison">
-                        <span className="risk-mgmt__icon"><BarChart size={24} aria-hidden="true" /></span>
-                        <h3>Volatilidad</h3>
-                        <p>Es la fluctuación de los precios. Puede generar pérdidas temporales y poner a prueba tu tolerancia al riesgo.</p>
-                        <div className="risk-mgmt__takeaway"><strong>Qué revisar</strong>Si necesitarás ese dinero antes de que tu inversión tenga tiempo para recuperarse.</div>
-                    </article>
-                    <article className="risk-mgmt__card risk-mgmt__comparison risk-mgmt__comparison--loss">
-                        <span className="risk-mgmt__icon"><AlertTriangle size={24} aria-hidden="true" /></span>
-                        <h3>Pérdida permanente</h3>
-                        <p>Ocurre cuando el capital no se recupera: por una quiebra, una venta forzada o el deterioro duradero de una inversión.</p>
-                        <div className="risk-mgmt__takeaway"><strong>Qué revisar</strong>La calidad del activo, la concentración y tu reserva para imprevistos.</div>
-                    </article>
-                </div>
+                <AcademyGrid variant="risk" className="risk-mgmt__grid">
+                    <AcademyRiskCard as="article" comparison     icon={<><BarChart size={24} aria-hidden="true" /></>} title={<>Volatilidad</>} description={<>Es la fluctuación de los precios. Puede generar pérdidas temporales y poner a prueba tu tolerancia al riesgo.</>}><AcademyCopyDetail variant="riskTakeaway" label={<>Qué revisar</>}>Si necesitarás ese dinero antes de que tu inversión tenga tiempo para recuperarse.</AcademyCopyDetail></AcademyRiskCard>
+                    <AcademyRiskCard as="article" comparison loss    icon={<><AlertTriangle size={24} aria-hidden="true" /></>} title={<>Pérdida permanente</>} description={<>Ocurre cuando el capital no se recupera: por una quiebra, una venta forzada o el deterioro duradero de una inversión.</>}><AcademyCopyDetail variant="riskTakeaway" label={<>Qué revisar</>}>La calidad del activo, la concentración y tu reserva para imprevistos.</AcademyCopyDetail></AcademyRiskCard>
+                </AcademyGrid>
             </section>
 
             <section id="risk-types" className="risk-mgmt__section" aria-labelledby="risk-types-title">
                 <SectionHeading number="02" id="risk-types-title" title="Cuatro riesgos que conviene vigilar" description="Reconocerlos te ayuda a decidir qué protección necesita tu cartera." />
-                <div className="risk-mgmt__grid">
-                    {RISK_TYPES.map(({icon: Icon,title,description,action}) => <article className="risk-mgmt__card" key={title}>
-                        <span className="risk-mgmt__icon"><Icon size={24} aria-hidden="true" /></span><h3>{title}</h3><p>{description}</p>
-                        <div className="risk-mgmt__action"><strong>Cómo gestionarlo</strong><p>{action}</p></div>
-                    </article>)}
-                </div>
+                <AcademyGrid variant="risk" className="risk-mgmt__grid">
+                    {RISK_TYPES.map(({icon: Icon,title,description,action}) => <AcademyRiskCard as="article" key={title}      icon={<><Icon size={24} aria-hidden="true" /></>} title={<>{title}</>} description={<>{description}</>}><AcademyCopyDetail variant="riskAction" label={<>Cómo gestionarlo</>}>{action}</AcademyCopyDetail></AcademyRiskCard>)}
+                </AcademyGrid>
             </section>
 
             <section id="risk-diversification" className="risk-mgmt__section" aria-labelledby="risk-diversification-title">
                 <SectionHeading number="03" id="risk-diversification-title" title="Diversifica la exposición, no solo el número de fondos" description="Tener muchos productos no garantiza que estés asumiendo riesgos diferentes." />
-                <div className="risk-mgmt__grid risk-mgmt__grid--three">
-                    {DIVERSIFICATION.map(({icon: Icon,title,description}) => <article className="risk-mgmt__card" key={title}>
-                        <span className="risk-mgmt__icon"><Icon size={24} aria-hidden="true" /></span><h3>{title}</h3><p>{description}</p>
-                    </article>)}
-                </div>
-                <div className="risk-mgmt__card risk-mgmt__correlations">
-                    <div className="risk-mgmt__matrix-heading"><h3>Cómo se mueven juntos</h3><span>Ejemplo ilustrativo · no son datos de mercado</span></div>
-                    <p>La correlación va de −1 a +1. Una correlación menor puede suavizar los movimientos de la cartera, pero cambia con el tiempo y puede aumentar durante una crisis.</p>
-                    <div className="risk-mgmt__matrix-scroll" role="region" aria-label="Matriz de correlaciones ilustrativas, desplazable horizontalmente" tabIndex={0}>
-                        <table className="risk-mgmt__matrix">
-                            <caption>Matriz de correlación ilustrativa entre clases de activos</caption>
-                            <thead><tr><th scope="col">Activo</th>{CORRELATION_ASSETS.map(asset => <th key={asset} scope="col">{asset}</th>)}</tr></thead>
-                            <tbody>{CORRELATION_MATRIX.map((row,i) => <tr key={CORRELATION_ASSETS[i]}><th scope="row">{CORRELATION_ASSETS[i]}</th>
-                                {row.map((value,j) => <td key={j} className={`risk-mgmt__correlation risk-mgmt__correlation--${correlationBand(value)}`}>{value.toFixed(1).replace('.',',')}</td>)}
-                            </tr>)}</tbody>
-                        </table>
-                    </div>
-                    <div className="risk-mgmt__legend"><span><i className="risk-mgmt__swatch--high" /> Alta: se mueven juntos</span><span><i className="risk-mgmt__swatch--medium" /> Media: diversificación parcial</span><span><i className="risk-mgmt__swatch--low" /> Baja o negativa: menor relación</span></div>
-                    <p className="risk-mgmt__note">En móvil, desliza la tabla para ver todos los activos. Una correlación baja no garantiza protección frente a pérdidas.</p>
-                </div>
+                <AcademyGrid variant="risk" className="risk-mgmt__grid risk-mgmt__grid--three">
+                    {DIVERSIFICATION.map(({icon: Icon,title,description}) => <AcademyRiskCard as="article" key={title}      icon={<><Icon size={24} aria-hidden="true" /></>} title={<>{title}</>} description={<>{description}</>}></AcademyRiskCard>)}
+                </AcademyGrid>
+                <AcademyRiskCard     correlations ><AcademyRiskHeading appearance="matrix" title={<>Cómo se mueven juntos</>} detail={<>Ejemplo ilustrativo · no son datos de mercado</>} /><p>La correlación va de −1 a +1. Una correlación menor puede suavizar los movimientos de la cartera, pero cambia con el tiempo y puede aumentar durante una crisis.</p><AcademyCorrelationMatrix role="region" aria-label="Matriz de correlaciones ilustrativas, desplazable horizontalmente" tabIndex={0} caption={<>Matriz de correlación ilustrativa entre clases de activos</>}><thead><tr><th scope="col">Activo</th>{CORRELATION_ASSETS.map(asset => <th key={asset} scope="col">{asset}</th>)}</tr></thead><tbody>{CORRELATION_MATRIX.map((row,i) => <tr key={CORRELATION_ASSETS[i]}><th scope="row">{CORRELATION_ASSETS[i]}</th>
+                                {row.map((value,j) => <AcademyCorrelationCell band={correlationBand(value)} key={j}>{value.toFixed(1).replace('.',',')}</AcademyCorrelationCell>)}
+                            </tr>)}</tbody></AcademyCorrelationMatrix><AcademyCorrelationLegend items={[{band:'high',label:<> Alta: se mueven juntos</>},{band:'medium',label:<> Media: diversificación parcial</>},{band:'low',label:<> Baja o negativa: menor relación</>}]} /><p className="risk-mgmt__note">En móvil, desliza la tabla para ver todos los activos. Una correlación baja no garantiza protección frente a pérdidas.</p></AcademyRiskCard>
             </section>
 
             <section className="risk-mgmt__section" aria-labelledby="risk-time-title">
                 <SectionHeading number="04" id="risk-time-title" title="Adapta el riesgo al tiempo que tienes" description="El horizonte ayuda a decidir qué caídas puedes asumir, pero no elimina el riesgo." />
-                <div className="risk-mgmt__card">
-                    <div className="risk-mgmt__card-heading"><span className="risk-mgmt__icon"><Clock size={24} aria-hidden="true" /></span><h3>Cuándo necesitarás el dinero importa</h3></div>
-                    <div className="risk-mgmt__horizons">
-                        <div><span className="risk-mgmt__tag">Corto plazo</span><h4>Prioriza la disponibilidad</h4><p>El ahorro para gastos próximos necesita estabilidad y liquidez.</p></div>
-                        <div><span className="risk-mgmt__tag">Medio plazo</span><h4>Equilibra los bloques</h4><p>Combina activos según la flexibilidad de tu objetivo y las pérdidas que puedas asumir.</p></div>
-                        <div><span className="risk-mgmt__tag">Largo plazo</span><h4>Prepárate para las caídas</h4><p>Más tiempo permite atravesar ciclos, aunque no garantiza recuperar cualquier inversión.</p></div>
-                    </div>
-                </div>
+                <AcademyRiskCard      ><AcademyRiskHeading appearance="card" icon={<><Clock size={24} aria-hidden="true" /></>} title={<>Cuándo necesitarás el dinero importa</>} /><AcademyRiskHorizons><AcademyRiskHorizon label={<>Corto plazo</>} title={<>Prioriza la disponibilidad</>}>El ahorro para gastos próximos necesita estabilidad y liquidez.</AcademyRiskHorizon><AcademyRiskHorizon label={<>Medio plazo</>} title={<>Equilibra los bloques</>}>Combina activos según la flexibilidad de tu objetivo y las pérdidas que puedas asumir.</AcademyRiskHorizon><AcademyRiskHorizon label={<>Largo plazo</>} title={<>Prepárate para las caídas</>}>Más tiempo permite atravesar ciclos, aunque no garantiza recuperar cualquier inversión.</AcademyRiskHorizon></AcademyRiskHorizons></AcademyRiskCard>
             </section>
 
             <section id="risk-currency" className="risk-mgmt__section" aria-labelledby="risk-currency-title">
                 <SectionHeading number="05" id="risk-currency-title" title="La divisa también forma parte del riesgo" description="Tu resultado en euros depende del activo y de las monedas a las que está expuesto. Que el fondo cotice en EUR no implica que esté cubierto." />
-                <div className="risk-mgmt__grid">
-                    <article className="risk-mgmt__card risk-mgmt__currency"><span className="risk-mgmt__tag">Hedged</span><h3>Con cobertura de divisa</h3><p>Utiliza derivados para reducir el efecto del cambio de moneda. La cobertura tiene costes y puede no ser perfecta.</p><ul><li>Puede ayudar a estabilizar la renta fija global en EUR.</li><li>Revisa qué monedas cubre y el coste total.</li><li>No elimina el riesgo de mercado ni el de crédito.</li></ul></article>
-                    <article className="risk-mgmt__card risk-mgmt__currency"><span className="risk-mgmt__tag">Unhedged</span><h3>Sin cobertura de divisa</h3><p>El movimiento de las monedas puede aumentar o reducir tu rentabilidad en euros.</p><ul><li>Mantienes la exposición al tipo de cambio.</li><li>Evitas el coste específico de la cobertura.</li><li>Valora el horizonte y la moneda de tus futuros gastos.</li></ul></article>
-                </div>
-                <aside className="risk-mgmt__insight"><Globe size={20} aria-hidden="true" /><p>Cuanto más próximo esté un gasto en euros, más importante es limitar la incertidumbre de la divisa en el dinero reservado para ese objetivo.</p></aside>
+                <AcademyGrid variant="risk" className="risk-mgmt__grid">
+                    <AcademyRiskCard as="article"   currency  ><AcademyRiskTag >Hedged</AcademyRiskTag><h3>Con cobertura de divisa</h3><p>Utiliza derivados para reducir el efecto del cambio de moneda. La cobertura tiene costes y puede no ser perfecta.</p><ul><li>Puede ayudar a estabilizar la renta fija global en EUR.</li><li>Revisa qué monedas cubre y el coste total.</li><li>No elimina el riesgo de mercado ni el de crédito.</li></ul></AcademyRiskCard>
+                    <AcademyRiskCard as="article"   currency  ><AcademyRiskTag >Unhedged</AcademyRiskTag><h3>Sin cobertura de divisa</h3><p>El movimiento de las monedas puede aumentar o reducir tu rentabilidad en euros.</p><ul><li>Mantienes la exposición al tipo de cambio.</li><li>Evitas el coste específico de la cobertura.</li><li>Valora el horizonte y la moneda de tus futuros gastos.</li></ul></AcademyRiskCard>
+                </AcademyGrid>
+                <AcademyInsight variant="risk" icon={<Globe size={20} aria-hidden="true" />}>Cuanto más próximo esté un gasto en euros, más importante es limitar la incertidumbre de la divisa en el dinero reservado para ese objetivo.</AcademyInsight>
             </section>
 
             <section className="risk-mgmt__section" aria-labelledby="risk-tools-title">
                 <SectionHeading number="06" id="risk-tools-title" title="Llévalo a tu cartera" description="Define tus límites antes de que llegue una caída." />
-                <div className="risk-mgmt__grid risk-mgmt__grid--three">
-                    <Link to="/academy/portfolio" className="risk-mgmt__card risk-mgmt__tool"><Layers size={24} aria-hidden="true" /><h3>Estrategia y cartera</h3><p>Elige una distribución coherente con tus objetivos y tolerancia a pérdidas.</p><span>Definir mi cartera <ArrowRight size={18} aria-hidden="true" /></span></Link>
-                    <Link to="/academy/crisis" className="risk-mgmt__card risk-mgmt__tool"><BarChart size={24} aria-hidden="true" /><h3>Mercado y crisis</h3><p>Explora qué significaría una caída para tu capital y tus decisiones.</p><span>Explorar escenarios <ArrowRight size={18} aria-hidden="true" /></span></Link>
-                    <Link to="/" className="risk-mgmt__card risk-mgmt__tool"><Shield size={24} aria-hidden="true" /><h3>Tu Dashboard</h3><p>Revisa la asignación y la concentración de tus posiciones actuales.</p><span>Ver mi cartera <ArrowRight size={18} aria-hidden="true" /></span></Link>
-                </div>
+                <AcademyGrid variant="risk" className="risk-mgmt__grid risk-mgmt__grid--three">
+                    <AcademyToolLink to="/academy/portfolio" variant="risk" icon={<Layers size={24} aria-hidden="true" />}  title={<>Estrategia y cartera</>} description={<>Elige una distribución coherente con tus objetivos y tolerancia a pérdidas.</>} action={<>Definir mi cartera <ArrowRight size={18} aria-hidden="true" /></>} />
+                    <AcademyToolLink to="/academy/crisis" variant="risk" icon={<BarChart size={24} aria-hidden="true" />}  title={<>Mercado y crisis</>} description={<>Explora qué significaría una caída para tu capital y tus decisiones.</>} action={<>Explorar escenarios <ArrowRight size={18} aria-hidden="true" /></>} />
+                    <AcademyToolLink to="/" variant="risk" icon={<Shield size={24} aria-hidden="true" />}  title={<>Tu Dashboard</>} description={<>Revisa la asignación y la concentración de tus posiciones actuales.</>} action={<>Ver mi cartera <ArrowRight size={18} aria-hidden="true" /></>} />
+                </AcademyGrid>
             </section>
         </div>
     );

@@ -1,75 +1,35 @@
+import {PortfolioPresentation,PortfolioPresentationCard} from './ui/PortfolioPresentation';
+import {portfolioPresentationClasses} from './ui/PortfolioPresentation.styles';
 import {HistoricalPanelHeading,HistoricalPanelActions,HistoricalPeriodSummary,HistoricalBenchmarkValue,HistoricalValueRow,HistoricalControlRow,HistoricalAllocationBlock,HistoricalStatus,HistoricalWorkbookNotice} from './ui/HistoricalAnalysis';
-import type { KeyboardEvent } from 'react';
-import { DashboardMetric } from './ui/DashboardMetric';
-import { DashboardPanel } from './ui/DashboardPanel';
-import { DashboardSegments } from './ui/DashboardSegments';
-import { DashboardSwitch } from './ui/DashboardSwitch';
-import { fundBlockAllocation, portfolioBlocks, blockFundKey, blockNames, type BlockAllocation } from '../../services/portfolioBlocks';
-import { useEffect, useId, useMemo, useState, useTransition } from 'react';
-import type { ReactNode } from 'react';
-import {
-    Activity,
-    AlertTriangle,
-    ArrowDownRight,
-    ArrowUpRight,
-    BarChart3,
-    CalendarClock,
-    CheckCircle2,
-    Coins,
-    Gauge,
-    Layers3,
-    ListChecks,
-    ShieldCheck,
-    Target,
-    TrendingUp,
-    WalletCards,
-    LoaderCircle,
-} from 'lucide-react';
-import {
-    Area,
-    Bar,
-    BarChart,
-    CartesianGrid,
-    ComposedChart,
-    Legend,
-    Line,
-    LineChart,
-    ResponsiveContainer,
-    Tooltip,
-    XAxis,
-    YAxis,
-} from 'recharts';
-import { Card, CardContent, CardHeader } from '../ui';
+import type {KeyboardEvent} from 'react';
+import {DashboardMetric} from './ui/DashboardMetric';
+import {DashboardPanel} from './ui/DashboardPanel';
+import {DashboardSegments} from './ui/DashboardSegments';
+import {DashboardSwitch} from './ui/DashboardSwitch';
+import {fundBlockAllocation,portfolioBlocks,blockFundKey,blockNames,type BlockAllocation} from '../../services/portfolioBlocks';
+import {useEffect,useId,useMemo,useState,useTransition} from 'react';
+import type {ReactNode} from 'react';
+import {Activity,AlertTriangle,ArrowDownRight,ArrowUpRight,BarChart3,CalendarClock,CheckCircle2,Coins,Gauge,Layers3,ListChecks,ShieldCheck,Target,TrendingUp,WalletCards,LoaderCircle} from 'lucide-react';
+import {Area,Bar,BarChart,CartesianGrid,ComposedChart,Legend,Line,LineChart,ResponsiveContainer,Tooltip,XAxis,YAxis} from 'recharts';
+import {CardContent,CardHeader} from '../ui';
 import {DashboardInfo} from './DashboardInfo';
-import { usePortfolio } from '../../context/PortfolioContext';
-import { BENCHMARK_ISIN, BENCHMARK_NAME, dailyHistory } from '../../services/dailyMarketData';
-import { getFundRelevance } from '../../services/finect/finectService';
-import {
-    DEFENSIVE_BENCHMARK_ISIN,
-    DEFENSIVE_BENCHMARK_NAME,
-    EQUITY_BENCHMARK_NAME,
-    benchmarkFundIsin,
-    fundBenchmarkAllocation,
-    portfolioBenchmarkWeights,
-    readPortfolioBenchmarkMode,
-    savePortfolioBenchmarkMode,
-    weightedBenchmarkHistory,
-    type FundBenchmarkAllocation,
-    type PortfolioBenchmarkMode,
-} from '../../services/portfolioBenchmark';
-import { alignedBenchmark, alignImportedBenchmark, chooseBenchmarkLine, selectPortfolioPeriod, workbookRiskStats } from '../../services/portfolioPerformance';
-import { assetValue, hasValidPrice } from '../../services/assetValuation';
-import { archiveBenchmarkHistory } from '../../services/portfolioHistoryArchive';
+import {usePortfolio} from '../../context/PortfolioContext';
+import {BENCHMARK_ISIN,BENCHMARK_NAME,dailyHistory} from '../../services/dailyMarketData';
+import {getFundRelevance} from '../../services/finect/finectService';
+import {DEFENSIVE_BENCHMARK_ISIN,DEFENSIVE_BENCHMARK_NAME,EQUITY_BENCHMARK_NAME,benchmarkFundIsin,fundBenchmarkAllocation,portfolioBenchmarkWeights,readPortfolioBenchmarkMode,savePortfolioBenchmarkMode,weightedBenchmarkHistory,type FundBenchmarkAllocation,type PortfolioBenchmarkMode} from '../../services/portfolioBenchmark';
+import {alignedBenchmark,alignImportedBenchmark,chooseBenchmarkLine,selectPortfolioPeriod,workbookRiskStats} from '../../services/portfolioPerformance';
+import {assetValue,hasValidPrice} from '../../services/assetValuation';
+import {archiveBenchmarkHistory} from '../../services/portfolioHistoryArchive';
 import './PortfolioExcelInsights.css';
-import type { DashboardAnalytics } from './useDashboardAnalytics';
-import { latestContinuousMonths } from '../../services/dashboardHistory';
-import { WORKBOOK_RISK_FREE_ANNUAL_PCT } from '../../services/portfolioRisk';
-import { positionLotCounts } from '../../services/dashboardIntegrity';
-import { getAssetChartData } from '../../services/apiService';
-import { getSettings, updateSettings, isApiEnabled } from '../../services/storageService';
-import { DashboardMarketHistoryCache } from '../../services/dashboardMarketHistory';
-import { benchmarkChartCadence, benchmarkPeriodDifference, benchmarkTooltipObservation, extendImportedBenchmark, extendBenchmarkObservations } from '../../services/benchmarkComparison';
-import type { HistoricalDataPoint } from '../../types/types';
+import type {DashboardAnalytics} from './useDashboardAnalytics';
+import {latestContinuousMonths} from '../../services/dashboardHistory';
+import {WORKBOOK_RISK_FREE_ANNUAL_PCT} from '../../services/portfolioRisk';
+import {positionLotCounts} from '../../services/dashboardIntegrity';
+import {getAssetChartData} from '../../services/apiService';
+import {getSettings,updateSettings,isApiEnabled} from '../../services/storageService';
+import {DashboardMarketHistoryCache} from '../../services/dashboardMarketHistory';
+import {benchmarkChartCadence,benchmarkPeriodDifference,benchmarkTooltipObservation,extendImportedBenchmark,extendBenchmarkObservations} from '../../services/benchmarkComparison';
+import type {HistoricalDataPoint} from '../../types/types';
 
 const benchmarkHistoryCache = new DashboardMarketHistoryCache(2,15*60*1000);
 
@@ -443,31 +403,31 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
     ];
 
     return (
-        <Card className="portfolio-excel-insights">
+        <PortfolioPresentationCard appearance="portfolio-excel-insights"  >
             <CardHeader title="Análisis avanzado" subtitle={hasArchivedHistory
                 ? 'Cartera actual e histórico guardado'
                 : hasEstimates ? 'Incluye histórico estimado' : 'Histórico verificado'} />
             <CardContent>
                 {hasArchivedHistory && !analytics.historyLinked && <HistoricalWorkbookNotice role="status" icon={<AlertTriangle size={20} aria-hidden="true" />} title={<>Vincular el histórico</>} description={<>Confirma que el histórico importado pertenece a estas posiciones para continuar su evolución con las valoraciones diarias.</>} actionLabel={<>Usar este histórico</>} onLink={() => { try { analytics.linkHistory(); setLinkError(''); } catch { setLinkError('No se ha podido guardar la vinculación del histórico.'); } }} />}
-                {linkError && <p className="portfolio-excel-insights__link-error" role="alert">{linkError}</p>}
-                <div className="portfolio-excel-insights__history-line"><p className="portfolio-excel-insights__chart-note" role="status">
+                {linkError && <PortfolioPresentation appearance="portfolio-excel-insights__link-error" as="p" role="alert">{linkError}</PortfolioPresentation>}
+                <PortfolioPresentation appearance="portfolio-excel-insights__history-line"  ><PortfolioPresentation appearance="portfolio-excel-insights__chart-note" as="p" role="status">
                     {hasArchivedHistory
                         ? `Histórico · ${historicalMonthlyCount ? `${historicalMonthlyCount} cierres mensuales` : `${historicalDailyCount} valoraciones diarias`} · ${formatHistoryDate(historicalHistory.startDate)}–${formatHistoryDate(historicalHistory.endDate)}`
                         : history.length
                             ? `Seguimiento verificado desde ${formatHistoryDate(series[0]?.date)}.`
                             : 'Pendiente de una actualización completa de cotizaciones.'}
-                </p>
+                </PortfolioPresentation>
                 {(hasArchivedHistory || history.length > 0) && <DashboardInfo title="Detalles del histórico">
                     <p>{hasArchivedHistory
                         ? `${historicalDailyCount} valoraciones diarias · ${historicalHistory.dcaCount} flujos sin duplicar. Los datos sin fecha exacta se conservan como resúmenes mensuales.`
                         : 'El histórico antiguo se conserva. Solo las valoraciones con posiciones y origen identificados se usan para calcular retornos.'}</p>
                 </DashboardInfo>}
-                </div>
-                <div className="portfolio-excel-insights__kpis">
+                </PortfolioPresentation>
+                <PortfolioPresentation appearance="portfolio-excel-insights__kpis"  >
                     {kpis.map((kpi) => (
                         <DashboardMetric variant="insights" key={kpi.label} icon={kpi.icon} label={kpi.label} value={kpi.value} valueClassName={kpi.tone} annotation={kpi.value === 'N/D' ? <DashboardInfo className="portfolio-excel-insights__missing" title={`${kpi.label}: dato no disponible`}><p>{missingMetricReason(kpi.label, recentMonthly.length)}</p></DashboardInfo> : undefined} detail={kpi.value !== 'N/D' ? kpi.detail : undefined} />
                     ))}
-                </div>
+                </PortfolioPresentation>
 
                 <DashboardSegments
                     appearance="tabs"
@@ -528,12 +488,12 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                     </ComposedChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="portfolio-excel-insights__empty">Necesitamos al menos dos actualizaciones de precios para dibujar la evolución.</div>
+                                <PortfolioPresentation appearance="portfolio-excel-insights__empty"  >Necesitamos al menos dos actualizaciones de precios para dibujar la evolución.</PortfolioPresentation>
                             )}
                             {significantCapitalFlow && (
-                                <p className="portfolio-excel-insights__chart-note">
+                                <PortfolioPresentation appearance="portfolio-excel-insights__chart-note" as="p" >
                                     El cierre de {formatHistoryDate(significantCapitalFlow.date)} incluye una {significantCapitalFlow.amount >= 0 ? 'aportación' : 'retirada'} neta de {currency(Math.abs(significantCapitalFlow.amount))}; se excluye del cálculo de rentabilidad.
-                                </p>
+                                </PortfolioPresentation>
                             )}</DashboardPanel>
                 )}
 
@@ -546,34 +506,34 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                             </HistoricalPanelActions></HistoricalPanelHeading>
                             {benchmarkMode === 'allocation' && fundBreakdownSwitch(true)}
                             {benchmarkMode === 'allocation' && blockSettingsError && <p role="alert">{blockSettingsError}</p>}
-                            {benchmarkMode === 'allocation' && <p className="portfolio-excel-insights__chart-note">
+                            {benchmarkMode === 'allocation' && <PortfolioPresentation appearance="portfolio-excel-insights__chart-note" as="p" >
                                 Pesos de la composición actual. El tramo Groupama incluye renta fija y liquidez.
                                 {benchmarkClassificationPending
                                     ? ' Consultando desgloses disponibles de fondos y ETF.'
                                     : benchmarkWeights.unclassifiedPercent > 0
                                         ? ` El ${plainPercent(benchmarkWeights.unclassifiedPercent)} de activos sin clase verificada se asigna a Groupama.`
                                         : ''}
-                            </p>}
+                            </PortfolioPresentation>}
                             <HistoricalBenchmarkValue label={<>Tu cartera · {evolutionPeriod === 'YTD' ? 'YTD' : 'periodo seleccionado'}{selectedPeriod.incompleteSince && ` hasta ${formatChartDate(selectedPeriod.performance.endDate ?? '')}`}</>} value={<>{percent(selectedPeriod.performance.returnPercent)}</>} />
-                            {selectedPeriod.incompleteSince && <p className="portfolio-excel-insights__chart-note" role="status">Datos pendientes de verificar desde {formatChartDate(selectedPeriod.incompleteSince)}.</p>}
-                            {hasPortfolioBenchmark && <p className="portfolio-excel-insights__comparison-dates">
+                            {selectedPeriod.incompleteSince && <PortfolioPresentation appearance="portfolio-excel-insights__chart-note" as="p" role="status">Datos pendientes de verificar desde {formatChartDate(selectedPeriod.incompleteSince)}.</PortfolioPresentation>}
+                            {hasPortfolioBenchmark && <PortfolioPresentation appearance="portfolio-excel-insights__comparison-dates" as="p" >
                                 {benchmarkPartial ? 'Benchmark' : 'Comparación'} del {formatChartDate(benchmarkLine[0].date)} al {formatChartDate(benchmarkLine.at(-1)!.date)}
-                            </p>}
-                            {benchmarkPartial && <p className="portfolio-excel-insights__chart-note" role="status">
+                            </PortfolioPresentation>}
+                            {benchmarkPartial && <PortfolioPresentation appearance="portfolio-excel-insights__chart-note" as="p" role="status">
                                 {benchmarkHasPeriodBase
                                     ? comparison ? `Tu cartera incluye el último dato. La diferencia se calcula hasta ${formatChartDate(comparison.endDate)}.` : 'Tu cartera incluye el último dato. No hay fechas comparables suficientes para calcular la diferencia.'
                                     : 'Falta el cierre inicial del benchmark para comparar este periodo. La gráfica muestra tu cartera.'}
-                            </p>}
-                            {!hasPortfolioBenchmark && !benchmarkClassificationPending && !loadingBenchmark && <p className="portfolio-excel-insights__chart-note" role="status">Benchmark sin histórico suficiente para este periodo.</p>}
-                            {['3M', 'YTD', 'ALL'].includes(evolutionPeriod) && <p className="portfolio-excel-insights__chart-note">
+                            </PortfolioPresentation>}
+                            {!hasPortfolioBenchmark && !benchmarkClassificationPending && !loadingBenchmark && <PortfolioPresentation appearance="portfolio-excel-insights__chart-note" as="p" role="status">Benchmark sin histórico suficiente para este periodo.</PortfolioPresentation>}
+                            {['3M', 'YTD', 'ALL'].includes(evolutionPeriod) && <PortfolioPresentation appearance="portfolio-excel-insights__chart-note" as="p" >
                                 Cierres mensuales · mes en curso provisional.
                                 {benchmarkChart.at(-1)?.date.slice(0, 10) !== selectedPeriod.performance.endDate?.slice(0, 10)
                                     && ` Gráfico hasta ${formatChartDate(benchmarkChart.at(-1)?.date ?? '')}; tu rentabilidad superior incluye el ${formatChartDate(selectedPeriod.performance.endDate ?? '')}.`}
-                            </p>}
-                            <div className="portfolio-excel-insights__benchmark-kpis">
+                            </PortfolioPresentation>}
+                            <PortfolioPresentation appearance="portfolio-excel-insights__benchmark-kpis"  >
                                 <DashboardMetric variant="comparison" label={<>{benchmarkLabel}</>} value={<>{percent(benchmarkReturn)}</>} />
                                 <DashboardMetric variant="comparison" label={<>{comparison && benchmarkPartial ? `Diferencia hasta ${formatChartDate(comparison.endDate)}` : 'Diferencia del periodo'}</>} value={<>{percent(benchmarkDifference).replace('%', ' pp')}</>} valueClassName={benchmarkDifference === null ? '' : benchmarkDifference >= 0 ? 'is-positive' : 'is-negative'} />
-                            </div>
+                            </PortfolioPresentation>
                             {benchmarkChart.length > 1 ? (
                                 <ResponsiveContainer width="100%" height={230}>
                                     <LineChart data={benchmarkChart} margin={{ top: 10, right: 12, left: 4, bottom: 4 }}>
@@ -599,16 +559,16 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                     </LineChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="portfolio-excel-insights__empty">No hay histórico suficiente para dibujar la rentabilidad del periodo seleccionado.</div>
+                                <PortfolioPresentation appearance="portfolio-excel-insights__empty"  >No hay histórico suficiente para dibujar la rentabilidad del periodo seleccionado.</PortfolioPresentation>
                             )}</DashboardPanel>
                 )}
 
                 {tab === 'allocation' && (
-                    <section className="portfolio-excel-insights__allocation">
-                            <DashboardPanel as="div" className="portfolio-excel-insights__mini-chart portfolio-excel-insights__blocks">
+                    <PortfolioPresentation appearance="portfolio-excel-insights__allocation" as="section" >
+                            <DashboardPanel as="div" className={portfolioPresentationClasses("portfolio-excel-insights__mini-chart portfolio-excel-insights__blocks")}>
                                 <h3><Layers3 size={16} /> Asignación por bloques</h3>
                                 {fundBreakdownSwitch()}
-                                {!blockSettings.lookThrough && assets.some(asset => asset.type === 'fund' || asset.type === 'etf') && <details className="portfolio-excel-insights__block-categories">
+                                {!blockSettings.lookThrough && assets.some(asset => asset.type === 'fund' || asset.type === 'etf') && <details className={portfolioPresentationClasses("portfolio-excel-insights__block-categories")}>
                                     <summary>Categorizar fondos</summary>
                                     {[...new Map(assets.filter(asset => asset.type === 'fund' || asset.type === 'etf').map(asset => [blockFundKey(asset), asset])).values()].map(asset => <label key={blockFundKey(asset)}>
                                         <span>{asset.name || asset.symbol}</span>
@@ -621,10 +581,10 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                 </details>}
                                 {blockSettingsError && <p role="alert">{blockSettingsError}</p>}
                                 {blocks.rows.map(row => <HistoricalAllocationBlock key={row.name} label={row.name} detail={plainPercent(row.weight)} value={currency(row.value)} weight={row.weight} progressLabel={`${row.name}: ${plainPercent(row.weight)}`} />)}
-                                {apiEnabled && pendingFundIsins.length > 0 && <p role="status" className="portfolio-excel-insights__chart-note"><LoaderCircle size={14} /> Consultando composición de fondos…</p>}
-                                {blocks.unclassifiedValue > 0 && <p className="portfolio-excel-insights__chart-note">Otros incluye {currency(blocks.unclassifiedValue)} sin clasificación disponible.</p>}
+                                {apiEnabled && pendingFundIsins.length > 0 && <PortfolioPresentation appearance="portfolio-excel-insights__chart-note" as="p" role="status"><LoaderCircle size={14} /> Consultando composición de fondos…</PortfolioPresentation>}
+                                {blocks.unclassifiedValue > 0 && <PortfolioPresentation appearance="portfolio-excel-insights__chart-note" as="p" >Otros incluye {currency(blocks.unclassifiedValue)} sin clasificación disponible.</PortfolioPresentation>}
                             </DashboardPanel>
-                            <DashboardPanel as="div" className="portfolio-excel-insights__mini-chart"><h3><Layers3 size={16} /> Distribución por tipo</h3>
+                            <DashboardPanel as="div" className={portfolioPresentationClasses("portfolio-excel-insights__mini-chart")}><h3><Layers3 size={16} /> Distribución por tipo</h3>
                                 <ResponsiveContainer width="100%" height={230}>
                                     <BarChart data={allocations} layout="vertical" margin={{ left: 10, right: 12 }}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,.06)" horizontal={false} />
@@ -634,11 +594,11 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                         <Bar isAnimationActive={false} dataKey="actual" name="Peso actual" fill="#10b981" radius={[0, 6, 6, 0]} />
                                     </BarChart>
                                 </ResponsiveContainer></DashboardPanel>
-                            <DashboardPanel as="div" className="portfolio-excel-insights__mini-chart"><h3><Target size={16} /> Mayores posiciones</h3>
+                            <DashboardPanel as="div" className={portfolioPresentationClasses("portfolio-excel-insights__mini-chart")}><h3><Target size={16} /> Mayores posiciones</h3>
                                 {leaders.map((leader) => (
                                     <HistoricalValueRow key={leader.symbol} appearance="leader" label={<>{leader.symbol}</>} detail={<>{leader.name}</>} value={<>{currency(leader.value)}</>} />
                                 ))}</DashboardPanel>
-                    </section>
+                    </PortfolioPresentation>
                 )}
 
                 {tab === 'risk' && (
@@ -656,41 +616,41 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                                     </ComposedChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="portfolio-excel-insights__empty">Necesitamos más actualizaciones para calcular el riesgo mensual.</div>
+                                <PortfolioPresentation appearance="portfolio-excel-insights__empty"  >Necesitamos más actualizaciones para calcular el riesgo mensual.</PortfolioPresentation>
                             )}
-                            <div className="portfolio-excel-insights__stats">
+                            <PortfolioPresentation appearance="portfolio-excel-insights__stats"  >
                                 <DashboardMetric variant="stat" label="Sharpe" value={<>{sharpe === null ? 'N/D' : sharpe.toFixed(2)}</>} />
                                 <DashboardMetric variant="stat" label="Sortino" value={<>{sortino === null ? 'N/D' : sortino.toFixed(2)}</>} />
                                 <DashboardMetric variant="stat" label="Peor mes" value={<>{plainPercent(worstMonth?.monthlyReturn)}</>} />
                                 <DashboardMetric variant="stat" label="Meses negativos" value={<>{validMonthly.length ? `${negativeMonths} de ${validMonthly.length}` : 'N/D'}</>} />
                                 <DashboardMetric variant="stat" label="Observaciones" value={<>{history.length}</>} />
                                 <DashboardMetric variant="stat" label="Pendientes de consulta" value={<>{stale}</>} />
-                            </div>
+                            </PortfolioPresentation>
                             {(sharpe === null || sortino === null) && <DashboardInfo title="Ratios no disponibles" label="Ver motivo">{sharpe === null && <p>Sharpe: {missingMetricReason('Ratio Sharpe', recentMonthly.length)}</p>}{sortino === null && <p>Sortino: {missingMetricReason('Ratio Sortino', recentMonthly.length)}</p>}</DashboardInfo>}</DashboardPanel>
                 )}
 
                 {tab === 'controls' && (
-                    <section className="portfolio-excel-insights__controls">
-                            <DashboardPanel as="div" className="portfolio-excel-insights__control-column"><h3><ListChecks size={16} /> Controles vivos</h3>
+                    <PortfolioPresentation appearance="portfolio-excel-insights__controls" as="section" >
+                            <DashboardPanel as="div" className={portfolioPresentationClasses("portfolio-excel-insights__control-column")}><h3><ListChecks size={16} /> Controles vivos</h3>
                                 {controls.map((control) => (
                                     <HistoricalControlRow key={control.label} icon={control.ok ? <CheckCircle2 size={15} /> : <AlertTriangle size={15} />} label={<>{control.label}</>} value={<>{control.value}</>} ok={control.ok} />
                                 ))}</DashboardPanel>
-                            <DashboardPanel as="div" className="portfolio-excel-insights__control-column"><h3><Target size={16} /> Operaciones recientes</h3>
+                            <DashboardPanel as="div" className={portfolioPresentationClasses("portfolio-excel-insights__control-column")}><h3><Target size={16} /> Operaciones recientes</h3>
                                 {transactions.length ? [...transactions]
                                     .sort((left, right) => right.date.localeCompare(left.date))
                                     .slice(0, 7)
                                     .map((transaction) => (
                                         <HistoricalValueRow key={transaction.id} appearance="movement" label={<>{transaction.date}</>} detail={<>{transaction.assetSymbol} · {transaction.type}</>} value={<>{currency(transaction.total || 0)}</>} />
                                     )) : <p>Aún no hay operaciones registradas.</p>}</DashboardPanel>
-                            <DashboardPanel as="div" className="portfolio-excel-insights__control-column"><h3><ShieldCheck size={16} /> Estado de actualización</h3>
+                            <DashboardPanel as="div" className={portfolioPresentationClasses("portfolio-excel-insights__control-column")}><h3><ShieldCheck size={16} /> Estado de actualización</h3>
                                 <p>{stale ? 'Hay posiciones sin cotización reciente. Pulsa Actualizar precios para reintentar.' : 'Todas las posiciones se han consultado recientemente; la fecha de valoración puede ser anterior.'}</p>
                                 <HistoricalStatus  appearance="live" icon={<Activity size={15} />}>
                                     <strong>{lastPriceUpdate ? lastPriceUpdate.toLocaleString('es-ES') : 'Pendiente'}</strong>
                                 </HistoricalStatus></DashboardPanel>
-                    </section>
+                    </PortfolioPresentation>
                 )}
                 </div>
             </CardContent>
-        </Card>
+        </PortfolioPresentationCard>
     );
 }

@@ -1,9 +1,11 @@
-import { DashboardMetric } from './ui/DashboardMetric';
-import { AlertTriangle, CheckCircle2, Database, Layers3, ShieldCheck, Target } from 'lucide-react';
-import { Card, CardContent, CardHeader } from '../ui';
-import type { Asset } from '../../types/types';
-import { getHistory } from '../../services/storageService';
-import './PortfolioHealth.css';
+import {PortfolioPresentation} from './ui/PortfolioPresentation';
+
+import {DashboardMetric} from './ui/DashboardMetric';
+import {AlertTriangle,CheckCircle2,Database,Layers3,ShieldCheck,Target} from 'lucide-react';
+import {Card,CardContent,CardHeader} from '../ui';
+import type {Asset} from '../../types/types';
+import {getHistory} from '../../services/storageService';
+
 
 export function PortfolioHealth({ assets, now }: { assets: Asset[]; now: number }) {
     const quoteWindow = 15 * 60 * 1000;
@@ -39,18 +41,18 @@ export function PortfolioHealth({ assets, now }: { assets: Asset[]; now: number 
         <Card className="portfolio-health">
             <CardHeader title="Control de cartera" subtitle="Concentración, diversificación y calidad de los datos" />
             <CardContent>
-                <div className="portfolio-health__grid">
+                <PortfolioPresentation appearance="portfolio-health__grid"  >
                     <DashboardMetric variant="health" className="portfolio-health__item" label="Mayor posición" value={<>{largest?.asset.symbol || '—'} · {largestWeight.toFixed(1)}%</>} icon={<Target size={18} />} detail={<>Concentración {concentration.toLowerCase()}</>} />
                     <DashboardMetric variant="health" className="portfolio-health__item" label="Diversificación" value={<>{assets.length} posiciones</>} icon={<Layers3 size={18} />} detail={<>{assetTypes} tipos de activo</>} />
                     <DashboardMetric variant="health" className="portfolio-health__item" label="Cobertura de precios" value={<>{dataCoverage.toFixed(0)}%</>} icon={<Database size={18} />} detail={<>{updated} de {assets.length} actualizados</>} />
                     <DashboardMetric variant="health" className="portfolio-health__item" label="Estado" value={<>{dataCoverage === 100 ? 'Al día' : 'Revisar datos'}</>} icon={<ShieldCheck size={18} />} detail={<>{largestWeight > 35 ? 'Posición principal elevada' : 'Sin alertas de concentración'}</>} />
-                </div>
-                <div className="portfolio-health__checks">
+                </PortfolioPresentation>
+                <PortfolioPresentation appearance="portfolio-health__checks"  >
                     {controls.map(control => <div key={control.label} className={control.ok ? 'is-ok' : 'is-warning'}>
                         {control.ok ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} />}
                         <span>{control.label}</span><strong>{control.value}</strong>
                     </div>)}
-                </div>
+                </PortfolioPresentation>
             </CardContent>
         </Card>
     );

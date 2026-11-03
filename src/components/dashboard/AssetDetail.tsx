@@ -1,50 +1,29 @@
+import {PortfolioPresentation} from './ui/PortfolioPresentation';
+import {portfolioPresentationClasses} from './ui/PortfolioPresentation.styles';
 import {DashboardAssetChart,DashboardAssetChartViewport,DashboardAssetChartLoading,DashboardAssetChartEmpty,DashboardAssetChartSelection,DashboardAssetChartSource,DashboardFundSections,DashboardFundText,DashboardFundHoldings,DashboardFundHoldingRow} from './ui/DashboardAssetChart';
-import { DashboardAssetHeader, DashboardPeriodPerformance, DashboardChartLegend, DashboardCompanySection, DashboardDetailFootnote } from './ui/DashboardAssetOverview';
-import { DashboardMetric } from './ui/DashboardMetric';
-import { DashboardSegments } from './ui/DashboardSegments';
-import { DashboardFundamentalCard } from './ui/DashboardFundamentalCard';
-import { useState, useEffect, useRef } from 'react';
-import type { PointerEvent as ReactPointerEvent } from 'react';
-import {
-    TrendingUp,
-    TrendingDown,
-    BarChart3,
-    Info,
-    Clock,
-    Activity,
-    Coins,
-    Percent,
-    Layers,
-    Building2,
-    ArrowUpRight,
-    ArrowDownRight,
-    RefreshCw
-} from 'lucide-react';
-import {
-    XAxis,
-    YAxis,
-    CartesianGrid,
-    Tooltip,
-    ResponsiveContainer,
-    Area,
-    AreaChart,
-    ReferenceArea
-} from 'recharts';
-import { getAssetChartData, getFundamentalData } from '../../services/apiService';
-import { getFundRelevance } from '../../services/finect/finectService';
-import type { FinectFundRelevance } from '../../services/finect/finectService';
-import type { Asset, StockQuote, HistoricalDataPoint, TimePeriod } from '../../types/types';
-import { assetPrice, assetValue, formatQuantity, hasValidPrice } from '../../services/assetValuation';
-import { portfolioQuoteStatus, quoteDateLabel } from '../../services/portfolioQuoteStatus';
-import { getSettings, isApiEnabled, updateSettings } from '../../services/storageService';
-import { stockQuoteMarkets, selectedStockQuoteMarket } from '../../services/market/stockQuoteMarkets';
-import { portfolioStorage } from '../../services/portfolioCloudStorage';
-import { usePortfolio } from '../../context/PortfolioContext';
-import { portfolioPositionGroups } from '../../services/portfolioPositionGroups';
-import { useLocalDataVersion } from '../../hooks/useLocalDataVersion';
-import { Button } from '../ui';
-import { formatFundamentalMoney, formatFundamentalPercent, formatFundamentalRatio, hasFundamentals } from '../../services/market/fundamentals';
-import { companyOverview } from '../../services/market/companyOverview';
+import {DashboardAssetHeader,DashboardPeriodPerformance,DashboardChartLegend,DashboardCompanySection,DashboardDetailFootnote} from './ui/DashboardAssetOverview';
+import {DashboardMetric} from './ui/DashboardMetric';
+import {DashboardSegments} from './ui/DashboardSegments';
+import {DashboardFundamentalCard} from './ui/DashboardFundamentalCard';
+import {useState,useEffect,useRef} from 'react';
+import type {PointerEvent as ReactPointerEvent} from 'react';
+import {TrendingUp,TrendingDown,BarChart3,Info,Clock,Activity,Coins,Percent,Layers,Building2,ArrowUpRight,ArrowDownRight,RefreshCw} from 'lucide-react';
+import {XAxis,YAxis,CartesianGrid,Tooltip,ResponsiveContainer,Area,AreaChart,ReferenceArea} from 'recharts';
+import {getAssetChartData,getFundamentalData} from '../../services/apiService';
+import {getFundRelevance} from '../../services/finect/finectService';
+import type {FinectFundRelevance} from '../../services/finect/finectService';
+import type {Asset,StockQuote,HistoricalDataPoint,TimePeriod} from '../../types/types';
+import {assetPrice,assetValue,formatQuantity,hasValidPrice} from '../../services/assetValuation';
+import {portfolioQuoteStatus,quoteDateLabel} from '../../services/portfolioQuoteStatus';
+import {getSettings,isApiEnabled,updateSettings} from '../../services/storageService';
+import {stockQuoteMarkets,selectedStockQuoteMarket} from '../../services/market/stockQuoteMarkets';
+import {portfolioStorage} from '../../services/portfolioCloudStorage';
+import {usePortfolio} from '../../context/PortfolioContext';
+import {portfolioPositionGroups} from '../../services/portfolioPositionGroups';
+import {useLocalDataVersion} from '../../hooks/useLocalDataVersion';
+import {Button} from '../ui';
+import {formatFundamentalMoney,formatFundamentalPercent,formatFundamentalRatio,hasFundamentals} from '../../services/market/fundamentals';
+import {companyOverview} from '../../services/market/companyOverview';
 import './AssetDetail.css';
 
 interface AssetDetailProps {
@@ -396,7 +375,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
     }).format(value);
 
     return (
-        <div className={`asset-detail ${isFund ? 'asset-detail--fund' : ''}`}>
+        <div className={portfolioPresentationClasses(`asset-detail ${isFund ? 'asset-detail--fund' : ''}`)}>
             {/* Header info - Always visible (from props) */}
             <DashboardAssetHeader symbol={<>{asset.symbol}</>} name={<>{asset.name}</>} price={<>
                         {formatValue(group?.estimatedCount ? undefined : marketOnly ? asset.currentPrice : assetPrice(asset), 'price')}
@@ -406,7 +385,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                     </DashboardAssetHeader>
 
             {group && <p className="asset-detail__group-note">Posición agrupada · {group.lots.length} registros{group.estimatedCount?' · incluye valoraciones estimadas':group.mixedPrices?' · precio medio de valoración':''}.</p>}
-            {!marketOnly && <div className="asset-detail__position-grid">
+            {!marketOnly && <PortfolioPresentation appearance="asset-detail__position-grid"  >
                 <DashboardMetric variant="position" label="Cantidad" value={<>{formatQuantity(asset)}</>} />
                 {asset.type === 'cash' && asset.cashTae !== undefined && <DashboardMetric variant="position" label="TAE de la cuenta" value={<>{asset.cashTae.toLocaleString('es-ES', { maximumFractionDigits: 4 })} %</>} />}
                 <DashboardMetric variant="position" label="Precio medio" value={<>{formatValue(asset.purchasePrice, 'price')}</>} />
@@ -419,10 +398,10 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                 <DashboardMetric variant="position" label="Lectura en la app" value={<>{quoteDateLabel(asset.lastReadAt)}</>} />
                 <DashboardMetric variant="position" label="Origen" value={<>{asset.quoteSource || 'No disponible'}{asset.quoteSource === 'Google Finance' && marketChoices.length > 1 ? ' · Madrid/BME' : ''}{asset.quoteOrigin === 'batch' ? ' · batch' : ''}</>} />
                 <DashboardMetric variant="position" label={<>{group?.mixedDates ? 'Fechas de valoración' : 'Fecha del precio'}</>} value={<>{group?.mixedDates ? 'Ver registros individuales' : quoteDateLabel(asset.quotedAt || asset.lastQuoteAt)}</>} />
-            </div>}
-            {!marketOnly && group && <section className="asset-detail__purchases" aria-label="Registros de compra">
+            </PortfolioPresentation>}
+            {!marketOnly && group && <PortfolioPresentation appearance="asset-detail__purchases" as="section" aria-label="Registros de compra">
                 <h3>Tus compras · {group.lots.length} registros</h3>
-                <div className="asset-detail__purchases-scroll">
+                <PortfolioPresentation appearance="asset-detail__purchases-scroll"  >
                     <table>
                         <thead><tr><th>Fecha</th><th>Cantidad</th><th>Precio medio</th><th>Coste</th>{asset.type === 'cash' && <th>TAE</th>}</tr></thead>
                         <tbody>{[...group.lots].sort((a,b)=>a.purchaseDate.localeCompare(b.purchaseDate)).map(lot=><tr key={lot.id}>
@@ -433,9 +412,9 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                             {asset.type === 'cash' && <td>{lot.cashTae === undefined ? 'Sin indicar' : `${lot.cashTae.toLocaleString('es-ES', { maximumFractionDigits: 4 })} %`}</td>}
                         </tr>)}</tbody>
                     </table>
-                </div>
-            </section>}
-            {!marketOnly && marketChoices.length>1 && <div className="asset-detail__quote-market">
+                </PortfolioPresentation>
+            </PortfolioPresentation>}
+            {!marketOnly && marketChoices.length>1 && <PortfolioPresentation appearance="asset-detail__quote-market"  >
                 <label htmlFor={`quote-market-${asset.id}`}>Mercado de cotización</label>
                 <select id={`quote-market-${asset.id}`} value={selectedMarket?.id ?? 'original'} disabled={changingMarket}
                     onChange={event=>void changeMarket(event.target.value)}>
@@ -445,7 +424,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                 {changingMarket && <p role="status">Consultando el mercado seleccionado…</p>}
                 {marketChoices.length > 1 && !!asset.currentPrice && asset.quoteInstrument !== (selectedMarket?.instrument ?? asset.symbol.trim().toUpperCase()) && !changingMarket && <p role="status">Consulta del mercado seleccionado pendiente. El precio visible conserva su origen anterior.</p>}
                 {marketError && <p role="alert">{marketError}</p>}
-            </div>}
+            </PortfolioPresentation>}
             {!marketOnly && asset.originalCurrency && asset.originalCurrency!=='EUR' && <details className="dashboard__update-details">
                 <summary>Conversión a euros</summary>
                 <p>Precio original: {asset.originalPrice?.toLocaleString('es-ES')} {asset.originalUnit || asset.originalCurrency}. Cambio: {asset.fxRate?.toLocaleString('es-ES')} EUR/{asset.originalCurrency} · {quoteDateLabel(asset.fxAt || undefined)}. Se usa el cambio del día del precio.</p>
@@ -462,7 +441,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                     </>} selector={<DashboardSegments appearance="chart" className="asset-detail__period-selector" options={periods} value={selectedPeriod} onChange={setSelectedPeriod} />}><DashboardPeriodPerformance label={<>Variación del precio {selectedPeriod === 'ALL' ? 'histórica' : selectedPeriod}</>} value={<>
                         {canDrawChart && chartPeriodReturn !== null ? `${chartPeriodReturn >= 0 ? '+' : ''}${chartPeriodReturn.toFixed(2)}%` : 'N/D'}
                     </>} valueClassName={chartPeriodReturn !== null && chartPeriodReturn < 0 ? 'negative' : 'positive'}>{canDrawChart && chartPeriodStart && chartPeriodEnd && <small>{chartPeriodStart.date} → {chartPeriodEnd.date}</small>}</DashboardPeriodPerformance><DashboardAssetChartViewport ref={chartContainerRef} onPointerDown={handlePointerStart} onPointerMove={handlePointerMove} onPointerUp={handlePointerEnd} onPointerCancel={handlePointerEnd}>
-                    {loadingChart && <DashboardAssetChartLoading spinner={<div className="spinner-sm" />} label={<>Preparando histórico…</>} />}
+                    {loadingChart && <DashboardAssetChartLoading spinner={<PortfolioPresentation appearance="spinner-sm"  ></PortfolioPresentation>} label={<>Preparando histórico…</>} />}
                     {!loadingChart && chartData.length < 2 && (
                         <DashboardAssetChartEmpty title={<>{!apiEnabled ? 'Consulta de histórico desactivada.' : chartData.length === 1 ? 'Recopilando datos del histórico…' : 'Datos históricos no disponibles.'}</>} description={<>{!apiEnabled ? 'No se han realizado llamadas al proveedor.' : chartData.length === 1 ? 'Necesitamos al menos dos cotizaciones para dibujar la evolución.' : 'El proveedor no ha devuelto un histórico utilizable para este periodo.'}</>} action={apiEnabled && <Button variant="secondary" icon={<RefreshCw size={16} />} type="button" onClick={() => setRetry(n => n + 1)}>Reintentar consulta</Button>} />
                     )}
@@ -560,31 +539,31 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
 
             {/* Metrics Grid */}
             <div className="asset-detail__metrics-section">
-                <h3 className="section-title">
+                <PortfolioPresentation appearance="section-title" as="h3" >
                     <BarChart3 size={18} />
                     Métricas Clave
-                </h3>
+                </PortfolioPresentation>
                 {loadingFundamentals ? (
-                    <div className="metrics-loading">
-                        <div className="spinner-sm" />
+                    <PortfolioPresentation appearance="metrics-loading"  >
+                        <PortfolioPresentation appearance="spinner-sm"  ></PortfolioPresentation>
                         <p>Cargando datos fundamentales...</p>
-                    </div>
+                    </PortfolioPresentation>
                 ) : (
-                    <div className="metrics-grid">
+                    <PortfolioPresentation appearance="metrics-grid"  >
                         {visibleMetricItems.length === 0 && (
-                            <div className="metrics-empty">{apiEnabled ? 'Datos ampliados no disponibles.' : 'Consulta de datos desactivada.'}</div>
+                            <PortfolioPresentation appearance="metrics-empty"  >{apiEnabled ? 'Datos ampliados no disponibles.' : 'Consulta de datos desactivada.'}</PortfolioPresentation>
                         )}
                         {visibleMetricItems.map((item, idx) => (
                             <DashboardFundamentalCard key={idx} icon={item.icon} label={item.label} value={item.value} category={item.category}>
-                                {'asOf' in item && typeof item.asOf === 'string' && <small className="asset-detail__metric-date">{'derived' in item && item.derived === true ? 'Calculado · ' : ''}{item.asOf}</small>}
+                                {'asOf' in item && typeof item.asOf === 'string' && <PortfolioPresentation appearance="asset-detail__metric-date" as="small" >{'derived' in item && item.derived === true ? 'Calculado · ' : ''}{item.asOf}</PortfolioPresentation>}
                             </DashboardFundamentalCard>
                         ))}
-                    </div>
+                    </PortfolioPresentation>
                 )}
-                {!isFund && !loadingFundamentals && <div className="asset-detail__metrics-note">
+                {!isFund && !loadingFundamentals && <PortfolioPresentation appearance="asset-detail__metrics-note"  >
                     <small>N/D: dato no disponible.{quote?.fundamentalsSymbol && quote.fundamentalsSymbol!==asset.symbol.toUpperCase() && ` Financieros de ${quote.fundamentalsSymbol}, misma acción.`}</small>
                     {apiEnabled && <Button variant="secondary" size="sm" type="button" onClick={() => setFundamentalRetry(n => n + 1)}>Reintentar datos</Button>}
-                </div>}
+                </PortfolioPresentation>}
             </div>
 
             {isFund && fundData && (

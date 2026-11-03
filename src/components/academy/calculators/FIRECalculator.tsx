@@ -1,21 +1,23 @@
-import { CalculatorGrid } from './CalculatorGrid';
-import { CalculatorProjectionHeader, CalculatorHorizonBadge, CalculatorProjectionSection, CalculatorProjectionResults, CalculatorOptionalInputs, CalculatorProjectionOptions, CalculatorProjectionHint } from './CalculatorProjection';
+import {CalculatorPresentation} from './CalculatorDetailPresentation';
+import {calculatorPresentationClasses} from './CalculatorDetailPresentation.styles';
+import {CalculatorGrid} from './CalculatorGrid';
+import {CalculatorProjectionHeader,CalculatorHorizonBadge,CalculatorProjectionSection,CalculatorProjectionResults,CalculatorOptionalInputs,CalculatorProjectionOptions,CalculatorProjectionHint} from './CalculatorProjection';
 
-import { CalculatorNotice } from './CalculatorNotice';
-import { CalculatorEducationCard } from './CalculatorEducationCard';
-import { CalculatorChart } from './CalculatorChart';
-import { CalculatorOption } from './CalculatorOption';
-import { CalculatorChoice } from './CalculatorChoice';
-import { CalculatorToolHeading } from './CalculatorToolHeading';
-import { CalculatorField } from './CalculatorField';
-import { CalculatorResultCard } from './CalculatorResultCard';
-import { useEffect, useMemo, useState, type CSSProperties } from 'react';
-import { Info, TrendingUp, Wallet, ShieldCheck, Flame, Banknote } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { getRateConversion } from './compoundInterestUtils';
-import { validateCalculatorInputs } from './calculatorValidation';
-import './FIRECalculator.css';
-import { ScenarioComparison } from './ScenarioComparison';
+import {CalculatorNotice} from './CalculatorNotice';
+import {CalculatorEducationCard} from './CalculatorEducationCard';
+import {CalculatorChart} from './CalculatorChart';
+import {CalculatorOption} from './CalculatorOption';
+import {CalculatorChoice} from './CalculatorChoice';
+import {CalculatorToolHeading} from './CalculatorToolHeading';
+import {CalculatorField} from './CalculatorField';
+import {CalculatorResultCard} from './CalculatorResultCard';
+import {useEffect,useMemo,useState,type CSSProperties} from 'react';
+import {Info,TrendingUp,Wallet,ShieldCheck,Flame,Banknote} from 'lucide-react';
+import {AreaChart,Area,XAxis,YAxis,CartesianGrid,Tooltip,ResponsiveContainer} from 'recharts';
+import {getRateConversion} from './compoundInterestUtils';
+import {validateCalculatorInputs} from './calculatorValidation';
+
+import {ScenarioComparison} from './ScenarioComparison';
 
 type ProjectionMode = 'nominal' | 'real';
 
@@ -113,15 +115,15 @@ function FIRETooltip({
         : 'sin ajuste por inflación';
 
     return (
-        <div className="fire-tooltip">
-            <p className="fire-tooltip__label">Año {label}</p>
-            <p className="fire-tooltip__value balance">
+        <CalculatorPresentation appearance="fire-tooltip"  >
+            <CalculatorPresentation appearance="fire-tooltip__label" as="p" >Año {label}</CalculatorPresentation>
+            <p className={calculatorPresentationClasses("fire-tooltip__value balance")}>
                 Patrimonio {valueLabel}: {formatFIRECurrency(Number(payload[0]?.value ?? 0))}
             </p>
-            <p className="fire-tooltip__value target">
+            <p className={calculatorPresentationClasses("fire-tooltip__value target")}>
                 Objetivo FIRE {valueLabel}: {formatFIRECurrency(Number(payload[1]?.value ?? 0))}
             </p>
-        </div>
+        </CalculatorPresentation>
     );
 }
 
@@ -312,7 +314,7 @@ export function FIRECalculator() {
     ]);
 
     return (
-        <div className="fire">
+        <CalculatorPresentation appearance="fire"  >
             <CalculatorProjectionHeader section="Herramientas">
                 <CalculatorToolHeading appearance="fire" icon={<Flame className="fire__title-icon" />} title={<>Calculadora FIRE</>} description={<>Independencia Financiera, Jubilación Temprana</>} />
                 <CalculatorHorizonBadge value={<>{calculationError ? 'N/D' : yearsToFIRE < 100 ? yearsToFIRE.toFixed(1) : '∞'}</>} label={<>Años para FIRE</>} comparison={includeInflation && !calculationError && <>
@@ -497,6 +499,6 @@ export function FIRECalculator() {
                     <CalculatorEducationCard appearance="fire" icon={<TrendingUp  />} title={<>La Tasa de Ahorro</>}>Es el factor más determinante. Cuanto mayor sea el porcentaje que ahorras sobre tus ingresos netos, más rápido alcanzarás la libertad.</CalculatorEducationCard>
                     <CalculatorEducationCard appearance="fire" icon={<ShieldCheck  />} title={<>Fase de Retirada</>}>Al llegar a FIRE, el rendimiento de tus inversiones debería cubrir tus gastos, permitiéndote decidir si quieres seguir trabajando.</CalculatorEducationCard>
                 </CalculatorGrid></CalculatorProjectionSection>
-        </div>
+        </CalculatorPresentation>
     );
 }

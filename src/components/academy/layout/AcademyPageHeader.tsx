@@ -1,7 +1,8 @@
-import type { HTMLAttributes, ReactNode } from 'react';
-import { PageHeader } from '../../ui';
+import {layoutPresentationClasses} from '../../layout/LayoutPresentation.styles';
+import type {HTMLAttributes,ReactNode} from 'react';
+import {PageHeader} from '../../ui';
 
-import './AcademyPageHeader.css';
+
 
 export type AcademyHeaderSection =
     | 'Aprender'
@@ -22,11 +23,7 @@ interface AcademyPageHeaderProps extends HTMLAttributes<HTMLElement> {
  */
 export function AcademyPageHeader({ section, className = '', children, ...props }: AcademyPageHeaderProps) {
     return (
-        <PageHeader
-            eyebrow={section}
-            className={`academy-page-header${className ? ` ${className}` : ''}`}
-            {...props}
-        >
+        <PageHeader eyebrow={section} className={layoutPresentationClasses(`academy-page-header${className ? ` ${className}` : ''}`)} {...props}>
             {children}
         </PageHeader>
     );

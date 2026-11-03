@@ -1,6 +1,9 @@
-import { useState } from 'react';
-import type { HeatmapItem } from '../../types/types';
-import './Heatmap.css';
+import {HeatmapScale,HeatmapTile} from './ChartPresentation';
+import {ChartsPresentation} from './ChartPresentation';
+
+import {useState} from 'react';
+import type {HeatmapItem} from '../../types/types';
+
 
 const ISIN_PATTERN = /^[A-Z]{2}[A-Z0-9]{10}$/;
 
@@ -72,78 +75,50 @@ export function Heatmap({ data, showBreakdown = false, onItemClick }: HeatmapPro
 
         if (hasChildren && item.children) {
             return (
-                <div
-                    key={item.id}
-                    className="heatmap__group"
-                    style={{ flex: `${widthPercent} 1 200px` }}
-                >
-                    <div className="heatmap__group-label">{item.name}</div>
-                    <div className="heatmap__group-items">
+                <ChartsPresentation appearance="heatmap__group"  key={item.id} style={{ flex: `${widthPercent} 1 200px` }}>
+                    <ChartsPresentation appearance="heatmap__group-label"  >{item.name}</ChartsPresentation>
+                    <ChartsPresentation appearance="heatmap__group-items"  >
                         {item.children.map((child) => (
-                            <div
-                                key={child.id}
-                                className={`heatmap__item heatmap__item--child ${hoveredItem === child.id ? 'heatmap__item--hovered' : ''}`}
-                                style={{
+                            <HeatmapTile child hovered={hoveredItem===child.id} key={child.id} style={{
                                     backgroundColor: getBackgroundColor(child.changePercent),
                                     color: getTextColor(child.changePercent),
                                     flex: `${child.weight} 1 96px`,
-                                }}
-                                onMouseEnter={() => setHoveredItem(child.id)}
-                                onMouseLeave={() => setHoveredItem(null)}
-                                onClick={() => onItemClick?.(child)}
-                                role={onItemClick ? 'button' : undefined}
-                                tabIndex={onItemClick ? 0 : undefined}
-                                onKeyDown={(event) => handleKeyDown(event, child)}
-                            >
-                                <span className="heatmap__item-symbol">{child.name}</span>
+                                }} onMouseEnter={() => setHoveredItem(child.id)} onMouseLeave={() => setHoveredItem(null)} onClick={() => onItemClick?.(child)} role={onItemClick ? 'button' : undefined} tabIndex={onItemClick ? 0 : undefined} onKeyDown={(event) => handleKeyDown(event, child)}>
+                                <ChartsPresentation appearance="heatmap__item-symbol" as="span" >{child.name}</ChartsPresentation>
                                 {getSecondaryIdentifier(child.symbol, child.name) && (
-                                    <span className="heatmap__item-name">{getSecondaryIdentifier(child.symbol, child.name)}</span>
+                                    <ChartsPresentation appearance="heatmap__item-name" as="span" >{getSecondaryIdentifier(child.symbol, child.name)}</ChartsPresentation>
                                 )}
-                                <span className="heatmap__item-change">{Number.isFinite(child.changePercent) ? formatChange(child.changePercent) : `${child.weight.toLocaleString('es-ES', { maximumFractionDigits: 2 })}% del fondo`}</span>
-                            </div>
+                                <ChartsPresentation appearance="heatmap__item-change" as="span" >{Number.isFinite(child.changePercent) ? formatChange(child.changePercent) : `${child.weight.toLocaleString('es-ES', { maximumFractionDigits: 2 })}% del fondo`}</ChartsPresentation>
+                            </HeatmapTile>
                         ))}
-                    </div>
-                </div>
+                    </ChartsPresentation>
+                </ChartsPresentation>
             );
         }
 
         return (
-            <div
-                key={item.id}
-                className={`heatmap__item ${isHovered ? 'heatmap__item--hovered' : ''}`}
-                style={{
+            <HeatmapTile hovered={isHovered} key={item.id} style={{
                     backgroundColor: getBackgroundColor(item.changePercent),
                     color: getTextColor(item.changePercent),
                     flex: `${widthPercent} 1 0`,
                     minWidth: widthPercent > 15 ? '120px' : '80px',
-                }}
-                onMouseEnter={() => setHoveredItem(item.id)}
-                onMouseLeave={() => setHoveredItem(null)}
-                onClick={() => onItemClick?.(item)}
-                role={onItemClick ? 'button' : undefined}
-                tabIndex={onItemClick ? 0 : undefined}
-                onKeyDown={(event) => handleKeyDown(event, item)}
-            >
-                <span className="heatmap__item-symbol">{item.name}</span>
+                }} onMouseEnter={() => setHoveredItem(item.id)} onMouseLeave={() => setHoveredItem(null)} onClick={() => onItemClick?.(item)} role={onItemClick ? 'button' : undefined} tabIndex={onItemClick ? 0 : undefined} onKeyDown={(event) => handleKeyDown(event, item)}>
+                <ChartsPresentation appearance="heatmap__item-symbol" as="span" >{item.name}</ChartsPresentation>
                 {getSecondaryIdentifier(item.symbol, item.name) && (
-                    <span className="heatmap__item-name">{getSecondaryIdentifier(item.symbol, item.name)}</span>
+                    <ChartsPresentation appearance="heatmap__item-name" as="span" >{getSecondaryIdentifier(item.symbol, item.name)}</ChartsPresentation>
                 )}
-                <span className="heatmap__item-change">{formatChange(item.changePercent)}</span>
-                <span className="heatmap__item-value">{formatCurrency(item.value)}</span>
-            </div>
+                <ChartsPresentation appearance="heatmap__item-change" as="span" >{formatChange(item.changePercent)}</ChartsPresentation>
+                <ChartsPresentation appearance="heatmap__item-value" as="span" >{formatCurrency(item.value)}</ChartsPresentation>
+            </HeatmapTile>
         );
     };
 
     return (
-        <div className="heatmap">
-            <div className="heatmap__container">
+        <ChartsPresentation appearance="heatmap"  >
+            <ChartsPresentation appearance="heatmap__container"  >
                 {data.map((item) => renderItem(item))}
-            </div>
-            <div className="heatmap__legend">
-                <span className="heatmap__legend-label">Pérdida</span>
-                <div className="heatmap__legend-gradient" />
-                <span className="heatmap__legend-label">Ganancia</span>
-            </div>
-        </div>
+            </ChartsPresentation>
+            <HeatmapScale negative={<>Pérdida</>} positive={<>Ganancia</>}/>
+        </ChartsPresentation>
     );
 }

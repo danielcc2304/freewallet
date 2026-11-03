@@ -12,6 +12,20 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-11-02 - Tailwind: gráficos, detalle de cartera y contenedores · 85,33 %
+- Funcionalidad:
+  - Comparte estructura de leyendas, tooltips y celdas del mapa de calor; retira el antiguo PortfolioChart, sin consumidores, junto con su exportación y CSS.
+  - Completa los marcos, formularios y resúmenes de detalle de activos, subyacentes, traspasos, composición, análisis, controles y salud de cartera.
+  - Migra la presentación restante de Bonos, IRPF, FIRE, Jubilación, Crisis y Market Timing, y los contenedores/cabeceras compartidos de la aplicación y Academia.
+- Resumen:
+  - Retira 1.163 líneas de CSS fuente y 423 declaraciones `@apply`; elimina 17 hojas completas. Quedan 3.337 líneas en 24 hojas: reducción acumulada del 85,33 %, otros 5,11 puntos sobre la base original. No equivale a ahorro de descarga.
+  - Conserva cálculos, datos, controles, persistencia y los modos claro/oscuro y Liquid Glass. Mantiene en CSS las animaciones y materiales que todavía lo requieren.
+  - Se verifica la lógica de 29 consumidores, cálculos financieros y recorridos de traspasos, fundamentales, subyacentes y calculadoras. Coinciden 264 estados de rutas y modales y pasan 492 combinaciones responsive en 41 rutas, TypeScript, ESLint y compilación.
+- Archivos:
+  - `src/components/charts/*`, `src/components/dashboard/*` y `src/components/dashboard/ui/PortfolioPresentation*`.
+  - `src/components/academy/calculators/*`, `src/components/academy/ui/SimulationDetailPresentation*` y piezas compartidas de simuladores.
+  - `src/components/layout/*`, `src/components/academy/layout/*`, adaptación del contexto de presentación en la prueba de usabilidad y documentación.
+
 ### 2026-11-02 - Tailwind: guías, simuladores, Portfolio y navegación · 80,22 %
 - Funcionalidad:
   - Comparte marcos de lectura, cabeceras, secciones, rejillas y siguientes pasos en Valoración, Errores comunes, Tu viaje como inversor, Glosario, Escenarios y Estrategias.

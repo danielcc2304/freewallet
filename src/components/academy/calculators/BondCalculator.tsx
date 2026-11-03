@@ -1,36 +1,18 @@
+import {CalculatorPresentation} from './CalculatorDetailPresentation';
+import {calculatorPresentationClasses} from './CalculatorDetailPresentation.styles';
 import {CalculatorBondDetails,CalculatorWorkspace,CalculatorWorkspaceHeader,CalculatorWorkspaceTitle,CalculatorWorkspaceButton} from './CalculatorWorkspace';
 
-import { CalculatorGrid } from './CalculatorGrid';
-import { CalculatorHeroMetric } from './CalculatorHeroMetric';
-import { CalculatorEducationCard } from './CalculatorEducationCard';
-import { CalculatorField } from './CalculatorField';
+import {CalculatorGrid} from './CalculatorGrid';
+import {CalculatorHeroMetric} from './CalculatorHeroMetric';
+import {CalculatorEducationCard} from './CalculatorEducationCard';
+import {CalculatorField} from './CalculatorField';
 
-import { CalculatorDataItem } from './CalculatorDataItem';
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react';
-import {
-    Info,
-    AlertTriangle,
-    TrendingDown,
-    Scale,
-    Landmark,
-    HelpCircle,
-    Wallet,
-    CalendarDays,
-    ChevronDown,
-    ChevronUp,
-} from 'lucide-react';
-import { validateCalculatorInputs } from './calculatorValidation';
-import {
-    solveBasicBond,
-    solveAdvancedBond,
-    parseIsoDate,
-    toIsoDate,
-    addMonthsUtc,
-    type CouponFrequency,
-    type PriceInputType,
-    type DayCountConvention,
-} from '../../../services/bondCalculator';
-import './BondCalculator.css';
+import {CalculatorDataItem} from './CalculatorDataItem';
+import {useEffect,useMemo,useState,type ChangeEvent} from 'react';
+import {Info,AlertTriangle,TrendingDown,Scale,Landmark,HelpCircle,Wallet,CalendarDays,ChevronDown,ChevronUp} from 'lucide-react';
+import {validateCalculatorInputs} from './calculatorValidation';
+import {solveBasicBond,solveAdvancedBond,parseIsoDate,toIsoDate,addMonthsUtc,type CouponFrequency,type PriceInputType,type DayCountConvention} from '../../../services/bondCalculator';
+
 
 interface BondCalculatorStorage {
     price: number | string;
@@ -584,7 +566,7 @@ export function BondCalculator() {
                                         labelClassName="label"
                                         label="Situacion"
                                         valueAs="span"
-                                        valueClassName={`status-badge ${parStatus < 0 ? 'status-badge--discount' : parStatus > 0 ? 'status-badge--premium' : 'status-badge--par'}`}
+                                        valueClassName={calculatorPresentationClasses(`status-badge ${parStatus < 0 ? 'status-badge--discount' : parStatus > 0 ? 'status-badge--premium' : 'status-badge--par'}`)}
                                         value={<>{parStatus < 0
                                             ? 'Bajo Par (Descuento)'
                                             : parStatus > 0
@@ -597,18 +579,15 @@ export function BondCalculator() {
                                         labelClassName="label"
                                         label="Cupón anual en dinero"
                                         valueAs="div"
-                                        valueClassName="coupon-value"
-                                        value={<><Wallet
-                                            size={16}
-                                            className="coupon-value__icon"
-                                        />
-                                            <span className="value">
+                                        valueClassName={calculatorPresentationClasses("coupon-value")}
+                                        value={<><Wallet size={16} className={calculatorPresentationClasses("coupon-value__icon")}/>
+                                            <CalculatorPresentation appearance="value" as="span" >
                                                 {(
                                                     Number(face) *
                                                     (Number(coupon) / 100)
                                                 ).toFixed(2)}{' '}
                                                 u.m.
-                                            </span></>}
+                                            </CalculatorPresentation></>}
                                     />
                                 {showAdvancedPriceBreakdown && (
                                         <CalculatorDataItem
@@ -617,7 +596,7 @@ export function BondCalculator() {
                                             labelClassName="label"
                                             label="Precio Limpio"
                                             valueAs="span"
-                                            valueClassName="detail-box__value"
+                                            valueClassName={calculatorPresentationClasses("detail-box__value")}
                                             value={<>{calculation.cleanPrice.toFixed(4)}</>}
                                         />
                                 )}
@@ -628,7 +607,7 @@ export function BondCalculator() {
                                             labelClassName="label"
                                             label="Precio Sucio"
                                             valueAs="span"
-                                            valueClassName="detail-box__value"
+                                            valueClassName={calculatorPresentationClasses("detail-box__value")}
                                             value={<>{calculation.dirtyPrice.toFixed(4)}</>}
                                         />
                                 )}
@@ -639,7 +618,7 @@ export function BondCalculator() {
                                             labelClassName="label"
                                             label="Cupón Corrido"
                                             valueAs="span"
-                                            valueClassName="detail-box__value"
+                                            valueClassName={calculatorPresentationClasses("detail-box__value")}
                                             value={<>{calculation.accruedInterest.toFixed(
                                                 6,
                                             )}</>}
@@ -652,7 +631,7 @@ export function BondCalculator() {
                                             labelClassName="label"
                                             label="Próximo Cupón"
                                             valueAs="span"
-                                            valueClassName="detail-box__value"
+                                            valueClassName={calculatorPresentationClasses("detail-box__value")}
                                             value={<>{calculation.nextCouponDate ?? '--'}</>}
                                         />
                                 )}
@@ -663,7 +642,7 @@ export function BondCalculator() {
                                     labelClassName="label"
                                     label="YTM efectiva anual"
                                     valueAs="span"
-                                    valueClassName="detail-box__value"
+                                    valueClassName={calculatorPresentationClasses("detail-box__value")}
                                     value={<>{(calculation.effectiveYtm * 100).toFixed(
                                         2,
                                     )}

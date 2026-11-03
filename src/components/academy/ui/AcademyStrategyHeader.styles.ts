@@ -2,7 +2,7 @@ import { cn } from '../../../utils/cn';
 
 const styles = {
     'portfolio-builder__header': String.raw`
-        tw:mb-[3rem] tw:text-center tw:[.strategy-page_&]:mb-[1rem]
+        tw:mb-[3rem] tw:text-center tw:[.strategy-page_&&]:mb-[1rem]
     `,
     'portfolio-builder__title': String.raw`
         tw:text-[length:2.5rem] tw:[font-weight:800] tw:text-main tw:mb-[1rem]

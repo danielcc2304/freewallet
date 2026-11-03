@@ -1,24 +1,17 @@
-import { HeatmapWorkspace, HeatmapToolbar, HeatmapToolbarField, HeatmapMetrics, HeatmapMetric, HeatmapCanvas, HeatmapState, HeatmapCompletion, HeatmapDetails, HeatmapExtreme, HeatmapSectorSummary, HeatmapFooter, HeatmapFloatingActions, HeatmapRefreshButton } from '../ui/HeatmapWorkspace';
 
-import { HeatmapOptions, HeatmapOption, HeatmapIndexIntro, HeatmapLegend, HeatmapSelection, HeatmapSectorRow } from '../ui/HeatmapControls';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import {
-    AlertTriangle,
-    ExternalLink,
-    RefreshCw,
-    TrendingDown,
-    TrendingUp,
-} from 'lucide-react';
-import { ResponsiveContainer, Treemap, type TreemapNode } from 'recharts';
-import { MARKET_HEATMAP_INDEX_BY_ID, MARKET_HEATMAP_INDICES } from '../../../data/marketHeatmapIndices';
-import type {
-    MarketHeatmapConstituent,
-    MarketHeatmapIndexId,
-} from '../../../data/marketHeatmapIndices';
-import { getQuote, getQuotesYahooSpark } from '../../../services/apiService';
-import { loadMarketIndexHoldings } from '../../../services/marketHeatmapService';
-import type { StockQuote } from '../../../types/types';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
+
+import {HeatmapWorkspace,HeatmapToolbar,HeatmapToolbarField,HeatmapMetrics,HeatmapMetric,HeatmapCanvas,HeatmapState,HeatmapCompletion,HeatmapDetails,HeatmapExtreme,HeatmapSectorSummary,HeatmapFooter,HeatmapFloatingActions,HeatmapRefreshButton} from '../ui/HeatmapWorkspace';
+
+import {HeatmapOptions,HeatmapOption,HeatmapIndexIntro,HeatmapLegend,HeatmapSelection,HeatmapSectorRow} from '../ui/HeatmapControls';
+import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
+import {AlertTriangle,ExternalLink,RefreshCw,TrendingDown,TrendingUp} from 'lucide-react';
+import {ResponsiveContainer,Treemap,type TreemapNode} from 'recharts';
+import {MARKET_HEATMAP_INDEX_BY_ID,MARKET_HEATMAP_INDICES} from '../../../data/marketHeatmapIndices';
+import type {MarketHeatmapConstituent,MarketHeatmapIndexId} from '../../../data/marketHeatmapIndices';
+import {getQuote,getQuotesYahooSpark} from '../../../services/apiService';
+import {loadMarketIndexHoldings} from '../../../services/marketHeatmapService';
+import type {StockQuote} from '../../../types/types';
+import {AcademyPageHeader} from '../layout/AcademyPageHeader';
 import './MarketHeatmap.css';
 
 interface LoadedIndexQuotes {
@@ -440,7 +433,7 @@ export function MarketHeatmap() {
     }, [heatmapData, syncSectorLabelPositions]);
 
     return (
-        <div className="market-heatmap">
+        <div className={"market-heatmap"}>
             <AcademyPageHeader className="market-heatmap__header" section="Herramientas">
                 <h1>Heatmap de mercados</h1>
                 <p>Compara el movimiento diario de las principales compañías por su peso dentro de cada índice.</p>

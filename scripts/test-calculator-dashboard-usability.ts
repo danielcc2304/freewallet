@@ -1,3 +1,5 @@
+import { CalculatorPresentation } from '../src/components/academy/calculators/CalculatorDetailPresentation';
+import { calculatorPresentationClasses } from '../src/components/academy/calculators/CalculatorDetailPresentation.styles';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -52,7 +54,7 @@ assert.deepEqual(JSON.parse(JSON.stringify(vm.runInContext('selectBenchmark()',b
 
 const fireSource = ts.createSourceFile('FIRECalculator.tsx', readFileSync('src/components/academy/calculators/FIRECalculator.tsx', 'utf8'), ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 const tooltipFunctions = fireSource.statements.filter(s => ts.isFunctionDeclaration(s) && ['formatFIRECurrency', 'FIRETooltip'].includes(s.name?.text || '')).map(s => s.getText(fireSource)).join('\n');
-const tooltipContext = vm.createContext({ React });
+const tooltipContext = vm.createContext({ React, CalculatorPresentation, calculatorPresentationClasses });
 vm.runInContext(ts.transpileModule(tooltipFunctions, { compilerOptions: { target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.React } }).outputText, tooltipContext);
 for (const [includeInflation, mode, label] of [[false, 'real', 'sin ajuste por inflación'], [true, 'real', 'en euros de hoy'], [true, 'nominal', 'en euros futuros (nominal)']] as const) {
     tooltipContext.args = { active: true, payload: [{ value: 100 }, { value: 200 }], label: 1, shouldAdjustForInflation: includeInflation, projectionMode: mode };

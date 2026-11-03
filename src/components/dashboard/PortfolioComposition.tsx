@@ -1,16 +1,18 @@
+import {PortfolioPresentation} from './ui/PortfolioPresentation';
+import {portfolioPresentationClasses} from './ui/PortfolioPresentation.styles';
 import {CompositionDisclosure,CompositionExposureRow,CompositionGroupHeading} from './CompositionParts';
-import { DashboardSwitch } from './ui/DashboardSwitch';
-import { useEffect, useEffectEvent, useMemo, useState } from 'react';
-import { Button, Card, CardHeader, CardContent } from '../ui';
-import { DonutChart, Heatmap } from '../charts';
-import type { Asset, AssetHolding, CompositionItem, HeatmapItem } from '../../types/types';
-import { getColorForIndex } from '../../data/chartColors';
-import { getFundRelevance } from '../../services/finect/finectService';
-import { isApiEnabled } from '../../services/storageService';
-import { buildConsolidatedPortfolioExposures, type ConsolidatedPortfolioExposure } from '../../services/portfolioComposition';
-import { normalizeFundHoldings, selectFundHoldings, holdingsCoverage, availableFundDistributions, fundDistributionLabel } from '../../services/fundBreakdown';
-import { assetValue, hasValidPrice } from '../../services/assetValuation';
-import './PortfolioComposition.css';
+import {DashboardSwitch} from './ui/DashboardSwitch';
+import {useEffect,useEffectEvent,useMemo,useState} from 'react';
+import {Button,Card,CardHeader,CardContent} from '../ui';
+import {DonutChart,Heatmap} from '../charts';
+import type {Asset,AssetHolding,CompositionItem,HeatmapItem} from '../../types/types';
+import {getColorForIndex} from '../../data/chartColors';
+import {getFundRelevance} from '../../services/finect/finectService';
+import {isApiEnabled} from '../../services/storageService';
+import {buildConsolidatedPortfolioExposures,type ConsolidatedPortfolioExposure} from '../../services/portfolioComposition';
+import {normalizeFundHoldings,selectFundHoldings,holdingsCoverage,availableFundDistributions,fundDistributionLabel} from '../../services/fundBreakdown';
+import {assetValue,hasValidPrice} from '../../services/assetValuation';
+
 
 interface PortfolioCompositionProps {
     assets: Asset[];
@@ -283,13 +285,13 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                 }
             />
             <CardContent>
-                <div className="portfolio-composition__content">
-                    <div className="portfolio-composition__heatmap">
+                <PortfolioPresentation appearance="portfolio-composition__content"  >
+                    <PortfolioPresentation appearance="portfolio-composition__heatmap"  >
                         {showBreakdown ? (
                             <CompositionDisclosure variant="heatmap" title={<>Mapa de calor</>}><Heatmap data={heatmapData} showBreakdown onItemClick={handleHeatmapClick} /></CompositionDisclosure>
                         ) : (
                             <>
-                                <h4 className="portfolio-composition__section-title">Mapa de Calor</h4>
+                                <PortfolioPresentation appearance="portfolio-composition__section-title" as="h4" >Mapa de Calor</PortfolioPresentation>
                                 <Heatmap data={heatmapData} onItemClick={handleHeatmapClick} />
                             </>
                         )}
@@ -297,53 +299,53 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                         {showBreakdown && apiEnabled && funds.some(a => breakdownErrors[getFundIsin(a) || a.id]) && <Button variant="secondary" type="button" disabled={breakdownLoading} onClick={() => setRetry(n => n + 1)}>Reintentar desgloses pendientes</Button>}
                         {showBreakdown && <p>Los subyacentes muestran exposición estimada, no la rentabilidad del fondo como si fuera propia.</p>}
                         {showBreakdown && funds.length > 0 && (
-                            <p className="portfolio-composition__breakdown-status" aria-live="polite">
+                            <PortfolioPresentation appearance="portfolio-composition__breakdown-status" as="p" aria-live="polite">
                                 {breakdownLoading ? 'Cargando desgloses… · ' : 'Desglose activo · '}
                                 {fundsWithBreakdown.length}/{funds.length} fondos con posiciones
                                 {!!distributionsOnly.length && ` · ${distributionsOnly.length} solo con distribución`}
                                 {' · exposiciones repetidas sumadas'}
-                            </p>
+                            </PortfolioPresentation>
                         )}
-                    </div>
+                    </PortfolioPresentation>
                         {showBreakdown && (
-                            <div className="portfolio-composition__consolidated">
-                                <div className="portfolio-composition__consolidated-header">
+                            <PortfolioPresentation appearance="portfolio-composition__consolidated"  >
+                                <PortfolioPresentation appearance="portfolio-composition__consolidated-header"  >
                                     <div>
                                         <h4>Exposición total consolidada</h4>
                                         <p>Une las posiciones directas con las que aparecen dentro de los fondos y suma los solapamientos.</p>
                                     </div>
                                     <span>{consolidatedExposures.length} exposiciones · 100%</span>
-                                </div>
-                                <div className="portfolio-composition__exposure-sections">
+                                </PortfolioPresentation>
+                                <PortfolioPresentation appearance="portfolio-composition__exposure-sections"  >
                                     {identifiedExposures.length > 0 && (
-                                        <section className="portfolio-composition__exposure-group">
+                                        <PortfolioPresentation appearance="portfolio-composition__exposure-group" as="section" >
                                             <CompositionGroupHeading title={<>Exposición identificada</>}  total={<>{identifiedExposures.length} posiciones</>} />
-                                            <div className="portfolio-composition__exposure-list">
+                                            <PortfolioPresentation appearance="portfolio-composition__exposure-list"  >
                                                 {identifiedExposures.map(renderExposureRow)}
-                                            </div>
-                                        </section>
+                                            </PortfolioPresentation>
+                                        </PortfolioPresentation>
                                     )}
                                     {residualExposures.length > 0 && (
-                                        <section className="portfolio-composition__exposure-group portfolio-composition__exposure-group--residual">
+                                        <section className={portfolioPresentationClasses("portfolio-composition__exposure-group portfolio-composition__exposure-group--residual")}>
                                             <CompositionGroupHeading title={<>No desglosados</>} description={<>Parte de los fondos sin posiciones detalladas.</>} total={<>{residualExposures.reduce((sum, exposure) => sum + exposure.weight, 0).toLocaleString('es-ES', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}%</>} />
-                                            <div className="portfolio-composition__exposure-list">
+                                            <PortfolioPresentation appearance="portfolio-composition__exposure-list"  >
                                                 {residualExposures.map(renderExposureRow)}
-                                            </div>
+                                            </PortfolioPresentation>
                                         </section>
                                     )}
-                                </div>
-                                <p className="portfolio-composition__consolidated-note">
+                                </PortfolioPresentation>
+                                <PortfolioPresentation appearance="portfolio-composition__consolidated-note" as="p" >
                                     Si un proveedor solo devuelve las principales posiciones, el porcentaje restante queda como “resto no desglosado” para que la suma cuadre con el valor total de tu cartera.
-                                </p>
-                            </div>
+                                </PortfolioPresentation>
+                            </PortfolioPresentation>
                         )}
-                    <div className="portfolio-composition__donut">
+                    <PortfolioPresentation appearance="portfolio-composition__donut"  >
                         <DonutChart
                             data={showBreakdown ? consolidatedCompositionData : compositionData}
                             title={showBreakdown ? 'Exposición total' : 'Distribución por Valor'}
                         />
-                    </div>
-                    {showBreakdown && <div className="portfolio-composition__distributions">
+                    </PortfolioPresentation>
+                    {showBreakdown && <PortfolioPresentation appearance="portfolio-composition__distributions"  >
                         {fundDetails.map(({ asset, isin, holdings, source, groups, loading, failed, coverage }) => (
                             <CompositionDisclosure key={asset.id} data-fund-id={asset.id} variant="fund" title={<>{asset.name}</>} hint={<>
                                     {holdings.length ? `${holdings.length} posiciones · ${coverage.toLocaleString('es-ES', { maximumFractionDigits: 2 })}% identificado · ${source === 'provider' ? 'Finect' : 'guardado'}`
@@ -363,8 +365,8 @@ export function PortfolioComposition({ assets, onAssetClick, onHoldingClick, onE
                                     {!apiEnabled && <p>Consultas desactivadas. Se muestra la información guardada.</p>}
                                 </CompositionDisclosure>
                         ))}
-                    </div>}
-                </div>
+                    </PortfolioPresentation>}
+                </PortfolioPresentation>
             </CardContent>
         </Card>
     );

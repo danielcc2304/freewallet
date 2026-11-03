@@ -1,18 +1,20 @@
-import { calculatorWorkspaceStyle } from './CalculatorWorkspace.styles';
+import {CalculatorPresentation} from './CalculatorDetailPresentation';
+import {calculatorPresentationClasses} from './CalculatorDetailPresentation.styles';
+import {calculatorWorkspaceStyle} from './CalculatorWorkspace.styles';
 import {CalculatorWorkspace,CalculatorWorkspaceHeader,CalculatorWorkspaceCard,CalculatorWorkspaceTitle,CalculatorRetirementSummary} from './CalculatorWorkspace';
-import { CalculatorLegend } from './CalculatorLegend';
-import { CalculatorNotice } from './CalculatorNotice';
-import { CalculatorChart } from './CalculatorChart';
-import { CalculatorToolHeading } from './CalculatorToolHeading';
-import { CalculatorField } from './CalculatorField';
-import { CalculatorResultCard } from './CalculatorResultCard';
-import { useEffect, useMemo, useState } from 'react';
-import { Calendar, Info, ShieldAlert, BadgeInfo, Wallet2, TrendingUp } from 'lucide-react';
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {CalculatorLegend} from './CalculatorLegend';
+import {CalculatorNotice} from './CalculatorNotice';
+import {CalculatorChart} from './CalculatorChart';
+import {CalculatorToolHeading} from './CalculatorToolHeading';
+import {CalculatorField} from './CalculatorField';
+import {CalculatorResultCard} from './CalculatorResultCard';
+import {useEffect,useMemo,useState} from 'react';
+import {Calendar,Info,ShieldAlert,BadgeInfo,Wallet2,TrendingUp} from 'lucide-react';
+import {AreaChart,Area,XAxis,YAxis,CartesianGrid,Tooltip,ResponsiveContainer} from 'recharts';
 
-import { validateCalculatorInputs } from './calculatorValidation';
-import './RetirementCalculator.css';
-import { ScenarioComparison } from './ScenarioComparison';
+import {validateCalculatorInputs} from './calculatorValidation';
+
+import {ScenarioComparison} from './ScenarioComparison';
 
 interface RetirementCalculatorStorage {
     currentAge: number | string;
@@ -59,11 +61,11 @@ function RetirementTooltip({ active, payload, label }: RetirementTooltipProps) {
     if (!active || !payload?.length) return null;
 
     return (
-        <div className="retirement-tooltip">
-            <p className="retirement-tooltip__label">Edad: {label} años</p>
-            <p className="retirement-tooltip__value nominal">Valor Futuro: {formatRetirementCurrency(Number(payload[0]?.value ?? 0))}</p>
-            <p className="retirement-tooltip__value real">Poder de Compra Hoy: {formatRetirementCurrency(Number(payload[1]?.value ?? 0))}</p>
-        </div>
+        <CalculatorPresentation appearance="retirement-tooltip"  >
+            <CalculatorPresentation appearance="retirement-tooltip__label" as="p" >Edad: {label} años</CalculatorPresentation>
+            <p className={calculatorPresentationClasses("retirement-tooltip__value nominal")}>Valor Futuro: {formatRetirementCurrency(Number(payload[0]?.value ?? 0))}</p>
+            <p className={calculatorPresentationClasses("retirement-tooltip__value real")}>Poder de Compra Hoy: {formatRetirementCurrency(Number(payload[1]?.value ?? 0))}</p>
+        </CalculatorPresentation>
     );
 }
 

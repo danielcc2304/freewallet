@@ -1,12 +1,14 @@
+import {SimulationPresentation} from '../ui/SimulationDetailPresentation';
+import {simulationPresentationClasses} from '../ui/SimulationDetailPresentation.styles';
 import {AcademyTimingIntro,AcademyTimingQuote,AcademyTimingWallet,AcademyTimingPortions,AcademyTimingRound,AcademyTimingRules,AcademyTimingGoal} from '../ui/AcademyTiming';
-import { AcademyMetric } from '../ui/AcademyMetric';
-import { AcademyGrid } from '../ui/AcademyGrid';
-import { useEffect, useReducer, useRef, useState } from 'react';
-import { ArrowRight, Pause, Play, RotateCcw, TrendingDown, TrendingUp, Trophy } from 'lucide-react';
-import { Area, CartesianGrid, ComposedChart, ReferenceDot, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
-import { Button } from '../../ui';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
-import { createTimingGame, timingOrderAvailable, timingReducer, timingScore, timingValue, TIMING_RULES, type TradeFraction } from './marketTimingEngine';
+import {AcademyMetric} from '../ui/AcademyMetric';
+import {AcademyGrid} from '../ui/AcademyGrid';
+import {useEffect,useReducer,useRef,useState} from 'react';
+import {ArrowRight,Pause,Play,RotateCcw,TrendingDown,TrendingUp,Trophy} from 'lucide-react';
+import {Area,CartesianGrid,ComposedChart,ReferenceDot,ResponsiveContainer,Tooltip,XAxis,YAxis} from 'recharts';
+import {Button} from '../../ui';
+import {AcademyPageHeader} from '../layout/AcademyPageHeader';
+import {createTimingGame,timingOrderAvailable,timingReducer,timingScore,timingValue,TIMING_RULES,type TradeFraction} from './marketTimingEngine';
 import './MarketTimingGame.css';
 
 const money = (value: number) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', maximumFractionDigits: 2 }).format(value);
@@ -76,22 +78,22 @@ export function MarketTimingGame() {
         : game.tick + TIMING_RULES.delayTicks > TIMING_RULES.ticks ? 'Ya no hay tiempo para ejecutar otra orden.' : game.feedback;
 
     return (
-        <div className="market-timing-game">
-            <AcademyPageHeader className="market-timing-game__header" section="Herramientas">
+        <SimulationPresentation appearance="market-timing-game"  >
+            <AcademyPageHeader className={simulationPresentationClasses("market-timing-game__header")} section="Herramientas">
                 <h1>Reto: Market Timing vs DCA</h1>
                 <p>Tres mercados distintos. El mismo capital. Tus decisiones frente a diez compras programadas.</p>
             </AcademyPageHeader>
 
             <AcademyTimingGoal icon={<Trophy size={18} aria-hidden="true" />}> Gana 2 de 3 rondas y suma al menos 100 € de ventaja sobre el DCA.</AcademyTimingGoal>
 
-            <div className="timing-board" ref={board}>
-                <div className="timing-round-header">
+            <div className={simulationPresentationClasses("timing-board")} ref={board}>
+                <SimulationPresentation appearance="timing-round-header"  >
                     <span>Ronda {game.round} de {TIMING_RULES.rounds} · {score.wins} ganadas</span>
-                    <span className="timing-clock">{paused ? 'En pausa · ' : ''}{((TIMING_RULES.ticks - game.tick) * TIMING_RULES.tickMs / 1000).toFixed(1).replace('.', ',')} s</span>
-                </div>
-                <progress className="timing-progress" max={TIMING_RULES.ticks} value={game.tick} aria-label="Progreso de la ronda" />
+                    <SimulationPresentation appearance="timing-clock" as="span" >{paused ? 'En pausa · ' : ''}{((TIMING_RULES.ticks - game.tick) * TIMING_RULES.tickMs / 1000).toFixed(1).replace('.', ',')} s</SimulationPresentation>
+                </SimulationPresentation>
+                <progress className={simulationPresentationClasses("timing-progress")} max={TIMING_RULES.ticks} value={game.tick} aria-label="Progreso de la ronda"/>
 
-                <AcademyGrid variant="timingStats" className="timing-stats">
+                <AcademyGrid variant="timingStats" className={simulationPresentationClasses("timing-stats")}>
                     <AcademyMetric variant="timing" label={<>Tu cartera</>} value={<>{money(playerValue)}</>} />
                     <AcademyMetric variant="timing" label={<>DCA</>} value={<>{money(dcaValue)}</>} detail={<>Incluye el efectivo pendiente</>} />
                     <AcademyMetric variant="timing" label={<>Ventaja en esta ronda</>} value={<>{signedMoney(edge)}</>} valueProps={{"className":direction(edge)}} />
@@ -103,7 +105,7 @@ export function MarketTimingGame() {
                 ) : (
                     <>
                         <AcademyTimingQuote label={<>Precio del activo · sesión {game.tick} / {TIMING_RULES.ticks}</>} value={<>{money(price)}</>} />
-                        <div className="timing-chart" aria-label="Evolución del precio simulado">
+                        <SimulationPresentation appearance="timing-chart"  aria-label="Evolución del precio simulado">
                             <ResponsiveContainer width="100%" height="100%">
                                 <ComposedChart data={game.history} margin={{ top: 12, right: 12, left: 0, bottom: 0 }}>
                                     <defs><linearGradient id="timing-price-fill" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--accent-primary)" stopOpacity={0.25} /><stop offset="100%" stopColor="var(--accent-primary)" stopOpacity={0} /></linearGradient></defs>
@@ -115,37 +117,37 @@ export function MarketTimingGame() {
                                     {game.trades.map((trade, index) => <ReferenceDot key={index} x={trade.tick} y={game.history[trade.tick].price} r={4} fill={trade.side === 'buy' ? '#10b981' : '#f59e0b'} stroke="var(--bg-secondary)" />)}
                                 </ComposedChart>
                             </ResponsiveContainer>
-                        </div>
-                        <p className="timing-chart-note">Precio en EUR. Puntos verdes: compras; naranjas: ventas.</p>
+                        </SimulationPresentation>
+                        <SimulationPresentation appearance="timing-chart-note" as="p" >Precio en EUR. Puntos verdes: compras; naranjas: ventas.</SimulationPresentation>
                         <AcademyTimingWallet items={[{label:<>Efectivo: </>,value:<>{money(game.player.cash)}</>},{label:<>Invertido: </>,value:<>{money(game.player.shares * price)}</>},{label:<>Caída máxima: </>,value:<>{game.drawdown.toFixed(1).replace('.', ',')}%</>}]} />
 
-                        {!roundEnded && <div className="timing-controls">
+                        {!roundEnded && <SimulationPresentation appearance="timing-controls"  >
                             <AcademyTimingPortions disabled={!running} legend={<>Parte del efectivo que compras o de la posición que vendes</>}>{([0.25, 0.5, 1] as TradeFraction[]).map(value => <button key={value} type="button" aria-pressed={fraction === value} onClick={() => setFraction(value)}>{value * 100}%</button>)}</AcademyTimingPortions>
-                            <div className="timing-trade-buttons">
+                            <SimulationPresentation appearance="timing-trade-buttons"  >
                                 <Button className="timing-buy" icon={<TrendingUp size={18} />} disabled={!timingOrderAvailable(game, 'buy')} onClick={() => dispatch({ type: 'order', side: 'buy', fraction })}>Comprar {fraction * 100}%</Button>
-                                <Button className="timing-sell" variant="secondary" icon={<TrendingDown size={18} />} disabled={!timingOrderAvailable(game, 'sell')} onClick={() => dispatch({ type: 'order', side: 'sell', fraction })}>Vender {fraction * 100}%</Button>
+                                <Button className={simulationPresentationClasses("timing-sell")} variant="secondary" icon={<TrendingDown size={18} />} disabled={!timingOrderAvailable(game, 'sell')} onClick={() => dispatch({ type: 'order', side: 'sell', fraction })}>Vender {fraction * 100}%</Button>
                                 <Button variant="ghost" icon={paused ? <Play size={18} /> : <Pause size={18} />} onClick={() => dispatch({ type: paused ? 'resume' : 'pause' })}>{paused ? 'Continuar' : 'Pausar'}</Button>
-                            </div>
-                            <p className="timing-order-status" role="status">{paused ? 'Mercado detenido. Continúa cuando estés listo.' : orderStatus}</p>
-                            <small className="timing-shortcuts">Teclado: C comprar · V vender · P pausar</small>
-                        </div>}
+                            </SimulationPresentation>
+                            <SimulationPresentation appearance="timing-order-status" as="p" role="status">{paused ? 'Mercado detenido. Continúa cuando estés listo.' : orderStatus}</SimulationPresentation>
+                            <SimulationPresentation appearance="timing-shortcuts" as="small" >Teclado: C comprar · V vender · P pausar</SimulationPresentation>
+                        </SimulationPresentation>}
                     </>
                 )}
             </div>
 
-            {roundEnded && latestResult && <section className="timing-results" ref={resultsPanel} aria-labelledby="timing-result-title">
+            {roundEnded && latestResult && <section className={simulationPresentationClasses("timing-results")} ref={resultsPanel} aria-labelledby="timing-result-title">
                 <h2 id="timing-result-title">{finished ? score.won ? '¡Reto superado!' : 'Esta vez no has superado el reto' : latestResult.edge > 1 ? 'Ronda a tu favor' : latestResult.edge < -1 ? 'Ronda para el DCA' : 'Ronda empatada'}</h2>
                 <p>{score.wins} de {game.results.length} rondas ganadas · Ventaja acumulada: <strong className={direction(score.edge)}>{signedMoney(score.edge)}</strong></p>
-                <div className="timing-round-list">
+                <SimulationPresentation appearance="timing-round-list"  >
                     {game.results.map(result => <AcademyTimingRound key={result.round} title={<>Ronda {result.round}</>} items={[{label:<>Tú </>,value:<>{money(result.playerValue)}</>},{label:<>DCA </>,value:<>{money(result.dcaValue)}</>},{label:<>Ventaja </>,value:<>{signedMoney(result.edge)}</>,className:direction(result.edge)}]} />)}
-                </div>
-                <p className="timing-result-costs">Esta ronda: {latestResult.trades} órdenes · Comisiones pagadas: tú {money(latestResult.fees)}, DCA {money(latestResult.dcaFees)} · Caída máxima: {latestResult.drawdown.toFixed(1).replace('.', ',')}%.</p>
+                </SimulationPresentation>
+                <SimulationPresentation appearance="timing-result-costs" as="p" >Esta ronda: {latestResult.trades} órdenes · Comisiones pagadas: tú {money(latestResult.fees)}, DCA {money(latestResult.dcaFees)} · Caída máxima: {latestResult.drawdown.toFixed(1).replace('.', ',')}%.</SimulationPresentation>
                 {finished && <p>Una buena partida no demuestra que puedas anticipar el mercado de forma repetible. El DCA reparte las entradas; no garantiza una rentabilidad superior.</p>}
                 <Button icon={finished ? <RotateCcw size={18} /> : <ArrowRight size={18} />} onClick={finished ? start : () => dispatch({ type: 'next' })}>{finished ? 'Nueva partida' : 'Siguiente ronda'}</Button>
             </section>}
 
             <AcademyTimingRules summary={<>Reglas y comparación</>}><p>3 rondas de 30 segundos. Cada una comprime 75 sesiones simuladas y empieza con 10.000 € para ambas estrategias. El DCA compra 1.000 € en diez fechas fijas, desde la primera sesión.</p><p>Tienes 8 órdenes por ronda. Se ejecutan dos sesiones después de enviarlas, al precio que haya entonces, con cuatro sesiones de descanso desde la última ejecución. Ambas estrategias pagan un 0,15% de comisión y un 0,10% de diferencial por compra o venta.</p><p>Se compara efectivo más participaciones al último precio, descontando los costes pagados. La caída máxima mide cuánto retrocedió tu cartera desde su máximo. Cambiar de pestaña pausa la partida; el mercado simulado no sigue sin ti.</p></AcademyTimingRules>
-        </div>
+        </SimulationPresentation>
     );
 }
 

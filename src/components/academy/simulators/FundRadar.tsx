@@ -1,15 +1,16 @@
-import { radarStyles, radarLabel, radarInput } from './radarStyles';
-import { cn } from '../../../utils/cn';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Search, RefreshCw, Plus, Pencil, Archive, RotateCcw, ChevronDown, ExternalLink, Info, SlidersHorizontal, Layers3, ArrowUpRight } from 'lucide-react';
-import { Button, ConfirmDialog } from '../../ui';
-import { AcademyPageHeader } from '../layout/AcademyPageHeader';
-import { useNewsEditorId } from '../../../hooks/useNewsEditorId';
-import { loadRadarCatalog, refreshRadarData, setRadarFundActive } from '../../../services/fundRadar/catalog';
-import { effectiveMetrics, RADAR_METRIC_LABELS, type MetricKey, type RadarFund } from '../../../services/fundRadar/types';
-import { scoreRadarFunds, type RadarScore } from '../../../services/funds/fundScoring';
-import { FundRadarEditor } from './FundRadarEditor';
+
+import {radarStyles,radarLabel,radarInput} from './radarStyles';
+import {cn} from '../../../utils/cn';
+import {useCallback,useEffect,useMemo,useRef,useState} from 'react';
+import {Link} from 'react-router-dom';
+import {Search,RefreshCw,Plus,Pencil,Archive,RotateCcw,ChevronDown,ExternalLink,Info,SlidersHorizontal,Layers3,ArrowUpRight} from 'lucide-react';
+import {Button,ConfirmDialog} from '../../ui';
+import {AcademyPageHeader} from '../layout/AcademyPageHeader';
+import {useNewsEditorId} from '../../../hooks/useNewsEditorId';
+import {loadRadarCatalog,refreshRadarData,setRadarFundActive} from '../../../services/fundRadar/catalog';
+import {effectiveMetrics,RADAR_METRIC_LABELS,type MetricKey,type RadarFund} from '../../../services/fundRadar/types';
+import {scoreRadarFunds,type RadarScore} from '../../../services/funds/fundScoring';
+import {FundRadarEditor} from './FundRadarEditor';
 import './FundRadar.css';
 
 const fmt=(value:number|null|undefined,suffix='%')=>value==null||!Number.isFinite(value)?'—':`${value.toLocaleString('es-ES',{maximumFractionDigits:2})}${suffix}`;

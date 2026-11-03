@@ -1,6 +1,7 @@
-import type { ButtonHTMLAttributes, DetailsHTMLAttributes, ReactNode } from 'react';
-import { cn } from '../../utils/cn';
-import { compositionStyle as s } from './CompositionParts.styles';
+
+import type {ButtonHTMLAttributes,DetailsHTMLAttributes,ReactNode} from 'react';
+import {cn} from '../../utils/cn';
+import {compositionStyle as s} from './CompositionParts.styles';
 /** Native details keep independent, initially collapsed fund and heatmap controls. */
 export function CompositionDisclosure({
     variant,
@@ -15,17 +16,14 @@ export function CompositionDisclosure({
     hint?: ReactNode;
 }) {
     return (
-        <details
-            {...props}
-            className={cn(
+        <details {...props} className={cn(
                 s(
                     variant === 'heatmap'
                         ? 'portfolio-composition__heatmap-details'
                         : 'portfolio-composition__breakdown-groups',
                 ),
                 className,
-            )}
-        >
+            )}>
             <summary>
                 {title}
                 {hint != null && <span>{hint}</span>}

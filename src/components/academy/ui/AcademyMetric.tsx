@@ -1,7 +1,8 @@
-import{AssetAllocationSimFrameStyle}from'./AssetAllocationSimFrame.styles';
+import {simulationPresentationClasses} from './SimulationDetailPresentation.styles';
+import {AssetAllocationSimFrameStyle} from './AssetAllocationSimFrame.styles';
 import {assetReadingStyle as assetStyle} from './AcademyAssetReading.styles';
-import type { HTMLAttributes, ReactNode } from 'react';
-import { cn } from '../../../utils/cn';
+import type {HTMLAttributes,ReactNode} from 'react';
+import {cn} from '../../../utils/cn';
 
 type Variant = 'hero' | 'allocation' | 'crisis' | 'timing';
 interface AcademyMetricProps {
@@ -43,7 +44,7 @@ export function AcademyMetric({ variant, label, value, detail, icon, valueProps 
     const valueNode = variant === 'hero' || variant === 'allocation'
         ? <span {...valueProps} className={valueClass}>{value}</span>
         : <strong {...valueProps} className={valueClass}>{value}</strong>;
-    return <div className={cn(variant === 'hero' ? assetStyle('hero-stat') : variant === 'allocation' ? AssetAllocationSimFrameStyle('alloc-sim__stat-card') : variant === 'crisis' ? 'crisis__stat' : undefined, roots[variant])}>
+    return <div className={simulationPresentationClasses(cn(variant === 'hero' ? assetStyle('hero-stat') : variant === 'allocation' ? AssetAllocationSimFrameStyle('alloc-sim__stat-card') : variant === 'crisis' ? 'crisis__stat' : undefined, roots[variant]))}>
         {icon}
         {variant === 'hero' ? <>{valueNode}{labelNode}</> : <>{labelNode}{valueNode}</>}
         {detail != null && (variant === 'allocation' ? <p className={cn('desc', details[variant])}>{detail}</p> : <small className={details[variant]}>{detail}</small>)}

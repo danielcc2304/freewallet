@@ -1,9 +1,10 @@
-import { allocationNote } from './AcademyAllocationNote.styles';
-import type { ButtonHTMLAttributes, HTMLAttributes, ReactNode } from 'react';
-import { cn } from '../../../utils/cn';
-import { crisisStyle as c } from './AcademyCrisisParts.styles';
-import { allocationStyle as a } from './AcademyAllocationParts.styles';
-import { modelStyle as m } from './AcademyModelParts.styles';
+import {simulationPresentationClasses} from './SimulationDetailPresentation.styles';
+import {allocationNote} from './AcademyAllocationNote.styles';
+import type {ButtonHTMLAttributes,HTMLAttributes,ReactNode} from 'react';
+import {cn} from '../../../utils/cn';
+import {crisisStyle as c} from './AcademyCrisisParts.styles';
+import {allocationStyle as a} from './AcademyAllocationParts.styles';
+import {modelStyle as m} from './AcademyModelParts.styles';
 export function AcademyCrisisTab({
     year,
     label,
@@ -93,7 +94,7 @@ export function AcademyImpactRow({
     low?: boolean;
 }) {
     return (
-        <div className={cn(c('crisis__impact-row'), low && 'crisis__impact-row--low')}>
+        <div className={simulationPresentationClasses(cn(c('crisis__impact-row'), low && 'crisis__impact-row--low'))}>
             <span>{label}</span>
             <strong {...valueProps}>{value}</strong>
             <div className={c('crisis__bar')}>

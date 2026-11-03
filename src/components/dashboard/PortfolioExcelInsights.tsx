@@ -28,7 +28,7 @@ import {positionLotCounts} from '../../services/dashboardIntegrity';
 import {getAssetChartData} from '../../services/apiService';
 import {getSettings,updateSettings,isApiEnabled} from '../../services/storageService';
 import {DashboardMarketHistoryCache} from '../../services/dashboardMarketHistory';
-import {benchmarkChartCadence,benchmarkPeriodDifference,benchmarkTooltipObservation,extendImportedBenchmark,extendBenchmarkObservations} from '../../services/benchmarkComparison';
+import {evolutionChartCadence,benchmarkChartCadence,benchmarkPeriodDifference,benchmarkTooltipObservation,extendImportedBenchmark,extendBenchmarkObservations} from '../../services/benchmarkComparison';
 import type {HistoricalDataPoint} from '../../types/types';
 
 const benchmarkHistoryCache = new DashboardMarketHistoryCache(2,15*60*1000);
@@ -351,13 +351,13 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         return benchmarkChartCadence(points.sort((a,b) => a.timestamp-b.timestamp), evolutionPeriod);
     }, [periodSeries, selectedPeriod.performance.returnPercent, benchmarkLine, benchmarkHasPeriodBase, evolutionPeriod]);
 
-    const evolutionSeries = periodSeries;
+    const evolutionSeries = useMemo(() => evolutionChartCadence(periodSeries, evolutionPeriod), [periodSeries, evolutionPeriod]);
     const selectedPeriodPerformance = selectedPeriod.performance;
-    const significantCapitalFlow = evolutionSeries.slice(1)
+    const significantCapitalFlow = periodSeries.slice(1)
         .map((point, index) => ({
             date: point.date,
             amount: point.netFlow,
-            baseValue: evolutionSeries[index].value,
+            baseValue: periodSeries[index].value,
         }))
         .filter((flow) => Math.abs(flow.amount) > Math.max(100, flow.baseValue * 0.5))
         .at(-1);
@@ -462,9 +462,9 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                 {(changingPanel||(tab==='benchmark'&&apiEnabled&&loadingBenchmark))&&<HistoricalStatus role="status" appearance="loading" icon={<LoaderCircle size={16} aria-hidden="true" />}>{changingPanel?'Cargando análisis…':'Consultando histórico del benchmark…'}</HistoricalStatus>}
                 <div role="tabpanel" id={`${tabId}-panel`} aria-labelledby={`${tabId}-${tab}`} aria-busy={changingPanel||(tab==='benchmark'&&apiEnabled&&loadingBenchmark)}>
                 {tab === 'evolution' && (
-                        <DashboardPanel className="portfolio-excel-insights__panel"><HistoricalPanelHeading title={<><CalendarClock size={16} /> Evolución registrada de la cartera</>} description={<>{hasArchivedHistory
-                                    ? 'Cierres mensuales y valoraciones diarias. Los movimientos con fecha exacta se aplican ese día; los resúmenes mensuales, al cierre.'
-                                    : 'Valoraciones completas guardadas con tus cotizaciones y operaciones.'}</>}><HistoricalPanelActions>
+                        <DashboardPanel className="portfolio-excel-insights__panel"><HistoricalPanelHeading title={<><CalendarClock size={16} /> Evolución registrada de la cartera</>} description={<>{['1D', '7D', '1M'].includes(evolutionPeriod)
+                                    ? 'Valoraciones disponibles del periodo.'
+                                    : 'Cierres mensuales · mes en curso provisional.'}</>}><HistoricalPanelActions>
                                 <HistoricalPeriodSummary label={<>Rentabilidad del periodo</>} value={<>{percent(selectedPeriodPerformance.returnPercent)}</>} detail={<>{selectedPeriodPerformance.observations} intervalos válidos · base {formatHistoryDate(selectedPeriodPerformance.baseDate)}{selectedPeriodPerformance.missingIntervals > 0 && ` · ${selectedPeriodPerformance.missingIntervals} sin base verificable`}{selectedPeriod.incompleteSince && ` · hasta ${formatChartDate(selectedPeriodPerformance.endDate ?? '')}`}</>} valueClassName={selectedPeriodPerformance.returnPercent !== null && selectedPeriodPerformance.returnPercent < 0 ? 'is-negative' : ''} />
                                 <strong>{evolutionSeries.length} observaciones</strong>
                                 <DashboardSegments appearance="periods" className="portfolio-excel-insights__periods" role="group" aria-label="Periodo de evolución" options={evolutionPeriods} value={evolutionPeriod} onChange={period => startPanelTransition(() => setEvolutionPeriod(period))} />

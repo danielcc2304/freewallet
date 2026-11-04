@@ -12,18 +12,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-11-03 - v7.1.1 - Evolución mensual homogénea e importación CSV de BBVA
+### 2026-11-03 - v7.1.1 - Evolución mensual homogénea e importación CSV bancario
 - Funcionalidad:
   - Evolución muestra un punto por mes en 3M, YTD y Todo, conservando la base del periodo y el último dato provisional del mes en curso. Diario, 7D y 1M mantienen el detalle disponible.
-  - El importador reconoce las filas de presentación y la cabecera del CSV bancario de BBVA, incluida la columna inicial vacía.
+  - El importador reconoce las filas de presentación y la cabecera del CSV bancario, incluida la columna inicial vacía.
 - Resumen:
   - El muestreo afecta solo al gráfico; rentabilidad y detección de aportaciones o retiradas siguen usando todas las observaciones.
-  - CSV y Excel comparten la normalización de BBVA: fecha contable, importes, reembolsos y detección de duplicados. La previsualización conserva los números de línea del archivo.
-  - Validados los 90 movimientos del extracto recibido sin guardar información personal en el repositorio ni importar movimientos en la cuenta.
+  - CSV y Excel comparten la normalización bancaria: fecha contable, importes, reembolsos y detección de duplicados. La previsualización conserva los números de línea del archivo.
 - Archivos:
   - src/components/dashboard/PortfolioExcelInsights.tsx, src/services/benchmarkComparison.ts.
   - src/components/expenses/ExpenseManager.tsx, src/services/expenseImport.ts, src/services/expenseWorkbook.ts.
-  - scripts/test-evolution-cadence.ts, scripts/test-expense-bbva-csv.ts, scripts/test-expense-ui.ts.
+  - scripts/test-evolution-cadence.ts, scripts/test-expense-ui.ts.
 
 ### 2026-11-03 - v7.1.0 - Interfaz unificada y alta de efectivo
 - Funcionalidad:
@@ -249,7 +248,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Aplica la composición a las cinco pestañas, los seis editores y la importación CSV/Excel, manteniendo las etiquetas accesibles y los controles nativos.
 - Resumen:
   - El CSS local pasa de 298 a 254 líneas; conserva gráficos, tablas, distribución específica y materiales Liquid Glass. La reducción acumulada de CSS fuente es del 35,19 %.
-  - Mantiene el almacenamiento, cálculos en céntimos, presupuestos, recurrentes, deduplicación y categorización de BBVA.
+  - Mantiene el almacenamiento, cálculos en céntimos, presupuestos, recurrentes, deduplicación y categorización bancaria.
 - Archivos:
   - src/components/expenses/ui; ExpenseManager.tsx; ExpenseEditors.tsx; ExpenseImportDialog.tsx; ExpenseManager.css; scripts/test-expense-ui.ts; README.md; docs/tailwind-migration.md; docs/tailwind-module-inventory.md
 
@@ -426,7 +425,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Distingue precios limpios y sucios, e incorpora Actual/365 fijo, Actual/360, 30E/360 y 30/360 US.
   - Calcula TIR nominal y efectiva con un solver que verifica la convergencia y el error de precio.
   - Añade ayuda contextual al importador y aclara columnas obligatorias, duplicados y vista previa.
-  - Refina las sugerencias BBVA: separa Ropa de Compras, clasifica comida rápida como Ocio y añade Ropa a libros existentes.
+  - Refina las sugerencias bancarias: separa Ropa de Compras, clasifica comida rápida como Ocio y añade Ropa a libros existentes.
   - Registra traspasos parciales o completos entre fondos, estima las participaciones con las últimas valoraciones y conserva tanto el coste de adquisición como el precio de ejecución del fondo de destino.
   - Conserva las valoraciones guardadas por lotes con consultas de fondos cacheadas, sin usar esas consultas para crear nuevas valoraciones en vivo.
   - Guarda la membresía exacta de movimientos en cada snapshot y en sus reparaciones para no recuperar operaciones retiradas; muestra el último NAV real del benchmark y calcula diferencias solo en fechas comunes.
@@ -439,7 +438,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ### 2026-10-14 - v6.3.1 - Importación y gestión de movimientos del planificador
 - Funcionalidad:
-  - Importa extractos BBVA desde Excel y sugiere categorías para movimientos reconocibles.
+  - Importa extractos bancarios desde Excel y sugiere categorías para movimientos reconocibles.
   - Permite borrar todos los movimientos con confirmación; conserva cuentas, categorías, presupuestos y reglas recurrentes.
 - Resumen:
   - Agiliza la importación de gastos, permite empezar de nuevo sin perder la configuración del libro y reduce los errores de base de datos registrados por conflictos normales de sincronización.
@@ -1918,3 +1917,11 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 - Archivos:
   - `src/components/academy/assets/AssetBonds.tsx`
   - `src/components/academy/assets/AssetPage.css`
+
+### 2026-11-04 - v7.1.1 - Integración del lector de CSV bancarios
+- Funcionalidad:
+  - Integra en desarrollo y preproducción el lector de informes con filas de presentación y columna inicial vacía.
+- Resumen:
+  - Documentación de importación sin referencias a extractos personales.
+- Archivos:
+  - `src/services/expenseImport.ts`, `src/components/expenses/ExpenseManager.tsx`, `FEATURE_LOG.md`.

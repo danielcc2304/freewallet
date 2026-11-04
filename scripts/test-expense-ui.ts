@@ -336,6 +336,15 @@ try {
         /0 para importar/,
     );
     await click('Cancelar', '.expense-import button');
+    // BBVA's CSV report follows the same preview and cross-format duplicate rules.
+    writeFileSync('/tmp/freewallet-expense-bbva.csv', XLSX.utils.sheet_to_csv(excelSheet));
+    await click('Importar');
+    await page.$('input[type=file]').then(input => input!.uploadFile('/tmp/freewallet-expense-bbva.csv'));
+    await page.waitForSelector('.expense-import');
+    assert.match(await page.$eval('.expense-import', n => n.textContent!), /Formato BBVA detectado/);
+    await page.click('.expense-import input[type=checkbox]');
+    assert.match(await page.$eval('.expense-import-summary', n => n.textContent!), /0 para importar/);
+    await click('Cancelar', '.expense-import button');
     await page.reload({ waitUntil: 'networkidle2' });
     await page.waitForSelector('.expense-manager h1');
     assert.equal((await data()).entries.length, 7);

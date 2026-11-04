@@ -38,16 +38,15 @@ export interface ExpenseImportDocument {
     sheets: ExpenseImportSheet[];
 }
 /** RFC 4180 quoting, including delimiters and line breaks inside quoted fields. */
-export function readExpenseCsv(raw: string): string[][] {
+export function readExpenseCsv(raw: string, sourceLines?: number[]): string[][] {
     if (new TextEncoder().encode(raw).length > EXPENSE_LIMIT_BYTES)
         throw new Error('El CSV supera los 2 MB.');
     const text = raw.replace(/^\uFEFF/, '');
     const first = text.split(/\r?\n/)[0];
-    const delimiter =
-        (first.match(/;/g)?.length ?? 0) > (first.match(/,/g)?.length ?? 0)
-            ? ';'
-            : ',';
+    const delimiter = (first.match(/;/g)?.length ?? 0) > (first.match(/,/g)?.length ?? 0) ? ';' : ',';
     const rows: string[][] = [];
+    let physicalLine = 1,
+        rowStartLine = 1;
     let row: string[] = [],
         cell = '',
         quoted = false,
@@ -61,10 +60,12 @@ export function readExpenseCsv(raw: string): string[][] {
     };
     const pushRow = () => {
         pushCell();
-        if (row.some((c) => c.trim())) rows.push(row);
+        if (row.some((c) => c.trim())) {
+            rows.push(row);
+            sourceLines?.push(rowStartLine);
+        }
         row = [];
-        if (rows.length > 10001)
-            throw new Error('El CSV supera los 10.000 movimientos.');
+        if (rows.length > 10001) throw new Error('El CSV supera los 10.000 movimientos.');
     };
     for (let i = 0; i < text.length; i++) {
         const char = text[i];
@@ -77,20 +78,21 @@ export function readExpenseCsv(raw: string): string[][] {
                     quoted = false;
                     closed = true;
                 }
-            } else cell += char;
+            } else {
+                cell += char;
+                if (char === '\n' || (char === '\r' && text[i + 1] !== '\n')) physicalLine++;
+            }
         } else if (char === '"') {
-            if (cell || closed)
-                throw new Error('Comillas no válidas en el CSV.');
+            if (cell || closed) throw new Error('Comillas no válidas en el CSV.');
             quoted = true;
         } else if (char === delimiter) pushCell();
         else if (char === '\n' || char === '\r') {
             if (char === '\r' && text[i + 1] === '\n') i++;
             pushRow();
+            physicalLine++;
+            rowStartLine = physicalLine;
         } else {
-            if (closed && char.trim())
-                throw new Error(
-                    'Contenido después de unas comillas de cierre.',
-                );
+            if (closed && char.trim()) throw new Error('Contenido después de unas comillas de cierre.');
             if (!closed) cell += char;
         }
     }
@@ -484,4 +486,39 @@ export function downloadExpenseFile(
     a.download = name;
     a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+/** BBVA CSV exports contain introductory report rows, like their Excel exports. */
+export function readExpenseCsvDocument(raw: string, name: string): ExpenseImportDocument {
+    const lines: number[] = [];
+    const parsed = readExpenseCsv(raw, lines);
+    const required = ['fecha valor', 'fecha', 'concepto', 'movimiento', 'importe', 'divisa'];
+    const header = parsed.findIndex((row) => required.every((field) => row.some((cell) => normalized(cell) === field)));
+    if (header < 0) return { format: 'csv', sheets: [{ name, rows: parsed, sourceLines: lines }] };
+    const rows = parsed.slice(header).map((row) => [...row]);
+    return { format: 'csv', sheets: [prepareBbvaExpenseSheet(name, rows, lines.slice(header))] };
+}
+
+/** Shared CSV/Excel normalization keeps types, descriptions and duplicate fingerprints identical. */
+export function prepareBbvaExpenseSheet(name: string, rows: string[][], sourceLines?: number[]): ExpenseImportSheet {
+    const headers = rows[0];
+    const mapping = guessCsvMapping(headers);
+    const movementColumn = headers.findIndex((cell) => normalized(cell) === 'movimiento');
+    const kindColumn = headers.length;
+    if (mapping.kind >= 0) headers[mapping.kind] += ' BBVA';
+    headers.push('Tipo');
+    for (const row of rows.slice(1)) {
+        const movement = row[movementColumn]?.trim() ?? '';
+        const card = normalized(movement) === 'pago con tarjeta';
+        try {
+            const amount = parseExpenseAmount(row[mapping.amount] ?? '', true);
+            row[kindColumn] = amount < 0 ? 'gasto' : card ? 'reembolso' : 'ingreso';
+        } catch {
+            row[kindColumn] = '';
+        }
+        const concept = row[mapping.description]?.trim() ?? '';
+        row[mapping.description] = movement && !card ? `${concept} · ${movement}` : concept;
+    }
+    if (rows.length < 2) throw new Error('El CSV necesita al menos un movimiento.');
+    return { name, rows, sourceLines, bank: 'bbva', movementColumn, cardColumn: movementColumn };
 }

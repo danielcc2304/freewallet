@@ -12,7 +12,7 @@ const assets=[
     {id:'btc',symbol:'BTC-EUR',name:'Bitcoin',type:'crypto'},
 ].map(a=>({...a,quantity:1,purchasePrice:1,purchaseDate:'2026-01-01',currency:'EUR'}));
 const browser=await puppeteer.launch({headless:true,args:['--no-sandbox']});
-let round=0,quoteCalls=0,oldResponses=false;
+let round=0,quoteCalls=0,oldResponses=false,newerOriginal=false;
 const errors:string[]=[];
 try {
     const page=await browser.newPage();page.on('pageerror',e=>errors.push(String(e)));
@@ -46,18 +46,36 @@ try {
             if(url.searchParams.get('interval')==='1m')quoteCalls++;
             const daily=url.searchParams.get('interval')!=='1m';
             const previousDay=Math.floor(base/86400000)*86400-86400;
-            await reply({chart:{result:[{meta:{symbol,regularMarketPrice:1,regularMarketTime:base/1000-1800,currency:'EUR',exchangeName:'MCE',regularMarketPreviousClose:1},timestamp:daily?[previousDay,at]:[at],indicators:{quote:[{close:daily?[100,200+round]:[1],open:[1],high:[1],low:[1],volume:[0]}]}}],error:null}});
+            await reply({chart:{result:[{meta:{symbol,regularMarketPrice:newerOriginal?1.25:1,regularMarketTime:newerOriginal?at:base/1000-1800,currency:'EUR',exchangeName:'MCE',regularMarketPreviousClose:1},timestamp:daily?[previousDay-172800,previousDay-86400,previousDay,at-3600,at]:[at],indicators:{quote:[{close:daily?[100,120,140,160,200+round]:[1],open:[1],high:[1],low:[1],volume:[0]}]}}],error:null}});
         }else if(url.pathname.startsWith('/__market/') || url.hostname.endsWith('supabase.co') || ['www.alphavantage.co','finnhub.io'].includes(url.hostname))await request.abort();
         else if(url.origin===origin||['data:','blob:'].includes(url.protocol))await request.continue();else await request.abort();
     })().catch(e=>errors.push(String(e)));});
-    await page.goto(origin,{waitUntil:'networkidle2'});
+    await page.goto(origin,{waitUntil:'networkidle2',timeout:90000});
     const prices=()=>page.evaluate(()=>JSON.parse(localStorage.getItem('freewallet_portfolio_v1')!).assets.map((a:{currentPrice:number})=>a.currentPrice));
     await page.waitForFunction(()=>JSON.parse(localStorage.getItem('freewallet_portfolio_v1')!).assets.every((a:{currentPrice:number})=>a.currentPrice>1));
     assert.deepEqual(await prices(),[1.04,1.04,200],'Primary BME, stale-Yahoo same-venue alternative and crypto CoinGecko');
     await page.$$eval('.assets-table__table tbody tr',rows=>(rows.find(row=>row.textContent?.includes('Nextil')) as HTMLElement).click());
-    await page.waitForSelector('.asset-detail__quote-market select');
-    assert.equal(await page.$eval('.asset-detail__quote-market select',el=>(el as HTMLSelectElement).value),'BME');
+    await page.waitForSelector('.asset-detail');
+    assert.equal(await page.$('.asset-detail__quote-market select'),null,'Nextil selects sources automatically');
     assert.match(await page.$eval('.asset-detail',el=>el.textContent || ''),/Google Finance · Madrid\/BME/);
+    await page.setViewport({width:1280,height:900});
+    await page.waitForSelector('.asset-detail__chart-container .recharts-area');
+    const viewport=await page.$('.asset-detail__chart-container');
+    await viewport!.scrollIntoView();
+    const rect=await viewport!.boundingBox();assert.ok(rect);
+    const left=rect.x+64, right=rect.x+rect.width-8, y=rect.y+80;
+    const text=()=>page.$eval('.asset-detail__chart-selection',el=>el.textContent||'');
+    await page.mouse.move(left,y);await page.mouse.down();
+    await page.mouse.move(right,y,{steps:10});
+    assert.match(await text(),/Mejora/);
+    const anchor=await page.$eval('.asset-detail__chart-selection span',el=>el.textContent!.split(' → ')[0]);
+    await page.mouse.move(left+(right-left)*.6,y,{steps:8});
+    assert.equal(await page.$eval('.asset-detail__chart-selection span',el=>el.textContent!.split(' → ')[0]),anchor,'Start point stays fixed while the endpoint moves');
+    await page.mouse.move(right,y);await page.mouse.up();
+    await page.mouse.move(right,y);await page.mouse.down();
+    await page.mouse.move(left,y,{steps:10});await page.mouse.up();
+    assert.match(await text(),/Drawdown/,'Reverse selection retains its signed variation');
+    await page.setViewport({width:390,height:900});
     await page.keyboard.press('Escape');
     round=1;
     await page.evaluate(`window.__quoteNow+=61000;window.__quoteTimers.forEach(fn=>fn());`);
@@ -79,6 +97,11 @@ try {
     await page.waitForFunction(()=>!document.querySelector('.dashboard__updating-banner'));
     assert.ok(quoteCalls>priorCalls,'Manual refresh bypasses the alternative-source cache');
     assert.deepEqual(await prices(),[1.05,1.05,201],'Older provider responses never overwrite newer displayed prices');
+    oldResponses=false;newerOriginal=true;round=2;
+    await page.evaluate(`window.__quoteNow+=61000;`);
+    await page.click('.dashboard__floating-refresh');
+    await page.waitForFunction(()=>JSON.parse(localStorage.getItem('freewallet_portfolio_v1')!).assets.find((a:{id:string})=>a.id==='nextil').currentPrice===1.25);
+    assert.equal((await prices())[0],1.25,'A newer original-source observation wins automatically');
     assert.deepEqual(errors,[]);
-    console.log('PASS: mobile BME selection, stock/crypto fallback, real dates, minute refreshes, hidden/background pause, manual retry and no layout overflow.');
+    console.log('PASS: automatic latest source, no market selector, fixed drag anchor, signed forward/reverse measurement, polling and stale-response protection.');
 }finally{await browser.close();}

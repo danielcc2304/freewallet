@@ -65,3 +65,9 @@ FREEWALLET_TEST_URL=http://127.0.0.1:5191 node --import tsx scripts/test-fund-ra
 Las pruebas SQL usan PGlite con el guard real de sesión/MFA; cubren visitantes, lectores, metadatos manipulados, editores revocados, bloqueo de versiones, retirada/restauración, columnas protegidas, reservas y conservación de datos. Las pruebas UI interceptan toda llamada externa y simulan las cuentas y las escrituras: no editan el catálogo real.
 
 Las migraciones del radar y la Edge Function deben desplegarse antes del frontend. Las claves `service_role` permanecen exclusivamente en servidor. La comprobación real del 16/10/2026 actualizó los 20 fondos sin fallos y verificó lectura REST anónima y rechazo HTTP 401 de una petición al worker sin credenciales. Esto documenta esa ejecución, no garantiza la disponibilidad futura de Finect.
+
+## Orden y podio
+
+Por defecto se agrupa por categoría y se ordena por nota descendente, con fichas sin nota al final. Las medallas muestran los puestos 1–3 del grupo comparable (categoría, divisa y mes), incluidos empates; los filtros no recalculan el podio. Retorno y volatilidad a tres años aparecen juntos. El TER tiene peso cero y la nota no equivale a alfa frente a un índice.
+
+Las altas editoriales y reclasificaciones adicionales se preparan en `supabase/seed.sql`; las clases y fuentes están en `docs/fund-radar-expansion.md`.

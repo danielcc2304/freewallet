@@ -62,5 +62,16 @@ try{
  assert.equal((await db.query<{n:number}>("select (metrics->>'nav')::double precision n from fund_radar_data where fund_id=$1",[fund])).rows[0].n,94.62,'failure preserves previous NAV');
  await db.exec('reset role');await db.query("insert into auth.mfa_factors values($1,'verified')",[editor]);await login(editor);assert.equal((await db.query("update fund_radar_catalog set name='Denied' returning id")).rows.length,0);await login(editor,'aal2');assert.equal((await db.query('update fund_radar_catalog set name=name where id=$1 returning id',[fund])).rows.length,1);
  await db.exec('reset role');await db.query('delete from auth.sessions where user_id=$1',[editor]);await login(editor,'aal2');assert.equal((await db.query('update fund_radar_catalog set name=name where id=$1 returning id',[fund])).rows.length,0,'deleted session revokes write access');
+ await db.exec('reset role');
+ const expansion=readFileSync('supabase/seed.sql','utf8');
+ const beforeExpansion=(await db.query<{n:number}>('select count(*)::int n from fund_radar_catalog')).rows[0].n;
+ await db.exec(expansion);
+ assert.equal((await db.query<{n:number}>('select count(*)::int n from fund_radar_catalog')).rows[0].n,beforeExpansion+10);
+ for(const [isin,category] of [['ES0116567035','Renta Fija Corporativa'],['IE0031786142','Renta Variable Países Emergentes'],['LU0329355670','Renta Variable Países Emergentes']]){
+  assert.equal((await db.query<{category:string}>('select category from fund_radar_catalog where isin=$1',[isin])).rows[0].category,category);
+ }
+ const state=await db.query('select * from fund_radar_catalog order by id');
+ await db.exec(expansion);
+ assert.deepEqual((await db.query('select * from fund_radar_catalog order by id')).rows,state.rows,'Second application preserves rows, versions and data');
  console.log('Fund radar DB: RLS, revoked editors, MFA, sessions, optimistic locking, archive/restore, leases and retained provider data passed');
 }finally{await db.close();}

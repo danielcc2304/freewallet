@@ -15,7 +15,7 @@ export const radarStyles = {
     'radar-card__badges': 'radar-card__badges tw:flex tw:items-center tw:flex-wrap tw:gap-2 tw:mb-[1.2rem] tw:[&>span]:text-[.68rem] tw:[&>span]:font-semibold tw:[&>span]:tracking-[.02em] tw:[&>span]:text-secondary tw:[&>span]:py-[.35rem] tw:[&>span]:px-[.6rem] tw:[&>span]:rounded-[7px] tw:[&>span]:bg-surface-muted tw:[&>span]:leading-[1.5] tw:[&>svg]:ml-auto tw:[&>svg]:shrink-0 tw:[&>svg]:text-accent tw:[&>svg]:opacity-70',
     'radar-card__heading': 'radar-card__heading tw:min-h-28 tw:[&_h2]:text-[1.12rem] tw:[&_h2]:font-[650] tw:[&_h2]:leading-[1.45] tw:[&_h2]:mt-0 tw:[&_h2]:mx-0 tw:[&_h2]:mb-2 tw:[&_h2]:text-main tw:[&_h2]:tracking-[-.025em] tw:[&_code]:text-[.72rem] tw:[&_code]:text-secondary tw:[&_code]:tracking-[.035em]',
     'radar-card__manager': 'radar-card__manager tw:block tw:text-secondary tw:text-[.72rem] tw:mb-[.45rem] tw:leading-[1.5]',
-    'radar-card__headline': 'radar-card__headline tw:my-5 tw:mx-0',
+    'radar-card__headline': 'radar-card__headline tw:my-5 tw:mx-0 tw:grid tw:grid-cols-2 tw:gap-3',
     'radar-card__metric': 'radar-card__metric tw:min-w-0 tw:[&_dt]:text-[.73rem] tw:[&_dt]:text-secondary tw:[&_dt]:leading-[1.5] tw:[&_dt]:mb-[.35rem] tw:[&_dd]:text-[1.1rem] tw:[&_dd]:font-[650] tw:[&_dd]:m-0 tw:[&_dd]:tabular-nums tw:[&_dd]:tracking-[-.02em] tw:[&_small]:block tw:[&_small]:text-[.65rem] tw:[&_small]:leading-[1.5] tw:[&_small]:text-secondary tw:[&_small]:mt-[.3rem]',
     'radar-card__metric--hero': 'radar-card__metric--hero tw:[&_dd]:text-[clamp(2rem,4cqi,2.5rem)] tw:[&_dd]:font-bold tw:[&_dd]:leading-[1.15] tw:[&_dd]:tracking-[-.05em]',
     'radar-card__metric--positive': 'radar-card__metric--positive tw:[&_dd]:text-(--radar-positive)',

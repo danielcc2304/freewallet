@@ -22,6 +22,20 @@ async function activeMarketQuote(asset: Asset, signal?: AbortSignal, force = fal
         : await getQuote(asset.symbol,signal,true).catch(() => null);
     signal?.throwIfAborted();
     let candidate = quote;
+    // Verified listings describe the same security. Compare observation times,
+    // not request times, and retain the latest usable EUR-normalized quote.
+    if (asset.type === 'stock' && market?.isDefault) {
+        const original = await getQuote(asset.symbol, signal, true).catch(() => null);
+        signal?.throwIfAborted();
+        const candidates = await Promise.all([quote, original, stored ?? null].map(async value => {
+            if (!value) return null;
+            const normalized = await normalizeQuoteToEuro(value, signal, force, asset.type);
+            const at = Date.parse(normalized.quotedAt || '');
+            return normalized.currency === 'EUR' && Number.isFinite(normalized.price) && normalized.price > 0 && Number.isFinite(at) && at <= Date.now()+300000 ? normalized : null;
+        }));
+        candidate = candidates.filter((value): value is StockQuote => !!value)
+            .sort((a,b) => Date.parse(b.quotedAt!) - Date.parse(a.quotedAt!))[0] ?? null;
+    }
     if (!freshEnough(quote)) {
         const listing = market?.google ?? googleListing(asset.symbol,quote?.exchange ?? QUOTE_CACHE.get(asset.symbol)?.data.exchange);
         const alternative = asset.type==='crypto' ? await alternativeQuote('crypto',asset.symbol,signal,force)
@@ -29,10 +43,10 @@ async function activeMarketQuote(asset: Asset, signal?: AbortSignal, force = fal
         if (alternative && (!candidate || !Number.isFinite(Date.parse(candidate.quotedAt || '')) || Date.parse(alternative.quotedAt!)>Date.parse(candidate.quotedAt || ''))) candidate=alternative;
     }
     if (candidate) {
-        const normalized = { ...await normalizeQuoteToEuro(candidate,signal,force,asset.type),
+        const normalized = { ...(market?.isDefault ? candidate : await normalizeQuoteToEuro(candidate,signal,force,asset.type)),
             ...(asset.type === 'stock' ? {quoteInstrument:stockQuoteInstrument(asset)} : {}) };
         const at = Date.parse(normalized.quotedAt || '');
-        const currentAt = stockQuoteVenueChanged(asset) ? NaN : Date.parse(asset.quotedAt || asset.lastQuoteAt || '');
+        const currentAt = !market?.isDefault && stockQuoteVenueChanged(asset) ? NaN : Date.parse(asset.quotedAt || asset.lastQuoteAt || '');
         if (normalized.currency==='EUR' && Number.isFinite(at) && at<=Date.now()+300000
             && (!Number.isFinite(currentAt) || at>=currentAt)) return normalized;
     }

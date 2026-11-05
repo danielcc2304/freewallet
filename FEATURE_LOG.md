@@ -1962,3 +1962,12 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Integración preparada para dev y release; el script de altas se aplica en el entorno elegido al desplegar los datos.
 - Archivos:
   - `src/components/academy/simulators/FundRadar.tsx`, `supabase/seed.sql`, pruebas y documentación.
+
+### 2026-11-05 - v7.1.3 - Publicación de las mejoras del radar
+- Funcionalidad:
+  - Publicación del radar ordenado por puntuación, podio visual y volatilidad destacada.
+  - Ampliación de fondos y reclasificaciones editoriales del catálogo.
+- Resumen:
+  - Corrección de la versión compartida a v7.1.3 para la promoción a producción.
+- Archivos:
+  - `src/constants/app.ts`, `package.json`, `package-lock.json`, `FEATURE_LOG.md`, `supabase/seed.sql`.

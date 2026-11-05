@@ -92,3 +92,6 @@ const expansionRows=JSON.parse(readFileSync('supabase/seed.sql','utf8').split('$
 assert.equal(expansionRows.length,10);
 assert.equal(new Set(expansionRows.map(row=>row.isin)).size,10);
 for(const row of expansionRows)assert.ok(validIsin(row.isin),`Verified class ISIN ${row.isin}`);
+
+assert.ok(expansionRows.some(row=>row.isin==='IE00BD2B9710'),'Use the explicitly chosen Twelve P EUR Acc class');
+assert.ok(!expansionRows.some(row=>row.isin==='IE00BDRJLL87'),'Do not reinsert the unavailable class S');

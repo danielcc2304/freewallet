@@ -4,7 +4,7 @@ Clases en EUR seleccionadas para esta feature. Categorías solicitadas por el us
 
 | Fondo | ISIN | Categoría editorial | Fuente de identidad |
 |---|---|---|---|
-| Twelve Capital UCITS ICAV - Twelve Cat Bond Fund S EUR Acc | IE00BDRJLL87 | Alternativos | [Ficha](https://global.morningstar.com/en-eu/investments/funds/F0000101V6/documents) |
+| Twelve Capital UCITS ICAV - Twelve Cat Bond Fund P EUR Acc | IE00BD2B9710 | Alternativos | [Ficha](https://www.finect.com/fondos-inversion/gestoras/783c1fbd-Twelve_capital_ag) |
 | B&H Deuda FI | ES0112618006 | Renta Fija Corto Plazo | [Ficha](https://www.buyandhold.es/ftpdata/files/FOLLETO%20BH%20DEUDA.PDF) |
 | SIH FCP - BrightGate Global Income Fund A EUR | LU0942882589 | Renta Fija Corporativa | [Ficha](https://brightgatecapital.com/brightgate-gestion/brightgate-global-income/) |
 | Gamma Global FI | ES0140794019 | Renta Fija Corporativa | [Ficha](https://www.cnmv.es/WebServices/VerDocumento/Ver?e=K7xoAUrKTM9jVoluBgYnQUTp4XFGi7tX%2FLGWZmcPZpBknv7VuEGvF9Pu7CatfXRG) |
@@ -18,3 +18,5 @@ Clases en EUR seleccionadas para esta feature. Categorías solicitadas por el us
 Cartesio X (ES0116567035) se reclasifica sin duplicar; Vanguard Emerging (IE0031786142) se mueve a la nueva categoría.
 
 El alta se prepara en `supabase/seed.sql`, idempotente y sin datos financieros de muestra. Aplicar en el entorno elegido durante el despliegue de esta feature; esta rama no modifica el catálogo remoto. Finect consultará cada ISIN en la siguiente actualización. Hasta obtener datos fechados, las nuevas fichas no reciben nota ni medalla.
+
+Twelve: el usuario selecciona P EUR Acc (IE00BD2B9710), publicada por Finect. La ficha previa S EUR (IE00BDRJLL87) se retira conservando su identidad y auditoría; nunca se le asignan las métricas de P.

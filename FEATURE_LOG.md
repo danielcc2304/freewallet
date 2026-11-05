@@ -1971,3 +1971,11 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Corrección de la versión compartida a v7.1.3 para la promoción a producción.
 - Archivos:
   - `src/constants/app.ts`, `package.json`, `package-lock.json`, `FEATURE_LOG.md`, `supabase/seed.sql`.
+
+### 2026-11-05 - v7.1.3 - Clase Twelve y actualización Finect
+- Funcionalidad:
+  - Selección de Twelve Cat Bond P EUR Acc por ISIN exacto y retirada de la ficha S sin datos de Finect.
+- Resumen:
+  - Las clases conservan su identidad y sus observaciones; no se mezclan métricas entre clases.
+- Archivos:
+  - `supabase/seed.sql`, `docs/fund-radar-expansion.md`, pruebas del radar.

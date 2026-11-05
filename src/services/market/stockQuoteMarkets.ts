@@ -21,6 +21,7 @@ export function stockQuoteMarkets(asset: StockMarketAsset): StockQuoteMarket[] {
 }
 export function selectedStockQuoteMarket(asset: StockMarketAsset): StockQuoteMarket | undefined {
     const choices = stockQuoteMarkets(asset);
+    if (verifiedStockListings(asset).length) return choices.find(choice=>choice.isDefault);
     const preference = asset.id ? getSettings().stockQuoteMarkets?.[asset.id] : undefined;
     return choices.find(choice => choice.id === preference) ?? choices.find(choice=>choice.isDefault) ?? choices[0];
 }

@@ -12,6 +12,17 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-11-05 - v7.1.2 - Cotización automática y medición estable en el dashboard
+- Funcionalidad:
+  - Selecciona automáticamente la cotización válida más reciente entre las fuentes verificadas y omite el selector manual de mercado.
+  - Ajusta la correspondencia del cursor con el área del gráfico y fija el origen durante la medición por arrastre.
+- Resumen:
+  - Compara fechas efectivas de cotización y mantiene la protección frente a respuestas antiguas.
+  - Verificados en navegador el ancla fija, las variaciones positivas y negativas y la selección automática de fuente.
+- Archivos:
+  - `src/components/dashboard/AssetDetail.tsx`, `src/services/portfolioQuoteService.ts`, `src/services/market/stockQuoteMarkets.ts`.
+  - `scripts/test-live-market-quotes-ui.ts`, `scripts/test-quote-market-switch.ts`.
+
 ### 2026-11-03 - v7.1.1 - Evolución mensual homogénea e importación CSV bancario
 - Funcionalidad:
   - Evolución muestra un punto por mes en 3M, YTD y Todo, conservando la base del periodo y el último dato provisional del mes en curso. Diario, 7D y 1M mantienen el detalle disponible.
@@ -1925,3 +1936,11 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Documentación de importación sin referencias a extractos personales.
 - Archivos:
   - `src/services/expenseImport.ts`, `src/components/expenses/ExpenseManager.tsx`, `FEATURE_LOG.md`.
+
+### 2026-11-05 - v7.1.2 - Integración en desarrollo y preproducción
+- Funcionalidad:
+  - Cotización automática y medición estable del gráfico del dashboard.
+- Resumen:
+  - Se prepara la versión v7.1.2 para dev y release.
+- Archivos:
+  - `src/constants/app.ts`, `package.json`, `package-lock.json`, `FEATURE_LOG.md`.

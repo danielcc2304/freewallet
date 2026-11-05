@@ -18,15 +18,16 @@ assert.equal(dailyPriceQuote(asset,{...price,instrument:'NXTE.XD'},now),undefine
 const originalFetch=globalThis.fetch;
 try {
     globalThis.fetch=async()=>new Response(`AF_initDataCallback({key:'test',data:${JSON.stringify([['/g/test',['NXT','BME'],'Synthetic security',0,'EUR',[1.2],null,1.1,null,'ES',null,[Math.floor((now-3600000)/1000)]]])}, sideChannel:{}})`);
-    const changed=await getPortfolioAssetQuote(asset,undefined,true);
+    const changed=await getPortfolioAssetQuote({...asset,quotedAt:undefined},undefined,true);
     assert.equal(changed?.price,1.2);assert.equal(changed?.quoteInstrument,'NXT:BME');
+    assert.equal(await getPortfolioAssetQuote(asset,undefined,true),null,'Automatic sources must not replace a newer quote from another venue');
     assert.equal(await getPortfolioAssetQuote({...asset,quoteInstrument:'NXT:BME'},undefined,true),null,'A provider cannot roll a venue back to an older observation');
     const updates=[{id:asset.id,updates:{currentPrice:1.2,quotedAt:at,quoteInstrument:'NXT:BME'}}];
     assert.equal(applicableQuoteUpdates([asset],[asset],updates).length,1,'The final reducer accepts the venue change');
     assert.equal(applicableQuoteUpdates([asset],[{...asset,quoteInstrument:'NXT:BME'}],updates).length,0,'The reducer rejects stale replies within one venue');
     memory.set('freewallet_settings',JSON.stringify({stockQuoteMarkets:{n:'original'}}));
     const madrid={...asset,quoteInstrument:'NXT:BME'};
-    assert.equal(stockQuoteVenueChanged(madrid),true);
-    assert.equal(dailyPriceQuote(madrid,{...price,instrument:'NXTE.XD',source:'Yahoo Finance'},now)?.price,1.2,'Changing back to the original market is symmetric');
+    assert.equal(stockQuoteVenueChanged(madrid),false,'Nextil ignores legacy manual market preferences');
+    assert.equal(dailyPriceQuote(madrid,{...price,instrument:'NXTE.XD',source:'Yahoo Finance'},now),undefined,'The automatic security identity remains stable');
 } finally {globalThis.fetch=originalFetch;}
 console.log('PASS: per-venue timestamps, older but correct selected venue, unknown legacy origin, provider and batch parity, reducer protection and switching back.');

@@ -83,6 +83,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
     const [chartSelection, setChartSelection] = useState<ChartSelection | null>(null);
     const [isSelecting, setIsSelecting] = useState(false);
     const chartContainerRef = useRef<HTMLDivElement>(null);
+    const dragAnchorRef = useRef<{pointerId: number; index: number} | null>(null);
     const activeTouchPointersRef = useRef(new Map<number, number>());
     const assetIsin = asset.isin || (/^[A-Z]{2}[A-Z0-9]{10}$/i.test(asset.symbol) ? asset.symbol : '');
     const isFund = asset.type === 'fund' && !!assetIsin;
@@ -164,6 +165,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
         setChartSelection(null);
         setIsSelecting(false);
         activeTouchPointersRef.current.clear();
+        dragAnchorRef.current = null;
     }, [asset.symbol, isFund, selectedPeriod]);
 
     const formatValue = (value: number | undefined, type: 'currency' | 'price' | 'percent' | 'number' | 'compact' = 'number', currency = asset.currency || 'EUR') => {
@@ -298,14 +300,14 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
 
         // Keep the pointer mapping inside the plot area (the chart reserves
         // room for the Y axis and the right margin).
-        const plotLeft = isFund ? 52 : 44;
-        const plotRight = 10;
+        const plotLeft = 64;
+        const plotRight = 8;
         const plotWidth = Math.max(rect.width - plotLeft - plotRight, 1);
         const relativeX = Math.min(Math.max(clientX - rect.left - plotLeft, 0), plotWidth);
         return Math.min(chartData.length - 1, Math.max(0, Math.round((relativeX / plotWidth) * (chartData.length - 1))));
     };
     const handlePointerStart = (event: ReactPointerEvent<HTMLDivElement>) => {
-        if (!canDrawChart) return;
+        if (!canDrawChart || (event.pointerType !== 'touch' && event.button !== 0)) return;
         if (event.pointerType === 'touch') {
             activeTouchPointersRef.current.set(event.pointerId, event.clientX);
             if (activeTouchPointersRef.current.size < 2) return;
@@ -324,6 +326,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
         const index = getChartIndexAtClientX(event.clientX);
         if (index === null) return;
         event.currentTarget.setPointerCapture(event.pointerId);
+        dragAnchorRef.current = {pointerId: event.pointerId, index};
         setChartSelection({ start: index, end: index });
         setIsSelecting(true);
     };
@@ -339,11 +342,11 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
             if (indices.length === 2) setChartSelection({ start: indices[0], end: indices[1] });
             return;
         }
-        if (!isSelecting) return;
+        if (!isSelecting || dragAnchorRef.current?.pointerId !== event.pointerId) return;
         const index = getChartIndexAtClientX(event.clientX);
         if (index === null) return;
         event.preventDefault();
-        setChartSelection((current) => current ? { ...current, end: index } : current);
+        setChartSelection({start: dragAnchorRef.current!.index, end: index});
     };
     const handlePointerEnd = (event: ReactPointerEvent<HTMLDivElement>) => {
         if (event.pointerType === 'touch') {
@@ -354,14 +357,15 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
             if (activeTouchPointersRef.current.size < 2) setIsSelecting(false);
             return;
         }
-        if (!isSelecting) return;
+        if (!isSelecting || dragAnchorRef.current?.pointerId !== event.pointerId) return;
         const index = getChartIndexAtClientX(event.clientX);
         if (index !== null) {
-            setChartSelection((current) => current ? { ...current, end: index } : current);
+            setChartSelection({start: dragAnchorRef.current!.index, end: index});
         }
         if (event.currentTarget.hasPointerCapture(event.pointerId)) {
             event.currentTarget.releasePointerCapture(event.pointerId);
         }
+        dragAnchorRef.current = null;
         setIsSelecting(false);
     };
     const formatChartTick = (value: string) => {
@@ -414,7 +418,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                     </table>
                 </PortfolioPresentation>
             </PortfolioPresentation>}
-            {!marketOnly && marketChoices.length>1 && <PortfolioPresentation appearance="asset-detail__quote-market"  >
+            {!marketOnly && marketChoices.length>1 && !selectedMarket?.isDefault && <PortfolioPresentation appearance="asset-detail__quote-market"  >
                 <label htmlFor={`quote-market-${asset.id}`}>Mercado de cotización</label>
                 <select id={`quote-market-${asset.id}`} value={selectedMarket?.id ?? 'original'} disabled={changingMarket}
                     onChange={event=>void changeMarket(event.target.value)}>
@@ -525,7 +529,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
                         )}
                     </DashboardAssetChartSelection>
                 )}<DashboardChartLegend label={<>{isFund ? 'Precio participación' : 'Precio'}</>} hint={<>Eje vertical: {chartData[0]?.currency || asset.currency || 'EUR'} · Eje horizontal: fecha. {marketOnly ? 'Histórico en su divisa de origen.' : `Histórico en su divisa de origen; la posición se valora en ${asset.currency || 'EUR'}.`}</>} />{!isFund && chartData[0]?.sourceSymbol && chartData[0].sourceSymbol !== asset.symbol && <DashboardAssetChartSource>
-                   Histórico de {chartData[0].sourceSymbol}, cotización alternativa de la misma empresa. El precio de tu posición se consulta en {selectedMarket?.label ?? asset.symbol}.
+                   Histórico de {chartData[0].sourceSymbol}, cotización alternativa de la misma empresa. El precio de tu posición utiliza la cotización válida más reciente disponible.
                </DashboardAssetChartSource>}{isFund && (
                    <DashboardAssetChartSource>
                        {chartData[0]?.sourceSymbol ? `Histórico ${chartData[0].source==='Financial Times'?'Financial Times':'Yahoo'} · ${chartData[0].sourceSymbol}. ` : ''}

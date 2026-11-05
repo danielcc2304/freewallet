@@ -64,8 +64,13 @@ try{
  await db.exec('reset role');await db.query('delete from auth.sessions where user_id=$1',[editor]);await login(editor,'aal2');assert.equal((await db.query('update fund_radar_catalog set name=name where id=$1 returning id',[fund])).rows.length,0,'deleted session revokes write access');
  await db.exec('reset role');
  const expansion=readFileSync('supabase/seed.sql','utf8');
+ await db.exec("insert into fund_radar_catalog(id,isin,name,category,manual_metrics) values('twelve-cat-bond','IE00BDRJLL87','Twelve S EUR','Alternativos','{\"nav\":10,\"dates\":{}}')");
  const beforeExpansion=(await db.query<{n:number}>('select count(*)::int n from fund_radar_catalog')).rows[0].n;
  await db.exec(expansion);
+ const legacyTwelve=(await db.query<{is_active:boolean;manual_metrics:{nav:number}}>("select is_active,manual_metrics from fund_radar_catalog where isin='IE00BDRJLL87'")).rows[0];
+ assert.equal(legacyTwelve.is_active,false);
+ assert.equal(legacyTwelve.manual_metrics.nav,10,'Class S observations are never rewritten as class P');
+ assert.equal((await db.query<{isin:string}>("select isin from fund_radar_catalog where id='twelve-cat-bond-p-eur'")).rows[0].isin,'IE00BD2B9710');
  assert.equal((await db.query<{n:number}>('select count(*)::int n from fund_radar_catalog')).rows[0].n,beforeExpansion+10);
  for(const [isin,category] of [['ES0116567035','Renta Fija Corporativa'],['IE0031786142','Renta Variable Países Emergentes'],['LU0329355670','Renta Variable Países Emergentes']]){
   assert.equal((await db.query<{category:string}>('select category from fund_radar_catalog where isin=$1',[isin])).rows[0].category,category);

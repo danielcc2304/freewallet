@@ -4,3 +4,8 @@
 .radar-card__grade-meter::-webkit-meter-bar { border: 0; border-radius: 4px; background: var(--bg-tertiary); }
 .radar-card__grade-meter::-webkit-meter-optimum-value { background: var(--accent-primary); border-radius: 4px; }
 .radar-card__grade-meter::-moz-meter-bar { background: var(--accent-primary); border-radius: 4px; }
+
+.radar-card__badges .radar-podium { display: inline-flex; align-items: center; gap: .3rem; border: 1px solid currentColor; font-weight: 700; }
+.radar-card__badges .radar-podium--1 { color: #a16207; background: #facc1520; }
+.radar-card__badges .radar-podium--2 { color: var(--text-secondary); background: #94a3b820; }
+.radar-card__badges .radar-podium--3 { color: #b45309; background: #fb923c20; }

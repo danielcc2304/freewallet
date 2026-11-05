@@ -12,6 +12,16 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-11-05 - Radar: clasificación visual y ampliación editorial
+- Funcionalidad:
+  - Orden por nota dentro de cada categoría, podio visual y volatilidad junto al retorno a tres años.
+  - Diez clases adicionales y reclasificación de Cartesio y Vanguard Emerging; nueva categoría de países emergentes.
+- Resumen:
+  - Se mantiene el peso cero del TER sobre retornos netos, con pruebas de independencia del coste.
+  - Altas preparadas en un script de datos idempotente, sin aplicar cambios al catálogo remoto.
+- Archivos:
+  - `src/components/academy/simulators/FundRadar*`, `radarStyles.ts`, `supabase/seed.sql`, pruebas y documentación del radar.
+
 ### 2026-11-05 - v7.1.2 - Cotización automática y medición estable en el dashboard
 - Funcionalidad:
   - Selecciona automáticamente la cotización válida más reciente entre las fuentes verificadas y omite el selector manual de mercado.
@@ -1944,3 +1954,20 @@ Registro operativo de funcionalidades implementadas en el proyecto.
   - Se prepara la versión v7.1.2 para dev y release.
 - Archivos:
   - `src/constants/app.ts`, `package.json`, `package-lock.json`, `FEATURE_LOG.md`.
+
+### 2026-11-05 - v7.1.2 - Integración de las mejoras del radar
+- Funcionalidad:
+  - Orden por nota, podio y volatilidad destacada; ampliación editorial del catálogo.
+- Resumen:
+  - Integración preparada para dev y release; el script de altas se aplica en el entorno elegido al desplegar los datos.
+- Archivos:
+  - `src/components/academy/simulators/FundRadar.tsx`, `supabase/seed.sql`, pruebas y documentación.
+
+### 2026-11-05 - v7.1.3 - Publicación de las mejoras del radar
+- Funcionalidad:
+  - Publicación del radar ordenado por puntuación, podio visual y volatilidad destacada.
+  - Ampliación de fondos y reclasificaciones editoriales del catálogo.
+- Resumen:
+  - Corrección de la versión compartida a v7.1.3 para la promoción a producción.
+- Archivos:
+  - `src/constants/app.ts`, `package.json`, `package-lock.json`, `FEATURE_LOG.md`, `supabase/seed.sql`.

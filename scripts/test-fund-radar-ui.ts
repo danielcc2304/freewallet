@@ -10,7 +10,7 @@ const appVersion=JSON.parse(readFileSync('package.json','utf8')).version;
 const stamp='2026-10-16T10:00:00Z';
 const user=(id:string)=>({id,email:'fixture@example.invalid',email_confirmed_at:stamp,aud:'authenticated',role:'authenticated',is_anonymous:false,app_metadata:{},user_metadata:{role:'editor'},created_at:stamp,factors:[]});
 const session=(id:string)=>({access_token:`${Buffer.from('{"alg":"HS256","typ":"JWT"}').toString('base64url')}.${Buffer.from(JSON.stringify({sub:id,aal:'aal1',role:'authenticated',exp:Math.floor(Date.now()/1000)+3600})).toString('base64url')}.fixture`,refresh_token:'synthetic',expires_at:Math.floor(Date.now()/1000)+3600,expires_in:3600,token_type:'bearer',user:user(id)});
-const seed:RadarFund[]=process.env.RADAR_LIVE_FIXTURE?JSON.parse(readFileSync(process.env.RADAR_LIVE_FIXTURE,'utf8')):BEST_FUNDS.map(f=>({id:f.id,isin:f.isin,name:f.name,category:f.category,manager:f.manager,description:f.description??'',source_url:f.link??null,manual_metrics:{...f.returns,volatility:f.volatility,maxDrawdown:f.maxDrawdown,ter:f.ter,risk:f.risk,dates:{}},extra:{},auto_refresh:true,is_active:true,version:1,created_at:stamp,updated_at:stamp,updated_by:null,fund_radar_data:null}));
+const seed:RadarFund[]=process.env.RADAR_LIVE_FIXTURE?JSON.parse(readFileSync(process.env.RADAR_LIVE_FIXTURE,'utf8')):BEST_FUNDS.map(f=>({id:f.id,isin:f.isin,name:f.name,category:f.category,manager:f.manager,description:f.description??'',source_url:f.link??null,manual_metrics:{...f.returns,volatility:f.volatility,maxDrawdown:f.maxDrawdown,ter:f.ter,risk:f.risk,currency:"EUR",window:"3y",dates:{y3:new Date().toISOString().slice(0,10),volatility:new Date().toISOString().slice(0,10)}},extra:{},auto_refresh:true,is_active:true,version:1,created_at:stamp,updated_at:stamp,updated_by:null,fund_radar_data:null}));
 const browser=await puppeteer.launch({headless:true,executablePath:process.env.PUPPETEER_EXECUTABLE_PATH,args:['--no-sandbox']});
 try{
  for(const scenario of [{name:'visitor',identity:null,allowed:false},{name:'registered reader',identity:reader,allowed:false},{name:'revoked editor',identity:editor,allowed:false},{name:'active editor',identity:editor,allowed:true}]){
@@ -53,7 +53,19 @@ try{
   const click=async(selector:string)=>{await settle();const el=await p.$(selector);assert.ok(el,selector);await el.evaluate(e=>e.scrollIntoView({behavior:'instant',block:'center'}));await el.click();};
   const fill=async(selector:string,value:string)=>{const el=await p.$(selector);assert.ok(el);await el.focus();await p.keyboard.down('Control');await p.keyboard.press('A');await p.keyboard.up('Control');await p.keyboard.type(value);};
   await p.goto(`${origin}/academy/fund-radar`,{waitUntil:'networkidle0'});
-  await p.waitForSelector('.radar-card');assert.equal(await p.$('[role=dialog]'),null,'construction notice removed');
+  await p.waitForSelector('.radar-card');
+  assert.equal(await p.$eval('.radar-filters select:nth-of-type(1)',el=>(el as HTMLSelectElement).value).catch(()=>''),'Todas');
+  assert.equal(await p.$$eval('.radar-filters select',els=>(els[2] as HTMLSelectElement).value),'score');
+  const orderedCards=await p.$$eval('.radar-card',els=>els.map(el=>({category:el.querySelector('.radar-card__badges>span')!.textContent!,grade:(el.querySelector('meter') as HTMLMeterElement|null)?.value??null})));
+  for(let i=1;i<orderedCards.length;i++){
+   const a=orderedCards[i-1],b=orderedCards[i];
+   assert.ok(a.category.localeCompare(b.category,'es')<=0,'Default order groups categories');
+   if(a.category===b.category)assert.ok((a.grade??-Infinity)>=(b.grade??-Infinity),'Best grades first, missing grades last');
+  }
+  const headlines=await p.$eval('.radar-card__headline',el=>Array.from(el.querySelectorAll('dt')).map(n=>n.textContent));
+  assert.deepEqual(headlines,['Rentabilidad anualizada · 3 años','Volatilidad · 3 años']);
+  if(!process.env.RADAR_LIVE_FIXTURE)assert.ok(await p.$('.radar-podium'),'Comparable funds have visual podiums');
+assert.equal(await p.$('[role=dialog]'),null,'construction notice removed');
   const metricSizes=await p.$eval('.radar-card',card=>({root:parseFloat(getComputedStyle(document.documentElement).fontSize),hero:parseFloat(getComputedStyle(card.querySelector('.radar-card__metric--hero dd')!).fontSize),compact:parseFloat(getComputedStyle(card.querySelector('.radar-card__summary--compact dd')!).fontSize)}));
   assert.ok(metricSizes.hero>=2*metricSizes.root,'The headline metric keeps its visual hierarchy');
   assert.equal(metricSizes.compact,metricSizes.root,'Compact metrics keep their 1rem size independently of generated CSS order');

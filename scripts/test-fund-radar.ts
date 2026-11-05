@@ -1,3 +1,4 @@
+import {readFileSync} from 'node:fs';
 import assert from 'node:assert/strict';
 import {scoreRadarFunds} from '../src/services/funds/fundScoring';
 import {effectiveMetrics,validateDraft,validIsin,type RadarFund,type RadarDraft} from '../src/services/fundRadar/types';
@@ -82,3 +83,12 @@ assert.equal(lookups,0);
 const denied=await handleRadarRefresh(new Request('https://fixture',{method:'POST',headers:{authorization:'Bearer invalid'},body:'{}'}),{...deps,claim:async()=>{throw new Error('Forbidden');}});assert.equal(denied.status,403);assert.equal(lookups,0);
 const response=await handleRadarRefresh(new Request('https://fixture',{method:'POST',headers:{'x-job-secret':'fixture'},body:'{}'}),deps);assert.deepEqual(await response.json(),{updated:1,failed:1,skipped:0,requested:2});assert.equal(published,1);
 console.log('Fund radar: continuous category grades, ratios, general catalog cohorts, provisional samples, eligibility, ties, missing data, validation, class identity, Finect parsing, fallback and authenticated refresh passed');
+
+const highTerCohort=all.map(f=>({...f,manual_metrics:{...f.manual_metrics,ter:20}}));
+const zeroTerCohort=all.map(f=>({...f,manual_metrics:{...f.manual_metrics,ter:0}}));
+assert.deepEqual(scoreRadarFunds(highTerCohort,now),scoreRadarFunds(zeroTerCohort,now),'TER has zero influence: net returns already include charges');
+
+const expansionRows=JSON.parse(readFileSync('supabase/seed.sql','utf8').split('$catalog$')[1]) as Array<{isin:string}>;
+assert.equal(expansionRows.length,10);
+assert.equal(new Set(expansionRows.map(row=>row.isin)).size,10);
+for(const row of expansionRows)assert.ok(validIsin(row.isin),`Verified class ISIN ${row.isin}`);

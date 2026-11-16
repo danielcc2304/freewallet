@@ -668,6 +668,27 @@ html[data-appearance='liquid-glass'] .live-plan input {
     -webkit-backdrop-filter: blur(12px) saturate(132%);
 }
 
+/* Native popup menus cannot reliably render translucent glass backgrounds.
+   Match the browser's native controls to the theme and give options an opaque
+   surface so inherited light text never ends up on a white popup. */
+html[data-appearance='liquid-glass'] select {
+    color-scheme: dark;
+}
+
+html[data-theme='light'][data-appearance='liquid-glass'] select {
+    color-scheme: light;
+}
+
+html[data-appearance='liquid-glass'] select option,
+html[data-appearance='liquid-glass'] select optgroup {
+    color: var(--text-primary);
+    background-color: var(--bg-primary);
+}
+
+html[data-appearance='liquid-glass'] select option:disabled {
+    color: var(--text-muted);
+}
+
 html[data-appearance='liquid-glass'] input:focus,
 html[data-appearance='liquid-glass'] select:focus,
 html[data-appearance='liquid-glass'] textarea:focus,

@@ -36,7 +36,19 @@ export const radarStyles = {
     'radar-notice': 'radar-notice tw:p-4 tw:border-l-[3px] tw:border-accent tw:bg-[rgba(var(--accent-rgb),.05)] tw:text-[.9rem] tw:leading-[1.6]',
     'radar-loading': 'radar-loading tw:flex tw:items-center tw:justify-center tw:flex-col tw:gap-4 tw:py-12 tw:px-4 tw:text-secondary tw:text-center',
     'radar-empty': 'radar-empty tw:flex tw:items-center tw:justify-center tw:flex-col tw:gap-4 tw:py-12 tw:px-4 tw:text-secondary tw:text-center tw:[&_h2]:text-[1.2rem] tw:[&_h2]:text-main tw:[&_h2]:m-0 tw:[&_p]:m-0',
-    'radar-method': 'radar-method tw:mt-8 tw:border-t tw:border-(--border-color) tw:pt-4 tw:[&_summary]:flex tw:[&_summary]:items-center tw:[&_summary]:gap-2 tw:[&_summary]:min-h-[44px] tw:[&_summary]:cursor-pointer tw:[&_summary]:text-[.9rem] tw:[&_summary]:font-semibold tw:[&_summary]:after:content-["+"] tw:[&_summary]:after:ml-auto tw:open:[&_summary]:after:content-["−"] tw:[&>div]:max-w-[80ch] tw:[&>div]:py-4 tw:[&>div]:px-0 tw:[&_h2]:text-[1.15rem] tw:[&_p]:text-[.9rem] tw:[&_p]:text-secondary tw:[&_p]:leading-[1.75] tw:[&_code]:block tw:[&_code]:whitespace-normal tw:[&_code]:text-[.85rem] tw:[&_code]:leading-[1.6] tw:[&_code]:p-4 tw:[&_code]:rounded-[9px] tw:[&_code]:bg-surface-muted',
+    'radar-method': `radar-method tw:mt-8 tw:border-t tw:border-(--border-color) tw:pt-4
+        tw:[&_summary]:flex tw:[&_summary]:items-center tw:[&_summary]:gap-2 tw:[&_summary]:min-h-[44px]
+        tw:[&_summary]:cursor-pointer tw:[&_summary]:text-[length:.9rem] tw:[&_summary]:font-semibold
+        tw:[&_summary]:text-main tw:[&_summary_svg]:shrink-0 tw:[&_summary]:after:content-["+"]
+        tw:[&_summary]:after:ml-auto tw:open:[&_summary]:after:content-["−"]
+        tw:[&>div]:grid tw:[&>div]:gap-4 tw:[&>div]:min-w-0 tw:[&>div]:max-w-[80ch] tw:[&>div]:py-5
+        tw:[&_h2]:m-0 tw:[&_h2]:text-[length:1.1rem] tw:[&_h2]:font-semibold tw:[&_h2]:leading-[1.4]
+        tw:[&_h2]:text-main tw:[&_h2:not(:first-child)]:mt-3
+        tw:[&_p]:m-0 tw:[&_p]:text-[length:.9rem] tw:[&_p]:text-secondary tw:[&_p]:leading-[1.75]
+        tw:[&_code]:block tw:[&_code]:min-w-0 tw:[&_code]:whitespace-normal tw:[&_code]:wrap-anywhere
+        tw:[&_code]:text-[length:.8rem] tw:[&_code]:text-main tw:[&_code]:leading-[1.75]
+        tw:[&_code]:p-4 tw:[&_code]:rounded-[9px] tw:[&_code]:bg-surface-muted
+        tw:[&_code]:border tw:[&_code]:border-(--border-primary)`,
     'radar-next': 'radar-next tw:flex tw:flex-wrap tw:gap-x-6 tw:gap-y-2 tw:border-t tw:border-(--border-color) tw:pt-4 tw:[&_a]:inline-flex tw:[&_a]:items-center tw:[&_a]:gap-2 tw:[&_a]:min-h-[44px] tw:[&_a]:text-main tw:[&_a]:text-[.85rem]',
     'radar-editor': 'radar-editor tw:@container tw:text-main tw:[&_.btn]:min-h-[44px] tw:[&_:is(input,textarea,summary,button):focus-visible]:outline-solid tw:[&_:is(input,textarea,summary,button):focus-visible]:outline-2 tw:[&_:is(input,textarea,summary,button):focus-visible]:outline-accent tw:[&_:is(input,textarea,summary,button):focus-visible]:outline-offset-[3px]',
     'radar-editor__intro': 'radar-editor__intro tw:text-[.9rem] tw:leading-[1.7] tw:text-secondary tw:mt-0 tw:mx-0 tw:mb-4',

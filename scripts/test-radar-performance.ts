@@ -46,6 +46,7 @@ assert.equal(scoreRadarFunds([{...funds[0],extra:{}}],now,data).get('a')!.value,
 assert.equal(scoreRadarFunds([{...funds[0],extra:{comparison:{...funds[0].extra.comparison!,accumulation:false}}}],now,data).get('a')!.value,null);
 assert.equal(scoreRadarFunds(funds,now,{}).get('a')!.value,null,'No legacy aggregate fallback');
 validateDraft({...funds[0]},now);
+assert.throws(()=>validateDraft({...funds[0],extra:{comparison:{...funds[0].extra.comparison!,benchmarkIsin:funds[0].isin}}},now));
 assert.throws(()=>validateDraft({...funds[0],extra:{comparison:{...funds[0].extra.comparison!,method:'sortino',targetAnnualPct:undefined}}},now));
 assert.throws(()=>validateDraft({...funds[0],extra:{comparison:{...funds[0].extra.comparison!,benchmarkIsin:'invalid'}}},now));
 console.log('PASS: independent IR/Sortino/tracking/excess calculations, zero-risk cases, monthly coverage, dates, FX, stale histories, homogeneous peers, provisional grades and editorial validation.');

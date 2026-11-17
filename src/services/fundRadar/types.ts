@@ -49,6 +49,7 @@ export function validateDraft(draft:RadarDraft, now=new Date()):void {
         if(!['cash','index','active','sortino'].includes(comparison.method)||!/^[A-Z]{3}$/.test(comparison.currency)||typeof comparison.accumulation!=='boolean')throw new Error('Comprueba el método y la divisa de comparación.');
         if(comparison.method!=='sortino'&&(!comparison.benchmarkIsin||!validIsin(comparison.benchmarkIsin)))throw new Error('Selecciona un ISIN de referencia válido.');
         if(comparison.benchmarkIsin&&!validIsin(comparison.benchmarkIsin))throw new Error('ISIN de referencia no válido.');
+        if(comparison.method!=='sortino'&&comparison.benchmarkIsin===draft.isin)throw new Error('El fondo no puede ser su propia referencia.');
         if(comparison.method==='sortino'&&(comparison.targetAnnualPct==null||!Number.isFinite(comparison.targetAnnualPct)||comparison.targetAnnualPct<=-100||comparison.targetAnnualPct>100))throw new Error('Indica un objetivo anual entre −100 y 100 %.');
     }
     const allocations=draft.extra.allocation??[];

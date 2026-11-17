@@ -20,6 +20,7 @@ export function scoreRadarFunds(funds:RadarFund[],now=new Date(),evidence:Record
         if(!config.accumulation){score.reason='Se necesita un histórico de rentabilidad total; los precios sin dividendos no bastan.';continue;}
         if(!metrics.currency||metrics.currency!==config.currency){score.reason='Divisa de comparación sin verificar.';continue;}
         if(config.method!=='sortino'&&!config.benchmarkIsin){score.reason='Falta una referencia verificada.';continue;}
+        if(config.method!=='sortino'&&config.benchmarkIsin===fund.isin){score.reason='El fondo no puede ser su propia referencia.';continue;}
         if(config.method==='sortino'&&(config.targetAnnualPct==null||!Number.isFinite(config.targetAnnualPct)||config.targetAnnualPct<=-100)){score.reason='Falta un objetivo anual explícito para Sortino.';continue;}
         const history=evidence[fund.id];
         if(!history){score.reason='Histórico de comparación pendiente o no disponible.';continue;}

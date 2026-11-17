@@ -37,7 +37,11 @@ Se comparan exclusivamente fondos con igual categoría general, subcategoría Fi
 
 Se mantiene la transformación continua por mediana y MAD (`categoryScores`): 50 es el centro del grupo, no un aprobado. El suelo de dispersión de 0,5 se expresa en unidades del indicador: puntos porcentuales para monetarios/indexados y unidades de ratio para IR/Sortino. Su objetivo es evitar exagerar diferencias mínimas. Dos a cuatro fondos producen nota provisional; uno no tiene nota. No comparar notas entre grupos. Los filtros no cambian los grupos ni los cálculos.
 
-Una nota no mide todos los riesgos: crédito, liquidez y duración deben revisarse por separado. Hasta configurar las referencias y disponer de histórico suficiente, las fichas existentes muestran la razón de no disponibilidad en vez de conservar una puntuación aparente.
+Una nota no mide todos los riesgos: crédito, liquidez y duración deben revisarse por separado. Durante la transición, las fichas sin configuración avanzada pueden recibir una nota **provisional basada exclusivamente en el Sharpe a tres años publicado por Finect**. Se exigen ventana, divisa, fecha válida no futura y antigüedad máxima de 90 días. No se reconstruye Sharpe desde retorno/volatilidad ni se confía en métricas manuales antiguas.
+
+Estas notas se calculan por categoría general, divisa y mes, con al menos dos fondos; se marcan siempre provisionales, incluso con cinco o más fondos, porque pueden agrupar perfiles distintos. No se mezclan sus grupos con métodos avanzados ni se presentan como IR, Sortino o Treynor. El método y la fecha aparecen en la ficha. Una configuración avanzada explícita tiene prioridad y nunca se sustituye silenciosamente si su histórico falla.
+
+Esta política restablece la consulta normal del catálogo sin obligar al lector a editar fichas o esperar otro batch. No completa ni da por verificadas las referencias avanzadas. Los fondos sin métricas publicadas recientes o sin comparables mantienen un motivo explícito de no disponibilidad.
 
 ## Verificación
 

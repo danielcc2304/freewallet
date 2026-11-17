@@ -78,7 +78,7 @@ export function AssetDetail({ asset, portfolioValue = 0, marketOnly = false, pos
     const [fundamentalRetry, setFundamentalRetry] = useState(0);
     const [quote, setQuote] = useState<Partial<StockQuote> | null>(null);
     const [chartData, setChartData] = useState<HistoricalDataPoint[]>([]);
-    const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('1M');
+    const [selectedPeriod, setSelectedPeriod] = useState<TimePeriod>('YTD');
     const [fundData, setFundData] = useState<FinectFundRelevance | null>(null);
     const [chartSelection, setChartSelection] = useState<ChartSelection | null>(null);
     const [isSelecting, setIsSelecting] = useState(false);

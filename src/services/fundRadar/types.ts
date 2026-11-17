@@ -7,6 +7,7 @@ export type RadarMetrics = Partial<Record<MetricKey, number | null>> & {
     window?: '3y' | null;
 };
 export interface RadarExtra {
+    comparison?: { method: 'cash' | 'index' | 'active' | 'sortino'; benchmarkIsin?: string; currency: string; accumulation: boolean; targetAnnualPct?: number };
     aum?: string; duration?: number; rating?: string; yieldToMaturity?: number; minInvestment?: string;
     allocation?: {label:string;value:number}[];
 }
@@ -43,6 +44,14 @@ export function validateDraft(draft:RadarDraft, now=new Date()):void {
     for(const d of Object.values(m.dates??{}))if(d&&(!/^\d{4}-\d{2}-\d{2}$/.test(d)||!Number.isFinite(Date.parse(d))||new Date(d).toISOString().slice(0,10)!==d||d>now.toISOString().slice(0,10)))throw new Error('La fecha de los datos no puede ser inválida o futura.');
     for(const key of ['aum','minInvestment','rating'] as const)if(draft.extra[key]&&draft.extra[key]!.length>(key==='rating'?40:200))throw new Error('Un dato de referencia supera el límite.');
     for(const [key,min,max] of [['duration',0,100],['yieldToMaturity',-100,1000]] as const){const n=draft.extra[key];if(n!=null&&(!Number.isFinite(n)||n<min||n>max))throw new Error('Comprueba la duración o la TIR de referencia.');}
+    const comparison=draft.extra.comparison;
+    if(comparison){
+        if(!['cash','index','active','sortino'].includes(comparison.method)||!/^[A-Z]{3}$/.test(comparison.currency)||typeof comparison.accumulation!=='boolean')throw new Error('Comprueba el método y la divisa de comparación.');
+        if(comparison.method!=='sortino'&&(!comparison.benchmarkIsin||!validIsin(comparison.benchmarkIsin)))throw new Error('Selecciona un ISIN de referencia válido.');
+        if(comparison.benchmarkIsin&&!validIsin(comparison.benchmarkIsin))throw new Error('ISIN de referencia no válido.');
+        if(comparison.method!=='sortino'&&comparison.benchmarkIsin===draft.isin)throw new Error('El fondo no puede ser su propia referencia.');
+        if(comparison.method==='sortino'&&(comparison.targetAnnualPct==null||!Number.isFinite(comparison.targetAnnualPct)||comparison.targetAnnualPct<=-100||comparison.targetAnnualPct>100))throw new Error('Indica un objetivo anual entre −100 y 100 %.');
+    }
     const allocations=draft.extra.allocation??[];
     if(allocations.length>30||allocations.some(a=>!a.label.trim()||a.label.length>80||!Number.isFinite(a.value)||a.value<0||a.value>100)||allocations.reduce((s,a)=>s+a.value,0)>100.01)throw new Error('Comprueba el desglose: nombres, porcentajes y suma máxima del 100 %.');
 }

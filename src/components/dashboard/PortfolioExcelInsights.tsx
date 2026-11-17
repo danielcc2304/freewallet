@@ -144,6 +144,7 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
         .filter(isin => !Object.prototype.hasOwnProperty.call(fundAllocationsByIsin, isin));
     const benchmarkClassificationPending = tab === 'benchmark' && benchmarkMode === 'allocation'
         && apiEnabled && pendingFundIsins.length > 0;
+    const benchmarkBusy = tab === 'benchmark' && apiEnabled && (loadingBenchmark || benchmarkClassificationPending);
 
     useEffect(() => {
         if (tab !== 'benchmark' || !apiEnabled) return;
@@ -459,8 +460,8 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                     }))}
                 />
 
-                {(changingPanel||(tab==='benchmark'&&apiEnabled&&loadingBenchmark))&&<HistoricalStatus role="status" appearance="loading" icon={<LoaderCircle size={16} aria-hidden="true" />}>{changingPanel?'Cargando análisis…':'Consultando histórico del benchmark…'}</HistoricalStatus>}
-                <div role="tabpanel" id={`${tabId}-panel`} aria-labelledby={`${tabId}-${tab}`} aria-busy={changingPanel||(tab==='benchmark'&&apiEnabled&&loadingBenchmark)}>
+                {(changingPanel||benchmarkBusy)&&<HistoricalStatus role="status" appearance="loading" icon={<LoaderCircle size={16} aria-hidden="true" />}>{changingPanel?'Cargando análisis…':benchmarkClassificationPending?'Calculando benchmark según tu cartera…':'Consultando histórico del benchmark…'}</HistoricalStatus>}
+                <div role="tabpanel" id={`${tabId}-panel`} aria-labelledby={`${tabId}-${tab}`} aria-busy={changingPanel||benchmarkBusy}>
                 {tab === 'evolution' && (
                         <DashboardPanel className="portfolio-excel-insights__panel"><HistoricalPanelHeading title={<><CalendarClock size={16} /> Evolución registrada de la cartera</>} description={<>{['1D', '7D', '1M'].includes(evolutionPeriod)
                                     ? 'Valoraciones disponibles del periodo.'
@@ -519,12 +520,12 @@ export function PortfolioExcelInsights({ now, analytics, period: evolutionPeriod
                             {hasPortfolioBenchmark && <PortfolioPresentation appearance="portfolio-excel-insights__comparison-dates" as="p" >
                                 {benchmarkPartial ? 'Benchmark' : 'Comparación'} del {formatChartDate(benchmarkLine[0].date)} al {formatChartDate(benchmarkLine.at(-1)!.date)}
                             </PortfolioPresentation>}
-                            {benchmarkPartial && <PortfolioPresentation appearance="portfolio-excel-insights__chart-note" as="p" role="status">
+                            {!benchmarkBusy && benchmarkPartial && <PortfolioPresentation appearance="portfolio-excel-insights__chart-note" as="p" role="status">
                                 {benchmarkHasPeriodBase
                                     ? comparison ? `Tu cartera incluye el último dato. La diferencia se calcula hasta ${formatChartDate(comparison.endDate)}.` : 'Tu cartera incluye el último dato. No hay fechas comparables suficientes para calcular la diferencia.'
                                     : 'Falta el cierre inicial del benchmark para comparar este periodo. La gráfica muestra tu cartera.'}
                             </PortfolioPresentation>}
-                            {!hasPortfolioBenchmark && !benchmarkClassificationPending && !loadingBenchmark && <PortfolioPresentation appearance="portfolio-excel-insights__chart-note" as="p" role="status">Benchmark sin histórico suficiente para este periodo.</PortfolioPresentation>}
+                            {!hasPortfolioBenchmark && !benchmarkBusy && <PortfolioPresentation appearance="portfolio-excel-insights__chart-note" as="p" role="status">Benchmark sin histórico suficiente para este periodo.</PortfolioPresentation>}
                             {['3M', 'YTD', 'ALL'].includes(evolutionPeriod) && <PortfolioPresentation appearance="portfolio-excel-insights__chart-note" as="p" >
                                 Cierres mensuales · mes en curso provisional.
                                 {benchmarkChart.at(-1)?.date.slice(0, 10) !== selectedPeriod.performance.endDate?.slice(0, 10)

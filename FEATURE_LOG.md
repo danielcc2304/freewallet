@@ -12,7 +12,7 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
-### 2026-11-17 - Radar: métricas adaptadas a la estrategia
+### 2026-11-17 - v7.1.4 - Radar: métricas adaptadas a la estrategia
 - Funcionalidad:
   - Métodos editoriales para monetarios, indexados, renta variable activa y Sortino con objetivo explícito para renta fija/mixtos.
   - Comparación mediante históricos mensuales alineados, con referencia y divisa verificadas; notas limitadas a grupos homogéneos y avisos de datos insuficientes.

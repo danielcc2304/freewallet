@@ -12,6 +12,28 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-11-17 - Radar: continuidad de las notas del catálogo existente
+- Funcionalidad:
+  - Las fichas sin referencia avanzada pueden mostrar una nota de transición basada en el Sharpe a tres años publicado por Finect, identificada siempre como provisional.
+- Resumen:
+  - No exige editar las fichas para consultar el catálogo ni inventa referencias, objetivos o ratios avanzados. Excluye métricas antiguas, sin fecha, de otra ventana o sin divisa.
+  - Conserva la prioridad de los métodos avanzados configurados. No mezcla sus grupos con la transición y explica cuándo falta un comparable.
+- Archivos:
+  - src/services/funds/fundScoring.ts, src/components/academy/simulators/FundRadar.tsx.
+  - scripts/test-radar-transition.ts, scripts/test-fund-radar-ui.ts, docs/radar-scoring.md.
+
+### 2026-11-17 - v7.1.4 - Radar: métricas adaptadas a la estrategia
+- Funcionalidad:
+  - Métodos editoriales para monetarios, indexados, renta variable activa y Sortino con objetivo explícito para renta fija/mixtos.
+  - Comparación mediante históricos mensuales alineados, con referencia y divisa verificadas; notas limitadas a grupos homogéneos y avisos de datos insuficientes.
+- Resumen:
+  - Retira la división genérica rentabilidad/volatilidad como puntuación. No se inventan referencias ni se conservan notas sin evidencia.
+  - Añade configuración editorial, consulta acotada de históricos y explicación actualizada. Las fichas sin configuración quedan pendientes de asignar método/referencia.
+- Archivos:
+  - src/services/funds/radarPerformance.ts, fundScoring.ts, src/hooks/useRadarScores.ts.
+  - src/components/academy/simulators/FundRadar*.tsx, src/services/fundRadar/types.ts.
+  - scripts/test-radar-performance.ts, test-fund-radar*.ts, docs/radar-scoring.md.
+
 ### 2026-11-05 - Radar: clasificación visual y ampliación editorial
 - Funcionalidad:
   - Orden por nota dentro de cada categoría, podio visual y volatilidad junto al retorno a tres años.

@@ -11,7 +11,7 @@ const preview = smoke && only === 'test-tailwind-modules-ui.ts' && process.env.F
 const output = resolve('test-results', (smoke ? 'smoke' : 'unit') + (only ? '-focused' : ''));
 mkdirSync(output, { recursive: true });
 const smokeTests = [
-    'test-tailwind-foundation-ui.ts',
+    'test-tailwind-foundation-ui.ts', 'test-benchmark-loading-ui.ts',
     'test-mfa-disable-ui.ts', 'test-academy-account-polish.ts',
     'test-account-feedback.ts',
     'test-application-audit-ui.ts', 'test-account-usernames-ui.ts',

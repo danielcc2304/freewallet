@@ -24,6 +24,13 @@ export function extendImportedBenchmark(imported: AccumulatedBenchmarkPoint[], h
  * endpoint when its benchmark is missing. Short ranges keep daily observations. */
 export function benchmarkChartCadence<T extends { date: string; benchmark?: number | null }>(points: T[], period: TimePeriod): T[] {
     if (['1D', '7D', '1M'].includes(period) || points.length < 2) return points;
+    if(period==='3M'){
+        const weekly=new Map<string,T>();
+        points.slice(1).forEach(p=>{const day=new Date(accountingDay(p.date)+'T00:00:00Z');day.setUTCDate(day.getUTCDate()-((day.getUTCDay()+6)%7));const key=day.toISOString().slice(0,10),previous=weekly.get(key);if(!previous||p.benchmark!=null||previous.benchmark==null)weekly.set(key,p);});
+        const sampled=[points[0],...weekly.values()],latest=points.at(-1)!;
+        if(sampled.at(-1)!==latest)sampled.push(latest);
+        return sampled;
+    }
     const monthly = new Map<string, T>();
     points.slice(1).forEach(p => {
         const month = accountingDay(p.date).slice(0, 7);
@@ -85,4 +92,24 @@ export function evolutionChartCadence<T extends { date: string }>(points: T[], p
     // A partial first month needs its endpoint as well as the exact period base.
     const sampled = [...months.values()];
     return [points[0], ...sampled];
+}
+
+/** Actual NAV observations only. No interpolation, extrapolation or portfolio returns.
+ * A real close within four days of cutoff accommodates non-trading days. */
+export function benchmarkNavSeries(history: HistoricalDataPoint[], cutoff: number | null, end: number, period?: TimePeriod) {
+    const byDay=new Map<string,HistoricalDataPoint>();
+    for(const p of history){const date=accountingDay(p.timestamp??p.date);if(date&&Number.isFinite(p.close)&&p.close>0&&Date.parse(date)<=end&&(p.timestamp==null||p.timestamp<=end)&&(!p.currency||p.currency==='EUR'))byDay.set(date,p);}
+    const points=[...byDay.entries()].sort(([a],[b])=>a.localeCompare(b));
+    if(period==='1D'){
+        const recent=points.slice(-2);
+        if(recent.length<2||end-Date.parse(recent[1][0])>4*86400000||Date.parse(recent[1][0])-Date.parse(recent[0][0])>4*86400000)return [];
+        return recent.map(([date,p])=>({date,timestamp:Date.parse(date),portfolio:null as number|null,benchmark:(p.close/recent[0][1].close-1)*100}));
+    }
+    const previous=cutoff===null?points[0]:points.filter(([day])=>Date.parse(day)<=cutoff).at(-1);
+    const following=cutoff===null?undefined:points.find(([day])=>Date.parse(day)>cutoff);
+    const base=cutoff===null?previous:previous&&cutoff-Date.parse(previous[0])<=4*86400000?previous:following&&Date.parse(following[0])-cutoff<=4*86400000?following:undefined;
+    if(!base)return [];
+    const selected=points.filter(([day])=>day>=base[0]);
+    if(selected.length<2)return [];
+    return selected.map(([date,p])=>({date,timestamp:Date.parse(date),portfolio:null as number|null,benchmark:(p.close/base[1].close-1)*100}));
 }

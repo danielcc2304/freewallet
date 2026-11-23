@@ -1,0 +1,15 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { APP_VERSION } from '../src/constants/app';
+const log=readFileSync('FEATURE_LOG.md','utf8');
+const recent=log.split('### 2026-10-27 - v7.0.2')[0];
+const headings=recent.split('\n').filter(line=>line.startsWith('### '));
+assert.ok(headings.length>0);
+for(const heading of headings)assert.match(heading,/^### \d{4}-\d{2}-\d{2} - v\d+\.\d+\.\d+ - /,'Published recent cards must carry a version');
+const versions=headings.map(h=>h.match(/ - (v\d+\.\d+\.\d+) - /)![1]);
+assert.equal(new Set(versions).size,versions.length,'One card per recent version');
+assert.equal(versions[0],`v${APP_VERSION}`);
+assert.match(headings[0],/v7\.1\.5 - Benchmark/);
+assert.equal(versions.filter(v=>v==='v7.1.4').length,1);
+for(const path of ['package.json','package-lock.json'])assert.equal(JSON.parse(readFileSync(path,'utf8')).version,APP_VERSION);
+console.log('PASS: recent release cards are versioned, grouped, latest matches app/package versions.');

@@ -1,8 +1,9 @@
 name: Application quality
 on:
   pull_request:
+    branches: [release, master]
   push:
-    branches: [dev, release, master]
+    branches: [release, master]
   workflow_dispatch:
 permissions:
   contents: read
@@ -11,18 +12,19 @@ concurrency:
   cancel-in-progress: true
 jobs:
   core:
+    if: github.ref_name != 'dev' && github.base_ref != 'dev'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Keep production hotfixes in dev and release
-        if: github.ref_name == 'dev' || github.ref_name == 'release' || github.base_ref == 'dev' || github.base_ref == 'release'
+      - name: Keep production hotfixes in release
+        if: github.ref_name == 'release' || github.base_ref == 'release'
         run: |
           git fetch origin master
           git merge-base --is-ancestor origin/master HEAD || {
-            echo 'Integrate the current master hotfixes before promoting dev/release.'
+            echo 'Integrate the current master hotfixes before promoting release.'
             exit 1
           }
       - uses: actions/setup-node@v4
@@ -50,6 +52,7 @@ jobs:
           path: test-results
           retention-days: 7
   browser:
+    if: github.ref_name != 'dev' && github.base_ref != 'dev'
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -67,6 +70,7 @@ jobs:
           path: test-results
           retention-days: 7
   module-styles:
+    if: github.ref_name != 'dev' && github.base_ref != 'dev'
     runs-on: ubuntu-latest
     timeout-minutes: 25
     steps:
@@ -90,7 +94,7 @@ jobs:
           retention-days: 7
   verify:
     needs: [core, browser, module-styles]
-    if: always()
+    if: always() && github.ref_name != 'dev' && github.base_ref != 'dev'
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:

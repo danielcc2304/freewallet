@@ -12,6 +12,18 @@ Registro operativo de funcionalidades implementadas en el proyecto.
 
 ## Entradas
 
+### 2026-11-23 - Benchmark: carga centrada y periodos cortos
+- Funcionalidad:
+  - Centra el indicador de cálculo en el área del gráfico y oculta las series mientras se carga, con estados accesibles y adaptación a movimiento reducido.
+  - Mantiene los NAV diarios en los periodos cortos y muestra cierres semanales en 3M; YTD y Todo conservan la vista mensual.
+- Resumen:
+  - La falta de una base verificable de la cartera ya no oculta un histórico válido del benchmark: se muestra por separado, con fechas explícitas y sin diferencia comparable.
+  - Añade observaciones reales intermedias cuando conservan la base de comparación. No interpola precios ni inventa rentabilidad de la cartera.
+  - En 1D permite mostrar el último intervalo real disponible durante fines de semana, con controles de antigüedad.
+- Archivos:
+  - src/components/dashboard/PortfolioExcelInsights.tsx, ui/BenchmarkChartFrame.tsx, src/services/benchmarkComparison.ts.
+  - scripts/test-benchmark-short-chart.ts, test-benchmark-loading-ui.ts, run-tests.mjs.
+
 ### 2026-11-17 - Radar: continuidad de las notas del catálogo existente
 - Funcionalidad:
   - Las fichas sin referencia avanzada pueden mostrar una nota de transición basada en el Sharpe a tres años publicado por Finect, identificada siempre como provisional.
